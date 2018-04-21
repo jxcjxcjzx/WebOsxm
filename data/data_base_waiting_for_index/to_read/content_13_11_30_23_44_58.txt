@@ -1,0 +1,63 @@
+Hibraincol
+
+快乐代码！
+
+随笔- 40  文章- 0  评论- 64  博客园  首页  新随笔  新文章  联系  管理  订阅 
+Android Activity 生命周期的透彻理解 
+     说来惭愧，虽然已经做了一年多的android开发，但是最近被人问起activity的生命周期的时候，却感觉自己并不能很自信很确定的回答对方的问题，对activity的生命周期的理解还不透彻啊。
+     既然发现了问题，那咱就得解决问题，不就个生命周期，能有多复杂。
+
+
+     首先看看android developers 网上的activity的生命周期图：
+
+      activity启动的时候：onCreate ---> onStart ---> onResume 这个过程不用多说，大家都知道。
+这里主要讲讲: 何时onPause, 何时onStop，何时onDestory； 以及恢复的时候，何时onRestart，何时onResume。
+为了方便说明这里把当前activity称为MainActivity，其他的activity称为SecondActivity、ThirdActivity等等。
+通过上图的我们可以看出activity从running状态跳转到onPause状态的原因是：Another activity comes into the foreground. 也就是说有另外一个actvity被启动并运行了，比如说MainActivity通过startActivity启动了SecondActivity，那么SecondActivity就在ui视图的最顶层了，而MainActivity不再是最顶层的activity了，此时就会onPause了，此时我们依稀还能看到MainActivity，只是MainActivity已经站在他人之后了。
+
+
+    而当MainActivity完全被SecondActivity挡住，完全看不见的时候，此时MainActivity就会onStop了。我们看看上图从onPause到onStop的原因是：the activity is no longer visiable. 也就是说此时MainActivity完全不可见了，从这里我们可以猜测当按下home键的时候，当前activity就会处于onStop的状态。
+从actvitiy的生命周期图中，我们可以看出activity是可以停留在onPause和onStop在这两个状态上的，因为可以相应的恢复。
+
+ 
+
+那么何时停留在onPause，何时停留在onStop呢？
+
+
+下图的MainActivity就是处于onPause状态：
+
+
+
+
+
+因为这里的second actvity是dialog样式：
+<activity android:name=".SecondActivity" android:theme="@android:style/Theme.Dialog">
+也就验证了当MainActivity不再在最顶端，但仍然可见的时候，MainActivity就处于onPause状态，此时如果退出（back键）second activity，那么MainActivity就会onResume。
+
+
+下图的MainActivity就是处于onStop状态（注意，这里的third activity 是在 MainActivity中通过startActivity启动的）：
+
+ 
+
+
+
+
+因为此时MainActivity已经完完全全被Thrid actvity挡住了，完全不可见了，所以MainActivity处于onStop状态，如果此时退出Thrid activity（back键），那么MainActivity就会onRestart().
+
+
+何时onDestory呢?
+当在MainActivity中按back键，退出时，最终就会走到onDestory，或者在代码中调用finish()的时候也会走到onDestroy这一步。
+
+ 
+
+
+对于activity生命周期图的左侧部分：
+
+
+
+当MainActivity处于onPause和onStop状态时，当更高优先级的apps需要内存，而此时系统内存不够了，那么android系统就会将MainActivity所在的进程给杀了以释放资源。
+当然被杀了之后，想重生，那必须得从头来过: onCreate ---> onStart() ---> onResume().
+
+ posted on 2012-03-06 16:13 Braincol 阅读(...) 评论(...) 编辑 收藏
+刷新评论刷新页面返回顶部
+博客园首页博问新闻闪存程序员招聘知识库公告Copyright ©2013 Braincol

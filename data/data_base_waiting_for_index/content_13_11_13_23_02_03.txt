@@ -1,0 +1,289 @@
+
+
+
+
+清风小阁
+
+于小阁，守望星空。
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+IT俱乐部创始人杜鸿飞专访       MDCC2013中国移动开发者大会社区赠票申请      Tag功能介绍—我们为什么打Tag      “说说家乡的互联网”主题有奖征文      订阅CSDN社区周刊，及时了解社区精华内容 
+
+
+
+【C++11】新特性——auto的使用 
+.
+ 分类： [C++]2013-04-06 06:39842人阅读评论(0)收藏举报
+
+    C++11中引入的auto主要有两种用途：自动类型推断和返回值占位。auto在C++98中的标识临时变量的语义，由于使用极少且多余，在C++11中已被删除。前后两个标准的auto，完全是两个概念。
+ 
+1. 自动类型推断
+     auto自动类型推断，用于从初始化表达式中推断出变量的数据类型。通过auto的自动类型推断，可以大大简化我们的编程工作。下面是一些使用auto的例子。
+ #include <vector>
+#include <map>
+
+using namespace std;
+
+int main(int argc, char *argv[], char *env[])
+{
+// 	auto a;                 // 错误，没有初始化表达式，无法推断出a的类型
+// 	auto int a = 10;        // 错误，auto临时变量的语义在C++11中已不存在, 这是旧标准的用法。
+
+	// 1. 自动帮助推导类型
+	auto a = 10;
+	auto c = 'A';
+	auto s("hello");
+
+	// 2. 类型冗长
+	map<int, map<int,int> > map_;
+	map<int, map<int,int>>::const_iterator itr1 = map_.begin();
+	const auto itr2 = map_.begin();
+	auto ptr = []()
+	{
+		std::cout << "hello world" << std::endl;
+	};
+
+	return 0;
+};
+
+// 3. 使用模板技术时，如果某个变量的类型依赖于模板参数，
+// 不使用auto将很难确定变量的类型（使用auto后，将由编译器自动进行确定）。
+template <class T, class U>
+void Multiply(T t, U u)
+{
+    auto v = t * u;
+}
+ 
+2. 返回值占位
+ 
+
+template <typename T1, typename T2>
+auto compose(T1 t1, T2 t2) -> decltype(t1 + t2)
+{
+   return t1+t2;
+}
+auto v = compose(2, 3.14); // v's type is double 
+
+3.使用注意事项
+ ①我们可以使用valatile，pointer（*），reference（&），rvalue reference（&&） 来修饰auto
+ auto k = 5;
+auto* pK = new auto(k);
+auto** ppK = new auto(&k);
+const auto n = 6;②用auto声明的变量必须初始化
+ auto m; // m should be intialized   ③auto不能与其他类型组合连用
+ auto int p; // 这是旧auto的做法。④函数和模板参数不能被声明为auto
+ void MyFunction(auto parameter){} // no auto as method argument
+
+template<auto T> // utter nonsense - not allowed
+void Fun(T t){}⑤定义在堆上的变量，使用了auto的表达式必须被初始化
+ int* p = new auto(0); //fine
+int* pp = new auto(); // should be initialized
+ 
+auto x = new auto(); // Hmmm ... no intializer
+   
+auto* y = new auto(9); // Fine. Here y is a int*
+auto z = new auto(9); //Fine. Here z is a int* (It is not just an int)⑥以为auto是一个占位符，并不是一个他自己的类型，因此不能用于类型转换或其他一些操作，如sizeof和typeid
+ int value = 123;
+auto x2 = (auto)value; // no casting using auto
+
+auto x3 = static_cast<auto>(value); // same as above  ⑦定义在一个auto序列的变量必须始终推导成同一类型
+ auto x1 = 5, x2 = 5.0, x3='r';  // This is too much....we cannot combine like this⑧auto不能自动推导成CV-qualifiers（constant & volatile qualifiers），除非被声明为引用类型
+ const int i = 99;
+auto j = i;       // j is int, rather than const int
+j = 100           // Fine. As j is not constant
+
+// Now let us try to have reference
+auto& k = i;      // Now k is const int&
+k = 100;          // Error. k is constant
+
+// Similarly with volatile qualifer⑨auto会退化成指向数组的指针，除非被声明为引用
+ int a[9];
+auto j = a;
+cout<<typeid(j).name()<<endl; // This will print int*
+
+auto& k = a;
+cout<<typeid(k).name()<<endl; // This will print int [9]
+ 
+
+
+
+上一篇：【Boost】Boost总结汇总
+下一篇：【C++11】新特性——引入nullprt
+ .
+顶0踩0. 
+
+
+查看评论
+ 
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+个人资料 
+
+huang_xw 
+
+
+
+
+访问：394125次
+积分：7700分
+排名：第474名
+ . 原创：348篇
+转载：179篇
+译文：1篇
+评论：124条
+ . 
+文章搜索
+
+. 
+文章分类 [路过人间](38) 
+[WEB](17) 
+[JavaScript](10) 
+[CSS](15) 
+[delphi](14) 
+[JAVA](27) 
+[JAVA]--[网络编程](13) 
+[JAVA]--[并发编程](21) 
+[JAVA]--[源码赏析](0) 
+[JAVA]--[设计模式](3) 
+[C++](52) 
+[C++]--[STL](36) 
+[C++]--[Boost](50) 
+[C++]--[MFC](4) 
+[C++]--[并发编程](17) 
+[C++]--[Error](14) 
+[C++]--[Poco](16) 
+[C++]--[Dom](3) 
+[Linux]--[系统管理](38) 
+[Linux]--[命令](8) 
+[数据库设计](9) 
+[MySQL](9) 
+[oracle]--[管理](57) 
+[oracle]--[PL/SQL](14) 
+[oracle]--[存储结构](19) 
+[oracle]--[调优](8) 
+[oracle]--[备份与恢复](9) 
+[oracle]--[用户与安全](6) 
+[oracle]--[Error](23) 
+[oracle]--[实验](14) 
+[C#与dot net](15) 
+[其他](6) 
+
+文章存档 
+2013年10月(15).
+2013年09月(4).
+2013年08月(5).
+2013年07月(5).
+2013年06月(1).
+2013年05月(6).
+2013年04月(4).
+2013年03月(14).
+2013年02月(19).
+2013年01月(25).
+2012年12月(40).
+2012年11月(44).
+2012年10月(14).
+2012年09月(33).
+2012年08月(19).
+2012年07月(4).
+2012年06月(26).
+2012年05月(17).
+2012年04月(15).
+2012年03月(37).
+2012年02月(16).
+2012年01月(4).
+2011年12月(21).
+2011年11月(20).
+2011年10月(8).
+2011年09月(2).
+2011年08月(2).
+2011年06月(19).
+2011年05月(16).
+2011年03月(15).
+2011年02月(19).
+2010年12月(2).
+2010年08月(8).
+2010年07月(5).
+2010年06月(1).
+2009年08月(4).
+2009年07月(1).
+2009年05月(5).
+2009年04月(6).
+2009年02月(5).
+2009年01月(1).
+ . 
+阅读排行 Java多线程之Lock的使用(7246) 
+搜索百度云资源的一点小技巧(7159) 
+在redhat9中安装gcc(5537) 
+IT牛人博客(5365) 
+oracle impdp的table_exists_action详解(4832) 
+实验: Oracle修改默认表空间和默认临时表空间(4172) 
+详解Oracle的unlimited tablespace系统权限(4088) 
+java读取某目录下所有文件名(3915) 
+解决Tomcat catalina.out 不断成长导致档案过大的问题(3765) 
+随书光盘免费下载的好地方(3043) 
+
+评论排行 VS2010检测到"_ITERATOR_DEBUG_LEVEL"的不匹配项(8) 
+oracle中PCTFREE, PCTUSED, INITRANS, MAXTRANX参数(6) 
+OCX调用页面上JavaScript的方法(解决FEvents=nil的问题)(6) 
+Eclipse下安装Aptana Studio 1.2.7插件(5) 
+SOCI的编译注意事项（通过oracle, mysql, sqlite, boost）(5) 
+Oracle 用户、角色、权限（系统权限、对象权限）的数据字典表(5) 
+warning C4018: “<”: 有符号/无符号不匹配(5) 
+详解Oracle的unlimited tablespace系统权限(4) 
+PRO*C安装简单笔记(4) 
+java读取某目录下所有文件名(4) 
+
+推荐文章 
+最新评论 SOCI的编译注意事项（通过oracle, mysql, sqlite, boost）
+huang_xw: @u011370506:你人配置要改，默认是不生成的。 
+
+SOCI的编译注意事项（通过oracle, mysql, sqlite, boost）
+u011370506: 我想问下soci_oracle.dll怎么获得，之前用cmake没生成过这个啊 
+
+java工厂模式——简单工厂模式
+qhs1573: 举例通俗易懂很有说服力，谢谢楼主分享，一天学习一个好好把这几个例子个学习下。 
+
+qedit.h中dxtrans.h找不到错误解决方法
+LTZJ2009: 试了不行，还会报错 
+
+重装oracle后没有orainstRoot.sh
+shuxiang850129: 谢谢分享，的确是这个原因 
+
+java IO操作:转换流--OutputStreamWriter类与InputStreamReader类
+huang_xw: @yunwaiyuan:谢谢指正，马上改。 
+
+java IO操作:转换流--OutputStreamWriter类与InputStreamReader类
+yunwaiyuan: 写得很好！不过红色字体中有个笔误，有两个的“字符流”应该是字节流 
+
+warning C4018: “<”: 有符号/无符号不匹配
+chendongk: 不能运行。 
+
+warning C4018: “<”: 有符号/无符号不匹配
+chendongk: //THE PROGRAM IS TO TEST THE SCREEN POINTER'S USIN... 
+
+warning C4018: “<”: 有符号/无符号不匹配
+huang_xw: @chendongk:怎么回事。 
+
+
+
+. 

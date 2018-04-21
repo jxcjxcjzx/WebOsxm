@@ -1,0 +1,134 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
+
+static class FileEngine
+{
+    static public ErrorReport GetFileInfo(FileInfo SelectFile, out string Directory, out  string FileName, out string FileExtension, out string FileSize)
+    {
+        ErrorReport report = new ErrorReport();
+        Directory = SelectFile.DirectoryName;
+        FileExtension = SelectFile.Extension;
+        FileName = SelectFile.Name;
+        if (FileName.LastIndexOf('.') != -1) FileName = FileName.Remove(FileName.LastIndexOf('.'));
+        FileSize = GetFileSize(SelectFile);
+        if (!SelectFile.Exists) { report.Message = "不存在此文件！"; report.IsError = true; return report; }
+        return report;
+    }
+    static public ErrorReport GetFileInfo(string FilePath, out string Directory, out  string FileName, out string FileExtension, out string FileSize)
+    {
+        FileInfo now = new FileInfo(FilePath);
+        ErrorReport report = GetFileInfo(now, out Directory, out FileName, out FileExtension, out FileSize);
+        return report;
+    }
+
+    static public string GetFileSize(double Length)
+    {
+        if (Length > 1048576 && Length < 1073741824) return string.Format("{0:F}MB", Length / 1048576);
+        else if (Length < 1048576 && Length > 1024) return string.Format("{0:F}KB", Length / 1024);
+        else if (Length < 1024) return string.Format("{0:F}B", Length);
+        else if (Length > 1073741824 && Length < 1099511627776) return string.Format("{0:F}GB", Length / 1073741824);
+        else return string.Format("{0:F}TB", Length / 1099511627776);
+    }
+    static public string GetFileSize(FileInfo SelectFile)
+    {
+        return GetFileSize(SelectFile.Length);
+    }
+
+    static public ErrorReport MoveTo(string OldName, string NewName, bool CheckName = false)
+    {
+        ErrorReport report = new ErrorReport();
+        try
+        {
+            if (!File.Exists(OldName)) { report.Message = "不存在此文件！"; report.IsError = true; return report; }
+            if (CheckName && File.Exists(NewName)) { report.Message = "已存在新名称文件！"; report.IsError = true; return report; }
+            string sp = " ~ ", destination = NewName, filename, fileext, tem, folder;
+            int num = 1;
+            GetFileInfo(NewName, out folder, out filename, out fileext, out tem);
+            while (File.Exists(destination))
+            {
+                destination = folder + "\\" + filename + sp + num + fileext;
+                num++;
+            }
+            File.Move(OldName, destination);
+            report.Message = "Move " + OldName + " To " + destination;
+            return report;
+        }
+        catch (Exception ex)
+        {
+            report.Message = ex.Message;
+            report.IsError = true;
+            return report;
+        }
+    }
+    static public ErrorReport MoveTo(FileInfo OldFile, string NewName, bool CheckName = false)
+    {
+        return MoveTo(OldFile.FullName, NewName + OldFile.Name, CheckName);
+    }
+    static public ErrorReport MoveTo(FileInfo OldFile, DirectoryInfo DestinationFolder, bool CheckName = false)
+    {
+        return MoveTo(OldFile.FullName, DestinationFolder.FullName + "\\" + OldFile.Name, CheckName);
+    }
+
+    static public ErrorReport Rename(string OldName, string NewName, bool CheckName = false)
+    {
+        return MoveTo(OldName, NewName, CheckName);
+    }
+    static public ErrorReport Rename(FileInfo OldFile, string NewName, bool CheckName = false)
+    {
+        return Rename(OldFile.FullName, NewName, CheckName);
+    }
+
+    static public List<FileInfo> GetAllFiles(DirectoryInfo Dic, string Filter, bool IsDeep = true)
+    {
+        if (!Dic.Exists) return null;
+        List<FileInfo> End = new List<FileInfo> { };
+        DirectoryInfo[] dic = Dic.GetDirectories();
+        End.AddRange(Dic.GetFiles(Filter));
+        if (IsDeep) foreach (DirectoryInfo now in dic) End.AddRange(GetAllFiles(now, Filter));
+        return End;
+    }
+    static public List<FileInfo> GetAllFiles(string DicPath, string Filter, bool IsDeep = true)
+    {
+        DirectoryInfo now = new DirectoryInfo(DicPath);
+        return GetAllFiles(now, Filter, IsDeep);
+    }
+
+    static public ErrorReport CopyTo(string OldName, string NewName, bool IsCover = false)
+    {
+        ErrorReport report = new ErrorReport();
+        try
+        {
+            if (!File.Exists(OldName)) { report.Message = "不存在此文件！"; report.IsError = true; return report; }
+            if (IsCover) { File.Copy(OldName, NewName, true); return report; }
+            string sp = " ~ ", destination = NewName, filename, fileext, tem, folder;
+            int num = 1;
+            GetFileInfo(NewName, out folder, out filename, out fileext, out tem);
+            while (File.Exists(destination))
+            {
+                destination = folder + "\\" + filename + sp + num + fileext;
+                num++;
+            }
+            File.Copy(OldName, destination);
+            report.Message = "CopyTo " + OldName + " To " + destination;
+            return report;
+        }
+        catch (Exception ex)
+        {
+            report.Message = ex.Message;
+            report.IsError = true;
+            return report;
+        }
+    }
+    static public ErrorReport CopyTo(FileInfo OldFile, string NewName, bool IsCover = false)
+    {
+        return CopyTo(OldFile.FullName, NewName, IsCover);
+    }
+    static public ErrorReport CopyTo(FileInfo OldFile, DirectoryInfo DestinationFolder, bool IsCover = false)
+    {
+        return CopyTo(OldFile.FullName, DestinationFolder.FullName + "\\" + OldFile.Name, IsCover);
+    }
+}
+

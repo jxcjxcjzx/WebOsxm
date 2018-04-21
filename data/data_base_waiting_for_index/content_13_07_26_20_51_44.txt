@@ -1,0 +1,679 @@
+
+推荐：感受南国特色风光滋补美容金耳莲子羹× 登录注册
+汪洋的博客
+http://blog.sina.com.cn/u/2488411421 [订阅][手机订阅]
+首页博文目录图片关于我
+个人资料
+
+森林廊
+Qing  微博
+加好友发纸条
+写留言加关注
+博客等级：
+博客积分：172
+博客访问：2,969
+关注人气：1
+精彩图文
+
+
+相关博文
+私房飘香：卤味三拼好营养
+梅里日出金镀山峰
+告诉您国内第一款微信营销产品
+IT新看点
+联想智能电视之路能够走多远？
+杨孝文
+理想和现实的差距
+张栋伟
+鼓吹自媒体的人缺乏经济常识
+叶小舟
+腾讯联通合作让微信威胁论者闭
+陈永东
+电商别为价格战哭泣
+张书乐
+《武工队传奇》：抗日战争中的
+司马平邦
+洗手和干手一起完成的创意水龙
+TW极客社区
+这16种情况千万不要游泳
+养生堂
+袖珍电子书，（手机版）畅想进
+袁萌
+更多>>
+推荐博文
+诺基亚，低端神器热销的喜与悲
+东言东语
+手游市场的大热之后的抉择
+吴刚
+从互联网坏人谈到微信创业
+雄歌
+“去电信化”是一场全方位的变革
+沈拓2011
+我为什么看空苏宁
+赵国栋
+选秀2.0的互联网逻辑
+悟网不欢
+给竞争对手设置14个品类壁垒
+韩秀超云连品牌
+腾讯联通合作让微信威胁论者闭嘴
+陈永东
+比特币在中国掀起淘金潮
+黄锫坚
+“廉价”的中国式创新
+张书乐
+
+巨魔芋为什么稀奇
+
+俄罗斯沉船秘密探险
+
+美国沙漠绝美间歇泉
+
+团扇鳐宝宝的微笑
+
+退休老人健美比赛
+
+地球遭晚期重度轰炸
+查看更多>>
+谁看过这篇博文
+加载中…
+正文字体大小：大 中 小
+linux内核启动过程分析之内核启动 (2012-10-09 17:47:08)转载▼
+标签： it	分类： linux内核
+转自尘的日志
+linux/arch/arm/kernel/head.S是linux内核映像解压后执行的第一个文件。
+ 
+//PAGE_OFFSET = 0xc0000000; TEXT_OFFSET = 0x00008000;
+//PHYS_OFFSET = 0x30000000;
+#define KERNEL_RAM_VADDR (PAGE_OFFSET + TEXT_OFFSET)
+#define KERNEL_RAM_PADDR (PHYS_OFFSET + TEXT_OFFSET)
+ 
+.section ".text.head", "ax"
+ENTRY(stext)
+msr cpsr_c, #PSR_F_BIT | PSR_I_BIT | SVC_MODE  //禁止FIQ、IRQ，设定SVC模式
+ 
+mrc p15, 0, r9, c0, c0 @ 获取 processor id
+ 
+bl __lookup_processor_type @ r5=procinfo r9=cpuid
+movs r10, r5 @ invalid processor (r5=0)?
+//
+beq __error_p @ yes, error 'p'
+//查询machine ID并检查合法性
+bl __lookup_machine_type @ r5=machinfo
+movs r8, r5 @ invalid machine (r5=0)?
+beq __error_a @ yes, error 'a'
+bl __vet_atags  //检查bootloader传入的参数列表atags的合法性
+bl __create_page_tables  //创建初始页表
+ 
+ldr r13, __switch_data   //将列表__switch_data存到r13中后面会跳到该列表出
+adr lr, __enable_mmu //将程序段__enable_mmu的地址存到lr中。
+//此命令将导致程序段__arm920_setup的执行，后面会将到。
+//r10中存放的基地址是从__lookup_processor_type中得到的，如上面movs r10, r5
+   add pc, r10, #PROCINFO_INITFUNC 
+ENDPROC(stext)
+ 
+ 
+接下来将对上面遇到的几个程序段展开分析。
+__lookup_processor_type
+ 
+ 
+在讲解该程序段之前先来看一些相关知识。
+ 
+内核做支持的每一种CPU类型都由结构体proc_info_list 来描述。
+该结构体在文件arch/arm/include/asm/procinfo.h中定义：
+struct proc_info_list {
+unsigned int cpu_val;
+unsigned int cpu_mask;
+unsigned long __cpu_mm_mmu_flags;
+unsigned long __cpu_io_mmu_flags;
+unsigned long __cpu_flush;
+const char *arch_name;
+const char *elf_name;
+unsigned int elf_hwcap;
+const char *cpu_name;
+struct processor *proc;
+struct cpu_tlb_fns *tlb;
+struct cpu_user_fns *user;
+struct cpu_cache_fns *cache;
+};
+对于arm920来说，其对应结构体在文件 linux/arch/arm/mm/proc-arm920.S中
+初始化。
+.section ".proc.info.init", #alloc, #execinstr
+ 
+.type __arm920_proc_info,#object
+__arm920_proc_info:
+.long 0x41009200
+.long 0xff00fff0
+.long   PMD_TYPE_SECT | \
+PMD_SECT_BUFFERABLE | \
+PMD_SECT_CACHEABLE | \
+PMD_BIT4 | \
+PMD_SECT_AP_WRITE | \
+PMD_SECT_AP_READ
+.long   PMD_TYPE_SECT | \
+PMD_BIT4 | \
+PMD_SECT_AP_WRITE | \
+PMD_SECT_AP_READ
+b __arm920_setup
+………………………………
+.section ".proc.info.init"表明了该结构在编译后存放的位置。
+在链接文件arch/arm/kernel/vmlinux.lds中：
+SECTIONS
+{
+#ifdef CONFIG_XIP_KERNEL
+. = XIP_VIRT_ADDR(CONFIG_XIP_PHYS_ADDR);
+#else
+. = PAGE_OFFSET + TEXT_OFFSET;
+#endif
+.text.head : {
+_stext = .;
+_sinittext = .;
+*(.text.head)
+}
+ 
+.init : {
+INIT_TEXT
+_einittext = .;
+__proc_info_begin = .;
+*(.proc.info.init)
+__proc_info_end = .;
+__arch_info_begin = .;
+*(.arch.info.init)
+__arch_info_end = .;
+__tagtable_begin = .;
+*(.taglist.init)
+__tagtable_end = .;
+………………………………
+｝
+所有CPU类型对应的被初始化的proc_info_list结构体都放在__proc_info_begin
+和__proc_info_end之间。
+__lookup_processor_type:
+//r3存储的是标号3的物理地址（由于没有启用mmu，所以当前肯定是物理地址）
+adr r3, 3f
+//R5=__proc_info_begin，r6=__proc_info_end，r7=标号3处的虚拟地址。
+ldmda r3, {r5 - r7} 
+sub r3, r3, r7 //得到虚拟地址和物理地址之间的offset
+add r5, r5, r3 //利用offset，将r5和r6中保存的虚拟地址转变为物理地址
+add r6, r6, r3 @ physical address space
+1: ldmia r5, {r3, r4} //r3=cpu_val,r4= cpu_mask,
+and r4, r4, r9 //r9中存放的是先前读出的processor ID，此处屏蔽不需要的位。
+////查看代码和CPU硬件是否匹配（比如想在arm920t上运行为cortex-a8编译的内核？不让！）
+teq r3, r4 
+beq 2f  //如果匹配成功就返回
+//PROC_INFO_SZ (proc_info_list结构的长度，在这等于48)，跳到下一个proc_info_list处
+add r5, r5, #PROC_INFO_SZ 
+//判断是否已经到了结构体proc_info_list存放区域的末尾__proc_info_end，
+cmp r5, r6 
+blo 1b
+//如果没有匹配成功就将r5清零，如果匹配成功r5中放的是该CPU类型对应的结构体//proc_info_list的基地址。
+mov r5, #0
+2: mov pc, lr //子程序返回。
+ENDPROC(__lookup_processor_type)
+ 
+   .long __proc_info_begin
+   .long __proc_info_end
+3: .long .
+   .long __arch_info_begin
+   .long __arch_info_end
+ 
+ 
+ 
+ 
+__lookup_machine_type
+ 
+ 
+ 
+每一个CPU平台都可能有其不一样的结构体，描述这个平台的结构体是machine_desc。
+这个结构体在文件arch/arm/include/asm/mach/arch.h中定义：
+struct machine_desc {
+unsigned int nr;
+unsigned int phys_io;
+………………………………
+};
+对于平台smdk2410来说其对应machine_desc结构在文件
+linux/arch/arm/mach-s3c2410/mach-smdk2410.c中初始化：
+MACHINE_START(SMDK2410, "SMDK2410") 
+.phys_io = S3C2410_PA_UART,
+.io_pg_offst = (((u32)S3C24XX_VA_UART) >> 18) & 0xfffc,
+.boot_params = S3C2410_SDRAM_PA + 0x100,
+.map_io = smdk2410_map_io,
+.init_irq = s3c24xx_init_irq,
+.init_machine = smdk2410_init,
+.timer = &s3c24xx_timer,
+MACHINE_END
+对于宏MACHINE_START在文件arch/arm/include/asm/mach/arch.h中定义：
+#define MACHINE_START(_type,_name) \
+static const struct machine_desc __mach_desc_##_type \
+ __used \
+ __attribute__((__section__(".arch.info.init"))) = { \
+.nr = MACH_TYPE_##_type, \
+.name = _name,
+ 
+#define MACHINE_END \
+};
+ 
+__attribute__((__section__(".arch.info.init")))表明该结构体在并以后存放的位置。
+在链接文件链接脚本文件arch/arm/kernel/vmlinux.lds中
+SECTIONS
+{
+#ifdef CONFIG_XIP_KERNEL
+. = XIP_VIRT_ADDR(CONFIG_XIP_PHYS_ADDR);
+#else
+. = PAGE_OFFSET + TEXT_OFFSET;
+#endif
+.text.head : {
+_stext = .;
+_sinittext = .;
+*(.text.head)
+}
+ 
+.init : {
+INIT_TEXT
+_einittext = .;
+__proc_info_begin = .;
+*(.proc.info.init)
+__proc_info_end = .;
+__arch_info_begin = .;
+*(.arch.info.init)
+__arch_info_end = .;
+………………………………
+｝
+在__arch_info_begin和 __arch_info_end之间存放了linux内核所支持的所有平台对应的machine_desc结构体。
+ 
+ 
+   .long __proc_info_begin
+   .long __proc_info_end
+3: .long .
+   .long __arch_info_begin
+   .long __arch_info_end
+ 
+ 
+__lookup_machine_type:
+adr r3, 3b ////r3存储的是标号3的物理地址
+////R4=标号3处的虚拟地址，r5=__arch_info_begin，r6=__arch_info_end。
+ldmia r3, {r4, r5, r6}
+sub r3, r3, r4 @ get offset between virt&phys
+add r5, r5, r3 @ convert virt addresses to
+add r6, r6, r3 @ physical address space
+//读取machine_desc结构的nr参数，对于smdk2410来说该值是MACH_TYPE_SMDK2410。
+//这个值在文件linux/arch/arm/tools/mach-types中：
+//smdk2410 ARCH_SMDK2410 SMDK2410 193
+1: ldr r3, [r5, #MACHINFO_TYPE] @ get machine type
+teq r3, r1 //r1就是bootloader传递过来的机器码，就是上面的平台编号。
+beq 2f //如果匹配成功就返回
+add r5, r5, #SIZEOF_MACHINE_DESC//没匹配成功就跳到下一个结构体machine_desc
+cmp r5, r6
+blo 1b
+mov r5, #0 //如果匹配失败就将r5清零。
+2: mov pc, lr    //子程序返回。
+ENDPROC(__lookup_machine_type)
+ 
+ 
+__vet_atags //检查bootloader传入的参数列表atags的合法性
+ 
+ 
+关于参数链表：
+内核参数链表的格式和说明可以从内核源代码目录树中的 include/asm-arm/setup.h中
+找到，参数链表必须以ATAG_CORE 开始，以ATAG_NONE结束。这里的 ATAG_CORE，
+ATAG_NONE是各个参数的标记，本身是一个32位值，例如：ATAG_CORE=0x54410001。
+其它的参数标记还包括： ATAG_MEM32 ， ATAG_INITRD ， ATAG_RAMDISK ，
+ATAG_COMDLINE 等。每个参数标记就代表一个参数结构体，由各个参数结构体构成了参
+数链表。参数结构体的定义如下：  
+ struct tag {
+      struct  tag_header  hdr;
+      union {
+             struct tag_core  core;
+       struct tag_mem32   mem;
+          struct tag_videotext videotext;
+struct tag_ramdisk  ramdisk;
+struct tag_initrd     initrd;
+          struct tag_serialnr     serialnr;
+struct tag_revision  revision;
+          struct tag_videolfb  videolfb;
+          struct tag_cmdline  cmdline;
+ struct tag_acorn       acorn;
+struct tag_memclk    memclk;
+        } u;
+};
+ 
+参数结构体包括两个部分，一个是 tag_header结构体,一个是u联合体。
+tag_header结构体的定义如下： 
+   struct tag_header { 
+                 u32 size;   
+                 u32 tag; 
+}; 
+其中 size：表示整个 tag 结构体的大小(用字的个数来表示，而不是字节的个数)，等于
+tag_header的大小加上 u联合体的大小，例如，参数结构体 ATAG_CORE 的 
+size=(sizeof(tag->tag_header)+sizeof(tag->u.core))>>2，一般通过函数 tag_size(struct * tag_xxx)
+来获得每个参数结构体的 size。其中 tag：表示整个 tag 结构体的标记，如：ATAG_CORE
+等。 
+ 
+__vet_atags:
+tst r2, #0x3 //r2指向该参数链表的起始位置，此处判断它是否字对齐
+bne 1f
+ 
+ldr r5, [r2, #0] //获取第一个tag结构的size
+//#define ATAG_CORE_SIZE ((2*4 + 3*4) >> 2) 判断该tag的长度是否合法
+subs r5, r5, #ATAG_CORE_SIZE
+bne 1f
+ldr r5, [r2, #4]  //获取第一个tag结构体的标记，
+ldr r6, =ATAG_CORE 
+cmp r5, r6 //判断第一个tag结构体的标记是不是ATAG_CORE
+bne 1f  
+ 
+mov pc, lr //正常退出
+ 
+1: mov r2, #0
+mov pc, lr  //参数连表不正确
+ENDPROC(__vet_atags)
+ 
+ 
+ 
+__create_page_tables
+ 
+ 
+ 
+ 
+.macro pgtbl, rd
+ldr \rd, =(KERNEL_RAM_PADDR - 0x4000)
+.endm
+ 
+ 
+__create_page_tables:
+//r4 = 0x30004000这是转换表的物理基地址，最终将写入CP15的寄存器2，C2。
+//这个值必须是16K对齐的。
+pgtbl r4 
+//为内核代码存储区域创建页表，首先将内核起始地址-0x4000到内核起始地址之间的16K 
+ //存储器清0，将创建的页表存于此处。
+mov r0, r4
+mov r3, #0
+add r6, r0, #0x4000
+1: str r3, [r0], #4
+str r3, [r0], #4
+str r3, [r0], #4
+str r3, [r0], #4
+teq r0, r6
+bne 1b
+//从proc_info_list结构中获取字段__cpu_mm_mmu_flags，该字段包含了存储空间访问权限 
+//等。此处指令执行之后r7=0x00000c1e
+ldr r7, [r10, #PROCINFO_MM_MMUFLAGS] @ mm_mmuflags
+ 
+ 
+mov r6, pc, lsr #20 @ start of kernel section
+orr r3, r7, r6, lsl #20 @ flags + kernel base
+str r3, [r4, r6, lsl #2] //字对齐
+ 
+ 
+add r0, r4,  #(KERNEL_START & 0xff000000) >> 18  // r0 = 0x30007000
+str r3, [r0, #(KERNEL_START & 0x00f00000) >> 18]! // r0 存放的是转换表的起始位置
+ldr r6, =(KERNEL_END - 1) //获取内核的尾部虚拟地址存于r6中
+add r0, r0, #4 //第一个地址条目存放在0x30007004处，以后一次递增
+add r6, r4, r6, lsr #18 //计算最后一个地址条目存放的位置
+1: cmp r0, r6 //填充这之间的地址条目
+add r3, r3, #1 << 20 //每一个地址条目代表了1MB空间的地址映射。物理地址将从  
+ //0x30100000 开始映射。0X30000000开始的1MB空间将在下面映射。
+strls r3, [r0], #4
+bls 1b
+ 
+#ifdef CONFIG_XIP_KERNEL
+//如果是XIP就进行以下映射，这只是将内核代码存储的空间重新映射，
+orr r3, r7, #(KERNEL_RAM_PADDR & 0xff000000)
+.if (KERNEL_RAM_PADDR & 0x00f00000)
+orr r3, r3, #(KERNEL_RAM_PADDR & 0x00f00000)
+.endif
+add r0, r4,  #(KERNEL_RAM_VADDR & 0xff000000) >> 18
+str r3, [r0, #(KERNEL_RAM_VADDR & 0x00f00000) >> 18]!
+ldr r6, =(_end - 1)
+add r0, r0, #4
+add r6, r4, r6, lsr #18
+1: cmp r0, r6
+add r3, r3, #1 << 20
+strls r3, [r0], #4
+bls 1b
+#endif
+ 
+//r0 = 0x30007000,上面是从0x30007004开始存放地址条目的。
+add r0, r4, #PAGE_OFFSET >> 18 
+orr r6, r7, #(PHYS_OFFSET & 0xff000000)  //r6= 0x30000c1e
+.if (PHYS_OFFSET & 0x00f00000)
+orr r6, r6, #(PHYS_OFFSET & 0x00f00000) //
+.endif
+str r6, [r0] //将0x30000c1e存于0x30007000处。
+ 
+#ifdef CONFIG_DEBUG_LL //下面是为了调试而做的相关映射，跳过。
+ldr r7, [r10, #PROCINFO_IO_MMUFLAGS] @ io_mmuflags
+ 
+ldr r3, [r8, #MACHINFO_PGOFFIO]
+add r0, r4, r3
+rsb r3, r3, #0x4000 @ PTRS_PER_PGD*sizeof(long)
+cmp r3, #0x0800 @ limit to 512MB
+movhi r3, #0x0800
+add r6, r0, r3
+ldr r3, [r8, #MACHINFO_PHYSIO]
+orr r3, r3, r7
+1: str r3, [r0], #4
+add r3, r3, #1 << 20
+teq r0, r6
+bne 1b
+#if defined(CONFIG_ARCH_NETWINDER) || defined(CONFIG_ARCH_CATS)
+ 
+add r0, r4, #0xff000000 >> 18
+orr r3, r7, #0x7c000000
+str r3, [r0]
+#endif
+#ifdef CONFIG_ARCH_RPC
+ 
+add r0, r4, #0x02000000 >> 18
+orr r3, r7, #0x02000000
+str r3, [r0]
+add r0, r4, #0xd8000000 >> 18
+str r3, [r0]
+#endif
+#endif
+mov pc, lr  //子程序返回。
+ENDPROC(__create_page_tables)
+ 
+ 
+ 
+__arm920_setup
+ 
+ 
+ 
+在上面程序段.section ".text.head", "ax"的最后有这样几行：
+ldr r13, __switch_data @ address to jump to after
+@ mmu has been enabled
+adr lr, __enable_mmu @ return (PIC) address
+add pc, r10, #PROCINFO_INITFUNC
+R10中存放的是在函数__lookup_processor_type中成功匹配的结构体proc_info_list。
+对于arm920来说在文件linux/arch/arm/mm/proc-arm920.S中有：
+.section ".proc.info.init", #alloc, #execinstr
+ 
+.type __arm920_proc_info,#object
+__arm920_proc_info:
+.long 0x41009200
+.long 0xff00fff0
+.long   PMD_TYPE_SECT | \
+PMD_SECT_BUFFERABLE | \
+PMD_SECT_CACHEABLE | \
+PMD_BIT4 | \
+PMD_SECT_AP_WRITE | \
+PMD_SECT_AP_READ
+.long   PMD_TYPE_SECT | \
+PMD_BIT4 | \
+PMD_SECT_AP_WRITE | \
+PMD_SECT_AP_READ
+b __arm920_setup
+………………………………
+add pc, r10, #PROCINFO_INITFUNC的意思跳到函数__arm920_setup去执行。
+ 
+.type __arm920_setup, #function  //表明这是一个函数
+__arm920_setup:
+mov r0, #0   //设置r0为0。
+mcr p15, 0, r0, c7, c7 //使数据cahche, 指令cache无效。
+mcr p15, 0, r0, c7, c10, 4 //使write buffer无效。
+#ifdef CONFIG_MMU
+mcr p15, 0, r0, c8, c7 //使数据TLB,指令TLB无效。
+#endif
+adr r5, arm920_crval //获取arm920_crval的地址，并存入r5。
+ldmia r5, {r5, r6} //获取arm920_crval地址处的连续8字节分别存入r5,r6。
+mrc p15, 0, r0, c1, c0 //获取CP15下控制寄存器的值，并存入r0。
+//通过查看arm920_crval的值可知该行是清除r0中相关位，为以后对这些位的赋值做准备
+bic r0, r0, r5 
+orr r0, r0, r6 //设置r0中的相关位，即为mmu做相应设置。
+mov pc, lr  //上面有操作adr lr, __enable_mmu ，此处将跳到程序段__enable_mmu处。
+ 
+.size __arm920_setup, . - __arm920_setup
+ 
+.type arm920_crval, #object
+arm920_crval:
+crval clear=0x00003f3f, mmuset=0x00003135, ucset=0x00001130
+ 
+ 
+ 
+文件linux/arch/arm/kernel/head.S中
+__enable_mmu:
+#ifdef CONFIG_ALIGNMENT_TRAP
+orr r0, r0, #CR_A //使能地址对齐错误检测
+#else
+bic r0, r0, #CR_A
+#endif
+#ifdef CONFIG_CPU_DCACHE_DISABLE
+bic r0, r0, #CR_C //禁止数据cache
+#endif
+#ifdef CONFIG_CPU_BPREDICT_DISABLE
+bic r0, r0, #CR_Z
+#endif
+#ifdef CONFIG_CPU_ICACHE_DISABLE
+bic r0, r0, #CR_I //禁止指令cache
+#endif //配置相应的访问权限并存入r5中
+mov r5, #(domain_val(DOMAIN_USER, DOMAIN_MANAGER) | \
+      domain_val(DOMAIN_KERNEL, DOMAIN_MANAGER) | \
+      domain_val(DOMAIN_TABLE, DOMAIN_MANAGER) | \
+      domain_val(DOMAIN_IO, DOMAIN_CLIENT))
+mcr p15, 0, r5, c3, c0, 0 //将访问权限写入协处理器
+mcr p15, 0, r4, c2, c0, 0 //将页表基地址写入基址寄存器C2，0X30004000
+b __turn_mmu_on //跳转到程序段去打开MMU
+ENDPROC(__enable_mmu)
+ 
+ 
+文件linux/arch/arm/kernel/head.S中
+__turn_mmu_on:
+mov r0, r0
+mcr p15, 0, r0, c1, c0, 0 //打开MMU同时打开cache等。
+mrc p15, 0, r3, c0, c0, 0 @ read id reg //读取id寄存器
+mov r3, r3
+mov r3, r3 //两个空操作，等待前面所取的指令得以执行。
+mov pc, r13  //程序跳转，如下面解释。
+ENDPROC(__turn_mmu_on)
+ 
+ 
+在前面有过这样的指令操作ldr r13, __switch_data ，
+mov pc, r13 就是将跳转到__switch_data处。
+ 
+在文件linux/arch/arm/kernel/head-common.S中：
+ 
+.type __switch_data, %object  //定义一个对象
+__switch_data:
+.long __mmap_switched  //由此可知上面程序将跳转到该程序段处。
+.long __data_loc @ r4
+.long _data @ r5
+.long __bss_start @ r6
+.long _end @ r7
+.long processor_id @ r4
+.long __machine_arch_type @ r5
+.long __atags_pointer @ r6
+.long cr_alignment @ r7
+.long init_thread_union + THREAD_START_SP @ sp
+ 
+ 
+ . = PAGE_OFFSET + TEXT_OFFSET;
+ #else
+ . = ALIGN(THREAD_SIZE);
+ __data_loc = .;
+ #endif
+ 
+ .data : AT(__data_loc) {  //此处数据存储在上面__data_loc处。
+ _data = .;
+ 
+ *(.data.init_task)
+…………………………
+ 
+.bss : {
+__bss_start = .;
+*(.bss)
+*(COMMON)
+_end = .;
+}
+………………………………
+｝
+init_thread_union 是 init进程的基地址. 在 arch/arm/kernel/init_task.c 中:
+ 
+00033: union thread_union init_thread_union
+00034:         __attribute__((__section__(".init.task"))) =
+00035:                 { INIT_THREAD_INFO(init_task) };        
+ 
+    对照 vmlnux.lds.S 中,我们可以知道init task是存放在 .data 段的开始8k, 并且是THREAD_SIZE(8k)对齐的
+*/
+ 
+__mmap_switched:
+adr r3, __switch_data + 4
+ 
+ldmia r3!, {r4, r5, r6, r7}  
+cmp r4, r5 @ Copy data segment if needed
+1: cmpne r5, r6  //将 __data_loc处数据搬移到_data处
+ldrne fp, [r4], #4
+strne fp, [r5], #4
+bne 1b
+ 
+mov fp, #0 //清除BSS段内容
+1: cmp r6, r7    
+strcc fp, [r6],#4
+bcc 1b
+ 
+ldmia r3, {r4, r5, r6, r7, sp}
+str r9, [r4] @ Save processor ID
+str r1, [r5] @ Save machine type
+str r2, [r6] @ Save atags pointer
+bic r4, r0, #CR_A @ Clear 'A' bit
+stmia r7, {r0, r4} @ Save control register values
+b start_kernel  //程序跳转到函数start_kernel进入C语言部分。
+ENDPROC(__mmap_switched)
+ 
+
+分享：  分享到新浪Qing   
+1
+喜欢
+阅读(309)┊ 评论 (0)┊	 收藏(0) ┊转载(0)	 ┊ 喜欢▼ ┊打印┊举报
+已投稿到：	 排行榜 圈子
+前一篇：linux内核启动过程分析之内核解压
+后一篇：ARM Linux启动过程分析（转的别人一篇论文）
+评论 重要提示：警惕虚假中奖信息 | 宁波故事（二） [发评论]
+评论加载中，请稍候...
+发评论 道德艺术宣言 | 张炯：文学多维度的思考者
+
+更多>>
+
+登录名： 密码： 找回密码 注册	记住登录状态
+
+ 分享到微博    评论并转载此博文
+
+验证码： 请点击后输入验证码 收听验证码	 	 
+
+匿名评论
+发评论
+以上网友发言只代表其个人观点，不代表新浪网的观点或立场。
+< 前一篇
+linux内核启动过程分析之内核解压
+后一篇 >
+ARM Linux启动过程分析（转的别人一篇论文）
+
+新浪BLOG意见反馈留言板　不良信息反馈　电话：4006900000 提示音后按1键（按当地市话标准计费）　欢迎批评指正
+新浪简介 | About Sina | 广告服务 | 联系我们 | 招聘信息 | 网站律师 | SINA English | 会员注册 | 产品答疑
+Copyright © 1996 - 2013 SINA Corporation, All Rights Reserved
+新浪公司 版权所有
+ 
+
+
+幻灯播放
+关闭
+  
+

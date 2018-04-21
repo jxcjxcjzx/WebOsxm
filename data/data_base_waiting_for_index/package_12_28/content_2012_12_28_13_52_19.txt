@@ -1,0 +1,381 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+hellogv的专栏
+
+简单操作 + 内容push = 智能TV App....微博：http://t.qq.com/hellogv
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年4月微软MVP申请开始啦！    写给13岁的CSDN论坛    CSDN博客频道年终送好礼！
+ 2012CSDN博客之星评选正式上线      2000元大奖征异构开发博文      Q14年互联网产品进化史 
+
+
+
+小玩OpenSURF图像识别 
+.
+ 分类： 计算机视觉2010-07-04 20:2512331人阅读评论(20)收藏举报
+
+ 
+本文来自http://blog.csdn.net/hellogv/ ，引用必须注明出处！
+ 
+      最近工作有点闲，有时间就玩点有意思的东西------SURF 图像识别(WIKI地址)，懂了图像识别，真的有很多东西可以玩。。。。。先看看本文实现的效果：
+ 
+
+
+ 左图不是相同的指纹，右图为相同的指纹
+ 
+
+
+ShapeContext算法中典型的实验图片。。。借来用用而已。。。
+ 
+
+
+本文修改后的代码可以到这里:http://download.csdn.net/source/2515577下载，本文的代码改自GoogleCode的OpenSource。
+ 
+
+
+      网上已经有很多封装好的SURF算法，这里我挑OpenSURF.OpenSURF在GoogleCode的地址http://code.google.com/p/opensurf1/，在【Source】 Tab里有C++版和C#版，C++版依赖Opencv，C#版不依赖OpenCV，我选择了C#版裸奔SURF。。。。在使用OpenSURF的C#版发现两个问题：
+ 
+1。没有Match模块，所以这个就得自己写了；
+2。OpenSURF for C#竟然大量使用GetPixel() ...... -. -||| ......做过图像处理的兄弟都应该知道GetPixel()的效率...........这个也得自己改改。
+ 
+
+
+解决问题1：C++版包含了Match模块，所以我就参考C++版的，写成C#。。。。。以下是我自己添加的Match代码：
+ 
+
+
+
+[c-sharp] view plaincopyprint?
+01.using System;  
+02.using System.Collections.Generic;  
+03.using System.Text;  
+04.using OpenSURFcs;  
+05.  
+06.class Utils  
+07.{  
+08.    private const float FLT_MAX = 3.402823466e+38F;        /* max value */  
+09.  
+10.    public static List<IPoint>[] getMatches(List<IPoint> ipts1, List<IPoint> ipts2)  
+11.    {  
+12.        double dist;  
+13.        double d1, d2;  
+14.        IPoint match = new IPoint();  
+15.  
+16.        List<IPoint>[] matches = new List<IPoint>[2];  
+17.        matches[0] = new List<IPoint>();  
+18.        matches[1] = new List<IPoint>();  
+19.  
+20.        for (int i = 0; i < ipts1.Count; i++)  
+21.        {  
+22.            d1 = d2 = FLT_MAX;  
+23.  
+24.            for (int j = 0; j < ipts2.Count; j++)  
+25.            {  
+26.                dist = GetDistance(ipts1[i], ipts2[j]);  
+27.  
+28.                if (dist < d1) // if this feature matches better than current best  
+29.                {  
+30.                    d2 = d1;  
+31.                    d1 = dist;  
+32.                    match = ipts2[j];  
+33.                }  
+34.                else if (dist < d2) // this feature matches better than second best  
+35.                {  
+36.                    d2 = dist;  
+37.                }  
+38.            }  
+39.            // If match has a d1:d2 ratio < 0.65 ipoints are a match  
+40.            if (d1 / d2 < 0.77) //越小Match点越少  
+41.            {  
+42.                matches[0].Add(ipts1[i]);  
+43.                matches[1].Add(match);  
+44.            }  
+45.        }  
+46.        return matches;  
+47.    }  
+48.  
+49.    private static  double GetDistance(IPoint ip1, IPoint ip2)  
+50.    {  
+51.        float sum = 0.0f;  
+52.        for (int i = 0; i < 64; ++i)  
+53.            sum += (ip1.descriptor[i] - ip2.descriptor[i]) * (ip1.descriptor[i] - ip2.descriptor[i]);  
+54.        return Math.Sqrt(sum);  
+55.    }  
+56.}  
+ 
+
+
+
+解决问题2：参考网上的代码，把IntegralImage.cs的FromImage(Bitmap image)函数改成：
+ 
+
+
+
+[c-sharp] view plaincopyprint?
+01. public static IntegralImage FromImage(Bitmap image)  
+02.  {  
+03.      IntegralImage pic = new IntegralImage(image.Width, image.Height);  
+04.      float rowsum = 0;  
+05./*      for (int y = 0; y < image.Height; y++) 
+06.      { 
+07.          rowsum = 0; 
+08.          for (int x = 0; x < image.Width; x++) 
+09.          { 
+10.              Color c = image.GetPixel(x, y); 
+11.              rowsum += (cR * c.R + cG * c.G + cB * c.B) / 255f; 
+12. 
+13.              // integral image is rowsum + value above    
+14.              if(y==0) 
+15.                  pic[0, x] = rowsum; 
+16.              else 
+17.                  pic[y, x] = rowsum + pic[y - 1, x]; 
+18.          } 
+19.      }*/  
+20.       
+21.      BitmapData dataIn = image.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);  
+22.        
+23.      unsafe  
+24.      {  
+25.          byte* pIn = (byte*)(dataIn.Scan0.ToPointer());   
+26.          for (int y = 0; y < dataIn.Height; y++)  
+27.          {  
+28.              rowsum = 0;  
+29.              for (int x = 0; x < dataIn.Width; x++)  
+30.              {  
+31.                  int cb = (byte)( pIn[0]);  
+32.                  int cg = (byte)(pIn[1]);  
+33.                  int cr = (byte)(pIn[2]);  
+34.  
+35.                  // 0 1 2代表的次序是B G R  
+36.                  rowsum += (cR * cr + cG * cg + cB * cb) / 255f;  
+37.                  // integral image is rowsum + value above     
+38.                  if (y == 0)  
+39.                      pic[0, x] = rowsum;  
+40.                  else  
+41.                      pic[y, x] = rowsum + pic[y - 1, x];  
+42.  
+43.                  pIn += 3;  
+44.              }  
+45.              pIn += dataIn.Stride - dataIn.Width * 3;   
+46.          }  
+47.      }  
+48.      image.UnlockBits(dataIn);   
+49.      return pic;  
+50.  }  
+ 
+
+OK,解决了以上两个问题，OpenSURF的C#版功能算是跟C++差不多了。。。。当然，C#跟C++的速度还有点差距的。。。。接下来就说说如何提高识别率，有两个关键的系数要微调的：
+ 
+1。FastHessian.getIpoints(0.0001f, 5, 2, iimg);的第一个参数决定了特征点的数量，越小则特征点越多；
+ 
+2。在Utils.cs里面的if (d1 / d2 < 0.77) //越小匹配的点越少，但误判断点也越少；越大匹配的点越多，但误判断点也越多。
+ 
+
+
+以上两个要微调的函数就要具体情况具体微调了。。。。
+ 
+分享到： 
+
+上一篇：MSP430读写片内FLASH保存数据 
+下一篇：移植Opencv 1.10到WINCE/WM
+ . 
+
+
+查看评论
+ 
+16楼 pukerno3 2011-06-25 16:14发表[回复] QQ群：13471159，讨论图像识别方向知识、算法，共享资源，共同进步15楼 hjthss 2011-03-22 17:07发表[回复] 感谢LZ！终于找到一个能用的SURF了[e01]14楼 xiaowen0228 2010-10-23 18:40发表[回复] 你好，请问有没有方法在wince下，读取jpeg图片后转换成IplImage格式呢？谢谢Re: 咪当俺系噜噜 2010-10-23 18:53发表[回复] 回复 xiaowen0228：
+这个要自己实现读取JPEG图片，最简单的方法是把JPEG转化为BMP13楼 peter_hands 2010-07-07 09:31发表[回复] 很喜欢，有用12楼 ResoundTeam 2010-07-06 09:53发表[回复] [e03][e10]11楼 enmity 2010-07-05 17:21发表[回复] 提供一些例子图片的下载吧10楼 匿名用户 2010-07-05 16:01发表[回复] [e01][e02][e03][e04][e05][e06][e07][e08][e09][e10]9楼 kyonjin 2010-07-05 14:05发表[回复] [e06]8楼 W8892657 2010-07-05 12:54发表[回复] [e01]7楼 xiaositong123 2010-07-05 11:53发表[回复] [e01]6楼 twlwf007 2010-07-05 11:16发表[回复] [e03]5楼 qwe285735942 2010-07-05 09:04发表[回复] hellogv牛B呀4楼 qzier_go 2010-07-04 23:10发表[回复] 哇噻 指纹识别 ！3楼 匿名用户 2010-07-04 20:47发表[回复] 神奇：
+哈哈，不错。提出两个问题：
+1.我觉得SURF用来做识别是有局限的，要匹配成功的话，要求两个图像非常相似。手写字符识别就不好做。
+2.getMatches函数得到的匹配点对不一定是一对一，也可以是一对多，在统计匹配点对的时候岂不是不准确？Re: amaoplus 2010-07-05 20:10发表[回复] 回复 匿名用户：
+这个要看你怎么用SURF算法去匹配 和SURF算法本身产生的IP是无关的
+推荐：采用比较严格的最近邻居匹配法:即保证两个匹配点互为最近邻居，且和次近邻居的比值小于某个数(即下面提到的if (d1 / d2 &lt; 0.77) 这个数字由David G.Lowe证出应该是0.7-0.8之间最合适，具体可以参考SIFT的一些论文)
+其次 再做完简单的最近邻居匹配后，再用RANSAC可以排除更多的误匹配点Re: 咪当俺系噜噜 2010-07-04 20:56发表[回复] 回复 匿名用户：。。。。你来注册个CSDN账号吧。。。。。Re: 匿名用户 2010-07-05 09:12发表[回复] 回复 hellogv：貌似有，懒登陆而已2楼 volkswageos 2010-07-04 20:37发表[回复] 都可以自己写SURF算法啊？1楼 匿名用户 2010-07-04 20:36发表[回复] [e03]
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+咪当俺系噜噜
+ 
+
+
+
+
+
+访问：1578369次
+积分：11731分
+排名：第169名
+.原创：126篇
+转载：15篇
+译文：0篇
+评论：3494条
+. 
+关于hellogvCSDN专访:《专访2008全国大学生信息安全竞赛一等奖获得者 张国威》
+南方日报专访:《编程狂人:没比赛会很空虚未毕业猎头纷至》
+中国移动开发者社区-社区专家
+ 
+我的微博 
+博客专栏
+
+
+
+
+Android 天天向上
+文章：29篇
+阅读：656926 
+
+BlogrollcvChina
+魏祝林(Android_Tutor)
+Android游戏开发—xiaominghimi
+ 
+文章分类Android入门(16)
+Android提高(21)
+Android番外(13)
+Android MediaPlayer(9)
+计算机视觉(11)
+C++ Builder专栏(6)
+Delphi专栏(5)
+J2ME专栏(27)
+Lazarus专栏(5)
+Wince/WindowsMobile专栏(24)
+加密解密专栏(2)
+单片机专栏(8)
+日志(14)
+ 
+阅读排行Android入门第八篇之GridView(九宫图)(105980)
+Android入门第六篇之ListView (一)(102584)
+Android提高第二篇之SurfaceView的基本使用(68919)
+Android入门第一篇(54907)
+ Android提高十八篇之自定义Menu(TabMenu)(47854)
+Android入门第十五篇之ActivityGroup + GridView 实现Tab分页标签(39878)
+在Android上使用ZXing识别条形码/二维码(37503)
+ Android入门第七篇之ListView (二)(37118)
+Android入门第十六篇之Style与Theme(34295)
+Android入门第十二篇之Gallery(33370)
+ 
+最新评论 Android入门第十四篇之画图
+bark2003: 入门看完了，留个言感谢一下 
+
+Android入门第十三篇之Gallery + ImageSwitcher
+bark2003: 布局上，是先生成ImageSwitcher，再把gallery盖在上面。如果显示的是一批高>宽的图片... 
+
+android平板上的GridView视图缓存优化
+lianjiao511214: 为什么不考虑软引用呢！ 
+
+Android MediaPlayer与Http Proxy结合之提高篇
+kate831028: 想问下楼主对Android视频加密解密有研究么，最近想做个这样的软件。。不知道楼主有兴趣没~ 
+
+Android入门第八篇之GridView(九宫图)
+yangguangtianshi1121: 楼主你好，我用gridview实现，每项放入 一张图片和文字，图片在上，文字在下，怎么实现点击每项 ... 
+
+Android MediaPlayer与Http Proxy结合之优化篇
+Anywey: 好东西！！！ 
+
+Android提高第十五篇之ListView自适应实现表格
+zhangjingxuan891: 请问怎么设置这个的Cell的高度 
+
+Android MediaPlayer与Http Proxy结合之优化篇
+麦子_9: 学习学习 
+
+Android提高第二十篇之MediaPlayer播放网络音频
+perfectjoey: 这个实例是不错的。运行这个实例要fix下面问题。1. 找一个可以用的MP3 URL, 你可以从这找 ... 
+
+玩转 Android MediaPlayer之视频预加载(优化)
+咪当俺系噜噜: @b35838715:我就在腾讯视频... 
+
+
+文章存档
+2012年12月(1).
+2012年08月(2).
+2012年07月(1).
+2012年05月(2).
+2012年02月(1).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

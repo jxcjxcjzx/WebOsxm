@@ -1,0 +1,444 @@
+
+
+
+
+
+设为首页收藏本站
+ 
+开启辅助访问 切换到宽版 
+.
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+用户名 Email 
+
+
+
+自动登录
+ 
+ 找回密码
+ 
+
+
+密码
+ 
+
+
+登录
+ 
+ 注册
+ 
+
+
+
+
+只需一步，快速开始
+ . .
+ 快捷导航 论坛
+Arduino精华
+WIKI
+其他精华
+资源下载
+淘宝杂货铺
+ 
+
+.
+
+ 
+
+
+
+
+
+
+
+
+搜索
+ 
+搜索
+ 
+
+热搜: mpu6050蓝牙串口PID12864红外小车MPU60501602GPS舵机最小系统android串口通信gps继电器中断点阵面包板6050
+ 
+. 
+
+
+
+
+
+
+
+
+.
+
+.. 
+
+
+
+极客工坊»论坛 › 开源项目区 › pcDuino › 手把手教你在pcduino上实现网络打印服务器（一） 
+. 
+
+
+
+
+返回列表 .
+ 
+
+
+
+查看: 193|回复: 0 
+
+
+
+
+手把手教你在pcduino上实现网络打印服务器（一） 
+[复制链接] 
+
+
+
+
+
+
+
+
+
+
+
+原来如此
+ 
+
+
+
+
+
+.
+
+
+
+ 
+
+
+
+
+
+
+
+28
+主题 
+
+0
+好友 
+
+147
+积分 
+
+版主
+ 
+
+发消息
+ . 
+
+
+电梯直达 
+楼主 
+
+
+
+发表于 2013-6-21 09:47:20 |只看该作者 |倒序浏览 
+
+
+
+
+
+
+
+网络打印服务器，顾名思义，就是有些不带网络打印的打印机，只有USB接口，这样打印机很麻烦，你每次打印都要到有打印机的电脑上打印，pcduino在这里实现，即使你只有USB接口也能实现网络打印，只要你电脑和pcduino在同一个局域网，都能打印。
+
+一，检查你的pcduino是否带有打印机驱动，如果没，赶紧去改内核，在内核里面把printer选上。然后再进行下面的操作。例如，我这个板子就是没有打印机驱动的。
+
+root@ubuntu:~# ls /dev/usb
+ usb_accessory usbdev1.2 usbdev3.1 usbdev3.3 usbdev3.5
+ usbdev1.1 usbdev2.1 usbdev3.2 usbdev3.4 usbdev4.1
+
+重新烧了内核之后
+
+root@ubuntu:~# ls /dev/usb
+ lp0
+
+这就有了。现在来测试一下。
+
+echo "Hello world" > /dev/usb/lp0
+
+这时候你的打印机已经还是打印，纸上打印出来就是hello world.
+
+先声明一下，这里用的是cups+samba方案，之前尝试过只用cups，也尝试过手动源码安装最新的cups.这种方法只适合sups里面有你打印机的型号，并不通用。
+
+一，先安装cups,推荐从软件源安装，反正我用源码安装没有成功。
+
+sudo apt-get update
+
+sudo apt-get install cups
+
+二，设置配置cups的用户，这里我直接把当前用户设置为配置用户。
+
+sudo usermod -a -G lpadmin ubuntu
+
+三，配置cups
+
+sudo service cups stop #先关闭服务
+
+sudo  mv /etc/cups/cupsd.conf /etc/cups/cupsd.conf.bak   #备份默认的配置文件
+
+vim /etc/cups/cupsd.conf   #编辑配置文件
+
+将里面内容清空，用以下内容替换。
+
+LogLevel warn
+ MaxLogSize 1m
+ SystemGroup lpadmin
+ Port 631
+ Listen /var/run/cups/cups.sock
+ Browsing On
+ BrowseOrder allow,deny
+ BrowseAllow all
+ BrowseRemoteProtocols cups
+ BrowseAddress @LOCAL
+ BrowseLocalProtocols CUPS dnssd
+ DefaultAuthType Basic
+ WebInterface Yes
+ 
+Order allow,deny
+ Allow @LOCAL
+ 
+
+Order allow,deny
+ Allow @LOCAL
+ 
+
+AuthType Default
+ Require user @SYSTEM
+ Order allow,deny
+ Allow @LOCAL
+ 
+<;Policy default>
+ JobPrivateAccess default
+ JobPrivateValues default
+ SubscriptionPrivateAccess default
+ SubscriptionPrivateValues default
+ 
+Order deny,allow
+ 
+
+Require user @OWNER @SYSTEM
+ Order deny,allow
+ 
+
+AuthType Default
+ Require user @SYSTEM
+ Order deny,allow
+ 
+
+AuthType Default
+ Require user @SYSTEM
+ Order deny,allow
+ 
+
+Require user @OWNER @SYSTEM
+ Order deny,allow
+ 
+
+Order deny,allow
+ 
+
+<;Policy authenticated>
+
+JobPrivateAccess default
+ JobPrivateValues default
+ SubscriptionPrivateAccess default
+ SubscriptionPrivateValues default
+ 
+AuthType Default
+ Order deny,allow
+ 
+
+AuthType Default
+ Require user @OWNER @SYSTEM
+ Order deny,allow
+ 
+
+AuthType Default
+ Require user @SYSTEM
+ Order deny,allow
+ 
+
+AuthType Default
+ Require user @SYSTEM
+ Order deny,allow
+ 
+
+AuthType Default
+ Require user @OWNER @SYSTEM
+ Order deny,allow
+ 
+
+Order deny,allow
+ 
+
+BrowseWebIF Yes
+
+配置完了之后重新启动cups
+
+sudo service cups start
+
+现在我们在自己电脑上打开https://192.168.3.107：631这个网址，这里说明一下192.168.3.107是pcduino的IP，631可以在配置文件里面看到，是我们配置的端口。打开网址之后我们会看到一下web网页。
+
+ 
+
+
+
+
+
+
+
+
+
+先的步骤就简单了。
+
+点Administration->add pinter。这里会提示你输入密码，密码就是你pcduino的密码。
+
+ 
+
+
+
+
+选择打印机
+ 
+
+
+
+
+
+
+
+
+设置打印机的名字，选择共享打印机
+ 
+
+
+
+
+
+
+
+
+选择打印机，里面没有打印机，我们就选择自己的ppd配置文件，这个文件在打印的官网网址上的Linux驱动里面有，具体文件的如下：
+ 
+D:UnifiedLinuxDriver_1.13cdrootLinuxoarchat_optshareppd
+
+添加打印机进入下一个页面，选择默认设置即可。
+
+设置成功。
+
+由于，在Linux上，我们没有添加驱动，现在还不能打印。
+
+二，安装samba服务器。
+
+sudo apt-get install samba
+
+修改samba的配置文件，加入打印机支持。
+
+vim /etc/samba/smb.conf
+
+具体的需要修改的内容，我已经在下面图片中圈出。
+
+
+ 最后reboot重启一下。
+
+到这一步其实pcduino网络打印机已经设置好了，具体的window如果使用该打印机，我将会在下篇博客介绍。
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+分享到:QQ空间 腾讯微博 腾讯朋友 .
+ 收藏0 支持0 反对0 . 
+
+
+
+
+
+回复 
+使用道具 举报 
+. 
+
+
+
+
+
+
+
+
+
+
+返回列表 .
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+高级模式 
+B Color Image Link Quote Code Smilies 
+
+
+您需要登录后才可以回帖 登录 | 注册
+ . 
+发表回复 回帖后跳转到最后一页 
+
+.
+ 
+
+
+
+Archiver|极客工坊 ( 浙ICP备09023225号 )  
+ 
+GMT+8, 2013-9-1 16:00 , Processed in 0.155395 second(s), 25 queries , Gzip On. 
+
+
+Powered by Discuz! X2.5
+ 
+© 2001-2012 Comsenz Inc.
+ .
+
+
+
+ 
+

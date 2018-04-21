@@ -1,0 +1,393 @@
+注册 登录
+论坛首页搜索帮助导航网站首页
+Qt论坛 - thisisqt » Qt Wiki中文版 » QWebView介绍(Qt 4.7.0)
+返回列表
+发帖
+
+ThisisQt Team
+
+UID1 帖子449 主题322 精华2 积分1644 威望20  金钱728  在线时间136 小时 注册时间2010-9-5 
+1#跳转到 »倒序看帖
+打印字体大小: tT
+ habert发表于 2010-10-26 21:16 | 只看该作者
+[Qt] QWebView介绍(Qt 4.7.0)
+
+QWebView
+QWebView类提供了一个可以展现和编辑网页文档的widget。
+QWebView是QtWebKit网页浏览模块的一个主要widget组件，可以用它来展现互联网网页。
+下图展现了一个在Qt Designer中创建的一个QWebView，它展现的是诺基亚的官网：
+
+
+可以使用QWebView的load()方法来加载一个网站，这里和其他的所有Qt的widget一样，你需要调用show()方法才会显示出QWebView。
+如下例所示：
+     QWebView *view = new QWebView(parent);
+     view->load(QUrl("http://qt.nokia.com/"));
+     view->show();
+复制代码
+另外setUrl()方法也可以用来加载一个网站，而如果你有现成的HTML文件，则可以直接调用setHtml()方法来加载。
+当网页开始加载时会发出loadStarted()的信号，当网页中任何一个元素被加载完都会发出loadProgress()信号，例如一个图片，或是一段脚本。最后当网页全部加载完成后会发出loadFinished()信号，其中loadFinished()信号携带的参数会说明加载是否成功，如果参数为真则加载成功，否则加载失败。
+
+page()方法返回一个指向QWebPage网页对象的指针，在下面我们会讲到QWebPage和QWebView之间的关系。
+你可以通过QWebView的settings()方法获得QWebSettings对象，进而可以对网页做相关设置，比如修改默认的字体，开启或禁止JavaScript和插件等。 
+通过QWebView的title()方法，我们可以访问到一个HTML文档的标题，即这个网页的标题。另外，一个网站可能会有站标（就是这个网站的标志，是一个小图标），这时我们可以通过icon()属性来获得站标。如果网站标题或是站标变了，相应的titleChanged() 或是iconChanged()信号会被发送。可以通过textSizeMultiplier()属性来改变QWebView中打开所有网页的文字大小。
+
+如果你需要定制上下文菜单，你可以通过重新实现contextMenuEvent()方法，然后使用pageAction()返回的QAction来构建你的QMenu菜单。
+其他功能像重新加载网页，拷贝选择的文字到剪切板以及粘贴到网页，也都可以通过传递给pageAction()方法相应的参数来获得相应的QAction对象。
+这些QAction对象可以通过triggerPageAction()方法来触发，另外这些QAction对象也可以被直接加到工具条或是菜单中。QWebView维护这些QAction对象的状态，但也允许修改它们的一些属性，例如文字，图标icon等。
+
+一个QWebView对象可以使用QPrinter的print()方法来实现打印输出，这个方法是一个槽，可以很容易连接到QPrintPreviewDialog的paintRequested()信号上。
+为了对网站提供更多的支持，可能你会想允许用户打开新的窗口，例如弹出窗口，这时你可以通过继承QWebView，然后重新实现createWindow()方法即可。
+
+QWebView的元素
+QWebView对象由多个对象组成，比如QWebFrame对象和QWebPage对象，下图说明了这些对象之间的关系：
+
+
+注意：如果不需要QWidget的一些属性，这里可以直接使用QWebPage和QWebFrame，不是说一定要有QWebView才可以。由于QtWebKit依赖于QtGui模块，所以构建程序时应该使用QApplication而不是QCoreApplication。
+
+QWebView继承自QWidget
+
+属性说明
+
+icon : const QIcon
+This property holds the icon associated with the web page currently viewed.
+这个属性是当前浏览网页的站标，默认情况下，此属性是一个空的图标。
+访问方法如下:
+QIcon         icon () const
+复制代码
+跟icon属性相关的还有iconChanged() 和QWebSettings::iconForUrl()。
+
+modified : const bool
+这个属性用来表明网页文档是否被用户修改过。
+HTML文档的部分内容可以被修改，例如可以通过HTML组成元素的可编辑的属性来修改。
+此属性默认值为假。
+访问方法如下:
+bool         isModified () const
+复制代码
+renderHints : QPainter::RenderHints
+这个属性表明默认网页视图的渲染方式，比如是否抗锯齿等等
+此属性可用来在绘制网页前初始化QPainter。
+此属性默认值为QPainter::TextAntialiasing
+
+注意：此属性在Symbian上不可用，但其getter和setter方法依然可以直接使用。
+这个属性是Qt 4.6才引入的。
+访问方法如下：
+QPainter::RenderHints         renderHints () const
+void         setRenderHints ( QPainter::RenderHints hints )
+复制代码
+跟此属性相关的还有QPainter::renderHints().
+
+selectedText : const QString
+此属性是当前选择的文字。
+默认情况下，此属性为空字符串。
+
+访问方法:
+QString         selectedText () const
+复制代码
+跟此属性相关的还有 findText() 和selectionChanged()。
+
+title : const QString
+此属性是当前浏览网页的标题。
+默认值为空字符串。
+访问方法:
+QString         title () const
+复制代码
+跟此属性相关的还有titleChanged()。
+
+url : QUrl
+此属性是当前浏览的网址。
+给此属性设置新值后会导致加载新的网址。
+此属性默认值为空的，无效的网址。
+访问方法:
+QUrl         url () const
+void         setUrl ( const QUrl & url )
+复制代码
+跟此属性相关的还有load() 和 urlChanged()。
+
+zoomFactor : qreal
+此属性表明视图放大比例
+此属性是Qt 4.5引入的。
+访问方法有:
+qreal         zoomFactor () const
+void         setZoomFactor ( qreal factor )
+复制代码
+成员函数说明
+
+QWebView::QWebView ( QWidget * parent = 0 )
+使用父widget构造一个空的QWebView对象。
+
+QWebView::~QWebView () [virtual]
+销毁QWebView对象。
+
+void QWebView::back () [slot]
+很方便的一个槽，用来返回之间的页面。如果没有前一个页面则不作任何操作。
+调用这个槽跟下面的操作时等价的：
+     view->page()->triggerPageAction(QWebPage::GoBack);
+复制代码
+了解更多请参考 forward() 和pageAction()。
+
+void QWebView::changeEvent ( QEvent * e ) [virtual protected]
+重新实现QWidget::changeEvent()。
+
+void QWebView::contextMenuEvent ( QContextMenuEvent * ev ) [virtual protected]
+重新实现QWidget::contextMenuEvent()。
+
+QWebView * QWebView::createWindow ( QWebPage::WebWindowType type ) [virtual protected]
+每次QWebPage对象想创建一个新的指定类型的窗口时，这个方法在相应的QWebPage对象的createWindow()方法中被调用。
+这里可能是一个操作，例如，一个JavaScript请求在新的窗口打开文档。
+注意：如果相应的QWebPage对象的createWindow()方法被重新实现，除非显示地调用，否则此方法不会被调用，
+
+了解更多请参考QWebPage::createWindow()。
+
+void QWebView::dragEnterEvent ( QDragEnterEvent * ev ) [virtual protected]
+重新实现QWidget::dragEnterEvent().
+
+void QWebView::dragLeaveEvent ( QDragLeaveEvent * ev ) [virtual protected]
+重新实现QWidget::dragLeaveEvent().
+收藏分享
+00
+顶踩
+分享到:  CSDN网摘  Google书签  百度收藏 雅虎收藏夹 QQ书签 新浪ViVi
+
+ThisisQt Team
+
+UID1 帖子449 主题322 精华2 积分1644 威望20  金钱728  在线时间136 小时 注册时间2010-9-5 
+2#
+ habert发表于 2010-10-28 14:09 | 只看该作者
+void QWebView::dragMoveEvent ( QDragMoveEvent * ev ) [virtual protected]
+重新实现QWidget::dragMoveEvent()。
+
+void QWebView::dropEvent ( QDropEvent * ev ) [virtual protected]
+重新实现QWidget::dropEvent()。
+
+bool QWebView::event ( QEvent * e ) [virtual]
+重新实现QObject::event()。
+
+bool QWebView::findText ( const QString & subString, QWebPage::FindFlags options = 0 )
+根据相应的选项在当前页中搜索指定字符串。 
+如果HighlightAllOccurrences标记作为参数传入，页面中出现该字符串的地方会被高亮显示。以后再次这样调用该方法会对新的字符串高亮显示，但不会取消之前高亮显示的字符串，也就是说之前高亮显示的字符串仍然高亮显示。
+如果HighlightAllOccurrences 标记没有作为参数传入，该方法会选中出现的第一个地方，以后再次这样调用该方法则会选中新的位置。
+
+如果想取消选中只要传递一个空的字符串即可。
+
+如果找到要搜索的字符串则返回真，否则返回假。
+
+了解更多请参考selectedText() 和selectionChanged()。
+
+void QWebView::focusInEvent ( QFocusEvent * ev ) [virtual protected]
+重新实现QWidget::focusInEvent()。
+
+bool QWebView::focusNextPrevChild ( bool next ) [virtual protected]
+重新实现QWidget::focusNextPrevChild()。
+
+void QWebView::focusOutEvent ( QFocusEvent * ev ) [virtual protected]
+重新实现QWidget::focusOutEvent()。
+
+void QWebView::forward () [slot]
+很方便的一个槽用来跳到已浏览列表的下一个页面，如果没有下一个则不作任何操作。
+
+该方法等同于：
+     view->page()->triggerPageAction(QWebPage::GoForward);
+复制代码
+了解更多请参考back() 和pageAction()。
+
+QWebHistory * QWebView::history () const
+返回一个指向浏览历史记录的指针。
+
+等同于：
+     view->page()->history();
+复制代码
+void QWebView::iconChanged () [signal]
+当网页的站标(icon)被加载或是改变时该信号都会被发送。
+为了能让站标(icon)被加载，需要通过QWebSettings::setIconDatabasePath()来设置一个站标(icon)路径。
+
+了解更多请参考icon() 和QWebSettings::setIconDatabasePath()。
+
+void QWebView::inputMethodEvent ( QInputMethodEvent * e ) [virtual protected]
+重新实现QWidget::inputMethodEvent()。
+
+QVariant QWebView::inputMethodQuery ( Qt::InputMethodQuery property ) const [virtual]
+重新实现QWidget::inputMethodQuery()。
+
+void QWebView::keyPressEvent ( QKeyEvent * ev ) [virtual protected]
+重新实现QWidget::keyPressEvent()。
+
+void QWebView::keyReleaseEvent ( QKeyEvent * ev ) [virtual protected]
+重新实现QWidget::keyReleaseEvent()。
+
+void QWebView::linkClicked ( const QUrl & url ) [signal]
+当用户单击一个连接并且QWebPage对象的linkDelegationPolicy属性被设置成委托连接处理时，该信号会被发送。
+
+了解更多请参考QWebPage::linkDelegationPolicy()。
+
+void QWebView::load ( const QUrl & url )
+加载指定的网址并显示。
+
+了解更多请参考setUrl(), url(), urlChanged(), 和 QUrl::fromUserInput()。
+
+void QWebView::load ( const QNetworkRequest & request, QNetworkAccessManager::Operation operation = QNetworkAccessManager::GetOperation, const QByteArray & body = QByteArray() )
+加载一个网络请求。body是可选项，只有在POST操作才会用到。
+
+了解更多请参考url() and urlChanged()。
+
+void QWebView::loadFinished ( bool ok ) [signal]
+当页面加载完成时发送此信号。参数OK用来表明加载成功还是有错误。
+了解更多请参考loadStarted()。
+
+void QWebView::loadProgress ( int progress ) [signal]
+每当网页中的元素加载完成同时加载过程正在进行时会发送此信号。
+此信号可以跟踪所有子frame的加载进度。
+参数progress 表明加载的进度，其取值范围是0到100，正好对应QProgressBar的范围。
+了解更多请参考loadStarted() and loadFinished()。
+
+void QWebView::loadStarted () [signal]
+当页面的一个新的加载开始时发送此信号。
+
+了解更多请参考loadProgress() 和loadFinished()。
+
+void QWebView::mouseDoubleClickEvent ( QMouseEvent * ev ) [virtual protected]
+重新实现QWidget::mouseDoubleClickEvent()。
+
+void QWebView::mouseMoveEvent ( QMouseEvent * ev ) [virtual protected]
+重新实现QWidget::mouseMoveEvent()。
+
+void QWebView::mousePressEvent ( QMouseEvent * ev ) [virtual protected]
+重新实现QWidget::mousePressEvent()。
+
+void QWebView::mouseReleaseEvent ( QMouseEvent * ev ) [virtual protected]
+重新实现QWidget::mouseReleaseEvent()。
+
+QWebPage * QWebView::page () const
+返回相关的QWebPage对象。
+
+了解更多请参考setPage()。
+
+QAction * QWebView::pageAction ( QWebPage::WebAction action ) const
+返回action参数对应的QAction。
+
+void QWebView::paintEvent ( QPaintEvent * ev ) [virtual protected]
+重新实现QWidget::paintEvent()。
+
+void QWebView::print ( QPrinter * printer ) const [slot]
+返回printer参数对应的主frame。
+
+了解更多请参考QWebFrame::print() and QPrintPreviewDialog。
+
+void QWebView::reload () [slot]
+重新加载当前文档。
+
+了解更多请参考stop(), pageAction(), 和loadStarted()。
+
+void QWebView::resizeEvent ( QResizeEvent * e ) [virtual protected]
+重新实现QWidget::resizeEvent()。
+
+void QWebView::selectionChanged () [signal]
+当选中发生改变时会发送此信号。
+了解更多请参考selectedText()。
+
+void QWebView::setContent ( const QByteArray & data, const QString & mimeType = QString(), const QUrl & baseUrl = QUrl() )
+
+Sets the content of the web view to the specified content data. If the mimeType argument is empty it is currently assumed that the content is HTML but in future versions we may introduce auto-detection.
+
+External objects referenced in the content are located relative to baseUrl.
+
+The data is loaded immediately; external objects are loaded asynchronously.
+
+See also load(), setHtml(), and QWebFrame::toHtml().
+void QWebView::setHtml ( const QString & html, const QUrl & baseUrl = QUrl() )
+
+Sets the content of the web view to the specified html.
+
+External objects such as stylesheets or images referenced in the HTML document are located relative to baseUrl.
+
+The html is loaded immediately; external objects are loaded asynchronously.
+
+When using this method, WebKit assumes that external resources such as JavaScript programs or style sheets are encoded in UTF-8 unless otherwise specified. For example, the encoding of an external script can be specified through the charset attribute of the HTML script tag. Alternatively, the encoding can also be specified by the web server.
+
+See also load(), setContent(), and QWebFrame::toHtml().
+void QWebView::setPage ( QWebPage * page )
+
+Makes page the new web page of the web view.
+
+The parent QObject of the provided page remains the owner of the object. If the current document is a child of the web view, it will be deleted.
+
+See also page().
+void QWebView::setRenderHint ( QPainter::RenderHint hint, bool enabled = true )
+
+If enabled is true, enables the specified render hint; otherwise disables it.
+
+This function was introduced in Qt 4.6.
+
+See also renderHints and QPainter::renderHints().
+void QWebView::setTextSizeMultiplier ( qreal factor )
+
+Sets the value of the multiplier used to scale the text in a Web page to the factor specified.
+
+See also textSizeMultiplier().
+QWebSettings * QWebView::settings () const
+
+Returns a pointer to the view/page specific settings object.
+
+It is equivalent to
+
+     view->page()->settings();
+
+See also QWebSettings::globalSettings().
+QSize QWebView::sizeHint () const [virtual]
+
+Reimplemented from QWidget::sizeHint().
+void QWebView::statusBarMessage ( const QString & text ) [signal]
+
+This signal is emitted when the status bar text is changed by the page.
+void QWebView::stop () [slot]
+
+Convenience slot that stops loading the document.
+
+It is equivalent to
+
+     view->page()->triggerPageAction(QWebPage::Stop);
+
+See also reload(), pageAction(), and loadFinished().
+qreal QWebView::textSizeMultiplier () const
+
+Returns the value of the multiplier used to scale the text in a Web page.
+
+See also setTextSizeMultiplier().
+void QWebView::titleChanged ( const QString & title ) [signal]
+
+This signal is emitted whenever the title of the main frame changes.
+
+See also title().
+void QWebView::triggerPageAction ( QWebPage::WebAction action, bool checked = false )
+
+Triggers the specified action. If it is a checkable action the specified checked state is assumed.
+
+The following example triggers the copy action and therefore copies any selected text to the clipboard.
+
+     view->triggerAction(QWebPage::Copy);
+
+See also pageAction().
+void QWebView::urlChanged ( const QUrl & url ) [signal]
+
+This signal is emitted when the url of the view changes.
+
+See also url() and load().
+void QWebView::wheelEvent ( QWheelEvent * ev ) [virtual protected]
+
+Reimplemented from QWidget::wheelEvent().
+TOP
+
+Qt高级工程师
+
+UID5 帖子113 主题5 精华0 积分296 威望0  金钱116  在线时间14 小时 注册时间2010-9-27 
+3#
+ TomatoCode发表于 2010-11-15 09:26 | 只看该作者
+比CBrctlInterface 好用多了！不知道渲染出来的效果如何！
+
+关于WebView Webpage  WebFrame 之间的关系，能不能给点更全面的介绍阿？
+TOP
+返回列表
+This is Qt |联系我们 |Archiver
+GMT+8, 2013-7-26 21:22, Processed in 0.043229 second(s), 5 queries.
+Powered by Discuz! 7.2
+© 2001-2009 Comsenz Inc.
+

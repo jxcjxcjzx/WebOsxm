@@ -1,0 +1,160 @@
+首页开源项目 讨论区 代码博客翻译资讯移动开发 招聘城市圈 当前访客身份：游客 [ 登录 | 加入开源中国 ]
+开源中国讨论区
+当前位置：
+讨论区 » 技术分享	 » RHEL
+搜 索
+
+喜欢linux的朋友请进来分析一下
+红薯 发表于 2009-5-5 15:22 4年前, 1回/142阅, 最后回答: 9天前
+我最近看了看iptables 写了个简单的防火墙总觉得有很多不完美之处，请各位高手帮忙看看，小弟拜谢了！！！ 
+其中最明显的就是本机的域名无法解析 
+
+#!/bin/sh 
+case "$1" in 
+ start) 
+         echo -n "Starting Iptables: " 
+         echo 
+         #加载内存模块 
+         /sbin/modprobe ip_tables 
+  /sbin/modprobe iptable_nat 
+  /sbin/modprobe ip_conntrack 
+  /sbin/modprobe ip_conntrack_ftp 
+  /sbin/modprobe ip_nat_ftp 
+  #/sbin/modprobe ipt_LOG 
+  #/sbin/modprobe ipt_MARK 
+  #/sbin/modprobe ipt_MASQUERADE 
+  #/sbin/modprobe ipt_REDIRECT 
+  #/sbin/modprobe ipt_REJECT 
+  #/sbin/modprobe ipt_TOS 
+  #/sbin/modprobe ipt_limit 
+  #/sbin/modprobe ipt_mac 
+  #/sbin/modprobe ipt_mark 
+  #/sbin/modprobe ipt_multiport 
+  #/sbin/modprobe ipt_state 
+  #/sbin/modprobe ipt_tos 
+  #/sbin/modprobe iptable_mangle 
+         echo '1'>; /proc/sys/net/ipv4/ip_forward 
+  echo '1'>; /proc/sys/net/ipv4/conf/eth1/rp_filter 
+         echo -n "the kernel modules ok..." 
+         echo 
+   
+  #清空现有的防火墙规则 
+  iptables -F #清空防火墙规则表 
+      iptables -Z FORWARD  
+      iptables -F -t nat 
+      iptables -X  
+      iptables -P INPUT ACCEPT #禁止进入的包 
+      iptables -P OUTPUT ACCEPT #允许出去的包 
+      iptables -P FORWARD ACCEPT #禁止转发包 
+         iptables -t nat -P PREROUTING DROP  
+  echo -n "the Refresh ok..." 
+         echo 
+       
+         #配置防火墙规则 
+          
+         #配置lockback规则 
+       
+      #设置转发规则 
+  iptables -t nat -A PREROUTING -i eth0 -j ACCEPT 
+  iptables -t nat -A POSTROUTING -s 192.168.0.2 -j SNAT --to-source 211.99.110.1 
+55 
+  iptables -t nat -A PREROUTING -i eth1  -d 211.99.110.x -p tcp --destination 
+-port 6022 -j ACCEPT    iptables -t nat -A PREROUTING -i eth1  -d 211.99.110.x -p tcp --destination 
+-port 21 -j DNAT --to-destination 192.168.0.2:21  
+  iptables -t nat -A PREROUTING -i eth1  -d 211.99.110.x -p tcp --destination 
+-port 80 -j DNAT --to-destination 192.168.0.2:80   #iptables -t nat -A PREROUTING -i eth1  -d 211.99.110.x -p tcp --destination 
+-port 3389 -j DNAT --to-destination 192.99.0.2:3389 
+   
+  #iptables -t nat -A PREROUTING -i eth1  -d 211.99.110.x -p tcp --destination 
+-port 1024:65535 -j DNAT --to-destination 192.168.0.2 
+      
+  #iptables -t nat -A POSTROUTING -s 192.168.0.3 -j SNAT --to-source 211.99.110. 
+153   #iptables -t nat -A PREROUTING -i eth1  -d 211.99.110.x -p tcp --destination 
+-port  21 -j DNAT --to-destination 192.168.0.3:21   #iptables -t nat -A PREROUTING -i eth1  -d 211.99.110.x -p tcp --destination 
+-port  80 -j DNAT --to-destination 192.168.0.3:80 
+  #iptables -t nat -A PREROUTING -i eth1  -d 211.99.110.x -p tcp --destination 
+-port 1024:65535 -j DNAT --to-destination 192.168.0.3  
+  ;; 
+   stop) 
+         echo -n "Shutting Firewalling: " 
+      #清除所有当前的规则 
+      iptables -F 
+      iptables -Z FORWARD 
+      iptables -F -t nat 
+      #删除用户自定义的规则 
+      iptables -X 
+      #重启协议链 
+      iptables -P INPUT   ACCEPT 
+      iptables -P OUTPUT  ACCEPT 
+      iptables -P FORWARD ACCEPT 
+         iptables -t nat -P PREROUTING ACCEPT 
+  ;; esac 
+echo "done" exit 0 
+
+
+
+
+
+
+
+标签：	 RHEL Fedora Linux CentOS Ubuntu
+补充话题说明»
+分享到 收藏0举报踩 0 | 顶 0
+按默认排序 | 显示最新评论 | 回页面顶部 共有1个评论 发表评论»
+r00tooxx 回答于 2013-07-17 10:08 举报
+本来想分析分析的，一看是09年的，就算了吧 ·· 应该解决了吧 薯哥·  
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论
+
+
+  
+
+回评论顶部 | 回页面顶部
+
+有什么技术问题吗？ 我要提问
+全部(4986)...红薯的其他问题
+【多图】开源中国的 Duke 奖杯已经送到公司
+(22回/817阅,2天前)
+第一期有偿翻译安排和要求
+(22回/318阅,2天前)
+2013 上海源创会图文总结 —— 美食+美女
+(99回/9075阅,4天前)
+Tomcat 8.0 快照版本下载体验
+(3回/290阅,7天前)
+改了 #postfix# 的 message_size_limit 配置后无法收到邮件
+(2回/67阅,8天前)
+
+类似的话题
+linux服务中文说明
+(5回/392阅,1年前)
+Unix中不小心就会做错的事情
+(0回/186阅,1年前)
+mount时长文件名不能正常显示的解决方法
+(0回/57阅,1年前)
+linux系统信息查看命令
+(1回/417阅,1年前)
+linux 下查看系统资源和负载，以及性能监控
+(0回/287阅,1年前)
+如何判断你的Linux系统是否被黑
+(5回/1180阅,4年前)
+LINUX启动服务详解
+(2回/1479阅,4年前)
+Linux 无法开机 显示 an error occurred during the file sy
+(0回/1681阅,3年前)
+Linux内核20天内连爆两高危漏洞，一个命令又可以获得root权限
+(18回/2731阅,3年前)
+修改/etc/fstab重起后，无法启动的解决办法
+(1回/311阅,3年前)
+一个Linux初学者的想法
+(1回/948阅,3年前)
+linux打开文件数量的查看方法
+(1回/738阅,3年前)
+大企业在后端使用Linux的十大常见方式
+(1回/950阅,3年前)
+Linux 命令 “ls ” 的用法
+(3回/902阅,3年前)
+Linux 动态库与静态库制作及使用详解
+(0回/1269阅,1年前)
+Linux下动态库的生成和使用
+(4回/2946阅,1年前)
+© 开源中国(OsChina.NET) | 关于我们 | 广告联系 | @新浪微博 | 开源中国手机版 | 粤ICP备12009483号-3	开源中国手机客户端：AndroidiPhoneWP7
+

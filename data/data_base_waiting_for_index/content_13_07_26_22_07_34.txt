@@ -1,0 +1,287 @@
+djdhbjqdbwhjb0我的：收件箱资源博客空间设置|帮助|退出首页业界移动云计算研发论坛博客下载
+更多
+
+首页论坛帮助论坛牛人论坛地图
+
+
+CSDN > CSDN论坛 > C/C++ > 工具平台和程序库
+管理菜单 结帖发帖回复
+二叉树先序遍历的非递归程序和后序遍历的非递归程序 [问题点数：50分，结帖人BestSky]   收藏
+
+BestSky
+BestSky
+等级：
+结帖率：100%
+楼主 发表于： 2006-08-02 17:43:31
+请帮忙回答一下，感激不尽。
+分享到：  
+对我有用[0] 丢个板砖[0] 引用 | 举报 | 管理 回复次数：5
+
+kangji
+kangji
+等级：
+#1 得分：0 回复于： 2006-08-02 18:50:29
+晕，你自己先写个出来，有错误帮你改啊
+免积分，500+CSDN活动PPT阅读/下载 对我有用[0] 丢个板砖[0] 引用 | 举报 | 管理
+
+jixingzhong  
+jixingzhong
+等级：
+2172
+更多勋章
+#2 得分：45 回复于： 2006-08-02 19:33:15
+二叉树先序中序后序三种遍历的非递归算法
+作者：      来源：zz     发表时间：2006-06-09     浏览次数： 404      字号：大  中  小
+
+本贴给出二叉树先序、中序、后序三种遍历的非递归算法，此三个算法可视为标准算法。
+1.先序遍历非递归算法
+#define maxsize 100
+typedef struct
+{
+    Bitree Elem[maxsize];
+    int top;
+}SqStack;
+
+void PreOrderUnrec(Bitree t)
+{
+    SqStack s;
+    StackInit(s);
+    p=t;
+    
+    while (p!=null || !StackEmpty(s))
+    {
+        while (p!=null)             //遍历左子树
+        {
+            visite(p->data);
+            push(s,p);
+            p=p->lchild;       
+        }//endwhile
+        
+        if (!StackEmpty(s))         //通过下一次循环中的内嵌while实现右子树遍历
+        {
+            p=pop(s);
+            p=p->rchild;        
+        }//endif
+                
+    }//endwhile 
+    
+}//PreOrderUnrec
+
+2.中序遍历非递归算法
+#define maxsize 100
+typedef struct
+{
+    Bitree Elem[maxsize];
+    int top;
+}SqStack;
+
+void InOrderUnrec(Bitree t)
+{
+    SqStack s;
+    StackInit(s);
+    p=t;
+    while (p!=null || !StackEmpty(s))
+    {
+        while (p!=null)             //遍历左子树
+        {
+            push(s,p);
+            p=p->lchild;
+        }//endwhile
+        
+        if (!StackEmpty(s))
+        {
+            p=pop(s);
+            visite(p->data);        //访问根结点
+            p=p->rchild;            //通过下一次循环实现右子树遍历
+        }//endif   
+    
+    }//endwhile
+
+}//InOrderUnrec
+
+
+3.后序遍历非递归算法
+#define maxsize 100
+typedef enum{L,R} tagtype;
+typedef struct 
+{
+    Bitree ptr;
+    tagtype tag;
+}stacknode;
+
+typedef struct
+{
+    stacknode Elem[maxsize];
+    int top;
+}SqStack;
+
+void PostOrderUnrec(Bitree t)
+{
+    SqStack s;
+    stacknode x;
+    StackInit(s);
+    p=t;
+    
+    do 
+    {
+        while (p!=null)        //遍历左子树
+        {
+            x.ptr = p; 
+            x.tag = L;         //标记为左子树
+            push(s,x);
+            p=p->lchild;
+        }
+    
+        while (!StackEmpty(s) && s.Elem[s.top].tag==R)  
+        {
+            x = pop(s);
+            p = x.ptr;
+            visite(p->data);   //tag为R，表示右子树访问完毕，故访问根结点       
+        }
+        
+        if (!StackEmpty(s))
+        {
+            s.Elem[s.top].tag =R;     //遍历右子树
+            p=s.Elem[s.top].ptr->rchild;        
+        }    
+    }while (!StackEmpty(s));
+}//PostOrderUnrec 
+
+
+【http://www.yuanma.org/data/2006/0609/article_747.htm】
+专访谭海燕：移动互联网开发的那些事对我有用[0] 丢个板砖[0] 引用 | 举报 | 管理
+
+jixingzhong  
+jixingzhong
+等级：
+2172
+更多勋章
+#3 得分：0 回复于： 2006-08-02 19:37:00
+遍历二叉树的非递归算法
+作者：      来源：     发表时间：2006-06-05     浏览次数： 375      字号：大  中  小
+编写的方法：根据树中结点的遍历规律及顺序直接写出其非递归算法。
+先序非递归算法
+【思路】
+假设：T是要遍历树的根指针，若T != NULL
+对于非递归算法，引入栈模拟递归工作栈，初始时栈为空。
+问题：如何用栈来保存信息，使得在先序遍历过左子树后，能利用栈顶信息获取T的右子树的根指针？
+方法1：访问T->data后，将T入栈，遍历左子树；遍历完左子树返回时，栈顶元素应为T，出栈，再先序遍历T的右子树。
+方法2：访问T->data后，将T->rchild入栈，遍历左子树；遍历完左子树返回时，栈顶元素应为T->rchild，出栈，遍历以该指针为根的子树。
+【算法1】
+void    PreOrder(BiTree T, Status ( *Visit ) (ElemType e))
+
+{    // 基于方法一，流程图如右，当型循环
+InitStack(S);
+while ( T!=NULL || !StackEmpty(S)){
+while ( T != NULL ){
+Visit(T->data) ;
+Push(S,T);
+T = T->lchild;
+}
+if( !StackEmpty(S) ){
+Pop(S,T);
+T = T->rchild;
+}
+}
+}
+【算法2】
+void    PreOrder(BiTree T, Status ( *Visit ) (ElemType e))
+
+{    // 基于方法二，流程图如右，当型循环
+InitStack(S);
+while ( T!=NULL || !StackEmpty(S) ){
+while ( T != NULL ){
+Visit(T->data);
+Push(S, T->rchild);
+T = T->lchild;
+}
+if ( !StackEmpty(S) ){
+Pop(S,T);
+}
+}
+}
+进一步考虑：对于处理流程中的循环体的直到型、当型+直到型的实现。
+中序非递归算法
+【思路】
+T是要遍历树的根指针，中序遍历要求在遍历完左子树后，访问根，再遍历右子树。
+问题：如何用栈来保存信息，使得在中序遍历过左子树后，能利用栈顶信息获取T指针？
+方法：先将T入栈，遍历左子树；遍历完左子树返回时，栈顶元素应为T，出栈，访问T->data，再中序遍历T的右子树。
+
+【算法】
+void    InOrder(BiTree T, Status ( *Visit ) (ElemType e))
+{    // 流程图如右，当型循环
+InitStack(S);
+while ( T!=NULL || !StackEmpty(S) ){
+while ( T != NULL ){
+Push(S,T);
+T = T->lchild;
+}
+if( !StackEmpty(S) ){
+Pop(S, T);
+Visit(T->data);
+T = T->rchild;
+}
+}
+}
+进一步考虑：对于处理流程中的循环体的直到型、当型+直到型的实现。
+后序非递归算法
+【思路】
+
+T是要遍历树的根指针，后序遍历要求在遍历完左右子树后，再访问根。需要判断根结点的左右子树是否均遍历过。
+可采用标记法，结点入栈时，配一个标志tag一同入栈(0：遍历左子树前的现场保护，1：遍历右子树前的现场保护)。
+首先将T和tag(为0)入栈，遍历左子树；返回后，修改栈顶tag为1，遍历右子树；最后访问根结点。
+typedef struct stackElement{
+Bitree    data;
+char        tag;
+}stackElemType;
+【算法】
+void    PostOrder(BiTree T, Status ( *Visit ) (ElemType e))
+{    // 流程图如右，当型循环
+InitStack(S);
+while ( T!=NULL || !StackEmpty(S) ){
+while ( T != NULL ){
+Push(S,T,0);
+T = T->lchild;
+}
+while ( !StackEmpty(S) && GetTopTag(S)==1){
+Pop(S, T);
+Visit(T->data);
+}
+if ( !StackEmpty(S) ){
+SetTopTag(S, 1);        // 设置栈顶标记
+T = GetTopPointer(S);    // 取栈顶保存的指针
+T = T->rchild;
+}else break;
+}
+}
+关注CSDN论坛微博 送CSDN积分大礼包 对我有用[1] 丢个板砖[0] 引用 | 举报 | 管理
+
+jiajun2001
+jiajun2001
+等级：
+#4 得分：5 回复于： 2006-08-03 11:58:24
+楼主记住一条原则，递归程序改写成迭代程序，可以利用堆栈这个数据结构实现。
+对我有用[1] 丢个板砖[0] 引用 | 举报 | 管理
+
+BestSky
+BestSky
+等级：
+#5 得分：0 回复于： 2006-08-05 08:55:45
+谢谢，结贴。
+对我有用[0] 丢个板砖[0] 引用 | 举报 | 管理
+管理菜单 结帖发帖回复
+台湾程序员游戏开发经历
+陈勇- 敏捷开发现状及发展之路
+分享你的发现 赢下载积分
+
+2013年10月微软MVP开始
+CSDN与微软合作，长期为用户提供申请“微软最有价值专家”的平台，希望有兴趣的朋友能够积极参与。
+本帖子已过去太久远了，不再提供回复功能。
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+

@@ -1,0 +1,908 @@
+
+
+
+
+xujianlane的专栏
+
+忘忧猫猫
+
+
+
+
+ 
+
+
+
+•目录视图
+•摘要视图
+•订阅
+ 
+
+
+
+亲，“社区之星”已经一周岁了！        WebApp实时开源框架Clouda---认识心得      Tag功能介绍—我们为什么打Tag      订阅CSDN社区周刊，及时了解社区精华内容 
+
+
+
+Parser Generator使用说明 
+
+2008-08-20 13:345465人阅读评论(7)收藏举报
+ 
+generatorlibraryincludeyacc多线程token
+
+ 
+Parser Generator的使用说明
+
+最近1个星期,大致学习了一下lex,虽然在windows系统上它并没有我所期望的强大,在调试和编写代码都遇到了不少困难,但是总体来说Parser Generator还是让我体会到了lex编程的快捷, 为了自己加深印象把一些参考资料和认识总结了一下.
+
+<!--[if !supportLists]-->1.     <!--[endif]-->parser generator是什么?
+
+它是一款在windows下编写lex/yacc程序的工具.可以到
+
+http://www.bumblebeesoftware.com/downloads.htm
+
+下载
+
+<!--[if !supportLists]-->2.     <!--[endif]-->parser generator的使用方法
+
+这里只以vc6.0为例,首先打开parser generator编辑器,选择Project->LibBuilder
+
+在LibBuilder对话框中选中Visual C++(32-bit),按属性键Properties后确以下设置
+
+Script file name                        ./Cpp/Script/msvc32.lbs
+
+Name                                    Visual C++(32-bit)
+
+Directory                               msvc32
+
+Compiler Version                         Version 6
+
+Unicode                                  True
+
+Treat wchar_t as Built-in Type            False
+
+Compiler Bin Directory             安装路径/Microsoft Visual Studio/Vc98/bin
+
+Compiler Bin Directory(2) 安装路径/Microsoft Visual Studio/Common/MSDev98/bin
+
+Compiler Include Directory      安装路径/Microsoft Visual Studio/Vc98/include
+
+Compiler Include Directory(2)               无
+
+Compiler Library Directory          安装路径/Microsoft Visual Studio/Vc98/lib
+
+Compiler Library Directory(2)               无
+
+Libraries下的库文件全部选中后ok
+
+LibBuilder对话框->Build(编译过程可能几分钟)
+
+编译完成后我们就可以使用parser generator编写lex或是yacc程序了
+
+Project->ParserWizard
+
+Step1 工程设定(一点需要注意语言可以选择c或是c++或java)
+
+Step2 工程设定(默认创建带main函数的yacc文件和lex文件)
+
+Step3 yacc文件设定
+
+Step4 lex文件设定
+
+ 
+
+Lex和yacc的语法参考http://www.ibm.com/developerworks/cn/linux/sdk/lex/
+
+编辑好代码后Project->RebBuild All在你创建好的工程下自动生成Step1选定语言的文件(.h/..c/.cpp/.java)
+
+之后在vc6.0加入如下设置
+
+Tool->Option-> directory
+
+Bin file :
+
+安装目录/PARSER GENERATOR 2/BIN
+
+Include file:
+
+安装目录/PARSER GENERATOR 2/CPP/INCLUDE
+
+Library file
+
+安装目录/PARSER GENERATOR 2/CPP/LIB/MSVC32
+
+Soure file
+
+安装目录/PARSER GENERATOR 2/CPP/SOURCE
+
+创建vc6.0工程
+
+将生成文件复制到vc6.0创建工程下
+
+Source files和Header Files中加入生成文件(.h/.c/.cpp)
+
+在工程设定中Project->Settings For box选中win32 debug
+
+c/c++ ->Category选中General ->Preprocessor Definitions加入YYDEBUG
+
+在工程Project设定Project->Settings For box中选中all
+
+link -> Category选中General->Object/Library Modules中加入yld.lib
+
+这里需要注意的是yld.lib为parser generator的DUBUG单线程版本,对于vc的控制台程序是可以的,如果使用了MFC或是Windows applications程序则需要对应下表追加
+
+
+
+
+Library(DEBUG)
+ 
+
+Run-time Library
+ 
+
+Description
+ 
+
+
+
+yld.lib
+ 
+
+Debug Single-Threaded
+ 
+
+单线程静态链接库(DEBUG版本)
+ 
+
+
+
+ylmtd.lib
+ 
+
+Debug Multithreaded
+ 
+
+多线程静态链接库(DEBUG版本)
+ 
+
+
+
+ylmtrd.lib
+ 
+
+Debug Multithreaded DLL
+ 
+
+多线程静态链接库当run time library 使用动态库(DEBUG版本)
+ 
+
+
+
+ylmtrid.lib     
+
+
+Debug Multithreaded DLL
+ 
+
+多线程动态链接库当run time library 使用动态库(DEBUG版本)
+ 
+
+ 
+
+
+
+
+Library(RELEASE)
+ 
+
+Run-time Library
+ 
+
+Description
+ 
+
+
+
+yl.lib
+ 
+
+Single-Threaded
+ 
+
+单线程静态链接库(RELEASE版本)
+ 
+
+
+
+ylmt.lib
+ 
+
+Multithreaded
+ 
+
+多线程静态链接库(RELEASE版本)
+ 
+
+
+
+ylmtr.lib
+ 
+
+Multithreaded DLL       
+
+
+多线程静态链接库当run time library 使用动态库(RELEASE版本)
+ 
+
+
+
+ylmtri.lib
+ 
+
+Multithreaded DLL       
+
+
+多线程动态链接库当run time library 使用动态库(RELEASE版本)
+ 
+
+如果使用了动态库版本需要在程序运行环境中追加DLL的地址
+
+安装目录/PARSER GENERATOR 2/CPP/LIB/MSVC32
+
+如果需要链接yacc或是lex的dll.在Preprocessor Definitions下加入YYDLL.
+
+ 
+
+这样就可以使用vc6.0对lex生成文件进行编译了
+
+3、PG2的默认输入为FILE *，怎样转化为char *?
+ PG2提供了两种方法，一是重定义yyinput，二是重定义yygetchar。实际使用中后者较方便，因为yyinput除了调用yygetchar之外还需要负责lineno变量的增加。
+ yygetchar通常这样定义
+ int yygetchar(void)
+ {
+      if (* inputstring=='/0')
+      {
+            return -1;
+      }
+      return (unsigned char) * inputstring++;
+ }
+ 唯一要注意的就是读到char *的末尾时要返回一个-1代表EOF，使得yyinput停止。（感谢luocong的提醒）。
+ 
+4、同理，yyoutput怎样从FILE *转化为char *？
+ 直接对yytext操作既可，yytext就是char[]。
+
+3,4说明转自
+
+http://blog.csdn.net/tankaiha/archive/2005/12/13/551457.aspx
+
+总体来说lex/yacc比起自己编写分析程序要快的多,但是不足点就是错误的调试会非常困难,需要把.lex/.l和.yacc/.y文件加入工程调试,每次变更都需要重新编译parser generator工程,然后再次粘贴,lex的语法熟练度可能决定了效率,新手基于模型为基础进行研究逐步认识parser generator是最佳的学习方法,
+
+Lex的自带例程在/Parser Generator 2/Cpp/Examples 下,在这对其中的class(四则计算器)做下简单说明
+
+lexer.l文件
+
+%{              //%{ %}中的c代码将被复制到.cpp文件中
+
+#include <stdlib.h>
+
+#include <math.h>
+
+#include <assert.h>
+
+#include "parser.h"//自动生成头文件必须包含
+
+%}
+
+ 
+
+// include file
+
+%include {              //%include 将{}里的代码复制到对应的.h文件中,这里声明calc_parser和
+
+class calc_parser;   // symboltable是为在下面calc_lexer::create函数能够找到使用类型的提前
+
+class symboltable;  //声明
+
+}
+
+ 
+
+// lexical analyser name
+
+%name calc_lexer         //%name指定继承自lexer的类名{}中为类成员声明,类的声明将被解//释到.h文件中
+
+// class definition
+
+{
+
+// Attributes
+
+protected:
+
+        symboltable* m_symboltable;             // the symbol table
+
+ 
+
+// Operations
+
+public:
+
+        int create(calc_parser* parser, symboltable* symboltable);
+
+        
+
+        // attribute commands
+
+        double number() const;
+
+        symbol* id() const;
+
+}
+
+ 
+
+// constructor
+
+{
+
+        // do nothing
+
+}
+
+ 
+
+// macros
+
+exponent        ([Ee][+-]?[0-9]+)  //科学计算方定义为exponent
+
+ 
+
+%%
+
+ 
+
+%{
+
+// extract yylval for use later on in actions
+
+YYSTYPE& yylval = *(YYSTYPE*)yyparserptr->yylvalptr;//指定yylval值的类型
+
+%}
+
+ 
+
+// 对于数字的规则处理 |表示或,指|下一个算式使用的规则与第一个相同{}中是规则执行代码
+
+[0-9]+"."[0-9]*{exponent}?      |
+
+"."[0-9]+{exponent}?            |
+
+[0-9]+{exponent}?                       { yylval.value = number(); return NUMBER; }
+
+ 
+
+//对于3角函数的规则处理
+
+"sin"                                           { return SIN; }
+
+"cos"                                           { return COS; }
+
+"tan"                                           { return TAN; }
+
+ 
+
+// 对于变量的规则处理
+
+[a-zA-Z_][a-zA-Z0-9_]*          { yylval.symbol = id(); return ID; }
+
+ 
+
+//对于符号的规则处理
+
+"="                                                     { return '='; }
+
+"+"                                                     { return '+'; }
+
+"-"                                                     { return '-'; }
+
+"*"                                                     { return '*'; }
+
+"/"                                                     { return '/'; }
+
+"("                                                     { return '('; }
+
+")"                                                     { return ')'; }
+
+ 
+
+// 对于特殊符号的处理
+
+[ /t]                                           { /* do nothing */ }
+
+/n                                                      { return '/n'; }
+
+ 
+
+.                                                       { printf("invalid character '0x%02x'/n", (unsigned int)yytext[0]); }
+
+ 
+
+%%
+
+ 
+
+/////////////////////////////////////////////////////////////////////////////
+
+// 以下都是对成员函数的实现,将被复制到.cpp文件中
+
+ 
+
+int calc_lexer::create(calc_parser* parser, symboltable* symboltable)
+
+{
+
+        assert(parser != NULL);
+
+        assert(symboltable != NULL);
+
+        
+
+        m_symboltable = symboltable;
+
+        return yycreate(parser);
+
+}
+
+ 
+
+/////////////////////////////////////////////////////////////////////////////
+
+// calc_lexer attribute commands
+
+ 
+
+double calc_lexer::number() const
+
+{
+
+        errno = 0;              // clear error flag
+
+        char* endp;
+
+        double d = strtod(yytext, &endp);
+
+        if ((d == +HUGE_VAL || d == -HUGE_VAL) && errno == ERANGE) {
+
+                printf("number too big/n");
+
+        }
+
+        return d;
+
+}
+
+ 
+
+symbol* calc_lexer::id() const
+
+{
+
+        symbol* p = m_symboltable->install(yytext);
+
+        return p;
+
+}//lexer.l end
+
+ 
+
+parser.y文件
+
+%{                      //%{ %}中的c代码将被复制到.cpp文件中
+
+#include <math.h>
+
+%}
+
+ 
+
+// include file
+
+%include {              //%include 将{}里的代码复制到对应的.h文件中,这里声明symbol
+
+ // 是为在下面calc_parser:: assign函数能够找到使用类型的提前
+
+ //声明
+
+// forward references
+
+class symbol;
+
+}
+
+ 
+
+//%union表示使用联合体声明yytest的类型可能有2种,也就是lex返回的标记的值的类型(每//一个标记都会有一个值)
+
+%union {
+
+        symbol* symbol;
+
+        double value;
+
+}
+
+ 
+
+// nonterminals
+
+%type <value> expr  //%type是声明变量expr为double类型,这里要注意的是<>声明的类型必//须是在%union中定义的变量
+
+//这里要注意下越是后声明的优先级越高
+
+%right '='          //%right声明=为右结合
+
+%left '+', '-'  //%left 声明+ -为左结合
+
+%left '*', '/'        //%left 声明* /为左结合
+
+%right UMINUS     //%right声明UMINUS为右结合,此优先级最高
+
+ 
+
+%token <value> NUMBER //%token声明标记NUMBER和其类型,与%type注意点一样
+
+%token <symbol> ID     //声明标记ID的类型,与%type注意点一样
+
+ 
+
+// keywords
+
+%token SIN           //声明标记SIN,因为本身的值没有用途所以不对其类型特殊声明
+
+%token COS           //声明标记COS,因为本身的值没有用途所以不对其类型特殊声明
+
+%token TAN           //声明标记TAN,因为本身的值没有用途所以不对其类型特殊声明
+
+ 
+
+// include file
+
+%include {
+
+#include "symbol.h"  //%{ %}中的c代码将被复制到.h文件中
+
+#include "lexer.h"
+
+}
+
+ 
+
+// parser name
+
+%name calc_parser   //%name指定继承自lexer的类名{}中为类成员声明,类的声明将被解
+
+//释到.h文件中
+
+// class definition
+
+{
+
+// 类成员声明
+
+protected:
+
+        symboltable m_symboltable;              // the symbol table
+
+        calc_lexer m_lexer;                             // the lexical analyser
+
+        
+
+// Operations
+
+public:
+
+        int create();
+
+        
+
+        // attribute commands
+
+        double assign(symbol* id, double value);
+
+        double divide(double dividend, double divisor);
+
+}
+
+ 
+
+// constructor
+
+{
+
+        // do nothing
+
+}
+
+ 
+
+%%
+
+lines
+
+        : lines line
+
+        | /* empty */
+
+        ;
+
+ 
+
+line
+
+        : expr '/n'                                     { printf("%g/n", (double)$1); }
+
+        | error '/n'                            { yyerrok(); }
+
+        ;
+
+//这里只对expr进行说明$$是冒号左边表达式的值   $1为右边第一个表达式的值
+
+$2为右边第二个表达式的值  $3为右边第三个表达式的值,以此类推.
+
+expr
+
+        : ID '=' expr                           { $$ = assign($1, $3); }//变量保存
+
+        | expr '+' expr                         { $$ = $1 + $3; }
+
+        | expr '-' expr                         { $$ = $1 - $3; }
+
+        | expr '*' expr                         { $$ = $1 * $3; }
+
+        | expr '/' expr                         { $$ = divide($1, $3); }//除法判断
+
+        | '(' expr ')'                          { $$ = $2; }
+
+        | '-' expr %prec UMINUS         { $$ = -$2; }
+
+// %prec说明'-' expr表达式的优先级和UMINUS一样.
+
+        | NUMBER                                        { $$ = $1; }
+
+        | ID                                            { $$ = $1->m_value; }
+
+        | SIN '(' expr ')'                      { $$ = sin($3); }
+
+        | COS '(' expr ')'                      { $$ = cos($3); }
+
+        | TAN '(' expr ')'                      { $$ = tan($3); }
+
+        ;
+
+ 
+
+%%
+
+ 
+
+/////////////////////////////////////////////////////////////////////////////
+
+//以下都是对成员函数的实现,将被复制到.cpp文件中
+
+ 
+
+ 
+
+int main(void)
+
+{
+
+        int n = YYEXIT_FAILURE;
+
+        
+
+        calc_parser parser;
+
+        if (parser.create()) {
+
+                n = parser.yyparse();
+
+        }
+
+        return n;
+
+}
+
+ 
+
+/////////////////////////////////////////////////////////////////////////////
+
+// calc_parser commands
+
+ 
+
+int calc_parser::create()
+
+{
+
+        if (!yycreate(&m_lexer)) {
+
+                return 0;
+
+        }
+
+        if (!m_lexer.create(this, &m_symboltable)) {
+
+                return 0;
+
+        }
+
+        return 1;       // success
+
+}
+
+ 
+
+/////////////////////////////////////////////////////////////////////////////
+
+// calc_parser attribute commands
+
+ 
+
+double calc_parser::assign(symbol* id, double value)
+
+{
+
+        assert(id != NULL);
+
+ 
+
+        id->m_value = value;
+
+        return id->m_value;
+
+}
+
+ 
+
+double calc_parser::divide(double a, double b)
+
+{
+
+        if (b == 0) {
+
+                printf("division by zero/n");
+
+                yythrowerror();         // causes a syntax error
+
+                return 0;
+
+        }
+
+        else {
+
+                return a / b;
+
+        }
+
+}
+
+更多详细参考可以查看Parser Generator Help帮助文档
+
+以上都是作者的辛苦劳动,转载请注明出处.
+ 
+更多 
+
+•上一篇：IBM-T60 冻死问题解决
+ 
+
+
+查看评论
+ 
+
+
+
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+核心技术类目
+
+ 全部主题 数据挖掘 SOA UML 开放平台 HTML5 开源 移动开发 iOS Android移动游戏 Windows Phone JavaScript CSS 游戏引擎 云计算 大数据 Hadoop OpenStack云平台 PHP MongoDB JSON Xcode Node.js 前端开发 神经网络 安全 Java .NET MySQL textview BigTable web框架 SQL Redis CouchDB Linux 可穿戴计算 NoSQL Ruby API GPL XAML ASP.NET 前端开发 虚拟化 框架 机器学习 数据中心 IE10 敏捷 集群
+ 
+
+
+
+
+个人资料 
+
+xujianlane 
+
+
+
+
+◦访问：26439次
+◦积分：399分
+◦排名：千里之外
+ ◦原创：11篇
+◦转载：3篇
+◦译文：1篇
+◦评论：13条
+ 
+文章搜索
+
+ 
+文章存档 
+•2008年08月(1)
+•2008年01月(2)
+•2007年12月(1)
+•2007年11月(4)
+•2007年07月(6)
+•2007年05月(1)
+ 
+阅读排行 • vc中使用nmake命令编译方法(8618) 
+• Parser Generator使用说明(5464) 
+• 初识IPv6(四)(2337) 
+• ControlSet001、ControlSet002以及CurrentControlSet(1455) 
+• IBM-T60 冻死问题解决(1146) 
+• 如何判断当前系统是ipv4还是ipv6(1104) 
+• 初识IPv6(二)(842) 
+• 初识IPv6(三)(807) 
+• xp,windows2000/2003/2008注册表里ipv6地址的位置 (715) 
+• RFC2428--FTP对IPv6和NAT的扩展(595) 
+
+评论排行 • Parser Generator使用说明(7) 
+• ControlSet001、ControlSet002以及CurrentControlSet(3) 
+• 初识IPv6(二)(1) 
+• vc中使用nmake命令编译方法(1) 
+• 如何判断当前系统是ipv4还是ipv6(1) 
+• 初识IPv6(一)(0) 
+• IBM-T60 冻死问题解决(0) 
+• RFC2428--FTP对IPv6和NAT的扩展(0) 
+• unicode,ansi编码转换(0) 
+• windows常用api(0) 
+
+推荐文章 
+最新评论 •vc中使用nmake命令编译方法
+xujiali5172923: 第二条很重要啊 
+
+•Parser Generator使用说明
+fengjuyixuan: 不错 刚好正在学习 
+
+•如何判断当前系统是ipv4还是ipv6
+hwwill: 怎么判断，我电脑上网卡绑定的是DNE 
+
+•Parser Generator使用说明
+hufeikong: 文章不错,就是对照不能成功!关于&quot;YYLEXERNAME&quot;这个错误相信所有按照这... 
+
+•Parser Generator使用说明
+chouchou2007: 你好，请教下如果我想在64位Windows7下使用该词法分析工具，应该怎么配置，能在64位环境下使用... 
+
+•Parser Generator使用说明
+everyhook: 但貌似你已经不在了，你的最后文章是在08年。 
+
+•Parser Generator使用说明
+everyhook: 你好，可以回答一下吗？？？太可惜了，你是两年前写的文章。我的编译器不能编译成功。单独编译 *.l 或... 
+
+•初识IPv6(二)
+insulted: 感谢博主这篇文章！我想问一个问题：// IPv6 fragment header typedef s... 
+
+•Parser Generator使用说明
+Dana_Jing: 呵呵,我自己已经明白了.多谢 
+
+•Parser Generator使用说明
+Dana_Jing: 之后在vc6.0加入如下设置Tool-&gt;Option-&gt; directoryBin fi... 
+
+
+
+
+
+

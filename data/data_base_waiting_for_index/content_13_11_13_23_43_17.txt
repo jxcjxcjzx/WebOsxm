@@ -1,0 +1,403 @@
+
+
+•首页
+•开源项目◦Java 开源软件
+◦C# 开源软件
+◦PHP 开源软件
+◦C/C++ 开源软件
+◦Ruby 开源软件
+◦Python 开源软件
+◦Go开源软件
+◦JS开源软件
+
+•讨论区◦ 技术问答 » 
+◦ 技术分享 » 
+◦ IT大杂烩 » 
+◦ 职业生涯 » 
+◦ 站务/建议 » 
+◦ 支付宝专区 » 
+◦ 开源硬件专区 » 
+
+•代码
+•博客
+•翻译
+•资讯
+•移动开发◦Android开发专区
+◦iOS开发专区
+◦iOS代码库
+◦WP7开发专区
+
+•招聘
+•城市圈
+
+ 当前访客身份：游客 [ 登录 | 加入开源中国 ] 
+
+
+
+开源中国 
+讨论区
+ 当前位置：讨论区 » 技术分享» MySQL 
+搜 索 
+
+
+
+
+
+
+
+
+
+
+MySQL 三种关联查询的方式: ON vs USING vs 传统风格
+
+红薯 发表于 2012-7-11 18:40 1年前, 30回/8580阅, 最后回答: 9个月前 
+
+
+
+开源中国 5 周年，史上最牛定制开源马克杯！
+
+
+看看下面三个关联查询的 SQL 语句有何区别？
+SELECT * FROM film JOIN film_actor ON (film.film_id = film_actor.film_id)
+SELECT * FROM film JOIN film_actor USING (film_id)
+SELECT * FROM film, film_actor WHERE film.film_id = film_actor.film_id
+最大的不同更多是语法糖，但有一些有意思的东西值得关注。
+
+为了方便区别，我们将前两种写法称作是 ANSI 风格，第三种称为 Theta 风格。
+
+Theta 风格
+ 
+
+在 FROM 短语中列出了关联的表名，而 WHERE 短语则指定如何关联。
+
+这种写法被认为是古老的方式，有些时候比较难以理解，请看下面查询：
+SELECT * FROM film, film_actor WHERE film.film_id = film_actor.film_id AND actor_id = 17 AND film.length > 120
+上述查询列出片长超过 120 分钟的电影，其中包括演员编号是 17 的条件。别在意查询结果，查询本身如何呢？WHERE 表达式中包含三个条件，要看出哪个条件是关联，哪个条件是过滤还是稍费点事的。不过还是相对简单的，但如果是 5 个表，20 多个条件呢？
+
+ANSI 风格: ON
+
+使用 JOIN ... ON 可以将表关联的条件和记录过滤条件分开，将上面的语句重写后的结果如下：
+SELECT * FROM film JOIN film_actor ON (film.film_id = film_actor.film_id) WHERE actor_id = 17 AND film.length > 120
+看起来清晰许多。
+
+注意: ON 语句中的括号不是必须的，我个人喜欢这样写而已。
+
+ANSI 风格: USING
+
+有一种特殊情况，当两个要关联表的字段名是一样的，我们可以使用  USING ，可减少 SQL 语句的长度:
+SELECT * FROM film JOIN film_actor USING (film_id) WHERE actor_id = 17 AND film.length > 120
+这个时候括号就是必须的了。这种写法很好，输入更少的单词，查询的性能也非常棒，但还需要注意一些差异。
+
+USING 和 ON
+
+下面语句是可行的：
+SELECT film.title, film_id FROM film JOIN film_actor USING (film_id) WHERE actor_id = 17 AND film.length > 120;
+但下面这个就不行：
+SELECT film.title, film_id FROM film JOIN film_actor ON (film.film_id = film_actor.film_id) WHERE actor_id = 17 AND film.length > 120;ERROR 1052 (23000): Column 'film_id' in field list is ambiguous
+因为 USING "知道" film_id 字段在两个表中都有，所以没有指定确切的表都没关系，两个值必须一致就是。
+
+ON 就没那么智能，你必须指明要关联的表和字段名。
+
+上面两个实际的结果是比较有趣的，当使用 USING 时，字段只在结果中出现一次：
+SELECT * FROM film JOIN film_actor USING (film_id) WHERE actor_id = 17 AND film.length > 120 LIMIT 1\G
+*************************** 1. row ***************************
+             film_id: 96
+               title: BREAKING HOME
+         description: A Beautiful Display of a Secret Agent And a Monkey who must Battle a Sumo Wrestler in An Abandoned Mine Shaft
+        release_year: 2006
+         language_id: 1
+original_language_id: NULL
+     rental_duration: 4
+         rental_rate: 2.99
+              length: 169
+    replacement_cost: 21.99
+              rating: PG-13
+    special_features: Trailers,Commentaries
+         last_update: 2006-02-15 05:03:42
+            actor_id: 17
+         last_update: 2006-02-15 05:05:03
+而使用 ON 时，字段就会出现两次：
+SELECT * FROM film JOIN film_actor ON film.film_id = film_actor.film_id WHERE actor_id = 17 AND film.length > 120 LIMIT 1\G
+*************************** 1. row ***************************
+             film_id: 96
+               title: BREAKING HOME
+         description: A Beautiful Display of a Secret Agent And a Monkey who must Battle a Sumo Wrestler in An Abandoned Mine Shaft
+        release_year: 2006
+         language_id: 1
+original_language_id: NULL
+     rental_duration: 4
+         rental_rate: 2.99
+              length: 169
+    replacement_cost: 21.99
+              rating: PG-13
+    special_features: Trailers,Commentaries
+         last_update: 2006-02-15 05:03:42
+            actor_id: 17
+             film_id: 96
+         last_update: 2006-02-15 05:05:03
+幕后
+ 
+
+MySQL 对两者的处理方式是相同的，使用 EXPLAIN EXTENDED 我们可以看到：
+EXPLAIN EXTENDED SELECT film.title, film_id FROM film JOIN film_actor USING (film_id) WHERE actor_id = 17 AND film.length > 120\G
+*************************** 1. row ***************************
+...
+2 rows in set, 1 warning (0.00 sec)
+
+root@mysql-5.1.51> SHOW WARNINGS\G
+*************************** 1. row ***************************
+  Level: Note
+   Code: 1003
+Message: select `sakila`.`film`.`title` AS `title`,`sakila`.`film`.`film_id` AS `film_id` 
+         from `sakila`.`film` join `sakila`.`film_actor` 
+         where (
+                 (`sakila`.`film`.`film_id` = `sakila`.`film_actor`.`film_id`) 
+                 and (`sakila`.`film_actor`.`actor_id` = 17) 
+                 and (`sakila`.`film`.`length` > 120)
+               )
+最终所有的查询都被转成了 Theta 风格。
+
+译者：就是说这三种方式除了写法不同外，没什么区别。
+
+英文原文，OSCHINA原创翻译
+
+
+标签：MySQL 精华 OSCHINA原创翻译
+
+补充话题说明»
+
+ 
+
+
+分享到 
+
+收藏
+
+110
+
+举报
+
+踩0 | 顶1
+
+
+
+按默认排序 | 显示最新评论 | 回页面顶部共有30个评论 发表评论»
+•
+
+
+
+xinzaibing 回答于 2012-07-11 19:26 
+
+举报
+
+
+......看到最后一行，菊花一紧..
+
+
+--- 共有 2 条评论 --- ◦……(1年前 by i-w)回复
+
+◦比我口味重的人不多。你算一个。哈。。。。(1年前 by 中山野鬼)回复
+
+ 
+
+
+有帮助(0) | 没帮助(0) | 评论(2) | 引用此评论 
+
+•
+
+
+
+正想着改什么名好 回答于 2012-07-11 20:20 
+
+举报
+
+
+
+结论错误.
+
+ 最开始3个查询中。第一个不同于后两个。
+
+这里我修改一下。
+
+ 第2个返回字段少了几个。没有重复的字段返回。
+
+貌似 join 连接相当于 inner join, mysql 就 等同于 第三个。
+
+
+
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论 
+
+•
+
+
+
+逝水fox 回答于 2012-07-11 20:31 
+
+举报
+
+
+
+最大的收获是，最后那个explain extended...原来还有这好东西
+
+
+
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论 
+
+•
+
+
+
+极品渣子 回答于 2012-07-11 21:45 
+
+举报
+
+
+第三条还是第一次看到，一直用第一种。这是说 Theta风格最好是吗？
+
+
+
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论 
+
+•
+
+
+
+零度C 回答于 2012-07-11 22:42 
+
+举报
+
+
+怎么会这样呢？
+
+
+
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论 
+
+•
+
+
+
+王振威 回答于 2012-07-11 22:43 
+
+举报
+
+
+日，还以为有多大差别呢
+
+
+
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论 
+
+•
+
+
+
+飞晏 回答于 2012-07-11 23:03 
+
+举报
+
+
+最后一句话闪掉屏幕了...   
+
+
+
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论 
+
+•
+
+
+
+moxuanyuan 回答于 2012-07-12 00:07 
+
+举报
+
+
+那从性能来说，是不是  Theta 风格最好？不用转换？
+
+
+
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论 
+
+•
+
+
+
+32789mm3600 回答于 2012-07-12 07:15 
+
+举报
+
+
+就知道explain，还第一次看到 explain extended
+
+
+
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论 
+
+•
+
+
+
+i-w 回答于 2012-07-12 07:52 来自 Android
+
+举报
+
+
+一直都是第三种………
+
+
+
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论 
+
+•1
+•2
+•3
+•>
+
+
+
+
+
+
+回评论顶部 | 回页面顶部
+
+ 
+
+
+
+有什么技术问题吗？ 我要提问
+
+全部(5001)...红薯的其他问题•省交管局发布中秋国庆高速十大易堵路段(1回/78阅,12天前)
+•在 VirtualBox (Linux) 上运行 Android 4.0(5回/706阅,16天前)
+•使用 Koala 快速创建项目 (Java EE 开发平台）(60回/9083阅,17天前)
+•在 ubuntu 上安装 Linux 3.11 内核(10回/493阅,18天前)
+•开源中国5周年，惠州巽寮湾腐败自驾游（上集）(109回/5982阅,20天前)
+
+
+
+类似的话题•获收所有执行时间超过N秒的查询(1回/203阅,1年前)
+•Mysql5.0中文问题解决(0回/43阅,1年前)
+•mysql 5.1 编译安装(0回/75阅,1年前)
+•mysql 5.5 数据库复制(0回/270阅,1年前)
+•B-Tree索引的一些局限性(0回/124阅,1年前)
+•关于将utf-8的数据库转换成GBK(3回/247阅,1年前)
+•MySQL远程表访问设置(0回/558阅,1年前)
+•MySQL中order by的实现 和 by rand() 和优化(0回/1599阅,1年前)
+•MySQL 中的 JOIN 和 WHERE 查询有何不同？(2回/289阅,3年前)
+•MySQL 创建外键时报 105 错误的原因(0回/335阅,3年前)
+•MySQL 的 LIMIT 语句的优化(8回/435阅,3年前)
+•MySQL SQL查询的隐式转换的性能问题(0回/246阅,3年前)
+•MySql数据库1分钟内能insert,update多少数据量？(12回/1169阅,3年前)
+•MySQL++ API的用法(2回/884阅,3年前)
+•mysql查询慢（Copying to tmp table）解决一例(1回/1747阅,3年前)
+•选择合适的 MySQL 布尔数据类型(2回/1369阅,3年前)
+
+ 
+
+
+
+
+© 开源中国(OsChina.NET) | 关于我们 | 广告联系 | @新浪微博 | 开源中国手机版 | 粤ICP备12009483号-3
+ 
+开源中国手机客户端：AndroidiPhoneWP7 
+
+

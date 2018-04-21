@@ -1,0 +1,832 @@
+Love in coding...
+    Free and Susan
+随笔 - 1523, 文章 - 3, 评论 - 1840, 引用 - 157
+[转]Android读写文件
+本文转自：http://blog.sina.com.cn/s/blog_4d25c9870100qpax.html
+
+ 
+
+一、       从resource中的raw文件夹中获取文件并读取数据（资源文件只能读不能写）
+String res = ""; 
+
+try{ 
+
+InputStream in = getResources().openRawResource(R.raw.bbi); 
+
+//在\Test\res\raw\bbi.txt,
+
+   int length = in.available();       
+
+   byte [] buffer = new byte[length];        
+
+   in.read(buffer);         
+
+   //res = EncodingUtils.getString(buffer, "UTF-8");
+
+   //res = EncodingUtils.getString(buffer, "UNICODE"); 
+
+   res = EncodingUtils.getString(buffer, "BIG5"); 
+
+   //依bbi.txt的编码类型选择合适的编码，如果不调整会乱码
+
+   in.close();            
+
+   }catch(Exception e){ 
+
+      e.printStackTrace();         
+
+   } 
+
+myTextView.setText(res);//把得到的内容显示在TextView上
+
+ 
+
+二、       从asset中获取文件并读取数据（资源文件只能读不能写）
+String fileName = "yan.txt"; //文件名字
+
+String res=""; 
+
+try{ 
+
+   InputStream in = getResources().getAssets().open(fileName);
+
+   // \Test\assets\yan.txt这里有这样的文件存在
+
+   int length = in.available();         
+
+byte [] buffer = new byte[length];        
+
+in.read(buffer);            
+
+res = EncodingUtils.getString(buffer, "UTF-8");     
+
+}catch(Exception e){ 
+
+      e.printStackTrace();         
+
+   }
+
+ 
+
+三、       从sdcard中去读文件，首先要把文件通过\android-sdk-windows\tools\adb.exe把本地计算机上的文件copy到sdcard上去，adb.exe push e:/Y.txt /sdcard/, 不可以用adb.exe push e:\Y.txt \sdcard\ 同样： 把仿真器上的文件copy到本地计算机上用： adb pull ./data/data/com.tt/files/Test.txt e:/
+ 
+
+String fileName = "/sdcard/Y.txt";
+
+//也可以用String fileName = "mnt/sdcard/Y.txt";
+
+String res="";     
+
+try{ 
+
+FileInputStream fin = new FileInputStream(fileName);
+
+//FileInputStream fin = openFileInput(fileName);  
+
+//用这个就不行了，必须用FileInputStream
+
+    int length = fin.available(); 
+
+    byte [] buffer = new byte[length]; 
+
+    fin.read(buffer);     
+
+    res = EncodingUtils.getString(buffer, "UTF-8"); 
+
+    fin.close();     
+
+    }catch(Exception e){ 
+
+           e.printStackTrace(); 
+
+} 
+
+myTextView.setText(res);
+
+ 
+
+四、       写文件， 一般写在\data\data\com.test\files\里面，打开DDMS查看file explorer是可以看到仿真器文件存放目录的结构的
+   String fileName = "TEST.txt";
+
+   String message = "FFFFFFF11111FFFFF" ;
+
+writeFileData(fileName, message);
+
+  
+
+   public voidwriteFileData(String fileName,String message){ 
+
+       try{ 
+
+        FileOutputStream fout =openFileOutput(fileName, MODE_PRIVATE);
+
+        byte [] bytes = message.getBytes(); 
+
+        fout.write(bytes); 
+
+         fout.close(); 
+
+        } 
+
+       catch(Exception e){ 
+
+        e.printStackTrace(); 
+
+       } 
+
+   }    
+
+ 
+
+五、       写， 读data/data/目录(相当AP工作目录)上的文件，用openFileOutput
+   //写文件在./data/data/com.tt/files/下面
+
+   public voidwriteFileData(String fileName,String message){ 
+
+       try{ 
+
+        FileOutputStream fout =openFileOutput(fileName, MODE_PRIVATE);
+
+        byte [] bytes = message.getBytes(); 
+
+        fout.write(bytes); 
+
+         fout.close(); 
+
+        } 
+
+       catch(Exception e){ 
+
+        e.printStackTrace(); 
+
+       } 
+
+   }
+
+//-------------------------------------------------------
+
+//读文件在./data/data/com.tt/files/下面
+
+   public String readFileData(String fileName){ 
+
+        String res=""; 
+
+        try{ 
+
+         FileInputStream fin = openFileInput(fileName); 
+
+         int length = fin.available(); 
+
+         byte [] buffer = new byte[length]; 
+
+         fin.read(buffer);     
+
+         res = EncodingUtils.getString(buffer, "UTF-8"); 
+
+         fin.close();     
+
+        } 
+
+        catch(Exception e){ 
+
+         e.printStackTrace(); 
+
+        } 
+
+        return res; 
+
+    }   
+
+六、       写， 读sdcard目录上的文件，要用FileOutputStream， 不能用openFileOutput
+ 
+
+    //写在/mnt/sdcard/目录下面的文件
+
+   public voidwriteFileSdcard(String fileName,String message){ 
+
+       try{ 
+
+        //FileOutputStream fout = openFileOutput(fileName, MODE_PRIVATE);
+
+       FileOutputStream fout = newFileOutputStream(fileName);
+
+        byte [] bytes = message.getBytes(); 
+
+        fout.write(bytes); 
+
+         fout.close(); 
+
+        } 
+
+       catch(Exception e){ 
+
+        e.printStackTrace(); 
+
+       } 
+
+   }
+
+  
+
+   //读在/mnt/sdcard/目录下面的文件
+
+   public String readFileSdcard(String fileName){
+
+        String res=""; 
+
+        try{ 
+
+         FileInputStream fin = new FileInputStream(fileName); 
+
+         int length = fin.available(); 
+
+         byte [] buffer = new byte[length]; 
+
+         fin.read(buffer);     
+
+         res = EncodingUtils.getString(buffer, "UTF-8"); 
+
+         fin.close();     
+
+        } 
+
+        catch(Exception e){ 
+
+         e.printStackTrace(); 
+
+        } 
+
+        return res; 
+
+   }
+
+ 
+
+注： openFileOutput是在raw里编译过的，FileOutputStream是任何文件都可以
+
+ 
+
+参考：http://dev.10086.cn/cmdn/wiki/index.php?doc-view-6017.html
+ 
+
+分类: Android-app
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+freeliver54
+关注 - 0
+粉丝 - 203
++加关注
+5 0
+(请您对文章做出评价)
+« 上一篇：[转]全国公共英语PETS三级作文经典辅导
+» 下一篇：[转]23种经典设计模式的java实现_5_职责链模式
+posted on 2011-09-16 16:31 freeliver54 阅读(24970) 评论(6) 编辑 收藏
+评论
+
+#1楼[楼主]   
+Android读写文件正确实行方法介绍
+http://www.ehuait.com/skill/android/2011-09-08/1445.html
+众所周知Android有一套自己的安全模型， 具体可参见Android开发文档。当应用程序(.apk)在安装时就会分配一个userid，当该应用要去访问其他资源比如文件的时候，就需要userid匹配。默认情况下 ，任何应用创建的文件，数据库， sharedpreferences都应该是私有的（位于/data/data/your_project/files/），其余程序无法访问。除非在创建时指明是MODE_WORLD_READABLE 或者 MODE_WORLD_WRITEABLE,只要这样其余程序才能正确访问。 
+
+因为有这种Android读写文件的方法在安全上有所保障，进程打开文件时Android要求检查进程的user id。所以不能直接用java的api来打开，因为java的io函数没有提这个机制 。
+
+无法用java的api直接打开程序私有的数据 ,默认路径为/data/data/your_project/files/
+
+1.FileReader file = new FileReader("Android.txt"); 这里特别强调私有数据！言外之意是如果某个文件或者数据不是程序私有的，既访问它时无须经过Android的权限检查，那么还是可以用java的io api来直接访问的。所谓的非私有数据是只放在sdcard上的文件或者数据，
+
+可以用java的io api来直接打开sdcard上文件。 
+
+1.FileReader file = new FileReader("/sdcard/Android.txt"); 如果要打开程序自己私有的文件和数据，那必须使用Activity提供openFileOutput和openFileInput方法。
+
+创建程序私有的文件，由于权限方面的要求，必须使用activity提供的Android读写文件方法 
+
+1.FileOutputStream os = this.openFileOutput("Android.txt", MODE_PRIVATE); 
+2.OutputStreamWriter outWriter = new OutputStreamWriter (os); 
+读取程序私有的文件，由于权限方面的要求，必须使用activity提供的方法 
+1.FileInputStream os =this.openFileInput("Android.txt"); 
+2.InputStreamReader inReader = new InputStreamReader(os); Android读写文件的相关操作就为大家介绍到这里。
+支持(0)反对(0)
+2011-11-01 15:23 | freeliver54  
+#2楼[楼主]   
+http://www.eoeandroid.com/thread-72823-1-1.html
+考虑到SD卡可能没有被mount，或者其他各种情况，操作SD卡上的文件总需要各种状态的判断。主要是使用Environment类里的一些接口进行判断：
+
+Java代码：
+
+01.private void writeFileToSD() {
+
+02.String sdStatus = Environment.getExternalStorageState();
+
+03.if(!sdStatus.equals(Environment.MEDIA_MOUNTED)) {
+
+04.Log.d("TestFile", "SD card is not avaiable/writeable right now.");
+
+05.return;
+
+06.}
+
+07.try {
+
+08.String pathName="/sdcard/test/";
+
+09.String fileName="file.txt";
+
+10.File path = new File(pathName);
+
+11.File file = new File(pathName + fileName);
+
+12.if( !path.exists()) {
+
+13.Log.d("TestFile", "Create the path:" + pathName);
+
+14.path.mkdir();
+
+15.}
+
+16.if( !file.exists()) {
+
+17.Log.d("TestFile", "Create the file:" + fileName);
+
+18.file.createNewFile();
+
+19.}
+
+20.FileOutputStream stream = new FileOutputStream(file);
+
+21.String s = "this is a test string writing to file.";
+
+22.byte[] buf = s.getBytes();
+
+23.stream.write(buf);
+
+24.stream.close();
+
+25.} catch(Exception e) {
+
+26.Log.e("TestFile", "Error on writeFilToSD.");
+
+27.e.printStackTrace();
+
+28.}
+
+29.}
+复制代码
+需要加入权限：
+
+Java代码：
+01.< uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE">
+复制代码
+看文档说，可以使用Context.getExternalFilesDir来取得一个特殊的文件夹，该文件夹对USER不可见，最重要的是：当系统卸载该程序时，会自动删除该目录下的文件。　　如果不需要往SD卡上写文件，可以直接用以下简单代码：
+
+Java代码：
+
+01.private void writeFile() {
+
+02.try {
+
+03.FileOutputStream stream = openFileOutput("testfile.txt", Context.MODE_WORLD_WRITEABLE);
+
+04.String s = "this is a test string writing to file.";
+
+05.byte[] buf = s.getBytes();
+
+06.stream.write(buf);
+
+07.stream.close();
+
+08.}
+
+09.catch (FileNotFoundException e) {
+
+10.Log.d("TestFile", "File not found.");
+
+11.}
+
+12.catch (IOException e) {
+
+13.Log.d("TestFile", "File write error.");
+
+14.
+
+15.}
+
+16.
+
+17.}
+复制代码
+　 该文件会被放置于data/data/your_app_package_name/files下。　　值得注意的是，我们可以在程序运行期间动态检查SD卡是否可用。大致就是通过注册BroadcastReceiver实现，这个官方文档里有提到：
+
+Java代码：
+
+01.void startWatchingExternalStorage() {
+
+02.mExternalStorageReceiver = new BroadcastReceiver(){
+
+03.
+
+04.@Override
+
+05.public void onReceive(Context context, Intent intent) {
+
+06.Log.i("test", "Storage: " + intent.getData());
+
+07.updateExternalStorageState();
+
+08.}
+
+09.
+
+10.};
+
+11.
+
+12.IntentFilter filter = new IntentFilter();
+
+13.filter.addAction(Intent.ACTION_MEDIA_MOUNTED);
+
+14.filter.addAction(Intent.ACTION_MEDIA_REMOVED);
+
+15.registerReceiver(mExternalStorageReceiver, filter);
+
+16.updateExternalStorageState();
+
+17.
+
+18.}
+支持(0)反对(0)
+2011-11-03 09:42 | freeliver54  
+#3楼[楼主]   
+android工程根目录下文件的获取[问题点数:60分，结帖人:csuhanyong]
+http://topic.csdn.net/u/20101118/17/8a731683-0234-4cac-be75-fb13b868f59f.html
+
+我建了个abc.xml文件放在android工程的根目录下，如果在普通Java工程的话我用 File f = new File（abc.xml）就可以得到；但是在android环境下 会自动把这个路径变为 “/abc.xml”；然后报“ 11-18 08:58:43.572: WARN/System.err(19260): java.io.FileNotFoundException: /systemapps.xml (No such file or directory)”异常，可能是编译路径与以前不一样导致。
+那有什么办法可以读取这个xml文件呢？
+
+---------------
+
+获取文件路径的方法
+
+1.绝对路径：/data/data/packagename/files/filename;
+
+2.context:context.getFilesDir()+”/filename”;
+
+缓存目录：/data/data/packagename/Cache或getCacheDir();
+
+如果文件过大就不能存放在手机的文件目录，需要存储到SDCard上。
+
+SDCard目录：/sdcard/或Environment.getExternalStorageDirectory()
+
+使用SDCard目录前，需要判断是否有sdcard：Environment.getExternalStorageState()。操作此目录时需要在主配置文件中注册操作权限。
+http://hi.baidu.com/garylijs/blog/item/afaa0dedeef215dbb31cb1d4.html
+
+----------------------
+
+android不支持读取与工程直接子级的文件。解决办法是：
+在res文件夹下新建raw文件夹，然后将abc.xml复制到raw文件夹下。
+
+读取代码：
+
+Java code
+InputStream input = getResources().openRawResource(R.raw.abc);
+BufferedReader read = new BufferedReader(new InputStreamReader(input));
+String line = "";
+while((line=read.readLine()) != null){
+System.out.println(line);
+}
+
+
+-----------------
+
+或者
+res文件夹下新建raw文件夹，然后将abc.xml复制到raw文件夹下
+Java codeInputStream in = context.openFileInput("abc.xml");
+支持(0)反对(0)
+2011-11-03 09:45 | freeliver54  
+#4楼[楼主]   
+//Context.getExternalFilesDir
+String[] logFiles = this.getFilesDir().list();
+支持(0)反对(0)
+2011-11-03 16:15 | freeliver54  
+#5楼   
+很好，学习了！
+支持(0)反对(0)
+2012-02-27 20:37 | 雨焰  
+#6楼[楼主]   
+http://blog.csdn.net/svrsimon/article/details/7079320
+Android 获取assets的绝对路径 
+第一种方法：
+String path = "file:///android_asset/文件名";
+
+第二种方法：
+InputStream abpath = getClass().getResourceAsStream("/assets/文件名");
+
+
+若要想要转换成String类型
+
+String path = new String(InputStreamToByte(abpath ));
+
+
+private byte[] InputStreamToByte(InputStream is) throws IOException {
+ByteArrayOutputStream bytestream = new ByteArrayOutputStream();
+int ch;
+while ((ch = is.read()) != -1) {
+bytestream.write(ch);
+}
+byte imgdata[] = bytestream.toByteArray();
+bytestream.close();
+return imgdata;
+}
+支持(0)反对(0)
+2012-07-06 13:35 | freeliver54  
+刷新评论刷新页面返回顶部
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+博客园首页博问新闻闪存程序员招聘知识库
+
+最新IT新闻:
+· 亚马逊招聘政策遭吐槽：临时工转正前将被解雇
+· 今天是系统管理员日：IT人节日快乐！
+· 三星电子如何在华击败苹果：让产品本地化
+· 尼尔森：显示广告增长迅猛 电视广告仍绝对统治
+· 从热心用户变为 CEO，看 Jess Lee 的人生轨迹
+» 更多新闻...
+最新知识库文章:
+· Buffer Latch Timeout的解析
+· 你优化系统的目标是什么？
+· 淘宝图片服务的学习
+· 即便没有读者，你也要写博客
+· 学习新技术的10个建议
+» 更多知识库文章...
+
+历史上的今天:
+2008-09-16 Response.Redirect和Server.Transfer(Execute)的区别小论集锦
+导航
+博客园
+首页
+新随笔
+联系
+订阅 
+管理
+公告
+
+生有涯   力有限 
+要事第一 事不过三 
+扬长用强 舍得取舍
+
+确立生活价值
+分段人生历程
+目标 计划 去行动...
+
+每一天都有新的开始
+每一天都是新的开始
+愿我们
+善始善终 持之以恒
+不管前方 是希望还是迷茫
+我们都只有一个信念
+让我们的爱  伴我们终生
+
+健康 平安 简单 惜福
+
+昵称：freeliver54
+园龄：7年5个月
+粉丝：203
+关注：0
++加关注
+搜索
+ 
+我的标签
+T4(6)
+项目经理(6)
+在线手册(3)
+ExtJS(2)
+Git(1)
+java-io(1)
+NHibernate(1)
+淘宝店铺开发SDK(1)
+android-listview(1)
+asp.netMVC(1)
+更多
+随笔分类
+Ajax.Net(14)
+Android-app(196)
+Android-SourceCode(3)
+Android-web(3)
+Ant/NAnt(9)
+apple(2)
+asp.net mvc(34)
+C#(20)
+C++/VC++(18)
+Cloud Computing(5)
+Eclipse RCP(9)
+English(16)
+Flash / Flex & PhotoShop(21)
+Hadoop(1)
+HTML5/CSS(35)
+HTTP网络通信(18)
+Java(53)
+Java Web(11)
+JavaScript/Jquery/ExtJS(93)
+LAMP/WAMP(6)
+LINQ(5)
+Linux(6)
+MySQL(51)
+Oracle(31)
+PHP(10)
+products(1)
+Python(2)
+SQL Server(80)
+SQLite(8)
+UML(7)
+Visual Basic/ASP(12)
+VS2008(14)
+VS2010(18)
+VS技術實踐(428)
+wap wml(3)
+WCF(15)
+Web(5)
+WebGL(2)
+WF(9)
+windows mobile(13)
+Windows Server(26)
+WinForm 开发(73)
+WPF(3)
+XML(16)
+安全与加密(25)
+安装部署(49)
+报表/曲线(33)
+测试(26)
+大工 工商管理(6)
+二维码/条形码(11)
+辅助开发工具(7)
+绘画 书写 剪 折纸(3)
+基础(13)
+技有所用(13)
+开源软件(19)
+励志(32)
+每日文摘(139)
+面试(63)
+其他(13)
+企业管理|职业经理人(13)
+软件代理(2)
+软件架构 设计模式(8)
+软件项目工程(35)
+软件项目管理(34)
+软考&英语考试(18)
+生活|理财(21)
+手机维修(1)
+数据结构与算法(5)
+图书目录(62)
+网址(67)
+心灵之旅(114)
+硬件网络(22)
+游戏开发(19)
+源码管理工具(8)
+随笔档案
+2013年7月 (40)
+2013年6月 (51)
+2013年5月 (19)
+2013年4月 (41)
+2013年3月 (77)
+2013年2月 (28)
+2013年1月 (15)
+2012年12月 (19)
+2012年11月 (19)
+2012年10月 (16)
+2012年9月 (24)
+2012年8月 (21)
+2012年7月 (15)
+2012年6月 (44)
+2012年5月 (19)
+2012年4月 (2)
+2012年3月 (17)
+2012年2月 (20)
+2012年1月 (15)
+2011年12月 (25)
+2011年11月 (15)
+2011年10月 (16)
+2011年9月 (39)
+2011年8月 (36)
+2011年7月 (14)
+2011年6月 (11)
+2011年5月 (32)
+2011年4月 (12)
+2011年3月 (12)
+2011年2月 (16)
+2011年1月 (10)
+2010年12月 (11)
+2010年11月 (7)
+2010年10月 (18)
+2010年9月 (11)
+2010年8月 (1)
+2010年7月 (6)
+2010年6月 (4)
+2010年5月 (1)
+2010年4月 (3)
+2010年3月 (6)
+2010年2月 (3)
+2010年1月 (5)
+2009年12月 (10)
+2009年11月 (4)
+2009年10月 (8)
+2009年9月 (5)
+2009年8月 (9)
+2009年7月 (8)
+2009年6月 (4)
+2009年5月 (6)
+2009年4月 (4)
+2009年3月 (12)
+2009年2月 (24)
+2009年1月 (10)
+2008年12月 (14)
+2008年11月 (18)
+2008年10月 (23)
+2008年9月 (22)
+2008年8月 (9)
+2008年7月 (30)
+2008年6月 (17)
+2008年5月 (11)
+2008年4月 (45)
+2008年3月 (28)
+2008年2月 (11)
+2008年1月 (17)
+2007年12月 (15)
+2007年11月 (20)
+2007年10月 (22)
+2007年9月 (36)
+2007年8月 (23)
+2007年7月 (24)
+2007年6月 (6)
+2007年5月 (7)
+2007年4月 (32)
+2007年3月 (46)
+2007年2月 (22)
+2007年1月 (31)
+2006年12月 (45)
+2006年11月 (8)
+2006年7月 (1)
+2006年6月 (3)
+2006年5月 (1)
+2006年4月 (13)
+2006年2月 (8)
+techLINKS
+Ajax.net
+ASP.NET 快速入门教程
+MSDN
+UML
+winforms
+XSLT
+窗体 快速入门教程
+移动开发人员中心
+友情链接
+积分与排名
+积分 - 1001235
+排名 - 38
+最新评论
+1. Re:[转] SQL Server 批量 停用/启用 外键约束
+删除数据库所有table的資料之二http://www.2cto.com/database/201201/116776.htmlexec sp_msforeachtable "alter table ? nocheck CONSTRAINT all" --禁所有外鍵 exec sp_msforeachtable "alter table ? DISABLE TRIGGER all" --...
+--freeliver54
+2. Re:[转] SQL Server 批量 停用/启用 外键约束
+-- --禁用所有约束  
+--exec sp_msforeachtable 'alter table ? nocheck CONSTRAINT all'  
+-- --再启用所有外键约束  
+--exec sp_msforeachtable 'alter table ? check constraint all'
+--freeliver54
+3. Re:[转] SQL Server 批量 停用/启用 外键约束
+SQL Server 临时禁用和启用所有外键约束http://www.cnblogs.com/emanlee/archive/2008/09/22/1296224.html--获得禁用所有外键约束的语句 select 'ALTER TABLE [' + b.name + '] NOCHECK CONSTRAINT ' + a.name +';' as 禁用约束 from sysob...
+--freeliver54
+4. Re:[转]MVC自定义数据验证（两个时间的比较）
+[AttributeUsage(AttributeTargets.Class)] public class DateEndNotLessStartAttribute : ValidationAttribute { public String FirstPropertyName { get; set; } public String SecondPropert...
+--freeliver54
+5. Re:[转]MVC自定义数据验证（两个时间的比较）
+View 基于Model的错误信息的显示
+<%=Html.ValidationSummary( true)%>
+--freeliver54
+阅读排行榜
+1. 遭遇“windows已经阻止此软件因为无法验证发行者”(42069)
+2. [转]C#中的IntPtr类型(30842)
+3. SQL 2005 Express 的“企业管理器” 下载(28178)
+4. 程序员的人生 该将如何规划?(27799)
+5. [转]Android读写文件(24969)
+6. VS2005中GridView簡單應用(24604)
+7. [转]mysql的top n查询(22155)
+8. 下载Eclipse的SWT插件(17063)
+9. C# WinForm 父窗体 子窗体 传值(15863)
+10. c# winForm TableLayoutPanel学习 合并行的布局及动态增加删除内部控件(15048)
+评论排行榜
+1. 程序员的人生 该将如何规划?(170)
+2. VS2005中GridView簡單應用(28)
+3. C# 利用WinRAR (加密)压缩及解压缩 相关文件夹及文件(22)
+4. sql server作业用法(15)
+5. [引]VS2005帮助文档 : 加密 概述(15)
+推荐排行榜
+1. C# WinForm 父窗体 子窗体 传值(8)
+2. [转]Android读写文件(5)
+3. [转]Android蓝牙开发浅谈(5)
+4. 软件开发管理之：编码负责人及标准代码库机制(5)
+5. [转]C#中的IntPtr类型(3)
+6. [转]C# Socket编程笔记(3)
+7. c# winform 打印 窗体 及 窗体控件内容 的 初级尝试(3)
+8. C# 文件操作(上传 下载 删除 文件列表...)(2)
+9. 入门者初试 Cell(华表)结合C#的应用(2)
+10. 会而不精 注定做兵(梦空) 活而无痕 憾恨终生(2)
+Powered by: 
+博客园 
+Copyright © freeliver54

@@ -1,0 +1,339 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+西西软件下载最安全的下载网站、值得信赖的软件下载站！论坛转帖最新更新软件分类下载排行文章教程
+
+
+
+
+
+
+
+
+ 文 章
+
+
+
+
+
+
+
+
+
+ 西西首页 
+腾讯专区 
+新闻动态 
+游戏资讯 
+安全中心 
+公文办公 
+硬件IT 
+认证考试 
+绿软学堂 
+编程开发 
+攻略秘籍 
+游戏下载 
+
+您的位置：首页→ 编程开发 → 其它知识 → 二叉树前序、中序、后序遍历相互求法
+ 
+
+
+
+二叉树前序、中序、后序遍历相互求法 
+
+出处：凡程 作者：西西 日期：2013-1-7 15:37:48 [大 中 小] 评论: 0 | 我要发表看法
+
+ 
+
+
+今天来总结下二叉树前序、中序、后序遍历相互求法，即如果知道两个的遍历，如何求第三种遍历方法，比较笨的方法是画出来二叉树，然后根据各种遍历不同的特性来求，也可以编程求出，下面我们分别说明。
+
+首先，我们看看前序、中序、后序遍历的特性： 
+前序遍历： 
+    1.访问根节点 
+    2.前序遍历左子树 
+    3.前序遍历右子树 
+中序遍历： 
+    1.中序遍历左子树 
+    2.访问根节点 
+    3.中序遍历右子树 
+后序遍历： 
+    1.后序遍历左子树 
+    2.后序遍历右子树 
+    3.访问根节点
+
+一、已知前序、中序遍历，求后序遍历
+
+例：
+
+前序遍历:         GDAFEMHZ
+
+中序遍历:         ADEFGHMZ
+
+画树求法：
+第一步，根据前序遍历的特点，我们知道根结点为G
+
+第二步，观察中序遍历ADEFGHMZ。其中root节点G左侧的ADEF必然是root的左子树，G右侧的HMZ必然是root的右子树。
+
+ 第三步，观察左子树ADEF，左子树的中的根节点必然是大树的root的leftchild。在前序遍历中，大树的root的leftchild位于root之后，所以左子树的根节点为D。
+
+第四步，同样的道理，root的右子树节点HMZ中的根节点也可以通过前序遍历求得。在前序遍历中，一定是先把root和root的所有左子树节点遍历完之后才会遍历右子树，并且遍历的左子树的第一个节点就是左子树的根节点。同理，遍历的右子树的第一个节点就是右子树的根节点。
+
+第五步，观察发现，上面的过程是递归的。先找到当前树的根节点，然后划分为左子树，右子树，然后进入左子树重复上面的过程，然后进入右子树重复上面的过程。最后就可以还原一棵树了。该步递归的过程可以简洁表达如下：
+
+1 确定根,确定左子树，确定右子树。
+
+2 在左子树中递归。
+
+3 在右子树中递归。
+
+4 打印当前根。
+
+那么，我们可以画出这个二叉树的形状：
+
+
+
+那么，根据后序的遍历规则，我们可以知道，后序遍历顺序为：AEFDHZMG
+
+编程求法：（依据上面的思路，写递归程序）
+ 1 #include <iostream>  
+ 2 #include <fstream>  
+ 3 #include <string>  
+ 4 
+ 5 struct TreeNode
+ 6 {
+ 7   struct TreeNode* left;
+ 8   struct TreeNode* right;
+ 9   char  elem;
+10 };
+11 
+12 void BinaryTreeFromOrderings(char* inorder, char* preorder, int length)
+13 {
+14   if(length == 0)
+15     {
+16       //cout<<"invalid length";
+17       return;
+18     }
+19   TreeNode* node = new TreeNode;//Noice that [new] should be written out.
+20   node->elem = *preorder;
+21   int rootIndex = 0;
+22   for(;rootIndex < length; rootIndex++)
+23     {
+24       if(inorder[rootIndex] == *preorder)
+25       break;
+26     }
+27   //Left
+28   BinaryTreeFromOrderings(inorder, preorder +1, rootIndex);
+29   //Right
+30   BinaryTreeFromOrderings(inorder + rootIndex + 1, preorder + rootIndex + 1, length - (rootIndex + 1));
+31   cout<<node->elem<<endl;
+32   return;
+33 }
+34 
+35 
+36 int main(int argc, char* argv[])
+37 {
+38     printf("Hello World!\n");
+39     char* pr="GDAFEMHZ";
+40     char* in="ADEFGHMZ";
+41   
+42     BinaryTreeFromOrderings(in, pr, 8);
+43 
+44     printf("\n");
+45     return 0;
+46 }
+输出的结果为：AEFDHZMG
+
+二、已知中序和后序遍历，求前序遍历
+
+依然是上面的题，这次我们只给出中序和后序遍历：
+
+中序遍历:       ADEFGHMZ
+
+后序遍历:       AEFDHZMG
+
+画树求法：
+第一步，根据后序遍历的特点，我们知道后序遍历最后一个结点即为根结点，即根结点为G。
+
+第二步，观察中序遍历ADEFGHMZ。其中root节点G左侧的ADEF必然是root的左子树，G右侧的HMZ必然是root的右子树。
+
+第三步，观察左子树ADEF，左子树的中的根节点必然是大树的root的leftchild。在前序遍历中，大树的root的leftchild位于root之后，所以左子树的根节点为D。
+
+第四步，同样的道理，root的右子树节点HMZ中的根节点也可以通过前序遍历求得。在前后序遍历中，一定是先把root和root的所有左子树节点遍历完之后才会遍历右子树，并且遍历的左子树的第一个节点就是左子树的根节点。同理，遍历的右子树的第一个节点就是右子树的根节点。
+
+第五步，观察发现，上面的过程是递归的。先找到当前树的根节点，然后划分为左子树，右子树，然后进入左子树重复上面的过程，然后进入右子树重复上面的过程。最后就可以还原一棵树了。该步递归的过程可以简洁表达如下：
+
+1 确定根,确定左子树，确定右子树。
+
+2 在左子树中递归。
+
+3 在右子树中递归。
+
+4 打印当前根。
+
+这样，我们就可以画出二叉树的形状，如上图所示，这里就不再赘述。
+
+那么，前序遍历:         GDAFEMHZ
+
+编程求法：（并且验证我们的结果是否正确）
+#include <iostream>
+#include <fstream>
+#include <string>
+
+struct TreeNode
+{
+    struct TreeNode* left;
+    struct TreeNode* right;
+    char  elem;
+};
+
+
+TreeNode* BinaryTreeFromOrderings(char* inorder, char* aftorder, int length)
+{
+    if(length == 0)
+    {
+        return NULL;
+    }
+    TreeNode* node = new TreeNode;//Noice that [new] should be written out.
+    node->elem = *(aftorder+length-1);
+    std::cout<<node->elem<<std::endl;
+    int rootIndex = 0;
+    for(;rootIndex < length; rootIndex++)//a variation of the loop
+    {
+        if(inorder[rootIndex] ==  *(aftorder+length-1))
+            break;
+    }
+    node->left = BinaryTreeFromOrderings(inorder, aftorder , rootIndex);
+    node->right = BinaryTreeFromOrderings(inorder + rootIndex + 1, aftorder + rootIndex , length - (rootIndex + 1));
+    
+    return node;
+}
+
+int main(int argc, char** argv)
+{
+    char* af="AEFDHZMG";    
+    char* in="ADEFGHMZ"; 
+    BinaryTreeFromOrderings(in, af, 8); 
+    printf("\n");
+    return 0;
+}
+输出结果：GDAFEMHZ
+
+
+更多3
+
+ 相关阅读 01-02·VC冒泡排序、递归型冒泡排序和递归快速排序源代码
+ 11-06·Javascript的数组与字典遍历对象的属性
+ 10-14·洋芋疙瘩high歌视频、中国梦想秀陕北high歌洋芋疙瘩原名贺东
+ 10-14·洋芋疙瘩high歌爆红、中国梦想秀洋芋疙瘩high歌
+ 10-11·2012年诺贝尔奖莫言、中国第一位获得诺贝尔文学奖的本土作家
+ 09-25·Trie树遍历如何加速？
+ 09-25·delphi XE2遍历文件夹下的指定扩展名文件
+ 06-01·高考、中考 美女们考试作弊有一腿
+ 08-03·AT&T 条形码扫描式和新的应用程序、服务
+ 03-20·用C#实现多叉树的生成并转化为extjs（基于js脚本的ajax UI框架）
+
+
+ 阅读本文后您有什么感想? 已有 3799人给出评价!
+1450 
+250 
+164 
+1503 
+100 
+332 
+
+
+
+
+热门评论
+
+
+最新评论
+
+
+
+发表评论 查看所有评论(0)
+
+昵称: 
+
+表情:
+
+字数: 0/500(您的评论需要经过审核才能显示) 
+
+
+更多>>
+
+视觉焦点
+
+ 没有查询到任何记录。 
+更多>>
+
+访问量多的
+
+ Devexpress 10.1.6 Devexpress编译及源代码 
+从yii权威指南中学到的 
+Fdisk硬盘分区图文教程 
+一些常用软件静默安装参数(nsis,msi,Instal 
+转义字符实体名 
+xp 系统CMD 批处理命令大全 cmd.exe 
+HTTP网页抓包工具 HttpWatch 专业版 
+dedecms经常出现mysql"连接数据库失败,可能 
+可循环显示图像的Android Gallery组件 
+WP7开发工具Windows Phone Developer Tools 
+流媒体视频是什么？FLEX4.0开发流媒体视频播 
+
+更多>>
+
+ 相关软件
+
+FtpListALL(FTP列表遍历软件) FtpListALL可以下载FT
+超级游戏内存数据遍历工具(FaFa工具箱) 很实用的遍历偏移，特
+看雪论坛内存遍历工具(opmem) 使用详细：1.工具有一
+龙龙内存遍历工具  龙龙1.0版本的只
+内存遍历工具(RealMemory 1) RealMemory 1 这款比较
+游戏基址遍历工具 首先打开某个游戏 。。
+游戏数据遍历工具 表示对需要研究游戏内
+EasyMenu2009快捷打开程序、文件、网页 一款快捷打开程序、文
+创意文字英文字母、中国书法等矢量素材合集 创意文字├─26个金属
+世界未解之谜 (上、中、下) 世界未解之谜基本内容
+ 
+
+
+
+
+收藏本站 | 联系我们 | 发展历程 | 版权声明 | 下载帮助(？) | 广告服务 | 软件提交 | 意见反馈
+
+ 声明：西西软件园为非赢利性网站 不接受任何赞助和广告 鄂ICP备07011518号 
+
+
+
+
+
+
+
+
+
+
+
+
+

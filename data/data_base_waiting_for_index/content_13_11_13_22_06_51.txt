@@ -1,0 +1,485 @@
+
+注册 登录
+论坛搜索
+王道论坛,专注于计算机考研的点点滴滴！ » 数据结构 » 二叉树的各种基本应用源代码C++编写(原创）
+京东促销，王道单科仅87元/套！	王道2014版<全书><真题>全面销售！	ITjob-深圳知名IT教育培训机构
+亚马逊促销！2014王道单科96元/套！	王道考研2014版全套图书官方销售！	广告联系方式
+返回列表
+发帖
+二叉树的各种基本应用源代码C++编写(原创）
+luo6620378li
+
+王道论坛中级道友
+Rank: 3Rank: 3
+UID23577 帖子173 积分295 王道威望0  王道贡献0  考研年份 报考学校华南理工 本科学校重庆工商 注册时间2009-5-7 最后登录2012-10-21 
+硕士帽
+1楼跳转到 »倒序看帖
+打印字体大小: tT
+ 发表于 2009-11-2 22:51 | 只看该作者
+二叉树的各种基本应用源代码C++编写(原创）
+
+下面是二叉树的一些基本应用，我在VS2005下调试过了，可以运行！
+
+/*
+文件功能：二叉树的各种操作
+编程语言：C++
+作者：luo6620378li
+*/
+#include<iostream>
+#include<stack>
+#include<queue>
+using namespace std;
+struct BinNode//二叉树的二叉链表结点
+{
+char data;
+BinNode *lchild, *rchild;
+};
+
+enum  Tag { Link,Thread}  ;//线索指针标志
+enum TypeTag {L ,R};//用于辅助后序遍历的标志
+struct BinThreadNode//二叉线索化的结点结构体
+{
+char data;
+BinThreadNode *lchild,* rchild;
+Tag lTag,rTag;
+BinThreadNode()//构造函数
+{
+  lTag=rTag=Link;
+}
+};
+struct PosBinNode//用于后序遍历的栈结点
+{
+BinNode *ptr;
+TypeTag tag;
+};
+BinThreadNode *pre;//定义为指向p的前驱，由于要递归参数不好处理，我干脆定义为全局变量
+
+//函数功能说明，以后的函数就不加注释了
+BinNode* CreateBiTree(BinNode *T) ;//先序建树
+BinThreadNode * CreateThreadTree(BinThreadNode *T);//先序建立用于线索化的二叉树
+int LevleTrave(BinNode *T);//层次遍历,附带求得所有的结点个数
+bool IsFullBitree(BinNode *T);//判断二叉树是否完全二叉树,是则返回true,否则返回false
+void PreTrave(BinNode *T);//先序遍历
+void InTrave(BinNode *T);//中序遍历
+void PosTrave(BinNode *T);//后序遍历
+int TreeHeigh(BinNode *T);//树的高度
+void CountLeaf(BinNode *T,int *c);//树的叶子结点数目
+void ExchangeChildByStack(BinNode *T);//交换所有结点的左右子树，利用栈做辅助
+void ExchangeChildByQueue(BinNode *T);//交换所有结点的左右子树，利用队列做辅助
+BinThreadNode * InOrderThread(BinThreadNode *T);//中序线索化二叉树
+void InThreading(BinThreadNode *p);//中序线索二叉树辅助函数
+void InOrderTraveByThread(BinThreadNode *Thrt);//中序遍历中序二叉线索树
+
+int main()
+{
+   //测试一般地二叉树的功能函数
+   BinNode *T=new BinNode;
+   int *c=new int;
+   *c=0;
+   cout<<"请按照先序建树"<<endl;
+   T=CreateBiTree(T);
+   cout<<"为该树层次遍历以及的结点数为"<< LevleTrave(T)<<endl;
+    if(IsFullBitree(T))
+  cout<<"该树是完全二叉树"<<endl;
+else
+  cout<<"该树不是完全二叉树"<<endl;
+       cout<<"前序遍历结果"<<endl;
+          PreTrave(T);
+    cout<<endl;
+    cout<<endl;
+    cout<<"中序遍历结果"<<endl;
+           InTrave(T);
+      cout<<endl;
+   cout<<endl;
+
+   cout<<"后序遍历结果"<<endl;
+               PosTrave(T);
+      cout<<endl;
+   cout<<endl;
+      cout<<"该树的高度为"<<TreeHeigh(T)<<endl;
+           cout<<endl;
+       CountLeaf(T,c);
+      cout<<"该树的叶子结点个数为 "<<*c<<endl;
+   //交换左右孩子
+       ExchangeChildByStack(T);
+     cout<<"交换之后中序结果"<<endl;
+  InTrave(T);
+        cout<<endl;
+           
+         delete T;
+   delete c;
+//测试线索化函数
+   BinThreadNode *tThrt=new BinThreadNode;
+   cout<<"请先序建立线索二叉树，输入过程同上"<<endl;
+   tThrt=CreateThreadTree(tThrt);
+   cout<<"利用线索化树中序遍历结果如下"<<endl;
+   InOrderTraveByThread(InOrderThread(tThrt));
+   delete tThrt;
+return 0;
+}
+
+BinNode* CreateBiTree(BinNode *T) 
+{ 
+  char ch; 
+  cin>>ch;
+        if (ch=='#') T = 0; 
+       else
+    { 
+          T = new BinNode;
+          T->data = ch; 
+          T->lchild=CreateBiTree(T->lchild); 
+          T->rchild=CreateBiTree(T->rchild); 
+} 
+return T; 
+} 
+BinThreadNode * CreateThreadTree(BinThreadNode *T)
+{
+char ch; 
+  cin>>ch;
+        if (ch=='#') T = 0; 
+       else
+    { 
+          T = new BinThreadNode;
+          T->data = ch; 
+          T->lchild=CreateThreadTree(T->lchild); 
+          T->rchild=CreateThreadTree(T->rchild); 
+} 
+return T; 
+}
+int LevleTrave(BinNode *T)
+{
+queue<BinNode *> Q;
+BinNode *p;
+int count=0;//
+
+if(T!=0)
+{
+  Q.push(T);
+  
+  while(!Q.empty())
+  {
+   p=Q.front();
+   cout<<p->data<<" ";
+   Q.pop();
+   count++;
+   if(p->lchild!=0)
+    Q.push(p->lchild);
+   if(p->rchild!=0)
+    Q.push(p->rchild);          
+  }
+}
+return count;
+}
+
+bool IsFullBitree(BinNode * T)//
+{
+     queue<BinNode *> Q;
+  BinNode *p;
+     bool flag=false;
+  if(T!=0)
+  {
+   Q.push(T);
+   while(!Q.empty())
+   {
+    p=Q.front();
+    Q.pop();
+         if(!p)
+       flag=true;
+      else if(flag)
+         return false;
+      else
+      {          
+        Q.push(p->lchild);
+       Q.push(p->rchild);    
+      }
+   }
+  }
+  return true;
+}
+  
+  
+void PreTrave(BinNode *T)
+{
+stack<BinNode *> s;
+BinNode *p=T;
+while(p!=0||!s.empty())
+{
+  while(p!=0)
+  {
+   cout<<p->data<<" ";
+   s.push(p);
+   p=p->lchild;
+  }
+  if(!s.empty())
+  {
+   p=s.top();
+   s.pop();
+   p=p->rchild;
+  }
+}
+}
+void InTrave(BinNode *T)
+{
+  stack<BinNode *> s;
+  BinNode *p=T;
+      while(p!=0||!s.empty())
+      {
+    while(p!=0)
+    {
+     s.push(p);
+     p=p->lchild;
+    }
+
+    if(!s.empty())
+    {
+     p=s.top();
+     cout<<p->data<<" ";
+     s.pop();
+     p=p->rchild;
+    }
+      }
+}
+void PosTrave(BinNode *T)
+{
+stack<PosBinNode *> s;
+PosBinNode *temp;
+BinNode *p=T;
+  do
+  {
+   while(p!=0)//遍历左子树
+   {
+    temp=new PosBinNode;
+    temp->ptr=p;
+    temp->tag=L;//标记为左子树
+    s.push(temp);//根结点入栈
+    p=p->lchild;//左子树都入栈
+   }
+
+   while(!s.empty()&&s.top()->tag==R)
+   {
+    temp=s.top();
+    s.pop();
+    p=temp->ptr;
+    cout<<p->data<<" ";//tag为R，表示右子树完毕，访问根结点
+   }
+   if(!s.empty())
+   {
+    s.top()->tag=R;//遍历右子树
+    p=s.top()->ptr->rchild;
+   }
+  } while(!s.empty());
+
+}
+int TreeHeigh(BinNode *T)
+{
+int leftH,rightH,hl;
+if(T==0)
+   hl=0;
+else
+{
+  leftH=TreeHeigh(T->lchild);
+  rightH=TreeHeigh(T->rchild);
+  hl=(leftH>rightH?leftH:rightH)+1;
+}
+return hl;
+}
+void CountLeaf(BinNode *T,int *c)
+{
+if(T!=0)
+{
+  if(T->lchild==0&&T->rchild==0)
+   *c+=1;
+  CountLeaf(T->lchild,c);
+  CountLeaf(T->rchild,c);
+}
+}
+void ExchangeChildByQueue(BinNode *T)
+{
+queue<BinNode *> Q;
+BinNode *p;
+BinNode *temp;
+
+if(T!=0)
+{
+  Q.push(T);
+  while(!Q.empty())
+  {
+   p=Q.front();
+   Q.pop();
+   if(p->lchild!=0)
+    Q.push(p->lchild);
+   if(p->rchild!=0)
+    Q.push(p->rchild);
+   temp=p->lchild;
+   p->lchild=p->rchild;
+   p->rchild=temp;
+  }
+}
+}
+
+
+void ExchangeChildByStack(BinNode *T)
+{
+stack<BinNode *> s;
+BinNode *p;
+BinNode *temp;
+s.push(T);
+while(!s.empty())
+{
+  p=s.top();
+  s.pop();
+  if(p!=0)
+  {
+   temp=p->lchild;
+   p->lchild=p->rchild;
+   p->rchild=temp;
+   s.push(p->lchild);
+   s.push(p->rchild);
+  }
+}
+}
+
+BinThreadNode * InOrderThread(BinThreadNode *T)
+{
+BinThreadNode *Thrt=new BinThreadNode;
+//初始化头结点
+Thrt->lTag=Link;
+Thrt->rTag=Thread;
+Thrt->rchild=Thrt;
+
+if(T==0)
+  Thrt->lchild=Thrt;
+else
+{
+  Thrt->lchild=T;
+  pre=Thrt;
+  InThreading(T);
+  pre->rchild=Thrt;
+  pre->rTag=Thread;
+  Thrt->rchild=pre;
+}
+//返回头结点
+return Thrt;
+}
+void InThreading(BinThreadNode *p)
+{
+if(p!=0)
+{
+  InThreading(p->lchild);
+
+  if(p->lchild==0)//左孩子为空，则p的左指针域为前驱
+  {
+   p->lTag=Thread;
+   p->lchild=pre;
+  }
+        
+  if(pre->rchild==0)
+  {
+   pre->rTag=Thread;
+   pre->rchild=p;
+  }
+  pre=p;
+  InThreading(p->rchild);
+}
+}
+
+void InOrderTraveByThread(BinThreadNode *Thrt)
+{
+BinThreadNode * p=Thrt->lchild;
+
+  while(p!=Thrt)
+  {
+   while(p->lTag==Link)
+    p=p->lchild;
+     cout<<p->data<<" ";
+   while(p->rTag==Thread&&p->rchild!=Thrt)
+   {
+    p=p->rchild;
+    cout<<p->data<<" ";
+   }
+   p=p->rchild;
+  }
+}
+附件: 您需要登录才可以下载或查看附件。没有帐号？注册
+收藏分享
+
+【王道公告】王道2014版模拟题的邮费链接已发布！速度！
+靖难
+judeylove
+
+王道论坛超级版主
+Rank: 9Rank: 9Rank: 9
+UID32809 帖子3328 积分4939 王道威望418  王道贡献383  考研年份2010 报考学校上海交通大学 本科学校拉萨师范高等专科学校 注册时间2009-9-7 最后登录2013-11-8 
+硕士帽
+2楼
+ 发表于 2009-11-4 21:11 | 只看该作者
+帮顶一下，图中的MM很PP
+
+TOP
+acmeeo
+
+王道论坛中级道友
+Rank: 3Rank: 3
+UID20828 帖子166 积分243 王道威望0  王道贡献0  考研年份 报考学校哈工大 本科学校哈工大 注册时间2009-3-30 最后登录2012-3-3 
+3楼
+ 发表于 2009-11-4 21:23 | 只看该作者
+MM表情比较诡异
+
+TOP
+acmeeo
+
+王道论坛中级道友
+Rank: 3Rank: 3
+UID20828 帖子166 积分243 王道威望0  王道贡献0  考研年份 报考学校哈工大 本科学校哈工大 注册时间2009-3-30 最后登录2012-3-3 
+4楼
+ 发表于 2009-11-4 21:30 | 只看该作者
+还没学C++呢，看不懂 
+
+TOP
+回到现在
+
+王道论坛初级道友
+Rank: 2
+UID39599 帖子41 积分58 王道威望0  王道贡献0  考研年份 报考学校华科 本科学校MD 注册时间2009-11-11 最后登录2010-3-20 
+5楼
+ 发表于 2009-11-14 16:58 | 只看该作者
+Cannot open include file: 'iostream': No such file or directory
+我运行后为什么会出现这个问题呢  不懂啊
+
+TOP
+luo6620378li
+
+王道论坛中级道友
+Rank: 3Rank: 3
+UID23577 帖子173 积分295 王道威望0  王道贡献0  考研年份 报考学校华南理工 本科学校重庆工商 注册时间2009-5-7 最后登录2012-10-21 
+硕士帽
+6楼
+ 发表于 2009-11-14 22:53 | 只看该作者
+原帖由 回到现在 于 2009-11-14 16:58 发表 
+Cannot open include file: 'iostream': No such file or directory
+我运行后为什么会出现这个问题呢  不懂啊
+
+请问你用的是什么编译器？
+
+来一条#include<iostream>指令
+在任何支持C++的编译器上都是合法的！
+
+TOP
+回到现在
+
+王道论坛初级道友
+Rank: 2
+UID39599 帖子41 积分58 王道威望0  王道贡献0  考研年份 报考学校华科 本科学校MD 注册时间2009-11-11 最后登录2010-3-20 
+7楼
+ 发表于 2009-11-22 17:14 | 只看该作者
+呵呵 你的程序没有问题 太强了啊 
+我的VC编译器变量路径设置有问题 
+弄几天了 还没弄好
+哇哈哈！~！ 天空因我而更蓝
+
+TOP
+返回列表
+王道论坛 ( 浙ICP备08017232号)|联系我们 |Archiver|WAP|  | 百度统计 |杭州网络警察
+GMT+8, 2013-11-13 22:06, Processed in 0.042801 second(s), 19 queries, Gzip enabled.
+Powered by Discuz! 7.2
+© 2001-2009 Comsenz Inc.

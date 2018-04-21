@@ -1,0 +1,501 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+Kay's space 
+
+Learn what I'm interseted . Do what I'm interested . Love who I'm loving.
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+公告：CSDN 搜索第二版正式上线！    Hadoop与大数据精彩议题发布    2000元大奖征异构开发博文 
+CSDN博客频道搬家功能改版正式上线！    【免费】解读海外市场营销奥秘    CSDN博客频道推出TAG功能 
+
+
+
+C++树（兄弟孩子结构实现） 
+.
+ 分类： Data Structure 2011-07-26 21:381038人阅读评论(3)收藏举报
+
+ 
+树转换为二叉树，森林转换为二叉树，都是基于树的兄弟孩子结构实现的。
+
+树有三种遍历：先根遍历，后根遍历，层次遍历。前两种分别对应于二叉树的前序遍历和中序遍历。层次遍历和二叉树的层次遍历也很相似。
+
+下面是代码：
+
+文件"tree.h"
+
+
+
+
+
+01.#include<iostream>  
+02.#include<stack>  
+03.using namespace std;  
+04.  
+05.//循环队列模版  
+06.template<class T>  
+07.class My_queue;  
+08.  
+09.template<class T>  
+10.class Node  
+11.{  
+12.private:  
+13.    T data;  
+14.    Node<T> *next;  
+15.public:  
+16.    Node()  
+17.    {  
+18.        next=0;  
+19.    }  
+20.    Node(T d)  
+21.    {  
+22.        data=d;  
+23.        next=0;  
+24.    }  
+25.    friend My_queue<T>;  
+26.};  
+27.  
+28.template<class T>  
+29.class My_queue  
+30.{  
+31.private:  
+32.    Node<T> *tail;  
+33.public:  
+34.    My_queue()  
+35.    {  
+36.        tail=new Node<T>();  
+37.        tail->next=tail;  
+38.    }  
+39.  
+40.    bool empty()  
+41.    {  
+42.        return (tail->next==tail);  
+43.    }  
+44.  
+45.    void push(T d)  
+46.    {  
+47.        Node<T> *p=new Node<T>(d);  
+48.        p->next=tail->next;  
+49.        tail->next=p;  
+50.        tail=p;  
+51.    }  
+52.  
+53.    T front()  
+54.    {  
+55.        if(empty())  
+56.        {  
+57.            cout<<"queue is empty!"<<endl;  
+58.            exit(0);  
+59.        }  
+60.        Node<T> *p=tail->next;  
+61.        T data=p->next->data;  
+62.        return data;  
+63.    }  
+64.  
+65.    void pop()  
+66.    {  
+67.        Node<T> *p=tail->next;  
+68.        Node<T> *q=p->next;  
+69.        p->next=q->next;  
+70.        if(q==tail)  
+71.            tail=p;  
+72.        delete q;  
+73.    }  
+74.};  
+75.  
+76.class CStree;  
+77.  
+78.class CSnode  
+79.{  
+80.private:  
+81.    char data;  
+82.    CSnode *firstchild;  
+83.    CSnode *nextsibling;  
+84.    friend CStree;  
+85.};  
+86.  
+87.class CStree  
+88.{  
+89.public:  
+90.    void Create_Tree(CSnode *&T)    //创建树  
+91.    {  
+92.        //按照从上到下，从左往右的顺序输入“双亲——孩子”的有序对，建立树的孩子兄弟存储结构  
+93.        //输入时，以('#','#')为结束标志，根结点双亲为空，也是以'#'来表示  
+94.        T=NULL;  
+95.        My_queue<CSnode *> q;  
+96.        char parent,child;  
+97.        cout<<"输入双亲，孩子有序对，以'#','#'作为输入结束标志"<<endl;  
+98.        for(cin>>parent>>child;child!='#';cin>>parent>>child)  
+99.        {  
+100.            CSnode *p=new CSnode;  
+101.            p->data=child;  
+102.            p->firstchild=p->nextsibling=NULL; //暂时现将它们置空  
+103.            q.push(p);  
+104.            if(parent=='#')  
+105.                T=p;  
+106.            else  
+107.            {  
+108.                CSnode *r;  
+109.                CSnode *s=q.front();  
+110.                while(s->data!=parent)     
+111.                {  
+112.                    q.pop();  
+113.                    s=q.front();  
+114.                }  
+115.                if(!s->firstchild)   //链接第一个孩子结点  
+116.                {  
+117.                    s->firstchild=p;  
+118.                    r=p;  
+119.                }  
+120.                else  
+121.                {  
+122.                    r->nextsibling=p;  
+123.                    r=p;  
+124.                }  
+125.            }  
+126.        }//end_for  
+127.    }//end_void  
+128.  
+129.    void Get_Children(CSnode *T)    //找结点孩子  
+130.    {  
+131.        //在T的还在兄弟表示法中，求输入结点的孩子  
+132.        cout<<"输入你要找的结点的值：";  
+133.        char x;  
+134.        cin>>x;  
+135.        My_queue<CSnode *> q;  
+136.        if(!T)  
+137.        {  
+138.            cout<<"这是一棵空树！"<<endl;  
+139.            return ;  
+140.        }  
+141.        q.push(T);  
+142.        CSnode *r=NULL;  
+143.        if(T->data==x)  
+144.            r=T;  
+145.        else  
+146.        {  
+147.            do  
+148.            {  
+149.                CSnode *p=q.front();  
+150.                q.pop();  
+151.                if(p->firstchild && p->firstchild->data==x)  
+152.                {  
+153.                    r=p->firstchild;  
+154.                    break;  
+155.                }  
+156.                if(p->firstchild && p->firstchild->data!=x)  
+157.                    q.push(p->firstchild);  
+158.                if(p->nextsibling && p->nextsibling->data==x)  
+159.                {  
+160.                    r=p->nextsibling;  
+161.                    break;  
+162.                }  
+163.                if(p->nextsibling && p->nextsibling->data!=x)  
+164.                    q.push(p->nextsibling);  
+165.            }while(!q.empty());  
+166.        }  
+167.        if(r==NULL)  
+168.        {  
+169.            cout<<"树T中没有结点"<<x<<endl;  
+170.            return;  
+171.        }  
+172.        else  
+173.            Print_children(r);  
+174.    }  
+175.  
+176.    void Print_children(CSnode *p)  
+177.    {  
+178.        CSnode *q=p->firstchild;  
+179.        if(!q)  
+180.        {  
+181.            cout<<"结点"<<p->data<<"没有孩子"<<endl;  
+182.            return ;  
+183.        }  
+184.        cout<<"结点"<<p->data<<"的所有孩子是：";  
+185.        while(q)  
+186.        {  
+187.            cout<<q->data<<"  ";  
+188.            q=q->nextsibling;  
+189.        }  
+190.        cout<<endl;  
+191.    }  
+192.  
+193.    void OutPath(CSnode *T,stack<char> &s) //求路径  
+194.    {  
+195.        //输出树T中从根节点到所有叶子结点的路径，用栈暂存路径  
+196.        while(T)  
+197.        {  
+198.            s.push(T->data); //将当前层访问的结点记入路径  
+199.            if(!T->firstchild)  
+200.                Print_stack(s); //输出从栈底到栈顶的元素  
+201.            else  
+202.                OutPath(T->firstchild,s); //继续遍历左子树  
+203.            s.pop();    //将当前层访问的结点从路径中删除  
+204.            T=T->nextsibling; //继续访问右子树  
+205.        }  
+206.    }  
+207.  
+208.    void Print_stack(stack<char> s)  
+209.    {  
+210.        char temp[100];  
+211.        int i=0;  
+212.        while(!s.empty())  
+213.        {  
+214.            temp[i]=s.top();  
+215.            s.pop();  
+216.            i++;  
+217.        }  
+218.        cout<<"从根节点到叶子结点的一条路径：";  
+219.        for(int j=i-1;j>0;j--)  
+220.            cout<<temp[j]<<"->";  
+221.        cout<<temp[0]<<endl;  
+222.    }  
+223.  
+224.    void PreRoot_Traverse(CSnode *T) //先根遍历  
+225.    {  
+226.        if(T)  
+227.        {  
+228.            cout<<T->data<<"  ";  
+229.            PreRoot_Traverse(T->firstchild);  
+230.            PreRoot_Traverse(T->nextsibling);  
+231.        }  
+232.    }  
+233.  
+234.    void PostRoot_Traverse(CSnode *T)  //后根遍历  
+235.    {  
+236.        if(T)  
+237.        {  
+238.            PostRoot_Traverse(T->firstchild);  
+239.            cout<<T->data<<"  ";  
+240.            PostRoot_Traverse(T->nextsibling);  
+241.        }  
+242.    }  
+243.  
+244.    void LevelOrder_Traverse(CSnode *T) //层次遍历  
+245.    {  
+246.        My_queue<CSnode *> q;  
+247.        CSnode *t;  
+248.        q.push(T);  
+249.        do  
+250.        {  
+251.            t=q.front();  
+252.            do  
+253.            {  
+254.                cout<<t->data<<"  ";  
+255.                if(t->firstchild)  
+256.                    q.push(t->firstchild);  
+257.                t=t->nextsibling;  
+258.            }while(t);  
+259.            q.pop();  
+260.        }while(!q.empty());  
+261.    }  
+262.  
+263.};  
+
+测试文件"main.cpp"
+
+
+
+
+
+01.#include"tree.h"  
+02.  
+03.int main()  
+04.{  
+05.    CStree tree;  
+06.    CSnode *T;  
+07.    tree.Create_Tree(T);  
+08.  
+09.    tree.Get_Children(T);  
+10.  
+11.    stack<char> s;  
+12.    tree.OutPath(T,s);  
+13.  
+14.    cout<<"树的先根遍历为：";  
+15.    tree.PreRoot_Traverse(T);  
+16.    cout<<endl;  
+17.  
+18.    cout<<"树的后根遍历为：";  
+19.    tree.PostRoot_Traverse(T);  
+20.    cout<<endl;  
+21.  
+22.    cout<<"层次遍历树为：";  
+23.    tree.LevelOrder_Traverse(T);  
+24.    cout<<endl;  
+25.      
+26.    return 0;  
+27.}  
+
+输入 # A A B A C A D C E C F C G C H E I E J G K # # 后生成的树和转换为二叉树后就是下面这种效果：
+
+
+
+
+
+
+
+输出结果为：
+
+
+
+
+01.输入双亲，孩子有序对，以'#','#'作为输入结束标志  
+02.# A  
+03.A B  
+04.A C  
+05.A D  
+06.C E  
+07.C F  
+08.C G  
+09.C H  
+10.E I  
+11.E J  
+12.G K  
+13.# #  
+14.输入你要找的结点的值：C  
+15.结点C的所有孩子是：E  F  G  H  
+16.从根节点到叶子结点的一条路径：A->B  
+17.从根节点到叶子结点的一条路径：A->C->E->I  
+18.从根节点到叶子结点的一条路径：A->C->E->J  
+19.从根节点到叶子结点的一条路径：A->C->F  
+20.从根节点到叶子结点的一条路径：A->C->G->K  
+21.从根节点到叶子结点的一条路径：A->C->H  
+22.从根节点到叶子结点的一条路径：A->D  
+23.树的先根遍历为：A  B  C  E  I  J  F  G  K  H  D  
+24.树的后根遍历为：B  I  J  E  F  K  G  H  C  D  A  
+25.层次遍历树为：A  B  C  D  E  F  G  H  I  J  K  
+26.Press any key to continue  
+
+
+ 
+分享到： 
+
+上一篇：C++线索二叉树
+下一篇：Huffman编码
+ .
+顶7踩0. 
+
+
+查看评论
+ 
+2楼 wobuaishangdiao 2012-08-19 09:12发表[回复] 请问下，你用的什么编译器，这么美，嘿嘿Re: Kay_Sprint 2012-08-19 12:19发表[回复] 回复wobuaishangdiao：代码插件么 我直接用CSDN的模版呀 可以在博客设置里面选的1楼 choose_one 2012-06-26 23:48发表[回复] 来学习了
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+Kay_Sprint
+ 
+
+
+
+
+访问：88798次
+积分：3286分
+排名：第1426名
+.原创：202篇
+转载：25篇
+译文：2篇
+评论：189条
+. 
+公告栏
+iOS win8 monocross java orale 计算机专业大三小菜
+ 
+文章分类iOSDev(22)
+Win8(3)
+mono(3)
+WebDev(6)
+Data Structure(54)
+C++ Note(25)
+Algorithm(79)
+VC++/MFC(17)
+JAVA(6)
+Others(8)
+Thinking of life(4)
+Data Base(2)
+ 
+文章搜索
+
+. 
+文章存档
+2012年11月(5).
+2012年10月(3).
+2012年09月(5).
+2012年08月(1).
+2012年07月(5).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+阅读排行ios小项目——新浪微博客户端总结(11383)
+Hash表（C++实现）(4347)
+平衡二叉树（AVL树）的基本操作（附有示意图）(3247)
+求AOE网的关键路径(1824)
+红黑树 C++实现(1193)
+UITableView可编辑状态常用操作(1146)
+MFC学习笔记之图形保存与重绘(1113)
+图的几种存储方式(1072)
+C++树（兄弟孩子结构实现）(1038)
+HDU1005(988)
+ 
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有 联系邮箱：webmaster(at)csdn.netCopyright ? 1999-2012, CSDN.NET, All Rights Reserved 
+ 
+
+
+
+
+
+
+
+

@@ -1,0 +1,71 @@
+
+首页我的主页相册广场游戏昵称搜索
+消息 私信(1)模板设置退出关注此空间
+Java Dev Household
+学海无边,回头是岸. 众里寻他千百度,蓦然回首,那人却在灯火阑珊处.
+2010-09-27 11:02 oracle索引
+1、在有索引的表上执行DML操作性能会变慢，因为同时要往表和索引插入数据。 
+
+2、当表中如果有组合索引时，如create index idx_tables on t_user_info(id,name,address); 
+    使用select语句进行查询时,where条件中一定要用到前导引，这样oracle才能用到该索引进行扫描， 
+    否则就进行全表扫描。 
+
+3、索引只能用于查找表中已经存在的数据。如果查询语句中有<>或!=的时候，oracle同样不会用到索引， 
+    解决方案：可以用 where t.name>'huangyun' or t.name<'huangyun' 
+
+4、避免使用is null或者 not null。使用技巧：null关键字通常会限制使用索引，所以在create table的 
+    时候尽量使用not null或者default,这样可以避免出现性能的问题。 
+
+2.11 索引的类型有： B-树索引，位图索引，hash索引，索引编排表，反转键索引，基于函数的索引，分区索引 
+      本地和全局索引。 
+    
+     2.11.1 B-树索引是oracle中的通用索引，也是oracle中的默认索引，当创建索引时如果不指定特定的索引类型 
+            oracle则默认的是B-树索引。B-树索引可以一个列上的索引，也可以是多列上的索引，但指定的列不能 
+            超过32列。索引只能在有值的列上有作用。 
+
+     2.11.6 基于函数的索引，在创建索引是可以使用 
+            create index idx_user_info_name on userinfo(max(name)) 
+            于是在使用查询语句的时候 select * from userinfo t where max(name)='huangyun' 
+            就已经使用了该列上的索引，但创建这种索引的时候一定要谨慎，需要考虑额外的代价。 
+     基于函数的索引的实例如下 
+     select count(1) from userinfo where ratio(name,age)>5; finished 20分钟 
+     create index idx_ratio_userinfo on userinfo(name,age); 
+     select count(1) from userinfo where ratio(name,age)>5; finished 7秒钟 
+     //ratio函数是自定义的函数。 
+
+     2.11.7分区索引 
+           分区索引简单的说就是把一个索引划分为多个片断，并且这些片断可以分布在不同的硬盘上。 
+           B-索引和位图索引可以建立分区索引，但hash索引不可以被分区？？
+
+------------------------
+重建索引，ALTER INDEX INDEX名 REBUILD;
+ANALYZE TABLE 表名 COMPUTE STATISTICS;
+#Oracle
+分享到： 举报 浏览(131) 评论 转载
+你可能也喜欢
+
+ 蛱蝶靓影〜〜（玄珠带蛱蝶及副王蛱蝶）
+蛱蝶靓影〜〜（玄珠带蛱蝶及副王蛱蝶）
+ 收获秋色——  格桑花＆彼岸花
+收获秋色—— 格桑花＆彼岸花
+ 秋天最后的美丽。。。。。。。
+秋天最后的美丽。。。。。。。
+ 笔架山明月
+笔架山明月
+ 东沟秋色
+东沟秋色
+ 小洋口观鸟旅行11——红颈滨鹬（下）
+小洋口观鸟旅行11——红颈滨鹬（下）
+ 《蜗居》揭示人生鲜血淋漓的真面目
+《蜗居》揭示人生鲜血淋漓的真面目
+本文最近访客
+
+ aixinziluo
+aixinziluo
+12月28日
+评论
+
+ 发布 
+帮助中心 | 空间客服 | 投诉中心 | 空间协议
+©2013 Baidu
+

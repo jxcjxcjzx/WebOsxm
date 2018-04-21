@@ -1,0 +1,73 @@
+1DWORD
+
+　DWORD 就是 Double Word， 每个word为2个字节的长度，DWORD 双字即为4个字节，每个字节是8位，共32位
+ 
+注册表的键值
+ 
+在键值项窗口空白处单击右键，选择“新建”菜单项，可以看到这些键值被细分为：字符串值、二进制值、DWORD值、多字符串值、可扩充字符串值五种类型。
+ 
+字符串值（REG_SZ）
+ 
+该值一般用来作为文件描述和硬件标志，可以是字母、数字，也可以是汉字。它的名称是长度固定的文本字符串，最大长度不能超过255个字符，它的数据不限长度。REG文件中一般表现为：“a”=“****”。
+ 
+注：通过Registry workshop可以将字符串值的名称更改为大于255个字符的长度，但该值将在RegEdit中不可见。
+ 
+二进制值（REG_BINARY）
+ 
+一般情况下，大多数硬件组件信息以二进制数据存储，然后通过十六进制的格式显示在注册表编辑器中。该类型值没有长度限制，可以是任意字节长，REG文件中一般表现为：“a”=“hex:01,00,00,00”。
+ 
+DWORD值（REG_DWORD）
+ 
+由 4 字节长（32 位整数）的数字表示的数据。设备驱动程序和服务的许多参数都是此类型，以二进制、十六进制或十进制格式显示在注册表编辑器中。REG文件中一般表现为“a”=“dword:00000001”。1个二进制位称为1个bit（位），8个二进制位称为1个Byte（字节），8 bit = 1 byte。2个字节就是1个Word（1个字，16位），DWORD（Double Word）就是双字的意思，两个字（32位）。
+ 
+typedef unsigned long DWORD;
+ 
+关于DWORD使用中重要的一点。DWORD 现在表示 32bit 无符号整数，即使以后 Windows 升级到64位，DWORD 仍然是 32bit 无符号整数（也许以后的 long 不是32bit了，只需要重新定义一下 DWORD 就可以了）。对于那些直接和位数有关的整数，最好不用 int, long, short 之类的类型，因为这些类型的位数可能不确定（比如，在16位程序里，int 是16位的，在32位程序里，int 是32位的，谁知道在以后的64位程序里，int 是多少位，long 又是多少位）。用重新定义的类型就没有这方面的问题了，最多到时候修改一下定义就可以了，而不需要在程序里一行一行的查找
+ 
+MSDN给出的定义是这样的：
+ 
+Data Types
+ 
+This topic lists the data types most commonly used in the Microsoft Foundation Class Library. Most of the data types are exactly the same as those in the Windows Software Development Kit (SDK), while others are unique to MFC.
+ 
+Commonly used Windows SDK and MFC data types are as follows: BOOL A Boolean value.
+ 
+BSTR A 32-bit character pointer.
+ 
+BYTE An 8-bit integer that is not signed.
+ 
+COLORREF A 32-bit value used as a color value.
+ 
+DWORD A 32-bit unsigned integer or the address of a segment and its associated offset.
+ 
+LONG A 32-bit signed integer.
+ 
+LPARAM A 32-bit value passed as a parameter to a window procedure or callback function.
+ 
+LPCSTR A 32-bit pointer to a constant character string.
+ 
+LPSTR A 32-bit pointer to a character string.
+ 
+LPCTSTR A 32-bit pointer to a constant character string that is portable for Unicode and DBCS.
+ 
+LPTSTR A 32-bit pointer to a character string that is portable for Unicode and DBCS.
+ 
+LPVOID A 32-bit pointer to an unspecified type.
+ 
+LRESULT A 32-bit value returned from a window procedure or callback function.
+ 
+UINT A 16-bit unsigned integer on Windows versions 3.0 and 3.1; a 32-bit unsigned integer on Win32.
+ 
+WNDPROC A 32-bit pointer to a window procedure.
+ 
+WORD A 16-bit unsigned integer.
+ 
+WPARAM A value passed as a parameter to a window procedure or callback function: 16 bits on Windows versions 3.0 and 3.1; 32 bits on Win32.
+ 
+Data types unique to the Microsoft Foundation Class Library include the following:
+ 
+POSITION A value used to denote the position of an element in a collection; used by MFC collection classes. LPCRECT A 32-bit pointer to a constant (nonmodifiable) RECT structure.
+ 
+然而，在实际情况中，DWORD会根据操作系统的不同，被定义成了不同的长度，比如vs8(xp)中，DWORD被定义成了如下的类型：
+ 
+typedef unsigned long DWORD; 而unsigned long 的长度则是8个字节即64位，如果是在64位的操作系统中，这个长度可能会更长，这需要取决于当前操作系统以及开发环境等有关方面，具体可以参考相关的帮助说明！
