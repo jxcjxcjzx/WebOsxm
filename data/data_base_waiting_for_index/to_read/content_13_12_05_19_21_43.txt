@@ -1,0 +1,911 @@
+jxc0我的：收件箱资源博客空间设置|帮助|退出首页业界移动云计算研发论坛博客下载
+更多
+sunnytina的专栏
+目录视图摘要视图订阅
+文思海辉第一届在线编程大赛      消灭0回答，赢下载分      订阅CSDN社区周刊，及时了解社区精华内容      办公大师系列经典丛书 诚聘译者
+ wifi流程详细分析
+分类： Android开发 2012-06-29 16:23 742人阅读 评论(0) 收藏 举报
+nullnetworkframeworksaction网络android
+一．启动wifi服务
+
+1.在 SystemServer 启动的时候,会生成一个 ConnectivityService 的实例 
+
+路径为：\frameworks\base\services\java\com\android\server\SystemServer.java 
+
+try { 
+
+             Slog.i(TAG, "Connectivity Service"); 
+
+             connectivity = ConnectivityService.getInstance(context); 
+
+             ServiceManager.addService(Context.CONNECTIVITY_SERVICE, connectivity);
+
+            } catch (Throwable e) { 
+
+                Slog.e(TAG, "Failure starting Connectivity Service", e); 
+
+            } 
+
+2.ConnectivityService 类中private ConnectivityService(Context context) 构造函数创建 
+
+    WifiService和WifiStateTracker对象 
+
+\frameworks\base\services\java\com\android\server\ConnectivityService.java 
+Java代码 复制代码 收藏代码
+  
+for (int netType : mPriorityList) {   
+  
+            switch (mNetAttributes[netType].mRadio) {   
+  
+            case ConnectivityManager.TYPE_WIFI:   
+  
+                if (DBG) Slog.v(TAG, "Starting Wifi Service.");   
+  
+                WifiStateTracker wst = new WifiStateTracker(context, mHandler);   
+  
+                WifiService wifiService = new WifiService(context, wst);   
+  
+                ServiceManager.addService(Context.WIFI_SERVICE, wifiService);   
+  
+                wifiService.startWifi();   
+  
+                mNetTrackers[ConnectivityManager.TYPE_WIFI] = wst;   
+  
+                wst.startMonitoring();   
+  
+                break;   
+  
+}   
+  
+}  
+[java] view plaincopy
+<span style="font-size:16px;">for (int netType : mPriorityList) {  
+  
+            switch (mNetAttributes[netType].mRadio) {  
+  
+            case ConnectivityManager.TYPE_WIFI:  
+  
+                if (DBG) Slog.v(TAG, "Starting Wifi Service.");  
+  
+                WifiStateTracker wst = new WifiStateTracker(context, mHandler);  
+  
+                WifiService wifiService = new WifiService(context, wst);  
+  
+                ServiceManager.addService(Context.WIFI_SERVICE, wifiService);  
+  
+                wifiService.startWifi();  
+  
+                mNetTrackers[ConnectivityManager.TYPE_WIFI] = wst;  
+  
+                wst.startMonitoring();  
+  
+                break;  
+  
+}  
+  
+}  
+</span>  
+
+3.创建WifiStateTracker和WifiService对象用来启动wifi管理服务WifiStateTracker 会创建  
+
+    WifiMonitor 用来接收来自底层的事件,WifiService 和 WifiMonitor 是整个模块的核心。 
+
+4.WifiService 负责启动关闭 wpa_supplicant、启动关闭 WifiMonitor 监视线程和把命令下发 
+
+               给 wpa_supplicant 
+
+     5. WifiMonitor 
+
+               开始运行线程，会请求连接wpa_supplicant，通过调用WifiStateTracker函数connectToSupplicant然后通过wifi.c的wifi_connect_to_supplicant，接着向wpa_ctrl的wpa_ctrl_open。然后通过CreateFile函数向wpa_supplicant读取数据。连接成功后会发送EVENT_SUPPLICANT_CONNECTION消息启动获取DHCP地址线程阻塞调用（当连接上AP的时候，该线程会被执行起来获取IP地址），并记录自己的MAC地址（因为MAC地址不会改变
+
+所以请求一次即可） 接着开启一个死循环处理wpa_supplicant发送的事件。 
+
+当用户点击Wi-Fi按钮 的时候WifiEnabler中的onPreferenceChange函数会被调用,再由该函数调用WifiManager的setWifiEnabled函数，它先引用AIDL经由IWifiManager通过Binder机制调用WifiService的 setWifiEnabled设置Wifi开启状态。同时WifiService会发送MESSAGE_ENABLE_WIFI消息，由WifiService的
+
+setWifiEnabledBlocking函数响应该消息，负责Wifi可用的需要工作。首先他会加载驱动 
+
+loadDriver(),然后开启wpa_supplicant( 配 置 文 件 硬 编 码 为 
+"/data/misc/wifi/wpa_supplicant.conf") 再注册广播消息，而后通过 WifiStateTracker 来启动 WifiMonitor 中的监视线程。以上工作使能成功后，会调用setWifiEnabledState最后广播WIFI_STATE_CHANGED_ACTION 这个Intent，至此Wifi能动开启。
+
+接下来是扫描AP。 
+
+WifiSettings和WifiEnabler 创 建 的 时 候 就 会 向 Android 注 册 接 收 
+WIFI_STATE_CHANGED_ACTION,因此他们都会收到WIFI_STATE_CHANGED_ACTION 这个Intent，WifiEnabler负责使得图标加亮，WifiSettings负责使得开启扫描AP。经由
+
+WifiService 的 startScan,再通过JNI由android_net_wifi_scanCommand函数向wpa_supplicant发送扫描命令.当 wpa_supplicant 处理完 SCAN 命令后,它会向控制通道发送事件通知扫描完成,从而wifi_wait_for_event 函数会接收到该事件,由此 WifiMonitor 中的 MonitorThread 会被执行来处理接扫描结果事件。此线程通过WifiStateTracker 广播 SCAN_RESULTS_AVAILABLE_ACTION这个Intent。而WifiSettings注册了接收此Intent，最终由其相应函数updateAccessPoints将AP列表，以GUI的形式列出来。
+
+当用户选择一个AP时会弹出一个AP参数配置对话框，此对话框会显示当前选择的AP信号强度，若此AP设置了密码则需要用户输入密码才能登录。WifiSettings中的 onPreferenceTreeClick会被调用
+Java代码 复制代码 收藏代码
+public boolean onPreferenceTreeClick(PreferenceScreen screen, Preference preference) {   
+  
+         //点击AP响应函数  
+  
+        if (preference instanceof AccessPoint) {   
+  
+            mSelected = (AccessPoint) preference;   
+  
+            showDialog(mSelected, false);   
+  
+        } else if (preference == mAddNetwork) {   
+  
+            mSelected = null;   
+  
+            showDialog(null, true);   
+  
+        } else if (preference == mNotifyOpenNetworks) {   
+  
+            Secure.putInt(getContentResolver(),   
+  
+                    Secure.WIFI_NETWORKS_AVAILABLE_NOTIFICATION_ON,   
+  
+                    mNotifyOpenNetworks.isChecked() ? 1 : 0);   
+  
+        } else {   
+  
+            return super.onPreferenceTreeClick(screen, preference);   
+  
+        }   
+  
+        return true;   
+  
+    }  
+[java] view plaincopy
+<span style="font-size:16px;">public boolean onPreferenceTreeClick(PreferenceScreen screen, Preference preference) {  
+  
+         //点击AP响应函数  
+  
+        if (preference instanceof AccessPoint) {  
+  
+            mSelected = (AccessPoint) preference;  
+  
+            showDialog(mSelected, false);  
+  
+        } else if (preference == mAddNetwork) {  
+  
+            mSelected = null;  
+  
+            showDialog(null, true);  
+  
+        } else if (preference == mNotifyOpenNetworks) {  
+  
+            Secure.putInt(getContentResolver(),  
+  
+                    Secure.WIFI_NETWORKS_AVAILABLE_NOTIFICATION_ON,  
+  
+                    mNotifyOpenNetworks.isChecked() ? 1 : 0);  
+  
+        } else {  
+  
+            return super.onPreferenceTreeClick(screen, preference);  
+  
+        }  
+  
+        return true;  
+  
+    }  
+</span>  
+
+用户配置好之后点击连接按钮，onClick函数会被调用。 
+Java代码 复制代码 收藏代码
+public void onClick(DialogInterface dialogInterface, int button) {   
+  
+          //点击连接按钮的响应函数  
+  
+        if (button == WifiDialog.BUTTON_FORGET && mSelected != null) {   
+  
+            forget(mSelected.networkId);   
+  
+        } else if (button == WifiDialog.BUTTON_SUBMIT && mDialog != null) {   
+  
+            WifiConfiguration config = mDialog.getConfig();   
+  
+    
+  
+            if (config == null) {   
+  
+                if (mSelected != null && !requireKeyStore(mSelected.getConfig())) {   
+                    connect(mSelected.networkId);   
+                }   
+            } else if (config.networkId != -1) {   
+                if (mSelected != null) {   
+                    mWifiManager.updateNetwork(config);   
+                    saveNetworks();   
+                }   
+            } else {   
+                int networkId = mWifiManager.addNetwork(config);   
+                if (networkId != -1) {   
+                    mWifiManager.enableNetwork(networkId, false);   
+                    config.networkId = networkId;   
+                    if (mDialog.edit || requireKeyStore(config)) {   
+                        saveNetworks();   
+                    } else {   
+                        connect(networkId);   
+                    }   
+                }   
+            }   
+        }  
+[java] view plaincopy
+<span style="font-size:16px;">public void onClick(DialogInterface dialogInterface, int button) {  
+  
+          //点击连接按钮的响应函数  
+  
+        if (button == WifiDialog.BUTTON_FORGET && mSelected != null) {  
+  
+            forget(mSelected.networkId);  
+  
+        } else if (button == WifiDialog.BUTTON_SUBMIT && mDialog != null) {  
+  
+            WifiConfiguration config = mDialog.getConfig();  
+  
+   
+  
+            if (config == null) {  
+  
+                if (mSelected != null && !requireKeyStore(mSelected.getConfig())) {  
+                    connect(mSelected.networkId);  
+                }  
+            } else if (config.networkId != -1) {  
+                if (mSelected != null) {  
+                    mWifiManager.updateNetwork(config);  
+                    saveNetworks();  
+                }  
+            } else {  
+                int networkId = mWifiManager.addNetwork(config);  
+                if (networkId != -1) {  
+                    mWifiManager.enableNetwork(networkId, false);  
+                    config.networkId = networkId;  
+                    if (mDialog.edit || requireKeyStore(config)) {  
+                        saveNetworks();  
+                    } else {  
+                        connect(networkId);  
+                    }  
+                }  
+            }  
+        }  
+</span>  
+
+连接请求部分 
+
+一.Settings的connect函数响应连接，更新网络保存配置，更新设置当前选择的优先级最高，并 
+
+    保存。然后通过enableNetwork使得其他网络不可用来进行连接。最后调用WifiManager的 
+
+      reconnect函数连接当前选择的网络。 
+
+二.WifiManager的reconnect函数通过AIDL的Binder机制，调用WifiService的reconnect函数 
+
+三.然后会调用 WifiStateTracker的reconnectCommand函数，通过JNI（android_net_wifi_Wifi)的            
+
+      android_net_wifi_reconnectCommand 函数向WPA_WPASUPPLICANT发送 RECONNECT命令。 
+
+四. android_net_wifi_Wifi通过 doCommand(命令名，响应缓冲，响应缓存大小)调用wifi.c中的 
+
+      wifi_command函数来发送命令。 
+
+五.最后通过 wpa_ctrl的wpa_ctrl_request函数向控制通道发送连接命令。 
+
+返回请求部分 
+
+六.当连接上之后WPA_SUPPLICANT会向控制通道发送连接成功命令。wifi.c的 
+
+      wifi_wait_for_event函数阻塞调用并返回这个命令的字符串（CONNECTED）. 
+
+七.而后WifiMonitor会被执行来处理这个事件，WifiMonitor 再调用 WifiStateTracker的 
+
+     notifyStateChange,WifiStateTracker 则接着会往自身发送 EVENT_DHCP_START 消息来启动 
+
+    DHCP 去获取 IP 地址,然后广播NETWORK_STATE_CHANGED_ACTION消息，最后由 
+
+    WifiSettings类来响应，改变状态和界面信息。 
+
+关键函数功能介绍 
+
+一.connect函数功能 
+
+  1.updateNetwork：updateNetwork(config)会将当前选择连接的AP配置信息 
+
+   信息传递进去，配置信息有（网络ID等）。如果网络ID为-1则重新添加网络配置，然后向 
+
+   wpa_supplicant 发送SET_NETWORK命令（即通过这个网络ID设置其他一些相关信息，设置 
+
+   SSID，密码等）如果网络配置不为－1则直接执行后面步骤即发送SET_NETWORK命令。 
+
+  2.saveNetwork:告诉supplicant保存当前网络配置并更新列表。SaveNetwork会调用WifiService的 
+
+     saveConfiguration向wpa_supplicant发送SAVE_CONFIG命令保存当前网络配置信息， 
+
+    如果返回false，则向wpa_supplicant重新发送RECONFIGURE命令获取配置信息，如果获取信 
+
+
+
+    息成功后，会Intent一个  NETWORK_IDS_CHANGED_ACTION事件WifiSettings会注册接受 
+
+    这个 时间并更新列表。 
+
+  3.enableNetwork函数，向系统获取接口名并使得该接口有效。由于之前传递的disableOthers 
+
+    为true则向wpa_supplicant发送SELECT_NETWORK（如果传递的为false则发送                
+
+     ENABLE_NETWORK命令）， 
+
+  4.reconnect函数：连接AP 
+
+
+
+二.reconnect函数功能：connect函数会调用WifiManager的reconnect然后通过Binder机制调用 
+
+   WifiService的reconnect，再由WifiStateTracke调用WifiNative向wpa_supplicant发送 
+
+   RECONNECT命令去连接网络，当连接上wpa_supplicant之后会向控制通道发送连接成功的命  
+
+   令， 
+
+   wifi_wait_for_event函数阻塞等待该事件的发生，并返回这个命令的字符串（CONNECTED） 
+
+  
+
+三.android_net_wifi_Wifi函数的doCommand函数会调用wifi.c的wifi_command函数将上层的命 
+
+   令向wpa_supplicant发送。 
+
+  
+
+四.wifi_wait_for_event函数以阻塞的方式，等待控制通道传递的事件。当有事件传递过来的时候 
+
+   该函数会通过wpa_ctrl的wpa_ctrl_recv函数读取该事件，并以字符串形式返回该事件名。 
+Java代码 复制代码 收藏代码
+int wifi_wait_for_event(char *buf, size_t buflen)   
+  
+{   
+  
+                       .......   
+  
+    result = wpa_ctrl_recv(monitor_conn, buf, &nread);   
+  
+    if (result < 0) {   
+  
+        LOGD("wpa_ctrl_recv failed: %s\n", strerror(errno));   
+  
+        strncpy(buf, WPA_EVENT_TERMINATING " - recv error", buflen-1);   
+  
+        buf[buflen-1] = '\0';   
+  
+        return strlen(buf);   
+  
+    }   
+  
+    buf[nread] = '\0';   
+  
+    /* LOGD("wait_for_event: result=%d nread=%d string=\"%s\"\n", result, nread, buf); */  
+  
+    /* Check for EOF on the socket */  
+  
+    if (result == 0 && nread == 0) {   
+  
+        /* Fabricate an event to pass up */  
+  
+        LOGD("Received EOF on supplicant socket\n");   
+  
+        strncpy(buf, WPA_EVENT_TERMINATING " - signal 0 received", buflen-1);   
+  
+        buf[buflen-1] = '\0';   
+  
+        return strlen(buf);   
+  
+    }   
+  
+    /* 
+ 
+     * Events strings are in the format 
+ 
+     * 
+ 
+     *     <N>CTRL-EVENT-XXX 
+ 
+     * 
+ 
+     * where N is the message level in numerical form (0=VERBOSE, 1=DEBUG, 
+ 
+     * etc.) and XXX is the event name. The level information is not useful 
+ 
+     * to us, so strip it off. 
+ 
+     */  
+  
+    if (buf[0] == '<') {   
+  
+        char *match = strchr(buf, '>');   
+  
+        if (match != NULL) {   
+  
+            nread -= (match+1-buf);   
+  
+            memmove(buf, match+1, nread+1);   
+  
+        }   
+  
+    }   
+    return nread;   
+}  
+[java] view plaincopy
+<span style="font-size:16px;">int wifi_wait_for_event(char *buf, size_t buflen)  
+  
+{  
+  
+                       .......  
+  
+    result = wpa_ctrl_recv(monitor_conn, buf, &nread);  
+  
+    if (result < 0) {  
+  
+        LOGD("wpa_ctrl_recv failed: %s\n", strerror(errno));  
+  
+        strncpy(buf, WPA_EVENT_TERMINATING " - recv error", buflen-1);  
+  
+        buf[buflen-1] = '\0';  
+  
+        return strlen(buf);  
+  
+    }  
+  
+    buf[nread] = '\0';  
+  
+    /* LOGD("wait_for_event: result=%d nread=%d string=\"%s\"\n", result, nread, buf); */  
+  
+    /* Check for EOF on the socket */  
+  
+    if (result == 0 && nread == 0) {  
+  
+        /* Fabricate an event to pass up */  
+  
+        LOGD("Received EOF on supplicant socket\n");  
+  
+        strncpy(buf, WPA_EVENT_TERMINATING " - signal 0 received", buflen-1);  
+  
+        buf[buflen-1] = '\0';  
+  
+        return strlen(buf);  
+  
+    }  
+  
+    /* 
+ 
+     * Events strings are in the format 
+ 
+     * 
+ 
+     *     <N>CTRL-EVENT-XXX 
+ 
+     * 
+ 
+     * where N is the message level in numerical form (0=VERBOSE, 1=DEBUG, 
+ 
+     * etc.) and XXX is the event name. The level information is not useful 
+ 
+     * to us, so strip it off. 
+ 
+     */  
+  
+    if (buf[0] == '<') {  
+  
+        char *match = strchr(buf, '>');  
+  
+        if (match != NULL) {  
+  
+            nread -= (match+1-buf);  
+  
+            memmove(buf, match+1, nread+1);  
+  
+        }  
+  
+    }  
+    return nread;  
+}  
+</span>  
+
+五.wpa_ctrl_request，通过socket方式向wpa_supplicant发送命令，以select模式阻塞在
+
+   wpa_supplicant发送和接收。 
+Java代码 复制代码 收藏代码
+int wpa_ctrl_request(struct wpa_ctrl *ctrl, const char *cmd, size_t cmd_len，char *reply, size_t *reply_len,void (*msg_cb)(char *msg, size_t len))   
+  
+{   
+  
+         .......   
+  
+                   res = select(ctrl->s + 1, &rfds, NULL, NULL, &tv);   
+  
+                   if (FD_ISSET(ctrl->s, &rfds)) {   
+  
+                            res = recv(ctrl->s, reply, *reply_len, 0);   
+  
+                            if (res < 0)   
+  
+                                     return res;   
+  
+                            if (res > 0 && reply[0] == '<') {   
+  
+                                     /* This is an unsolicited message from 
+ 
+                                      * wpa_supplicant, not the reply to the 
+ 
+                                      * request. Use msg_cb to report this to the 
+ 
+                                      * caller. */  
+  
+                                     if (msg_cb) {   
+  
+                                               /* Make sure the message is nul 
+ 
+                                                * terminated. */  
+  
+                                               if ((size_t) res == *reply_len)   
+  
+                                                        res = (*reply_len) - 1;   
+  
+                                               reply[res] = '\0';   
+  
+                                               msg_cb(reply, res);   
+  
+                                     }   
+  
+                                     continue;   
+  
+                            }   
+  
+                            *reply_len = res;   
+  
+                            break;   
+                   } else {   
+                            return -2;   
+                   }   
+         }   
+         return 0;   
+}  
+[java] view plaincopy
+<span style="font-size:16px;">int wpa_ctrl_request(struct wpa_ctrl *ctrl, const char *cmd, size_t cmd_len，char *reply, size_t *reply_len,void (*msg_cb)(char *msg, size_t len))  
+  
+{  
+  
+         .......  
+  
+                   res = select(ctrl->s + 1, &rfds, NULL, NULL, &tv);  
+  
+                   if (FD_ISSET(ctrl->s, &rfds)) {  
+  
+                            res = recv(ctrl->s, reply, *reply_len, 0);  
+  
+                            if (res < 0)  
+  
+                                     return res;  
+  
+                            if (res > 0 && reply[0] == '<') {  
+  
+                                     /* This is an unsolicited message from 
+ 
+                                      * wpa_supplicant, not the reply to the 
+ 
+                                      * request. Use msg_cb to report this to the 
+ 
+                                      * caller. */  
+  
+                                     if (msg_cb) {  
+  
+                                               /* Make sure the message is nul 
+ 
+                                                * terminated. */  
+  
+                                               if ((size_t) res == *reply_len)  
+  
+                                                        res = (*reply_len) - 1;  
+  
+                                               reply[res] = '\0';  
+  
+                                               msg_cb(reply, res);  
+  
+                                     }  
+  
+                                     continue;  
+  
+                            }  
+  
+                            *reply_len = res;  
+  
+                            break;  
+                   } else {  
+                            return -2;  
+                   }  
+         }  
+         return 0;  
+}  
+</span>  
+
+六.WifiMonitor 维护一个监视线程分发处理底层返回上来的事件 
+Java代码 复制代码 收藏代码
+void handleEvent(int event, String remainder) {   
+  
+            switch (event) {   
+  
+                case DISCONNECTED:   
+  
+                    handleNetworkStateChange(NetworkInfo.DetailedState.DISCONNECTED, remainder);   
+  
+                    break;   
+  
+                case CONNECTED:   
+  
+                    handleNetworkStateChange(NetworkInfo.DetailedState.CONNECTED, remainder);   
+  
+                    break;   
+  
+                case SCAN_RESULTS:   
+  
+                    mWifiStateTracker.notifyScanResultsAvailable();   
+  
+                    break;   
+  
+                case UNKNOWN:   
+  
+                    break;   
+  
+            }   
+  
+        }  
+[java] view plaincopy
+<span style="font-size:16px;">void handleEvent(int event, String remainder) {  
+  
+            switch (event) {  
+  
+                case DISCONNECTED:  
+  
+                    handleNetworkStateChange(NetworkInfo.DetailedState.DISCONNECTED, remainder);  
+  
+                    break;  
+  
+                case CONNECTED:  
+  
+                    handleNetworkStateChange(NetworkInfo.DetailedState.CONNECTED, remainder);  
+  
+                    break;  
+  
+                case SCAN_RESULTS:  
+  
+                    mWifiStateTracker.notifyScanResultsAvailable();  
+  
+                    break;  
+  
+                case UNKNOWN:  
+  
+                    break;  
+  
+            }  
+  
+        }  
+</span>  
+
+此时返回的事件是CONNECTED因此 handleNetworkStateChange会被调用，验证一下BSSID,重新获得networkId
+
+,然后调用WifiStateTracke的notifyStateChange通知状态改变了的消息（EVENT_NETWORK_STATE_CHANGED） 
+
+接着处理这个消息，会移除可用网络通告，然后通过 configureInterface()的动态获取IP地址。最后 
+
+发送一个NETWORK_STATE_CHANGED_ACTION Intent，WifiSetings注册了此Intent因此会响应该它。由updateConnectionState函数响应。
+
+七.updateConnectionState 获取连接信息，更新列表状态，设置为Connected,然后设置当前网络为可用状态 
+Java代码 复制代码 收藏代码
+private void updateConnectionState(DetailedState state) {   
+  
+        /* sticky broadcasts can call this when wifi is disabled */  
+  
+        if (!mWifiManager.isWifiEnabled()) {   
+  
+            mScanner.pause();   
+  
+            return;   
+  
+        }   
+  
+    
+  
+        if (state == DetailedState.OBTAINING_IPADDR) {   
+  
+            mScanner.pause();   
+  
+        } else {   
+  
+            mScanner.resume();   
+  
+        }   
+  
+    
+  
+        mLastInfo = mWifiManager.getConnectionInfo();   
+  
+        if (state != null) {   
+  
+            mLastState = state;   
+  
+        }   
+  
+    
+  
+        for (int i = mAccessPoints.getPreferenceCount() - 1; i >= 0; --i) {   
+  
+            ((AccessPoint) mAccessPoints.getPreference(i)).update(mLastInfo, mLastState);   
+  
+        }   
+  
+    
+  
+        if (mResetNetworks && (state == DetailedState.CONNECTED ||   
+  
+                state == DetailedState.DISCONNECTED || state == DetailedState.FAILED)) {   
+  
+            updateAccessPoints();   
+  
+            enableNetworks();   
+  
+        }   
+  
+    }  
+[java] view plaincopy
+<span style="font-size:16px;">private void updateConnectionState(DetailedState state) {  
+  
+        /* sticky broadcasts can call this when wifi is disabled */  
+  
+        if (!mWifiManager.isWifiEnabled()) {  
+  
+            mScanner.pause();  
+  
+            return;  
+  
+        }  
+  
+   
+  
+        if (state == DetailedState.OBTAINING_IPADDR) {  
+  
+            mScanner.pause();  
+  
+        } else {  
+  
+            mScanner.resume();  
+  
+        }  
+  
+   
+  
+        mLastInfo = mWifiManager.getConnectionInfo();  
+  
+        if (state != null) {  
+  
+            mLastState = state;  
+  
+        }  
+  
+   
+  
+        for (int i = mAccessPoints.getPreferenceCount() - 1; i >= 0; --i) {  
+  
+            ((AccessPoint) mAccessPoints.getPreference(i)).update(mLastInfo, mLastState);  
+  
+        }  
+  
+   
+  
+        if (mResetNetworks && (state == DetailedState.CONNECTED ||  
+  
+                state == DetailedState.DISCONNECTED || state == DetailedState.FAILED)) {  
+  
+            updateAccessPoints();  
+  
+            enableNetworks();  
+  
+        }  
+  
+    }  
+</span>  
+ 
+ 
+ 
+ 
+Wifi 各类之间关系
+
+
+
+更多 0
+上一篇：spin_lock & mutex_lock的区别?
+下一篇：How does a computer work?
+
+查看评论
+
+  暂无评论
+
+发表评论
+用 户 名：
+qqjxc
+评论内容：
+插入代码
+
+  
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+核心技术类目
+全部主题 Java VPN Android iOS ERP IE10 Eclipse CRM JavaScript Ubuntu NFC WAP jQuery 数据库 BI HTML5 Spring Apache Hadoop .NET API HTML SDK IIS Fedora XML LBS Unity Splashtop UML components Windows Mobile Rails QEMU KDE Cassandra CloudStack FTC coremail OPhone CouchBase 云计算 iOS6 Rackspace Web App SpringSide Maemo Compuware 大数据 aptech Perl Tornado Ruby Hibernate ThinkPHP Spark HBase Pure Solr Angular Cloud Foundry Redis Scala Django Bootstrap
+个人资料
+ 访问我的空间 
+sunnytina
+ 
+访问：26043次
+积分：378分
+排名：千里之外
+原创：3篇转载：29篇译文：2篇评论：14条
+文章搜索
+
+文章分类
+common sense(4)
+Java学习点滴(1)
+life(4)
+linux－driver(12)
+C/C++(1)
+Android开发(12)
+文章存档
+2013年08月(2)
+2012年11月(1)
+2012年10月(5)
+2012年09月(1)
+2012年07月(1)
+展开
+阅读排行
+spin_lock & mutex_lock的区别?(3654)
+高通平台LCD的打开和关闭流程(1934)
+vm-install vmware tools安装(1763)
+JAVA 学习之implements的用法(1655)
+MT6573的driver相关目录和文件(1565)
+关于Android LCD和键盘背光亮度(1423)
+LCD的CPU接口和RGB接口(1355)
+嵌入式 linux 去掉启动时闪烁的光标 和制作启动LOGO(1214)
+班扎古鲁白玛的沉默(913)
+LCD 基本知识(796)
+评论排行
+Android display架构分析(3)
+vm-install vmware tools安装(2)
+JAVA 学习之implements的用法(2)
+LCD 基本知识(2)
+关于Android LCD和键盘背光亮度(1)
+MT6573的driver相关目录和文件(1)
+班扎古鲁白玛的沉默(1)
+高通平台LCD的打开和关闭流程(1)
+嵌入式 linux 去掉启动时闪烁的光标 和制作启动LOGO(1)
+脉宽调制的基本原理及其应用实例(0)
+推荐文章
+
+最新评论
+JAVA 学习之implements的用法
+天之鹰2006: 楼主有更详细的java资料吗，关于web编程的，mail：1739972504@qq.com
+vm-install vmware tools安装
+dance_rise: thank you
+vm-install vmware tools安装
+My_le: lz中间就没遇到问题吗？rp就则么好
+高通平台LCD的打开和关闭流程
+eqwewr: hello同行 呵呵在上海的么
+JAVA 学习之implements的用法
+arllllra: 这么漂亮的妹子居然搞IT，真是暴殄天物呀！
+LCD 基本知识
+ninollei: nice
+LCD 基本知识
+ninollei: nice
+Android display架构分析
+陈博先: 很棒
+MT6573的driver相关目录和文件
+陈博先: 学习学习
+Android display架构分析
+TC_CT: Very Good
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved GongshangLogo
+  

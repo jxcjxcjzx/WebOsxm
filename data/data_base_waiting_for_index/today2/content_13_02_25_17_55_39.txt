@@ -1,0 +1,674 @@
+装配中的脑袋
+用大脑装配程序，再用程序装配大脑
+
+随笔- 58  文章- 0  评论- 1125 
+博客园  首页  新随笔  新文章  联系  管理  订阅 
+自己动手开发编译器（十一）语义分析
+上回我们已经用VBF的Parsers.Combinators库生成了miniSharp的语法分析器，并且能够将miniSharp的源代码翻译成抽象语法树（AST）。这一回我们要继续进行下一步——语义分析。就目前大家接触的编程语言，如C#、VB、C++来说，语义分析是编译器前端最复杂的部分。因为这些编程语言的语义都非常复杂。语义分析不像之前词法分析、语法分析那样，有一些特定的工具来帮助。这一部分通常都是要纯手工写代码来完成。我们的miniSharp语义因为已经高度简化，它的语义分析可以说比C#要容易一个数量级。我们只会在选定方法重载的时候见识一下C#复杂语义的冰山一角。
+
+ 
+
+所谓编程语言语义，就是这段代码实际的含义。编程语言的代码必须有绝对明确的含义，这样人们才能让程序做自己想做的事情。比如最简单的一行代码：a = 1; 它的语义是“将32位整型常量存储到变量a中”。首先我们对“1”有明确的定义，它是32位有符号整型字面量，这里“32位有符号整型”就是表达式“1”的类型。其次，这句话成为合法的编程语言，32位整型常量必须能够隐式转换为a的类型。假设a就是int型变量，那么这条语句就直接将1存储到a所在内存里。如果a是浮点数类型的，那么这句话就隐含着将整型常量1转换为浮点类型的步骤。在语义分析中，类型检查是贯穿始终的一个步骤。像miniSharp这样的静态类型语言，类型检查通常要做到：
+
+判定每一个表达式的声明类型
+判定每一个字段、形式参数、变量声明的类型
+判断每一次赋值、传参数时，是否存在合法的隐式类型转换
+判断一元和二元运算符左右两侧的类型是否合法（比如+不就不能在bool和int之间进行）
+将所有要发生的隐式类型转换明确化
+要进行以上操作，需要一个表存储所有已知的类型。如果引用了外部程序集，则也需要将外部程序集中的类型信息放到表中。类型信息包括类型的名字、父类（如果有的话）、成员以及相互隐式转换的规则。我们用如下的类来表示一个miniSharp自定义类型：
+
+public class CodeClassType : TypeBase
+{
+    public bool IsStatic { get; set; }
+    public CodeClassType BaseType { get; set; }
+    public Collection<Method> Methods { get; private set; }
+    public Collection<Method> StaticMethods { get; private set; }
+    public VariableCollection<Field> Fields { get; private set; }
+
+    public CodeClassType()
+    {
+        Methods = new Collection<Method>();
+        StaticMethods = new Collection<Method>();
+        Fields = new VariableCollection<Field>();
+    }
+
+    public override bool IsAssignableFrom(TypeBase type)
+    {
+        CodeClassType otherClassType = type as CodeClassType;
+
+        if (otherClassType == null)
+        {
+            return false;
+        }
+
+        if (otherClassType == this)
+        {
+            return true;
+        }
+        else
+        {
+            return IsAssignableFrom(otherClassType.BaseType);
+        }
+    }
+
+}
+miniSharp不支持显式类型转换，而唯一支持的隐式类型转换是子类引用到父类引用的转换。
+
+ 
+
+除了自定义类型之外，我们还需要表示数组类型和基元类型（int和bool），简陋地如下处理：
+
+public class PrimaryType : TypeBase
+{
+    public static readonly PrimaryType Int = new PrimaryType() { Name = "int" };
+    public static readonly PrimaryType Boolean = new PrimaryType() { Name = "bool" };
+    public static readonly PrimaryType String = new PrimaryType() { Name = "string" };
+    public static readonly PrimaryType Void = new PrimaryType() { Name = "void" };
+
+    public static readonly PrimaryType Unknown = new PrimaryType() { Name = null };
+
+    public override bool IsAssignableFrom(TypeBase type)
+    {
+        if (this == type)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+
+    }
+}
+
+public class ArrayType : TypeBase
+{
+    public TypeBase ElementType { get; set; }
+
+    public static readonly ArrayType IntArray = new ArrayType() { Name = "int[]", ElementType = PrimaryType.Int };
+    public static readonly ArrayType StrArray = new ArrayType() { Name = "string[]", ElementType = PrimaryType.String };
+
+    public override bool IsAssignableFrom(TypeBase type)
+    {
+        CodeClassType elementClassType = ElementType as CodeClassType;
+        ArrayType arrayType = type as ArrayType;
+
+        if (elementClassType != null && arrayType != null)
+        {
+            return elementClassType.IsAssignableFrom(arrayType.ElementType);
+        }
+
+        return false;
+    }
+}
+实际上C#会将int和bool直接映射到System.Int32以及System.Boolean结构体。我们的miniSharp不仅仅要翻译成托管代码，所以并没有采用这个规定，但在生成IL的时候仍然做这样的特殊处理。最后因为miniSharp并不支持引用外部程序集，所以我也没有将类型表独立出来，而是将类型信息存储在每个表示class的语法树节点上，以方便语义分析时访问。
+
+ 
+
+语义分析的第二个主要任务是找到所有标识符的定义。标识符在miniSharp里主要有：类名、字段名、方法名、参数名和本地变量名。遇到每个名称，我们必须解析出标识符表示的类、方法或字段的定义。比如下面这段代码：
+
+class MyClass
+{
+    int a;
+
+    public int Foo()
+    {
+        int a;
+        a = 1;
+        if (this.a > 0)
+        {
+            return this.a;
+        }
+        else
+        {
+            return a;
+        }
+    }
+}
+有一个字段叫a，在过程Foo中又定义了一个同名局部变量a。那么过程内的局部变量a就会覆盖字段的a，这句话的意思是标识符“a”在Foo中将表示局部变量，而不是同名字段。在语义分析里，我们遇到每一个可能代表变量的标识符时，都要按照一套预先设定的规则来寻找其定义。比如按照如下顺序：
+
+搜索当前的本地符号表，其中包括当前作用域中定义的本地变量和方法参数
+搜索当前类的字段
+如果类的字段不仅仅是private的话，如果类还允许定义属性的话，这里的规则还要多好几条。所幸miniSharp只用以上两条就够了。我们看看怎么表示本地符号表。
+
+public class VariableCollection<T> : KeyedCollection<string, T> where T : VariableInfo
+{
+    private Stack<HashSet<string>> m_levelStack;
+    public int m_Levels;
+
+    public VariableCollection()
+    {
+        m_Levels = 0;
+        m_levelStack = new Stack<HashSet<string>>();
+    }
+
+    protected override string GetKeyForItem(T item)
+    {
+        return item.Name;
+    }
+
+    public void PushLevel()
+    {
+        m_levelStack.Push(new HashSet<string>());
+        m_Levels++;
+    }
+
+    public void PopLevel()
+    {
+        if (m_Levels == 0)
+        {
+            throw new InvalidOperationException();
+        }
+
+        var keysInLevel = m_levelStack.Pop();
+        m_Levels--;
+
+        foreach (var key in keysInLevel)
+        {
+            Remove(key);
+        }
+    }
+
+    protected override void InsertItem(int index, T item)
+    {
+        base.InsertItem(index, item);
+
+        if (m_Levels > 0)
+        {
+            var keysInLevel = m_levelStack.Peek();
+            keysInLevel.Add(GetKeyForItem(item));
+        }
+
+
+    }
+}
+为了简便处理这里所用的数据结构都比较粗糙。但基本思想是使用一个Stack，在进入一个新的作用域（大括号包围的语句块）时压入一个新的HashSet，储存这一作用域内声明的变量。当作用域结束时弹出一个HashSet，这个作用域内的变量就从表里删除了。所以，miniSharp允许两个不互相嵌套的语句块内定义同名变量，但不允许在同一个方法内的语句块内覆盖语句块外定义的变量或形式参数。
+
+ 
+
+接下来我们要讨论方法重载选取的问题。这是miniSharp中唯一一个稍微有些复杂性的语义。miniSharp允许同一个类多个方法具有相同的方法名，只要他们的形式参数表的类型不完全一样即可。而判断一个方法调用表达式到底调用的是哪个方法，一共分为以下几个步骤。
+
+第一步，找到当前类中所有签名相符的方法。miniSharp和C#一样，当前类中的方法具有比父类更高的优先级。而VB则采取当前类和父类相同优先级（使用Overloads关键字时）。所以miniSharp也要先在当前类中搜索合适的候选。第二个条件是签名相符，它的定义是方法调用的表达式与候选方法的名称相同，参数列表长度一致，并且方法调用的表达式列表中的每一个表达式的类型，都能隐式转换成候选方法参数表中对应位置参数的类型。稍微形式化一下，就是方法F(T1, T2, T3,…,Tn)是调用表达式C(E1, E2, E3,… Em)的签名相符候选方法的条件是F.Name = C，m = n并且对所有i从1到n满足Ti.IsAssignableFrom(typeof(Ei))。
+第二步，所有签名相符的候选方法中，找到一个最佳候选。如果有两个候选方法P(P1, P2,…,Pn)和Q(Q1, Q2,…,Qn)，那么我们说P比Q更佳当且仅当：P的每一个参数类型都比Q的相应参数类型更好或至少一样好，同时Q的每一个参数类型都不比P的相应参数类型更好。如果P和Q各自有一些参数类型比对方更好，那么就视为P和Q条件一致，无法做出判断（有歧义）。
+调用表达式列表项E所对应的候选方法参数类型TP比TQ更好意味着：TP与typeof(E)相等但TQ与typeof(E)不相等；或者TQ.IsAssignableFrom(TP)，这意味着TP比TQ更“具体”一些。如果TP和TQ之间无法相互隐式转换，或者两者是相同的类型，则视为无法区分。
+如果在当前类中没有符合条件的候选，则对父类重复以上步骤。
+ 
+
+真正C#的方法重载判断大体上也是这个步骤，但还要更加复杂得多。因为C#还有param数组型参数，可选参数，命名参数，泛型方法等语法。这里C#的Spec整整写了好几页纸来描述完整的规则。初看起来这段规则转换成代码很难写，所以我采用了一种取巧的方法：定义一个比较两个候选参数好坏的Comparer类，然后用Order By的方式对候选参数进行排序。Comparer类如下：
+
+public class MethodOverloadingComparer : IComparer<Method>
+{
+    private IList<Expression> m_expressionList;
+
+    public MethodOverloadingComparer(IList<Expression> expressions)
+    {
+        Debug.Assert(expressions != null);
+        m_expressionList = expressions;
+    }
+
+    public int Compare(Method x, Method y)
+    {
+        //step 1. find one with better conversion.
+        int lastComparisonResult = 0;
+        for (int i = 0; i < m_expressionList.Count; i++)
+        {
+            int result = CompareConversion(x.Parameters[i].Type, y.Parameters[i].Type, m_expressionList[i]);
+
+            if (lastComparisonResult < 0 && result > 0 || lastComparisonResult > 0 && result < 0)
+            {
+                //none is better
+                return 0;
+            }
+            else if (result != 0)
+            {
+                lastComparisonResult = result;
+            }
+        }
+
+        return lastComparisonResult;
+    }
+
+    private int CompareConversion(TypeBase leftTarget, TypeBase rightTarget, Expression source)
+    {
+        if (leftTarget == rightTarget)
+        {
+            //same type, no better one
+            return 0;
+        }
+        else if (leftTarget == source.ExpressionType && rightTarget != source.ExpressionType)
+        {
+            //left is better;
+            return -1;
+        }
+        else if (leftTarget != source.ExpressionType && rightTarget == source.ExpressionType)
+        {
+            //right is better;
+            return 1;
+        }
+        else
+        {
+            if (leftTarget.IsAssignableFrom(rightTarget))
+            {
+                //right is more specific
+                return 1;
+            }
+            else if(rightTarget.IsAssignableFrom(leftTarget))
+            {
+                //left is more specific
+                return -1;
+            }
+            else
+            {
+                //both are bad
+                return 0;
+            }
+        }
+    }
+}
+ 
+
+最后，我们要将这一系列步骤组合到一起。由于miniSharp的类可以以任何顺序定义，一个类中的方法也可以以任何顺序定义，调用时并不受任何限制。所以我们无法只用一次抽象语法树的遍历来完成语义分析。我采用的做法是分成三次遍历，前两次分别对类的生命和成员的声明进行解析并构建符号表（类型和成员），第三次再对方法体进行解析。这样就可以方便地处理不同顺序定义的问题。总的来说，三次遍历的任务是：
+
+第一遍：扫描所有class定义，检查有无重名的情况。
+第二遍：检查类的基类是否存在，检测是否循环继承；检查所有字段的类型以及是否重名；检查所有方法参数和返回值的类型以及是否重复定义（签名完全一致的情况）。
+第三遍：检查所有方法体中语句和表达式的语义。
+因为上一次抽象语法树的设计已经采用了Visitor模式，所以以上三个阶段的语义分析可以分别写成三个Visitor来进行处理。语义分析模块同时还要报告所有语义错误。下面我给出第一阶段的Visitor实现供大家参考：
+
+public class TypeDeclResolver : AstVisitor
+{
+    private TypeCollection m_types;
+    private CompilationErrorManager m_errorManager;
+
+    private const int c_SE_TypeNameDuplicates = 301;
+    
+    public void DefineErrors()
+    {
+        m_errorManager.DefineError(c_SE_TypeNameDuplicates, 0, CompilationStage.SemanticAnalysis,
+            "The program has already defined a type named '{0}'.");
+    }
+
+    public TypeDeclResolver(CompilationErrorManager errorManager)
+    {
+        m_errorManager = errorManager;
+        m_types = new TypeCollection();
+    }
+
+    public override AstNode VisitProgram(Program ast)
+    {
+        Visit(ast.MainClass);
+
+        foreach (var cd in ast.Classes)
+        {
+            Visit(cd);
+        }
+
+        return ast;
+    }
+
+    public override AstNode VisitMainClass(MainClass ast)
+    {
+        //main class must be the first class.
+        Debug.Assert(m_types.Count == 0);
+        var name = ast.Name.Value;
+
+        var mainclassType = new CodeClassType() { Name = name, IsStatic = true };
+
+        m_types.Add(mainclassType);
+        ast.Type = mainclassType;
+
+        return ast;
+    }
+
+    public override AstNode VisitClassDecl(ClassDecl ast)
+    {
+        var name = ast.Name.Value;
+
+        if (m_types.Contains(name))
+        {
+            m_errorManager.AddError(c_SE_TypeNameDuplicates, ast.Name.Span, name);
+            return ast;
+        }
+
+        var classType = new CodeClassType() { Name = name };
+
+        m_types.Add(classType);
+        ast.Type = classType;
+
+        return ast;
+    }
+
+    public TypeCollection Types
+    {
+        get { return m_types; }
+    }
+
+}
+其中的ErrorManager类是与词法、语法分析阶段共享的语法错误管理类，可以方便地随时定义和保存编译错误。为了减少语义分析的负担，我们规定只有语法分析阶段没有错误才进行语义分析，而且语义分析的三个阶段任何一步有语法错误都可以不再继续执行分析。
+
+ 
+
+第二个阶段和第三个阶段的代码较长，我就不贴在这里了，大家可以下载我的代码自行观看。在此我只贴一个比较有代表性的Call表达式解析过程，方便大家理解上述方法重载的逻辑（但我还没有仔细进行过测试，所以不保证这段代码完全没有bug）
+
+public override AstNode VisitCall(Call ast)
+{
+    // step 1. resolve each argument
+    foreach (var argument in ast.Arguments)
+    {
+        Visit(argument);
+    }
+
+    //step 2. resolve object
+    Visit(ast.Target);
+
+    CodeClassType targetType = ast.Target.ExpressionType as CodeClassType;
+
+    if (targetType == null)
+    {
+        m_errorManager.AddError(c_SE_MethodMissing, ast.Method.MethodName.Span, ast.Method.MethodName.Value);
+        ast.ExpressionType = PrimaryType.Unknown;
+        return ast;
+    }
+
+    //step 3. resolve method
+    ResolveMethod(ast, targetType);
+
+    //step 4. TODO: add type conversion node to arg implicit conversions
+
+    return ast;
+}
+
+private void ResolveMethod(Call ast, CodeClassType targetType)
+{
+    if (targetType == null)
+    {
+        m_errorManager.AddError(c_SE_MethodMissing, ast.Method.MethodName.Span, ast.Method.MethodName.Value);
+        ast.ExpressionType = PrimaryType.Unknown;
+
+        return;
+    }
+
+    // step 1: collect candidates from current type
+    var candidates = (from m in targetType.Methods
+                      where String.Equals(m.Name, ast.Method.MethodName.Value, StringComparison.InvariantCulture) 
+                      && m.Parameters.Count == ast.Arguments.Count
+                      select m).ToArray();
+
+    if (candidates.Length == 0)
+    {
+        ResolveMethod(ast, targetType.BaseType);
+        return;
+    }
+
+    // step 2: remove unqualifed candidates
+    List<Method> qualifiedCandidates = new List<Method>();
+    foreach (var candidate in candidates)
+    {
+        bool isQualified = true;
+        for (int i = 0; i < candidate.Parameters.Count; i++)
+        {
+            if (!candidate.Parameters[i].Type.IsAssignableFrom(ast.Arguments[i].ExpressionType))
+            {
+                isQualified = false;
+                break;
+            }
+        }
+
+        if (isQualified) qualifiedCandidates.Add(candidate);
+    }
+
+    if (qualifiedCandidates.Count == 0)
+    {
+        ResolveMethod(ast, targetType.BaseType);
+        return;
+    }
+
+    // step 3: choose a "best" one
+    if (qualifiedCandidates.Count > 1)
+    {
+        var comparer = new MethodOverloadingComparer(ast.Arguments);
+        qualifiedCandidates.Sort(comparer);
+
+        var firstCandidate = qualifiedCandidates[0];
+        var secondCandidate = qualifiedCandidates[1];
+
+        if (comparer.Compare(firstCandidate, secondCandidate) < 0)
+        {
+            //choose first as the best one
+            ast.Method.MethodInfo = firstCandidate;
+            ast.ExpressionType = firstCandidate.ReturnType;
+        }
+        else
+        {
+            //ambiguous between first & second
+            m_errorManager.AddError(c_SE_MethodAmbiguous, ast.Method.MethodName.Span, 
+                firstCandidate.GetSignatureString(), secondCandidate.GetSignatureString());
+            ast.ExpressionType = PrimaryType.Unknown;
+        }
+    }
+    else
+    {
+        ast.Method.MethodInfo = qualifiedCandidates[0];
+        ast.ExpressionType = qualifiedCandidates[0].ReturnType;
+    }
+}
+ 
+
+经过完善的语义分析，我们就得到了一个具有完整类型信息，并且没有语义错误的AST。下一阶段我们就可以开始为编程语言生成代码了。首先我们将从生成CIL开始，做一个和C#类似的托管语言。之后我们将深入代码生成的各项技术，亲自动手生成目标机器的代码。敬请期待下一篇！
+
+希望大家继续关注我的VBF项目：https://github.com/Ninputer/VBF 和我的微博：http://weibo.com/ninputer 多谢大家支持！
+
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+装配脑袋
+关注 - 8
+粉丝 - 626
+荣誉：推荐博客
++加关注
+12 0
+(请您对文章做出评价)
+« 博主上一篇：自己动手开发编译器（十）miniSharp语法分析器
+» 博主下一篇：自己动手开发编译器（十二）生成托管代码
+« 首页上一篇：C++标准转换运算符const_cast
+» 首页下一篇：微软金牌(Gold Data Platform)和两个一块钱硬币
+ posted on 2011-07-22 11:15 装配脑袋 阅读(5670) 评论(14) 编辑 收藏
+
+
+评论
+#1楼    
+ helloworld2   | 2011-07-22 11:36
+顶
+支持(0)反对(0)
+#2楼    
+ Terry Sun   | 2011-07-22 11:49
+好好琢磨琢磨， 有点难度
+支持(0)反对(0)
+#3楼    
+ testzhangsan   | 2011-07-22 11:57
+先mark ，周六慢慢看，极品！
+支持(0)反对(0)
+#4楼    
+ 近水楼台   | 2011-07-22 12:39
+无条件顶啊，周末再慢细看.
+支持(0)反对(0)
+#5楼    
+ zhuangzhuang1988   | 2011-07-22 12:52
+老大NB
+支持(0)反对(0)
+#6楼    
+ Hi小鬼   | 2011-07-22 13:17
+很有难度 再看一遍
+支持(0)反对(0)
+#7楼    
+ Treenew Lyn   | 2011-07-22 13:44
+我等完结……然后一统江湖~~急需这样的精品！
+支持(0)反对(0)
+#8楼    
+ G yc {Son of VB.NET}   | 2011-07-22 15:36
+先支持一下～～
+支持(0)反对(0)
+#9楼    
+ 雪雨潇潇   | 2011-07-22 20:09
+牛
+支持(0)反对(0)
+#10楼    
+ Repository   | 2011-07-22 21:30
+期待讲解机器码的生成，要不再讲一下make,link吧
+支持(0)反对(0)
+#11楼    
+ Genius Zhang   | 2011-07-23 07:18
+NB呀
+支持(0)反对(0)
+#12楼    
+ 我的学习、生活   | 2011-07-23 08:52
+厉害，虽然看不懂。支持一下。
+支持(0)反对(0)
+#13楼    
+ 袜子脏了   | 2011-07-24 10:42
+啊啊啊啊 支持脑袋。
+支持(0)反对(0)
+#14楼    
+ tylike   | 2012-04-13 20:00
+你好，
+我想在C#中实现”任意的"DSL语法的实现。
+请问你知道有没有一个第三方的编译器，或是C#中有哪些工具可以实现？
+类似这样：
+我定义了几个方法名称叫
+object Public(object type){ return null;}
+object Class(string name){ return null;}
+调用时直接用：Public Class myClassName
+1.调用函数时，不需要用括号来分隔。
+2."myClassName"是字符串，不需要定界符来分隔。
+如果可以实现，相当于制作了自己的关键字。
+后面的myClassName用dynamic声明一个对象，然后动态的返回名称是可以的。
+比如：
+dynamic x = new classxxx();
+x.myClassNamee
+但是这样仍然要多写一个x.
+对于使用者不太好。
+如果有一种语言服务是基于c#的，就太好了，之所以这样要求是因为我希望在vs中实现智能感知。
+我查看了自己实现一种新语言的几种方法(mps,antlr....)但是都不太现实，工作量太大。
+希望我表达清楚了，并期待你给我好的方法、建议、或者是有第三方的这种产品。
+
+谢谢
+支持(0)反对(0)
+刷新评论刷新页面返回顶部
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+博客园首页博问新闻闪存程序员招聘知识库
+
+最新IT新闻:
+· 裁员伤透了中兴员工的心！
+· LG收购WebOS资产
+· “百度第二司机”车祸离世 十五万网友微博悼念
+· 埃洛普：诺基亚不会推出WP8全键盘手机
+· iOS被批创新力不足：将成为苹果的Windows XP
+» 更多新闻...
+最新知识库文章:
+· 为什么很多人工作都不开心？
+· 不用IDE写C#的Hello World
+· 注重实效的架构师——大胆行前人未行之路
+· 走向“持续部署”
+· curl 网站开发指南
+» 更多知识库文章...
+
+公告
+
+昵称：装配脑袋
+园龄：8年2个月
+荣誉：推荐博客
+粉丝：626
+关注：8
++加关注
+<	2011年7月	>
+日	一	二	三	四	五	六
+26	27	28	29	30	1	2
+3	4	5	6	7	8	9
+10	11	12	13	14	15	16
+17	18	19	20	21	22	23
+24	25	26	27	28	29	30
+31	1	2	3	4	5	6
+搜索
+
+ 
+常用链接
+
+我的随笔
+我的评论
+我的参与
+最新评论
+我的标签
+我的标签
+
+Expression Tree(1)
+VB10 C#4 .NET4 泛型 协变 反变(1)
+随笔分类
+
+Visual Basic 9.0 前沿播报(10)
+随笔档案
+
+2012年1月 (1)
+2011年8月 (2)
+2011年7月 (3)
+2011年6月 (10)
+2009年12月 (2)
+2009年11月 (3)
+2009年9月 (1)
+2009年8月 (3)
+2009年4月 (1)
+2008年11月 (2)
+2007年11月 (2)
+2006年6月 (2)
+2006年4月 (2)
+2006年3月 (2)
+2006年2月 (2)
+2006年1月 (3)
+2005年11月 (3)
+2005年10月 (3)
+2005年9月 (9)
+2005年5月 (1)
+2005年4月 (1)
+2004年12月 (1)
+积分与排名
+
+积分 - 258093
+排名 - 314
+最新评论
+
+1. Re:Expression Tree上手指南 （一）
+@J-Pei引用Expression<Func<tWorkOrderDetail, int>> aaa = (tWorkOrderDetail a) => a.tWorkOrder.iDDBH; 怎样动态生成 class tWorkOrder { public int iDDBH { get; set; } } ...
+--吴东雷
+2. Re:Expression Tree上手指南 （一）
+我练习的代码： ParameterExpression expA_double = Expression.Parameter(typeof(double), "a"); ParameterExpression expB_double = Expression.Parameter(typeof(double), "b"); P...
+--吴东雷
+3. Re:Expression Tree 上手指南 （二）
+为什么图都坏掉了呢？
+--吴东雷
+4. Re:Expression Tree 上手指南 （三）
+精彩期待继续。
+--楚萧萧
+5. Re:自己动手开发编译器（三）有穷自动机
+看了下你的NFA转DFA代码，其实没必要直接翻译算法，因为每次都要求T'里所有状态能到达的状态集的并集。这个问题可以转换为图的遍历，下面是我写的伪代码：
+//输入: 原状态集org
+//输出: closure(org)
+Set<State> closure(Set<State> org)
+{ //存放结果 Set<State> res = new HashSet<State>(); ...
+--有来 有去
+阅读排行榜
+
+1. 自己动手开发编译器（零）序言(12673)
+2. VS2008亮点：用Lambda表达式进行函数式编程(10532)
+3. Expression Tree上手指南 （一）(10504)
+4. .NET 4.0中的泛型协变和反变(10500)
+5. 自己动手开发编译器（二）正则语言和正则表达式(9081)
+评论排行榜
+
+1. 自己动手开发编译器（零）序言(87)
+2. Expression Tree上手指南 （一）(73)
+3. VS2008亮点：用Lambda表达式进行函数式编程(50)
+4. 自己动手开发编译器（二）正则语言和正则表达式(49)
+5. 自己动手开发编译器（三）有穷自动机(48)
+推荐排行榜
+
+1. 自己动手开发编译器（零）序言(62)
+2. 自己动手开发编译器（一）编译器的模块化工程(28)
+3. Expression Tree上手指南 （一）(28)
+4. 自己动手开发编译器（十二）生成托管代码(23)
+5. 自己动手开发编译器（三）有穷自动机(21)

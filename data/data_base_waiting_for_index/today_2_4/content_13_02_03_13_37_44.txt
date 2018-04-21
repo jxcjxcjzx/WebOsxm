@@ -1,0 +1,552 @@
+
+
+Home
+Discuss
+Jobs
+About
+
+
+
+
+
+
+
+
+What’s New?
+
+Software Inventory 09 Jul
+
+Imagine, for a moment, that you came upon a bread factory for the first time. At first it just looks like a jumble of incomprehensible machinery with a few people buzzing around. As your eyes adjust you start to see little piles of things that you do understand. Buckets of sesame seeds. Big vats of dough. Little balls of dough. Baked loaves of bread.
+ 
+Those things are inventory. Inventory tends to pile up between machines. Next to the machine where sesame seeds are applied to hamburger buns, there’s a big vat of...sesame seeds. At the very end of the assembly line, there are boxes and boxes of bread, waiting for trucks to drive them off to customers.
+ 
+Keeping inventory costs money. Suppose your bakery has six 50-ton silos to store flour. Whenever they empty out, you fill them up. That means on the average day you have 150 metric tons of wheat flour in stock. At today’s prices, you’ve tied up $73,000. Forever.
+ 
+Inventory may have other costs too, like spoilage. Flour lasts for months, but the minute bread comes out of the oven it starts dropping in value; after 24 hours it’s nearly worthless.
+ 
+Why keep inventory at all? Because there are costs associated with running out of things, too. If sesame seeds take two days to order, and you run out of sesame seeds, you are out of the hamburger bun business for two days. Inventory provides a buffer that prevents any part of the process from stalling. There are modern algorithms to optimize how much buffer you need at every point (read up on Toyota’s lean production system and the Theory of Constraints to get started).
+ 
+Why do I care about any of this? The software production process has several major “inventory” accumulation points, itself. Stuff accumulates at those points and ends up wasting a lot of time and money.
+ 
+“What? How is software like a factory?” you ask.
+ 
+Think of product ideas as the raw material. Depending on your process, product ideas may go through several assembly line points before they are delivered as finished features to the customer:
+ 1.A decision-making process (should we implement this feature?)
+ 2.A design process (specs, whiteboards, mockups, etc)
+ 3.An implementation process (writing code)
+ 4.A testing process (finding bugs)
+ 5.A debugging process (fixing bugs)
+ 6.A deployment process (sending code to customers, putting it on web server, etc)
+ 
+(PS No, this is not “waterfall.” No it isn’t. Is not. Shut up.)
+ 
+In between each of these stages, inventory can pile up. For example, when a programmer finishes implementing their code (stage 3) they give it to a tester to check (stage 4). At any given time, there is a certain amount of code waiting to be tested. That code is inventory.
+ 
+The “cost” of code inventory is huge. It might add up to six or twelve months of work that is stuck in the assembly line and not yet in customers’ hands. This could be the difference between having a cutting-edge product (iPhone) or constantly playing catchup (Windows Phone). It’s nearly impossible to get people to buy Windows Phones, even if the iPhone is only six months better. A lot of markets have network effects, and being first has winner-take-all implications. So getting rid of inventory in the development process can make or break a product.
+ 
+Let’s go over the three places most inventory accumulates.
+ 
+Feature backlogs. Every product attracts new feature ideas, and you can’t implement ideas as fast as you can think them up, so you write them down, and this list is called the feature backlog. A lot of the ideas on the backlog are bad ideas, and you merely wrote them down to avoid hurting the feelings of the people who thought them up. Backlogs make everyone feel good. 
+
+The trouble is that 90% of the things in the feature backlog will never get implemented, ever. So every minute you spent writing down, designing, thinking about, or discussing features that are never going to get implemented is just time wasted. When I hear about product teams that regularly have “backlog grooming” sessions, in which they carefully waste a tiny amount of time and mental energy every day or every week thinking about every single feature which will never be implemented, I want to poke my eyes out.
+ •Suggestion: Do not allow more than a month or two of work to get into the feature backlog list. Once the backlog is full, do not allow new items to be added unless you remove an item. Do not spend any time speccing, designing, or talking about backlog items: the backlog, in fact, should be seen as a list of things you are not allowed to talk about or work on.
+ 
+The bug database is obviously a great thing to have. Bug reports should be complete, accurate, and actionable. But I have noticed that in many real-world companies, the desire never to miss any bug report leads to bug bankrupcy, where you wake up one day and discover that there are 3000 open bugs in the database, some of which are so old they may not apply any more, some of which can never be reproduced, and most of which are not even worth fixing because they’re so tiny. When you look closely you realize that months or years of work has gone into preparing those bug reports, and you ask yourself, how could we have 3000 bugs in the database while our product is delightful and customers love it and use it every day? At some point you realize that you’ve put too much work into the bug database and not quite enough work into the product.
+ •Suggestion: use a triage system to decide if a bug is even worth recording. 
+•Do not allow more than two weeks (in fix time) of bugs to get into the bug database. 
+•If you have more than that, stop and fix bugs until you feel like you’re fixing stupid bugs. Then close as “won’t fix” everything left in the bug database. Don’t worry, the severe bugs will come back.
+ 
+Undeployed features. There are still a lot of teams doing quarterly or annual releases, usually because their deployment process is expensive. Operating systems, or anything where software has to be installed by every user, is usually batched up. 
+
+This is one of the most expensive forms of inventory: unshipped feature inventory. It could be earning you money, but it’s sitting on the shipping dock of your factory, while the guy down the street already has a product that does that exact same thing.
+ 
+Sometimes, perniciously, you don’t even feel the pain, because everyone on your team has been dogfooding the new version for months. I’m sure everyone at Microsoft has been happily using Windows 8 for a year now, so they don’t really feel, on a day to day basis, the pain of OEMs trying to sell Windows 7 in a Mac OS X Lion world.
+ •Suggestion: Don’t let completed features pile up in ways that don’t make you money. Work on your deployment process so that you can get customers features in months rather than years. If you’re already shipping monthly, figure out how to ship weekly. Keep pushing the bar on more and more frequent deployment of smaller and smaller changes.
+ 
+So, where am I going with this? We’ve had all three kinds of inventory at Fog Creek: crazy long backlogs, overambitious bug databases, and features which got stuck for a year waiting for the next release to go out. All of these snuck up on us. I realized that we needed a system to constrain inventory so it doesn’t build up. 
+ 
+My original idea was to make a product called Five Things. It was going to be a project manager where everybody was allowed to have five things assigned to them: two things they were actively doing, one thing that was “up next”, and a couple more that they were planning. That exact design idea didn’t go anywhere (but if you want to build it, go for it), but it did evolve into Trello.
+ 
+Trello works great for a reasonable amount of inventory, but it intentionally starts to get klunky if you have too many cards in one list. And that’s exactly the point: it makes inventory visible so that you know when it’s starting to pile up. (Click on the image at the right to see the Trello team’s own development board).
+ 
+Every day you look at your Trello board and see that there are seventeen completed features that are totally ready to ship but which haven’t shipped for some reason, and you go find the bottleneck and eliminate it. 
+
+Every time somebody suggests a crazy feature idea, you look at the Feature Backlog and realize it’s just too long, so you don’t waste any time documenting or designing that crazy idea.
+ 
+And hopefully, you’ll spend less effort working on things that never see the light of day. “Backlog grooming.” Sheeeesh.
+
+Trello at UserVoice 17 Apr
+
+The folks over at UserVoice are using Trello quite extensively throughout their development process. 
+
+
+
+Founder Richard White describes it all in detail.
+
+The Founder’s Dilemmas 27 Mar
+
+My friend Noam Wasserman at Harvard Business School has spent years researching startups. His work is great, because he actually does real, quantitative research on the kinds of things that everybody has opinions about. Should you raise more money or maintain more control? Should you have a cofounder? Should your friends and relatives be cofounders? When and if should a founder be replaced by a “professional” manager? There are certainly a lot of blog posts about this stuff but not a lot of data... until now. Wasserman has finally put it all together in a great book called The Founder’s Dilemmas, which I highly recommend if you’re starting a company.
+ 
+(By the way, Wasserman will also be speaking at the Business of Software conference this fall in Boston.)
+
+The Management Team 13 Feb
+
+“The saddest thing about the Steve Jobs hagiography is all the young ‘incubator twerps’ strutting around Mountain View deliberately cultivating their worst personality traits because they imagine that’s what made Steve Jobs a design genius. Cum hoc ergo propter hoc, young twerp. Maybe try wearing a black turtleneck too.”
+ 
+From The Management Team, my guest post on Fred Wilson’s blog.
+
+New York City gets a Software Engineering High School 13 Jan
+
+This fall New York City will open The Academy for Software Engineering, the city’s first public high school that will actually train kids to develop software. The project has been a long time dream of Mike Zamansky, the highly-regarded CS teacher at New York’s elite Stuyvesant public high school. It was jump started when Fred Wilson, a VC at Union Square Ventures, promised to get the tech community to help with knowledge, advice, and money.
+ 
+I’m on the board of advisors of the new school, which plans to accept ninth graders for fall of 2012. Here’s why I’m excited about this new school:
+ 
+1. It’s a “limited, unscreened” school.  That’s Board of Ed jargon. It means that any student who is interested can apply—their grades and attendence record are not taken into account in deciding whether or not to admit them, only their interest. I think this is the best thing about the school. A lot of kids are just not interested enough in other academic subjects to get good grades, but they would make great software engineers. A lot of immigrants (especially in New York) are not yet proficient enough in English to get good grades in all their subjects, but they’re going to make great software engineers, too. And in my humble opinion, a school that accepts a cross-section of students is bound to be more enriching than a school that only accepts academic superstars.
+ 
+2. OMG do we ever need more software engineers. The US post-secondary education system is massively failing us: it’s not producing even remotely enough programmers to meet the hiring needs of the technology industry. Not even remotely enough. Starting salaries for smart programmers from top schools are flirting with the $100,000 mark. Supply isn’t even close to meeting demand. This school is going to be pretty small (in the 400-500 student range) but the Board of Ed has promised that if it’s successful it’ll be used as a template for more schools or for special programs inside larger schools. I predict that they will be overwhelmed with applicants and this will be the most popular new school in New York City in years.
+ 
+3. And we need more diversity, too. One of the reasons the elite US colleges seem to turn out so few computer science majors every year is that they are only drawing from a narrow pool of mostly white and asian males. Minorities and women are embarrassingly under-represented. Hopefully an unscreened school in New York City can pump a lot more diversity into the pool.
+ 
+4. It’s not a vocational school. Unlike traditional vocational schools, this new school will have a rigorous academic component and will prepare students for college. But college is not for everyone—many of the best programmers I know were just not interested enough in a general four year degree and went straight into jobs programming.
+ 
+I’m pleased to be involved in this project, but it needs more help: they’re still looking for qualified computer science teachers and a principal. If you’re interested drop me an email and I’ll make sure it gets through to the right people.
+
+How Trello is different 06 Jan
+
+Just a few months ago, we launched Trello, a super simple, web-based team coordination system. The feedback has been overwhelmingly positive and adoption has been very strong, even in its early, 1.0 state.
+
+
+ 
+Trello is new kind of development project for Fog Creek. It’s 100% hosted; there will never be an “installed software” version of Trello. That allowed us to modernize many aspects of our development process; I am happy to announce that there is absolutely no Visual Basic code involved in any part of Trello. What’s next, flying cars?
+ 
+The biggest difference you’ll notice (compared to our previous products pitched solely at software developers) is that Trello is a totally horizontal product. 
+
+Horizontal means that it can be used by people from all walks of life. Word processors and web browsers are horizontal. The software your dentist uses to torture you with drills is vertical.
+ 
+Vertical software is much easier to pull off and make money with, and it’s a good choice for your first startup. Here are two key reasons:
+ •It’s easier to find customers. If you make dentist software, you know which conventions to go to and which magazines to advertise in. All you have to do is find dentists. 
+•The margins are better. Your users are professionals at work and it makes sense for them to give you money if you can solve their problems.
+ 
+Making a major horizontal product that’s useful in any walk of life is almost impossible to pull off. You can’t charge very much, because you’re competing with other horizontal products that can amortize their development costs across a huge number of users. It’s high risk, high reward: not suitable for a young bootstrapped startup, but not a bad idea for a second or third product from a mature and stable company like Fog Creek.
+ 
+Forgive me if I now divert into telling you a quick story about my time spent on the Microsoft Excel team way back in 1991. (Yes, I know you were not born yet, but I assure you that computers had been invented. Just hop up here on my knee and shut up.)
+ 
+Everybody thought of Excel as a financial modeling application. It was used for creating calculation models with formulas and stuff. You would put in your assumptions and then calculate things like “if interest rates go up by 0.00001% next year, what percentage of Las Vegas homeowners will plunge into bankruptcy?” For example.
+ 
+Round about 1993 a couple of us went on customer visits to see how people were using Excel.
+ 
+We found a fellow whose entire job consisted of maintaining the “number of injuries this week” spreadsheet for a large, highly-regulated utility.
+ 
+Once a week, he opened an Excel spreadsheet which listed ten facilities, containing the name of the facilities and the number 0, which indicated that were 0 injuries that week. (They never had injuries).
+ 
+He typed the current date in the top of the spreadsheet, printed a copy, put it in a three-ring binder, and that was pretty much his whole, entire job. It was kind of sad. He took two lunch breaks a day. I would too, if that was my whole job.
+ 
+Over the next two weeks we visited dozens of Excel customers, and did not see anyone using Excel to actually perform what you would call “calculations.” Almost all of them were using Excel because it was a convenient way to create a table.
+ 
+(Irrelevant sidenote: the few customers we could find who were doing calculations were banks, devising explosive devices called “derivatives.” They used Excel to maximize the bankers’ bonuses on nine out of ten years, and to cause western civilization to nearly collapse every tenth year. Something about black swans. Probably just a floating point rounding error.)
+ 
+What was I talking about? Oh yeah... most people just used Excel to make lists. Suddenly we understood why Lotus Improv, which was this fancy futuristic spreadsheet that was going to make Excel obsolete, had failed completely: because it was great at calculations, but terrible at creating tables, and everyone was using Excel for tables, not calculations.
+ 
+Bing! A light went off in my head. 
+
+The great horizontal killer applications are actually just fancy data structures.
+ 
+Spreadsheets are not just tools for doing “what-if” analysis. They provide a specific data structure: a table. Most Excel users never enter a formula. They use Excel when they need a table. The gridlines are the most important feature of Excel, not recalc.
+ 
+Word processors are not just tools for writing books, reports, and letters. They provide a specific data structure: lines of text which automatically wrap and split into pages. 
+
+PowerPoint is not just a tool for making boring meetings. It provides a specific data structure: an array of full-screen images. 
+ 
+Some people saw Trello and said, “oh, it’s Kanban boards. For developing software the agile way.” Yeah, it’s that, but it’s also for planning a wedding, for making a list of potential vacation spots to share with your family, for keeping track of applicants to open job positions, and for a billion other things. In fact Trello is for anything where you want to maintain a list of lists with a group of people.
+ 
+There are millions of things that need that kind of data structure, and there hasn’t been a great “list-of-list” app before Trello. (There have been outliners, but outlines are, IMHO, one of the great dead ends in UI design: so appealing to programmers, yet so useless to civilians).
+ 
+Once you get into Trello, you’ll use it for everything. I use about thirty Trello boards regularly, and I use them with everyone in my life, from the APs (Aged Parents), with whom I plan vacations, with every team at work, and just about every project I’m involved in.
+ 
+So, ok, that was the first big difference with Trello: horizonal, not vertical. But there are a bunch of other differences:
+ 
+It’s delivered continuously. Rather than having major and minor releases, we pretty much just continuously push out new features from development to customers. A feature that you built and tested, but didn’t deliver yet because you’re waiting for the next major release, becomes inventory. Inventory is dead weight: money you spent that’s just wasting away without earning you anything. Sure, 100 years ago, we had these things called “CD-ROMs” and we shipped software that way, so there was an economic reason to bunch up features before we inflict ‘em on the world. But there’s no reason to work that way any more. You already knew that, of course. I’m just saying—I stopped using Visual Basic about five minutes ago. Brave New World.
+ 
+It’s not exhaustively tested before being released. We thought we could get away with this because Trello is free, so customers are more forgiving. But to tell the truth, the real reason we get away with it is because bugs are fixed in a matter of hours, not months, so the net number of “bugs experienced by the public” is low.
+ 
+We work in public. The rule on the Trello team is “default public.” We have a public Trello board that shows everything that we’re working on and where it’s up to. We use this to let customers vote and comment on their favorite features. By the way, while Trello was under development, it was secret. We had a lot of beta testers who gave us customer feedback so that the development team could use lean startup principles, but the nine months we spent building version 1.0 in secret gave us a significant lead in a competitive marketplace. But now that we’re shipping, there’s no reason not to talk about our plans.
+ 
+This is a “Get Big Fast” product, not a “Ben and Jerry’s”  product. See Strategy Letter I. The business goal for Trello is to ultimately get to 100 million users. That means that our highest priority is removing any obstacles to adoption. Anything that people might use as a reason not to use Trello has to be found and eliminated. For example:
+ 
+Trello is free. The friction caused by charging for a product is the biggest impediment to massive growth. In the long run, we think it’s much easier to figure out how to extract a small amount of money out of a large number of users than to extract a large amount of money out of a small number of users. Once you have 100 million users, it’s easy to figure out which of those users are getting the most value out of the product you built. The ones who are getting the most value will be happy to pay you. The others don’t cost much to support.
+ 
+The API and plug-in architectures are the highest priority. Another way of putting that is:  never build anything in-house if you can expose a basic API and get those high-value users (the ones who are getting the most value out of the platform) to build it for you. On the Trello team, any feature that can be provided by a plug-in must be provided by a plug-in.
+ 
+(The API is currently in very rudimentary form. You can already use it to do very interesting things. It is under rapid development.)
+ 
+We use cutting edge technology. Often, this means we get cut fingers. Our developers bleed all over MongoDB, WebSockets, CoffeeScript and Node. But at least they’re having fun. And in today’s tight job market, great programmers have a lot of sway on what they’re going to be working on. If you can give them an exciting product that will touch millions of people, and let them dig deep into TCP-IP internals while they try to figure out why simple things aren’t working, they’ll have fun and they’ll love their jobs. Besides, we’re creating a product that we’ll be working on for the next ten years. Technology that’s merely “state of the art” today is going to be old and creaky in five years. We tried to go a little bit beyond “state of the art.” It’s a calculated risk.
+ 
+None of this is very radical. TL;DR: Fog Creek Software develops an internet product using techniques that every Y-combinator startup has been using since spez was sleeping with his laptop so he could reboot Reddit when Lisp crashed in the middle of the night. If you haven’t tried Trello yet, try it, then tell me on twitter if it worked.
+
+Should you launch at a conference? 15 Sep
+
+Should you launch at Launch? (Or TechCrunch Disrupt? Or Demo? They’re all pretty similar).
+ 
+This year I launched two major new products at conferences: Careers 2.0 and Trello, and both times, it was totally worth it.
+
+First, a little background. There are three popular conferences where you can launch new products: Launch, TechCrunch Disrupt, and Demo. They all work the same way:
+ •You apply. If you have a half-decent product that is genuinely new, you’re likely to get a spot. That said, hundreds of companies apply for these conferences with unbearably awful products, so there’s always a risk that you’ll get lost in the noise.
+
+•If you get in, you will have a chance to give a demo on stage for exactly six minutes. There will be some celebrity judges who will give you a few sentences of honest feedback about your startup. (Here’s how our demo went down).
+
+•Even if you don’t get a slot presenting, you may have a chance to set up at a little table in the conference area where you can show off your product to passers-by.
+
+•The official promise is that you’ll get exposure to a lot of journalists and VCs, and this will launch your startup on the way to huge success. The truth is, well, complicated, but I’ll get into that in a minute.
+
+•At the end there is a “winner.” For example at Disrupt the winner (chosen by a panel of utterly uncorruptable, gazillionaire judges) receives a check for $50,000. There are between 30 and 50 startups presenting at each conference, and the politics behind who “wins” are murky enough that you should basically assume that the chance of winning is zero. There’s always going to be a “Netflix for Cabbage” or a “Second Life for Facebook” that the judges fall in love with. So the benefits of winning, which is vanishingly unlikely, should never factor into your decision as to whether to go or not.
+
+So, are these conferences worth it?
+
+Let’s look, individually, at the two big promises of the conferences: exposure to VCs and exposure to the press.
+
+Are VCs at these conferences? Absolutely. Does going to one of these conferences get you funded? It’s complicated.
+•If you have a brilliant product, a great team, and you’re eminently fundable, but you don’t know any VCs yet, and you launch at one of these conferences, you will meet a bunch of VCs—even some top notch ones—and the conference may actually get you funded. At the last TechCrunch Disrupt, the finalist judging panel consisted of some of the best investors in Silicon Valley. If you made it to the finals, these folks now know who you are and what your product does, and if your company is fundable, they’ll all take your call.
+
+•That said, if there’s some reason your product is not fundable, all the conferences in the world can’t help you. Yeah, you may have a chance to present to a bunch of unknown VCs wandering around looking for investment ideas, but most of them won’t actually invest in you and those that will may be more trouble than they’re worth.
+
+I’ve been tossing around the word fundable without defining it. Every entrepreneur thinks their “Mint.com for Laundry Tickets” is the most fundable idea ever, and all VCs should be dying to invest, if they would only sit still for the brief 62 minute demo! 
+
+No. Technically, whether you’re fundable has to do with things like traction, the total size of the opportunity, the quality of the team, whether you build moats (?), and a bunch of other gibberish that VCs like to tell themselves in their heads so that they don’t think they’re just spinning bottles. 
+
+But it’s too hard for an entrepreneur to evaluate their own fundability. So here’s a working definition of fundable which is all that matters for you as an entrepreneur:
+ •If you’re knocking on VC’s doors and they all seem to be opening, you’re fundable. If you keep getting more meetings, more introductions, and good vibes, keep going. You’ll get funded.
+
+•If you’re knocking on VC’s doors and they all seem to be closed, you’re not fundable. These days most VCs will just tell you why. If you can’t get a second meeting with anyone, just stop. You’re beautiful, you’re smart, and you’re going to change the world, but you happen to be non-fundable, so just stop. Either change the company or the product, or find a way to make your product popular and successful without investors. 
+ 
+So, that said, if you don’t know any VCs and think you might have a fundable company, a conference like Launch or Disrupt will get you your first intros.
+
+Now, on to the other promise: Press and publicity.
+
+It is possible, nay, common, to launch at one of these conferences and get NO press whatsoever. Zero. Nada. At Disrupt you’re guaranteed at least one mention in TechCrunch, but you’ll soon discover that TechCrunch’s tech-industry insiders may not really be the audience you need.
+
+Yes, there are a lot of journalists at these conferences. Disrupt probably had about 200. When we launched Trello this week, you know how much press we got? 
+
+Four stories. 
+
+And every one of those stories came because I knew the reporter and emailed them before we launched, and pre-briefed them on our product under embargo.
+
+Yep. There was not a single reporter, from the 200 that were registered, at Disrupt who saw our presentation and said, “Oh cool, I’m going to write about that.”
+
+You know why? Because there were dozens of companies launching in two days, and reporters usually file one or two stories a day, so they all focus on one or two companies they find interesting (and at this last conference, they mostly wanted to talk about Arringtongate).
+
+That said, you can get exactly the burst of publicity you need from launching at one of these conferences, if you do it right. You have to:
+ •Prebrief friendly media (under embargo)
+ •Get the bloggers in your area to write about you
+ •Have a sensational demo that gets retweeted
+ •And do this all at exactly the same moment when it’s newsworthy.
+ 
+We did all that and leveraged 6 minutes of fame into 130,000 eyeballs.
+ 
+
+
+The thing entrepreneurs often forget about news media: It’s supposed to be news. They want new things. As a startup, you are only going to have two or three new things that happen, ever:
+ 1.Launching your product
+ 2.Raising money from a VC
+ 3.Reporting insane traffic or revenue (optional)
+ 
+That’s it. Those are your chances to get news. Under no circumstances can you expect to be covered because you take a walk in the woods with potential employees... you’re not Mark Zuckerberg. (Unless you are, in which case, Hi Mark!) You’re not getting font changes on the home page covered, unless you used to work for Mark Zuckerberg.
+ 
+In short, you only have two or at most three chances to got coverage unless there’s Mark Zuckerberg involvement.
+
+Well, wait, there’s one more way. If you are very lucky, you will have some famous people involved in your company, and some of them will have tawdry affairs with prostitutes that are captured on video. That will get you a fourth story. Otherwise, you’re not news. Get over it.
+ 
+Also important: the news cycle is 12 hours, tops. If you call journalists the day after you release your product, it’s not news. They won’t care. You have to call them two days before you launch, tell them you’re going to launch in two days, and offer to pre-brief them, so that they can run their story when it’s actually newsworthy. The bottom line is that you have to get all your coverage within a period of a few hours which means you have to plan ahead and work hard. This is not the time for incrementalism. Don’t worry about DDOSing your own server. There’s no choice: you can’t spread out the newsworthiness of your launch.
+
+Because there are so few opportunities for a startup to get press, you have to make the most out of each one. That’s why I am still a big believer in “the big launch” even though the Lean Startup ethic today is all about trickling things out to your users bit by bit and pivoting a million times.
+
+Here’s the story of Trello. We wrote the first line of code last January. By the time we hit 700 lines of code, the product was useful, and we immediately started dogfooding it in-house. We probably could have brought it to market after three months. That would have been ever so lean. There was a strong temptation just to dump it on the world super-early and spend the next year iterating and improving. 
+
+We didn’t do that. We worked for nine months, and then launched.
+
+I couldn’t stop thinking that you never have a second chance to make a first impression. We got 131,000 eyeballs on 9-month-old Trello when we launched, and it was AWESOME, so 22% of them signed up. If we had launched 3-month-old Trello, it would have been NOT SO AWESOME. Maybe even MEH. I don’t want 131,000 eyeballs on MEH.
+
+Still, I do, firmly, believe that a completely new product has to go through what Steve Blank calls customer development to find “product/customer fit.” I.e., you have to get real people really using your product and you have to watch them and listen to them and make changes to make your product better, and you have to do this very, very early.
+
+How did we reconcile this? Through the old fashioned method of a closed beta. We got a hundred of our best friends to use Trello and tell us what they thought while we iterated and polished and improved.
+
+So the thing we launched, nine-month-old Trello, is really kind of slick. And we got a little initial bit of publicity for it, but then that publicity became massively viral. So those four news stories caused a few people to check out the product, and they liked it, because it was AWESOME NINE-MONTH-OLD TRELLO, and they wrote amazingly nice tweets. Thousands of amazingly nice tweets.
+ 
+So, the story so far: if your product is really good, launching at one of these conferences is an incredible catalyst. If your product is “meh,” it won’t help.
+
+But wait—there’s one important, bonus reason to launch at a conference, and it’s a good enough reason to do it even if you don’t need the publicity or the VC at all.
+
+It’s all about your team.
+
+When you launch at a conference, you have an incredible hard deadline. This deadline forces you to ship. It forces you to make decisions about what has to be in version 1.0. It's actually an incredible team-building exercise to work your butt off, together, for the weeks leading up to the conference.
+
+The morale boost you’ll get will be incredible. After months of toiling away, the feeling you get from seeing real-world people actually start using your product is the best feeling you will ever get as a software programmer in your professional life. These are the great moments that make it all worthwhile. We *made* something. People used it. It matters.
+
+It's like sex, with clothes on.
+
+The members of our team who came out to San Francisco for Disrupt (including two summer interns who skipped a week of classes to join us) had a blast. It was the best week, ever. The members of the team who stayed back in the office, watching the conference piped in over the Internet, had a blast. It was the best week, ever.
+
+Work has to matter. 
+
+The stuff we create can’t just be bits on a hard drive.
+ 
+Brett, Daniel, Bobby, Justin, Ian, and Aaron built something with their bare hands that will be a part of how the future works.
+ 
+One company that just launched at Disrupt is trying to fix medical bills. Another wants to bring fresh produce from farmers direct to households. Another company built the universal translator from Star Trek. Good software developers invent the future.
+
+This is what matters: launching products, getting them in the hands of users, and hearing them get value out of it. That’s why we stay up late, ruin our wrists and our eyesight, and drive our families crazy. It’s all about shipping.
+
+Announcing Trello 13 Sep
+
+Around the time of Fog Creek Software's ten year anniversary, I started thinking that if we want to keep our employees excited and motivated for another ten years, we were going to need some new things to work on. It occurred to me that we could easily afford to make four little two-person teams to launch four new products. That would give our developers more chances to move around from product to product when they got bored, which would make Fog Creek Software an even better place to work.
+ 
+Each team, we decided, would be guided by the spirit of lean startups. They would ship early and often. They would listen to real-world customers instead of building things in an ivory tower. And they wouldn't be afraid to pivot endlessly until they made something that people wanted.
+ 
+Next, we needed some business ideas. After ten years in management I still never knew what anyone was supposed to be working on. Once in a while I would walk around asking everyone what they were doing, and half the time, my reaction was "why the hell are you working on THAT?" So one of the teams started working on finding better ways to keep track of who was working on what. It had to be super simple and friction-free so that everyone would use it, but it had to be powerful, too.
+ 
+We had an early idea called FIVE THINGS. Everybody would have a list of exactly five things that they were allowed to work on. The top two were things they were actively doing right now. The other three were things that they would do as soon as they finished the first two. But nobody was ever allowed to have SIX things assigned to them. If you have too many things on your to-do list, your motivation tends to sag.
+ 
+Five Things wasn't the right idea, but it led us to the idea that became Trello. Pretty soon we had four programmers and two summer interns working on it. We started dogfooding the product when it was only 700 lines of code, and even in that super-simple form, we found it incredibly useful. By the end of the summer we realized we had a hit on our hands: an incredibly simple, easy-to-understand way for teams to collaborate online.
+ 
+
+
+So without further ado, I'd like to introduce you to Fog Creek's newest product: Trello.
+ •Read more about what Trello does
+ •Sign up, it's awesome! 
+
+
+Stack Overflow DevDays is Back! 27 Jun
+
+ [UPDATE - September 6th - Regrettably, DevDays had to be cancelled. See the announcement on the Stack Exchange Blog for details.]
+ 
+Stack Overflow DevDays, the universe's best conference series for coders, is back, and it's bigger than ever!
+ 
+Here's the idea behind DevDays. You're a developer. You'd love to learn all the latest hot new technologies. Things like DVCS, HTML 5, Node.js, CSS3, Hadoop, etc. The stuff the cool kids are all talking about on the playground while you're stuck in the basement somewhere grinding away on Java Enterprise Visual Basic.
+ 
+The idea behind DevDays is a fast, high-bandwidth, fire hose tutorial on at least ten interesting concepts. We'll assume that you're a developer, you know what a loop is, but each tutorial starts at the ground level and gives you a whirlwind tour through a technology by showing you actual code. Every presenter launches an editor and writes code from scratch and shows you what it does. There are almost no prepared PowerPoint slides with ten bullet items each containing 10 words explaining the ROI benefits of some new technology. There are not even any PowerPoint slides with cats and pandas doing hilarious things, such as this one:
+ 
+
+
+Yes, DevDays contains precisely NO funny pictures of cats. We might have Jon Skeet with a sock puppet, though:
+ 
+(That was Jon Skeet and Tony the Pony from London DevDays 2009.) 
+
+What we have instead is some great presenters from the community who will write code and compile code and explain it all while you watch, and you'll come away knowing enough about each new technology to know what it's good for, what it's not so good at, how to do the basics, and how to learn more. Bottom line: it's the best possible way to spend two days and learn as much as you would learn in two years of reading Twitter.
+ 
+We have FOUR, yes FOUR different DevDays conferences coming up this fall. Each one is its own production, and they're all going to be spectacular. If you came to DevDays last time, prepare to get blown away. This time everything is DOUBLE. Two days instead of one. Better food and coffee. Better locations. Bigger screens to make it easier to follow along. Lots of social activities. And, for the first time ever, we'll be visiting one city in Australia (shown at right), for an antipodean increase of infinity percent.
+ 
+Anyway, registration is now open. The schedule is: 
+•October 12-13 San Francisco
+ •October 25-26 Sydney
+ •November 14-15 London
+ •December 15-16 Washington, DC
+ 
+There are two! special! bonuses! you should know about before you choose a city:
+ 1.In San Francisco, the day after the conference (October 14), Server Fault is holding a one-day High Scalability conference. You may want to go to both for a full three days of amazing amazingness... if you think your heart can handle the excitement.
+ 2.In Washington, the day before the conference (December 14), we're have a big open source hackathon. The entire Stack Exchange dev team will be on hand and it'll be a lot of fun.
+ 
+So, go, sign up now. You can save $100 using discount code JOELONSOFTWARE.
+
+NY State Passes Marriage Equality Act 24 Jun
+
+
+
+Old News >>
+
+
+Reading lists
+
+Over the last 12 years I’ve written 1108 articles on this site about software development, management, business, and the Internet. To make it easy to find the best ones, here are some reading lists, sorted by topic.
+
+Top 10
+Things You Should Never Do, Part I
+Strategy Letter I: Ben and Jerry's vs. Amazon
+The Joel Test: 12 Steps to Better Code
+Fire And Motion
+The Iceberg Secret, Revealed
+The Law of Leaky Abstractions
+The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Unicode and Character Sets (No Excuses!)
+How Microsoft Lost the API War
+The Perils of JavaSchools
+The Development Abstraction Layer
+
+ Read the archives in dead-tree format! Many of these articles have been collected into four books, available at your favorite bookstore. It’s an excellent way to read the site in the bath, or throw it at your boss. 
+
+New developer
+NDAs and Contracts That You Should Never Sign
+Getting Things Done When You're Only a Grunt
+The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Unicode and Character Sets (No Excuses!)
+Getting Your Résumé Read
+Mike Gunderloy's Coder to Developer
+Advice for Computer Science College Students
+The Perils of JavaSchools
+Talk at Yale: Part 1 of 3
+Talk at Yale: Part 2 of 3
+Talk at Yale: Part 3 of 3
+Exploding Offer Season
+The Duct Tape Programmer
+
+ We developed comprehensive training for software teams based on the contents of this site. It's a six week course with videos, student course packs, and discussion material. 
+
+Rock star developer
+The Joel Test: 12 Steps to Better Code
+Painless Bug Tracking
+Daily Builds Are Your Friend
+Don't Let Architecture Astronauts Scare You
+Hard-assed Bug Fixin'
+A Hard Drill Makes an Easy Battle
+Back to Basics
+Five Worlds
+The Law of Leaky Abstractions
+Craftsmanship
+Biculturalism
+Foreword to Painless Project Management with FogBugz, by Mike Gunderloy
+Making Wrong Code Look Wrong
+Can Your Programming Language Do This?
+Why are the Microsoft Office file formats so complicated? (And some workarounds)
+Distributed Version Control is here to stay, baby
+
+Tech lead
+Two Stories
+Human Task Switches Considered Harmful
+Lord Palmerston on Programming
+The Development Abstraction Layer
+Three Management Methods (Introduction)
+The Command and Control Management Method
+The Econ 101 Management Method
+The Identity Management Method
+Evidence Based Scheduling
+
+CEO
+Incentive Pay Considered Harmful
+Things You Should Never Do, Part I
+Where do These People Get Their (Unoriginal) Ideas?
+Top Five (Wrong) Reasons You Don't Have Testers
+Strategy Letter I: Ben and Jerry's vs. Amazon
+Strategy Letter II: Chicken and Egg Problems
+Strategy Letter III: Let Me Go Back!
+Wasting Money on Cats
+Big Macs vs. The Naked Chef
+Strategy Letter IV: Bloatware and the 80/20 Myth
+Good Software Takes Ten Years. Get Used To it.
+In Defense of Not-Invented-Here Syndrome
+Fire And Motion
+Strategy Letter V
+Platforms
+Rick Chapman is In Search of Stupidity
+How Microsoft Lost the API War
+Seven steps to remarkable customer service
+Strategy Letter VI
+Martian Headsets
+Figuring out what your company is all about
+Why testers?
+
+Startup founder
+Fixing Venture Capital
+Micro-ISV: From Vision to Reality
+Foreword to “Eric Sink on the Business of Software”
+My First BillG Review
+Architecture astronauts take over
+The eternal optimism of the Clear mind
+
+Program manager
+Picking a Ship Date
+Top Twelve Tips for Running a Beta Test
+Usability Testing with Morae
+Set Your Priorities
+How to be a program manager
+Software Inventory
+
+Software designer
+Controlling Your Environment Makes You Happy
+Figuring Out What They Expected
+Choices
+Affordances and Metaphors
+Consistency and Other Hobgoblins
+Designing for People Who Have Better Things To Do With Their Lives
+Designing for People Who Have Better Things To Do With Their Lives, Part Two
+Designing for People Who Have Better Things To Do With Their Lives, Part Three
+The Process of Designing a Product
+Painless Functional Specifications - Part 1: Why Bother?
+Painless Functional Specifications - Part 2: What's a Spec?
+Painless Functional Specifications - Part 3: But... How?
+Painless Functional Specifications - Part 4: Tips
+Humane Programming
+The Iceberg Secret, Revealed
+Nothing is as Simple as it Seems
+Building Communities with Software
+It's Not Just Usability
+The Project Aardvark Spec
+Introduction to Great Design (Second Draft, In Progress)
+Great Design: What is Design? (First Draft)
+What Makes It Great? (First Draft)
+Amazing X-Ray Glasses from Sprint!
+Choices = Headaches
+Simplicity
+Elegance
+The Big Picture
+Font smoothing, anti-aliasing, and sub-pixel rendering
+
+Product manager
+How Many Lies Can You Find In One Direct Mail Piece?
+Mouth Wide Shut
+Camels and Rubber Duckies
+How to demo software
+Where there's muck, there's brass
+
+Recruiter
+Whaddaya Mean, You Can't Find Programmers?
+Hitting the High Notes
+Finding Great Developers
+A Field Guide to Developers
+Sorting Resumes
+The Phone Screen
+The Guerrilla Guide to Interviewing (version 3.0)
+Programmer search engine
+
+Now that you've read all that —
+
+There’s a software company in New York City dedicated to doing things the right way and proving that it can be done profitably and successfully. Fog Creek Software. Here’s the story:
+More on Sabbaticals...
+Command and Conquer and the Herd of Coconuts
+Spring in Cambridge
+What is the Work of Dogs in this Country?
+Working on CityDesk, Part One
+Working on CityDesk, Part Two
+Working on CityDesk, Part Three
+Working on CityDesk, Part Four
+Working on CityDesk, Part Five
+Rub a dub dub
+New Server at Peer 1 Network
+Finding an Office in New York City
+Bionic Office
+Colo Expansion Version 2.0
+The Road to FogBugz 4.0: Part I
+The Road to FogBugz 4.0: Part II
+The Road to FogBugz 4.0: Part III
+The Road to FogBugz 4.0: Part IV
+The Road to FogBugz 4.0: Part V
+Project Aardvark Midterm Report
+How to Ship Anything
+FogBugz 4½ and Subjective Well-Being
+Copilot 2.0 ships!
+A game of inches
+Five whys
+The new Fog Creek office
+New, faster Copilot
+Fruity treats, customization, and supersonics: FogBugz 7 is here
+
+
+ 
+
+I’m your host, Joel Spolsky, a software developer in New York City. More about me.
+
+Careers
+
+
+ 
+Need a better career? We’re bringing together the best software developers with the best companies on the Joel on Software / Stack Overflow Job Board. You can search job listings or even file a CV and let employers find you.
+ 
+Want to hire a smart programmer who gets things done? The best ones are at Stack Overflow Careers. Info for employers.
+
+Twitter! Twitter!
+

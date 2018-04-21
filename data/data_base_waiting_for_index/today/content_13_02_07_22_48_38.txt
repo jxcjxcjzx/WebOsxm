@@ -1,0 +1,23 @@
+      
+KLT_FeatureList
+
+typedef struct {
+int nFeatures;
+KLT_Feature *feature;
+} *KLT_FeatureList;
+
+A KLT_FeatureList is an array of features. The nFeatures field indicates the number of features allocated, but not necessarily the number of non-lost features. It must not be changed manually.
+NOTE: Although a feature list and a feature history look similar, the former is intended to refer to an array of features from a single image, while the latter refers to the same feature tracked through several images.
+
+The following code illustrates how to access the data in a feature list:
+
+KLT_FeatureList fl;
+int feat;
+
+for (feat = 0 ; feat < fl->nFeatures ; feat++)  {
+     printf("(%5.1f,%5.1f) = %d\n",
+          fl->feature[feat]->x,
+          fl->feature[feat]->y,
+          fl->feature[feat]->val);
+}
+

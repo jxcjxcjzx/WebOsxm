@@ -1,0 +1,135 @@
+
+NextPrevious
+
+Saving and Loading Web Content
+
+After the user edits the content of a WebView, you need some way to access the modified document. In a Cocoa document-based application, you typically allow the user to save and load the document. 
+
+For example, in the MiniBrowser application located in /Developer/Examples/WebKit, you would implement MyDocument’s dataRepresentationOfType: method to return an NSData representation of the HTML source. Then implement MyDocument’s loadDataRepresentation:ofType: method to transform an NSData representation to HTML source and load it into the WebView. Follow these steps to add saving and loading to the MiniBrowser application.
+1.
+First add a variable and accessors to MyDocument to store the HTML source. Modify MyDocument.h as follows and implement the corresponding accessor methods in MyDocument.m:
+
+
+
+
+@interface MyDocument : NSDocument 
+
+
+{ 
+
+
+    ... 
+
+
+    // Editing Support 
+
+
+    NSString *_source; 
+
+
+} 
+
+
+... 
+
+
+// Editing Support 
+
+
+- (NSString *)source; 
+
+
+- (void)setSource:(NSString *)webContent; 
+
+
+@end 
+
+2.
+Next, implement MyDocument’s dataRepresentationOfType: method to get the HTML source from the DOM, set the _source instance variable, and convert it to an NSData object as follows:
+
+
+
+
+- (NSData *)dataRepresentationOfType:(NSString *)aType 
+
+
+{ 
+
+
+    if (![aType isEqualToString:HTMLDocumentType]) 
+
+
+        return nil; 
+
+
+ 
+
+
+    [self setSource:[(DOMHTMLElement *)[[[webView mainFrame] DOMDocument] documentElement] outerHTML]]; 
+
+
+    return [[self source] dataUsingEncoding:NSISOLatin1StringEncoding]; 
+
+
+} 
+
+3.
+Then implement MyDocument’s loadDataRepresentation:ofType: method to transform the NSData object to HTML source as follows:
+
+
+
+
+- (BOOL)loadDataRepresentation:(NSData *)data ofType:(NSString *)aType 
+
+
+{ 
+
+
+    if (![aType isEqualToString:HTMLDocumentType]) 
+
+
+        return NO; 
+
+
+ 
+
+
+    [self setSource:[[NSString alloc] initWithData:data encoding:NSISOLatin1StringEncoding]]; 
+
+
+    [[webView mainFrame] loadHTMLString:[self source] baseURL:nil]; 
+
+
+ 
+
+
+    return YES; 
+
+
+} 
+
+
+NextPrevious
+
+
+
+
+--------------------------------------------------------------------------------
+
+
+ © 2003, 2012 Apple Inc. All Rights Reserved. (Last updated: 2012-11-09)
+
+ Did this document help you? YesIt's good, but...Not helpful... 
+
+
+Shop the Apple Online Store (1-800-MY-APPLE), visit an Apple Retail Store, or find a reseller.
+Mailing Lists
+RSS Feeds
+ .
+
+Copyright © 2010 Apple Inc. All rights reserved.
+Terms of Use
+Privacy Policy
+. 
+
+

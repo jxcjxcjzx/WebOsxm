@@ -1,0 +1,37 @@
+
+异常/深入java.lang.Throwable
+
+JavaJVMStruts虚拟机框架 
+
+有几个现象是需要总结的: 
+-------------------------------------- 
+在java语言中，错误类的基类是java.lang.Error，异常类的基类是java.lang.Exception。 
+
+相同点：java.lang.Error和java.lang.Exception都是java.lang.Throwable的子类，因此java.lang.Error和java.lang.Exception自身及其子类都可以作为throw的使用对象，如：throw new MyError();和throw new MyException();其中，MyError类是java.lang.Error的子类，MyException类是java.lang.Exception的子类。
+ 
+不同点：java.lang.Error自身及其子类不需要try-catch语句的支持，可在任何时候将返回方法，如下面的方法定义： 
+public String myMethod() { 
+throw new MyError(); 
+} 
+其中MyError类是java.lang.Error类的子类。 
+
+java.lang.Exception自身及其子类需要try-catch语句的支持，如下的方法定义是错误的： 
+public String myMethod() { 
+throw new MyException(); 
+} 
+正确的方法定义如下： 
+public String myMethod() throws MyException { 
+throw new MyException(); 
+} 
+其中MyException类是java.lang.Exception的子类。 
+
+---------------------------------------- 
+1)如果代码中有一个地方发生了异常， 也就是Throwable被new出来的那个地方，由于Throwable的构造函数中直接调用了fillInStackTrace(), 那么Throwable会一步一步地追踪方法的调用，直到追踪到线程的终端， 例如，main线程的main()方法，其他的线程的run()方法。
+ 2）fillInStackTrace是native方法，也只有native方法可以完成这样的代码追踪。 
+3）Throwable有一个方法setStackTrace()之外(注意到setStackTrace只是use by RPC frameworks and other advanced systems)，也就是说setStackTrace()通常不会被应用程序用到。
+ 4）跟setStackTrace()相反，StackTrace中的信息可以通过调用fillInStackTrace()方法来获得，此外还可以通过deserialize的方法来获得；可以看看它的writeObject()方法。
+ 5）fillInStackTrace()方法返回的Throwable为this指针; 这样可以很方便的使用throw ex.fillInStackTrace();
+ -------------------------------------------- 
+异常是当JVM(JAVA虚拟机)在执行应用程序的某个方法的时候遇到的非正常现象,JVM就会生成一个异常对象,抛给客户以便客户进行异常处理.Struts框架的异常处理机制建立在java异常处理的基础之上.在研究Struts异常处理之前,先回顾一下java异常处理原理,理解java虚拟机JVM的异常处理过程有助于应用设计正确的异常处理方法.处理异常需要JVM付出不小的开销,所以用于必须慎重使用.
+ 
+JAVA异常是在java程序运行的时候遇到非正常的情况而创建的对象,它封装了异常信息,java异常的根类为java.lang.Throwable,整个类有两个直接子类java.lang.Error和java.lang.Exception.Error是程序本身无法恢复的严重错误.Exception则表示可以被程序捕获并处理的异常错误.JVM用方法调用栈来跟踪每个线程中一系列的方法调用过程,该栈保存了每个调用方法的本地信息.对于独立的JAVA程序,可以一直到该程序的main方法.当一个新方法被调用的时候,JVM把描述该方法的栈结构置入栈顶,位于栈顶的方法为正确执行的方法.当一个JAVA方法正常执行完毕,JVM回从调用栈中弹处该方法的栈结构,然后继续处理前一个方法.如果java方法在执行代码的过程中抛出异常,JVM必须找到能捕获异常的catch块代码.它首先查看当前方法是否贼这样的catch代码块,如果存在就执行该catch代码块,否则JVM回调用栈中弹处该方法的栈结构,继续到前一个方法中查找合适的catch代码块.最后如果JVM向上追到了main()方法,也就是一直把异常抛给了main()方法,仍然没有找到该异常处理的代码块,该线程就会异常终止,如果该线程是主线程,应用程序也随之终止,此时JVM将把异常直接抛给用户,在用户终端上会看到原始的异常信息. 

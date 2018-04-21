@@ -1,0 +1,237 @@
+14的路 
+Java中的Serializable浅谈，只是浅谈 
+对象的串行化（Serialization） 
+ 
+
+一、串行化的概念和目的 
+
+1.什么是串行化 
+
+            对象的寿命通常随着生成该对象的程序的终止而终止。有时候，可能需要将对象的状态保存下来，在需要时再将对象恢复。我们把对象的这种能记录自己的状态以便将来再生的能力。叫作对象的持续性(persistence)。对象通过写出描述自己状态的数值来记录自己 ，这个过程叫对象的串行化(Serialization) 。串行化的主要任务是写出对象实例变量的数值。如果交量是另一对象的引用，则引用的对象也要串行化。这个过程是递归的，串行化可能要涉及一个复杂树结构的单行化，包括原有对象、对象的对象、对象的对象的对象等等。对象所有权的层次结构称为图表(graph)。 
+
+2.串行化的目的 
+
+            Java对象的单行化的目标是为Java的运行环境提供一组特性，如下所示： 
+
+1)       尽量保持对象串行化的简单扼要 ，但要提供一种途径使其可根据开发者的要求进行扩展或定制。 
+
+2)       串行化机制应严格遵守Java的对象模型 。对象的串行化状态中应该存有所有的关于种类的安全特性的信息。 
+
+3)       对象的串行化机制应支持Java的对象持续性。 
+
+4)       对象的串行化机制应有足够的 可扩展能力以支持对象的远程方法调用(RMI)。 
+
+5)       对象串行化应允许对象定义自身 的格式即其自身的数据流表示形式，可外部化接口来完成这项功能。 
+
+ 
+
+ 
+
+ 
+
+二、串行化方法 
+            从JDK1.1开始，Java语言提供了对象串行化机制 ，在java.io包中，接口Serialization用来作为实现对象串行化的工具 ，只有实现了Serialization的类的对象才可以被串行化。 
+
+            Serializable接口中没有任何的方法。当一个类声明要实现Serializable接口时，只是表明该类参加串行化协议，而不需要实现任何特殊的方法。下面我们通过实例介绍如何对对象进行串行化。 
+
+1.定义一个可串行化对象 
+
+            一个类，如果要使其对象可以被串行化，必须实现Serializable接口。我们定义一个类Student如下： 
+
+import java.io.Serializable;    
+   
+public class Student implements Serializable {    
+   
+    int id;// 学号    
+   
+    String name;// 姓名    
+   
+    int age;// 年龄    
+   
+    String department; // 系别    
+   
+    public Student(int id, String name, int age, String department) {    
+   
+        this.id = id;    
+   
+        this.name = name;    
+   
+        this.age = age;    
+   
+        this.department = department;    
+   
+    }    
+   
+}   
+2.构造对象的输入／输出流 
+
+            要串行化一个对象，必须与一定的对象输出／输入流联系起来，通过对象输出流将对象状态保存下来，再通过对象输入流将对象状态恢复。 
+
+            java.io包中，提供了ObjectInputStream和ObjectOutputStream将数据流功能扩展至可读写对象 。在ObjectInputStream 中用readObject()方法可以直接读取一个对象，ObjectOutputStream中用writeObject()方法可以直接将对象保存到输出流中。 
+
+import java.io.FileInputStream;    
+import java.io.FileOutputStream;    
+import java.io.IOException;    
+import java.io.ObjectInputStream;    
+import java.io.ObjectOutputStream;    
+   
+public class ObjectSer {    
+   
+    public static void main(String args[]) throws IOException,    
+            ClassNotFoundException {    
+   
+        Student stu = new Student(981036, "LiuMing", 18, "CSD");    
+   
+        FileOutputStream fo = new FileOutputStream("data.ser");    
+   
+        ObjectOutputStream so = new ObjectOutputStream(fo);    
+   
+        try {    
+   
+            so.writeObject(stu);    
+   
+            so.close();    
+   
+        } catch (IOException e) {    
+            System.out.println(e);    
+        }    
+   
+        stu = null;    
+   
+        FileInputStream fi = new FileInputStream("data.ser");    
+   
+        ObjectInputStream si = new ObjectInputStream(fi);    
+   
+        try {    
+   
+            stu = (Student) si.readObject();    
+   
+            si.close();    
+   
+        } catch (IOException e)    
+   
+        {    
+            System.out.println(e);    
+        }    
+   
+        System.out.println("Student Info:");    
+   
+        System.out.println("ID:" + stu.id);    
+   
+        System.out.println("Name:" + stu.name);    
+   
+        System.out.println("Age:" + stu.age);    
+   
+        System.out.println("Dep:" + stu.department);    
+   
+    }    
+   
+}   
+运行结果如下：
+
+        Student Info: 
+
+　　ID:981036 
+
+　　Name:LiuMing 
+
+　　Age:18 
+
+　　Dep:CSD 
+
+ 
+
+ 
+
+            在这个例子中，我们首先定义了一个类Student，实现了Serializable接口 ，然后通过对象输出流的writeObject()方法将Student对象保存到文件 data.ser中 。之后，通过对家输入流的readObjcet()方法从文件data.ser中读出保存下来的Student对象 。从运行结果可以看到，通过串行化机制，可以正确地保存和恢复对象的状态。 
+
+三、串行化的注意事项 
+1.串行化能保存的元素 
+
+            串行化只能保存对象的非静态成员交量，不能保存任何的成员方法和静态的成员变量，而且串行化保存的只是变量的值，对于变量的任何修饰符都不能保存。 
+
+2.transient关键字 
+
+            对于某些类型的对象，其状态是瞬时的，这样的对象是无法保存其状态的。例如一个Thread对象或一个FileInputStream对象 ，对于这些字段，我们必须用transient关键字标明，否则编译器将报措。 
+
+            另外 ，串行化可能涉及将对象存放到 磁盘上或在网络上发达数据，这时候就会产生安全问题。因为数据位于Java运行环境之外，不在Java安全机制的控制之中。对于这些需要保密的字段，不应保存在永久介质中 ，或者不应简单地不加处理地保存下来 ，为了保证安全性。应该在这些字段前加上transient关键字。 
+
+下面是java规范中对transient关键字的解释：   
+      The   transient   marker   is   not   fully   specified   by   The   Java   Language     Specification   but   is   used   in   object   serialization   to   mark   member   variables   that   should   not   be   serialized.
+
+ 
+
+ 以下是transient的一个应用举例:
+
+ 
+
+ 
+
+  //LoggingInfo.java
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Date;
+public class LoggingInfo implements java.io.Serializable {
+private static final long serialVersionUID = 1L;
+private Date loggingDate = new Date();
+private String uid;
+private transient String pwd;
+LoggingInfo(String user, String password) {
+uid = user;
+pwd = password;
+}
+public String toString() {
+String password = null;
+if (pwd == null) {
+password = "NOT SET";
+} else {
+password = pwd;
+}
+return "logon info: \n   " + "user: " + uid + "\n   logging date : "
++ loggingDate.toString() + "\n   password: " + password;
+}
+public static void main(String[] args) {
+LoggingInfo logInfo = new LoggingInfo("MIKE", "MECHANICS");
+System.out.println(logInfo.toString());
+try {
+ObjectOutputStream o = new ObjectOutputStream(new FileOutputStream(
+"logInfo.out"));
+o.writeObject(logInfo);
+o.close();
+} catch (Exception e) {// deal with exception
+}
+// To read the object back, we can write
+try {
+ObjectInputStream in = new ObjectInputStream(new FileInputStream(
+"logInfo.out"));
+LoggingInfo logInfo1 = (LoggingInfo) in.readObject();
+System.out.println(logInfo1.toString());
+} catch (Exception e) {// deal with exception
+}
+}
+}
+
+posted on 2009-05-20 20:13 14的路 阅读(...) 评论(...)  编辑 收藏 
+
+刷新评论刷新页面返回顶部
+博客园首页博问新闻闪存程序员招聘知识库
+Powered by: 
+博客园 
+Copyright © 14的路 
+
+导航
+博客园 
+首页 
+新随笔 
+联系 
+订阅 
+管理 
+统计
+随笔 - 1 
+文章 - 276 
+评论 - 26 
+引用 - 0 
+公告
+友情链接：源码下载 

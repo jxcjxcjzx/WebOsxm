@@ -1,0 +1,100 @@
+分享到QQ空间新浪微博百度搜藏人人网腾讯微博开心网腾讯朋友百度空间豆瓣网搜狐微博百度新首页QQ收藏和讯微博我的淘宝百度贴吧更多...百度分享
+首页我的主页相册广场消息 私信(1) 模板 设置 退出 关注此空间程序人生
+You are good at what you love, you love what you are good at.
+2012-10-30 16:52 BNF、EBNF【转载】网上关于BNF和EBNF的描述比较混乱，因为下面的描述被应用的最广泛吧，所以摘录在此。
+
+我认为BNF和规则表达式除了语法上的区别之外，最大的区别有两点：
+
+1. BNF一般由一组规则(rule)组成，共同描述一个root rule。而规则表达式只由一个规则组成。
+
+2. BNF允许规则的直接或间接的递归引用。
+
+所以BNF的表达能力比规则表达式强大，一般用于描述编程语言语法、函数原型、文件格式和通信协议格式等等。
+
+还有ABNF，不常用，就不摘录了。
+
+
+
+
+The meta-symbols of BNF are:
+
+::=
+    meaning "is defined as" 
+|
+    meaning "or" 
+< >
+    angle brackets used to surround category names. 
+
+The angle brackets distinguish syntax rules names (also called non-terminal symbols) from terminal symbols which are written exactly as they are to be represented. A BNF rule defining a nonterminal has the form:
+
+nonterminal ::= sequence_of_alternatives consisting of strings of
+                terminals or nonterminals separated by the meta-symbol |
+
+For example, the BNF production for a mini-language is:
+
+<program> ::=  program
+                   <declaration_sequence>
+               begin
+                   <statements_sequence>
+               end ;
+
+This shows that a mini-language program consists of the keyword "program" followed by the declaration sequence, then the keyword "begin" and the statements sequence, finally the keyword "end" and a semicolon.
+
+In fact, many authors have introduced some slight extensions of BNF for the ease of use:
+
+    optional items are enclosed in meta symbols [ and ], example:
+
+    <if_statement> ::=  if <boolean_expression> then
+                             <statement_sequence>
+                        [ else
+                             <statement_sequence> ]
+                        end if ;
+
+    repetitive items (zero or more times) are enclosed in meta symbols { and }, example:
+
+    <identifier> ::= <letter> { <letter> | <digit> }
+
+    this rule is equivalent to the recursive rule:
+
+    <identifier> ::= <letter> |
+                     <identifier> [ <letter> | <digit> ]
+
+    terminals of only one character are surrounded by quotes (") to distinguish them from meta-symbols, example:
+
+    <statement_sequence> ::= <statement> { ";" <statement> }
+
+    in recent text books, terminal and non-terminal symbols are distingued by using bold faces for terminals and suppressing < and > around non-terminals. This improves greatly the readability. The example then becomes:
+
+    if_statement ::= ifboolean_expression then
+                         statement_sequence
+                     [ else
+                         statement_sequence ]
+                     end if";"
+
+Now as a last example (maybe not the easiest to read !), here is the definition of BNF expressed in BNF:
+
+syntax     ::=  { rule }
+rule       ::=  identifier  "::="  expression
+expression ::=  term { "|" term }
+term       ::=  factor { factor }
+factor     ::=  identifier |
+                quoted_symbol |
+                "("  expression  ")" |
+                "["  expression  "]" |
+                "{"  expression  "}"
+identifier ::=  letter { letter | digit }
+quoted_symbol ::= """ { any_character } """
+
+
+
+分享到： 举报 浏览(64) 评论(2) 转载 
+你可能也喜欢
+ 捷豹2012 XKR-S  兼具传统与创新！Astrum Meera概念车赏  1978 Vauxhall Equus Concept  路虎  意大利超级跑车新贵Mazzanti Evantra V8官方图公布  6.3米加长版MINI XXL配豪华泳池 开到哪泡到哪  Javascript控制台 本文最近访客
+ a52527459 11月13日 hikehk 10月30日评论
+
+ 同时评论给  
+ 同时评论给原文作者   发布 500/0
+a52527459 http://www.douban.com/group/topic/7580567/ BNF 巴科斯范式及其扩展 应该先查下的。 看了 我还是不明白，太理论的东西，不那么 简单明了。 2012-11-13 00:22回复
+a52527459好像是编译原理的东西，，，其实 编译原理 很有意思，但要与代码结合。gcc 这个玩意 太庞大了，就是很厉害的东西。 2012-11-13 00:18回复
+收起|查看更多
+帮助中心 | 空间客服 | 投诉中心 | 空间协议©2013 Baiduabcdef

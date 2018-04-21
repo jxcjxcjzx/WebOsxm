@@ -1,0 +1,565 @@
+
+
+
+
+服务器运维与网站架构|Linux运维|X研究
+
+记录我的思想轨迹、工作学习、生活和关注的领域
+首页
+Linux
+Nginx
+Security
+Shell
+服务器架构
+互联网
+LFS 6.6
+Linux经典
+个人日记
+关于
+.
+
+
+
+
+« （原创）RHEL/CentOS 6.x 系统服务详解
+
+（总结）用Haproxy做前端代理时让Apache日志记录客户端IP的修改方法 »
+.
+
+
+
+2012-7
+
+2
+ 
+
+
+Tomcat启动过程原理详解
+
+发表于: Tomcat, Web Server, 旧文存档| 作者: 谋万世全局者 
+
+标签: Tomcat,原理,启动过程,详解
+ .
+
+基于Java的Web 应用程序是 servlet、JSP 页面、静态页面、类和其他资源的集合，它们可以用标准方式打包，并运行在来自多个供应商的多个容器。Web 应用程序存在于结构化层次结构的目录中，该层次结构是由 Java Servlet 规范定义的。Web 应用程序的根目录包含直接存储或存储在子文件夹中的所有公共资源，比如图像、HTML 页面等。构成：Web应用由Web组件(一组Java类库)、html文件，静态资源文件（如图像）、帮助类和库组成。
+ 
+1 – Tomcat Server的组成部分
+ 
+1.1 – Server
+ 
+A Server element represents the entire Catalina servlet container. (Singleton)
+ 
+1.2 – Service
+ 
+A Service element represents the combination of one or more Connector components that share a single Engine
+ Service是这样一个集合：它由一个或者多个Connector组成，以及一个Engine，负责处理所有Connector所获得的客户请求
+ 
+1.3 – Connector
+ 
+一个Connector将在某个指定端口上侦听客户请求，并将获得的请求交给Engine来处理，从Engine处获得回应并返回客户
+ TOMCAT有两个典型的Connector，一个直接侦听来自browser的http请求，一个侦听来自其它WebServer的请求
+ Coyote Http/1.1 Connector 在端口8080处侦听来自客户browser的http请求
+ Coyote JK2 Connector 在端口8009处侦听来自其它WebServer(Apache)的servlet/jsp代理请求
+ 
+
+
+1.4 – Engine
+ 
+The Engine element represents the entire request processing machinery associated with a particular Service
+ It receives and processes all requests from one or more Connectors
+ and returns the completed response to the Connector for ultimate transmission back to the client
+ Engine下可以配置多个虚拟主机Virtual Host，每个虚拟主机都有一个域名
+ 当Engine获得一个请求时，它把该请求匹配到某个Host上，然后把该请求交给该Host来处理
+ Engine有一个默认虚拟主机，当请求无法匹配到任何一个Host上的时候，将交给该默认Host来处理
+ 
+1.5 – Host
+ 
+ 
+ 
+代表一个Virtual Host，虚拟主机，每个虚拟主机和某个网络域名Domain Name相匹配
+ 每个虚拟主机下都可以部署(deploy)一个或者多个Web App，每个Web App对应于一个Context，有一个Context path
+ 当Host获得一个请求时，将把该请求匹配到某个Context上，然后把该请求交给该Context来处理
+ 匹配的方法是“最长匹配”，所以一个path==”"的Context将成为该Host的默认Context
+ 所有无法和其它Context的路径名匹配的请求都将最终和该默认Context匹配
+ 
+1.6 – Context
+ 
+一个Context对应于一个Web Application，一个Web Application由一个或者多个Servlet组成
+ Context在创建的时候将根据配置文件$CATALINA_HOME/conf/web.xml和$WEBAPP_HOME/WEB-INF/web.xml载入Servlet类
+ 当Context获得请求时，将在自己的映射表(mapping table)中寻找相匹配的Servlet类
+ 如果找到，则执行该类，获得请求的回应，并返回
+ 
+2 – Tomcat Server的结构图
+ 
+
+
+3 – 配置文件$CATALINA_HOME/conf/server.xml的说明
+ 
+该文件描述了如何启动Tomcat Server
+ 
+ 
+  <!-----------------------------------------------------------------------------------------------> <!-- 启动Server 在端口8005处等待关闭命令 如果接受到"SHUTDOWN"字符串则关闭服务器 --> <Server port="8005" shutdown="SHUTDOWN" debug="0"> <!-- Listener ??? 目前没有看到这里 --> <Listener className="org.apache.catalina.mbeans.ServerLifecycleListener" debug="0"/> <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" debug="0"/> <!-- Global JNDI resources ??? 目前没有看到这里，先略去 --> <GlobalNamingResources>  ... ... ... ... </GlobalNamingResources> <!-- Tomcat的Standalone Service Service是一组Connector的集合 它们共用一个Engine来处理所有Connector收到的请求 --> <Service name="Tomcat-Standalone"> <!-- Coyote HTTP/1.1 Connector className : 该Connector的实现类是org.apache.coyote.tomcat4.CoyoteConnector port : 在端口号8080处侦听来自客户browser的HTTP1.1请求 minProcessors : 该Connector先创建5个线程等待客户请求， 每个请求由一个线程负责 maxProcessors : 当现有的线程不够服务客户请求时，若线程总数不足75个，则创建新线程来处理请求 acceptCount : 当现有线程已经达到最大数75时，为客户请求排队 当队列中请求数超过100时，后来的请求返回Connection refused 错误 redirectport : 当客户请求是https时，把该请求转发到端口8443去 其它属性略 --> <Connector className="org.apache.coyote.tomcat4.CoyoteConnector"  port="8080"  minProcessors="5" maxProcessors="75" acceptCount="100"  enableLookups="true"  redirectPort="8443"  debug="0"  connectionTimeout="20000"  useURIValidationHack="false"  disableUploadTimeout="true" /> <!-- Engine用来处理Connector收到的Http请求 它将匹配请求和自己的虚拟主机， 并把请求转交给对应的Host来处理默认虚拟主机是localhost --> <Engine name="Standalone" defaultHost="localhost" debug="0"> <!-- 日志类，目前没有看到，略去先 --> <Logger className="org.apache.catalina.logger.FileLogger" .../> <!-- Realm，目前没有看到，略去先 --> <Realm className="org.apache.catalina.realm.UserDatabaseRealm" .../> <!-- 虚拟主机localhost appBase : 该虚拟主机的根目录是webapps/ 它将匹配请求和 自己的Context的路径，并把请求转交给对应的Context来处理 --> <Host name="localhost" debug="0" appBase="webapps" unpackWARs="true" autoDeploy="true"> <!-- 日志类，目前没有看到，略去先 --> <Logger className="org.apache.catalina.logger.FileLogger" .../> <!-- Context，对应于一个Web App path : 该Context的路径名是""，故该Context是该Host的 默认Context docBase : 该Context的根目录是webapps/mycontext/ --> <Context path="" docBase="mycontext" debug="0"/> <!-- 另外一个Context，路径名是/wsota --> <Context path="/wsota" docBase="wsotaProject" debug="0"/> </Host> </Engine> </Service> </Server> <!-----------------------------------------------------------------------------------------------> 
+ 
+ 
+4 – Context的部署配置文件web.xml的说明
+ 
+一个Context对应于一个Web App，每个Web App是由一个或者多个servlet组成的
+ 当一个Web App被初始化的时候，它将用自己的ClassLoader对象载入“部署配置文件web.xml”中定义的每个servlet类
+ 它首先载入在$CATALINA_HOME/conf/web.xml中部署的servlet类
+ 然后载入在自己的Web App根目录下的WEB-INF/web.xml中部署的servlet类
+ web.xml文件有两部分：servlet类定义和servlet映射定义
+ 每个被载入的servlet类都有一个名字，且被填入该Context的映射表(mapping table)中，和某种URL PATTERN对应
+ 当该Context获得请求时，将查询mapping table，找到被请求的servlet，并执行以获得请求回应
+ 
+分析一下所有的Context共享的web.xml文件，在其中定义的servlet被所有的Web App载入
+ 
+ 
+  <!-----------------------------------------------------------------------------------------------> <web-app> <!-- 概述： 该文件是所有的WEB APP共用的部署配置文件， 每当一个WEB APP 被DEPLOY，该文件都将先被处理，然后才是WEB APP自己的/WEB-INF/web.xml --> <!-- +-------------------------+ --> <!-- | servlet类定义部分 | --> <!-- +-------------------------+ --> <!-- DefaultServlet 当用户的HTTP请求无法匹配任何一个servlet的时候，该servlet被执行 URL PATTERN MAPPING : / --> <servlet> <servlet-name>default</servlet-name> <servlet-class> org.apache.catalina.servlets.DefaultServlet </servlet-class> <init-param>    <param-name>debug</param-name>    <param-value>0</param-value> </init-param> <init-param>    <param-name>listings</param-name>    <param-value>true</param-value> </init-param> <load-on-startup>1</load-on-startup> </servlet> <!-- InvokerServlet 处理一个WEB APP中的匿名servlet 当一个servlet被编写并编译放入 /WEB-INF/classes/中，却没有在/WEB-INF/web.xml中定义的时候 该servlet被调用，把匿名servlet映射成/servlet/ClassName的形式 URL PATTERN MAPPING : /servlet/* --> <servlet>    <servlet-name>invoker</servlet-name>    <servlet-class>org.apache.catalina.servlets.InvokerServlet </servlet-class>    <init-param>      <param-name>debug</param-name>      <param-value>0</param-value>    </init-param>    <load-on-startup>2</load-on-startup> </servlet> <!-- JspServlet 当请求的是一个JSP页面的时候（*.jsp）该servlet被调用 它是一个JSP编译器，将请求的JSP页面编译成为servlet再执行 URL PATTERN MAPPING : *.jsp --> <servlet>   <servlet-name>jsp</servlet-name>   <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>   <init-param>      <param-name>logVerbosityLevel</param-name>      <param-value>WARNING</param-value>   </init-param>  <load-on-startup>3</load-on-startup> </servlet> <!-- +---------------------------+ --> <!-- | servlet映射定义部分 | --> <!-- +---------------------------+ --> <servlet-mapping>   <servlet-name>default</servlet-name>   <url-pattern>/</url-pattern> </servlet-mapping> <servlet-mapping>    <servlet-name>invoker</servlet-name>    <url-pattern>/servlet/*</url-pattern> </servlet-mapping> <servlet-mapping>   <servlet-name>jsp</servlet-name>   <url-pattern>*.jsp</url-pattern> </servlet-mapping> <!-- +------------------------+ --> <!-- | 其它部分，略去先 | --> <!-- +------------------------+ --> ... ... ... ... </web-app> <!-----------------------------------------------------------------------------------------------> 
+ 
+ 
+5 – Tomcat Server处理一个http请求的过程
+ 
+假设来自客户的请求为：
+ 
+http://localhost:8080/wsota/wsota_index.jsp
+ 
+1) 请求被发送到本机端口8080，被在那里侦听的Coyote HTTP/1.1 Connector获得
+ 2) Connector把该请求交给它所在的Service的Engine来处理，并等待来自Engine的回应
+ 3) Engine获得请求localhost/wsota/wsota_index.jsp，匹配它所拥有的所有虚拟主机Host
+ 4) Engine匹配到名为localhost的Host（即使匹配不到也把请求交给该Host处理，因为该Host被定义为该Engine的默认主机）
+ 5) localhost Host获得请求/wsota/wsota_index.jsp，匹配它所拥有的所有Context
+ 6) Host匹配到路径为/wsota的Context（如果匹配不到就把该请求交给路径名为”"的Context去处理）
+ 7) path=”/wsota”的Context获得请求/wsota_index.jsp，在它的mapping table中寻找对应的servlet
+ 8) Context匹配到URL PATTERN为*.jsp的servlet，对应于JspServlet类
+ 9) 构造HttpServletRequest对象和HttpServletResponse对象，作为参数调用JspServlet的doGet或doPost方法
+ 10)Context把执行完了之后的HttpServletResponse对象返回给Host
+ 11)Host把HttpServletResponse对象返回给Engine
+ 12)Engine把HttpServletResponse对象返回给Connector
+ 13)Connector把HttpServletResponse对象返回给客户browser
+ 
+转自：http://docs.huihoo.com/apache/tomcat/heavyz/01-startup.html
+.
+永久链接 : http://www.ha97.com/4820.html 
+
+
+本文相关评论 - 1条评论都没有呢 
+
+RSS for this comments | Trackback URI 
+. 
+Post a comment now »
+
+
+还没有评论呢。
+ 
+
+
+
+
+
+昵称 * 
+
+.
+电子邮件 * 
+
+.
+网站/博客 
+
+.
+
+ 
+
+.
+
+« （原创）RHEL/CentOS 6.x 系统服务详解
+
+（总结）用Haproxy做前端代理时让Apache日志记录客户端IP的修改方法 »
+. 
+
+站内搜索
+ 
+
+
+
+页面
+Nginx_download
+ 关于博主
+ 标签云
+ 订阅本站
+
+ 
+我的腾讯微博
+
+
+
+ 
+功能
+注册
+登录
+文章 RSS
+评论 RSS
+WordPress.org
+ 
+
+近期文章
+（原创）Linux下MySQL 5.5的修改字符集编码为UTF8（彻底解决中文乱码问题）
+OpenStack、CloudStack、Eucalyptus、vCloud Director等主流云管理系统简介
+（总结）Nginx配置文件nginx.conf中文详解
+创业公司老板管理常识
+（总结）Linux下的暴力密码在线破解工具Hydra详解
+（总结）MySQL自带的性能压力测试工具mysqlslap详解
+（总结）Linux下Oracle11gR2的ORA-00845错误解决方法
+（总结）Linux的chattr与lsattr命令详解
+从12306.cn谈大网站架构与性能优化
+SecTools 2011年的Top125款网络安全工具排行榜
+2012最新超级计算机500强，Linux系统占九成多
+Virgo Tomcat Server简析
+12种编程语言类比12星座女
+某码农画的男女关系进化流程图
+（总结）MySQL报错1042-Can’t get hostname for your address解决
+
+ 
+近期评论
+ ajian 发表在《（总结）WordPress自动保存远程图片+图片水印的插件》
+DZ 发表在《RedHat Enterprise Linux (RHEL) 6正式版发布下载（很快）》
+Dylan 发表在《系统吞吐量（TPS）、用户并发量、性能测试概念和公式》
+rjmcy 发表在《（总结）Nginx配置文件nginx.conf中文详解》
+sheldWu 发表在《（总结）Linux下使用rsync最快速删除海量文件的方法》
+kmxz 发表在《（原创）Linux下nginx支持.htaccess文件实现伪静态的方法！》
+蹦跶中 发表在《（总结）Nginx配置文件nginx.conf中文详解》
+blambin 发表在《在Web页面上启动运行Linux系统》
+坏坏 发表在《汗，本博的VPS挂了两天才发现。》
+
+ 
+标签
+ 
+2010 Apache centos Chrome Debian Google iptables Linux mysql Nginx oracle PHP RedHat RHEL server Shell VPS Web Windows WordPress yum 下载 互联网 优化 全球 原创 参数 命令 国内 安装 工具 常用 开源 总结 排行榜 方法 服务器 架构 系统 经典 脚本 腾讯 解决方法 详解 配置
+ 
+
+博文浏览排名
+ SQL Server 2008 R2 企业版/开发版/标准版（中英文下载，带序列号） - 47,773 views
+RedHat Enterprise Linux (RHEL) 6正式版发布下载（很快） - 40,700 views
+最流行最好玩的十大经典单机游戏排行榜 - 31,047 views
+（原创）Oracle 9i所有版本的最新下载地址（已验证！） - 22,103 views
+Windows Server 2008 R2 SP1中文企业版 33in1 OEM激活（附下载和至少900天试用方法） - 16,340 views
+Google Chrome开源项目Chromium的官方下载地址 - 13,097 views
+（总结）推荐Google的DNS解析服务器8.8.8.8 - 12,637 views
+（原创）RHEL/CentOS 5.x使用第三方软件库（EPEL与RPMForge、RPMFusion软件库） - 11,765 views
+（原创）Linux里使用SSH代理fanqiang最简单的方法！ - 11,040 views
+（分享）RedHat Enterprise Linux (RHEL) 6.3正式版发布下载 - 10,950 views
+ 
+
+分类目录
+Apple (3) 
+Browser (20) Google Chrome (15) 
+Mozilla Firefox (7) 
+
+DataBase (92) DB2 (1) 
+MySQL (52) 
+Oracle (20) 
+
+Google (54) 
+Hadoop (2) 
+IDC (11) 
+IT精英 (30) 
+Linux (405) Android (3) 
+Debian/Ubuntu/Mint (17) 
+Gentoo/Arch/Slackware (15) 
+LFS/ALFS/BLFS/CLFS (5) 
+RHEL/CentOS/Fedora (46) 
+SLES/SLED/openSUSE (2) 
+
+MicroSoft (42) Office (1) 
+SQL Server (1) 
+Windows (35) 
+
+Security (111) 
+SEO (22) 
+Server Application (3) 
+Shell (61) 
+Tools (68) 
+UNIX (165) AIX (1) 
+BSD (18) 
+Mac OS X (3) 
+SCO UNIX (2) 
+Solaris (9) 
+
+VPS (14) 
+Web (153) 
+Web Server (128) Apache (47) 
+IIS (5) 
+Lighttpd (7) 
+Nginx (67) 
+Resin (2) 
+Tomcat (11) 
+WebLogic (1) 
+WebSphere (1) 
+
+WordPress (38) 
+个人日记 (311) 
+书评影评 (6) 
+互联网 (219) 
+人文历史 (54) 
+人生百态 (95) 
+佛道易学 (10) 
+创业投资 (75) 
+原创总结 (120) 
+外文翻译 (71) 
+奇闻异事 (29) 
+开源世界 (41) 
+旧文存档 (198) 
+服务器架构 (73) 
+未分类 (5) 
+游戏研究 (42) 
+科技资讯 (50) 
+经济管理 (25) 
+编程开发 (110) .NET (1) 
+HTML/CSS (31) 
+Java (5) 
+PHP (49) 
+
+网络应用 (14) 
+虚拟化与云计算 (30) 
+资源分享 (130) 
+运维经验 (34) 
+随笔杂记 (42) 
+集群与负载均衡 (9) 
+项目管理 (9) 
+
+
+文章归档
+2013 年一月 (2)
+2012 年十二月 (4)
+2012 年十一月 (10)
+2012 年十月 (2)
+2012 年九月 (5)
+2012 年八月 (12)
+2012 年七月 (21)
+2012 年六月 (23)
+2012 年五月 (21)
+2012 年四月 (7)
+2012 年三月 (2)
+2012 年二月 (1)
+2012 年一月 (2)
+2011 年十二月 (5)
+2011 年十一月 (6)
+2011 年十月 (5)
+2011 年八月 (2)
+2011 年七月 (27)
+2011 年六月 (24)
+2011 年五月 (37)
+2011 年四月 (28)
+2011 年三月 (23)
+2011 年二月 (1)
+2011 年一月 (14)
+2010 年十二月 (3)
+2010 年十一月 (17)
+2010 年十月 (24)
+2010 年九月 (100)
+2010 年八月 (120)
+2010 年七月 (184)
+2010 年六月 (157)
+2010 年五月 (154)
+2010 年四月 (42)
+ 
+
+日历
+ 
+
+2013 年一月
+
+
+
+一
+
+二
+
+三
+
+四
+
+五
+
+六
+
+日
+
+
+
+
+« 十二
+
+ 
+
+ 
+
+
+
+
+ 
+
+1
+
+2
+
+3
+
+4
+
+5
+
+6
+
+
+
+7
+
+8
+
+9
+
+10
+
+11
+
+12
+
+13
+
+
+
+14
+
+15
+
+16
+
+17
+
+18
+
+19
+
+20
+
+
+
+21
+
+22
+
+23
+
+24
+
+25
+
+26
+
+27
+
+
+
+28
+
+29
+
+30
+
+31
+
+ 
+
+
+ 
+Linux
+ CentOS
+ China Linux Forum
+ ChinaUnix
+ Debian
+ Gentoo
+ GNU
+ Linux Kernel
+ LinuxSir
+ 开源中国社区
+ 
+
+常用网站
+ Google SSL
+ MySQL
+ PHP
+ SourceForge
+ wikipedia
+ 豆瓣
+ 
+
+技术blog
+ DBA Notes
+ 张宴博客
+ 服务器运维与架构
+ 素包子
+ 羽飞博客
+ 
+
+技术手册
+ LFS 6.6中文手册
+ Nginx中文维基
+ Unix Toolbox中文版
+ 开源世界旅行手册
+ 鸟哥的Linux私房菜（简体版）
+ 
+
+科技资讯
+ Engadget
+ GigaOM
+ 奇客的资讯
+ 
+
+链接表
+ 绿盟科技
+ 
+.
+
+
+日志存档
+•2013 年一月
+•2012 年十二月
+•2012 年十一月
+•2012 年十月
+•2012 年九月
+•2012 年八月
+•2012 年七月
+•2012 年六月
+•2012 年五月
+•2012 年四月
+•2012 年三月
+•2012 年二月
+•2012 年一月
+•2011 年十二月
+•2011 年十一月
+•2011 年十月
+•2011 年八月
+•2011 年七月
+•2011 年六月
+•2011 年五月
+•2011 年四月
+•2011 年三月
+•2011 年二月
+•2011 年一月
+•2010 年十二月
+•2010 年十一月
+•2010 年十月
+•2010 年九月
+•2010 年八月
+•2010 年七月
+•2010 年六月
+•2010 年五月
+•2010 年四月
+
+
+博主站点
+•WebNginx
+•IT大观园
+•服务器运维与架构
+.
+Powered by WebNginx 3.2.1 - 服务器运维与架构 by 博客教主 Google地图 百度地图 站长统计- 1.18 秒
+

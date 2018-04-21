@@ -1,0 +1,360 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+Rachel Zhang的专栏
+
+因为理想，所以拼搏，关注计算机应用的点点滴滴……
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+CSDN客服工作问卷调查        智能开发框架 JEECG 作者张代浩专访
+ 2012CSDN博客之星火热出炉！        2013年全国百所高校巡讲讲师招募 
+
+
+
+机器学习——深度学习(Deep Learning) 
+.
+分类： Machine Learning2012-08-04 09:4913195人阅读评论(16)收藏举报
+ 
+classificationhierarchyalgorithmfeaturesfunction
+
+
+Deep Learning是机器学习中一个非常接近AI的领域，其动机在于建立、模拟人脑进行分析学习的神经网络，最近研究了机器学习中一些深度学习的相关知识，本文给出一些很有用的资料和心得。
+ 
+
+
+
+Key Words：有监督学习与无监督学习，分类、回归，密度估计、聚类，深度学习，Sparse DBN，
+ 
+
+
+
+1. 有监督学习和无监督学习
+ 
+
+
+
+给定一组数据(input，target)为Z=(X，Y)。
+ 
+
+有监督学习：最常见的是regression & classification。
+ 
+regression：Y是实数vector。回归问题，就是拟合(X，Y)的一条曲线，使得下式cost function L最小。
+ 
+
+
+
+
+
+classification：Y是一个finite number，可以看做类标号。分类问题需要首先给定有label的数据训练分类器，故属于有监督学习过程。分类问题中，cost function L(X,Y)是X属于类Y的概率的负对数。
+ 
+，其中fi(X)=P(Y=i | X);
+ 
+
+
+
+
+
+
+无监督学习：无监督学习的目的是学习一个function f，使它可以描述给定数据的位置分布P(Z)。 包括两种：density estimation & clustering.
+ 
+density estimation就是密度估计，估计该数据在任意位置的分布密度
+ 
+
+clustering就是聚类，将Z聚集几类（如K-Means），或者给出一个样本属于每一类的概率。由于不需要事先根据训练数据去train聚类器，故属于无监督学习。
+ 
+PCA和很多deep learning算法都属于无监督学习。
+ 
+
+
+
+
+
+
+2. 深度学习Deep Learning介绍
+ 
+   Depth 概念：depth: the length of the longest path from an input to an output.
+ 
+   Deep Architecture 的三个特点：深度不足会出现问题；人脑具有一个深度结构（每深入一层进行一次abstraction，由lower-layer的features描述而成的feature构成，就是上篇中提到的feature hierarchy问题，而且该hierarchy是一个稀疏矩阵）；认知过程逐层进行，逐步抽象
+ 
+   3篇文章介绍Deep Belief Networks，作为DBN的breakthrough
+ 
+
+
+
+3.Deep Learning Algorithm 的核心思想：
+ 
+    把learning hierarchy 看做一个network，则
+ 
+    ①无监督学习用于每一层网络的pre-train；
+ 
+    ②每次用无监督学习只训练一层，将其训练结果作为其higher一层的输入；
+ 
+    ③用监督学习去调整所有层
+ 
+
+
+
+这三个点是Deep Learning Algorithm的精髓，我在上一篇文章中也有讲到，其中第三部分：Learning Features Hierachy & Sparse DBN就讲了如何运用Sparse DBN进行feature学习。
+ 
+
+
+
+4. Deep Learning 经典阅读材料：
+ 
+
+•The monograph or review paper Learning Deep Architectures for AI (Foundations & Trends in Machine Learning, 2009).
+•The ICML 2009 Workshop on Learning Feature Hierarchies webpage has a list of references.
+•The LISA public wiki has a reading list and a bibliography.
+•Geoff Hinton has readings from last year’s NIPS tutorial.
+ 
+
+
+
+5. Deep Learning工具—— Theano
+ 
+     Theano是deep learning的Python库，要求首先熟悉Python语言和numpy，建议读者先看Theano basic tutorial，然后按照Getting Started 下载相关数据并用gradient descent的方法进行学习。
+ 
+学习了Theano的基本方法后，可以练习写以下几个算法：
+ 
+有监督学习：
+ 
+
+1.Logistic Regression - using Theano for something simple
+2.Multilayer perceptron - introduction to layers
+3.Deep Convolutional Network - a simplified version of LeNet5
+ 
+
+
+
+
+无监督学习：
+ 
+•Auto Encoders, Denoising Autoencoders - description of autoencoders
+•Stacked Denoising Auto-Encoders - easy steps into unsupervised pre-training for deep nets
+•Restricted Boltzmann Machines - single layer generative RBM model
+•Deep Belief Networks - unsupervised generative pre-training of stacked RBMs followed by supervised fine-tuning
+ 
+
+
+
+
+
+
+
+
+最后呢，推荐给大家基本ML的书籍：
+ 
+•Chris Bishop, “Pattern Recognition and Machine Learning”, 2007
+•Simon Haykin, “Neural Networks: a Comprehensive Foundation”, 2009 (3rd edition)
+•Richard O. Duda, Peter E. Hart and David G. Stork, “Pattern Classification”, 2001 (2nd edition)
+ 
+
+
+
+
+
+
+关于Machine Learning更多的学习资料将继续更新，敬请关注本博客和新浪微博Sophia_qing。
+ 
+
+
+
+References：
+ 
+1. Brief Introduction to ML for AI
+ 
+2.Deep Learning Tutorial
+ 
+3.A tutorial on deep learning - Video
+ 
+
+
+
+
+
+
+
+分享到： 
+
+上一篇：无监督特征学习——Unsupervised feature learning and deep learning
+下一篇：一首诗，致亲爱的csdn
+ .
+顶8踩0. 
+
+
+查看评论
+ 
+9楼 wlike 5天前 10:50发表[回复] 浙大看 coursera 不卡吗？还是有什么特殊途径或方法？谢谢Re: qeryui 4天前 19:29发表[回复] 回复wlike：不是可以下载的么8楼 qeryui 2013-01-22 09:30发表[回复] ==!居然是浙大的...pg....7楼 fengyan850116 2013-01-06 12:57发表[回复] 看了博主的一些博客，很多高质量的资料。
+真心不易，有心结识啊。6楼 visionfans 2012-12-27 03:39发表[回复] 还在做deep learning吗？有木有打算在深度学习的方向上深钻下去吗Re: abcjennifer 2013-01-01 09:21发表[回复] 回复visionfans：最近没在做，明年应该继续做CV/ML :)5楼 krrrr 2012-12-26 22:56发表[回复] 楼主涉猎真广啊，bundle adjustment到deep learning。。真心觉得我原来在cad呆的时候接触东西太少了Re: abcjennifer 2013-01-01 09:22发表[回复] 回复krrrr：学长好。。。4楼 VapnikAndrewNg 2012-12-19 00:22发表[回复] 最近也在看deep learning 但是有个问题，deep learning 究竟在 之前的RBF 网络上提高了多少啊~~~我觉得思路上基本一样，不吝赐教3楼 legend_of_me 2012-12-06 13:54发表[回复] 看了学姐的一些博文，感觉学姐真牛，学姐是CAD实验室的么，我是大四学生，保送复旦直博，上学期暑假在CAD何老师那做过考察性质的项目，也拿到老师offer，不过因为一些原因很遗憾错过了浙大。真不敢相信学姐只比我大了一届，学姐的自律能力和学习效率让我对自己感到很羞愧，最近自己过得真是浑浑噩噩，懒懒散散，导师说大四要像研究生一样生活我也有一丝丝不情愿，被学长push着看一些coursera课程（我发现学姐也在看这个）和python、openACC的资料，没有激情，学习效率也不高，不过学姐的学习状态给了我极大的鼓励。因为我们group最近也在做一些关于deep learning的研究，所以也在学习一些相关的资料，真希望能向学姐请教一下这方面的东西。突然发现写blog真是一个督促自己的好方法，将来一定要多多向学姐学习下。Re: abcjennifer 2012-12-06 14:39发表[回复] 回复legend_of_me：hi，我不是cad的，何老师那边很强大，很仰慕，不过选择不留下来也不一定是坏事，加油！Re: legend_of_me 2012-12-06 20:17发表[回复] 回复abcjennifer：嗯，我会加油的，凡事预则立。看了学姐作的诗，学姐文采也很好嘛，嘿嘿。2楼 oxygenerator 2012-09-27 18:23发表[回复] 不过为什么分类在compression里了呢。。Re: abcjennifer 2012-09-27 21:32发表[回复] 回复oxygenerator：啊哦……放错了……改过来：）1楼 oxygenerator 2012-09-27 18:20发表[回复] 非常佩服楼主每天学习的效率。。读文献，写博客，还学新的library，写code验证。Deep Learning可说是ML的前沿热门方向了，有空要研究一下。Re: abcjennifer 2012-09-27 21:33发表[回复] 回复oxygenerator：thx~可惜不大啃得动。。。时间不太有啊~呵呵
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+abcjennifer
+ 
+
+
+
+
+
+访问：456273次
+积分：9556分
+排名：第253名
+.原创：407篇
+转载：27篇
+译文：1篇
+评论：1477条
+. 
+博主描述浙江大学CS硕士在读，关注计算机视觉，机器学习，算法研究，博弈， 人工智能， 移动互联网等学科和产业，希望结识更多同道中人。
+ 新浪微博：Rachel____Zhang 
+文章分类ACM(143)
+Compression(12)
+C/C++(104)
+Computer System(15)
+Data Mining(8)
+Linux(6)
+Computer Vision(93)
+Machine Learning(23)
+MFC(42)
+MATLAB(8)
+C#(33)
+ASP.NET(8)
+Python(3)
+DIV+CSS(2)
+DataBase(9)
+Java(2)
+English(3)
+Data Structure(58)
+杂感(37)
+ 
+阅读排行中国压缩传感资源（China Compressive Sensing Resources）(13451)
+机器学习——深度学习(Deep Learning)(13194)
+初识压缩感知Compressive Sensing(8313)
+压缩感知进阶——有关稀疏矩阵(7891)
+为什么土豆网王微会放弃自己原有的立场，跟优酷合并？合并后有何影响？(7696)
+SIFT特征提取分析(6853)
+聚类算法K-Means, K-Medoids, GMM, Spectral clustering，Ncut(6755)
+Stanford机器学习---第三讲. 逻辑回归和过拟合问题的解决 logistic Regression & Regularization(6631)
+Stanford机器学习---第八讲. 支持向量机SVM(5882)
+HOG特征-理解篇(5473)
+ 
+评论排行一首诗，致亲爱的csdn(65)
+SIFT特征提取分析(55)
+Stanford机器学习---第八讲. 支持向量机SVM(54)
+压缩感知进阶——有关稀疏矩阵(42)
+初识压缩感知Compressive Sensing(41)
+2012年度总结(39)
+沉默独白(36)
+Single Image Haze Removal(图像去雾)-CVPR’09 Best Paper(34)
+聚类算法K-Means, K-Medoids, GMM, Spectral clustering，Ncut(32)
+Stanford机器学习---第三讲. 逻辑回归和过拟合问题的解决 logistic Regression & Regularization(32)
+ 
+博客推荐研究者July 
+最新评论 计算理论重点——Theory of Computation
+wangganggang90: 这个我看不懂 但是我认为是不错的。所以点击了一下。 
+
+Linux/Ubuntu下的用户切换
+niaiwomattt: 这些东西我不会发网上的，浪费时间。发东西的时间可以干些其他的事情。 
+
+JPEG压缩原理
+niaiwomattt: 以前研究过压缩算法，大学时代，现在工作了，都忘记了。 
+
+沉默独白
+niaiwomattt: @niaiwomattt:sorry ，网上。。。 
+
+沉默独白
+niaiwomattt: 我也喜欢作诗，不过没有发到晚上过。如果有意我们可以切磋一下。 
+
+初识压缩感知Compressive Sensing
+lovekid: 我读了你其他一些博文，你真的是太有才了，佩服，以后多向博主学习~很荣幸看到你的博文 
+
+导弹拦截
+niaiwomattt: 想当年我也是ACMer的一员啊，现在成PHPer了。哎，其实最喜欢的还是C，算法。可是生活摆在面前，... 
+
+为什么苹果以前封闭就失败了，现在的苹果还是封闭的，它却成功了？
+niaiwomattt: 有看到好东西 ，收藏下。 
+
+为什么苹果以前封闭就失败了，现在的苹果还是封闭的，它却成功了？
+niaiwomattt: 学习理念，前人留给我们丰富的经验，只待我们去运用了。 
+
+互联网产业，哪些特征的产品更可能在未来获得更高的价值？
+niaiwomattt: 姐姐你是大神啊 ，研究这么多东西，而且还研究的这么好，这篇正和我意我拿走了 。 
+
+
+文章存档
+2013年01月(1).
+2012年12月(2).
+2012年11月(7).
+2012年10月(6).
+2012年09月(7).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

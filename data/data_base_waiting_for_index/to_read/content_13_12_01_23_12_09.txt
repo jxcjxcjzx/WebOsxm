@@ -1,0 +1,833 @@
+
+
+
+
+结构之法 算法之道
+
+Google或baidu搜索：“结构之法”，进入本博客
+
+
+ 
+
+
+•目录视图
+•摘要视图
+•订阅
+ 
+
+
+
+《这些年，我们读过的技术经典图书》主题有奖征文       专访李铁军：从医生到金山首席安全专家的转变      独一无二的职位：开源社区经理        CSDN博客第三期云计算最佳博主评选
+ 
+
+
+红黑树的C实现完整源码 
+
+分类： 24.data structures25.Red-black tree2011-01-03 21:0216783人阅读评论(51)收藏举报
+ 
+csearchinsertnull代码分析tree
+
+ 
+
+红黑树C源码实现与剖析
+
+作者：July 、那谁   时间：二零一一年一月三日
+
+-------------------------
+
+前言：
+    红黑树作为一种经典而高级的数据结构，相信，已经被不少人实现过，但不是因为程序不够完善而无法运行，就是因为程序完全没有注释，初学者根本就看不懂。
+    此份红黑树的c源码最初从linux-lib-rbtree.c而来，后经一网友那谁（http://www.cppblog.com/converse/）用c写了出来。在此，向原作者表示敬意。但原来的程序存在没有任何一行注释。没有一行注释的程序，令程序的价值大打折扣。
+
+    所以，我特把这份源码放到了windows xp+vc 6.0上，一行一行的完善，一行一行的给它添加注释，至此，红黑树c带注释的源码，就摆在了您眼前，有不妥、不正之处，还望不吝指正。
+------------
+
+红黑树的六篇文章：
+1、教你透彻了解红黑树2、红黑树算法的实现与剖析3、红黑树的c源码实现与剖析4、一步一图一代码，R-B Tree5、红黑树插入和删除结点的全程演示6、红黑树的c++完整实现源码
+-------------------------
+
+ok，咱们开始吧。
+    相信，经过我前俩篇博文对红黑树的介绍，你应该对红黑树有了透彻的理解了（没看过的朋友，可事先查上面的倆篇文章，或与此文的源码剖析对应着看）。
+
+    本套源码剖析把重点放在红黑树的3种插入情况，与红黑树的4种删除情况。其余的能从略则尽量简略。
+
+目录：
+一、左旋代码分析
+二、右旋
+三、红黑树查找结点
+四、红黑树的插入
+五、红黑树的3种插入情况
+六、红黑树的删除
+七、红黑树的4种删除情况
+八、测试用例
+
+好的，咱们还是先从树的左旋、右旋代码，开始（大部分分析，直接给注释）：
+
+//一、左旋代码分析
+/*-----------------------------------------------------------
+|   node           right
+|   / /    ==>     / /
+|   a  right     node  y
+|       / /       / /    
+|       b  y     a   b    //左旋
+-----------------------------------------------------------*/
+static rb_node_t* rb_rotate_left(rb_node_t* node, rb_node_t* root)
+{
+    rb_node_t* right = node->right;    //指定指针指向 right<--node->right
+ 
+    if ((node->right = right->left))  
+    {
+        right->left->parent = node;  //好比上面的注释图，node成为b的父母
+    }
+    right->left = node;   //node成为right的左孩子
+ 
+    if ((right->parent = node->parent))
+    {
+        if (node == node->parent->right)
+        {
+            node->parent->right = right;
+        }
+        else
+        {
+            node->parent->left = right;
+        }
+    }
+    else
+    {
+        root = right;
+    }
+    node->parent = right;  //right成为node的父母
+ 
+    return root;
+}
+
+
+//二、右旋
+/*-----------------------------------------------------------
+|       node            left
+|       / /             / /
+|    left  y   ==>    a    node
+|   / /                    / /
+|  a   b                  b   y  //右旋与左旋差不多，分析略过
+-----------------------------------------------------------*/
+static rb_node_t* rb_rotate_right(rb_node_t* node, rb_node_t* root)
+{
+    rb_node_t* left = node->left;
+ 
+    if ((node->left = left->right))
+    {
+        left->right->parent = node;
+    }
+    left->right = node;
+ 
+    if ((left->parent = node->parent))
+    {
+        if (node == node->parent->right)
+        {
+            node->parent->right = left;
+        }
+        else
+        {
+            node->parent->left = left;
+        }
+    }
+    else
+    {
+        root = left;
+    }
+    node->parent = left;
+ 
+    return root;
+}
+
+
+//三、红黑树查找结点
+//----------------------------------------------------
+//rb_search_auxiliary：查找
+//rb_node_t* rb_search：返回找到的结点
+//----------------------------------------------------
+static rb_node_t* rb_search_auxiliary(key_t key, rb_node_t* root, rb_node_t** save)
+{
+    rb_node_t *node = root, *parent = NULL;
+    int ret;
+ 
+    while (node)
+    {
+        parent = node;
+        ret = node->key - key;
+        if (0 < ret)
+        {
+            node = node->left;
+        }
+        else if (0 > ret)
+        {
+            node = node->right;
+        }
+        else
+        {
+            return node;
+        }
+    }
+ 
+    if (save)
+    {
+        *save = parent;
+    }
+ 
+    return NULL;
+}
+
+//返回上述rb_search_auxiliary查找结果
+rb_node_t* rb_search(key_t key, rb_node_t* root)
+{
+    return rb_search_auxiliary(key, root, NULL);
+}
+
+
+//四、红黑树的插入
+//---------------------------------------------------------
+//红黑树的插入结点
+rb_node_t* rb_insert(key_t key, data_t data, rb_node_t* root)
+{
+    rb_node_t *parent = NULL, *node;
+ 
+    parent = NULL;
+    if ((node = rb_search_auxiliary(key, root, &parent)))  //调用rb_search_auxiliary找到插入结
+
+点的地方
+    {
+        return root;
+    }
+ 
+    node = rb_new_node(key, data);  //分配结点
+    node->parent = parent;   
+    node->left = node->right = NULL;
+    node->color = RED;
+ 
+    if (parent)
+    {
+        if (parent->key > key)
+        {
+            parent->left = node;
+        }
+        else
+        {
+            parent->right = node;
+        }
+    }
+    else
+    {
+        root = node;
+    }
+ 
+    return rb_insert_rebalance(node, root);   //插入结点后，调用rb_insert_rebalance修复红黑树
+
+的性质
+}
+
+
+//五、红黑树的3种插入情况
+//接下来，咱们重点分析针对红黑树插入的3种情况，而进行的修复工作。
+//--------------------------------------------------------------
+//红黑树修复插入的3种情况
+//为了在下面的注释中表示方便，也为了让下述代码与我的倆篇文章相对应，
+//用z表示当前结点，p[z]表示父母、p[p[z]]表示祖父、y表示叔叔。
+//--------------------------------------------------------------
+static rb_node_t* rb_insert_rebalance(rb_node_t *node, rb_node_t *root)
+{
+    rb_node_t *parent, *gparent, *uncle, *tmp;  //父母p[z]、祖父p[p[z]]、叔叔y、临时结点*tmp
+ 
+    while ((parent = node->parent) && parent->color == RED)
+    {     //parent 为node的父母，且当父母的颜色为红时
+        gparent = parent->parent;   //gparent为祖父
+  
+        if (parent == gparent->left)  //当祖父的左孩子即为父母时。
+                                 //其实上述几行语句，无非就是理顺孩子、父母、祖父的关系。:D。
+        {
+            uncle = gparent->right;  //定义叔叔的概念，叔叔y就是父母的右孩子。
+
+            if (uncle && uncle->color == RED) //情况1：z的叔叔y是红色的
+            {
+                uncle->color = BLACK;   //将叔叔结点y着为黑色
+                parent->color = BLACK;  //z的父母p[z]也着为黑色。解决z，p[z]都是红色的问题。
+                gparent->color = RED;  
+                node = gparent;     //将祖父当做新增结点z，指针z上移俩层，且着为红色。
+            //上述情况1中，只考虑了z作为父母的右孩子的情况。
+            }
+            else                     //情况2：z的叔叔y是黑色的，
+            {   
+                if (parent->right == node)  //且z为右孩子
+                {
+                    root = rb_rotate_left(parent, root); //左旋[结点z，与父母结点]
+                    tmp = parent;
+                    parent = node;
+                    node = tmp;     //parent与node 互换角色
+                }
+                             //情况3：z的叔叔y是黑色的，此时z成为了左孩子。
+                                    //注意，1：情况3是由上述情况2变化而来的。
+                                    //......2：z的叔叔总是黑色的，否则就是情况1了。
+                parent->color = BLACK;   //z的父母p[z]着为黑色
+                gparent->color = RED;    //原祖父结点着为红色
+                root = rb_rotate_right(gparent, root); //右旋[结点z，与祖父结点]
+            }
+        } 
+ 
+        else 
+        {     
+        // if (parent == gparent->right) 当祖父的右孩子即为父母时。（解释请看本文评论下第23楼，同时，感谢SupremeHover指正！）
+            uncle = gparent->left;  //祖父的左孩子作为叔叔结点。[原理还是与上部分一样的]
+            if (uncle && uncle->color == RED)  //情况1：z的叔叔y是红色的
+            {
+                uncle->color = BLACK;
+                parent->color = BLACK;
+                gparent->color = RED;
+                node = gparent;           //同上。
+            }
+            else                               //情况2：z的叔叔y是黑色的，
+            {
+                if (parent->left == node)  //且z为左孩子
+                {
+                    root = rb_rotate_right(parent, root);  //以结点parent、root右旋
+                    tmp = parent;
+                    parent = node;
+                    node = tmp;       //parent与node 互换角色
+                } 
+                  //经过情况2的变化，成为了情况3.
+                parent->color = BLACK;
+                gparent->color = RED;
+                root = rb_rotate_left(gparent, root);   //以结点gparent和root左旋
+            }
+        }
+    }
+ 
+    root->color = BLACK; //根结点，不论怎样，都得置为黑色。
+    return root;      //返回根结点。
+}
+
+
+//六、红黑树的删除
+//------------------------------------------------------------
+//红黑树的删除结点
+rb_node_t* rb_erase(key_t key, rb_node_t *root)
+{
+    rb_node_t *child, *parent, *old, *left, *node;
+    color_t color;
+ 
+    if (!(node = rb_search_auxiliary(key, root, NULL)))  //调用rb_search_auxiliary查找要删除的
+
+结点
+    {
+        printf("key %d is not exist!/n");
+        return root;
+    }
+ 
+    old = node;
+ 
+    if (node->left && node->right)
+    {
+        node = node->right;
+        while ((left = node->left) != NULL)
+        {
+            node = left;
+        }
+        child = node->right;
+        parent = node->parent;
+        color = node->color;
+  
+        if (child)
+        {
+            child->parent = parent;
+        }
+        if (parent)
+        {
+            if (parent->left == node)
+            {
+                parent->left = child;
+            }
+            else
+            {
+                parent->right = child;
+            }
+        }
+        else
+        {
+            root = child;
+        }
+  
+        if (node->parent == old)
+        {
+            parent = node;
+        }
+  
+        node->parent = old->parent;
+        node->color = old->color;
+        node->right = old->right;
+        node->left = old->left;
+  
+        if (old->parent)
+        {
+            if (old->parent->left == old)
+            {
+                old->parent->left = node;
+            }
+            else
+            {
+                old->parent->right = node;
+            }
+        } 
+        else
+        {
+            root = node;
+        }
+  
+        old->left->parent = node;
+        if (old->right)
+        {
+            old->right->parent = node;
+        }
+    }
+    else
+    {
+        if (!node->left)
+        {
+            child = node->right;
+        }
+        else if (!node->right)
+        {
+            child = node->left;
+        }
+        parent = node->parent;
+        color = node->color;
+  
+        if (child)
+        {
+            child->parent = parent;
+        }
+        if (parent)
+        {
+            if (parent->left == node)
+            {
+                parent->left = child;
+            }
+            else
+            {
+                parent->right = child;
+            }
+        }
+        else
+        {
+            root = child;
+        }
+    }
+ 
+    free(old);
+ 
+    if (color == BLACK)
+    {
+        root = rb_erase_rebalance(child, parent, root); //调用rb_erase_rebalance来恢复红黑树性
+
+质
+    }
+ 
+    return root;
+}
+
+
+//七、红黑树的4种删除情况
+//----------------------------------------------------------------
+//红黑树修复删除的4种情况
+//为了表示下述注释的方便，也为了让下述代码与我的倆篇文章相对应，
+//x表示要删除的结点，*other、w表示兄弟结点，
+//----------------------------------------------------------------
+static rb_node_t* rb_erase_rebalance(rb_node_t *node, rb_node_t *parent, rb_node_t *root)
+{
+    rb_node_t *other, *o_left, *o_right;   //x的兄弟*other，兄弟左孩子*o_left,*o_right
+ 
+    while ((!node || node->color == BLACK) && node != root) 
+    {
+        if (parent->left == node)
+        {
+            other = parent->right;
+            if (other->color == RED)   //情况1：x的兄弟w是红色的
+            {
+                other->color = BLACK;  
+                parent->color = RED;   //上俩行，改变颜色，w->黑、p[x]->红。
+                root = rb_rotate_left(parent, root);  //再对p[x]做一次左旋
+                other = parent->right;  //x的新兄弟new w 是旋转之前w的某个孩子。其实就是左旋后
+
+的效果。
+            }
+            if ((!other->left || other->left->color == BLACK) &&
+                (!other->right || other->right->color == BLACK))  
+                          //情况2：x的兄弟w是黑色，且w的俩个孩子也
+
+都是黑色的
+
+            {                         //由于w和w的俩个孩子都是黑色的，则在x和w上得去掉一黑色，
+                other->color = RED;   //于是，兄弟w变为红色。
+                node = parent;    //p[x]为新结点x
+                parent = node->parent;  //x<-p[x]
+            }
+            else                       //情况3：x的兄弟w是黑色的，
+            {                          //且，w的左孩子是红色，右孩子为黑色。
+                if (!other->right || other->right->color == BLACK)
+                {
+                    if ((o_left = other->left))   //w和其左孩子left[w]，颜色交换。
+                    {
+                        o_left->color = BLACK;    //w的左孩子变为由黑->红色
+                    } 
+                    other->color = RED;           //w由黑->红
+                    root = rb_rotate_right(other, root);  //再对w进行右旋，从而红黑性质恢复。
+                    other = parent->right;        //变化后的，父结点的右孩子，作为新的兄弟结点
+
+w。
+                }
+                            //情况4：x的兄弟w是黑色的
+    
+                other->color = parent->color;  //把兄弟节点染成当前节点父节点的颜色。
+                parent->color = BLACK;  //把当前节点父节点染成黑色
+                if (other->right)      //且w的右孩子是红
+                {
+                    other->right->color = BLACK;  //兄弟节点w右孩子染成黑色
+                }
+                root = rb_rotate_left(parent, root);  //并再做一次左旋
+                node = root;   //并把x置为根。
+                break;
+            }
+        }
+        //下述情况与上述情况，原理一致。分析略。
+        else
+        {
+            other = parent->left;
+            if (other->color == RED)
+            {
+                other->color = BLACK;
+                parent->color = RED;
+                root = rb_rotate_right(parent, root);
+                other = parent->left;
+            }
+            if ((!other->left || other->left->color == BLACK) &&
+                (!other->right || other->right->color == BLACK))
+            {
+                other->color = RED;
+                node = parent;
+                parent = node->parent;
+            }
+            else
+            {
+                if (!other->left || other->left->color == BLACK)
+                {
+                    if ((o_right = other->right))
+                    {
+                        o_right->color = BLACK;
+                    }
+                    other->color = RED;
+                    root = rb_rotate_left(other, root);
+                    other = parent->left;
+                }
+                other->color = parent->color;
+                parent->color = BLACK;
+                if (other->left)
+                {
+                    other->left->color = BLACK;
+                }
+                root = rb_rotate_right(parent, root);
+                node = root;
+                break;
+            }
+        }
+    }
+ 
+    if (node)
+    {
+        node->color = BLACK;  //最后将node[上述步骤置为了根结点]，改为黑色。
+    }  
+    return root;  //返回root
+}
+
+
+//八、测试用例
+//主函数
+int main()
+{
+    int i, count = 100;
+    key_t key;
+    rb_node_t* root = NULL, *node = NULL;
+    
+    srand(time(NULL));
+    for (i = 1; i < count; ++i)
+    {
+        key = rand() % count;
+        if ((root = rb_insert(key, i, root)))
+        {
+            printf("[i = %d] insert key %d success!/n", i, key);
+        }
+        else
+        {
+            printf("[i = %d] insert key %d error!/n", i, key);
+            exit(-1);
+        }
+  
+        if ((node = rb_search(key, root)))
+        {
+            printf("[i = %d] search key %d success!/n", i, key);
+        }
+        else
+        {
+            printf("[i = %d] search key %d error!/n", i, key);
+            exit(-1);
+        }
+        if (!(i % 10))
+        {
+            if ((root = rb_erase(key, root)))
+            {
+                printf("[i = %d] erase key %d success/n", i, key);
+            }
+            else
+            {
+                printf("[i = %d] erase key %d error/n", i, key);
+            }
+        }
+    }
+ 
+    return 0;
+}
+
+ok，完。
+
+后记：
+
+一、欢迎任何人就此份源码，以及我的前述倆篇文章，进行讨论、提议。
+但任何人，引用此份源码剖析，必须得注明作者本人July以及出处。
+红黑树系列，已经写了三篇文章，相信，教你透彻了解红黑树的目的，应该达到了。
+二、本文完整源码，请到此处下载：
+
+http://download.csdn.net/source/2958890
+1、教你透彻了解红黑树2、红黑树算法的实现与剖析3、红黑树的c源码实现与剖析4、一步一图一代码，R-B Tree5、红黑树插入和删除结点的全程演示6、红黑树的c++完整实现源码
+--------------------------------------------------------------------------------
+
+ 转载本BLOG内任何文章，请以超链接形式注明出处。非常感谢。
+ 
+
+•上一篇：微软面试100题系列：一道合并链表问题的解答[第42题]
+•下一篇：[最新答案V0.4版]微软等数据结构+算法面试100题[第41-60题答案]
+ 
+
+
+查看评论
+ 
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+个人资料 
+
+v_JULY_v 
+
+
+
+
+◦访问：4771609次
+◦积分：27387分
+◦排名：第46名
+ ◦原创：138篇
+◦转载：0篇
+◦译文：5篇
+◦评论：10756条
+ 
+
+博客公告 ①.本blog开通于2010年10月11日，高级C++/算法交流群：128691433；北京程序员联盟：172727781。②.狂热算法，热爱数据挖掘，关注机器学习、统计分析，爱好文学数学。③.微博：研究者July，邮箱：zhoulei97@aliyun.com，或zhoulei0907@yahoo.cn，July，二零一三年八月七日。 
+我的微博 
+文章分类 • 03.Algorithms（实现）(9) 
+• 01.Algorithms（研究）(27) 
+• 02.Algorithms（后续）(22) 
+• 04.Algorithms（讨论）(1) 
+• 05.MS 100' original(7) 
+• 06.MS 100' answers(13) 
+• 07.MS 100' classify(4) 
+• 08.MS 100' one Keys(6) 
+• 09.MS 100' follow-up(3) 
+• 10.MS 100' comments(4) 
+• 11.TAOPP（编程艺术）(29) 
+• 12.TAOPP string(8) 
+• 13.TAOPP array(12) 
+• 14.TAOPP list(2) 
+• 15.stack/heap/queue(0) 
+• 16.TAOPP tree(1) 
+• 17.TAOPP c/c++(2) 
+• 18.TAOPP function(2) 
+• 19.TAOPP algorithms(7) 
+• 20.number operations(1) 
+• 21.Essays(8) 
+• 22.Big Data Processing(5) 
+• 23.Redis/MongoDB(0) 
+• 24.data structures(12) 
+• 25.Red-black tree(7) 
+• 26.Image Processing(3) 
+• 27.Architecture design(4) 
+• 28.Source analysis(3) 
+• 29.Recommend&Search(4) 
+• 30.Machine L&Data Mining(5) 
+
+博客专栏
+
+
+
+
+数据挖掘十大算法系列
+文章：5篇
+阅读：277416 
+
+
+
+
+
+微软面试100题系列
+文章：17篇
+阅读：1412267 
+
+
+
+
+
+程序员编程艺术
+文章：27篇
+阅读：1022204 
+
+
+
+
+
+经典算法研究
+文章：32篇
+阅读：1254721 
+
+阅读排行 • 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(217908) 
+• 教你如何迅速秒杀掉：99%的海量数据处理面试题(170893) 
+• 九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(166897) 
+• 从B树、B+树、B*树谈到R 树(142708) 
+• 横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(137238) 
+• 十道海量数据处理面试题与十个方法大总结(113474) 
+• 支持向量机通俗导论（理解SVM的三层境界）(102790) 
+• 九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(94309) 
+• 十一、从头到尾彻底解析Hash表算法(89258) 
+• 微软公司等数据结构+算法面试100题(第1-100题)全部出炉(84427) 
+
+评论排行 • 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(409) 
+• 九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(368) 
+• 九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(339) 
+• 当今世界最为经典的十大算法--投票进行时(322) 
+• 从B树、B+树、B*树谈到R 树(279) 
+• 横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(267) 
+• 我的大学生涯(236) 
+• 程序员编程艺术第一章、左旋转字符串(223) 
+• 十三个经典算法研究与总结、目录+索引(218) 
+• 支持向量机通俗导论（理解SVM的三层境界）(215) 
+
+最新评论 •程序员编程艺术第三十二~三十三章：最小操作数，木块砌墙问题
+u011916787: 问一个关于C++的问题，使用vector的时候为什么有时候初始化了之后需要resize(),而有时候... 
+
+•程序员编程艺术第三十二~三十三章：最小操作数，木块砌墙问题
+u011916787: 问一下，这一个算法你大约想多久啊，我看现成的解答都要看半天，哎~~~ 
+
+•从Hadoop框架与MapReduce模式中谈海量数据处理（含淘宝技术架构）
+yutianzuijin: @RunZhi1989:惊现俊哥！ 
+
+•程序员编程艺术：第二章、字符串是否包含及匹配/查找/转换/拷贝问题
+ken_lover: @likefxy:这个方法有问题 
+
+•程序员编程艺术第一章、左旋转字符串
+ken_lover: 将问题提高到数学方法实现，思考问题层次立马advanced了 
+
+•从Trie树（字典树）谈到后缀树（10.28修订）
+hanchengxi: “还要提到一个节约时间的方法. 当我们遍历所有后缀时, 如果某个后缀的某个儿子跟待加字符(新前缀最后... 
+
+•全新整理：微软、Google等公司的面试题及解答、第161-170题
+ilogo1: 放鸡蛋那个题，应该DP一下，在条件限制下的完全背包问题。 
+
+•微软面试100题2010年版全部答案集锦（含下载地址）
+hasayake0302: 看了博主的帖子受益匪浅感觉Q48和Q51解法欠妥Q48：仅靠“a >= k && k > a”还不足... 
+
+•程序员编程艺术：第十章、如何给10^7个数据量的磁盘文件排序
+yankai0219: 关于这个题目中K路归并时所采用的算法。在您的原文中，K路归并时就是采用数组比较获得最小值，复杂度为O... 
+
+•程序员编程艺术第三十四~三十五章：格子取数问题，完美洗牌算法
+v_JULY_v: @k578522915:没记录最大值？ 
+
+
+01、本blog索引 ◦3、微软100题维护地址
+◦1、微软100题横空出世
+◦5、经典算法研究系列
+◦7、红黑树系列集锦
+◦6、程序员编程艺术系列
+◦2、微软面试全部100题
+◦0、经典5大原创系列集锦
+◦4、微软100题下载地址
+ 
+02、Google or baidu? ◦Google搜--"结构之法"（My BLOG）
+◦baidu 搜--"结构之法"（My BLOG）
+ 
+03、我的驻点 ◦01. 为学论坛-万物皆数 终生为学
+ ◦02、Harry
+ ◦03、NoSQLFan
+ ◦04、酷勤网
+ ◦05、52nlp
+ ◦06、北大朋友的挖掘乐园
+ ◦07、跟Sophia_qing一起读硕士
+ ◦08、caopengcs
+ ◦08、面试问答社区51nod
+ ◦09、韩寒
+ ◦11、曾经的叛逆与年少
+ ◦12、老D之MongoDB源码分析
+ ◦14、code4app:iOS代码示例
+ ◦17、斯坦福机器学习公开课
+ ◦18、TheItHome算法版块版主
+ ◦19、36氪--关注互联网创业
+ ◦20、德问--编程是一种艺术创作
+ ◦21、善科网
+ ◦22、百度搜索研发部
+ ◦23、淘宝搜索技术博客
+ ◦24、interviewstreet
+ ◦25、LeetCode
+ ◦26、Team_Algorithms人人小组
+ 
+文章存档 
+•2013年08月(2)
+•2013年06月(1)
+•2013年03月(1)
+•2012年12月(1)
+•2012年11月(1)
+•2012年09月(1)
+•2012年06月(1)
+•2012年05月(2)
+•2012年04月(1)
+•2012年03月(2)
+•2012年02月(2)
+•2012年01月(2)
+•2011年12月(5)
+•2011年11月(1)
+•2011年10月(7)
+•2011年09月(3)
+•2011年08月(11)
+•2011年07月(4)
+•2011年06月(7)
+•2011年05月(10)
+•2011年04月(7)
+•2011年03月(17)
+•2011年02月(11)
+•2011年01月(18)
+•2010年12月(14)
+•2010年11月(6)
+•2010年10月(5)
+ 
+
+
+

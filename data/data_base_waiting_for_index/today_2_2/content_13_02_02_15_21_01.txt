@@ -1,0 +1,1056 @@
+
+首页资讯精华论坛问答博客专栏群组更多 ▼
+
+ 
+您还未登录 !登录注册
+
+
+
+
+su1216
+
+
+博客
+微博
+相册
+收藏
+留言
+关于我
+
+
+
+
+.
+
+
+
+
+android手机root后的安全问题 （二）
+博客分类： android
+ 
+android广告notification安全root .
+
+
+导读：本文介绍杀毒软件和病毒是如何获取通知栏上的所有通知，并且利用其信息杀死应用。
+ 
+ 
+ 
+上一篇将过如何利用root权限来做一次静默安装，有的人会说，安装apk就安装呗，反正哥有金山手机卫士，哥有360主动防御……他们都会弹出通知告诉我的！ 
+
+安装了新的应用，手机会发送广播，这些所谓的杀毒软件监听这些广播，然后弹出通知 
+
+好吧，我承认，他们在一定意义上还是有点用处的，我们先把这个问题放一放，先来说两句题外话 
+
+ 
+ 
+360和和金山手机卫士都有一个让广大android开发者比较蛋疼的一个功能：那就是检查广告通知！ 
+
+当有通知栏有广告的时候，运行360执行检查，它会告诉你是哪个应用程序的广告（当然，这里并不局限于广告，他们是获得所有通知，然后过滤），然后他会让用户选择：不处理；关闭通知（实际上是把这个进程kill掉，整个软件停止运行）；卸载此软件。 
+
+ 
+ 
+虽然我没有发布过android应用，但是我知道，靠软件赚钱的各位，本来收入已经够尴尬的了，再加上这些操蛋的软件提供这些操蛋的功能……哎 
+
+大家不喜欢收费软件那咱们就免费，点点广告支持一下总行吧，就是不点，你就放在那呗（当然，有的软件发起广告来没玩没了也挺操蛋） 
+
+ 
+ 
+说了这么多废话，我们就来看看那些所谓的杀毒软件是如何对付大家的
+ 
+到了关键的地方，实际也就那么一行代码……又让大家失望了。。。
+ 
+
+
+Shell代码  
+1.adb shell dumpsys notification  
+ 
+比如，我现在在我机器上面执行一下，输出的结果为
+ 
+
+
+Log代码  
+1.Current Notification Manager state:  
+2.  Notification List:  
+3.    NotificationRecord{41453c70 pkg=com.zdworks.android.toolbox id=7f090092 tag=null pri=0}  
+4.      icon=0x0 / <name unknown>  
+5.      contentIntent=null  
+6.      deleteIntent=null  
+7.      tickerText=null  
+8.      contentView=null  
+9.      defaults=0x0  
+10.      flags=0x62  
+11.      sound=null  
+12.      vibrate=null  
+13.      ledARGB=0x0 ledOnMS=0 ledOffMS=0  
+14.    NotificationRecord{415f48e8 pkg=com.zdworks.android.toolbox id=7f090080 tag=null pri=100}  
+15.      icon=0x7f0200fd / com.zdworks.android.toolbox:drawable/barttery_notify_icon  
+16.      contentIntent=PendingIntent{41949028: PendingIntentRecord{412e3c20 com.zdworks.android.toolbox startActivity}}  
+17.      deleteIntent=null  
+18.      tickerText=电量提示  
+19.      contentView=android.widget.RemoteViews@416e7b90  
+20.      defaults=0x0  
+21.      flags=0x22  
+22.      sound=null  
+23.      vibrate=null  
+24.      ledARGB=0x0 ledOnMS=0 ledOffMS=0  
+25.    NotificationRecord{416db3e0 pkg=android id=1040414 tag=null pri=100}  
+26.      icon=0x10804f5 / android:drawable/stat_sys_adb  
+27.      contentIntent=PendingIntent{41275de8: PendingIntentRecord{416dade8 android startActivity}}  
+28.      deleteIntent=null  
+29.      tickerText=USB 调试已连接  
+30.      contentView=android.widget.RemoteViews@416daf40  
+31.      defaults=0x0  
+32.      flags=0x2  
+33.      sound=null  
+34.      vibrate=null  
+35.      ledARGB=0x0 ledOnMS=0 ledOffMS=0  
+36.    NotificationRecord{41790de8 pkg=com.htc.android.psclient id=7f020010 tag=null pri=100}  
+37.      icon=0x7f020010 / com.htc.android.psclient:drawable/usb_to_pc_notify  
+38.      contentIntent=PendingIntent{416c3e38: PendingIntentRecord{417bc968 com.htc.android.psclient startActivity}}  
+39.      deleteIntent=null  
+40.      tickerText=null  
+41.      contentView=android.widget.RemoteViews@4169d128  
+42.      defaults=0x0  
+43.      flags=0x2  
+44.      sound=null  
+45.      vibrate=null  
+46.      ledARGB=0x0 ledOnMS=0 ledOffMS=0  
+47.    
+48.  mSoundNotification=null  
+49.  mSound=com.android.server.NotificationPlayer@413e73b8  
+50.  mVibrateNotification=null  
+51.  mDisabledNotifications=0x0  
+52.  mSystemReady=true  
+ 
+现在大家知道了吧，这么简单就把咱们给搞定了
+ 
+下面的事情就简单
+ 
+1.想办法获取这段log 
+
+2.提取包名
+ 
+
+3.根据数据库中的黑名单白名单不同处理 
+
+4.你的应用很可能在黑名单中，最后的结果也基本是进程被杀死 
+
+（这里就不演示3、4部分了，只演示1、2）
+ 
+ 
+ 
+
+
+Java代码  
+1.testButton = (Button)findViewById(R.id.exec);  
+2.testButton.setOnClickListener(new View.OnClickListener() {  
+3.    public void onClick(View v) {  
+4.        String[] commands = {"dumpsys notification"};  
+5.        Process process = null;  
+6.        DataOutputStream dataOutputStream = null;  
+7.  
+8.        try {  
+9.            process = Runtime.getRuntime().exec("su");  
+10.            dataOutputStream = new DataOutputStream(process.getOutputStream());  
+11.            int length = commands.length;  
+12.            for (int i = 0; i < length; i++) {  
+13.                Log.e(TAG, "commands[" + i + "]:" + commands[i]);  
+14.                dataOutputStream.writeBytes(commands[i] + "\n");  
+15.            }  
+16.            dataOutputStream.writeBytes("exit\n");  
+17.            dataOutputStream.flush();  
+18.              
+19.            process.waitFor();  
+20.              
+21.            BufferedReader reader = null;  
+22.            reader = new BufferedReader(new InputStreamReader(process.getInputStream()));    
+23.            String line = "";  
+24.            List<String> lineList = new ArrayList<String>();  
+25.            final StringBuilder log = new StringBuilder();    
+26.            String separator = System.getProperty("line.separator");  
+27.            Pattern pattern = Pattern.compile("pkg=[^\\s]+");  
+28.            while ((line = reader.readLine()) != null) {  
+29.                if(line != null && line.trim().startsWith("NotificationRecord")){  
+30.                    Matcher matcher = pattern.matcher(line);  
+31.                    if(matcher.find()){  
+32.                        lineList.add(matcher.group());  
+33.                    }else{  
+34.                        Log.e(TAG, "what's this?!");  
+35.                    }  
+36.                }  
+37.                  
+38.                log.append(line);  
+39.                log.append(separator);  
+40.            }  
+41.            Log.v(TAG, "log:" + log.toString());  
+42.              
+43.            int size = lineList.size();  
+44.            for (int i = 0; i < size; i++) {  
+45.                Log.i(TAG, "app:" + lineList.get(i));  
+46.            }  
+47.        } catch (Exception e) {  
+48.            Log.e(TAG, "copy fail", e);  
+49.        } finally {  
+50.            try {  
+51.                if (dataOutputStream != null) {  
+52.                    dataOutputStream.close();  
+53.                }  
+54.                process.destroy();  
+55.            } catch (Exception e) {  
+56.            }  
+57.        }  
+58.        Log.v(TAG, "finish");  
+59.        }  
+60.    });  
+61.}  
+ 
+上面的这段代码实在没什么技术含量，让给位网友见笑了
+ 
+按顺序简单解释一下
+ 
+首先，我们先执行dumpsys notification这条命令，这在上一期的代码中已经有了
+ 
+然后通过process.getInputStream()获得其输出按行读取，这里只关心类似于下面这种的log
+ 
+
+
+Log代码  
+1.NotificationRecord{40dacad8 pkg=com.htc.android.psclient id=7f020010 tag=null pri=100}  
+ 
+然后从中提取出包名即可
+ 
+其中的正则就是为了提取包名用的，想了解正则的同学可以看我的正则教程
+ 
+深入入门正则表达式（java） 
+
+ 
+ 
+这里我执行的结果为（看来有一个应用提示了两个通知）
+ 
+
+
+Java代码  
+1.app:pkg=com.zdworks.android.toolbox  
+2.app:pkg=com.zdworks.android.toolbox  
+3.app:pkg=android  
+4.app:pkg=com.htc.android.psclient   
+ 
+之后的工作就是把这个list展示给用户，让用户去选择了
+ 
+既然360可以这样，病毒为什么不可以呢？病毒Fake.apk可以在半夜偷偷安装应用Real.apk，几秒钟后，Fake.apk执行上面的这些操作，获取360，然后kill！爽！ 
+
+大家有兴趣可以反编译一下金山和360，他们基本就是这么干的，我发现360比较坏，至于为什么这么说，大家自己去发现吧 
+
+ 
+ 
+ 
+ 
+ps：我使用的是卡巴斯基免费版，杀毒软件是不会去管有没有广告推送的，广告不是病毒，杀毒软件也不应该干一些不该干的事！ 
+
+ 
+ 
+ 
+ 
+请大家不要用root的手机随意下载软件，更不要以任何借口制造任何病毒！ 
+
+ 
+ 
+
+
+android手机root后的安全问题 （一）
+ 
+android手机root后的安全问题 （二）
+ 
+android手机root后的安全问题 （三）
+ 
+android手机root后的安全问题 （四）
+ 
+ 
+ 
+ 
+ 
+android安全问题（一） 静音拍照与被拍
+ 
+android安全问题（二） 程序锁
+ 
+android安全问题（三） 钓鱼程序
+ 
+ 
+
+ 
+ 
+ 
+ 
+转贴请保留以下链接 
+
+本人blog地址
+ 
+http://su1216.iteye.com/ 
+
+http://blog.csdn.net/su1216/ 
+
+
+
+3 
+顶
+
+0 
+踩.
+
+分享到： 
+.
+
+android手机root后的安全问题 （三）| android手机root后的安全问题 （一）
+
+2012-09-02 12:21
+浏览 2839
+评论(22)
+分类:移动开发
+相关推荐
+
+
+评论
+
+
+22 楼 N_HH 2013-01-04   
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+那你都把360给看透了。。对反编译的源码，应该从何看起？ 
+
+我哪有那本事。。。
+搜索你认为是关键字的字符串，逐个检查
+嗯。。我下午查notification就是这样，不过，类多的我蛋疼。。
+揉揉。
+额。。。 
+楼主，得到packagename，接着怎么得到notification对象呢。？
+得到notification干什么
+直接把这个应用干掉
+就像流氓软件一样
+不是啊，像360它拦截了广告后，会有记录，记录就有notification的信息。
+还有进程可以杀掉，但像服务这样，杀不掉，杀掉了又重新启动。。
+没有杀不掉的
+你要不爽，就disable掉它算了
+没用过，我去查查是什么。。
+没查到这个用法。。。 
+android手机root后的安全问题 （四） 
+嗯，看了。 这样看来，好像通知栏消息好像无法监听，但是360是怎样做到监听的？
+不知道他还有监听功能
+如何使用，说来听听
+360手机卫士里有个功能恶意广告拦截，你可以看看 
+
+21 楼 su1216 2013-01-04   
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+那你都把360给看透了。。对反编译的源码，应该从何看起？ 
+
+我哪有那本事。。。
+搜索你认为是关键字的字符串，逐个检查
+嗯。。我下午查notification就是这样，不过，类多的我蛋疼。。
+揉揉。
+额。。。 
+楼主，得到packagename，接着怎么得到notification对象呢。？
+得到notification干什么
+直接把这个应用干掉
+就像流氓软件一样
+不是啊，像360它拦截了广告后，会有记录，记录就有notification的信息。
+还有进程可以杀掉，但像服务这样，杀不掉，杀掉了又重新启动。。
+没有杀不掉的
+你要不爽，就disable掉它算了
+没用过，我去查查是什么。。
+没查到这个用法。。。 
+android手机root后的安全问题 （四） 
+嗯，看了。 这样看来，好像通知栏消息好像无法监听，但是360是怎样做到监听的？
+不知道他还有监听功能
+如何使用，说来听听 
+
+20 楼 N_HH 2013-01-04   
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+那你都把360给看透了。。对反编译的源码，应该从何看起？ 
+
+我哪有那本事。。。
+搜索你认为是关键字的字符串，逐个检查
+嗯。。我下午查notification就是这样，不过，类多的我蛋疼。。
+揉揉。
+额。。。 
+楼主，得到packagename，接着怎么得到notification对象呢。？
+得到notification干什么
+直接把这个应用干掉
+就像流氓软件一样
+不是啊，像360它拦截了广告后，会有记录，记录就有notification的信息。
+还有进程可以杀掉，但像服务这样，杀不掉，杀掉了又重新启动。。
+没有杀不掉的
+你要不爽，就disable掉它算了
+没用过，我去查查是什么。。
+没查到这个用法。。。 
+android手机root后的安全问题 （四） 
+嗯，看了。 这样看来，好像通知栏消息好像无法监听，但是360是怎样做到监听的？ 
+
+19 楼 su1216 2012-12-29   
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+那你都把360给看透了。。对反编译的源码，应该从何看起？ 
+
+我哪有那本事。。。
+搜索你认为是关键字的字符串，逐个检查
+嗯。。我下午查notification就是这样，不过，类多的我蛋疼。。
+揉揉。
+额。。。 
+楼主，得到packagename，接着怎么得到notification对象呢。？
+得到notification干什么
+直接把这个应用干掉
+就像流氓软件一样
+不是啊，像360它拦截了广告后，会有记录，记录就有notification的信息。
+还有进程可以杀掉，但像服务这样，杀不掉，杀掉了又重新启动。。
+没有杀不掉的
+你要不爽，就disable掉它算了
+没用过，我去查查是什么。。
+没查到这个用法。。。 
+android手机root后的安全问题 （四） 
+
+18 楼 N_HH 2012-12-29   
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+那你都把360给看透了。。对反编译的源码，应该从何看起？ 
+
+我哪有那本事。。。
+搜索你认为是关键字的字符串，逐个检查
+嗯。。我下午查notification就是这样，不过，类多的我蛋疼。。
+揉揉。
+额。。。 
+楼主，得到packagename，接着怎么得到notification对象呢。？
+得到notification干什么
+直接把这个应用干掉
+就像流氓软件一样
+不是啊，像360它拦截了广告后，会有记录，记录就有notification的信息。
+还有进程可以杀掉，但像服务这样，杀不掉，杀掉了又重新启动。。
+没有杀不掉的
+你要不爽，就disable掉它算了
+没用过，我去查查是什么。。
+没查到这个用法。。。 
+
+17 楼 N_HH 2012-12-29   
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+那你都把360给看透了。。对反编译的源码，应该从何看起？ 
+
+我哪有那本事。。。
+搜索你认为是关键字的字符串，逐个检查
+嗯。。我下午查notification就是这样，不过，类多的我蛋疼。。
+揉揉。
+额。。。 
+楼主，得到packagename，接着怎么得到notification对象呢。？
+得到notification干什么
+直接把这个应用干掉
+就像流氓软件一样
+不是啊，像360它拦截了广告后，会有记录，记录就有notification的信息。
+还有进程可以杀掉，但像服务这样，杀不掉，杀掉了又重新启动。。
+没有杀不掉的
+你要不爽，就disable掉它算了
+没用过，我去查查是什么。。 
+
+16 楼 su1216 2012-12-29   
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+那你都把360给看透了。。对反编译的源码，应该从何看起？ 
+
+我哪有那本事。。。
+搜索你认为是关键字的字符串，逐个检查
+嗯。。我下午查notification就是这样，不过，类多的我蛋疼。。
+揉揉。
+额。。。 
+楼主，得到packagename，接着怎么得到notification对象呢。？
+得到notification干什么
+直接把这个应用干掉
+就像流氓软件一样
+不是啊，像360它拦截了广告后，会有记录，记录就有notification的信息。
+还有进程可以杀掉，但像服务这样，杀不掉，杀掉了又重新启动。。
+没有杀不掉的
+你要不爽，就disable掉它算了 
+
+15 楼 N_HH 2012-12-29   
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+那你都把360给看透了。。对反编译的源码，应该从何看起？ 
+
+我哪有那本事。。。
+搜索你认为是关键字的字符串，逐个检查
+嗯。。我下午查notification就是这样，不过，类多的我蛋疼。。
+揉揉。
+额。。。 
+楼主，得到packagename，接着怎么得到notification对象呢。？
+得到notification干什么
+直接把这个应用干掉
+就像流氓软件一样
+不是啊，像360它拦截了广告后，会有记录，记录就有notification的信息。
+还有进程可以杀掉，但像服务这样，杀不掉，杀掉了又重新启动。。 
+
+14 楼 N_HH 2012-12-29   
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+那你都把360给看透了。。对反编译的源码，应该从何看起？ 
+
+我哪有那本事。。。
+搜索你认为是关键字的字符串，逐个检查
+嗯。。我下午查notification就是这样，不过，类多的我蛋疼。。
+揉揉。
+额。。。 
+楼主，得到packagename，接着怎么得到notification对象呢。？
+得到notification干什么
+直接把这个应用干掉
+就像流氓软件一样
+不是啊，像360它拦截了广告后，会有记录，记录就有notification的信息。 
+
+13 楼 su1216 2012-12-29   
+
+
+N_HH 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+那你都把360给看透了。。对反编译的源码，应该从何看起？ 
+
+我哪有那本事。。。
+搜索你认为是关键字的字符串，逐个检查
+嗯。。我下午查notification就是这样，不过，类多的我蛋疼。。
+揉揉。
+额。。。 
+楼主，得到packagename，接着怎么得到notification对象呢。？
+得到notification干什么
+直接把这个应用干掉
+就像流氓软件一样 
+
+12 楼 N_HH 2012-12-29   
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+那你都把360给看透了。。对反编译的源码，应该从何看起？ 
+
+我哪有那本事。。。
+搜索你认为是关键字的字符串，逐个检查
+嗯。。我下午查notification就是这样，不过，类多的我蛋疼。。
+揉揉。
+额。。。 
+楼主，得到packagename，接着怎么得到notification对象呢。？ 
+
+11 楼 N_HH 2012-12-29   
+
+
+su1216 写道
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+那你都把360给看透了。。对反编译的源码，应该从何看起？ 
+
+我哪有那本事。。。
+搜索你认为是关键字的字符串，逐个检查
+嗯。。我下午查notification就是这样，不过，类多的我蛋疼。。
+揉揉。
+额。。。 
+
+10 楼 su1216 2012-12-29   
+
+
+N_HH 写道
+
+
+su1216 写道
+
+
+N_HH 写道
+
+那你都把360给看透了。。对反编译的源码，应该从何看起？ 
+
+我哪有那本事。。。
+搜索你认为是关键字的字符串，逐个检查
+嗯。。我下午查notification就是这样，不过，类多的我蛋疼。。
+揉揉。 
+
+9 楼 N_HH 2012-12-29   
+
+
+su1216 写道
+
+
+N_HH 写道
+
+那你都把360给看透了。。对反编译的源码，应该从何看起？ 
+
+我哪有那本事。。。
+搜索你认为是关键字的字符串，逐个检查
+嗯。。我下午查notification就是这样，不过，类多的我蛋疼。。 
+
+8 楼 su1216 2012-12-29   
+
+
+N_HH 写道
+
+那你都把360给看透了。。对反编译的源码，应该从何看起？ 
+
+我哪有那本事。。。
+搜索你认为是关键字的字符串，逐个检查 
+
+7 楼 N_HH 2012-12-29   
+
+那你都把360给看透了。。对反编译的源码，应该从何看起？ 
+
+
+6 楼 su1216 2012-12-29   
+
+
+N_HH 写道
+
+很不错，高手的文章写的很好。。 
+有个问题想问下楼主，反编译出来的源代码该如何看，名称都是a，b，c，d的，看的是非常晕呀。。。能给我指点一二吗。。嘿嘿
+
+没办法，混淆过的，只能这么看 
+
+5 楼 N_HH 2012-12-29   
+
+很不错，高手的文章写的很好。。 
+有个问题想问下楼主，反编译出来的源代码该如何看，名称都是a，b，c，d的，看的是非常晕呀。。。能给我指点一二吗。。嘿嘿
+ 
+
+4 楼 su1216 2012-11-27   
+
+
+xiangxiang2011 写道
+
+大神你好，很激动的一口气的看了好几篇你的文章。有一个问题，请问如何真正地杀死一个应用呢？很多软件杀死后，有死灰复燃
+
+
+
+杀死和死灰复燃并不矛盾，杀死应用又不是删除应用
+如果你不想在让这个应用复活，只能是pm disable掉这个应用，不然是不太可能完全禁止的
+
+在开机的时候，PackageManagerService就已经将所有安装的应用的manifest文件信息加载到内存中了
+比如我监听短信，短信到来的时候，我程序不需要事先启动，系统会去内存找所有注册监听短信的广播，然后发送广播给他们 
+
+3 楼 xiangxiang2011 2012-11-27   
+
+大神你好，很激动的一口气的看了好几篇你的文章。有一个问题，请问如何真正地杀死一个应用呢？很多软件杀死后，有死灰复燃
+ 
+« 上一页 1 2 下一页 »
+
+
+发表评论
+
+ 您还没有登录,请您登录后再发表评论 
+
+
+
+
+
+
+su1216
+ 
+浏览: 65624 次
+性别: 
+来自: 北京
+
+
+
+最近访客 更多访客>>
+
+
+
+
+rimoer
+
+
+
+
+zht19880706
+
+
+
+
+heavensay
+
+
+
+
+woyaowenzi
+.
+
+博客专栏
+深入入门正则表达式（jav...
+浏览量：6019.android手机的安全问...
+浏览量：18362.
+
+文章分类
+■全部博客 (93)
+■android (37)
+■Unix & Linux 大学教程 (22)
+■Linux命令行与shell脚本编程大全 (10)
+■java (5)
+■java多线程 (3)
+■虚拟机 (7)
+■设计模式 (1)
+■正则表达式 (6)
+■数据库 (1)
+■其他 (1)
+■转贴 (1)
+
+
+社区版块
+■我的资讯 (0)
+■我的论坛 (70) 
+■我的问答 (19)
+
+
+存档分类
+■2013-02 (1)
+■2013-01 (5)
+■2012-12 (7)
+■更多存档...
+
+
+评论排行榜
+■android手机root后的安全问题 （二）
+■android安全问题（二） 程序锁
+■android安全问题（四） 抢先开机启动 - ...
+■android安全问题（三） 钓鱼程序
+■android手机root后的安全问题 （一）
+
+
+最新评论
+N_HH： su1216 写道N_HH 写道那个，请问，pm是什么。。不懂 ...
+android手机root后的安全问题 （四）
+su1216： N_HH 写道那个，请问，pm是什么。。不懂。shell@an ...
+android手机root后的安全问题 （四）
+N_HH： 那个，请问，pm是什么。。不懂。
+android手机root后的安全问题 （四）
+su1216： tjwink 写道既然已经知道su的数据库地址，可以直接用DB ...
+android手机root后的安全问题 （三）
+tjwink： 既然已经知道su的数据库地址，可以直接用DBOpenHelpe ...
+android手机root后的安全问题 （三）
+
+.
+
+
+--------------------------------------------------------------------------------
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ] 
+.

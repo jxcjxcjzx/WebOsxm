@@ -1,0 +1,425 @@
+
+
+
+
+wtx
+ 
+
+
+
+
+博客园
+闪存
+首页
+新随笔
+联系
+管理
+订阅
+
+ 随笔- 91  文章- 33  评论- 9  
+
+
+
+Lucence3.0学习（1）
+
+
+
+
+1.简介
+ 
+  Lucene是apache软件基金会4 jakarta项目组的一个子项目，是一个开放源代码的全文检索引擎工具包，即它不是一个完整的全文检索引擎，而是一个全文检索引擎的架构，
+ 
+ 提供了  完整的查询引擎和索引引擎，部分文本分析引擎（英文与德文两种西方语言）。Lucene的目的是为软件开发人员提供一个简单易用的工具包，以方便的在目标系统中实现
+ 
+  全文检索的功能，或者是以此为基础建立起完整的全文检索引擎。
+ 
+2. 下载
+ 
+   http://labs.renren.com/apache-mirror//lucene/java/3.0.3/
+ 
+3.测试
+ 
+  在eclipse中邪见项目 Lucence3.0Test,将一下包导入到build 路径中
+ 
+     lucene-core-3.0.2.jar
+ 
+     lucene-demos-3.0.2.jar
+ 
+    lucene-analyzers-3.0.2.jar
+ 
+    lucene-fast-vector-highlighter-3.0.2.jar
+ 
+    lucene-highlighter-3.0.2.jar
+ 
+    lucene-memory-3.0.2.jar
+ 
+   在任意目录下新建两个文件夹：
+ 
+   用来存放lucence进行分词的文件和生成的index。如下图：file1用来存放进行分词的文件，里面存放有N个txt文件，txt文件的内容任意，如：我们都是中国人，index文件夹是新建的，里面不要有任何的文件，是用来存储生成的index的
+ 
+   
+ 
+4. 代码
+ 
+   新建创建索引的类，以及测试
+
+
+
+ import java.io.BufferedReader;import java.io.File;import java.io.FileInputStream;import java.io.IOException;import java.io.InputStreamReader;import java.util.Date;import org.apache.lucene.analysis.Analyzer;import org.apache.lucene.document.DateTools;import org.apache.lucene.document.Document;import org.apache.lucene.document.Field;import org.apache.lucene.index.IndexWriter;import org.apache.lucene.store.FSDirectory;import org.wltea.analyzer.lucene.IKAnalyzer;public class IndexerOK {private static String INDEX_DIR = "D:\\nutchwork\\LucenceTestDir\\index";// 索引存放目录private static String DATA_DIR = "D:\\nutchwork\\LucenceTestDir\\file1";// 小文件存放的目录public static void main(String[] args) throws Exception {   long start = new Date().getTime();   int numIndexed = index(new File(INDEX_DIR), new File(DATA_DIR));// 调用index方法   long end = new Date().getTime();   System.out.println("Indexing " + numIndexed + " files took "     + (end - start) + " milliseconds");}/*** 索引dataDir下的.txt文件，并储存在indexDir下，返回索引的文件数量* * @param indexDir* @param dataDir* @return int* @throws IOException*/public static int index(File indexDir, File dataDir) throws IOException {   if (!dataDir.exists() || !dataDir.isDirectory()) {    throw new IOException(dataDir      + " does not exist or is not a directory");   }   Analyzer analyzer = new IKAnalyzer();// 采用的分词器   //第三个参数 为true表示新建，false表示添加到原有索引中   IndexWriter writer = new IndexWriter(FSDirectory.open(indexDir),     analyzer, true, IndexWriter.MaxFieldLength.LIMITED);   indexDirectory(writer, dataDir);// 调用indexDirectory方法   int numIndexed = writer.numDocs();   writer.optimize();   writer.close();   return numIndexed;}/*** 循环遍历目录下的所有.txt文件并进行索引* * @param writer* @param dir* @throws IOException*/private static void indexDirectory(IndexWriter writer, File dir)    throws IOException {   File[] files = dir.listFiles();   for (int i = 0; i < files.length; i++) {    File f = files[i];    if (f.isDirectory()) {     indexDirectory(writer, f); // recurse    } else if (f.getName().endsWith(".txt")) {     indexFile(writer, f);    }   }}/*** 对单个txt文件进行索引* * @param writer* @param f* @throws IOException*/private static void indexFile(IndexWriter writer, File f)    throws IOException {   if (f.isHidden() || !f.exists() || !f.canRead()) {    return;   }   System.out.println("Indexing " + f.getCanonicalPath());   Document doc = new Document();   // doc.add(new Field("contents", new FileReader(f)));   doc.add(new Field("filename", f.getCanonicalPath(), Field.Store.YES, Field.Index.ANALYZED));   String temp = FileReaderAll(f.getCanonicalPath(), "GBK");   System.out.println(temp);   doc.add(new Field("TTT", temp, Field.Store.YES, Field.Index.ANALYZED));   doc.add(new Field("path", f.getPath(), Field.Store.YES,     Field.Index.ANALYZED));   doc.add(new Field("modified", DateTools.timeToString(f.lastModified(),     DateTools.Resolution.MINUTE), Field.Store.YES,     Field.Index.ANALYZED));   FileInputStream fis = new FileInputStream(f);   // 按照 UTF-8 编码方式将字节流转化为字符流   InputStreamReader isr = new InputStreamReader(fis, "utf-8");   // 从字符流中获取文本并进行缓冲   BufferedReader br = new BufferedReader(isr);   doc.add(new Field("contents", br));   writer.setUseCompoundFile(false);   writer.addDocument(doc);}public static String FileReaderAll(String FileName, String charset)    throws IOException {   BufferedReader reader = new BufferedReader(new InputStreamReader(     new FileInputStream(FileName), charset));   String line = new String();   String temp = new String();   while ((line = reader.readLine()) != null) {    temp += line;   }   reader.close();   return temp;}} 
+
+
+　　运行结果：
+ 
+      
+ 
+
+
+Indexing D:\nutchwork\LucenceTestDir\file1\1.txt我们是中国人Indexing D:\nutchwork\LucenceTestDir\file1\2.txt我们是中国人Indexing D:\nutchwork\LucenceTestDir\file1\3.txt我们是中国人Indexing D:\nutchwork\LucenceTestDir\file1\4.txt我们是中国人Indexing 4 files took 2293 milliseconds 
+
+
+　　新建查询的类以及测试：
+ 
+   
+ 
+
+
+import java.io.File;import java.io.StringReader;import java.util.Date;import java.util.List;import org.apache.lucene.analysis.Analyzer;import org.apache.lucene.analysis.TokenStream;import org.apache.lucene.document.Document;import org.apache.lucene.document.Fieldable;import org.apache.lucene.search.IndexSearcher;import org.apache.lucene.search.Query;import org.apache.lucene.search.ScoreDoc;import org.apache.lucene.search.Sort;import org.apache.lucene.search.SortField;import org.apache.lucene.search.TopDocs;import org.apache.lucene.search.highlight.Highlighter;import org.apache.lucene.search.highlight.QueryScorer;import org.apache.lucene.search.highlight.SimpleFragmenter;import org.apache.lucene.search.highlight.SimpleHTMLFormatter;import org.apache.lucene.store.FSDirectory;import org.wltea.analyzer.lucene.IKAnalyzer;import org.wltea.analyzer.lucene.IKQueryParser;import org.wltea.analyzer.lucene.IKSimilarity;public class SearchQueryOK {private static String INDEX_DIR = "D:\\nutchwork\\LucenceTestDir\\index";// 索引所在的路径private static String KEYWORD = "中国人";// 关键词private static int TOP_NUM = 100;// 显示前100条结果public static void main(String[] args) throws Exception {   File indexDir = new File(INDEX_DIR);   if (!indexDir.exists() || !indexDir.isDirectory()) {    throw new Exception(indexDir      + " does not exist or is not a directory.");   }   search(indexDir, KEYWORD);// 调用search方法进行查询}/*** 查询* * @param indexDir* @param q* @throws Exception*/public static void search(File indexDir, String q) throws Exception {   IndexSearcher is = new IndexSearcher(FSDirectory.open(indexDir), true);// read-only   String[] field = {"TTT","modified","filename"};   long start = new Date().getTime();// start time   // 高亮设置   Analyzer analyzer = new IKAnalyzer();// 设定分词器   Query query2 = IKQueryParser.parseMultiField(field, KEYWORD);         // 实例化搜索器   IndexSearcher isearcher1 = new IndexSearcher(FSDirectory.open(indexDir));   // 在索引器中使用IKSimilarity相似度评估器      isearcher1.setSimilarity(new IKSimilarity());              Sort sort = new Sort(new SortField("path", SortField.DOC,false));   //TermQuery q1 = new TermQuery(new Term("filename", "1"));   // 搜索相似度最高的记录   TopDocs topDocs1 = isearcher1.search(query2,null, TOP_NUM,sort);     ScoreDoc[] hits3 = topDocs1.scoreDocs;   SimpleHTMLFormatter simpleHtmlFormatter = new SimpleHTMLFormatter(     "<span style='color:#ff0000'>", "</span>");// 设定高亮显示的格式，也就是对高亮显示的词组加上前缀后缀   Highlighter highlighter = new Highlighter(simpleHtmlFormatter,     new QueryScorer(query2));   for (int i = 0; i < hits3.length; i++) {    Document doc = is.doc(hits3[i].doc);    String docTTT = doc.get("TTT");    highlighter.setTextFragmenter(new SimpleFragmenter(docTTT.length()));// 设置每次返回的字符数.想必大家在使用搜索引擎的时候也没有一并把全部数据展示出来吧，当然这里也是设定只展示部分数据    TokenStream tokenStream = analyzer.tokenStream("",      new StringReader(docTTT));    String str = highlighter.getBestFragment(tokenStream, docTTT);    System.out.println(" 高亮设置: " + str );       String docModified = doc.get("filename");    highlighter.setTextFragmenter(new SimpleFragmenter(docModified.length()));       TokenStream tokenStream2 = analyzer.tokenStream("",      new StringReader(docModified));    String str2 = highlighter.getBestFragment(tokenStream2, docModified);    System.out.println(" 高亮设置: " + str2 );                   List<Fieldable> list = doc.getFields();    for (int j = 0; j < list.size(); j++) {     Fieldable fieldable = list.get(j);     System.out.println(fieldable.name() + " : "       + fieldable.stringValue() + "<br>");    }   }               long end = new Date().getTime();// end time   System.out.println("Found " + hits3.length     + " document(s) (in " + (end - start)     + " milliseconds) that matched query '" + q + "':");}} 
+
+
+　　对索引的操作类：
+ 
+    
+ 
+
+
+import java.io.File;import java.io.IOException;import java.sql.Connection;import java.sql.SQLException;import org.apache.lucene.analysis.Analyzer;import org.apache.lucene.analysis.standard.StandardAnalyzer;import org.apache.lucene.document.Document;import org.apache.lucene.document.Field;import org.apache.lucene.index.IndexReader;import org.apache.lucene.index.IndexWriter;import org.apache.lucene.index.Term;import org.apache.lucene.store.Directory;import org.apache.lucene.store.FSDirectory;import org.apache.lucene.util.Version;import org.wltea.analyzer.lucene.IKAnalyzer;public class ManageIndexFile {private static String INDEX_DIR = "D:\\nutchwork\\LucenceTestDir\\index";// 索引存放目录//删除索引public static void DeleteIndex(SearchDocBean bean) throws IOException {   Directory dir = FSDirectory.open(new File(INDEX_DIR));   IndexReader reader = IndexReader.open(dir, false);   Term term = new Term("modified", bean.getId());   int count = reader.deleteDocuments(term);   reader.close();   System.out.println("Successful Delete " + count + " path==" + bean.getId());}public static void DeleteIndex(int[] posIDS) throws IOException {   Directory dir = FSDirectory.open(new File(INDEX_DIR));   IndexReader reader = IndexReader.open(dir, false);   for (int i = 0; i < posIDS.length; i++) {    Term term = new Term("posID", Integer.toString(posIDS[i]));    reader.deleteDocuments(term);   }   reader.close();}//更新索引public static void UpdateIndex(SearchDocBean bean) throws IOException {   Directory dir = FSDirectory.open(new File(INDEX_DIR));   IndexReader reader = IndexReader.open(dir, false);   Term term = new Term("modified", bean.getId());   reader.deleteDocuments(term);   reader.close();   IndexWriter writer = new IndexWriter(FSDirectory.open(new File(     INDEX_DIR)), new StandardAnalyzer(Version.LUCENE_CURRENT),     true, IndexWriter.MaxFieldLength.LIMITED);   Document doc = new Document();   doc.add(new Field("modified", bean.getId(), Field.Store.YES,     Field.Index.NOT_ANALYZED));   writer.addDocument(doc);   writer.optimize();   writer.close();}//增加索引public static void AddIndex(SearchDocBean bean,    Connection conn) throws IOException, SQLException {   Analyzer analyzer = new IKAnalyzer();// 采用的分词器   IndexWriter writer = new IndexWriter(FSDirectory.open(new File(     INDEX_DIR)), analyzer, false,     IndexWriter.MaxFieldLength.LIMITED);   Document doc = new Document();   doc.add(new Field("filename", bean.getFileName(), Field.Store.YES,     Field.Index.ANALYZED));   doc.add(new Field("path", bean.getPath(), Field.Store.YES,     Field.Index.ANALYZED));   doc.add(new Field("dateTime", bean.getId(), Field.Store.YES,     Field.Index.ANALYZED));   doc.add(new Field("TTT", bean.getContents(), Field.Store.YES, Field.Index.ANALYZED));   writer.setUseCompoundFile(false);   writer.addDocument(doc);   writer.optimize();   writer.close();}} 
+
+
+　　封装起来的查询结果：
+ 
+   
+ 
+
+
+public class SearchDocBean {    private String id;    private String path;    private String contents;    private String dateTime;    public String getId() {        return id;    }    public void setId(String id) {        this.id = id;    }    public String getPath() {        return path;    }    public void setPath(String path) {        this.path = path;    }    public String getContents() {        return contents;    }    public void setContents(String contents) {        this.contents = contents;    }    public String getDateTime() {        return dateTime;    }    public void setDateTime(String dateTime) {        this.dateTime = dateTime;    }    public String getFileName() {        return fileName;    }    public void setFileName(String fileName) {        this.fileName = fileName;    }    private String fileName;} 
+
+
+　　
+ 
+   下面是serach 中国人的 结果：
+ 
+   
+ 
+
+
+ 高亮设置: <span style='color:#ff0000'>中国人</span> 高亮设置: nullfilename : D:\nutchwork\LucenceTestDir\file1\1.txt<br>TTT : 我们是中国人<br>path : D:\nutchwork\LucenceTestDir\file1\1.txt<br>modified : 201107161115<br> 高亮设置: <span style='color:#ff0000'>中国人</span> 高亮设置: nullfilename : D:\nutchwork\LucenceTestDir\file1\2.txt<br>TTT : 我们是中国人<br>path : D:\nutchwork\LucenceTestDir\file1\2.txt<br>modified : 201107161115<br> 高亮设置: <span style='color:#ff0000'>中国人</span> 高亮设置: nullfilename : D:\nutchwork\LucenceTestDir\file1\3.txt<br>TTT : 我们是中国人<br>path : D:\nutchwork\LucenceTestDir\file1\3.txt<br>modified : 201107161115<br> 高亮设置: <span style='color:#ff0000'>中国人</span> 高亮设置: nullfilename : D:\nutchwork\LucenceTestDir\file1\4.txt<br>TTT : 我们是中国人<br>path : D:\nutchwork\LucenceTestDir\file1\4.txt<br>modified : 201107161115<br>Found 4 document(s) (in 717 milliseconds) that matched query '中国人': 
+
+
+　　整个工程：基本上是从网上找到的代码，运行了下，算是有一个大概的了解。
+ 
+   
+
+一个不会敲代码的程序员
+ 
+
+
+
+
+
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+
+
+
+
+wtx
+ 关注 - 9
+ 粉丝 - 25 
+
+
+
++加关注 
+
+
+0
+
+0
+
+
+ (请您对文章做出评价) 
+
+
+« 博主上一篇：solr学习（1）
+» 博主下一篇：mysql 触发器学习
+
+ 
+posted @ 2011-07-16 21:43 wtx 阅读(1216) 评论(0) 编辑 收藏
+ 
+
+
+
+刷新评论刷新页面返回顶部
+ 
+
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+
+ 
+博客园首页博问新闻闪存程序员招聘知识库
+ 
+
+
+
+
+
+最新IT新闻:
+ · 剥开周鸿祎 天天向上背后的故事
+ · 马云知天命：固执坚持不动摇
+ · 若不是那五次拒绝！惠普或成今日之苹果
+ · 新疆阿勒泰发现世界第四大铁陨石 引发官争民抢
+ · 伊朗的猴子宇航员真的安全返回了？
+» 更多新闻...
+
+最新知识库文章:
+
+ · HTML5之美
+ · 每天工作的第一个小时，做什么？
+ · Hadoop 分布式文件系统：架构和设计
+ · 异常的代价
+ · 从P1到P7——第八年
+
+» 更多知识库文章... 
+
+
+
+
+
+
+
+
+
+
+昵称：wtx
+园龄：1年7个月
+粉丝：25
+关注：9
++加关注
+ 
+
+
+
+
+
+
+
+<
+
+2011年7月
+
+>
+
+ 
+
+
+日
+
+一
+
+二
+
+三
+
+四
+
+五
+
+六
+
+
+
+26
+
+27
+
+28
+
+29
+
+30
+
+1
+
+2
+
+
+
+3
+
+4
+
+5
+
+6
+
+7
+
+8
+
+9
+
+
+
+10
+
+11
+
+12
+
+13
+
+14
+
+15
+
+16
+
+
+
+17
+
+18
+
+19
+
+20
+
+21
+
+22
+
+23
+
+
+
+24
+
+25
+
+26
+
+27
+
+28
+
+29
+
+30
+
+
+
+31
+
+1
+
+2
+
+3
+
+4
+
+5
+
+6
+
+ 
+
+
+
+搜索
+ 
+ 
+ 
+ 
+ 
+
+常用链接
+ 我的随笔
+我的评论
+我的参与
+最新评论
+我的标签
+更多链接
+ 
+
+
+随笔分类
+c++(24) 
+hadoop(1) 
+java(20) 
+Linux(6) 
+nutch相关 
+python(3) 
+sql(8) 
+STL相关(1) 
+海量数据(3) 
+设计模式(1) 
+时间表(1) 
+数据结构与算法(4) 
+项目相关(23) 
+
+
+随笔档案
+2012年5月 (2) 
+2012年2月 (11) 
+2012年1月 (10) 
+2011年12月 (12) 
+2011年11月 (17) 
+2011年9月 (12) 
+2011年8月 (26) 
+2011年7月 (4) 
+
+
+文章分类
+android(1) 
+java(4) 
+memcached 
+mysql 
+数据库(2) 
+线程 
+
+
+最新评论
+
+1. Re:mysql 触发器学习
+很好，学习了  我刚学习mysql，希望楼主多多指教--在提升
+2. Re:mysql 触发器学习
+嗯 讲解的挺不错的~~顶一个~~--zhengJackson
+ 
+
+阅读排行榜
+
+1. mysql 触发器学习(15374)
+2. SCP 命令(14404)
+3. Failed to execute goal org.apache.maven.plugins:maven-war-plugin:2.1:war(5027)
+4. centos 查看版本（转）(3724)
+5. Spring启动异常: cvc-elt.1: Cannot find the declaration of element 'beans'(转)(2925)
+ 
+
+评论排行榜
+
+1. 一道 C++ 关于野指针和作用域的问题(7)
+2. mysql 触发器学习(2)
+3. Lucence3.0学习（1）(0)
+4. solr学习（1）(0)
+5. C/C++ 的一些乱七八糟的总结（一）(0)
+ 
+
+推荐排行榜
+ 
+1. 一道 C++ 关于野指针和作用域的问题(3)
+2. solr学习（1）(1)
+3. 大数运算(1)
+4. 缓存机制的实现(1)
+ 
+
+
+Copyright ©2013 wtx 
+

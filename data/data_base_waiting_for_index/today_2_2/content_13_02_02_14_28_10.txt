@@ -1,0 +1,323 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+重剑无锋，大巧不工。。。
+
+PMP，精通Java技术及其各种框架，即将成为RedHat工程师，正在熟悉.Net技术，曾经使用过PHP，正在了解系统架构知识，对企业级软件研发管理持有长久的激情，目前身在资金管理行业
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+CSDN客服工作问卷调查        智能开发框架 JEECG 作者张代浩专访
+ 2012CSDN博客之星火热出炉！        2013年全国百所高校巡讲讲师招募 
+
+
+
+Tomcat多实例部署 
+.
+ 分类： Application Server2012-06-30 12:061309人阅读评论(3)收藏举报
+
+
+
+目录(?)[+]
+
+
+
+
+
+
+
+Tomcat多实例部署
+ 
+ 前言
+ 
+一般我们使用tomcat时，如果是多实例的情况都会拷贝多个tomcat，但实际上tomcat还可以建立类似于weblogic的domain，以实现多实例部署。
+ 
+Weblogic多实例部署回顾
+ 
+讲tomcat多实例部署前我们先回顾一下weblogic的多实例。以weblogic10为例，安装完weblogic后，会在c:\bea10生成weblogic的Home目录，里面放置的是jdk、weblogic的管理目录等：
+ 
+                              
+
+使用的时候我们会建立一个独立的domain，可以放置到任何目录。每个独立的domain包含自己的bin目录，在bin目录中启动domain时会设置两个环境变量，一个是weblogic home的位置，一个是domain的位置，如下：
+ 
+在setDomainEnv.cmd中设置的是weblogichome的位置
+ 
+ 
+ 
+在startWebLogic.cmd中设置的是domain的位置
+ 
+ 
+ 
+Weblogic建立domain时，通过自动设置了这两个参数，使得安装一个weblogic可以自动创建多个domain，并分别启动（每个domain应该设置不同的端口）。
+ 
+Tomcat多实例实现
+ 
+各种应用服务器的思路其实大同小异，下面看tomcat的多实例部署。以下我把tomcat的实例称作instance。并通过tomcat7进行讲解（tomcat5的文件夹略有不同）。总的结构如下：
+ 
+ 
+ 
+首先，我们建立tomcat主目录，如下：
+ 
+          
+
+对于tomcat主目录，从apache上下载解压以后，删除复制出来bin、lib和根目录的文件几个。
+ 
+然后，我们建立instance。如下我在tomcat目录建立了一个主目录，然后创建了nstc-instances用于放置各种实例：
+ 
+ 
+ 
+ 
+ 
+而对于每个实例，其实需要的内容也很少，必须的是conf文件夹和里面的文件。Logs、temp和work创建实例时可以不设置（实例启动时会自动生成），而对于webapps目录可以在conf的文件中指定。最完整的实例如下：
+ 
+ 
+ 
+Startup.bat是我手动创建的 
+
+ 
+ 
+对于tomcat也存在两个变量CATALINA_HOME、CATALINA_BASE，其中CATALINA_HOME指定的是tomcat主目录，CATALINA_BASE指定的是instance的目录，因为CATALINA_BASE默认和主目录相同，所以一般不用单独建立instance。如上图设置了实例的目录，然后因为导航到了tomcat主目录启动，所以不需要单独设置CATALINA_HOME了。
+ 
+实际使用时webapps也可以单独设置，例如在conf\Catalina\localhost\WST.xml文件中，可以指定应用的目录就是程序编译后的目录，这样程序编译后就不用再拷贝到webapps中了。
+ 
+ 
+ 
+最后，注意每个实例需要设置不同的端口。
+ 
+结尾
+ 
+至此，我们非常快速的了解了如果对tomcat建立多个instance，同时我们也了解到了其实tomcat的主目录只需要bin和lib文件夹中的内容就可以了。
+ 
+通过对tomcat的了解，未来可以在产品中嵌入tomcat（不是使用tomcat的嵌入模式），让应用变成自启动程序。也可以通过程序控制建立多个tomcat实例。
+ 
+ 
+ 
+ 
+ 
+分享到： 
+
+上一篇：Tomcat性能调优方案
+下一篇：通向架构师的道路（第五天）之tomcat集群-群猫乱舞
+ .
+顶2踩1. 
+
+
+查看评论
+ 
+1楼 qq503514213 2012-07-13 11:41发表[回复] kevin.lee?Re: scorpio3k 2012-07-14 10:59发表[回复] 回复qq503514213：你是谁呀Re: scorpio3k 2012-07-14 10:58发表[回复] yes ,i am 回复qq503514213：
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+scorpio3k
+ 
+
+
+
+
+访问：196939次
+积分：4335分
+排名：第981名
+.原创：182篇
+转载：221篇
+译文：2篇
+评论：75条
+. 
+简介PMP，精通Java技术及其各种框架，即将成为RedHat工程师，正在熟悉.Net技术，曾经使用过PHP，正在了解系统架构知识，对企业级软件研发管理持有长久的激情 
+文章分类Java SE(42)
+Java EE(54)
+.Net(2)
+Groovy(22)
+Grails(11)
+PHP(21)
+Python(1)
+SOA / OSGI(17)
+RIA(15)
+开发工具(11)
+DataBase(38)
+Application Server(11)
+持久层(12)
+业务逻辑层(11)
+视图层(10)
+协作管理(21)
+自动化工具(5)
+操作系统(25)
+云计算(1)
+软件工程(47)
+系统架构(12)
+项目管理(24)
+资金管理(14)
+心情随笔(44)
+ 
+文章存档
+2013年01月(3).
+2012年10月(7).
+2012年09月(4).
+2012年08月(18).
+2012年07月(8).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+阅读排行通向架构师的道路（第五天）之tomcat集群-群猫乱舞(8883)
+一句话概括项目管理知识体系42个过程(7783)
+SubVersion使用详解(4757)
+oracle:端口查看， isqlplus 命令行启动与关闭，DBA访问(4490)
+ZK，真正的企业级RIA，让EXTJs走开(3469)
+新疆国际大巴扎(3295)
+在hibernate中实现oracle的主键自增策略(3024)
+Eclipse不能设置断点解析(2916)
+PHP开发工具比较(2914)
+redhat Linux系统 6.1版本 安装系统桌面(2400)
+ 
+评论排行软件行业职业规划(6)
+ZK，真正的企业级RIA，让EXTJs走开(5)
+BI：Java调用Kettle执行任务或转换(4)
+在hibernate中实现oracle的主键自增策略(4)
+Tomcat多实例部署(3)
+运用ANT地SQL Task来完成自己地Java执行SQL脚本文件地功能(3)
+使用 Groovy 模板进行 MVC 编程(3)
+利用适配器思想减少应用间耦合扩散问题(2)
+JConsole：给普通命令行程序和Tomcat添加JMX支持(2)
+HttpInvoker支持不需要证书的HTTPS(2)
+ 
+推荐文章 
+最新评论 使用递归算法将批量调用异步处理转化为同步调用，并使用Java模拟ExtJs异步处理同步化（续）
+wgywang: setInterval(function(){ if(index >= lengt... 
+
+JQuery异步提交表单、HTML提交表单到新窗口或IFrame
+scorpio3k: @xulavigne:确实只能在IE上执行 
+
+通向架构师的道路（第五天）之tomcat集群-群猫乱舞
+kky2010_110: worker.lbcontroller.sticky_session=0你这里有个错误，worker... 
+
+JQuery异步提交表单、HTML提交表单到新窗口或IFrame
+ShaneJhu: 这些写法都比较依赖IE啊 
+
+activemq 重新连接的机制
+yanhuodiguo: 这位大神，请教下MQ，关于数据库存储，默认配置是200个线程，但是目前只看到2个线程在跑。不知道什么... 
+
+如何对List中的对象进行排序
+scorpio3k: @fyc000:你只要实现public int compareTo(Person otherPer... 
+
+BI：Java调用Kettle执行任务或转换
+yong881205: 我.jar都加上去了，但是import org.pentaho.di.trans.StepLoade... 
+
+C#在VisualStudio中操作SQL数据库文件
+hl4974: string dataDir = AppDomain.CurrentDomain.BaseDirec... 
+
+如何对List中的对象进行排序
+Magic存: 策略者模式? 不过这个不行啊, 这是比较ID的,我如果比较别的呢. 
+
+BI：Java调用Kettle执行任务或转换
+freeboy40: 请教 有没有思路批量修改kettle文件,例如 ip,databaseName... 
+
+
+快速链接 NetBeans官网 
+Oracle官方文档 
+IBM开发中国 
+Developer Resources for Java Technology 
+IBM中国 
+.NET Framework 开发人员中心 
+资金管理网 
+MBA智库百科 
+UML软件工程组织 
+项目管理博客资源 
+中国研发管理网 
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  
+
+
+
+
+
+
+
+
+程序员杂志ipad1.2版发布送半年杂志
+ 

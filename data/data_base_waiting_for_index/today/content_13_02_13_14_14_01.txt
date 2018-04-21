@@ -1,0 +1,991 @@
+tornadomeet
+博客园   首页   博问   闪存   新随笔   联系   订阅  管理
+随笔-171  评论-418  文章-0  trackbacks-0
+目标跟踪学习笔记_2(particle filter初探1)
+
+    首先提供几篇关于粒子滤波算法的博客：
+http://www.cnblogs.com/yangyangcv/archive/2010/05/23/1742263.html 这篇博客比较通俗易懂，简单的介绍了粒子滤波的基本工作思想和步骤。
+http://www.cnblogs.com/lwbaptx/archive/2011/10/20/2218419.html这篇博客用的是opencv1.0，实现的功能是用粒子滤波跟踪鼠标轨迹，有视频演示，效果还不错。
+http://blog.csdn.net/yang_xian521/article/details/6928131 这篇博客是用粒子滤波来做视频目标跟踪的，里面也有opencv2.0的代码，有注释，结构比较清晰。我这里就把他的代码和分析贴出来，里面加了我添加了一些注释，这样看起来更加清晰。
+   代码和解释如下：
+
+
+  1 // particle_demo.cpp : 定义控制台应用程序的入口点。
+  2 //
+  3 
+  4 #include "stdafx.h"
+  5 /************************************************************************/
+  6 /* 
+  7 Description:    基本的粒子滤波目标跟踪
+  8 Author:            Yang Xian
+  9 Email:            yang_xian521@163.com
+ 10 Version:        2011-11-2
+ 11 History:
+ 12 */
+ 13 /************************************************************************/
+ 14 #include <iostream>    // for standard I/O
+ 15 #include <string>   // for strings
+ 16 #include <iomanip>  // for controlling float print precision
+ 17 #include <sstream>  // string to number conversion
+ 18 
+ 19 #include <opencv2/imgproc/imgproc.hpp>  
+ 20 #include <opencv2/core/core.hpp>        // Basic OpenCV structures (cv::Mat, Scalar)
+ 21 #include <opencv2/highgui/highgui.hpp>  // OpenCV window I/O
+ 22 
+ 23 using namespace cv;
+ 24 using namespace std;
+ 25 
+ 26 // 以下这些参数对结果影响很大，而且也会根据视频内容，会对结果有很大的影响
+ 27 const int PARTICLE_NUM = 25;    // 粒子个数
+ 28 // 粒子放入的相关区域
+ 29 const double A1 = 2.0;
+ 30 const double A2 = -1.0;
+ 31 const double B0 = 1.0;
+ 32 // 高斯随机数sigma参数
+ 33 const double SIGMA_X = 1.0;
+ 34 const double SIGMA_Y = 0.5;
+ 35 const double SIGMA_SCALE = 0.001;
+ 36 
+ 37 // 粒子结构体
+ 38 typedef struct particle {
+ 39     double x;            // 当前x坐标
+ 40     double y;            // 当前y坐标
+ 41     double scale;        // 窗口比例系数
+ 42     double xPre;            // x坐标预测位置
+ 43     double yPre;            // y坐标预测位置
+ 44     double scalePre;        // 窗口预测比例系数
+ 45     double xOri;            // 原始x坐标
+ 46     double yOri;            // 原始y坐标
+ 47     Rect rect;            // 原始区域大小
+ 48     MatND hist;            // 粒子区域的特征直方图
+ 49     double weight;        // 该粒子的权重
+ 50 } PARTICLE;
+ 51 
+ 52 Mat hsv;    // hsv色彩空间的输入图像
+ 53 Mat roiImage;    // 目标区域
+ 54 MatND roiHist;    // 目标区域直方图
+ 55 Mat img;    // 输出的目标图像
+ 56 PARTICLE particles[PARTICLE_NUM];    // 粒子
+ 57 
+ 58 int nFrameNum = 0;
+ 59 
+ 60 bool bSelectObject = false;    // 区域选择标志
+ 61 bool bTracking = false;        // 开始跟踪标志
+ 62 Point origin;    // 鼠标按下时的点位置
+ 63 Rect selection;// 感兴趣的区域大小
+ 64 
+ 65 // 直方图相关参数，特征的选取也会对结果影响巨大
+ 66 // Quantize the hue to 30 levels
+ 67 // and the saturation to 32 levels
+ 68 // value to 10 levels
+ 69 int hbins = 180, sbins = 256, vbin = 10;
+ 70 int histSize[] = {hbins, sbins, vbin};
+ 71 // hue varies from 0 to 179, see cvtColor
+ 72 float hranges[] = { 0, 180 };
+ 73 // saturation varies from 0 (black-gray-white) to 255 (pure spectrum color)
+ 74 float sranges[] = { 0, 256 };
+ 75 // value varies from 0 (black-gray-white) to 255 (pure spectrum color)
+ 76 float vranges[] = { 0, 256 };
+ 77 const float* ranges[] = {hranges, sranges, vranges};
+ 78 // we compute the histogram from the 0-th and 1-st channels
+ 79 int channels[] = {0, 1, 2};
+ 80 
+ 81 // 鼠标响应函数，得到选择的区域，保存在selection
+ 82 void onMouse(int event, int x, int y, int, void*)
+ 83 {
+ 84     if( bSelectObject )
+ 85     {
+ 86         selection.x = MIN(x, origin.x);
+ 87         selection.y = MIN(y, origin.y);
+ 88         selection.width = std::abs(x - origin.x);
+ 89         selection.height = std::abs(y - origin.y);
+ 90 
+ 91         selection &= Rect(0, 0, img.cols, img.rows);
+ 92     }
+ 93 
+ 94     switch (event)
+ 95     {
+ 96     case CV_EVENT_LBUTTONDOWN:
+ 97         origin = Point(x,y);
+ 98         selection = Rect(x,y,0,0);
+ 99         bSelectObject = true;
+100         bTracking = false;
+101         break;
+102     case CV_EVENT_LBUTTONUP:
+103         bSelectObject = false;
+104     //    if( selection.width > 0 && selection.height > 0 )
+105         bTracking = true;
+106         nFrameNum = 0;
+107         break;
+108     }
+109 }
+110 
+111 // 快速排序算法排序函数
+112 int particle_cmp(const void* p1,const void* p2)
+113 {
+114     PARTICLE* _p1 = (PARTICLE*)p1;
+115     PARTICLE* _p2 = (PARTICLE*)p2;
+116 
+117     if(_p1->weight < _p2->weight)
+118         return 1;    //按照权重降序排序
+119     if(_p1->weight > _p2->weight)
+120         return -1;
+121     return 0;
+122 }
+123 
+124 const char* keys = 
+125 {
+126     "{1|  | 0 | camera number}"
+127 };
+128 
+129 int main(int argc, const char **argv)//这里char **argv前必须用const，why？
+130 {
+131     int delay = 30;    // 控制播放速度
+132     char c;    // 键值
+133 
+134     /*读取avi文件*/
+135     VideoCapture captRefrnc("IndoorGTTest1.avi");    // 视频文件
+136 
+137     /*打开摄像头*/
+138     //VideoCapture captRefrnc;
+139 //CommandLineParser parser(argc, argv, keys);//命令解析器函数
+140 //int camNum = parser.get<int>("1");   
+141 //captRefrnc.open(camNum);
+142 
+143     if ( !captRefrnc.isOpened())
+144     {
+145         return -1;
+146     }
+147 
+148     // Windows
+149     const char* WIN_RESULT = "Result";
+150     namedWindow(WIN_RESULT, CV_WINDOW_AUTOSIZE);
+151     //namedWindow(WIN_RESULT, 0);
+152 //      namedWindow("Result",0);
+153 // 鼠标响应函数
+154 //setMouseCallback(WIN_RESULT, onMouse, 0);
+155     setMouseCallback("Result", onMouse, 0);
+156 
+157     Mat frame;    //视频的每一帧图像
+158 
+159     bool paused = false;
+160     PARTICLE * pParticles = particles;//particles为可装PARTICLE_NUM个PARTICLE结构体的数组，所以pParticles为指向其数组的指针
+161 
+162     while(true) //Show the image captured in the window and repeat
+163     {
+164         if(!paused)
+165         {
+166             captRefrnc >> frame;
+167             if(frame.empty())
+168                 break;
+169         }
+170 
+171         frame.copyTo(img);    // 接下来的操作都是对src的
+172 
+173 
+174 // 选择目标后进行跟踪
+175         if (bTracking == true)//鼠标操作选完后
+176         {
+177             if(!paused)
+178             {                
+179                 nFrameNum++;//帧数计数器
+180                 cvtColor(img, hsv, CV_BGR2HSV);
+181                 Mat roiImage(hsv, selection);    // 目标区域，这个构造函数第二个参数表示截取selection部分
+182 
+183                 if (nFrameNum == 1)    //选择目标后的第一帧需要初始化
+184                 {
+185                     // step 1: 提取目标区域特征，难道其目标特征就是其色调的直方图分布？
+186                     calcHist(&roiImage, 1, channels, Mat(), roiHist, 3, histSize, ranges);
+187                     normalize(roiHist, roiHist);    // 归一化L2
+188 
+189 // step 2: 初始化particle
+190                     pParticles = particles;
+191                     for (int i=0; i<PARTICLE_NUM; i++)
+192                     {
+193                         pParticles->x = selection.x + 0.5 * selection.width;
+194                         pParticles->y = selection.y + 0.5 * selection.height;
+195                         pParticles->xPre = pParticles->x;
+196                         pParticles->yPre = pParticles->y;
+197                         pParticles->xOri = pParticles->x;
+198                         pParticles->yOri = pParticles->y;
+199                         pParticles->rect = selection;
+200                         pParticles->scale = 1.0;
+201                         pParticles->scalePre = 1.0;
+202                         pParticles->hist = roiHist;
+203                         pParticles->weight = 0;
+204                         pParticles++;
+205                     }
+206                 }
+207                 else //不是第一帧
+208                 {                    
+209                     pParticles = particles;    
+210                     RNG rng;//随机数序列产生器
+211                     for (int i=0; i<PARTICLE_NUM; i++)
+212                     {
+213                         // step 3: 求particle的transition，粒子结构中的参数全部更新过
+214                         double x, y, s;
+215 
+216                         pParticles->xPre = pParticles->x;
+217                         pParticles->yPre = pParticles->y;
+218                         pParticles->scalePre = pParticles->scale;
+219 
+220                         x = A1 * (pParticles->x - pParticles->xOri) + A2 * (pParticles->xPre - pParticles->xOri) +
+221                             B0 * rng.gaussian(SIGMA_X) + pParticles->xOri;//以当前点为中心产生高斯分布的粒子
+222                         pParticles->x = std::max(0.0, std::min(x, img.cols-1.0));//其实就是x，只是考虑了边界在内而已
+223 
+224 
+225                         y = A1 * (pParticles->y - pParticles->yOri) + A2 * (pParticles->yPre - pParticles->yOri) +
+226                             B0 * rng.gaussian(SIGMA_Y) + pParticles->yOri;
+227                         pParticles->y = std::max(0.0, std::min(y, img.rows-1.0));
+228 
+229                         s = A1 * (pParticles->scale - 1.0) + A2 * (pParticles->scalePre - 1.0) +
+230                             B0 * rng.gaussian(SIGMA_SCALE) + 1.0;
+231                         pParticles->scale = std::max(0.1, std::min(s, 3.0));
+232                         // rect参数有待考证
+233                         pParticles->rect.x = std::max(0, std::min(cvRound(pParticles->x - 0.5 * pParticles->rect.width * pParticles->scale), img.cols-1));        // 0 <= x <= img.rows-1
+234                         pParticles->rect.y = std::max(0, std::min(cvRound(pParticles->y - 0.5 * pParticles->rect.height * pParticles->scale), img.rows-1));    // 0 <= y <= img.cols-1
+235                         pParticles->rect.width = std::min(cvRound(pParticles->rect.width * pParticles->scale), img.cols - pParticles->rect.x);
+236                         pParticles->rect.height = std::min(cvRound(pParticles->rect.height * pParticles->scale), img.rows - pParticles->rect.y);
+237                         // Ori参数不改变
+238 
+239 // step 4: 求particle区域的特征直方图
+240                         Mat imgParticle(img, pParticles->rect);
+241                         calcHist(&imgParticle, 1, channels, Mat(), pParticles->hist, 3, histSize, ranges);
+242                         normalize(pParticles->hist, pParticles->hist);    // 归一化L2
+243 
+244 // step 5: 特征的比对,更新particle权重
+245 //compareHist()函数返回2个直方图之间的相似度，因为参数为CV_COMP_INTERSECT，所以返回的是最小直方图值之和
+246                         pParticles->weight = compareHist(roiHist, pParticles->hist, CV_COMP_INTERSECT);//其差值直接作为其权值
+247 
+248                         pParticles++;    
+249                     }
+250 
+251                     // step 6: 归一化粒子权重
+252                     double sum = 0.0;
+253                     int i;
+254 
+255                     pParticles = particles;
+256                     for(i=0; i<PARTICLE_NUM; i++)
+257                     {
+258                         sum += pParticles->weight;
+259                         pParticles++;
+260                     }
+261                     pParticles = particles;
+262                     for(i=0; i<PARTICLE_NUM; i++)
+263                     {
+264                         pParticles->weight /= sum;
+265                         pParticles++;
+266                     }
+267 
+268                     // step 7: resample根据粒子的权重的后验概率分布重新采样
+269                     pParticles = particles;
+270                     //                     PARTICLE* newParticles = new PARTICLE[sizeof(PARTICLE) * PARTICLE_NUM];
+271                     PARTICLE newParticles[PARTICLE_NUM];
+272                     int np, k = 0;
+273                     
+274                     //qsort()函数为对数组进行快速排序,其中第4个参数表示的是排序是升序还是降序
+275                     qsort(pParticles, PARTICLE_NUM, sizeof(PARTICLE), &particle_cmp);//这里采用的是降序排列
+276                     for(int i=0; i<PARTICLE_NUM; i++)
+277                     {
+278                         np = cvRound(particles[i].weight * PARTICLE_NUM);//权值高的优先重采样
+279                         for(int j=0; j<np; j++)
+280                         {
+281                             newParticles[k++] = particles[i];
+282                             if(k == PARTICLE_NUM)//重采样后达到了个数要求则直接跳出
+283                                 goto EXITOUT;
+284                         }
+285                     }
+286                     while(k < PARTICLE_NUM)
+287                     {
+288                         newParticles[k++] = particles[0];//个数不够时，将权值最高的粒子重复给
+289                     }
+290 
+291 EXITOUT:
+292                     for (int i=0; i<PARTICLE_NUM; i++)
+293                     {
+294                         particles[i] = newParticles[i];
+295                     }
+296 
+297                 }// end else
+298 
+299                 qsort(pParticles, PARTICLE_NUM, sizeof(PARTICLE), &particle_cmp);
+300 
+301                 // step 8: 计算粒子的期望，作为跟踪结果
+302                 Rect_<double> rectTrackingTemp(0.0, 0.0, 0.0, 0.0);
+303                 pParticles = particles;
+304                 for (int i=0; i<PARTICLE_NUM; i++)
+305                 {
+306                     rectTrackingTemp.x += pParticles->rect.x * pParticles->weight;//坐标加上权重的偏移值
+307                     rectTrackingTemp.y += pParticles->rect.y * pParticles->weight;
+308                     rectTrackingTemp.width += pParticles->rect.width * pParticles->weight;//宽度也要加上权值的偏移值
+309                     rectTrackingTemp.height += pParticles->rect.height * pParticles->weight;
+310                     pParticles++;
+311                 }
+312                 Rect rectTracking(rectTrackingTemp);    // 跟踪结果
+313 
+314 // 显示各粒子的运动
+315                 for (int i=0; i<PARTICLE_NUM; i++)
+316                 {
+317                     rectangle(img, particles[i].rect, Scalar(255,0,0));
+318                 }
+319                 // 显示跟踪结果
+320                 rectangle(img, rectTracking, Scalar(0,0,255), 3);
+321 
+322             }
+323         }// end Tracking
+324 
+325 //         imshow(WIN_SRC, frame);
+326         imshow(WIN_RESULT, img);
+327 
+328         c = (char)waitKey(delay);
+329         if( c == 27 )
+330             break;
+331         switch(c)
+332         {
+333         case 'p'://暂停键
+334             paused = !paused;
+335             break;
+336         default:
+337             ;
+338         }
+339     }// end while
+340 }
+
+ 
+
+   但是用他的代码在进行鼠标选定后就出现如下错误。
+
+
+
+     我的工程环境：opencv2.2+vs2010
+
+     经过单步调试跟踪后发现，错误的那一行为：
+
+     pParticles->weight = compareHist(roiHist, pParticles->hist, CV_COMP_INTERSECT);
+
+     去掉该行程序可以正常运行，但是完成不了跟踪功能，其目标跟踪框不会移动，只会慢慢收敛到一个点，因为粒子的权重此时没有更新。
+
+查找资料了很久，函数compareHist()的用法并没有错，也不知道是哪里错了。先工作暂时弄到这里，只要对粒子滤波有个感性认识即可。等过段时间再来真正学粒子滤波算法时完成该演示。
+
+ 
+
+修改时间：2012.05.08：
+
+    过了这么久，重新学习粒子滤波时，想解决上面那个遗留下来的问题。事实证明C/C++内存搞死人，上面那个问题debug了2天也不懂哪里出错了。自己又用了不少时间理解程序后敲了一遍代码。那个问题暂时解决了，但是跟踪起来根本无效过。修改后的代码如下：
+
+
+  1 // particle_tracking.cpp : 定义控制台应用程序的入口点。
+  2 //
+  3 
+  4 #include "stdafx.h"
+  5 #include <opencv2/core/core.hpp>
+  6 #include "opencv2/imgproc/imgproc.hpp"
+  7 #include <opencv2/highgui/highgui.hpp>
+  8 #include <stdio.h>
+  9 #include <iostream>
+ 10 
+ 11 using namespace cv;
+ 12 using namespace std;
+ 13 
+ 14 Rect select;
+ 15 bool select_flag=false;
+ 16 bool tracking=false;//跟踪标志位
+ 17 bool select_show=false;
+ 18 Point origin;
+ 19 Mat frame,hsv;
+ 20 int after_select_frames=0;//选择矩形区域完后的帧计数
+ 21 
+ 22 /****rgb空间用到的变量****/
+ 23 //int hist_size[]={16,16,16};//rgb空间各维度的bin个数
+ 24 //float rrange[]={0,255.0};
+ 25 //float grange[]={0,255.0};
+ 26 //float brange[]={0,255.0};
+ 27 //const float *ranges[] ={rrange,grange,brange};//range相当于一个二维数组指针
+ 28 
+ 29 /****hsv空间用到的变量****/
+ 30 int hist_size[]={16,16,16};
+ 31 float hrange[]={0,180.0};
+ 32 float srange[]={0,256.0};
+ 33 float vrange[]={0,256.0};
+ 34 const float *ranges[]={hrange,srange,vrange};
+ 35 
+ 36 int channels[]={0,1,2};
+ 37 
+ 38 /****有关粒子窗口变化用到的相关变量****/
+ 39 int A1=2;
+ 40 int A2=-1;
+ 41 int B0=1;
+ 42 double sigmax=1.0;
+ 43 double sigmay=0.5;
+ 44 double sigmas=0.001;
+ 45 
+ 46 /****定义使用粒子数目宏****/
+ 47 #define PARTICLE_NUMBER 50 //如果这个数设定太大，比如100，则在运行时将会出现错误
+ 48 
+ 49 /****定义粒子结构体****/
+ 50 typedef struct particle
+ 51 {
+ 52     int orix,oriy;//原始粒子坐标
+ 53     int x,y;//当前粒子的坐标
+ 54     double scale;//当前粒子窗口的尺寸
+ 55     int prex,prey;//上一帧粒子的坐标
+ 56     double prescale;//上一帧粒子窗口的尺寸
+ 57     Rect rect;//当前粒子矩形窗口
+ 58     Mat hist;//当前粒子窗口直方图特征
+ 59     double weight;//当前粒子权值
+ 60 }PARTICLE;
+ 61 
+ 62 PARTICLE particles[PARTICLE_NUMBER];
+ 63 
+ 64 /************************************************************************************************************************/
+ 65 /****                            如果采用这个onMouse()函数的话，则可以画出鼠标拖动矩形框的4种情形                        ****/
+ 66 /************************************************************************************************************************/
+ 67 void onMouse(int event,int x,int y,int,void*)
+ 68 {
+ 69     //Point origin;//不能在这个地方进行定义，因为这是基于消息响应的函数，执行完后origin就释放了，所以达不到效果。
+ 70     if(select_flag)
+ 71     {
+ 72         select.x=MIN(origin.x,x);//不一定要等鼠标弹起才计算矩形框，而应该在鼠标按下开始到弹起这段时间实时计算所选矩形框
+ 73         select.y=MIN(origin.y,y);
+ 74         select.width=abs(x-origin.x);//算矩形宽度和高度
+ 75         select.height=abs(y-origin.y);
+ 76         select&=Rect(0,0,frame.cols,frame.rows);//保证所选矩形框在视频显示区域之内
+ 77 
+ 78 //        rectangle(frame,select,Scalar(0,0,255),3,8,0);//显示手动选择的矩形框
+ 79     }
+ 80     if(event==CV_EVENT_LBUTTONDOWN)
+ 81     {
+ 82         select_flag=true;//鼠标按下的标志赋真值
+ 83         tracking=false;
+ 84         select_show=true;
+ 85         after_select_frames=0;//还没开始选择，或者重新开始选择，计数为0
+ 86         origin=Point(x,y);//保存下来单击是捕捉到的点
+ 87         select=Rect(x,y,0,0);//这里一定要初始化，因为在opencv中Rect矩形框类内的点是包含左上角那个点的，但是不含右下角那个点。
+ 88     }
+ 89     else if(event==CV_EVENT_LBUTTONUP)
+ 90     {
+ 91         select_flag=false;
+ 92         tracking=true;
+ 93         select_show=false;
+ 94         after_select_frames=1;//选择完后的那一帧当做第1帧
+ 95     }
+ 96 }
+ 97 
+ 98 /****粒子权值降序排列函数****/
+ 99 int particle_decrease(const void *p1,const void *p2)
+100 {
+101     PARTICLE* _p1=(PARTICLE*)p1;
+102     PARTICLE* _p2=(PARTICLE*)p2;
+103     if(_p1->weight<_p2->weight)
+104         return 1;
+105     else if(_p1->weight>_p2->weight)
+106         return -1;
+107     return 0;//相等的情况下返回0
+108 }
+109 
+110 int main(int argc, unsigned char* argv[])
+111 {
+112     char c;
+113     Mat target_img,track_img;
+114     Mat target_hist,track_hist;
+115     PARTICLE *pParticle;
+116 
+117     /***打开摄像头****/
+118     VideoCapture cam(0);
+119     if (!cam.isOpened())
+120         return -1;
+121 
+122     /****建立窗口****/
+123     namedWindow("camera",1);//显示视频原图像的窗口
+124 
+125     /****捕捉鼠标****/
+126     setMouseCallback("camera",onMouse,0);
+127 
+128     while(1)
+129     {
+130         /****读取一帧图像****/
+131         cam>>frame;
+132         if(frame.empty())
+133             return -1;
+134 
+135         /****将rgb空间转换为hsv空间****/
+136         cvtColor(frame,hsv,CV_BGR2HSV);
+137 
+138         if(tracking)
+139         {
+140             
+141             if(1==after_select_frames)//选择完目标区域后
+142             {
+143                 /****计算目标模板的直方图特征****/
+144                 target_img=Mat(hsv,select);//在此之前先定义好target_img,然后这样赋值也行，要学会Mat的这个操作
+145                 calcHist(&target_img,1,channels,Mat(),target_hist,3,hist_size,ranges);
+146                 normalize(target_hist,target_hist);
+147 
+148                 /****初始化目标粒子****/
+149                 pParticle=particles;//指针初始化指向particles数组
+150                 for(int x=0;x<PARTICLE_NUMBER;x++)
+151                 {
+152                     pParticle->x=cvRound(select.x+0.5*select.width);//选定目标矩形框中心为初始粒子窗口中心
+153                     pParticle->y=cvRound(select.y+0.5*select.height);
+154                     pParticle->orix=pParticle->x;//粒子的原始坐标为选定矩形框(即目标)的中心
+155                     pParticle->oriy=pParticle->y;
+156                     pParticle->prex=pParticle->x;//更新上一次的粒子位置
+157                     pParticle->prey=pParticle->y;
+158                     pParticle->rect=select;
+159                     pParticle->prescale=1;
+160                     pParticle->scale=1;
+161                     pParticle->hist=target_hist;
+162                     pParticle->weight=0;
+163                     pParticle++;
+164                 }
+165             }
+166             else if(2==after_select_frames)//从第二帧开始就可以开始跟踪了
+167             {
+168                 double sum=0.0;
+169                 pParticle=particles;
+170                 RNG rng;//随机数产生器
+171 
+172                 /****更新粒子结构体的大部分参数****/
+173                 for(int i=0;i<PARTICLE_NUMBER;i++)
+174                 {
+175                     int x,y;
+176                     double s;
+177 
+178                     /****更新粒子的矩形区域即粒子中心****/
+179                     pParticle->prex=pParticle->x;
+180                     pParticle->prey=pParticle->y;
+181                     pParticle->prescale=pParticle->scale;
+182 
+183                     x=cvRound(A1*(pParticle->x-pParticle->orix)+A2*(pParticle->prex-pParticle->orix)+
+184                         B0*rng.gaussian(sigmax)+pParticle->orix);
+185                     pParticle->x=max(0,min(x,frame.cols-1));
+186 
+187                     y=cvRound(A1*(pParticle->y-pParticle->oriy)+A2*(pParticle->prey-pParticle->oriy)+
+188                         B0*rng.gaussian(sigmay)+pParticle->oriy);
+189                     pParticle->y=max(0,min(y,frame.rows-1));
+190 
+191                     s=A1*(pParticle->scale-1)+A2*(pParticle->prescale-1)+B0*(rng.gaussian(sigmas))+1.0;
+192                     pParticle->scale=max(1.0,min(s,3.0));
+193 
+194                     //注意在c语言中，x-1.0，如果x是int型，则这句语法有错误,但如果前面加了cvRound(x-0.5)则是正确的
+195                     pParticle->rect.x=max(0,min(cvRound(pParticle->x-0.5*pParticle->scale*pParticle->rect.width),frame.cols));
+196                     pParticle->rect.y=max(0,min(cvRound(pParticle->y-0.5*pParticle->scale*pParticle->rect.height),frame.rows));
+197                     pParticle->rect.width=min(cvRound(pParticle->scale*pParticle->rect.width),frame.cols-pParticle->rect.x);
+198                     pParticle->rect.height=min(cvRound(pParticle->scale*pParticle->rect.height),frame.rows-pParticle->rect.y);
+199 
+200                     /****计算粒子区域的新的直方图特征****/
+201                     track_img=Mat(hsv,pParticle->rect);
+202                     calcHist(&track_img,1,channels,Mat(),track_hist,3,hist_size,ranges);
+203                     normalize(track_hist,track_hist);
+204 
+205                     /****更新粒子的权值****/
+206         //            pParticle->weight=compareHist(target_hist,track_hist,CV_COMP_INTERSECT);
+207                     pParticle->weight=compareHist(target_hist,track_hist,CV_COMP_BHATTACHARYYA);//采用巴氏系数计算相似度
+208 
+209                     /****累加粒子权值****/
+210                     sum+=pParticle->weight;
+211                     pParticle++;
+212                 }
+213 
+214                 /****归一化粒子权重****/
+215                 pParticle=particles;
+216                 for(int i=0;i<PARTICLE_NUMBER;i++)
+217                 {
+218                     pParticle->weight/=sum;
+219                     pParticle++;
+220                 }
+221 
+222                 /****根据粒子的权值降序排列****/
+223                 pParticle=particles;
+224                 qsort(pParticle,PARTICLE_NUMBER,sizeof(PARTICLE),&particle_decrease);
+225 
+226                 /****根据粒子权重重采样粒子****/
+227                 PARTICLE newParticle[PARTICLE_NUMBER];
+228                 int np=0,k=0;
+229                 for(int i=0;i<PARTICLE_NUMBER;i++)
+230                 {
+231                     np=cvRound(pParticle->weight*PARTICLE_NUMBER);
+232                     for(int j=0;j<np;j++)
+233                     {
+234                         newParticle[k++]=particles[i];
+235                         if(k==PARTICLE_NUMBER)
+236                             goto EXITOUT;
+237                     }
+238                 }
+239                 while(k<PARTICLE_NUMBER)
+240                     newParticle[k++]=particles[0];
+241 EXITOUT:
+242                 for(int i=0;i<PARTICLE_NUMBER;i++)
+243                     particles[i]=newParticle[i];
+244             }//end else
+245 
+246             qsort(pParticle,PARTICLE_NUMBER,sizeof(PARTICLE),&particle_decrease);
+247             
+248             /****计算粒子期望，做为跟踪结果****/
+249             Rect_<double> rectTrackingTemp(0.0,0.0,0.0,0.0);
+250             pParticle=particles;
+251             for(int i=0;i<PARTICLE_NUMBER;i++)
+252             {
+253                 rectTrackingTemp.x+=pParticle->rect.x*pParticle->weight;
+254                 rectTrackingTemp.y+=pParticle->rect.y*pParticle->weight;
+255                 rectTrackingTemp.width+=pParticle->rect.width*pParticle->weight;
+256                 rectTrackingTemp.height+=pParticle->rect.height*pParticle->weight;
+257                 pParticle++;
+258             }
+259         
+260             Rect tracking_rect(rectTrackingTemp);
+261 
+262             pParticle=particles;
+263 
+264             /****显示各粒子运动结果****/
+265             for(int m=0;m<PARTICLE_NUMBER;m++)
+266             {
+267                 rectangle(frame,pParticle->rect,Scalar(255,0,0),1,8,0);
+268                 pParticle++;
+269             }
+270 
+271             /****显示跟踪结果****/
+272             rectangle(frame,tracking_rect,Scalar(0,0,255),3,8,0);
+273 
+274             after_select_frames++;//总循环每循环一次，计数加1
+275             if(after_select_frames>2)//防止跟踪太长，after_select_frames计数溢出
+276                 after_select_frames=2;
+277         }
+278 
+279         if(select_show)
+280         rectangle(frame,select,Scalar(0,0,255),3,8,0);//显示手动选择的矩形框
+281         //显示视频图片到窗口
+282         imshow("camera",frame);
+283 
+284     //    select.zeros();
+285         //键盘响应
+286         c=(char)waitKey(20);
+287         if(27==c)//ESC键
+288             return -1;
+289     }
+290 
+291     return 0;
+292 }
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+作者：tornadomeet 出处：http://www.cnblogs.com/tornadomeet 欢迎转载或分享，但请务必声明文章出处。
+标签: opencv, particle filter, 目标跟踪学习笔记
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+tornadomeet
+关注 - 26
+粉丝 - 248
++加关注
+0 0
+(请您对文章做出评价)
+« 博主上一篇：Matlab DIP(瓦)ch8图像压缩练习
+» 博主下一篇：Matlab DIP(瓦)ch9形态学图像处理
+posted on 2012-03-18 17:43 tornadomeet 阅读(1059) 评论(1) 编辑 收藏
+
+
+评论:
+#1楼 2013-01-29 16:13 | yuezhongdetutu  
+博主，您好！可以把您的indoorGTTest1视频发给我一份吗，我从IBM网站上下载的不能用~邮箱：wangchanhappy@163.com 非常感谢您！
+支持(0)反对(0)
+  
+刷新评论刷新页面返回顶部
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+博客园首页博问新闻闪存程序员招聘知识库
+
+最新IT新闻:
+· Tim Cook 称苹果软件硬件服务俱佳，多次强调用户体验
+· 英特尔确认今年将推出网络电视服务
+· 基于人脸识别的响应式排版
+· 分析：苹果应当收购诺基亚的4大理由
+· 苹果获新天线专利：下代iPhone或采用全铝外壳
+» 更多新闻...
+最新知识库文章:
+· 开发者，别让任何人绑架你的工作节奏
+· 冯大辉：十年莽撞 IT 路
+· 对象的消息模型
+· 16条技巧让你更高效使用SSH
+· HTML5之美
+» 更多知识库文章...
+
+昵称：tornadomeet
+园龄：11个月
+粉丝：248
+关注：26
++加关注
+<	2012年3月	>
+日	一	二	三	四	五	六
+26	27	28	29	1	2	3
+4	5	6	7	8	9	10
+11	12	13	14	15	16	17
+18	19	20	21	22	23	24
+25	26	27	28	29	30	31
+1	2	3	4	5	6	7
+
+搜索
+
+ 
+ 
+常用链接
+
+我的随笔
+我的评论
+我的参与
+最新评论
+我的标签
+我的标签
+
+opencv(34)
+基础学习笔记之opencv(24)
+Android开发历程(18)
+matlab(16)
+reading papers(16)
+Qt学习之路(14)
+Kinect(14)
+Kinect+OpenNI学习笔记(14)
+OpenNI(14)
+总结系列(14)
+更多
+随笔分类(315)
+
+Android(19)
+ARM
+C/C++(3)
+CV(45)
+DIP(7)
+Eigen(1)
+FPGA
+IR(1)
+Java
+Kinect(15)
+Linux(2)
+matlab(16)
+OpenCV(57)
+OpenGL(7)
+OpenNI(14)
+Paper(8)
+Qt(36)
+Robot(2)
+XML(1)
+单片机
+电子设计
+机器学习(21)
+计算机网络(1)
+控制理论(1)
+模式识别(11)
+嵌入式
+人工智能(8)
+神经网络(2)
+手势识别(3)
+数据结构(1)
+数学(2)
+数字信号处理(1)
+算法(3)
+语音处理(3)
+总结(22)
+最优化(2)
+随笔档案(171)
+
+2013年1月 (4)
+2012年12月 (15)
+2012年11月 (15)
+2012年10月 (8)
+2012年9月 (11)
+2012年8月 (24)
+2012年7月 (29)
+2012年6月 (15)
+2012年5月 (14)
+2012年4月 (14)
+2012年3月 (22)
+积分与排名
+积分 - 150227
+排名 - 676
+最新评论
+
+1. Re:Qt学习之路_12(简易数据管理系统)
+code下不来啊，一点击就到新浪爱问里了。
+--flying2080
+2. Re:目标跟踪学习笔记_2(particle filter初探1)
+博主，您好！可以把您的indoorGTTest1视频发给我一份吗，我从IBM网站上下载的不能用~邮箱：wangchanhappy@163.com  非常感谢您！
+--yuezhongdetutu
+3. Re:Kinect+OpenNI学习笔记之12(简单手势所表示的数字的识别)
+楼主，你好！这个代码我在Qt SDK下新建了工程，并且能够编译连接通过！可是连接上Kinect之后，就显示“.exe 程序出现问题，已经停止，如有解决方案，windows 将自动解决”。请问这个问题你遇到过吗？ 那些显示的窗口倒是可以弹出来，不过采集的图像不行！
+--全民超人
+4. Re:Kinect+OpenNI学习笔记之1(开发环境的建立)
+楼主是用xbox的还是，最新微软的
+--K_On
+5. Re:前景检测算法_3(GMM)
+很强大啊
+--易阳
+6. Re:PCA算法学习_1(OpenCV中PCA实现人脸降维)
+请问楼主，刚接触qt+opencv ，楼主在ubuntu12.04+Qt4.8.2+QtCreator2.5.1+opencv2.4.2这样的环境下，
+能否在windows下完成啊 试过，不知道怎么修改了。
+--yangsuo
+7. Re:图像分割学习笔记_1(opencv自带meanshift分割例子)
+上面示例代码有问题。。改成如下的就行了
+void meanshift_seg(int,void *) { //调用meanshift图像金字塔进行分割 pyrMeanShiftFiltering(src,dst,spatialRad,colorRad,maxPryLevel); imshow("dst",dst); } int main(int argc, uch...
+--肖_GIS&amp;RS
+8. Re:opencv源码解析之(3)：特征点检查前言1
+@梦里不知身是客啊
+这个控制不了
+--tornadomeet
+9. Re:opencv源码解析之(3)：特征点检查前言1
+楼主你好，请问怎么样才能控制检测出的SURF特征点的个数啊？比如我想得到100个特征点，应该怎么操作？
+--梦里不知身是客啊
+10. Re:Qt学习之路_1(安装及首次体验)
+@tornadomeet
+谢谢你的教诲！怪我一着急就到处跳着看了，没注意到这个，感谢你耐心的指导，一步一步踏实地向你学习！加油！
+--全民超人
+11. Re:Qt学习之路_1(安装及首次体验)
+@全民超人
+新不新手不重要，搞技术不要太浮躁。
+--tornadomeet
+12. Re:Qt学习之路_1(安装及首次体验)
+@全民超人
+本文第一段都说了，使用的是官网上编译好了的(为什么不看文章呢？呵呵)。
+当然了，如果使用自己编译的话肯定是可以的。我的windows下OpenCV也是使用编译好了的，linux下是自己编译的
+--tornadomeet
+13. Re:Qt学习之路_1(安装及首次体验)
+我想不通的就是，之前下载过你的Kinect+OpenNI学习笔记之9(不需要骨骼跟踪的人体手部分割)的代码，我看pro.文件里面的OpenCV库是直接用的，不是经过编译那一种......所以一直搞不清楚你的环境配置！麻烦你简单和我说下环境配置，我老是一头雾水.......你用的是Qt SDK 么？
+--全民超人
+14. Re:Qt学习之路_1(安装及首次体验)
+不好意思，才接触Qt，很多都不懂.......嗯，我感觉是用的静态编译的Qt4.8.2吧！然后再编译OpenCV？是这样么？
+--全民超人
+15. Re:Qt学习之路_1(安装及首次体验)
+@全民超人
+文章不是都写得清清楚楚的么？
+--tornadomeet
+16. Re:Qt学习之路_1(安装及首次体验)
+@全民超人
+请仔细看下文章吧，文章都有，还得我重新写一遍？
+--tornadomeet
+17. Re:Qt学习之路_1(安装及首次体验)
+就是做OpenNI那些实验的时候，环境是怎样的呢？
+--全民超人
+18. Re:Qt学习之路_1(安装及首次体验)
+@tornadomeet
+楼主，那你现在的环境是直接用的Qt4.8.x静态编译的，还是Qt SDK呢？那VS那个我也不用了....
+--全民超人
+19. Re:Qt学习之路_1(安装及首次体验)
+@全民超人
+vs插件本身就用些bug，不建议用
+--tornadomeet
+20. Re:Qt学习之路_1(安装及首次体验)
+@全民超人
+我都大半年没用VS2010了，只用QtCreator
+--tornadomeet
+阅读排行榜
+
+1. 总结系列_7(opencv2.4.2+vs2010安装简介)(7114)
+2. 总结系列_14(OpenCV2.4.3的新特征以及安装方法)(5553)
+3. opencv源码解析之(6)：hog源码分析(4339)
+4. 目标检测学习_1(用opencv自带hog实现行人检测)(3839)
+5. opencv源码解析之(3)：特征点检查前言1(3097)
+6. 特征点检测学习_2(surf算法)(3057)
+7. Kinect+OpenNI学习笔记之1(开发环境的建立)(2933)
+8. 特征点检测学习_1(sift算法)(2797)
+9. 目标跟踪学习笔记_1(opencv中meanshift和camshift例子的应用)(2757)
+10. 本人常用资源整理(ing...)(2747)
+11. 基础学习笔记之opencv(1)：opencv中facedetect例子浅析(2711)
+12. 基础学习笔记之opencv(3)：haartraining生成.xml文件过程(2553)
+13. OpenGL_Qt学习笔记之_01(创建一个OpenGL窗口)(2418)
+14. 基础学习笔记之opencv(4)：直方图使用学习(2412)
+15. 前景检测算法_3(GMM)(2407)
+16. 图像分割学习笔记_1(opencv自带meanshift分割例子)(2355)
+17. Qt学习之路_4(Qt UDP的初步使用)(2315)
+18. Kinect+OpenNI学习笔记之2(获取kinect的颜色图像和深度图像)(2191)
+19. Qt学习之路_13(简易俄罗斯方块)(2060)
+20. HMM学习笔记_3(从一个实例中学习Viterbi算法)(2035)
+21. 前景检测算法_1(codebook和平均背景法)(2017)
+22. Qt学习之路_6(Qt局域网聊天软件)(1973)
+23. HMM学习笔记_2(从一个实例中学习HMM前向算法)(1948)
+24. Qt学习之路_8(Qt中与文件目录相关操作)(1935)
+25. Kinect+OpenNI学习笔记之8(Robert Walter手部提取代码的分析)(1895)
+26. PCA算法学习_1(OpenCV中PCA实现人脸降维)(1889)
+27. opencv源码解析之(4)：GaussianBlur()(1874)
+28. Qt学习之路_14(简易音乐播放器)(1814)
+29. Matlab成长之路_1(图片,视频,摄像头的读取和显示)(1758)
+30. Qt学习之路_11(简易多文档编辑器)(1725)
+31. Qt学习之路_12(简易数据管理系统)(1721)
+32. 基础学习笔记之opencv(2)：haartraining前将统一图片尺寸方法(1700)
+33. Qt学习之路_5(Qt TCP的初步使用)(1656)
+34. 基础学习笔记之opencv(15)：离散傅里叶变换(1635)
+35. Kinect+OpenNI学习笔记之12(简单手势所表示的数字的识别)(1612)
+36. Kinect+OpenNI学习笔记之4(OpenNI获取的图像结合OpenCV显示)(1589)
+37. Android开发历程_1(从1个activity跳转到另一个activity)(1575)
+38. Android开发历程_10(LayoutAnimationController的初步使用)(1575)
+39. Android开发历程_12(Handler的使用)(1507)
+40. 目标跟踪学习笔记_5(opencv中kalman点跟踪例子)(1507)
+评论排行榜
+
+1. Kinect+OpenNI学习笔记之12(简单手势所表示的数字的识别)(24)
+2. 特征点检测学习_2(surf算法)(24)
+3. opencv源码解析之(3)：特征点检查前言1(24)
+4. Qt学习之路_1(安装及首次体验)(21)
+5. 基础学习笔记之opencv(2)：haartraining前将统一图片尺寸方法(15)
+6. Kinect+OpenNI学习笔记之8(Robert Walter手部提取代码的分析)(15)
+7. 基础学习笔记之opencv(1)：opencv中facedetect例子浅析(15)
+8. HMM学习笔记_3(从一个实例中学习Viterbi算法)(14)
+9. 基础学习笔记之opencv(17)：皮肤检测类CvAdaptiveSkinDetector的使用(13)
+10. Kinect+OpenNI学习笔记之14(关于Kinect的深度信息)(13)
+11. opencv源码解析之(6)：hog源码分析(12)
+12. 基础学习笔记之opencv(3)：haartraining生成.xml文件过程(12)
+13. 图像分割学习笔记_1(opencv自带meanshift分割例子)(11)
+14. Qt学习之路_6(Qt局域网聊天软件)(10)
+15. 总结系列_7(opencv2.4.2+vs2010安装简介)(10)
+16. 目标检测学习_1(用opencv自带hog实现行人检测)(10)
+17. HMM学习笔记_1(从一个实例中学习DTW算法)(10)
+18. Kinect+OpenNI学习笔记之2(获取kinect的颜色图像和深度图像)(9)
+19. Qt学习之路_4(Qt UDP的初步使用)(9)
+20. 目标跟踪学习笔记_5(opencv中kalman点跟踪例子)(9)
+推荐排行榜
+
+1. opencv源码解析之(6)：hog源码分析(4)
+2. 特征点检测学习_2(surf算法)(3)
+3. 基础学习笔记之opencv(20)：OpenCV中的颜色空间(ing...)(3)
+4. 总结系列_14(OpenCV2.4.3的新特征以及安装方法)(3)
+5. 本人常用资源整理(ing...)(3)
+6. Qt学习之路_8(Qt中与文件目录相关操作)(3)
+7. 目标跟踪学习笔记_5(opencv中kalman点跟踪例子)(2)
+8. 前景检测算法_3(GMM)(2)
+9. Kinect+OpenNI学习笔记之9(不需要骨骼跟踪的人体手部分割)(2)
+10. Qt学习之路_11(简易多文档编辑器)(2)
+11. Kinect+OpenNI学习笔记之12(简单手势所表示的数字的识别)(2)
+12. Kinect+OpenNI学习笔记之2(获取kinect的颜色图像和深度图像)(2)
+13. Qt学习之路_14(简易音乐播放器)(2)
+14. Qt学习之路_13(简易俄罗斯方块)(2)
+15. Qt学习之路_12(简易数据管理系统)(1)
+16. PCA算法学习_1(OpenCV中PCA实现人脸降维)(1)
+17. Android开发历程_17(ContentProvider的使用)(1)
+18. Android开发历程_16(SQLite的使用)(1)
+19. Kinect+OpenNI学习笔记之1(开发环境的建立)(1)
+20. Kinect+OpenNI学习笔记之10(不需要骨骼跟踪的人体多个手部分割)(1)
+21. Reading papers_13(gesture recognition survey,ing...)(1)
+22. Android开发历程_15(AppWidget的使用)(1)
+23. Android开发历程_14(广播机制)(1)
+24. OpenGL_Qt学习笔记之_07(闪烁的星星)(1)
+25. OpenGL_Qt学习笔记之_05(纹理映射)(1)
+26. OpenGL_Qt学习笔记之_03(平面图形的着色和旋转)(1)
+27. 特征点检测学习_1(sift算法)(1)
+28. Android开发历程_8(Tween Animation的2种属性设置方法)(1)
+29. 目标检测学习_1(用opencv自带hog实现行人检测)(1)
+30. Kinect+OpenNI学习笔记之8(Robert Walter手部提取代码的分析)(1)
+31. Kinect+OpenNI学习笔记之7(OpenNI自带的类实现手部跟踪)(1)
+32. Kinect+OpenNI学习笔记之5(使用OpenNI自带的类进行简单手势识别)(1)
+33. Kinect+OpenNI学习笔记之4(OpenNI获取的图像结合OpenCV显示)(1)
+34. Kinect+OpenNI学习笔记之3(获取kinect的数据并在Qt中显示的类的设计)(1)
+35. 算法设计和数据结构学习_1(一道堆排序作业题)(1)
+36. 一些知识点的初步理解_8(Graph Cuts,ing...)(1)
+37. 一些知识点的初步理解_7(随机森林,ing...)(1)
+38. opencv源码解析之(7)：CvAdaptiveSkinDetectorl类(1)
+39. Reading papers_14(关于depth image on hand segmentaion,ing...)(1)
+40. 基础学习笔记之opencv(18)：kmeans函数使用实例(1)
+Powered by: 博客园	模板提供：沪江博客 Copyright ©2013 tornadomeet
+阿萨德发斯蒂芬

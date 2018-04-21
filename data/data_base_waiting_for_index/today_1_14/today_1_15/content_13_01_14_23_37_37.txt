@@ -1,0 +1,705 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+Johnny的专栏
+
+技术Blog-欢迎大家光临查看我收集的技术文档
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年1月当选微软MVP名单揭晓！    CSDN博客频道年终送好礼获奖名单公布！
+ 2012CSDN博客之星火热出炉！      2000元大奖征异构开发博文      2013年全国百所高校巡讲讲师招募 
+
+
+
+Tomcat全攻略 
+.
+ 分类： -> TOMCAT2004-09-02 13:145904人阅读评论(5)收藏举报
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+内容：
+
+ 
+
+
+
+
+
+
+
+
+一：简介
+
+ 
+
+二：安装及配置
+
+ 
+
+三：应用
+
+ 
+
+四：综述
+
+ 
+
+参考资料
+
+ 
+
+关于作者
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+宗 锋
+西北大学计算机系硕士
+2001 年 12 月
+ 
+随着java的流行，其在web上的应用也越来越广，tomcat作为一个开源的servlet容器，应用前景越来越广，本文将向你讲述tomcat的一些知识。
+ 
+一：简介
+tomcat是jakarta项目中的一个重要的子项目，其被JavaWorld杂志的编辑选为2001年度最具创新的java产品(Most Innovative Java Product)，同时它又是sun公司官方推荐的servlet和jsp容器(具体可以见http://java.sun.com/products/jsp/tomcat/)，因此其越来越多的受到软件公司和开发人员的喜爱。servlet和jsp的最新规范都可以在tomcat的新版本中得到实现。
+ 
+二：安装及配置
+tomcat最新版本为4.0.1，这个版本用了一个新的servlet容器Catalina，完整的实现了servlet2.3和jsp1.2规范。注意安装之前你的系统必须安装了jdk1.2以上版本。
+ 
+(一)：安装
+1：windows平台
+从tomcat网站下载jakarta-tomcat-4.0.1.exe，按照一般的windows程序安装步骤即可安装好tomcat,安装时它会自动寻找你的jdk和jre的位置。
+ 
+2：linux平台
+下载jakarta-tomcat-4.0.1.tar.gz，将其解压到一个目录。
+ 
+(二)：配置
+运行tomcat需要设置JAVA_HOME变量
+ 
+
+
+set JAVA_HOME=c:/jdk (win98，在msdos方式下使用，或者放入autoexec.bat中)
+export JAVA_HOME=/usr/local/jdk (linux下使用，放到/etc/bashrc或者/etc/profile中)
+
+ 
+
+
+
+(三)：运行
+设置完毕后就可以运行tomcat服务器了，进入tomcat的bin目录，win98下用startup启动tomcat，linux下用startup.sh，相应的关闭tomcat的命令为shutdown和shutdown.sh。
+ 
+启动后可以在浏览器中输入http://localhost:8080/测试，由于tomcat本身具有web服务器的功能，因此我们不必安装apache，当然其也可以与apache集成到一起，下面会介绍。
+ 
+下面你可以测试其自带的jsp和servlet示例。
+ 
+三：应用
+ 
+(一):目录结构
+tomcat的目录结构如下：
+ 
+
+
+目录名
+ 
+简介
+
+ 
+
+bin
+ 
+存放启动和关闭tomcat脚本
+
+ 
+
+conf
+ 
+包含不同的配置文件,server.xml(Tomcat的主要配置文件)和web.xml
+
+ 
+
+work
+ 
+存放jsp编译后产生的class文件
+
+ 
+
+webapp
+ 
+存放应用程序示例，以后你要部署的应用程序也要放到此目录
+
+ 
+
+logs
+ 
+存放日志文件
+
+ 
+
+lib/japser/common
+ 
+这三个目录主要存放tomcat所需的jar文件
+
+
+
+ 
+(二)：server.xml配置简介
+下面我们将讲述这个文件中的基本配置信息，更具体的配置信息见tomcat的文档
+ 
+
+
+元素名
+ 
+属性
+ 
+解释
+
+ 
+
+server
+ 
+port
+ 
+指定一个端口，这个端口负责监听关闭tomcat的请求
+
+ 
+
+shutdown
+ 
+指定向端口发送的命令字符串
+
+ 
+
+service
+ 
+name
+ 
+指定service的名字
+
+ 
+
+Connector
+(表示客户端和service之间的连接)
+ 
+port
+ 
+指定服务器端要创建的端口号，并在这个断口监听来自客户端的请求
+
+ 
+
+minProcessors
+ 
+服务器启动时创建的处理请求的线程数
+
+ 
+
+maxProcessors
+ 
+最大可以创建的处理请求的线程数
+
+ 
+
+enableLookups
+ 
+如果为true，则可以通过调用request.getRemoteHost()进行DNS查询来得到远程客户端的实际主机名，若为false则不进行DNS查询，而是返回其ip地址
+
+ 
+
+redirectPort
+ 
+指定服务器正在处理http请求时收到了一个SSL传输请求后重定向的端口号
+
+ 
+
+acceptCount
+ 
+指定当所有可以使用的处理请求的线程数都被使用时，可以放到处理队列中的请求数，超过这个数的请求将不予处理
+
+ 
+
+connectionTimeout
+ 
+指定超时的时间数(以毫秒为单位)
+
+ 
+
+Engine
+(表示指定service中的请求处理机，接收和处理来自Connector的请求)
+ 
+defaultHost
+ 
+指定缺省的处理请求的主机名，它至少与其中的一个host元素的name属性值是一样的
+
+ 
+
+Context
+(表示一个web应用程序，通常为WAR文件，关于WAR的具体信息见servlet规范)
+ 
+docBase
+ 
+应用程序的路径或者是WAR文件存放的路径
+
+ 
+
+path
+ 
+表示此web应用程序的url的前缀，这样请求的url为http://localhost:8080/path/****
+
+ 
+
+reloadable
+ 
+这个属性非常重要，如果为true，则tomcat会自动检测应用程序的/WEB-INF/lib 和/WEB-INF/classes目录的变化，自动装载新的应用程序，我们可以在不重起tomcat的情况下改变应用程序
+
+ 
+
+
+host
+(表示一个虚拟主机)
+ 
+name
+ 
+指定主机名
+
+ 
+
+appBase
+ 
+应用程序基本目录，即存放应用程序的目录
+
+ 
+
+unpackWARs
+ 
+如果为true，则tomcat会自动将WAR文件解压，否则不解压，直接从WAR文件中运行应用程序
+
+ 
+
+
+Logger
+(表示日志，调试和错误信息)
+ 
+className
+ 
+指定logger使用的类名，此类必须实现org.apache.catalina.Logger 接口
+
+ 
+
+prefix
+ 
+指定log文件的前缀
+
+ 
+
+suffix
+ 
+指定log文件的后缀
+
+ 
+
+timestamp
+ 
+如果为true，则log文件名中要加入时间，如下例:localhost_log.2001-10-04.txt
+
+ 
+
+
+Realm
+(表示存放用户名，密码及role的数据库)
+ 
+className
+ 
+指定Realm使用的类名，此类必须实现org.apache.catalina.Realm接口
+
+ 
+
+
+Valve
+(功能与Logger差不多，其prefix和suffix属性解释和Logger 中的一样)
+ 
+className
+ 
+
+指定Valve使用的类名，如用org.apache.catalina.valves.AccessLogValve类可以记录应用程序的访问信息
+ 
+
+
+directory
+ 
+指定log文件存放的位置
+
+ 
+
+pattern
+ 
+有两个值，common方式记录远程主机名或ip地址，用户名，日期，第一行请求的字符串，HTTP响应代码，发送的字节数。combined方式比common方式记录的值更多
+
+ 
+注意：1：经过我测试，我设置Context 的path="",reloadable=true，然后放一个WAR文件到webapps目录，结果tomcat不能检测出此文件(重起tomcat可以)，而把此文件解压，则tomcat会自动检测出这个新的应用程序。如果不能自动检测WAR文件，我们可以利用下面管理中讲的方法来部署应用程序。
+ 
+2：默认的server.xml中，Realm元素只设置了一个className属性，但此文件中也包含几个通过JDBC连接到数据库进行验证的示例(被注释掉了)，通过Realm元素我们可以实现容器安全管理(Container Managed Security)。
+ 
+3：还有一些元素我们没有介绍，如Parameter，loader，你可以通过tomcat的文档获取这些元素的信息。
+ 
+(三)：管理
+ 
+1：配置
+在进行具体的管理之前，我们先给tomcat添加一个用户，使这个用户有权限来进行管理。
+ 
+打开conf目录下的tomcat-users.xml文件，在相应的位置添加下面一行：
+ 
+
+
+ 
+
+
+
+
+
+注意：这一行的最后部分一定是/>,tomcat的文档掉了/符号，如果没有/符号的话，tomcat重起时将无法访问应用程序。通过logs/catalina.out文件你可以看到这个错误的详细信息。
+ 
+然后重起tomcat，在浏览器中输入http://localhost:8080/manager/，会弹出对话框，输入上面的用户名和密码即可。
+ 
+2：应用程序列表
+在浏览器中输入http://localhost:8080/manager/list，浏览器将会显示如下的信息：
+ 
+
+
+OK - Listed applications for virtual host localhost
+/ex:running:1
+/examples:running:1
+/webdav:running:0
+/tomcat-docs:running:0
+/manager:running:0
+/:running:0
+ 
+
+
+
+面的信息分别为应用程序的路径，当前状态(running 或者stopped)，与这个程序相连的session数。
+ 
+3：重新装载应用程序
+在浏览器中输入 http://localhost:8080/manager/reload?path=/examples，浏览器显示如下：
+ 
+
+
+OK - Reloaded application at context path /examples  
+
+ 
+
+
+
+表示example应用程序装载成功，如果我们将server.xml的Context元素的reloadable属性设为true(见上面表格)，则没必要利用这种方式重新装载应用程序，因为tomcat会自动装载。
+ 
+4：显示session信息
+在浏览器中输入http://localhost:8080/manager/sessions?path=/examples，浏览器显示如下：
+ 
+
+
+OK - Session information for application at context path /examples Default maximum session inactive interval 30 minutes  
+
+ 
+
+
+
+5：启动和关闭应用程序
+在浏览器中输入http://localhost:8080/manager/start?path=/examples和http://localhost:8080/manager/stop?path=/examples分别启动和关闭examples应用程序。
+ 
+6：部署及撤销部署
+WAR有两种组织方式，一种是按一定的目录结构组织文件，一种是一个后缀为WAR的压缩包，因此它的部署方式也有两种：
+(1)：在浏览器中输入：http://localhost:8080/manager/install?path=/examples&war=file:/c:/examples
+就会将按目录结构组织的WAR部署
+ 
+(2)：如果输入:http://localhost:8080/manager/install?path=/examples&war=jar:file:/c:/examples.war!/
+就会将按压缩包组织的WAR部署，注意此url后半部分一定要有!/号。
+ 
+部署后就可以用 http://localhost:8080/examples访问了。
+ 
+在浏览器中输入：http://localhost:8080/manager/remove?path=/examples
+就会撤销刚才部署的应用程序。
+ 
+(四)：与apache集成
+虽然tomcat也可以作web服务器,但其处理静态html的速度比不上apache,且其作为web服务器的功能远不如apache,因此我们想把apache和tomcat集成起来。
+ 
+我们以linux系统为例介绍.
+ 
+从apache网站下载apache1.3.22源代码版本，然后使用如下命令配置安装apache：
+ 
+
+
+mkdir /usr/local/apache
+tar zxvf apache.1.32.tar.gz
+cd apache.1.32
+./configure --prefix=/usr/local/apache --enable-module=so 
+make
+make install
+
+ 
+
+
+
+注意configure命令指定目标安装目录，并且加入DSO(Dynamic Shared Object)支持，注意一定不要忘了这一个选项。
+ 
+然后下载webapp模块，将解压后mod_webapp.so文件放入apache的libexec目录，编辑apache的conf目录下的httpd.conf，在这个文件的最后加入下面三行：
+ 
+
+
+LoadModule webapp_module libexec/mod_webapp.so
+WebAppConnection warpConnection warp localhost:8008
+WebAppDeploy examples warpConnection /examples/ 
+
+ 
+
+
+
+第一行是加入webapp模块，如果编译apache时不增加DSO支持，则无法使用LoadModule指令，第二行指定tomcat与apache的连接，第三行指定部署那个应用，这两个指令使用格式如下：
+ 
+
+
+WebAppConnection [connection name] [provider] [host:port]
+WebAppDeploy [application name] [connection name] [url path]  
+
+ 
+
+
+
+其中connection name指定连接名，provider只能是warp，port端口与你的tomcat的配置文件server.xml最后几行指定的要保持一致。文件如下：
+ 
+
+
+ 
+
+******
+ 
+
+ 
+
+
+
+application name与你在tomcat中部署的应用名一致，url path指定访问这个应用的url。例如上面的例子可以通过http://localhost/examples/来访问tomcat中的examples应用。
+ 
+(五)：中文问题
+一般jsp的乱码问题可以通过在jsp中加入来解决，至于servlet的乱码在可以使用servlet2.3中提供的HttpServeletRequest.setCharacterEncoding函数。更详细的中文问题请见JSP/Servlet 中的汉字编码问题。
+ 
+四：综述
+tomcat作为一个servlet(jsp也被编译为servlet执行)容器，其应用前景是非常好的，如果与jboss结合起来，则可以实现sun的j2ee规范(用jboss作ejb服务器)。jboss的官方网站也提供集成了tomcat3.2*的jboss以供下载。另外一个开源的应用服务器(enhydra) 也是基于tomcat的，其提供了更友好的管理界面，部署应用程序也更简单，功能也更强大。
+ 
+参考资料：
+ •tomcat文档
+•www.jguru.com的tomcat faq
+•apache的文档 
+
+
+
+
+
+关于作者 
+宗锋：西北大学计算机系硕士，对于基于 web 的各种新技术都感兴趣。
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+分享到： 
+
+上一篇：JDom操作XML文件读写
+下一篇：Java学习:一个压缩文件的例子
+ . 
+
+
+查看评论
+ 
+5楼 Flashdragon 2006-09-29 16:45发表[回复] To:自然 <br>你用的Tomcat可能需要jdk1.5以上版本的JDK，才能启动。4楼 向日葵 2006-09-23 11:36发表[回复] 有没有tomcat5.5.15的版本,并同时装两个服务器一台服务器上,这样的功能能实现吗.连接的数据库为oracle 10G3楼 自然 2005-05-26 14:52发表[回复] 我的系统是WINDOWS 2000 PROFESSIONAL <br>每次在安装tomcat时，当装到using JVM 时，即[X]：/j2sdk1.4.2_04/jre/bin/server/jvm.dll时，就自动停止了 <br>问一下是什么原因，急！！！！！！ <br>谢了！2楼 fairy 2005-05-21 22:20发表[回复] (三)：管理 <br> <br>1：配置 <br>在进行具体的管理之前，我们先给tomcat添加一个用户，使这个用户有权限来进行管理。 <br> <br>打开conf目录下的tomcat-users.xml文件，在相应的位置添加下面一行： <br> <br> <br> <br>怎么没有显示添加什么啊？！！！ <br> <br> <br> <br>1楼 tigerfly 2005-04-11 11:57发表[回复] 您知道tomcat4。13和5。0可同时运行吗
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+gztoby
+ 
+
+
+
+访问：744068次
+积分：10772分
+排名：第196名
+.原创：393篇
+转载：0篇
+译文：1篇
+评论：287条
+. 
+文章搜索
+
+. 
+文章分类-> ASP.NET(94)
+-> C#(81)
+-> DotNET(39)
+-> Eclipse (1)
+-> J2ME(35)
+-> Java(32)
+-> JavaScript(13)
+-> JBuilder(3)
+-> MySQL(2)
+-> Oracle(10)
+-> SQL Server(9)
+-> Struts(6)
+-> TOMCAT(6)
+-> VB.Net(1)
+-> Visual Basic(0)
+-> 休闲娱乐(27)
+-> 原创天地(3)
+-> 心情日记(7)
+-> 移动设备开发(1)
+-> 编程其他(24)
+-> 面试题收集(4)
+ 
+文章存档
+2005年02月(1).
+2004年11月(26).
+2004年10月(37).
+2004年09月(122).
+2004年08月(208).
+. 
+阅读排行利用J2ME开发联网程序实例(29936)
+游戏开发基础(3)(28219)
+SQL高手篇:精妙SQL语句介绍(26723)
+超全的英语短句汇集(18959)
+游戏开发基础(9)(17436)
+在TOMCAT中部署war(15485)
+SQL*PLUS命令的使用大全(15072)
+JAVA 编程规范(11997)
+JavaScript:设为首页-加入收藏-联系我们的代码(11679)
+嵌入开发(WinCE)的一些经验[摘录](10601)
+ 
+评论排行77-83年出生的进来看看听听 (27)
+C#开发终端式短信的原理和方法(13)
+某"变态"公司的面试IQ题,做得出来算你牛!(13)
+你能顺利升级到SP2吗?想升级的进来看看[原创](8)
+大学里不该做的事(7)
+一个ASP.NET中汉字转拼音的程序 (6)
+在你的网页上加金鱼（代码）(6)
+超多超全的数据库连接字段!(6)
+JAVA 编程规范(6)
+嵌入开发(WinCE)的一些经验[摘录](5)
+ 
+推荐文章 
+最新评论 汉字转化为拼音(jsp版) 
+ibelieveicanflysky: 运行起来有问题 
+
+一个ASP.NET中汉字转拼音的程序 
+qinMengxing: 你好，我想请问一下：ht.Add(-20319,"a"); 这行代码中的"-20319"表示什么意思... 
+
+JAVA 编程规范
+wangwangailong: 很好啊，目前最好的 
+
+使用 ADO.NET 访问 Oracle 9i 存储过程
+oagnuygnef: 呃呃，这是哪里的帮助文档~~ 
+
+C#开发终端式短信的原理和方法
+oagnuygnef: 如何才能实现异步调用呢？ 
+
+C#开发终端式短信的原理和方法
+mlfengshao1029: 我现在 也正在做这个东西 是个新手 希望得到你的指点 我QQ523104942 加我的时候请说明 ... 
+
+大学里不该做的事
+snowy520: 大学不要上了。。。 
+
+在C#中定义自己的异常类
+zsw886: 的确简单易懂，学习了！谢谢！ 
+
+JAVA 编程规范
+ChinaGladiator: Thank you！ 
+
+C#开发终端式短信的原理和方法
+oagnuygnef: 谢谢你给了俺希望 
+
+
+个人Blog收藏蝈蝈俊.net
+zjcxc(邹建)的专栏
+孟子E章
+笨猫.NET
+老猫的理想
+JAVA夜未眠
+Eric's Blogy 
+Java3D
+Mobile.aawolf
+ 
+笑话笑一笑，十年少
+ 
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

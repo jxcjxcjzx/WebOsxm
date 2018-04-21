@@ -1,0 +1,11 @@
+      
+Chapter 4: Speeding Up the Process (of Tracking through an Image Sequence)
+
+In the two functions KLTTrackFeatures() and KLTReplaceLostFeatures(), the majority of the computing time is taken up by convolution, which is necessary both to smooth the image and to compute its gradients. Much of this convolution is unnecessary when an image sequence is being processed, because each image is processed more than once. For example, the features are tracked between frames 0 and 1, then between frames 1 and 2, then between frames 2 and 3, etc. During each iteration the second image, after being processed, can be stored and recalled the next time as the first image.
+The tracking context has a member called sequentialMode which, when set to TRUE, causes KLTTrackFeatures() to store the gradients of the second image, along with its smoothed version, into the tracking context. When KLTTrackFeatures() is called, it ignores its second parameter and replaces it with the previously stored image (except for the first time the function is called, in which case it must use both images); in the same way, KLTReplaceLostFeatures() also ignores its second parameter. The computation is identical, but the speed is improved.
+
+WARNING: If it is desired to turn the sequential mode off after it has been set and KLTTrackFeatures() has been called, do NOT simply set tc->sequentialMode to FALSE. You must call KLTStopSequentialMode(), which deletes the images. Otherwise, the next call to KLTTrackFeatures() will use the previously computed images, even though they are no longer valid.
+
+Sample code demonstrating the use of the sequential mode is delayed until the next chapter.
+
+       

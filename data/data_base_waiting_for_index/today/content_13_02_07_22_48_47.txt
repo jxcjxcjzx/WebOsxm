@@ -1,0 +1,23 @@
+      
+KLT_FeatureTable
+
+typedef struct {
+int nFrames;
+int nFeatures;
+KLT_Feature **feature;
+} *KLT_FeatureTable;
+
+A KLT_FeatureTable is a two-dimensional array of features with nFrames columns and nFeatures rows. It is used to collect the features tracked through an image sequence.
+Data in a feature table is accessed by indexing the feature number before the frame number. For example, if ft is a feature table, the following code prints the data:
+
+KLT_FeatureTable ft;
+int feat, frame;
+
+for (feat = 0 ; feat < ft->nFeatures ; feat++)
+     for (frame = 0 ; frame < ft->nFrames ; frame++)  {
+          printf("(%5.1f,%5.1f) = %d\n", 
+               ft->feature[feat][frame]->x,
+               ft->feature[feat][frame]->y,
+               ft->feature[feat][frame]->val);
+     }
+

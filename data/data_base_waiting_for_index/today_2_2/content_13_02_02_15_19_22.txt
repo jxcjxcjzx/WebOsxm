@@ -1,0 +1,412 @@
+
+首页资讯精华论坛问答博客专栏群组更多 ▼
+
+ 
+您还未登录 !登录注册
+
+
+
+
+su1216
+
+
+博客
+微博
+相册
+收藏
+留言
+关于我
+
+
+
+
+.
+
+
+
+
+android安全问题（五） 抢先拦截短信 - 结果篇
+博客分类： android
+ 
+android接收短信动态接收优先级病毒.
+
+
+ 
+同上篇文章一样，这里只陈述结果，代码分析稍后给出
+ 
+导读：本文叙述如何先于某些伪杀毒软件、病毒、常规软件获取到短信 
+
+ 
+ 
+众所周知，android系统在收到短信息的时候会发送广播，但是此广播是有序广播，也就是说：先接收到广播的人，如果心情不好，它就不会向后传递此广播，后面的人就不会知道有短信到来 
+
+这与无序广播不同，无序广播并不是真的没有顺序（只是似乎大家习惯这么叫而已），无序广播的接收者也是排队等待广播的，只不过是在传递过程中，大家必须遵守规则，一直把消息传递给最后一个人才可以 
+
+关于无序广播与静态接收器搭配的接收顺序，上一篇文章已经说的很清楚了 
+
+ 
+ 
+由于开机之后程序都没有开始运行，所以想自动运行必须要接收
+ 
+现在我们看看程序启动之后的情况，我以大家关心的接收短消息为例
+ 
+想要在程序中接收短信，就要接收如下广播 
+
+android.provider.Telephony.SMS_RECEIVED
+ 
+系统把它作为有序广播进行发送，那么，谁第一个接收到短信将变得至关重要， 无论你是杀毒软件、伪杀毒软件、病毒还是普通程序 
+
+ 
+ 
+之前说过静态接收器的接收顺序 
+
+那么动态接收器和静态接收器相比呢？ 
+
+如果是接收静态广播 
+
+答案是静态接收器优先级低于动态接收器，也就是说，无论多么高级别的静态接收器和多么低级别的动态接收器都接收同一广播，永远都是动态接收器先接收到！ 
+
+动态接收器是在代码中设置的，所以，我们需要先启动程序，才能接收广播，这也是我们无法用它接收开机广播的原因 
+
+如果是接收动态广播 
+
+同优先级的，动态接收器先接收到广播，静态后接收到 
+
+ 
+ 
+同样的，动态接收器也可以设置优先级，高优先级的接收器会在低优先级的接收器之前接收到广播 
+
+那么，同样优先级的动态接收器，接收广播的顺序是怎样的呢？ 
+
+幸好，他们的规则与静态接收器的规则不同 
+
+同样优先级的动态接收器，谁先注册到系统，谁就抢先接收到广播 
+
+ 
+ 
+ 
+ 
+上面虽然完全只是文字叙述，但我相信，大家也是看明白了的
+ 
+下面总结一下，如何能保证自己的程序抢先于其他程序接收到短信 
+
+1.根据上一篇文章的做法，保证自己先于其他程序启动 
+
+2.启动第一个事情就要开启服务，动态注册广播，并把优先级设置为最高 
+
+ 
+ 
+代码实现也非常简单
+ 
+一个接收器
+ 
+
+
+Java代码  
+1.private DynamicReceiver dynamicReceiver = new DynamicReceiver();  
+2.public class DynamicReceiver extends BroadcastReceiver {  
+3.    public void onReceive(Context context, Intent intent) {  
+4.        Log.e(SmsUtil.TAG, "dynamic receiver");  
+5.        String action = intent.getAction();  
+6.        if(SmsUtil.SMS_ACTION.equals(action)){  
+7.            context.startService(SmsUtil.getIntent(context, MainService.class, intent, "dynamic receiver"));  
+8.        }  
+9.    }  
+10.}  
+ 
+动态注册
+ 
+
+
+Java代码  
+1.public static final String SMS_ACTION = "android.provider.Telephony.SMS_RECEIVED";  
+2.  
+3.IntentFilter intentFilter = new IntentFilter(SMS_ACTION);  
+4.intentFilter.setPriority(Integer.MAX_VALUE);  
+5.registerReceiver(dynamicReceiver, intentFilter);  
+ 
+最后总结一下，接收器接收广播的顺序 
+
+之前由于受之前记忆的影响，下了错误的结论，抱歉给大家带来了困扰
+ 
+后来整理原理的时候，仔细阅读源码才发现，特此纠正一下
+ 
+普适原则 
+
+同等优先级的动态接收器，先注册的先接收 
+
+同等优先级的静态接收器，接收广播的顺序与String[] java.io.File.list()顺序一致 
+
+ordered广播 
+
+假设有如下优先级的5个接收器
+ 
+1.动态A（优先级=1）
+ 
+2.动态B（优先级=2）
+ 
+3.动态C（优先级=2）
+ 
+4.静态D（优先级=1）
+ 
+5.静态E（优先级=2）
+ 
+并且B先于C注册
+ 
+那么实际接收顺序应为
+ 
+B C E A D
+ 
+也就是说，如果静态接收器的优先级高于动态接收器的优先级，那么还是静态接收器先接收到广播（比如接收短信） 
+
+非ordered广播 
+
+动态接收器高优先级 > 动态接收器低优先级 > 静态接收器高优先级 > 静态接收器低优先级 
+
+
+
+
+ 
+ 
+结束之前说点题外话
+ 
+有些广播，我们无法用静态接收器接收 
+
+比如ACTION_SCREEN_ON，当屏幕被点亮的时候系统发送此广播 
+
+如果你尝试在manifest中注册receiver来接收，那么会失败，这是为什么呢
+ 
+我们来看看系统是如何发送此广播的
+ 
+ 
+ 
+void com.android.server.PowerManagerService.initInThread()
+ 
+
+
+Java代码  
+1.void initInThread() {  
+2.    ……  
+3.    mScreenOnIntent = new Intent(Intent.ACTION_SCREEN_ON);  
+4.    mScreenOnIntent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);  
+5.    mScreenOffIntent = new Intent(Intent.ACTION_SCREEN_OFF);  
+6.    mScreenOffIntent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY);  
+7.    ……  
+8.}  
+ 
+他们在Intent中都设置了Intent.FLAG_RECEIVER_REGISTERED_ONLY，所以，如果要接收，必须动态注册广播接收器
+ 
+ACTION_SCREEN_OFF也是如此 
+
+（这段说明应该放的之前的android安全问题（三） 钓鱼程序 中，现在补上）
+ 
+ 
+ 
+关于FLAG_RECEIVER_REGISTERED_ONLY的说明 
+
+ 
+ 
+public static final int  FLAG_RECEIVER_REGISTERED_ONLY
+ 
+Added in API level 1 
+
+
+
+If set, when sending a broadcast only registered receivers will be called -- no BroadcastReceiver components will be launched.
+ 
+Constant Value:  1073741824 (0x40000000)
+ 
+ 
+ 
+在来看一个广播，ACTION_BATTERY_CHANGED
+ 
+电池电量发生变化的时候，系统发送此广播
+ 
+void com.android.server.BatteryService.sendIntent()
+ 
+
+
+Java代码  
+1.private final void sendIntent() {  
+2.    //  Pack up the values and broadcast them to everyone  
+3.    Intent intent = new Intent(Intent.ACTION_BATTERY_CHANGED);  
+4.    intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY  
+5.            | Intent.FLAG_RECEIVER_REPLACE_PENDING);  
+6.    ……  
+7.}  
+ 
+所以我们必须动态接收
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+android手机root后的安全问题 （一）
+ 
+android手机root后的安全问题 （二）
+ 
+android手机root后的安全问题 （三）
+ 
+android手机root后的安全问题 （四）
+ 
+ 
+ 
+ 
+ 
+android安全问题（一） 静音拍照与被拍
+ 
+android安全问题（二） 程序锁
+ 
+android安全问题（三） 钓鱼程序
+ 
+android安全问题（四） 抢先开机启动 - 结果篇
+ 
+android安全问题（五） 抢先拦截短信 - 结果篇
+ 
+ 
+ 
+ 
+ 
+请大家不要用root的手机随意下载软件，更不要以任何借口制造任何病毒！ 
+
+ 
+ 
+ 
+ 
+转贴请保留以下链接 
+
+本人blog地址
+ 
+http://su1216.iteye.com/
+ 
+http://blog.csdn.net/su1216/
+ 
+ 
+ 
+
+
+2 
+顶
+
+0 
+踩.
+
+分享到： 
+.
+
+《Linux命令行与shell脚本编程大全》 第 ... | 《Linux命令行与shell脚本编程大全》 第 ...
+
+2012-12-14 13:14
+浏览 457
+评论(0)
+分类:移动开发
+相关推荐
+
+
+评论
+
+
+发表评论
+
+ 您还没有登录,请您登录后再发表评论 
+
+
+
+
+
+
+su1216
+ 
+浏览: 65616 次
+性别: 
+来自: 北京
+
+
+
+最近访客 更多访客>>
+
+
+
+
+rimoer
+
+
+
+
+zht19880706
+
+
+
+
+heavensay
+
+
+
+
+woyaowenzi
+.
+
+博客专栏
+深入入门正则表达式（jav...
+浏览量：6019.android手机的安全问...
+浏览量：18362.
+
+文章分类
+■全部博客 (93)
+■android (37)
+■Unix & Linux 大学教程 (22)
+■Linux命令行与shell脚本编程大全 (10)
+■java (5)
+■java多线程 (3)
+■虚拟机 (7)
+■设计模式 (1)
+■正则表达式 (6)
+■数据库 (1)
+■其他 (1)
+■转贴 (1)
+
+
+社区版块
+■我的资讯 (0)
+■我的论坛 (70) 
+■我的问答 (19)
+
+
+存档分类
+■2013-02 (1)
+■2013-01 (5)
+■2012-12 (7)
+■更多存档...
+
+
+评论排行榜
+■android手机root后的安全问题 （二）
+■android安全问题（二） 程序锁
+■android安全问题（四） 抢先开机启动 - ...
+■android安全问题（三） 钓鱼程序
+■android手机root后的安全问题 （一）
+
+
+最新评论
+N_HH： su1216 写道N_HH 写道那个，请问，pm是什么。。不懂 ...
+android手机root后的安全问题 （四）
+su1216： N_HH 写道那个，请问，pm是什么。。不懂。shell@an ...
+android手机root后的安全问题 （四）
+N_HH： 那个，请问，pm是什么。。不懂。
+android手机root后的安全问题 （四）
+su1216： tjwink 写道既然已经知道su的数据库地址，可以直接用DB ...
+android手机root后的安全问题 （三）
+tjwink： 既然已经知道su的数据库地址，可以直接用DBOpenHelpe ...
+android手机root后的安全问题 （三）
+
+.
+
+
+--------------------------------------------------------------------------------
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ] 
+.

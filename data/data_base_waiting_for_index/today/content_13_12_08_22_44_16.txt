@@ -1,0 +1,1643 @@
+
+
+
+
+
+
+
+  忘记密码   免费注册 
+
+查看新帖 | 论坛精华区 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.
+ 
+
+
+
+
+
+
+  平台： 论坛博客 问答 文库 沙龙自测 下载 订阅 搜索 频道： 自动化运维虚拟化服务器储存备份C/C++PHPMySQL嵌入式Linux系统
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+› 论坛 › 程序设计 › 驱动开发 › Linux驱动开发庖丁解牛之四——并发控制之信号量(1) 
+. 
+
+
+
+
+
+1234下一页
+ 最近访问板块 版块跳转 新手园地      硬件问题Linux系统管理Linux网络问题Linux环境编程Linux桌面系统国产LinuxBSD      BSD文档中心AIX      新手入门      AIX文档中心      资源下载      Power高级应用      IBM存储AS400Solaris      Solaris文档中心HP-UX      HP文档中心SCO UNIX      SCO文档中心互操作专区IRIXTru64 UNIXMac OS X门户网站运维集群和高可用服务器应用监控和防护虚拟化技术架构设计行业应用和管理服务器及硬件技术      服务器资源下载云计算      云计算文档中心      云计算业界      云计算资源下载存储备份      存储文档中心      存储业界      存储资源下载      Symantec技术交流区安全技术网络技术      网络技术文档中心C/C++      GUI编程      Functional编程内核源码      内核问题移动开发      移动开发技术资料ShellPerlJava      Java文档中心PHP      php文档中心Python      Python文档中心RubyCPU与编译器嵌入式开发驱动开发Web开发VoIP开发技术MySQL      MySQL文档中心SybaseOraclePostgreSQLDB2Informix数据仓库与数据挖掘NoSQL技术IT业界新闻与评论IT职业生涯      猎头招聘IT图书与评论      CU技术图书大系      Linux书友会二手交易下载共享Linux文档专区IT培训与认证      培训交流      认证培训清茶斋投资理财运动地带快乐数码摄影      摄影器材      摄影比赛专区IT爱车族旅游天下站务交流版主会议室博客SNS站务交流区CU活动专区      Power活动专区      拍卖交流区频道交流区 .
+ 
+
+
+
+查看:15975 |回复:39 
+
+
+
+
+Linux驱动开发庖丁解牛之四——并发控制之信号量(1) [复制链接] 
+
+
+
+
+
+
+
+
+dreamice
+ 
+言多必失
+
+
+
+
+
+
+.
+
+
+
+ 
+
+
+
+广告杀手
+ 
+
+帖子5636主题213精华38可用积分19193 专家积分80 在线时间3036 小时注册时间2007-05-11最后登录2013-08-18. 问答
+好友
+ 博客
+消息
+ . 论坛徽章:1.
+
+ 
+
+
+电梯直达 
+1楼 [收藏(0)] [报告]
+ 
+
+
+发表于 2009-11-10 22:34:54 |只看该作者 |倒序浏览 
+
+
+
+
+
+
+并发控制，是多任务操作系统必须面临和解决的一个问题。并发与互斥，主要是用于保护临界资源，如果不站在操作系统进程调度的角度，就很难理解并发与互斥的概念和应用。无论是抢占式操作系统，还是分时操作系统，对于临界资源的保护，都必须采用互斥的机制。Linux内核中，有多种并发控制的机制：自旋锁、原子变量、信号量、读写锁等等。不同的并发机制对应于不同的应用场合，比如说，自旋锁可以应用到中断处理函数中，信号量则不可以。本文主要从一个globalmem_lock例子来阐述信号量的使用。注：该例子取自《Linux设备驱动开发详解》，并做了编译告警的一些改动。
+ 
+
+01./*======================================================================
+ 
+02.    A globalmem driver as an example of char device drivers  
+ 
+03.    This example is to introduce how to use locks to avoid race conditions
+ 
+04.    
+
+05.    The initial developer of the original code is Baohua Song
+ 
+06.    <[email]author@linuxdriver.cn[/email]>. All Rights Reserved.
+ 
+07.======================================================================*/
+ 
+08.#include <linux/module.h>
+ 
+09.#include <linux/types.h>
+ 
+10.#include <linux/fs.h>
+ 
+11.#include <linux/errno.h>
+ 
+12.#include <linux/mm.h>
+ 
+13.#include <linux/sched.h>
+ 
+14.#include <linux/init.h>
+ 
+15.#include <linux/cdev.h>
+ 
+16.#include <asm/io.h>
+ 
+17.#include <asm/system.h>
+ 
+18.#include <asm/uaccess.h>
+ 
+19.
+ 
+20.#define GLOBALMEM_SIZE        0x1000        /*全局内存最大4K字节*/
+ 
+21.#define MEM_CLEAR 0x1  /*清0全局内存*/
+ 
+22.//#define GLOBALMEM_MAJOR 254    /*预设的globalmem的主设备号*/
+ 
+23.#define GLOBALMEM_MAJOR 0 //[color=Red]我这里设为0，主要是为了让系统自动分配主设备号，如果不这样，有些系统可能insmod不成功[/color]
+ 
+24.
+ 
+25.static globalmem_major = GLOBALMEM_MAJOR;
+ 
+26./*globalmem设备结构体*/
+ 
+27.struct globalmem_dev                                     
+
+28.{                                                        
+ 
+29.  struct cdev cdev; /*cdev结构体*/                       
+ 
+30.  unsigned char mem[GLOBALMEM_SIZE]; /*全局内存*/     
+ 
+31.  struct semaphore sem; /*并发控制用的信号量*/    
+
+32.};
+ 
+33.
+ 
+34.struct globalmem_dev *globalmem_devp; /*设备结构体指针*/
+ 
+35.
+ 
+36./*文件打开函数*/
+ 
+37.int globalmem_open(struct inode *inode, struct file *filp)
+ 
+38.{
+ 
+39.  /*将设备结构体指针赋值给文件私有数据指针*/
+ 
+40.  filp->private_data = globalmem_devp;
+ 
+41.  return 0;
+ 
+42.}
+ 
+43.
+ 
+44./*文件释放函数*/
+ 
+45.int globalmem_release(struct inode *inode, struct file *filp)
+ 
+46.{
+ 
+47.  return 0;
+ 
+48.}
+ 
+49.
+ 
+50./* ioctl设备控制函数 */
+ 
+51.static int globalmem_ioctl(struct inode *inodep, struct file *filp, unsigned
+ 
+52.  int cmd, unsigned long arg)
+ 
+53.{
+ 
+54.  struct globalmem_dev *dev = filp->private_data; /*获得设备结构体指针*/
+ 
+55.
+ 
+56.  switch (cmd)
+ 
+57.  {
+ 
+58.    case MEM_CLEAR:
+ 
+59.      if (down_interruptible(&dev->sem))
+ 
+60.      {
+ 
+61.        return  - ERESTARTSYS;
+ 
+62.      }
+ 
+63.      memset(dev->mem, 0, GLOBALMEM_SIZE);
+ 
+64.      up(&dev->sem); //释放信号量
+ 
+65.
+ 
+66.      printk(KERN_INFO "globalmem is set to zero\n");
+ 
+67.      break;
+ 
+68.
+ 
+69.    default:
+ 
+70.      return  - EINVAL;
+ 
+71.  }
+ 
+72.  return 0;
+ 
+73.}
+ 
+74.
+ 
+75./*读函数*/
+ 
+76.static ssize_t globalmem_read(struct file *filp, char __user *buf, size_t size,
+ 
+77.  loff_t *ppos)
+ 
+78.{
+ 
+79.  unsigned long p =  *ppos;
+ 
+80.  unsigned int count = size;
+ 
+81.  int ret = 0;
+ 
+82.  struct globalmem_dev *dev = filp->private_data; /*获得设备结构体指针*/
+ 
+83.
+ 
+84.  /*分析和获取有效的写长度*/
+ 
+85.  if (p >= GLOBALMEM_SIZE)
+ 
+86.    return count ?  - ENXIO: 0;
+ 
+87.  if (count > GLOBALMEM_SIZE - p)
+ 
+88.    count = GLOBALMEM_SIZE - p;
+ 
+89.
+ 
+90.  if (down_interruptible(&dev->sem))
+ 
+91.  {
+ 
+92.    return  - ERESTARTSYS;
+ 
+93.  }
+ 
+94.
+ 
+95.  /*内核空间->用户空间*/
+ 
+96.  if (copy_to_user(buf, (void*)(dev->mem + p), count))
+ 
+97.  {
+ 
+98.    ret =  - EFAULT;
+ 
+99.  }
+ 
+100.  else
+ 
+101.  {
+ 
+102.    *ppos += count;
+ 
+103.    ret = count;
+ 
+104.
+ 
+105.    printk(KERN_INFO "read %u bytes(s) from %lu\n", count, p);
+ 
+106.  }
+ 
+107.  up(&dev->sem); //释放信号量
+ 
+108.
+ 
+109.  return ret;
+ 
+110.}
+ 
+111.
+ 
+112./*写函数*/
+ 
+113.static ssize_t globalmem_write(struct file *filp, const char __user *buf,
+ 
+114.  size_t size, loff_t *ppos)
+ 
+115.{
+ 
+116.  unsigned long p =  *ppos;
+ 
+117.  unsigned int count = size;
+ 
+118.  int ret = 0;
+ 
+119.  struct globalmem_dev *dev = filp->private_data; /*获得设备结构体指针*/
+ 
+120.
+ 
+121.  /*分析和获取有效的写长度*/
+ 
+122.  if (p >= GLOBALMEM_SIZE)
+ 
+123.    return count ?  - ENXIO: 0;
+ 
+124.  if (count > GLOBALMEM_SIZE - p)
+ 
+125.    count = GLOBALMEM_SIZE - p;
+ 
+126.
+ 
+127.  if (down_interruptible(&dev->sem))//获得信号量
+ 
+128.  {
+ 
+129.    return  - ERESTARTSYS;
+ 
+130.  }
+ 
+131.  /*用户空间->内核空间*/
+ 
+132.  if (copy_from_user(dev->mem + p, buf, count))
+ 
+133.    ret =  - EFAULT;
+ 
+134.  else
+ 
+135.  {
+ 
+136.    *ppos += count;
+ 
+137.    ret = count;
+ 
+138.
+ 
+139.    printk(KERN_INFO "written %u bytes(s) from %lu\n", count, p);
+ 
+140.  }
+ 
+141.  up(&dev->sem); //释放信号量
+ 
+142.  return ret;
+ 
+143.}
+ 
+144.
+ 
+145./* seek文件定位函数 */
+ 
+146.static loff_t globalmem_llseek(struct file *filp, loff_t offset, int orig)
+ 
+147.{
+ 
+148.  loff_t ret = 0;
+ 
+149.  switch (orig)
+ 
+150.  {
+ 
+151.    case 0:   /*相对文件开始位置偏移*/
+ 
+152.      if (offset < 0)
+ 
+153.      {
+ 
+154.        ret =  - EINVAL;
+ 
+155.        break;
+ 
+156.      }
+ 
+157.      if ((unsigned int)offset > GLOBALMEM_SIZE)
+ 
+158.      {
+ 
+159.        ret =  - EINVAL;
+ 
+160.        break;
+ 
+161.      }
+ 
+162.      filp->f_pos = (unsigned int)offset;
+ 
+163.      ret = filp->f_pos;
+ 
+164.      break;
+ 
+165.    case 1:   /*相对文件当前位置偏移*/
+ 
+166.      if ((filp->f_pos + offset) > GLOBALMEM_SIZE)
+ 
+167.      {
+ 
+168.        ret =  - EINVAL;
+ 
+169.        break;
+ 
+170.      }
+ 
+171.      if ((filp->f_pos + offset) < 0)
+ 
+172.      {
+ 
+173.        ret =  - EINVAL;
+ 
+174.        break;
+ 
+175.      }
+ 
+176.      filp->f_pos += offset;
+ 
+177.      ret = filp->f_pos;
+ 
+178.      break;
+ 
+179.    default:
+ 
+180.      ret =  - EINVAL;
+ 
+181.      break;
+ 
+182.  }
+ 
+183.  return ret;
+ 
+184.}
+ 
+185.
+ 
+186./*文件操作结构体*/
+ 
+187.static const struct file_operations globalmem_fops =
+ 
+188.{
+ 
+189.  .owner = THIS_MODULE,
+ 
+190.  .llseek = globalmem_llseek,
+ 
+191.  .read = globalmem_read,
+ 
+192.  .write = globalmem_write,
+ 
+193.  .ioctl = globalmem_ioctl,
+ 
+194.  .open = globalmem_open,
+ 
+195.  .release = globalmem_release,
+ 
+196.};
+ 
+197.
+ 
+198./*初始化并注册cdev*/
+ 
+199.static void globalmem_setup_cdev(struct globalmem_dev *dev, int index)
+ 
+200.{
+ 
+201.  int err, devno = MKDEV(globalmem_major, index);
+ 
+202.
+ 
+203.  cdev_init(&dev->cdev, &globalmem_fops);
+ 
+204.  dev->cdev.owner = THIS_MODULE;
+ 
+205.  dev->cdev.ops = &globalmem_fops;
+ 
+206.  err = cdev_add(&dev->cdev, devno, 1);
+ 
+207.  if (err)
+ 
+208.    printk(KERN_NOTICE "Error %d adding LED%d", err, index);
+ 
+209.}
+ 
+210.
+ 
+211./*设备驱动模块加载函数*/
+ 
+212.int globalmem_init(void)
+ 
+213.{
+ 
+214.  int result;
+ 
+215.  dev_t devno = MKDEV(globalmem_major, 0);
+ 
+216.
+ 
+217.  /* 申请设备号*/
+ 
+218.  if (globalmem_major)
+ 
+219.    result = register_chrdev_region(devno, 1, "globalmem");
+ 
+220.  else  /* 动态申请设备号 */
+ 
+221.  {
+ 
+222.    result = alloc_chrdev_region(&devno, 0, 1, "globalmem");
+ 
+223.    globalmem_major = MAJOR(devno);
+ 
+224.  }  
+ 
+225.  if (result < 0)
+ 
+226.    return result;
+ 
+227.    
+
+228.  /* 动态申请设备结构体的内存*/
+ 
+229.  globalmem_devp = kmalloc(sizeof(struct globalmem_dev), GFP_KERNEL);
+ 
+230.  if (!globalmem_devp)    /*申请失败*/
+ 
+231.  {
+ 
+232.    result =  - ENOMEM;
+ 
+233.    goto fail_malloc;
+ 
+234.  }
+ 
+235.  memset(globalmem_devp, 0, sizeof(struct globalmem_dev));
+ 
+236.  
+ 
+237.  globalmem_setup_cdev(globalmem_devp, 0);
+ 
+238.  init_MUTEX(&globalmem_devp->sem);   /*初始化信号量*/  
+ 
+239.  printk("register globalmem success\n");
+ 
+240.  return 0;
+ 
+241.
+ 
+242.  fail_malloc: unregister_chrdev_region(devno, 1);
+ 
+243.  return result;
+ 
+244.}
+ 
+245.
+ 
+246./*模块卸载函数*/
+ 
+247.void globalmem_exit(void)
+ 
+248.{
+ 
+249.  cdev_del(&globalmem_devp->cdev);   /*注销cdev*/
+ 
+250.  kfree(globalmem_devp);     /*释放设备结构体内存*/
+ 
+251.  unregister_chrdev_region(MKDEV(globalmem_major, 0), 1); /*释放设备号*/
+ 
+252.  printk("unregister globalmem success\n");
+ 
+253.}
+ 
+254.
+ 
+255.MODULE_AUTHOR("Song Baohua");
+ 
+256.MODULE_LICENSE("Dual BSD/GPL");
+ 
+257.
+ 
+258.module_param(globalmem_major, int, S_IRUGO);
+ 
+259.
+ 
+260.module_init(globalmem_init);
+ 
+261.module_exit(globalmem_exit);
+复制代码
+
+ Makefile：
+ 
+
+01.TARGET = globalmem_lock
+ 
+02.KDIR = /lib/modules/$(shell uname -r)/build
+ 
+03.PWD = $(shell pwd)
+ 
+04.obj-m := $(TARGET).o
+ 
+05.default:
+ 
+06.        make -C $(KDIR) M=$(PWD) modules
+ 
+07.clean:
+ 
+08.        $(RM) *.o *.ko *.mod.c Module.symvers modules.order
+复制代码
+ [ 本帖最后由 dreamice 于 2009-11-11 09:21 编辑 ] 
+
+
+
+
+
+
+已有 2 人评分
+
+可用积分
+ 
+收起 理由 
+
+
+
+
+godbach 
+
++ 30
+ 
+精品文章
+ 
+
+
+T-Bagwell 
+
++ 30
+ 
+原创，重重的赏
+ 
+
+总评分: 可用积分 + 60   查看全部评分 
+
+
+
+
+
+本版精华
+文库|博客
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Nothing is impossible!
+ 
+Nginx源码分析交流群：120388348
+ 微博地址：http://weibo.com/u/1847971765
+
+nagios pnp 报错  |  关于hadoop开发的问题  |  请教大神，我现在有这么一些数据，想做成树 ...  |  关于PHP传递参数的问题  |  
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+dreamice
+ 
+言多必失
+
+
+
+
+
+
+.
+
+
+
+ 
+
+
+
+广告杀手
+ 
+
+帖子5636主题213精华38可用积分19193 专家积分80 在线时间3036 小时注册时间2007-05-11最后登录2013-08-18. 问答
+好友
+ 博客
+消息
+ . 论坛徽章:1.
+
+ 
+
+2楼 [报告]
+ 
+
+
+发表于 2009-11-10 22:59:48 |只看该作者 
+
+
+
+回复 #1 dreamice 的帖子
+ 
+
+
+
+在上文中，我们看到在读写函数中，用到了down_interruptible()和up()
+ 在并发控制中，我们看到，对临界资源的保护，总是成对的函数在操作，一个是进入临界区的操作，一个是出临界区的操作。在这里，down_interruptible就是进入临界区的操作，因为为了防止并发的写操作，所以在写时，进行信号量的获取。了解一种实现机制，我们最好是走进源代码去，而Linux这个开源的操作系统，更是给我们提供了便捷的方式。
+ down_interruptible(&dev->sem)
+ 他的参数是dev的成员，我们来看一看这个成员：
+ struct globalmem_dev                                     
+{                                                        
+   struct cdev cdev; /*cdev结构体*/                       
+   unsigned char mem[GLOBALMEM_SIZE]; /*全局内存大小*/     
+   struct semaphore sem; /*并发控制用的信号量*/    
+};
+ 他在模块初始化函数中被初始化：
+ init_MUTEX(&globalmem_devp->sem);   /*初始化信号量*/ 
+先看看struct semaphore 这个结构体的定义：
+ /* Please don't access any members of this structure directly */
+ struct semaphore {
+         spinlock_t                lock;
+         unsigned int                count;
+         struct list_head        wait_list;
+ };
+ 很简单，就3个成员。lock是自旋锁类型的，count是信号量的计数，wait_list是一个双向链表结构的等待队列，即当需要等待信号量时，调用进程把自己加入到等待队列中，然后进入睡眠状态。
+ 
+接下来我们看看init_MUTEX的实现：
+ #define init_MUTEX(sem)                sema_init(sem, 1)
+ static inline void sema_init(struct semaphore *sem, int val)
+ {
+         static struct lock_class_key __key;
+         *sem = (struct semaphore) __SEMAPHORE_INITIALIZER(*sem, val);
+         lockdep_init_map(&sem->lock.dep_map, "semaphore->lock", &__key, 0);
+ }
+ 
+#define __SEMAPHORE_INITIALIZER(name, n)                                \
+ {                                                                        \
+         .lock                = __SPIN_LOCK_UNLOCKED((name).lock),                \
+         .count                = n,                                                \
+         .wait_list        = LIST_HEAD_INIT((name).wait_list),                \
+ }
+ 由上面的调用函数关系可以看到，实际上就是把信号量的count值，置为1.
+ 
+下面我们开始分析down_interruptible的实现：
+ int down_interruptible(struct semaphore *sem)
+ {
+         unsigned long flags;
+         int result = 0;
+ 
+               /* 自旋锁，关中断，并保存当前的状态 */
+         spin_lock_irqsave(&sem->lock, flags);
+         if (likely(sem->count > 0))  /* 如果信号量大于0，说明此时临界资源是不被占用的，可以立即使用，开自旋锁，并返回。这是能拿到信号量的情况 */
+                 sem->count--;
+         else                            /* 否则进入__down_interruptible(sem);中*/
+                 result = __down_interruptible(sem);
+         spin_unlock_irqrestore(&sem->lock, flags);
+ 
+        return result;
+ }
+ 
+注：自旋锁在上述中，主要起的作用是对count值访问的保护。
+ 如果拿不到信号量，我们看看__down_interruptible(sem);里面做了些什么
+ static noinline int __sched __down_interruptible(struct semaphore *sem)
+ {
+         return __down_common(sem, TASK_INTERRUPTIBLE, MAX_SCHEDULE_TIMEOUT);
+ }
+ /*
+ * Because this function is inlined, the 'state' parameter will be
+ * constant, and thus optimised away by the compiler.  Likewise the
+ * 'timeout' parameter for the cases without timeouts.
+ */
+ static inline int __sched __down_common(struct semaphore *sem, long state,
+                                                                 long timeout)
+ {
+         struct task_struct *task = current;
+         struct semaphore_waiter waiter;
+ 
+        list_add_tail(&waiter.list, &sem->wait_list);
+         waiter.task = task;
+         waiter.up = 0;
+ 
+        for (;;) {
+                 if (state == TASK_INTERRUPTIBLE && signal_pending(task))
+                         goto interrupted;
+                 if (state == TASK_KILLABLE && fatal_signal_pending(task))
+                         goto interrupted;
+                 if (timeout <= 0)
+                         goto timed_out;
+                 __set_task_state(task, state);
+                 spin_unlock_irq(&sem->lock);
+                 timeout = schedule_timeout(timeout);
+                 spin_lock_irq(&sem->lock);
+                 if (waiter.up)
+                         return 0;
+         }
+ 
+timed_out:
+         list_del(&waiter.list);
+         return -ETIME;
+ 
+interrupted:
+         list_del(&waiter.list);
+         return -EINTR;
+ }
+
+ 
+
+
+
+
+
+
+Nothing is impossible!
+ 
+Nginx源码分析交流群：120388348
+ 微博地址：http://weibo.com/u/1847971765
+
+ VMware vSphere部署和管理|如何快速Linux入门 谈经验得图书 | 没天赋一样可以成顶级程序员 | 编程手记 从实践中学习Java
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+dreamice
+ 
+言多必失
+
+
+
+
+
+
+.
+
+
+
+ 
+
+
+
+广告杀手
+ 
+
+帖子5636主题213精华38可用积分19193 专家积分80 在线时间3036 小时注册时间2007-05-11最后登录2013-08-18. 问答
+好友
+ 博客
+消息
+ . 论坛徽章:1.
+
+ 
+
+3楼 [报告]
+ 
+
+
+发表于 2009-11-10 23:33:13 |只看该作者 
+
+
+
+回复 #2 dreamice 的帖子
+ 
+
+
+
+我们主要分析__sched __down_common的实现
+ 因为拿不到信号量，则必然要等待信号量，于是，调用list_add_tail(&waiter.list, &sem->wait_list);将自己加入到等待队列中，进入for循环
+ 我们传入的参数是 TASK_INTERRUPTIBLE，因此会进入if (state == TASK_INTERRUPTIBLE && signal_pending(task))这个条件，signal_pending即等待唤醒的信号量。
+ 我们这里看到，程序还会检查一个timeout时间，这个是MAX_SCHEDULE_TIMEOUT，这个时间是((long)(~0UL>>1))。这个值比较特别，~0UL，在32位系统中，为0xffffffff，而右移1位，则变为
+ 0x7fffffff了。__set_task_state(task, state);设置系统状态为TASK_INTERRUPTIBLE （可中断状态，参看进程状态相关说明），然后退出自旋锁，timeout = schedule_timeout(timeout);进行超时。我们看到，只有当waiter.up为真时，才会正常返回0，即获得了信号量。而其他，不管事超时，还是因为中断等原因导致其返回，都不是获得了需要的资源。回到调用处，我们也看到，如果down_interruptible返回非0，则说明调用失败。至此，down_interruptible我们也就简单的分析完了，下面，我们再看up操作：
+ /**
+ * up - release the semaphore
+ * @sem: the semaphore to release
+ *
+ * Release the semaphore.  Unlike mutexes, up() may be called from any
+ * context and even by tasks which have never called down().
+ */
+ void up(struct semaphore *sem)
+ {
+         unsigned long flags;
+ 
+        spin_lock_irqsave(&sem->lock, flags);
+         if (likely(list_empty(&sem->wait_list)))
+                 sem->count++;
+         else
+                 __up(sem);
+         spin_unlock_irqrestore(&sem->lock, flags);
+ }
+ 从注释可以看到，up其实就是释放信号量。如果等待队列为空，则直接将信号量计数器加1即可，如果非空，则说明当前有进程在等待该信号量了，于是：
+ static noinline void __sched __up(struct semaphore *sem)
+ {
+         struct semaphore_waiter *waiter = list_first_entry(&sem->wait_list,
+                                                 struct semaphore_waiter, list); /*找到等待该信号量的进程*/
+         list_del(&waiter->list); /* 将该进程从等待队列中删除 */
+         waiter->up = 1;
+         wake_up_process(waiter->task); /* 唤醒该进程 */
+ }
+ 由上可知，如果有进程在等待该信号量，信号量释放函数，将唤醒该等待的进程，这样，等待信号量的进程便可得到进入临界区的“钥匙”而进入运行状态了。
+ 
+信号量的实现分析就这么简单。本文只是起到抛砖引玉的作用，即当我们去使用一个函数时，尽量从源代码去理解其实现机制。当你跟踪源代码时，你会发现很多相关联的部分，比如上面提到的进程状态。Linux内核是个庞大的结构，很多地方都互相依赖并存，因此，从一个细小的地方着手，就可以延伸和扩展很多的知识点。
+ 
+
+总结和展望：
+ 本文依从源代码和具体实例分析了信号量的实现机制，但没有在实际中体现信号量的作用，这一点我们可以从应用程序来验证信号量作用的体现，类似与PV操作等。后续将分析其他的并发控制机制，希望和大家一起共同交流，深入理解Linux内核实现的一些细节。
+ 
+参考：
+ 《Linux设备驱动开发详解》
+ 《Linux设备驱动》
+ 2009-11-10
+
+ 
+
+
+
+
+
+
+Nothing is impossible!
+ 
+Nginx源码分析交流群：120388348
+ 微博地址：http://weibo.com/u/1847971765
+
+ VMware vSphere部署和管理|如何快速Linux入门 谈经验得图书 | 没天赋一样可以成顶级程序员 | 编程手记 从实践中学习Java
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+dreamice
+ 
+言多必失
+
+
+
+
+
+
+.
+
+
+
+ 
+
+
+
+广告杀手
+ 
+
+帖子5636主题213精华38可用积分19193 专家积分80 在线时间3036 小时注册时间2007-05-11最后登录2013-08-18. 问答
+好友
+ 博客
+消息
+ . 论坛徽章:1.
+
+ 
+
+4楼 [报告]
+ 
+
+
+发表于 2009-11-10 23:40:31 |只看该作者 
+
+
+
+回复 #3 dreamice 的帖子
+ 
+
+
+
+附上例子的测试方法：
+ # cat /sys/module/globalmem_lock/parameters/globalmem_lock_major
+ 250
+ # mknod /dev/globalmem c 250 0
+ # echo ‘hello dreamice’ > /dev/gloablmem_lock
+ # cat /dev/gloablmem_lock
+ hello dreamice
+
+ 
+
+
+
+
+
+
+Nothing is impossible!
+ 
+Nginx源码分析交流群：120388348
+ 微博地址：http://weibo.com/u/1847971765
+
+ VMware vSphere部署和管理|如何快速Linux入门 谈经验得图书 | 没天赋一样可以成顶级程序员 | 编程手记 从实践中学习Java
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+qiu1123
+ 
+
+
+
+
+
+.
+
+
+
+ 
+
+
+
+白手起家
+ 
+
+
+
+
+帖子27主题1精华0可用积分142 专家积分0 在线时间17 小时注册时间2008-03-03最后登录2012-05-30. 问答
+好友
+ 博客
+消息
+ . 论坛徽章:0.
+ 
+
+5楼 [报告]
+ 
+
+
+发表于 2009-11-11 08:09:10 |只看该作者 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+VMware vSphere部署和管理|如何快速Linux入门 谈经验得图书 | 没天赋一样可以成顶级程序员 | 编程手记 从实践中学习Java
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+goter
+ 
+快意恩仇
+
+
+
+
+
+
+.
+
+
+
+ 
+
+
+
+稍有积蓄
+ 
+
+
+
+
+
+帖子850主题34精华1可用积分294 专家积分1 在线时间663 小时注册时间2007-10-25最后登录2013-03-26. 问答
+好友
+ 博客
+消息
+ . 论坛徽章:0.
+ 
+
+6楼 [报告]
+ 
+
+
+发表于 2009-11-11 10:07:41 |只看该作者 
+
+
+
+
+
+
+LZ啥时候给讲讲自旋锁和信号量之间区别和用途吧
+
+ 
+
+
+
+
+
+
+善男子，一切众生从无始际由有种种恩爱贪欲，故有轮回。若诸世界，一切种性：卵生胎生，湿生化生，皆因淫欲而正生命。当知轮回，爱为根本。由有诸欲助发爱性，是故能令生死相续。
+
+ VMware vSphere部署和管理|如何快速Linux入门 谈经验得图书 | 没天赋一样可以成顶级程序员 | 编程手记 从实践中学习Java
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+dreamice
+ 
+言多必失
+
+
+
+
+
+
+.
+
+
+
+ 
+
+
+
+广告杀手
+ 
+
+帖子5636主题213精华38可用积分19193 专家积分80 在线时间3036 小时注册时间2007-05-11最后登录2013-08-18. 问答
+好友
+ 博客
+消息
+ . 论坛徽章:1.
+
+ 
+
+7楼 [报告]
+ 
+
+
+发表于 2009-11-11 10:40:00 |只看该作者 
+
+
+
+
+
+
+
+
+原帖由 goter 于 2009-11-11 10:07 发表 
+LZ啥时候给讲讲自旋锁和信号量之间区别和用途吧 
+
+
+简单的理解，自旋锁属于“忙等”，而信号量是“睡等”，两者之间有点类似于轮询和中断的差别。因此，各自的就有相应的用途了。我们知道，中断和下半部都是不允许睡眠的，所以，在大家看到的Netfilter这个架构里面，互斥大多都使用的是自旋锁，而不是信号量。当然，忙等也有他的缺点，那就是占用了CPU的执行时间，在一些需要和应用层交互的内核模块中，就最好不要使用这样的机制，而采用信号量或者读写锁等机制，这样可以让进程睡眠，等待资源。 
+
+
+
+
+
+
+
+Nothing is impossible!
+ 
+Nginx源码分析交流群：120388348
+ 微博地址：http://weibo.com/u/1847971765
+
+ VMware vSphere部署和管理|如何快速Linux入门 谈经验得图书 | 没天赋一样可以成顶级程序员 | 编程手记 从实践中学习Java
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+xiaochangfu
+ 
+
+
+
+
+
+.
+
+
+
+ 
+
+
+
+稍有积蓄
+ 
+
+
+
+
+
+帖子281主题17精华0可用积分223 专家积分0 在线时间261 小时注册时间2008-06-16最后登录2012-08-13. 问答
+好友
+ 博客
+消息
+ . 论坛徽章:0.
+ 
+
+8楼 [报告]
+ 
+
+
+发表于 2009-11-11 11:51:39 |只看该作者 
+
+
+
+回复 #7 dreamice 的帖子
+ 
+
+
+
+说的话!在很多书上多说过!!觉得最好还是用程序说话 ,是最好解答!!要累坏LZ了!
+
+ 
+
+
+
+
+
+
+VMware vSphere部署和管理|如何快速Linux入门 谈经验得图书 | 没天赋一样可以成顶级程序员 | 编程手记 从实践中学习Java
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+dreamice
+ 
+言多必失
+
+
+
+
+
+
+.
+
+
+
+ 
+
+
+
+广告杀手
+ 
+
+帖子5636主题213精华38可用积分19193 专家积分80 在线时间3036 小时注册时间2007-05-11最后登录2013-08-18. 问答
+好友
+ 博客
+消息
+ . 论坛徽章:1.
+
+ 
+
+9楼 [报告]
+ 
+
+
+发表于 2009-11-11 12:00:19 |只看该作者 
+
+
+
+回复 #8 xiaochangfu 的帖子
+ 
+
+
+
+多看内核源代码，呵呵
+
+ 
+
+
+
+
+
+
+Nothing is impossible!
+ 
+Nginx源码分析交流群：120388348
+ 微博地址：http://weibo.com/u/1847971765
+
+ VMware vSphere部署和管理|如何快速Linux入门 谈经验得图书 | 没天赋一样可以成顶级程序员 | 编程手记 从实践中学习Java
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+godbach
+ 
+To be 千里马！
+
+
+
+
+
+
+.
+
+
+
+ 
+
+
+
+版主
+ 
+
+帖子15157主题370精华21可用积分11800 专家积分79 在线时间6884 小时注册时间2007-03-09最后登录2013-09-02. 问答
+好友
+ 博客
+消息
+ . 论坛徽章:1.
+
+ 
+
+10楼 [报告]
+ 
+
+
+发表于 2009-11-11 13:13:16 |只看该作者 
+
+
+
+
+
+
+dreamice兄又出好文章了。拜读一把。
+
+ 
+
+
+
+
+
+
+----------
+ 欢迎光临Godbach的博客：
+ HAProxy 研究笔记
+ ---------
+ 明犯我强汉天威者，穷搜天下，万里追杀，覆其巢，断其苗裔，戮其身，追其魂，屠其魄，虽远必诛！
+
+ VMware vSphere部署和管理|如何快速Linux入门 谈经验得图书 | 没天赋一样可以成顶级程序员 | 编程手记 从实践中学习Java
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    热门内容推荐 
+
+
+
+
+  IT168产品库推荐：苹果 iPod touch4(8G)  摩托罗拉 XT615  三星 i9003  索尼爱立信 X8  华为 S8600 火花  现代博恩 XB-D04  
+ 
+
+
+
+
+1234下一页
+返回列表 . 
+
+ChinaUnix.net › 论坛 › 程序设计 › 驱动开发 › Linux驱动开发庖丁解牛之四——并发控制之信号量(1) 
+.
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+高级模式 
+B Color Image Link Quote Code Smilies 
+
+
+您需要登录后才可以回帖 登录 | 注册 
+. 
+发表回复 回帖后跳转到最后一页 
+
+
+
+
+
+
+
+
+
+. .
+ 
+
+
+
+
+
+第五届中国系统架构师大会精彩不断
+
+
+凡在8月31日前报名均可享受八八折票价！
+
+SACC2013 五周年震撼来袭
+ 精彩一：千人齐聚 共商行业新趋势
+ 精彩二：专家云集 指点进阶新思路
+ 精彩三：行业碰撞 推动技术新发展
+ 精彩四：咖啡茶点 贵宾服务新体验
+ 还在犹豫什么！快来注册参会吧！！
+ ChinaUnix注册会员，点击这里报名！
+
+ 
+查看详情>>
+ 
+
+北京皓辰网域网络信息技术有限公司. 版权所有 京ICP证:060528号 北京市公安局海淀分局网监中心备案编号：1101082001
+广播电视节目制作经营许可证(京) 字第1234号 中国互联网协会会员  联系我们： 
+感谢所有关心和支持过ChinaUnix的朋友们 转载本站内容请注明原作者名及出处
+ 
+
+
+清除 Cookies - ChinaUnix- Archiver - WAP - TOP 
+
+  
+
+
+
+ 

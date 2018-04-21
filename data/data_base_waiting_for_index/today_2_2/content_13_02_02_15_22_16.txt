@@ -1,0 +1,414 @@
+
+
+首页
+开源软件
+讨论区
+代码分享
+博客
+翻译
+资讯
+Android
+招聘
+
+
+ 当前访客身份：游客 [ 登录 | 加入开源中国 ] 
+
+
+
+当前位置：讨论区 » 技术分享» Android开发专区» Android 高级篇» Android安全
+
+
+软件代码讨论区新闻博客
+
+
+
+
+
+
+
+
+[IBM DW] 理解 Android 上的安全性
+
+红薯 发表于 2010-12-15 12:30 2年前, 2回/1817阅, 最后回答: 2天前 
+
+讨论区 » 技术分享
+
+
+
+参加OSC应用开发大赛，拿Nexus 4手机 活动详情
+
+
+
+开发 Android 应用程序时，必须处理很多与安全性相关的方面，包括应用程序进程和沙箱、代码和数据共享、通过应用程序签名达到的系统保护，以及权限使用。在您使用样例代码时，突出强调了 Android 应用程序开发中的这些安全方面。
+
+Android 包括一个应用程序框架、几个应用程序库和一个基于 Dalvik 虚拟机的运行时，所有这些都运行在 Linux® 内核之上。通过利用 Linux 内核的优势，Android 得到了大量操作系统服务，包括进程和内存管理、网络堆栈、驱动程序、硬件抽象层以及与本文主题 —— 安全性 —— 相关的服务。
+
+前提条件
+
+要跟随本文，需要具备以下技能和工具：
+•基本了解 Java™ 技术和如何使用 Eclipse（或者您喜欢的 IDE）
+•Java Development Kit（需要版本 5 或 6）
+•Eclipse（版本 3.4 或 3.5）
+•Android SDK 和 ADT 插件
+
+Android 使用沙箱的概念来实现应用程序之间的分离和权限，以允许或拒绝一个应用程序访问设备的资源，比如说文件和目录、网络、传感器和 API。为此，Android 使用一些 Linux 实用工具（比如说进程级别的安全性、与应用程序相关的用户和组 ID，以及权限），来实现应用程序被允许执行的操作。
+
+概念上讲，沙箱可以表示为 图 1 所示。
+
+
+图 1. 两个 Android 应用程序，各自在其自己的基本沙箱或进程上
+ 
+
+Android 应用程序运行在它们自己的 Linux 进程上，并被分配一个惟一的用户 ID。默认情况下，运行在基本沙箱进程中的应用程序没有被分配权限，因而防止了此类应用程序访问系统或资源。但是 Android 应用程序可以通过应用程序的 manifest 文件请求权限。
+
+通过做到以下两点，Android 应用程序可以允许其他应用程序访问它们的资源：
+•声明适当的 manifest 权限
+•与其他受信任的应用程序运行在同一进程中，从而共享对其数据和代码的访问
+
+后者演示在 图 2 中。
+
+
+图 2. 两个 Android 应用程序，运行在同一进程上
+ 
+
+不同的应用程序可以运行在相同的进程中。对于此方法，首先必须使用相同的私钥签署这些应用程序，然后必须使用 manifest 文件给它们分配相同的 Linux 用户 ID，这通过用相同的值/名定义 manifest 属性 android:sharedUserId 来做到。
+
+下图演示了很多在开发 Android 应用程序时会发现的与安全性相关的用例。 
+图 3. 编写 Android 应用程序时出现的安全领域
+ 
+•应用程序或代码签名是这样一个过程，即生成私有、公共密钥和公共密钥证书，签署和优化应用程序。
+•权限是 Android 平台的一种安全机制，以允许或限制应用程序访问受限的 API 和资源。默认情况下，Android 应用程序没有被授予任何权限，不允许它们访问设备上受保护的 API 或资源，从而保证了它们的安全。权限必须被请求，定义了定制的权限，文件和内容提供者就可以受到保护。确保在运行时检查、执行、授予和撤销权限。
+
+接下来，更加详细地来看一下每个安全领域。
+
+所有 Android 应用程序都必须被签名。应用程序或代码签名是一个这样的过程，即使用私有密钥数字地签署一个给定的应用程序，以便：
+•识别代码的作者
+•检测应用程序是否发生了改变
+•在应用程序之间建立信任
+
+基于这一信任关系，应用程序可以安全地共享代码和数据。
+
+使用相同数字签名签署的两个应用程序可以相互授予权限来访问基于签名的 API，如果它们共享用户 ID，那么也可以运行在同一进程中，从而允许访问对方的代码和数据。
+
+应用程序签名首先是生成一个私有、公共密钥对和一个相关公共密钥证书，简称为公共密钥证书。
+
+构建 Android 应用程序时可以采用调试模式和发布模式：
+•使用 Android 构建工具（命令行和 Eclipse ADT）构建的应用程序是用一个调试私有密钥自动签名的；这些应用程序被称为调试模式应用程序。调试模式应用程序用于测试，不能够发布。注意，未签名的或 者使用调试私有密钥签名的应用程序不能够通过 Android Market 发布。
+•您准备发布自己的应用程序时，必须构建一个发布模式的版本，这意味着用私有密钥签署应用程序。
+
+Android 中的代码签名采用一种比其他移动平台中要简单得多的方式。在 Android 上，证书可以是自签名的，这就是说，无需证书授权。这种方法简化了发布过程和相关的成本。
+
+接下来，介绍如何从命令行以及通过使用 Eclipse ADT 手动签署 Android 应用程序。本文中不介绍第三种方法，即使用 Ant。
+
+手动创建私有、公共密钥和公共密钥证书
+
+回想一下，调试模式应用程序是使用调试密钥/证书由构建工具自动签名的。要签署一个发布模式的应用程序，首先必须生成私有、公共密钥对和公共 密钥证书。可以手动地或者通过使用 Eclipse ADT 签署应用程序。两种方法中都使用了 Java Developer Kit (JDK) keytool 密钥和证书管理实用工具。
+
+要手动生成私有、公共密钥信息，可以从命令行使用 keytool，如 清单 1 所示。
+
+
+清单 1. 使用 keytool 生成私有/公共密钥和证书
+
+
+
+ 				keytool -genkey -v -alias <alias_name> -keystore <keystore.name> -keyalg RSA -keysize 2048 -validity <number of days> 
+
+注意：清单 1 假设 JDK 已安装在您的计算机上，并且 JAVA_HOME 路径被正确定义为指向您的 JDK 目录（参见 参考资料，获得下载和设置信息）。
+
+在 清单 1 中，-genkey 表示一个公共、私有密钥对项，以及一个 X.509 v1 自签署的单个元素证书链，其中包含生成的公共密钥。-v 表示冗长模式。-alias 是用于 keystore 项的别名，keystore 存储生成的私有密钥和证书。-keystore 表示使用的密钥仓库的名称。-keyalg 是用来生成密钥对的算法。-keysize 是生成的密钥大小，其中默认大小是 1024，但是推荐大小是 2048。-validity 是有效天数；推荐采用大于 1000 的值。
+
+注意：生成密钥之后，一定要保证密钥的安全。不要共享私有密钥，也不要在命令行或脚本中指定密钥；注 意，keytool 和 jarsigner 会提示输入密码。关于这一技巧和其他技巧，请参考 Android Developers 网站的 “Securing Your Private Key”。
+
+Keytool 提示您输入名和姓、公司、城市、州、国家，从这些信息生成一个 X.500 Distinguished Name，还要输入保护私有密钥和密钥仓库本身的密码。
+
+对于有效期，请确保使用超出应用程序本身和相关应用程序预期生命期的时期。如果您是在 Android Market 上发布应用程序，那么有效期必须晚于 2033 年 10 月 22 日结束；否则不能上载。此外，拥有长寿命的证书让升级应用程序更为容易。幸运的是，Android Market 强制采用长寿命的证书，以帮助您避免此类问题。
+
+手动签署应用程序
+
+接下来，使用 jarsigner 工具（它是 JDK 的一部分）签署未签名的应用程序：
+
+
+
+ jarsigner -verbose -keystore <keystore.name> <my_application.apk> <alias_name> 
+
+在上述代码中，-verbose 表示冗长模式，-keystore 表示使用的密钥仓库的名称。接下来是应用程序的名称 (.apk)，最后是用于私有密钥的别名。
+
+Jarsigner 提示您输入使用密钥仓库和私有密钥时的密码。
+
+应用程序可以使用不同的密钥进行多次签名，用相同私有密钥签名的应用程序之间可以建立一种信任关系，并且可以运行在同一进程中，共享代码和数据。
+
+手动优化应用程序
+
+签署过程的最后一步是优化应用程序，以便数据边界与文件的开始是内存对齐的，这种技术有助于改善运行时性能和内存利用率。要签署应用程序，可以使用 zipalign：
+
+
+
+ zipalign -v 4 your_project_name-unaligned.apk your_project_name.apk 
+
+ 
+
+在前面的代码中，-v 表示冗长输出。数字 4 表示使用四字节对齐（总是使用四字节）。下一个参数是输入已签署应用程序的文件名 (.apk)，它必须用您的私有密钥签署。最后一个参数是输出文件名；如果覆盖现有应用程序，则添加一个 -f。
+
+手动验证应用程序已经签署
+
+要验证应用程序已经签署，可以使用 Jarsigner，这次传递 -verify 标志：
+
+
+
+ jarsigner -verify -verbose -certs my_application.apk 
+
+在前面的代码中，-verify 表示验证应用程序；-verbose 表示冗长模式；-certs 表示展示创建密钥的 CN 字段，最后一个参数是要验证的 Android 应用程序包的名称。
+
+注意：如果 CN 读入 "Android Debug"，那么意味着应用程序是用调试密钥签署的，这表明不能发布；如果您计划在 Android Market 上发布您的应用程序，一定要记得使用私有密钥。
+
+刚才学习了如何手动创建私有、公共密钥，以及签署和优化应用程序。接下来，了解如何使用 Eclipse ADT 自动创建私有、公共密钥，以及签署和优化应用程序。
+
+要使用 Eclipse ADT 生成密钥，必须导出应用程序。有两种方法从 Eclipse 导出应用程序：
+•导出您必须手动签署的应用程序的未签署 版本
+•导出应用程序的已签署 版本，其中所有步骤都由 ADT 为您代劳
+
+导出未签署的应用程序
+
+您可以导出您必须手动签署的应用程序的未签署版本。就是说，您需要手动运行 keytool（如前所述，是为了生成密钥）和 Jarsigner（为了签署应用程序），并使用 zipalign 工具优化应用程序，跟前面解释的那样。
+
+要使用 ADT 导出应用程序的未签署版本，可以右键单击项目并选择 Android Tools>Export Unsigned Application Package（参见 图 4）。
+
+
+图 4. 导出未签署的应用程序
+ 
+
+选中之后，ADT 提示您选择将未签署应用程序导出到的目录。记住，一旦应用程序被导出，您就必须手动签署和优化应用程序，跟前面介绍的那样。
+
+导出已签署的应用程序
+
+利用 Eclipse ADT，您可以导出应用程序的已签署版本。使用这种方法，ADT 提示您输入以下内容：
+•使用现有 KeyStore 或者创建新的受保护 KeyStore 所需的信息
+•创建受保护私有密钥所需的信息
+•生成公共密钥证书所需的信息
+
+要导出已签署的应用程序，可以右键单击项目，但是这一次选择菜单项 Android Tools->Export Signed Application Package，如 图 5 所示。
+
+
+图 5. 导出已签署的应用程序
+ 
+
+此时，Export Wizard 执行，如 图 6 所示。
+
+
+图 6. Export Wizard
+ 
+
+在 图 7 中，选择一个现有的密钥仓库（或者创建一个新的）和证书。
+
+
+图 7. Export Wizard：密钥仓库选择
+ 
+
+在 图 8 中，输入信息以创建私有密钥和数字证书。
+
+
+图 8. Export Wizard：创建私有密钥和数字证书
+ 
+
+在 图 9 中，输入目标文件的路径和名称，并验证有效期间。
+
+
+图 9. 输入目标文件的路径和名称
+ 
+
+完成时，您就有了一个发布模式的已签署和已优化的应用程序，您可以发布它。
+
+另外，您也可以使用 Android Manifest 工具调用 Export Wizard，如 图 10 所示。
+
+
+图 10. 使用 Android Manifest 工具调用 Export Wizard
+ 
+
+应用程序签署之后，下一步由您在 manifest 中定义应用程序需要的权限。接下来将描述这一过程。
+
+注意，Android Developer 网站有非常好的关于应用程序签署的文档，当有 Android 平台的新版本可用时，这些文档都会更新。
+
+权限是一种 Android 平台安全机制，旨在允许或限制应用程序访问受限的 API 和资源。默认情况下，Android 应用程序没有被授予权限，这通过不允许它们访问设备上的受保护 API 或资源，确保了它们的安全。权限在安装期间通过 manifest 文件由应用程序请求，由用户授予或不授予。
+
+Android 定义长长的一系列 manifest 权限，以保护系统或其他应用程序的各个方面。要请求权限，可以在 manifest 文件中声明一个 <user-permission> 属性：
+
+
+
+ <uses-permission android:name="string" /> 
+
+ 
+
+其中 android:name 指定权限的名称。
+
+要得到所有 Android 定义的 manifest 权限的列表，请参见 Manifest.permisson 页面。清单 2 是一个 manifest 文件的例子，它请求使用 Internet 的权限和写到外部存储器的权限：
+
+
+清单 2. 声明（请求）权限
+
+
+
+ 				<?xml version="1.0" encoding="utf-8"?><manifest xmlns:android="http://schemas.android.com/apk/res/android"      android:versionCode="1"      android:versionName="1.0"      package="com.cenriqueortiz.tutorials.datastore"       android:installLocation="auto">    <application         :        :        :    </application>    <uses-permission         android:name="android.permission.INTERNET"/>    <uses-permission         android:name="android.permission.WRITE_EXTERNAL_STORAGE"/></manifest> 
+
+ 
+
+应用程序可以定义它们自己的定制权限，以保护应用程序资源。其他应用程序想要访问一个应用程序的受保护资源，就必须通过它们自己的 manifest 文件请求适当的权限。清单 3 展示了一个如何定义权限的例子。
+
+
+清单 3. 声明定制权限
+
+
+
+ 				<permission        xmlns:android="http://schemas.android.com/apk/res/android"        android:name="com.cenriqueortiz.android.ACCESS_FRIENDS_LIST"        android:description="@string/permission_description"        android:label="@string/permission_label"        android:protectionLevel="normal"    ></permission> 
+
+在 清单 3 中，通过指定最少的属性，即 name、description、label 和 protectionLevel，定义了一个定制权限。也可以定义其他属性，但是这里没做介绍。
+
+特别有趣的是 android:protectionLevel 属性，它表示系统向一个请求权限的应用程序授予（或不授予）给定的权限时应该遵循的方法。保护级别有普通 和危险。前者自动授予权限（尽管用户在安装之前总是可以重审），基于签名授予权限（就是说，如果请求权限的应用程序是用同一证书签署的）；后者表示权限给予私有数据的访问权，或者具有另一个潜在的负面影响。有关 <permission> manifest 属性的更多信息，请参见 <permission> 页面。
+
+应用程序可以限制对应用程序及其使用的系统组件（比如 Activity、Service、Content Provider 和 Broadcast Receiver）的访问。通过像 清单 4 中那样定义 android:permission 属性，很容易实现这种限制。这种级别的保护让应用程序允许或限制其他应用程序访问系统资源。
+
+清单 4. 定义一个活动的权限
+<activity     android:name=".FriendsListActivity"     android:label="Friends List">    android:permission="com.cenriqueortiz.android.ACCESS_FRIENDS_LIST"    <intent-filter>        :        :    </intent-filter>        </activity>  
+  
+
+内容提供者暴露一个公共 URI，用于惟一地识别它们的数据。要保护此内容提供者，当开始时或者从活动返回结果时，调用者可以设置 Intent.FLAG_GRANT_READ_URI_PERMISSION 和 Intent.FLAG_GRANT_WRITE_URI_PERMISSION，以便授予接收活动权限，以访问特定的数据 URI。
+
+应用程序文件默认是受保护的。文件基于用户 ID 受保护，因而只对所有者应用程序是可访问的（此应用程序具有相同的用户 ID）。正如前面介绍的，共享相同用户 ID（并使用相同数字证书签署）的应用程序运行在相同进程上，因而共享对它们的应用程序的访问。
+
+应用程序可以允许其他应用程序或进程访问它们的文件。这种允许是通过指定适当的 MODE_WORLD_READABLE 和 MODE_WORLD_WRITEABLE 操作模式（以便允许对文件的读或写访问）或 MODE_PRIVATE（以便以私有模式打开文件）而做到的。您可以在创建或打开文件时利用以下方法指定操作模式：
+•getSharedPreferences(filename, operatingMode)
+•openFileOutput(filename, operatingMode)
+•openOrCreateDatabase(filename, operatingMode, SQLiteDatabase.CursorFactory)
+
+Android 提供各种 API 来在运行时检查、执行、授予和撤销权限。这些 API 是 android.content.Context 类的一部分，这个类提供有关应用程序环境的全局信息。例如，假设您想要优雅地处理权限，您可以确定您的应用程序是否被授予了访问 Internet 的权限。
+
+清单 5. 使用运行时 Permission API 在运行时检查权限
+
+
+
+ if (context.checkCallingOrSelfPermission(Manifest.permission.INTERNET)        != PackageManager.PERMISSION_GRANTED) {            // The Application requires permission to access the              // Internet");} else {    // OK to access the Internet} 
+
+要了解其他在运行时检查、执行、授予和撤销权限的权限 API，请参考上下文类。
+
+本文介绍了 Android 平台上的安全性，包括沙箱、应用程序签名、应用程序权限，以及文件和内容提供者权限。阅读完这篇介绍性文章之后，您将能够使用 Eclipse 手动创建数字证书，请求应用程序权限，以及允许或不允许应用程序访问文件和内容提供者。此外，您还简要了解了权限运行时 API，这些 API 允许您在运行时检查、执行、授予和撤销权限。
+
+
+标签：Android SDK Eclipse ADT
+
+补充话题说明»
+
+ 
+
+
+分享到 
+
+收藏
+
+13
+
+举报
+
+踩0 | 顶0
+
+
+
+按默认排序 | 显示最新评论 | 回页面顶部共有2个评论 发表评论»
+
+
+
+
+steve_Li 回答于 2012-12-11 14:25 
+
+举报
+
+
+mark，这里使用几个段落
+
+
+
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论 
+
+
+
+
+
+伪猫 回答于 2013-01-31 11:03 
+
+举报
+
+
+好文要顶 收藏了
+
+
+
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+回评论顶部 | 回页面顶部
+ 
+
+有什么技术问题吗？ 我要提问
+
+全部(4885)...红薯的其他问题pywinauto 自动化框架调研(2回/80阅,昨天(11:13))
+简单谈谈手机 App 的“退出”方式(19回/634阅,2天前)
+再发一个在搞 OSChina 的日志记录(12回/720阅,3天前)
+OSChina 最近几天遭受的攻击！！！(45回/5633阅,4天前)
+KindEditor 的一个小 feature 缺失(1回/98阅,4天前)
+
+ 
+
+类似的话题IBM 的 Java 诊断， 使用面向 Java 的 Lock Analyzer 诊断同步和锁问题(0回/288阅,3年前)
+IBM MQSeries使用指南(0回/445阅,3年前)
+在云中创建 PHP 开发环境(4回/210阅,1年前)
+集成 Eclipse 和 IBM WebSphere Portal 7 开发(0回/590阅,1年前)
+Android 模拟器升级：支持GPU并提高CPU性能(2回/230阅,9个月前)
+android与ARM网关的通信(1回/593阅,9个月前)
+启动模拟器的时候指定参数(0回/113阅,9个月前)
+Android 中Activity的生命周期(0回/167阅,9个月前)
+ Android 操作权限大全 (android.permission)(0回/1230阅,9个月前)
+android 【九种对话框】的实现方式(0回/1025阅,9个月前)
+个人爱好录制30课android入门视频(2回/398阅,9个月前)
+安卓 android 网络调试助手隆重发布(1回/565阅,9个月前)
+使用 Android 模擬器(1回/1431阅,3年前)
+建立一個 Android 项目(0回/1238阅,3年前)
+描述使用者介面(0回/166阅,3年前)
+設計使用者介面(UI)(0回/777阅,3年前)
+
+ 
+
+
+
+
+© 开源中国(OsChina.NET) | 关于我们 | 广告联系 | @新浪微博 | 开源中国手机版 | 粤ICP备12009483号-3
+ 
+开源中国手机客户端：AndroidiPhoneWP7 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

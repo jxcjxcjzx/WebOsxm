@@ -1,0 +1,828 @@
+
+
+
+
+
+
+
+
+[编辑]
+LISP
+
+维基百科，自由的百科全书
+
+
+ 跳转至： 导航、 搜索
+
+ 
+
+
+
+
+
+Lisp
+ 
+
+
+
+
+
+
+
+编程范型
+ 
+多范型: 函数式, 过程式, 反射式, 元编程
+ 
+
+
+
+发行时间
+ 
+1958
+ 
+
+
+
+设计者
+ 
+约翰·麦卡锡
+ 
+
+
+
+实现者
+ 
+史帝芬·罗素, Timothy P. Hart和Mike Levin
+ 
+
+
+
+型态系统
+ 
+动态类型, 强类型
+ 
+
+
+
+派生副语言
+ 
+Common Lisp, Scheme, Emacs Lisp, AutoLISP, Logo, Clojure, ISLISP, Newlisp, Arc, SKILL, Racket
+ 
+
+
+
+影响语言
+ 
+ML, Perl, Python, Smalltalk, Ruby, Dylan, Haskell, Mathematica, REBOL, Qi, Lua, JavaScript, LPC, Forth, Nu语言, OPS5, CLU, Falcon, Io语言, Ioke, MDL, FPr
+ 
+
+LISP（全名LISt Processor，即列表处理语言），由约翰·麦卡锡在1960年左右创造的一种基于λ演算的函数式编程语言。
+ 
+LISP有很多种方言，各个实现中的语言不完全一样。1980年代Guy L. Steele编写了Common Lisp试图进行标准化，这个标准被大多数解释器和编译器所接受。在Unix/Linux系统中，还有一种和Emacs一起的Emacs Lisp（而Emacs正是用Lisp作为扩展语言进行功能扩展的）非常流行，并创建了自己的标准。
+ 
+LISP语言的主要现代版本包括Common Lisp和Scheme。
+ 
+
+
+
+
+目录
+  [隐藏]  1 历史
+ 2 基本介绍 2.1 Lisp 的 7 个公理（基本操作符） 2.1.1 基本操作符1 quote
+ 2.1.2 基本操作符2 atom
+ 2.1.3 基本操作符3 eq
+ 2.1.4 基本操作符4 car
+ 2.1.5 基本操作符5 cdr
+ 2.1.6 基本操作符6 cons
+ 2.1.7 基本操作符7 cond
+ 
+2.2 函数
+ 
+3 语法和语义
+ 4 Scheme的Hello World程序
+ 5 Common LISP的Hello World程序
+ 6 参见
+ 7 外部链接
+ 
+
+[编辑] 历史
+ 
+1955年至1956年间，信息处理语言被创造出来，使用于人工智能处理。它首先使用了串行结构与递归。
+ 
+1958年，约翰·麦卡锡在麻省理工学院发明了Lisp这个编程语言，其中采用了信息处理语言的特征。1960年，他在《ACM通讯》发表论文，名为《递归函数的符号表达式以及由机器运算的方式，第一部》（Recursive Functions of Symbolic Expressions and Their Computation by Machine, Part I）。在这篇论文中，他展示了，只要通过一些简单的运算符，以及用于函数的记号，就可以创建一个具图灵完备性语言，可用于算法中。
+ 
+史帝芬·罗素在阅读完此论文后，认为可以用机器码来实做出这个语言。他在IBM 704机器上，写出了第一个LISP解释器。1962年，提姆·哈特（Tim Hart）与麦克·莱文（Mike Levin）在麻省理工学院，以Lisp语言，实做出第一个完整的lisp编译器。
+ 
+[编辑] 基本介绍
+ 
+LISP 是第一个函数型编程语言，区别于C/Java等命令型编程语言。
+ 
+由于历史的原因，Lisp长期以来被认为主要用于AI领域，但Lisp并不是为AI而设计，而是一种通用的编程语言.
+ 
+Lisp的表达式是一个原子（atom）或表（list），原子（atom）又包含符号（symbol）与数值（number）；表是由零个或多个表达式组成的串行，表达式之间用空格分隔开，放入一对括号中，如：
+ 
+
+abc
+()
+(abc xyz)
+(a b (c) d)
+ 
+最后一个表是由四个元素构成的，其中第三个元素本身也是一个表，这种 list 又称为嵌套表（nested list）。
+ 
+正如算数表达式 1+1 有值 2 一样，Lisp 中的表达式也有值，如果表达式 e 得出值 v，我们说 e 返回 v。如果一个表达式是一个表，那么我们把表中的第一个元素叫做操作符，其余的元素叫做自变量。
+ 
+[编辑] Lisp 的 7 个公理（基本操作符）
+ 
+[编辑] 基本操作符1 quote
+ 
+(quote x) 返回 x，我们简记为 'x
+ 
+
+(quote a)
+ 
+上面的表达式的值是a。如果使用c/Java语言的表达方式，可以说成：上面这段代码返回的值是a。
+ 
+
+'a
+ 
+这个表达式和上面的那个相同，值也是a。将quote写成 ' 只是一种语法糖。
+ 
+[编辑] 基本操作符2 atom
+ 
+(atom x) 当 x 是一个原子或者空表时返回原子 t，否则返回NIL。在 Common Lisp 中我们习惯用原子 t 表示真，而用空表 ()和NIL 表示假。
+ 
+
+> (atom 'a)
+t
+> (atom '(a b c))
+NIL
+> (atom '())
+t
+ 
+现在我们有了第一个需要求出自变量值的操作符，让我们来看看 quote 操作符的作用——通过引用（quote）一个表，我们避免它被求值。一个未被引用的表达式作为自变量，atom 将其视为代码，例如：
+ 
+
+> (atom (atom 'a))
+t
+ 
+这是因为(atom 'a)的结果(t)被求出，并代入(atom (atom 'a))，成为(atom t)，而这个表达式的结果是t。
+ 
+反之一个被引用的表仅仅被视为表
+ 
+
+> (atom '(atom 'a))
+NIL
+ 
+引用看上去有些奇怪，因为你很难在其它语言中找到类似的概念，但正是这一特征构成了 Lisp 最为与众不同的特点：代码和数据使用相同的结构来表示，用 quote 来区分它们。
+ 
+[编辑] 基本操作符3 eq
+ 
+(eq x y) 当 x 和y 指向相同的对象的时候返回t，否则返回NIL，值得注意的是在Common Lisp中，原子对象在内存中只会有一份拷贝，所以(eq 'a 'a)返回t，例如:
+ 
+
+> (eq 'a 'a)
+t
+> (eq 'a 'b)
+NIL
+> (eq '() '())
+t
+> (eq '(a b c) '(a b c))
+NIL
+ 
+[编辑] 基本操作符4 car
+ 
+(car x) 要求 x 是一个表，它返回 x 中的第一个元素，例如：
+ 
+
+> (car '(a b))
+a
+ 
+[编辑] 基本操作符5 cdr
+ 
+(cdr x) 同样要求 x 是一个表，它返回x中除第一个元素之外的所有元素组成的表，例如：
+ 
+
+> (cdr '(a b c))
+(b c)
+ 
+[编辑] 基本操作符6 cons
+ 
+(cons x y) 返回一个cons cell (x y)，如果y不是一个list，将会一dotted pair形式展现这个cons cell，例如：
+ 
+
+> (cons 'a 'b)
+(a . b)
+ 
+一个cons cell的第二项如果是另一个cons cell，就表示成表的形式，例如:
+ (a . (b . c))
+ 
+就表示成
+ (a b . c)
+ 
+若一个cons cell第二项为空，就省略不写，例如：
+ (a . (b . ()))
+ 
+表示为
+ (a b)
+ 
+这样，多重的cons cell就构成了表：
+ 
+
+> (cons 'a (cons 'b (cons 'c ())))
+(a b c)
+ 
+[编辑] 基本操作符7 cond
+ 
+(cond (p1 e1) ...(pn en)) 的求值规则如下. 对“条件表达式p”依次求值直到有一个返回t. 如果能找到这样的p表达式,相应的“结果表达式e”的值作为整个cond表达式的返回值.
+ 
+
+> (cond ((eq 'a 'b) 'first)  ((atom 'a)  'second))  
+ second
+ 
+[编辑] 函数
+ 
+当表达式以七个原始操作符中的五个开头时,它总会对其自变量求值的. 我们称这样的操作符为函数 .
+ 
+[编辑] 语法和语义
+ 
+[编辑] Scheme的Hello World程序
+ 
+
+(display "Hello world")
+ 
+[编辑] Common LISP的Hello World程序
+ 
+
+(format t "Hello world")
+ 
+[编辑] 参见
+ 
+
+
+
+您可以在维基教科书中查找此百科条目的相关电子教程： 
+Lisp 入门
+ Common Lisp
+ Scheme
+ SICP
+ Clojure
+ 
+[编辑] 外部链接
+ Lisp中文社区
+ Common Lisp the Language
+ Emacs Lisp手册
+ John McCarthy的主页
+ 
+
+
+
+
+
+隐藏▲ 
+查 · 论 · 编
+ 
+计算机语言
+ 
+
+
+
+
+
+.NET Framework平台语言
+ 
+
+C++/CLI · C# · F# · IronPython · J# · Visual C# · Visual Basic .NET · Small Basic
+ 
+
+
+
+
+
+C/C++语言
+ 
+
+C · C++ · Turbo C++ · Borland C++ · C++ Builder- C++/CLI · C++/CX · Objective-C · Microsoft Visual C++
+ 
+
+
+
+
+
+BASIC语言
+ 
+
+
+
+
+有行号
+ 
+
+BASIC · BASICA · GW-BASIC · ETBASIC · GVBASIC
+ 
+
+
+
+
+
+无行号
+ 
+
+
+QBASIC · QuickBASIC · True BASIC · Turbo BASIC · PowerBASIC · DarkBASIC
+
+ Visual Basic · Gambas · Visual Basic .NET · VBScript · Visual Basic for Applications（VBA） · REALbasic · Small Basic 
+
+
+
+
+
+
+Pascal/Delphi语言
+ 
+
+
+
+
+Pascal语法
+ 
+
+Pascal · Turbo Pascal · Object Pascal · Free Pascal · Delphi · Lazarus
+ 
+
+
+
+
+
+
+ECMAScript语言
+ 
+
+ActionScript · DMDScript · JavaScript · JScript
+ 
+
+
+
+
+
+数据库相关编程语言
+ 
+
+Clipper · Visual FoxPro · SQL（PL/SQL · T-SQL）
+ 
+
+
+
+
+
+GPU用着色器语言
+ 
+
+Cg · GLSL · HLSL
+ 
+
+
+
+
+
+函数式编程语言
+ 
+
+
+
+
+Lisp家族
+ 
+
+LISP · Scheme · Common Lisp · Clojure
+ 
+
+
+
+
+
+ML家族
+ 
+
+ML · OCaml · F#
+ 
+
+Haskell · Scala · Erlang · Clean · Miranda
+ 
+
+
+
+
+
+各种Shell语言
+ 
+
+bash · sed · awk · PowerShell
+ 
+
+
+
+
+
+专业工具语言
+ 
+
+
+
+
+科学与统计计算
+ 
+
+FORTRAN · MATLAB · Scilab · GNU Octave · R · S-Plus · Mathematica · Maple · Julia
+ 
+
+
+
+
+
+工业与辅助设计
+ 
+
+AutoCAD Lisp
+ 
+
+
+
+
+
+计算机软件
+ 
+
+Powerbuilder
+ 
+
+
+
+
+
+
+置标语言
+ 
+
+
+
+
+SGML家族
+ 
+
+
+SGML · HTML
+ 
+
+
+XML家族
+ 
+
+XML · SVG · XML-Schema · XSLT · XHTML · MathML
+ 
+
+
+
+
+
+
+
+Java虚拟机上的语言
+ 
+
+Java · Jython · JRuby · JScheme · Groovy · Kawa · Scala · Clojure
+ 
+
+
+
+
+
+视觉化程序设计语言
+ 
+
+LabVIEW · Quartz Composer
+ 
+
+
+
+
+
+脚本语言
+ 
+
+JavaScript · Lua · Perl · PHP · Python · Ruby · Tcl/Tk  · VBScript · ActionScript · AppleScript
+ 
+
+
+
+
+
+其他编程语言
+ 
+
+汇编语言 · A+ · ALGOL · APL/J · Ada · B · Brainfuck · COBOL · Curl · D · Eiffel · Forth · Go · Io  · Jess · Logo · MUMPS · Nuva · PL/I · PostScript · Prolog · REXX · SAC · Self · Simula  · Smalltalk · 易语言
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1个分类：LISP编程语言
+
+
+
+导航菜单
+
+ 
+
+
+创建新账户
+登录
+ 
+
+
+
+条目
+讨论
+ 
+
+大陆简体 
+
+
+
+
+
+
+
+
+
+
+
+汉漢
+
+ 
+
+
+阅读
+编辑
+查看历史
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+首页
+分类索引
+特色内容
+新闻动态
+最近更改
+随机条目
+ 
+
+帮助
+
+帮助
+社区专页
+方针与指引
+互助客栈
+询问处
+字词转换
+IRC即时聊天
+联系我们
+关于维基百科
+资助维基百科
+ 
+
+工具箱
+
+
+
+
+
+
+
+
+
+
+ 
+
+其他语言
+
+Aragonés
+العربية
+Azərbaycanca
+Žemaitėška
+Български
+বাংলা
+Bosanski
+Català
+Česky
+Cymraeg
+Dansk
+Deutsch
+Ελληνικά
+English
+Esperanto
+Español
+Eesti
+Euskara
+فارسی
+Suomi
+Français
+Gaeilge
+Galego
+עברית
+Hrvatski
+Magyar
+Íslenska
+Italiano
+日本語
+한국어
+Кыргызча
+Lietuvių
+Latviešu
+മലയാളം
+Монгол
+Bahasa Melayu
+Nederlands
+Norsk (bokmål)‎
+Polski
+Português
+Română
+Русский
+Srpskohrvatski / српскохрватски
+Simple English
+Slovenčina
+Slovenščina
+Shqip
+Српски / srpski
+Svenska
+தமிழ்
+Тоҷикӣ
+ไทย
+Türkçe
+Українська
+ 
+本页面最后修订于2012年12月14日 (星期五) 03:51。
+
+本站的全部文字在知识共享 署名-相同方式共享 3.0协议之条款下提供，附加条款亦可能应用。（请参阅使用条款）
+ Wikipedia®和维基百科标志是维基媒体基金会的注册商标；维基™是维基媒体基金会的商标。
+维基媒体基金会是在美国佛罗里达州登记的501(c)(3)免税、非营利、慈善机构。
+
+隐私政策
+关于维基百科
+免责声明
+移动版视图
+
+
+
+ 
+
+

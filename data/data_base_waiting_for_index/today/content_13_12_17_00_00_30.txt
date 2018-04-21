@@ -1,0 +1,357 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+专注Linux开发
+目录视图摘要视图订阅
+CSDN2013年度博客之星评选      文思海辉第一届在线编程大赛      消灭0回答，赢下载分      订阅CSDN社区周刊，及时了解社区精华内容      办公大师系列经典丛书 诚聘译者     
+ Perf -- Linux下的系统性能调优工具介绍
+分类： Performance 2010-09-28 15:19 12020人阅读 评论(1) 收藏 举报
+linuxperformancegitcompressionallocationreport
+目录(?)[+]
+Perf简介
+Perf是Linux kernel自带的系统性能优化工具。虽然它的版本还只是0.0.2，Perf已经显现出它强大的实力，足以与目前Linux流行的OProfile相媲美了。
+
+Perf的优势在于与Linux Kernel的紧密结合，它可以最先应用到加入Kernel的new feature。而像OProfile, GProf等通常会“慢一拍”。Perf的基本原理跟OProfile等类似，也是在CPU的PMU registers中Get/Set performance counters来获得诸如instructions executed, cache-missed suffered, branches mispredicted等信息。Linux kernel对这些registers进行了一系列抽象，所以你可以按进程，按CPU或者按counter group等不同类别来查看Sample信息。
+
+ 
+使用Perf
+Perf的使用流程和OProfile很像。所以如果你会用OProfile的话，用Perf就很简单。这里只是简单翻译一下在[1]中的Perf examples中举的例子。有更多发现的话以后会继续更新。
+
+$ perf record -f -- git gc   Counting objects: 1283571, done.
+Compressing objects: 100% (206724/206724), done.
+Writing objects: 100% (1283571/1283571), done.
+Total 1283571 (delta 1070675), reused 1281443 (delta 1068566)
+[ perf record: Captured and wrote 31.054 MB perf.data (~1356768 samples) ]
+ 
+$ perf report --sort comm,dso,symbol | head -10
+# Samples: 1355726
+#
+# Overhead          Command                            Shared Object  Symbol
+# ........  ...............  .......................................  ......
+#
+    31.53%              git  /usr/bin/git                             [.] 0x0000000009804f
+    13.41%        git-prune  /usr/bin/git-prune                       [.] 0x000000000ad06d
+    10.05%              git  /lib/tls/i686/cmov/libc-2.8.90.so        [.] _nl_make_l10nflist
+     5.36%        git-prune  /usr/lib/libz.so.1.2.3.3                 [.] 0x00000000009d51
+     4.48%              git  /lib/tls/i686/cmov/libc-2.8.90.so        [.] memcpy
+perf record相当于opcontrol –-start, 而perf report相当于opreport.
+
+Perf用例
+查看所有可用的counters用'perf list’:
+
+titan:~> perf list
+ [...]
+ kmem:kmalloc                             [Tracepoint event]
+ kmem:kmem_cache_alloc                    [Tracepoint event]
+ kmem:kmalloc_node                        [Tracepoint event]
+ kmem:kmem_cache_alloc_node               [Tracepoint event]
+ kmem:kfree                               [Tracepoint event]
+ kmem:kmem_cache_free                     [Tracepoint event]
+ kmem:mm_page_free_direct                 [Tracepoint event]
+ kmem:mm_pagevec_free                     [Tracepoint event]
+ kmem:mm_page_alloc                       [Tracepoint event]
+ kmem:mm_page_alloc_zone_locked           [Tracepoint event]
+ kmem:mm_page_pcpu_drain                  [Tracepoint event]
+ kmem:mm_page_alloc_extfrag               [Tracepoint event]
+你可以用以上counter的任意组合来跑你的测试程序。比如，用以下命令来看跑
+hackbench时page alloc/free的次数。
+titan:~> perf stat -e kmem:mm_page_pcpu_drain -e kmem:mm_page_alloc 
+-e kmem:mm_pagevec_free -e kmem:mm_page_free_direct ./hackbench 10
+Time: 0.575
+Performance counter stats for './hackbench 10':
+         13857  kmem:mm_page_pcpu_drain 
+         27576  kmem:mm_page_alloc      
+          6025  kmem:mm_pagevec_free    
+         20934  kmem:mm_page_free_direct
+   0.613972165  seconds time elapsed
+Perf可以帮你统计N次结果的数值波动情况：
+titan:~> perf stat --repeat 5 -e kmem:mm_page_pcpu_drain -e 
+  kmem:mm_page_alloc -e kmem:mm_pagevec_free -e 
+  kmem:mm_page_free_direct ./hackbench 10
+Time: 0.627
+Time: 0.644
+Time: 0.564
+Time: 0.559
+Time: 0.626
+Performance counter stats for './hackbench 10' (5 runs):
+         12920  kmem:mm_page_pcpu_drain    ( +-   3.359% )
+         25035  kmem:mm_page_alloc         ( +-   3.783% )
+          6104  kmem:mm_pagevec_free       ( +-   0.934% )
+         18376  kmem:mm_page_free_direct   ( +-   4.941% )
+   0.643954516  seconds time elapsed   ( +-   2.363% )
+有了以上的统计数据，你可以开始sample某一个你关心的tracepoint（比如page
+allocations):
+titan:~/git> perf record -f -e kmem:mm_page_alloc -c 1 ./git gc
+Counting objects: 1148, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (450/450), done.
+Writing objects: 100% (1148/1148), done.
+Total 1148 (delta 690), reused 1148 (delta 690)
+[ perf record: Captured and wrote 0.267 MB perf.data (~11679 samples) ]
+查看哪个function引起了page allocations:
+titan:~/git> perf report
+# Samples: 10646
+#
+# Overhead          Command               Shared Object
+# ........  ...............  ..........................
+#
+   23.57%       git-repack  /lib64/libc-2.5.so        
+   21.81%              git  /lib64/libc-2.5.so        
+   14.59%              git  ./git                     
+   11.79%       git-repack  ./git                     
+    7.12%              git  /lib64/ld-2.5.so          
+    3.16%       git-repack  /lib64/libpthread-2.5.so  
+    2.09%       git-repack  /bin/bash                 
+    1.97%               rm  /lib64/libc-2.5.so        
+    1.39%               mv  /lib64/ld-2.5.so          
+    1.37%               mv  /lib64/libc-2.5.so        
+    1.12%       git-repack  /lib64/ld-2.5.so          
+    0.95%               rm  /lib64/ld-2.5.so          
+    0.90%  git-update-serv  /lib64/libc-2.5.so        
+    0.73%  git-update-serv  /lib64/ld-2.5.so          
+    0.68%             perf  /lib64/libpthread-2.5.so  
+    0.64%       git-repack  /usr/lib64/libz.so.1.2.3  
+更进一步的查看：
+
+titan:~/git> perf report --sort comm,dso,symbol
+
+# Samples: 10646
+#
+# Overhead          Command               Shared Object  Symbol
+# ........  ...............  ..........................  ......
+#
+    9.35%       git-repack  ./git                       [.] insert_obj_hash
+    9.12%              git  ./git                       [.] insert_obj_hash
+    7.31%              git  /lib64/libc-2.5.so          [.] memcpy
+    6.34%       git-repack  /lib64/libc-2.5.so          [.] _int_malloc
+    6.24%       git-repack  /lib64/libc-2.5.so          [.] memcpy
+    5.82%       git-repack  /lib64/libc-2.5.so          [.] __GI___fork
+    5.47%              git  /lib64/libc-2.5.so          [.] _int_malloc
+    2.99%              git  /lib64/libc-2.5.so          [.] memset
+ 
+同时，call-graph(函数调用图)也可以被记录下来，并且能告诉你每个函数所占用的百分比。
+titan:~/git> perf record -f -g -e kmem:mm_page_alloc -c 1 ./git gc
+Counting objects: 1148, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (450/450), done.
+Writing objects: 100% (1148/1148), done.
+Total 1148 (delta 690), reused 1148 (delta 690)
+[ perf record: Captured and wrote 0.963 MB perf.data (~42069 samples) ]
+titan:~/git> perf report -g
+# Samples: 10686
+#
+# Overhead          Command               Shared Object
+# ........  ...............  ..........................
+#
+   23.25%       git-repack  /lib64/libc-2.5.so        
+               |          
+               |--50.00%-- _int_free
+               |          
+               |--37.50%-- __GI___fork
+               |          make_child
+               |          
+               |--12.50%-- ptmalloc_unlock_all2
+               |          make_child
+               |          
+                --6.25%-- __GI_strcpy
+   21.61%              git  /lib64/libc-2.5.so        
+               |          
+               |--30.00%-- __GI_read
+               |          |          
+               |           --83.33%-- git_config_from_file
+               |                     git_config
+               |                     |          
+  [...]
+用以下命令可以查看整个系统10秒内的page allocation次数：
+titan:~/git> perf stat -a -e kmem:mm_page_pcpu_drain -e kmem:mm_page_alloc -e kmem:mm_pagevec_free -e kmem:mm_page_free_direct sleep 10
+
+Performance counter stats for 'sleep 10':
+        171585  kmem:mm_page_pcpu_drain 
+        322114  kmem:mm_page_alloc      
+         73623  kmem:mm_pagevec_free    
+        254115  kmem:mm_page_free_direct
+  10.000591410  seconds time elapsed
+用以下命令查看每隔1秒，系统page allocation的波动状况:
+
+titan:~/git> perf stat --repeat 10 -a -e kmem:mm_page_pcpu_drain -e 
+  kmem:mm_page_alloc -e kmem:mm_pagevec_free -e 
+  kmem:mm_page_free_direct sleep 1
+Performance counter stats for 'sleep 1' (10 runs):
+         17254  kmem:mm_page_pcpu_drain    ( +-   3.709% )
+         34394  kmem:mm_page_alloc         ( +-   4.617% )
+          7509  kmem:mm_pagevec_free       ( +-   4.820% )
+         25653  kmem:mm_page_free_direct   ( +-   3.672% )
+   1.058135029  seconds time elapsed   ( +-   3.089% )
+通过反汇编往往能找出是哪行代码生成的指令会引起问题。
+
+titan:~/git> perf annotate __GI___fork
+------------------------------------------------
+ Percent |      Source code & Disassembly of libc-2.5.so
+------------------------------------------------  :  :  :      Disassembly of section .plt:  :      Disassembly of section .text:  :  :      00000031a2e95560 <__fork>:
+[...]
+    0.00 :        31a2e95602:   b8 38 00 00 00          mov    $0x38,%eax
+    0.00 :        31a2e95607:   0f 05                   syscall 
+   83.42 :        31a2e95609:   48 3d 00 f0 ff ff       cmp    $0xfffffffffffff000,%rax
+    0.00 :        31a2e9560f:   0f 87 4d 01 00 00       ja     31a2e95762 <__fork+0x202>
+    0.00 :        31a2e95615:   85 c0                   test  %eax,%eax
+以上结果显示__GI__forks的83.42%的时间来源于0x38的系统调用。
+值得优化某个特定的函数吗？
+你也许想知道是否值得去优化你程序中的某个特定函数。一个很好的例子是git mailing list中讨论的关于SHA1 哈希算法优化的问题，我们可以用perf来预判优化的结果。具体参见Linus的回信[2].
+
+"perf report --sort comm,dso,symbol" profiling shows the following for 
+'git fsck --full' on the kernel repo, using the Mozilla SHA1:
+   47.69%               git  /home/torvalds/git/git     [.] moz_SHA1_Update
+   22.98%               git  /lib64/libz.so.1.2.3       [.] inflate_fast
+    7.32%               git  /lib64/libc-2.10.1.so      [.] __GI_memcpy
+    4.66%               git  /lib64/libz.so.1.2.3       [.] inflate
+    3.76%               git  /lib64/libz.so.1.2.3       [.] adler32
+    2.86%               git  /lib64/libz.so.1.2.3       [.] inflate_table
+    2.41%               git  /home/torvalds/git/git     [.] lookup_object
+    1.31%               git  /lib64/libc-2.10.1.so      [.] _int_malloc
+    0.84%               git  /home/torvalds/git/git     [.] patch_delta
+    0.78%               git  [kernel]                   [k] hpet_next_event
+很明显，SHA1加密算法的性能在这里很关键。
+
+如何测量latency
+
+如果你在build kernel时enabled了
+
+ CONFIG_PERF_COUNTER=y 
+ CONFIG_EVENT_TRACING=y
+那你可以加-tip参数来使用几个新的performance counter来测量scheduler的lantencies。
+
+perf stat -e sched:sched_stat_wait -e task-clock ./hackbench 20
+以上命令能够得出等待CPU用了多少时间。你可以重复10次这样的操作：
+
+aldebaran:/home/mingo> perf stat --repeat 10 -e /
+             sched:sched_stat_wait:r -e task-clock ./hackbench 20
+Time: 0.251
+Time: 0.214
+Time: 0.254
+Time: 0.278
+Time: 0.245
+Time: 0.308
+Time: 0.242
+Time: 0.222
+Time: 0.268
+Time: 0.244
+Performance counter stats for './hackbench 20' (10 runs):
+         59826  sched:sched_stat_wait    #      0.026 M/sec   ( +-   5.540% )
+   2280.099643  task-clock-msecs         #      7.525 CPUs    ( +-   1.620% )
+   0.303013390  seconds time elapsed   ( +-   3.189% )
+读取scheduling的events counter
+# perf list 2>&1 | grep sched:
+ sched:sched_kthread_stop                   [Tracepoint event]
+ sched:sched_kthread_stop_ret               [Tracepoint event]
+ sched:sched_wait_task                      [Tracepoint event]
+ sched:sched_wakeup                         [Tracepoint event]
+ sched:sched_wakeup_new                     [Tracepoint event]
+ sched:sched_switch                         [Tracepoint event]
+ sched:sched_migrate_task                   [Tracepoint event]
+ sched:sched_process_free                   [Tracepoint event]
+ sched:sched_process_exit                   [Tracepoint event]
+ sched:sched_process_wait                   [Tracepoint event]
+ sched:sched_process_fork                   [Tracepoint event]
+ sched:sched_signal_send                    [Tracepoint event]
+ sched:sched_stat_wait                      [Tracepoint event]
+ sched:sched_stat_sleep                     [Tracepoint event]
+ sched:sched_stat_iowait                    [Tracepoint event]
+对于latency analysis而言，stat_wait/sleep/iowait是值得注意的event。如果你想看所有delays和它们的mix/max/avg，你可以：
+
+ perf record -e sched:sched_stat_wait:r -f -R -c 1 ./hackbench 20
+ perf trace
+ 
+
+Reference:
+1. https://perf.wiki.kernel.org/index.php/Main_Page
+
+2. http://thread.gmane.org/gmane.comp.version-control.git/124745
+
+更多 0
+上一篇：用BlueZ A2DP Profile播放音乐
+下一篇：Connman introduction
+
+查看评论
+1楼 lilinandlilin 6天前 16:23发表 [回复]
+
+你好 perf stat 统计10ms内执行的指令数可以吗 怎么监控这样固定间隔内的执行性能参数啊 谢谢哈
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+核心技术类目
+全部主题 Java VPN Android iOS ERP IE10 Eclipse CRM JavaScript Ubuntu NFC WAP jQuery 数据库 BI HTML5 Spring Apache Hadoop .NET API HTML SDK IIS Fedora XML LBS Unity Splashtop UML components Windows Mobile Rails QEMU KDE Cassandra CloudStack FTC coremail OPhone CouchBase 云计算 iOS6 Rackspace Web App SpringSide Maemo Compuware 大数据 aptech Perl Tornado Ruby Hibernate ThinkPHP Spark HBase Pure Solr Angular Cloud Foundry Redis Scala Django Bootstrap
+个人资料
+ 访问我的空间 
+bluebeach
+ 
+访问：25455次
+积分：381分
+排名：千里之外
+原创：13篇转载：0篇译文：0篇评论：11条
+文章搜索
+
+文章分类
+Linux(2)
+oFono Connman and BlueZ(8)
+Performance(1)
+XMPP(2)
+OpenStack(0)
+文章存档
+2010年11月(1)
+2010年10月(1)
+2010年09月(11)
+阅读排行
+Perf -- Linux下的系统性能调优工具介绍(12018)
+oFono安装和启动(1834)
+用oFono来GPRS上网(1447)
+用BlueZ A2DP Profile播放音乐(1416)
+XMPP over HTTP(1112)
+Memory Leak和Valgrind(1107)
+Connman introduction(1006)
+初识XMPP(947)
+移动开发-oFono开源电话协议栈(797)
+用oFono控制Nokia手机(699)
+评论排行
+oFono安装和启动(4)
+Connman introduction(3)
+用oFono来GPRS上网(2)
+Perf -- Linux下的系统性能调优工具介绍(1)
+XMPP over HTTP(1)
+移动开发-oFono开源电话协议栈(0)
+rsh, rexec教程(0)
+用BlueZ A2DP Profile播放音乐(0)
+初识XMPP(0)
+Enable Openmoko FreeRunner with oFono(0)
+推荐文章
+
+最新评论
+Perf -- Linux下的系统性能调优工具介绍
+lilinandlilin: 你好 perf stat 统计10ms内执行的指令数可以吗 怎么监控这样固定间隔内的执行性能参数...
+XMPP over HTTP
+zgwmy: ，Server会将Client来的Post请求hold一段时间，直到有数据响应或者timeout才返...
+用oFono来GPRS上网
+bluebeach: /dev下面一般会有多个输出口，不太明白你为什么看不到信息。zhenhua2000@gmail.co...
+用oFono来GPRS上网
+blueice8601: 您好，我有一个测试板，但是调试信息打不出来，指那些带AT指令的。我应该怎么做，能得到跟您一样的打印信...
+oFono安装和启动
+bluebeach: 回复 li01yang：适用Meego系统的
+oFono安装和启动
+bluebeach: 回复 li01yang：可能是因为phonesim更新了，需要double check一下再回复你。
+oFono安装和启动
+li01yang: 这个安装方法适 用meego系统吗？
+oFono安装和启动
+li01yang: # src/phonesim –gui src/default.xml-bash: src/pho...
+Connman introduction
+li01yang:
+Connman introduction
+Duofeng:
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved GongshangLogo
+  
+close
+
+

@@ -1,0 +1,204 @@
+分享到一键分享QQ空间新浪微博百度搜藏人人网腾讯微博百度相册开心网腾讯朋友百度贴吧豆瓣网搜狐微博百度新首页QQ好友和讯微博更多...百度分享
+首页技术频道51CTO旗下网站地图  社区：论坛博客下载读书更多 登录注册网络 
+安全 
+开发 
+数据库 
+服务器 
+系统 
+虚拟化 
+云计算 
+嵌入式 
+移动开发 
+51CTO.COM 
+CIOage.com 
+WatchStor.com 
+HC3i.cn 
+灵客风LinkPhone 
+家园 
+微博 
+博客 
+论坛 
+下载 
+自测 
+门诊 
+周刊 
+读书 
+技术圈 
+知道 
+指尖上的资讯 51CTO iOS版 Windows应用商店全新的商机 指尖上的资讯 51CTO iOS版 知人.成事 领创商业新纪元 
+首页 | Android | iOS | Windows Phone | BlackBerry | webOS | Symbian | bada | OPhone | 其他 
+您所在的位置：移动开发 > Android > Android基础 > 51CTO专家专栏 李洋谈Android安全框架 
+
+51CTO专家专栏 李洋谈Android安全框架2011-08-01 13:35 李洋 51CTO 我要评论(0) 字号：T | T
+【编者按】移动开发正在成为软件领域的发展趋势，51CTO非常荣幸邀请到从事计算机网络信息安全研发工作10多年的安全专家李洋为51CTO移动开发频道开设的专家专栏，在未来一段时间李洋老师这个专栏里将向我们介绍“Android安全框架”、“Android系统及应用程序授权机制”等内容，希望读者喜欢。
+
+AD： 2013大数据全球技术峰会低价抢票中 
+
+
+【51CTO独家特稿】本文李洋老师将向我们介绍“Android安全框架概览”：Android安全结构的中心思想为“应用程序在默认的情况下不可以执行任何对其他应用程序，系统或者用户带来负面影响的操作。”开发者只有了解到Android的安全架构才能设计出在使用过程中更加流畅的用户体验。
+
+1. Android具有哪些权限
+
+根据用户的使用过程体验，可以将Android涉及的权限大致分为如下三类：
+
+(1)Android手机所有者权限：自用户购买Android手机(如Samsung GT-i9000)后，用户不需要输入任何密码，就具有安装一般应用软件、使用应用程序等的权限;
+
+(2)Android root权限：该权限为Android系统的最高权限，可以对所有系统中文件、数据进行任意操作。出厂时默认没有该权限，需要使用z4Root等软件进行获取，然而，并不鼓励进行此操作，因为可能由此使用户失去手机原厂保修的权益。同样，如果将Android手机进行root权限提升，则此后用户不需要输入任何密码，都将能以Android root权限来使用手机。
+
+(3)Android应用程序权限：Android提供了丰富的SDK(Software development kit)，开发人员可以根据其开发Android中的应用程序。而应用程序对Android系统资源的访问需要有相应的访问权限，这个权限就称为Android应用程序权限，它在应用程序设计时设定，在Android系统中初次安装时即生效。值得注意的是：如果应用程序设计的权限大于Android手机所有者权限，则该应用程序无法运行。如：没有获取Android root权限的手机无法运行Root Explorer，因为运行该应用程序需要Android root权限。
+
+2. Android的组件模型(Component Model)
+
+Android系统中包括4种组件
+
+(1)Activity：Activity就是一个界面，这个界面里面可以放置各种控件。比如：Task Manager的界面、Root Explorer的界面等;
+
+(2)Service：服务是运行在后台的功能模块。如文件下载、音乐播放程序等;
+
+(3)Content Provider：它是Android平台应用程序间数据共享的一种标准接口，它以类似于URI(Universal Resources Identification)的方式来表示数据，如：content://contacts/people/1101;
+
+(4)Broadcast Receiver：与此组件相关的概念是Intent，Intent是一个对动作和行为的抽象描述，负责组件之间程序之间进行消息传递。而Broadcast Receiver组件则提供了一种把Intent作为一个消息广播出去，由所有对其感兴趣的程序对其作出反应的机制。举个简单的例子，：为了实现一个系统启动后播放音乐的功能，则可以定义Intent为android.intent.action.BOOT_COMPLETED，由Broadcast Receiver组件将其进行广播，而系统中的Media Player接收到该信息后则进行播放。
+
+如上所述，4个组件之间的关系如下图：
+
+
+
+3. Android安全访问设置
+
+每个Android的apk(Android Package)包里面都包含有一个AndroidMainifest.xml文件，该文件除了罗列应用程序运行时库、运行依赖关系等之外，还会详细地罗列出该应用程序所需的系统访问。该文件的基本格式如下：
+
+<?xml version="1.0" encoding="utf-8"?> <manifest xmlns:android="http://schemas.android.com/apk/res/android"      package="cn.com.fetion.android"      android:versionCode="1"      android:versionName="1.0.0">    <application android:icon="@drawable/icon" android:label="@string/app_name">        <activity android:name=".welcomActivity"                   android:label="@string/app_name">             <intent-filter>                 <action android:name="android.intent.action.MAIN" />                 <category android:name="android.intent.category.LAUNCHER" />             </intent-filter>         </activity>    </application>   <uses-permission android:name="android.permission.SEND_SMS"></uses-permission> </manifest> 如上述文件描述中斜体部分，该文件的作用是说明该软件具备发送短信的功能。Android定义了106种permission，可供开发人员使用，具体详见网址：http://developers.androidcn.com/reference/android/Manifest.permission.html。
+
+李洋博士毕业于中科院计算所。10多年来一直从事计算机网络信息安全研发工作，曾主持和参与多项国家重点项目以及信息安全系统和企业信息安全系统的研发工作。具有Linux系统应用、管理、安全及内核的研发经验，擅长网络安全技术、协议分析、Linux系统安全技术、Linux系统及网络管理、Linux内核开发等。
+
+【51CTO.com独家特稿，非经授权谢绝转载！合作媒体转载请注明原文出处！如果您想与李洋老师探讨Android安全架构等话题，或者向51CTO移动开发频道投稿请发邮件至zhousn#51CTO.com（将“#”换成“@”）】
+
+【编辑推荐】
+
+剖析Android增强功能的两种权限请求  
+【责任编辑：立方 TEL：（010）68476606】
+
+
+ 
+给力
+(99票)
+  
+动心
+(66票)
+  
+废话
+(79票)
+  
+专业
+(70票)
+  
+标题党
+(68票)
+  
+路过
+(66票)
+ 
+原文：51CTO专家专栏 李洋谈Android安全框架 返回移动开发首页 
+
+分享到： 0收藏|打印|复制
+关于Android  安全框架  权限  李洋的更多文章51CTO专家专栏 李洋谈Android应用程序管理
+51CTO专家专栏 李洋谈Android系统启动过程
+51CTO专家专栏 李洋谈Android系统及程序授
+为Android应用增加搜索功能:增加搜索建议
+手机游戏市场现拐点：Q3安卓或超iOS 
+Learning Android（中文版）
+ 
+本书为Android开发入门图书，循序渐进地介绍了如何利用Android基[详细]
+
+
+网友评论TOP5查看所有评论（0） 
+
+提交评论 通行证： 密码：   注册通行证
+ 
+
+ 
+验证码：  点击图片可刷新验证码请点击后输入验证码  匿名发表  
+ 
+
+
+栏目热门更多>>
+51CTO专家专栏：掌握Android中的进程和线程 
+专家专栏:Android层次化安全架构及核心组件 
+专家专栏：Android中的Intent Filter与安全 
+为Android应用添加搜索功能 
+为Android应用增加搜索功能:增加搜索建议 
+同期最新更多>>
+Android应用开发者指南：性能优化 
+Google正式推出Android 3.2开发工具 
+Android Activity的生命周期结构 
+Android视频教程：练习时间 
+Android视频教程：SDK安装和配置 
+
+移动开发频道导航
+平台 移动Web|Android|iOS|Windows Phone应用 移动应用|移动团队|应用商店|专题汇总|Phone Club观察 业界观察|调查数据|移动信息化Android 热点|资讯|基础|多媒体|数据库|设计|工具|编译
+热点推荐
+
+ 
+Android开发应用详解
+ 
+那些性感的让人尖叫的程序员
+ 
+HTML5 下一代Web开发标准详解
+ 
+高性能WEB开发应用指南
+ 
+Ubuntu开源技术交流频道
+热门标签： windows频道移动开发云计算objective-ctp-link路由器设置图解html5 热点 51CTO企业移动App调查问卷 
+
+ 51CTO本次调查旨在了解企业级移动应用使用现状。 Android开发经典电子书教程合集
+iPhone开发经典实例源码
+
+
+文章排行本月本周24小时 
+Android 4.0.4模拟器安装完全教程（图 在Eclipse下搭建Android开发环境教程 21个免费的UI界面设计工具、资源及网站 人人都是开发者：5款傻瓜式APP开发工具 Objective-C基础语法快速入门 图文并茂 在MyEclipse 8.6上搭建Androi RIM正式更名为“黑莓” 发布两款BB10新 三大移动Web开发框架哪个适合你？ 多图详解 “Android UI”设计官方教程 jQuery Mobile中文手册：开发入门 为什么云环境更适合进行应用程序开发？ 移动设计开发沉思录 苹果坠入凡尘，运营商“预谋”翻脸 Android如何帮webOS死而复生? WindowsAndroid:在Windows中运行原生An 大公司做移动应用？先解决领导者匮乏的 详解NFC：技术与使用前景 比二维码更方便 NFC将取代二维码？ 地图是不是移动互联网的最后一张入场券 使用语义HTML 你绝对想不到：智能手机能干下面10件事 Android Vs iPhone:2013年鹿死谁手 详解手机版 Ubuntu：创新不少 前途不明 Android总结与展望：2012成为王者，201 2012年十大企业品牌App经典案例 开咖啡馆和搞移动互联网！ Android开发第一步：认识Android 2013年iPad仍无法取代笔记本电脑 现代Objective-C七宗罪 Ubuntu:带着Android的芯 走着微软的路 
+热点专题更多>>
+ 
+AppCan视频教程（第二
+本系列视频教程由正益无线与51CTO共同推出，目的是让 
+AppCan视频教程（第一
+本系列视频教程由正益无线与51CTO共同推出，目的是让 
+51CTO特别策划：移动
+随着操作系统的更新和硬件性能的提升，用户对移动应用
+热点标签
+iOS开发 Android开发 Symbian开发 MeeGo开发 BlackBerry开发 Windows Phone开发 Phone Club Android 4.0 webOS 3.0 智能手机 软件下载 点击这里查看样刊 
+
+ 
+全站热点
+ 
+《移动开发者》2012年8月刊第2期
+ 
+2012年上半年开发月刊大汇总
+Windows 8 RTM应用组图欣赏 
+Windows 8 Enterprise N正式版画廊 
+OEM厂商从微软手里接过Windows 8母盘 
+Windows Server 2012截图概览 
+那些年我们一起见证的比尔·盖茨 
+
+读书 
+数据库系统概念
+本书是数据库系统方面的经典教材之一。国际上许多著名大学包括斯坦福大学、耶鲁大学、得克萨斯大学、康奈尔大学、伊利诺伊大学、
+Microsoft SQL Server 2005技术内幕:T-SQL程序设 
+软件设计师考试考前冲刺预测卷及考点解析 
+网络工程师考试考前冲刺预测卷及考点解析 
+网管员必读—超级网管经验谈（第2版） 
+
+博文推荐更多>> 
+nowpaper
+Windows Phone专家  
+himi
+Android开发专家
+
+赴京美国大使馆面签日记
+“垂直”规则之三 ---企业的持续增长
+ERP顾问的从项目中找到幸福的另一半
+Android Broadcast receiver 编程 
+
+最新热帖更多>>
+
+51CTO旗下网站
+领先的IT技术网站 51CTO 领先的中文存储媒体 WatchStor 中国首个CIO网站 CIOage 中国首家数字医疗网站 HC3i 移动互联网生活门户 灵客风LinkPhone Copyright©2005-2013 51CTO.COM 版权所有 未经许可 请勿转载指尖上的资讯 51CTO iOS版Windows应用商店全新的商机指尖上的资讯 51CTO iOS版知人.成事 领创商业新纪元0 

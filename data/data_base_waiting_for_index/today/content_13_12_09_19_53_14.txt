@@ -1,0 +1,522 @@
+
+
+Chinaunix首页　| 　论坛　| 　问答　| 　博客登录 | 注册
+
+
+
+博文博主
+
+
+
+
+
+
+
+
+
+张同光：Hello everyone !ztguang.blog.chinaunix.net
+
+Let us make progress together every day !
+
+
+•征集贴：技术Surper Men集中营 
+• 【原创评选】8-9月原创博文评选开始啦！
+•2013第二季度“ChinaUnix博客之星”评选活动
+
+首页　| 　博文目录　| 　关于我
+ 
+
+
+
+
+ztguang
+•博客访问： 553819 
+•博文数量： 754 
+•博客积分： 12444 
+•博客等级： 上将 
+•技术积分： 6711 
+•用 户 组： 普通用户
+•注册时间： 2008-03-13 21:34 
+•
+
+•
+•
+•
+•
+
+
+个人简介
+
+......
+
+
+文章分类
+
+
+全部博文（754）
+•教学--选修--考试（10） 
+•嵌入式开发（3） 
+•嵌入式实验（20） 
+
+
+
+
+
+•操作系统原理（10） 
+•学生学习成果（13） 
+•网站开发（81） 
+•教育（37） 
+•2009级嵌入式方向（53） 
+•2010级嵌入式方向（81） 
+•Linux教程(第二版（200） 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+•健身与保健（13） 
+•随想--&--相册（8） 
+
+
+
+•Windows（9） 
+•编程（26） 
+•信息发布（27） 
+•嵌入式资料（15） 
+•信息安全（5） 
+•发表论文（5） 
+•教材/著作（13） 
+•网文（46） 
+•IT & Linux文章（36） 
+•linux内核（43） 
+•未分配的博文（0） 
+
+
+文章存档
+
+
+2013年（101）
+
+
+
+
+
+
+
+
+
+2012年（243）
+
+
+
+
+
+
+
+
+
+
+
+
+
+2011年（216）
+
+
+
+
+
+
+
+
+
+
+
+
+
+2010年（170）
+
+
+
+
+
+
+
+
+
+
+
+
+
+2009年（24）
+
+
+
+
+
+
+我的朋友
+•
+dragon43
+
+•
+kowems
+
+•
+caption4
+
+•
+q3594458
+
+•
+anhzhi
+
+•
+zhaocunh
+
+•
+95459106
+
+•
+z5428583
+
+•
+lyUnix
+
+
+
+最近访客
+•
+yz382641
+
+•
+zealouss
+
+•
+阔海一石
+
+•
+叶子的背
+
+•
+dragon43
+
+•
+skyiwusu
+
+•
+lqetetg
+
+•
+a1993_04
+
+•
+cadgj
+
+
+
+订阅
+•
+•
+
+
+推荐博文
+•·nginx的tmp文件过大导致磁盘...
+•·CS8900网卡驱动程序分析(学习...
+•·Linux系统下的单调时间函数...
+•·谈谈网站安全性的问题...
+•· python之MySQLdb库的使用...
+
+
+热词专题
+•·qtp11 破解安装
+•·linux basename
+•·linux 趣味脚本
+•·rcobject symbian
+•·linux 网桥原理分析
+ 
+
+
+
+I need to learn ARM assembly, and I use Linux.2013-04-05 11:42:09
+
+
+
+分类： 嵌入式
+
+
+http://ubuntuforums.org/archive/index.php/t-2010979.html
+ 
+
+
+View Full Version : [SOLVED] ARM assembly under Linux 
+
+
+
+
+chuchi 
+
+June 26th, 2012, 04:53 PM 
+
+Hi there!!
+ 
+
+I need to learn ARM assembly, and I use Linux. Please, could you give me any starting point about how to install it?? I do not pretend that you teach me ARM assembly. Just a link.
+ 
+
+thank you very much!!! 
+
+
+
+youknowme 
+
+June 27th, 2012, 05:03 AM 
+
+Hi there!!
+ 
+
+I need to learn ARM assembly, and I use Linux. Please, could you give me any starting point about how to install it?? I do not pretend that you teach me ARM assembly. Just a link.
+ 
+
+thank you very much!!!
+ 
+This might be useful to start you off
+ http://www.coranac.com/tonc/text/asm.htm 
+
+
+
+SevenMachines 
+
+June 27th, 2012, 08:11 AM 
+
+Been a year or so, but i think this works? Although personally I recommend setting up a chroot or pbuilder arm environment, its less hassle with more complicated programs, or at least was in my previous experience.
+ 
+
+$ apt-get install gcc-4.6-arm-linux-gnueabi libc6-dev-armel-cross
+ 
+$ cat hello.s 
+.data
+ 
+msg:
+ .ascii "Hello, ARM World!\n"
+ len = . - msg
+ 
+
+.text
+ 
+.globl _start
+ _start:
+ /* write syscall */
+ mov %r0, $1 
+ldr %r1, =msg 
+ldr %r2, =len 
+mov %r7, $4 
+swi $0 
+
+/* exit syscall */
+ mov %r0, $0 
+mov %r7, $1 
+swi $0
+ 
+
+$ arm-linux-gnueabi-as -o hello.o hello.s
+ 
+$ arm-linux-gnueabi-ld -o hello hello.o
+ 
+$ file hello
+ hello: ELF 32-bit LSB executable, ARM, version 1 (SYSV), statically linked, not stripped
+ 
+$ ./hello 
+Hello, ARM World! 
+
+
+
+chuchi 
+
+June 27th, 2012, 06:35 PM 
+
+Hi!! thank you very much for reply. But that type of instructions is of the form: Mov source,dest. The syntax instructions on ARM is : Mov dest,source. This is what I need
+ 
+Thank you very much! 
+
+
+
+chuchi 
+
+June 27th, 2012, 06:49 PM 
+
+Ok I was wrong, your code is right!! I am very sorry!!
+ 
+Everything is ok, except when I type ./hello I get
+ 
+
+
+bash: ./hello: cannot execute binary file
+ 
+
+Why??
+ 
+Thank you very much! 
+
+
+
+SevenMachines 
+
+June 27th, 2012, 07:17 PM 
+
+Yes. its just at&t syntax versus intel.
+ 
+Sorry, obviously the binary is arm and not x86 so wont run, I just forgot I had qemu emulation enabled. Try,
+ 
+
+$ ./hello 
+bash: ./hello: cannot execute binary file
+ 
+# Set up qemu arm emulation
+ $ sudo apt-get install qemu-user-static
+ 
+$ ./hello 
+Hello, ARM World! 
+
+
+
+chuchi 
+
+June 27th, 2012, 07:25 PM 
+
+HI!! now it works!! thank you very very much!! 
+
+
+
+chuchi 
+
+June 28th, 2012, 09:48 AM 
+
+Hi again!!
+ 
+Do you know any way of debugging in qemu?
+ 
+Surfing the net they say you have to install and configure a new kernel. Is there any other way??
+ 
+thank you very much!! 
+
+
+
+SevenMachines 
+
+June 28th, 2012, 11:21 PM 
+
+You can set qemu to wait on a gdb connection
+ 
+
+# In a terminal
+ $ qemu-arm-static -g 10101 ./hello 
+
+
+# In a new terminal
+ $ sudo apt-get install gdb-multiarch
+ 
+Then start gdb-multiarch, load symbols, and connect gdb to qemu, eg
+ 
+$gdb-multiarch 
+
+(gdb) list _start
+ 8 .text
+ 9 
+10 .globl _start
+ 11 _start:
+ 12 /* write syscall */
+ 13 mov %r0, $1 
+14 ldr %r1, =msg 
+15 ldr %r2, =len 
+16 mov %r7, $4 
+17 swi $0 
+
+(gdb) b 16
+ Breakpoint 1 at 0x8080: file hello.s, line 16.
+ 
+
+(gdb) target remote :10101
+ Remote debugging using :10101
+ [New Remote target]
+ [Switching to Remote target]
+ _start () at hello.s:13
+ 13 mov %r0, $1 
+
+(gdb) c
+ Continuing.
+ 
+Breakpoint 1, _start () at hello.s:16
+ 16 mov %r7, $4 
+(gdb) n
+ 17 swi $0 
+(gdb) n
+ 20 mov %r0, $0 
+(gdb) c 
+Continuing.
+ [Inferior 1 (Remote target) exited normally]
+ 
+
+[EDIT] You'll want debugging information ie
+ $ arm-linux-gnueabi-as -gstabs -o hello.o hello.s 
+
+
+
+
+阅读(67) | 评论(0) | 转发(0) | 
+
+
+0
+
+上一篇：Using QEMU for Embedded Systems Development, Part 3
+
+下一篇：‘Hello World!’ in ARM assembly
+
+
+相关热门文章
+•linux守护进程的几个关键地方...
+•stagefright与opencore对比
+•嵌入式Linux之我行——u-boot-...
+•嵌入式Linux之我行——内核、...
+•android的logcat详细用法
+•mysql整形数据类型插入0001数...
+•weblogic集群下启动服务有一个...
+•nagios pnp 报错
+•关于hadoop开发的问题
+•请教大神，我现在有这么一些数...
+
+
+
+给主人留下些什么吧！~~
+
+
+
+
+评论热议
+
+
+ 请登录后评论。 
+登录 注册
+ 
+
+关于我们 | 关于IT168 | 联系方式 | 广告合作 | 法律声明 | 免费注册
+Copyright 2001-2010 ChinaUnix.net All Rights Reserved 北京皓辰网域网络信息技术有限公司. 版权所有 
+
+感谢所有关心和支持过ChinaUnix的朋友们 
+京ICP证041476号 京ICP证060528号
+ 

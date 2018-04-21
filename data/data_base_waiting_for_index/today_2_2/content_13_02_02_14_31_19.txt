@@ -1,0 +1,871 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  Help
+ Feedback
+ Sign In 
+
+
+
+
+
+
+
+
+Recent Topics
+
+All Forums
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Search
+
+ 
+
+New Topic 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Processing with Other Languages 
+
+
+
+
+th0ma5 
+
+
+
+
+
+ProKawa - a Scheme / Lisp / Kawa version of Processing
+
+in Processing with Other Languages • 1 year ago   
+
+So, this is a Maven2 project that builds a self-contained JAR with whatever libs you specify in the pom.xml, but has been specifically built for Processing 1.5 + GLGraphics 20110411 and GNU Kawa
+
+
+
+https://github.com/th0ma5w/ProKawa
+
+
+
+
+GNU Kawa is a Scheme / Lisp interpreter and compiler that sits on top of Java and can either run scripts or compile .class files.
+
+
+
+
+The end result is code that looks something like this:
+
+https://github.com/th0ma5w/ProKawa/blob/master/MyApp.scm
+
+
+
+
+I don't know Scheme and have been wanting to learn Clojure, Scala, etc, but came across Kawa and had some time to play with it last night. I haven't explored very much with it, and the above sketch is rather arbitrary and thrown together. I am looking into how it handles reflection and what could be done to assist live coding, as well as what sort of Lisp like structures can be derived.
+
+
+
+
+I looked at Clojure based sketches, and it seems like this Kawa makes things more "clean" if there is such a thing, but was wanting the opinion of others on the topic, or if anyone knows more or has used Kawa at all.
+
+
+
+
+The performance (well, mostly because of the new GLGraphics) is really great. Compiling to .class files works great as well.
+
+
+
+
+Kawa is available here:
+
+http://www.gnu.org/software/kawa/
+
+somewhere someone said Kawa was "the best free utility no one has heard about" :D
+
+
+
+
+ 
+Reply 
+
+
+Replies(7) 
+
+
+
+
+th0ma5 
+
+
+
+
+
+Re: ProKawa - a Scheme / Lisp / Kawa version of Processing
+ 
+1 year ago 
+
+Managed to get ToxicLibs working, and that can be found in the codebase. I think overall this is fun to play with, but may have the same challenges as the other such abstractions, namely that read-eval-loop interpreted code loops are a bit slow (although Kawa seems to have the ability to compile whole classes to bytecode from the command line, which is just as fast as regular java) but I have to keep playing with it. The style of the more popular Jython experiments, namely to have these ideas *within* processing vs. processing within this stuff is something I have yet to explore. Thank you for the great comments I've received elsewhere, and Processing is the best community I know of for sure.
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+andres 
+
+
+
+
+
+Re: ProKawa - a Scheme / Lisp / Kawa version of Processing
+ 
+1 year ago 
+
+Great project! So you can write a Processing sketch in any language supported by Kawa and it will run through the JVM?
+
+
+
+It is also very nice you can load contributed libraries. BTW, there is a new stable release of GLGraphics (0.95) with some compatibility changes to make sure it works well with Processing 1.5. You should use this version of the library instead.
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+th0ma5 
+
+
+
+
+
+Re: ProKawa - a Scheme / Lisp / Kawa version of Processing
+ 
+1 year ago 
+
+Oops! I saw the 0411 version some reason, will merge that in. Really there is nothing to this, you just include the jar basically, and then sort of learn the Kawa method of doing things. The XQuery stuff seems really curious and bizarre. I started this because I was googling around and was curious how it would play, and also something to learn, never been a big Emacs person either. I think you're ultimately at the mercy of what is possible in the bytecode, like all of these other sorts of JVM hackups. Thanks as always Andres for your work, hopefully you get told that more often than not.
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+andres 
+
+
+
+
+
+Re: ProKawa - a Scheme / Lisp / Kawa version of Processing
+ 
+1 year ago 
+
+hi, when I do "mvn package" after downloading the source code from github, I get this error:
+
+
+
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] BUILD FAILURE
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] Total time: 12.647s
+
+[INFO] Finished at: Thu Apr 28 23:26:56 KST 2011
+
+[INFO] Final Memory: 4M/81M
+
+[INFO] ------------------------------------------------------------------------
+
+[ERROR] Failed to execute goal on project prokawa: Could not resolve dependencies for project com.declarie.prokawa:prokawa:jar:1.0-SNAPSHOT: The following artifacts could not be resolved: org.gnu:kawa:jar:1.11, org.processing:processing-core:jar:1.5, net.sourceforge:GLGraphics:jar:0.95, org.processing:opengl:jar:1.5, org.processing:gluegen-rt:jar:1.5, org.processing:jogl:jar:1.5: Could not find artifact org.gnu:kawa:jar:1.11 in central (http://repo1.maven.org/maven2) -> [Help 1]
+
+[ERROR] 
+
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+
+[ERROR] 
+
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/DependencyResolutionException
+
+
+
+
+
+I first installed the dependencies using the commands listed in maven_installs.txt, but I'm not very familiar with maven so maybe I'm missing some important step here... The output from core.jar installation seems to indicate that it does get installed (although with some warnings):
+
+
+
+
+
+mvn install:install-file -DgroupId=org.processing -DartifactId=processing-core -Dversion=1.5 -Dpackaging=jar -Dfile=core.jar
+
+
+
+
+[INFO] Scanning for projects...
+
+[WARNING] 
+
+[WARNING] Some problems were encountered while building the effective model for com.declarie.prokawa:prokawa:jar:1.0-SNAPSHOT
+
+[WARNING] 'build.plugins.plugin.(groupId:artifactId)' must be unique but found duplicate declaration of plugin org.apache.maven.plugins:maven-assembly-plugin @ line 72, column 11
+
+[WARNING] 
+
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+
+[WARNING] 
+
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+
+[WARNING] 
+
+Downloading: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-assembly-plugin/2.2-beta-4/maven-assembly-plugin-2.2-beta-4.pom
+
+Downloaded: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-assembly-plugin/2.2-beta-4/maven-assembly-plugin-2.2-beta-4.pom (16 KB at 16.0 KB/sec)
+
+Downloading: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-plugins/13/maven-plugins-13.pom
+
+Downloaded: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-plugins/13/maven-plugins-13.pom (12 KB at 23.7 KB/sec)
+
+Downloading: http://repo1.maven.org/maven2/org/apache/maven/maven-parent/11/maven-parent-11.pom
+
+Downloaded: http://repo1.maven.org/maven2/org/apache/maven/maven-parent/11/maven-parent-11.pom (32 KB at 47.0 KB/sec)
+
+Downloading: http://repo1.maven.org/maven2/org/apache/apache/5/apache-5.pom
+
+Downloaded: http://repo1.maven.org/maven2/org/apache/apache/5/apache-5.pom (5 KB at 2.9 KB/sec)
+
+Downloading: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-assembly-plugin/2.2-beta-4/maven-assembly-plugin-2.2-beta-4.jar
+
+Downloaded: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-assembly-plugin/2.2-beta-4/maven-assembly-plugin-2.2-beta-4.jar (204 KB at 119.3 KB/sec)
+
+Downloading: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-jar-plugin/2.2/maven-jar-plugin-2.2.pom
+
+Downloaded: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-jar-plugin/2.2/maven-jar-plugin-2.2.pom (9 KB at 15.3 KB/sec)
+
+Downloading: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-plugins/10/maven-plugins-10.pom
+
+Downloaded: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-plugins/10/maven-plugins-10.pom (8 KB at 8.7 KB/sec)
+
+Downloading: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-jar-plugin/2.2/maven-jar-plugin-2.2.jar
+
+Downloaded: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-jar-plugin/2.2/maven-jar-plugin-2.2.jar (27 KB at 32.4 KB/sec)
+
+Downloading: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-clean-plugin/2.4.1/maven-clean-plugin-2.4.1.pom
+
+Downloaded: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-clean-plugin/2.4.1/maven-clean-plugin-2.4.1.pom (5 KB at 8.2 KB/sec)
+
+Downloading: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-plugins/18/maven-plugins-18.pom
+
+Downloaded: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-plugins/18/maven-plugins-18.pom (13 KB at 15.6 KB/sec)
+
+Downloading: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-clean-plugin/2.4.1/maven-clean-plugin-2.4.1.jar
+
+Downloaded: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-clean-plugin/2.4.1/maven-clean-plugin-2.4.1.jar (23 KB at 27.5 KB/sec)
+
+Downloading: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-install-plugin/2.3.1/maven-install-plugin-2.3.1.pom
+
+Downloaded: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-install-plugin/2.3.1/maven-install-plugin-2.3.1.pom (5 KB at 10.0 KB/sec)
+
+Downloading: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-install-plugin/2.3.1/maven-install-plugin-2.3.1.jar
+
+Downloaded: http://repo1.maven.org/maven2/org/apache/maven/plugins/maven-install-plugin/2.3.1/maven-install-plugin-2.3.1.jar (23 KB at 17.2 KB/sec)
+
+[INFO]                                                                         
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] Building prokawa 1.0-SNAPSHOT
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] 
+
+[INFO] --- maven-install-plugin:2.3.1:install-file (default-cli) @ prokawa ---
+
+Downloading: http://repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/1.4.1/plexus-utils-1.4.1.pom
+
+Downloaded: http://repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/1.4.1/plexus-utils-1.4.1.pom (2 KB at 2.8 KB/sec)
+
+Downloading: http://repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/2.0.5/plexus-utils-2.0.5.pom
+
+Downloaded: http://repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/2.0.5/plexus-utils-2.0.5.pom (4 KB at 4.7 KB/sec)
+
+Downloading: http://repo1.maven.org/maven2/org/codehaus/plexus/plexus/2.0.6/plexus-2.0.6.pom
+
+Downloaded: http://repo1.maven.org/maven2/org/codehaus/plexus/plexus/2.0.6/plexus-2.0.6.pom (17 KB at 32.8 KB/sec)
+
+Downloading: http://repo1.maven.org/maven2/org/codehaus/plexus/plexus-digest/1.0/plexus-digest-1.0.pom
+
+Downloaded: http://repo1.maven.org/maven2/org/codehaus/plexus/plexus-digest/1.0/plexus-digest-1.0.pom (2 KB at 1.4 KB/sec)
+
+Downloading: http://repo1.maven.org/maven2/org/codehaus/plexus/plexus-components/1.1.7/plexus-components-1.1.7.pom
+
+Downloaded: http://repo1.maven.org/maven2/org/codehaus/plexus/plexus-components/1.1.7/plexus-components-1.1.7.pom (5 KB at 5.9 KB/sec)
+
+Downloading: http://repo1.maven.org/maven2/junit/junit/3.8.1/junit-3.8.1.jar
+
+Downloading: http://repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/2.0.5/plexus-utils-2.0.5.jar
+
+Downloading: http://repo1.maven.org/maven2/org/codehaus/plexus/plexus-digest/1.0/plexus-digest-1.0.jar
+
+Downloaded: http://repo1.maven.org/maven2/junit/junit/3.8.1/junit-3.8.1.jar (119 KB at 68.7 KB/sec)
+
+Downloaded: http://repo1.maven.org/maven2/org/codehaus/plexus/plexus-digest/1.0/plexus-digest-1.0.jar (12 KB at 5.6 KB/sec)
+
+Downloaded: http://repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/2.0.5/plexus-utils-2.0.5.jar (218 KB at 86.7 KB/sec)
+
+[INFO] Installing /Users/andres/Coding/Processing/th0ma5w-ProKawa-f846b22/core.jar to /Users/andres/.m2/repository/org/processing/processing-core/1.5/processing-core-1.5.jar
+
+[INFO] Installing /var/folders/Qx/QxzSOfOLHz0jeeb3bP1+KE+++TI/-Tmp-/mvninstall8644669762461152085.pom to /Users/andres/.m2/repository/org/processing/processing-core/1.5/processing-core-1.5.pom
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] BUILD SUCCESS
+
+[INFO] ------------------------------------------------------------------------
+
+[INFO] Total time: 18.679s
+
+[INFO] Finished at: Thu Apr 28 23:24:54 KST 2011
+
+[INFO] Final Memory: 4M/81M
+
+[INFO] ------------------------------------------------------------------------
+
+
+
+
+
+ 
+
+
+
+
+
+
+th0ma5 
+
+
+
+
+
+Re: ProKawa - a Scheme / Lisp / Kawa version of Processing
+ 
+1 year ago 
+
+Ya know I don't understand Maven all that much either, but I'll list some things I do know that might help:
+
+
+
+1. Maven2 is designed ideally that you would just make the pom.xml and maven goes out and automatically finds the all of your dependencies specified, and then puts those files in a .m2 folder in your profile. in my situation, i want to force a version, and even use libraries that maven can't find easily, so i wrote down those commands that i used.
+
+
+
+
+2. I think what may be going on here is that the maven commands listed in that text file were executed in the root of the project directory. in my own project, i have all of the .jars used in the build in a lib/ folder, or even in their original install paths (as is the case for processing.core for me) ... so I executed the mvn install commands wherever those jar files were located.
+
+
+
+
+What I think is happening for you is that you don't specify the full location path of the jar when you do the mvn install is that it tries to execute a built-in template of an "installing" procedure (or something??) and tries generating the application (since it found a pom file there) ... or at least this is my best guess.
+
+
+
+
+look for hints as to how my evironment was going by looking at the .gitignore and the shell scripts provide, which between them, unfortunately or fortunately, use just about every method of including code in a java commandline or jar.
+
+
+
+
+... Another option would be to skip maven altogether, and just build a classpath and library path options to java that specify each and every class and jar... and then Kawa is sort of like jython or something where by default it is just a command interpreter. Look at the last bit of the shell scripts for the class name you have to specify last thing as a part of the java executable startup of the vm.
+
+
+
+
+If you figure out anything, or find that I'm off base, please let me know. I'll try to think about how to make this better documented, or some kind of way to make this all just work. I would hate to have to check in the whole binaries to github, but is that done often? Anyway... thanks for trying it out, and letting me know of your experience.
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+th0ma5 
+
+
+
+
+
+Re: ProKawa - a Scheme / Lisp / Kawa version of Processing
+ 
+1 year ago 
+
+I have pushed changes to the codebase to make all the maven stuff just a separate process, as I was using it just to simplify the class path and making standalone jars of all dependencies.
+
+
+
+Now, however, all environment paths and such are in a file called "manual_environment" and the various scripts only contain the bare essential structures to combine those environment definitions into a running vm.
+
+
+
+
+https://github.com/th0ma5w/ProKawa/blob/master/manual_environment
+
+https://github.com/th0ma5w/ProKawa/blob/master/prokawa.sh
+
+https://github.com/th0ma5w/ProKawa/blob/master/PolarUnravel.sh (shows compiling)
+
+
+
+
+and you can see the new step-by-step here or in the README:
+
+https://github.com/th0ma5w/ProKawa
+
+
+
+
+I hope this helps you, or any others reading. The big problem is that a solution needs to be found for Kawa's process. It has its own class for the interpreter and compilation. I'm sure there's an ant or maven plugin somewhere to make this seamless, but as for now, I'm hoping this shows what all you need to fix to get an environment up and going. The other option is to just code something in java that reads a specific file or something, but then you're sort of in the same boat if you want to specify more files.
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+andres 
+
+
+
+
+
+Re: ProKawa - a Scheme / Lisp / Kawa version of Processing
+ 
+1 year ago 
+
+I managed to make it work on OSX just by setting the right library locations in the manual_environment file. I also used the latest pre-compiled kawa jar from http://www.gnu.org/software/kawa/Getting-Kawa.html.
+
+
+
+Very cool, thanks!
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Top Reply 
+
+
+
+
+
+
+Statistics
+ 
+7 Replies
+1725  Views
+0 Followers
+ 
+
+
+
+Tags 
+
+
+
+scala 
+kawa 
+maven 
+clojure 
+lisp 
+scheme 
+
+
+Actions
+ 
+Permalink
+ 
+
+Related Posts
+ 
+Processing with Scala 
+Processing with Scala, SBT, and IDE... 
+Live Processing with Jython over Ac... 
+Interesting Scala and Processing ar... 
+Scala, who's in? 
+
+
+© 2012 ZOHO Corp.
+All Rights Reserved.
+Privacy
+Terms & Conditions
+ 
+RSS
+ 
+Powered by
+
+
+ 
+
+
+
+
+
+
+
+
+

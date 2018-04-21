@@ -1,0 +1,121 @@
+
+相册广场游戏登录注册关注此空间
+脚下的路
+2012年希望我能找到女朋友！
+2012-09-08 11:22 mutex lock
+5.3.2　常用同步类（1）
+同步，是多线程编程中不可回避的话题，同时也是一个非常复杂的问题。这里只简单介绍一下Android提供的同步类。这些类，只对系统提供的多线程同步函数（这种函数我们称为Raw API）进行了面向对象的封装，读者必须先理解Raw API，然后才能真正掌握其具体用法。
+提示　要了解Windows下的多线程编程，有很多参考资料，而有关Linux下完整系统阐述多线程编程的书籍目前较少，这里推荐一本含金量较高的著作《Programming with POSIX Thread》（本书只有英文版，由Addison-Wesley出版）。
+Android提供了两个封装好的同步类，它们是Mutex和Condition。这是重量级的同步技术，一般内核都会有对应的支持。另外，OS还提供了简单的原子操作，这些也算是同步技术中的一种。下面分别来介绍这三种东西。
+1. 互斥类—Mutex
+Mutex是互斥类，用于多线程访问同一个资源的时候，保证一次只有一个线程能访问该资源。在《Windows核心编程》①一书中，对于这种互斥访问有一个很形象的比喻：想象你在飞机上如厕，这时卫生间的信息牌上显示“有人”，你必须等里面的人出来后才可进去。这就是互斥的含义。
+下面来看Mutex的实现方式，它们都很简单。
+（1）Mutex介绍
+其代码如下所示：
+[-->Thread.h::Mutex的声明和实现]
+inline Mutex::Mutex(int type, const char* name) {  
+    if (type == SHARED) {  
+       //type如果是SHARED，则表明这个Mutex支持跨进程的线程同步。  
+      //以后我们在Audio系统和Surface系统中会经常见到这种用法。  
+        pthread_mutexattr_t attr;  
+        pthread_mutexattr_init(&attr);  
+        pthread_mutexattr_setpshared(&attr, 
+PTHREAD_PROCESS_SHARED);  
+        pthread_mutex_init(&mMutex, &attr);  
+        pthread_mutexattr_destroy(&attr);  
+    } else {  
+        pthread_mutex_init(&mMutex, NULL);  
+    }  
+}  
+inline Mutex::~Mutex() {  
+    pthread_mutex_destroy(&mMutex);  
+}  
+inline status_t Mutex::lock() {  
+    return -pthread_mutex_lock(&mMutex);  
+}  
+inline void Mutex::unlock() {  
+    pthread_mutex_unlock(&mMutex);  
+}  
+inline status_t Mutex::tryLock() {  
+    return -pthread_mutex_trylock(&mMutex);  
+} 
+关于Mutex的使用，除了初始化外，最重要的是lock和unlock函数的使用，它们的用法如下：
+要想独占卫生间，必须先调用Mutex的lock函数。这样，这个区域就被锁住了。如果这块区域之前已被别人锁住，lock函数则会等待，直到可以进入这块区域为止。系统保证一次只有一个线程能lock成功。
+当你“方便”完毕，记得调用Mutex的unlock以释放互斥区域。这样，其他人的lock才可以成功返回。
+另外，Mutex还提供了一个trylock函数，该函数只是尝试去锁住该区域，使用者需要根据trylock的返回值来判断是否成功锁住了该区域。
+注意　以上这些内容都和Raw API有关，不了解它的读者可自行学习相关知识。在Android系统中，多线程也是常见和重要的编程手段，务必请大家重视。
+Mutex类确实比Raw API方便好用，不过还是稍显麻烦。
+（2）AutoLock介绍
+AutoLock类是定义在Mutex内部的一个类，它其实是一帮“懒人”搞出来的，为什么这么说呢？先来看看使用Mutex有多麻烦：
+显示调用Mutex的lock。
+在某个时候记住要调用该Mutex的unlock。
+以上这些操作都必须一一对应，否则会出现“死锁”！在有些代码中，如果判断分支特别多，你会发现unlock这句代码被写得比比皆是，如果稍有不慎，在某处就会忘了写它。有什么好办法能解决这个问题吗？终于有人想出来一个好办法，就是充分利用了C++的构造和析构函数，只需看一看AutoLock的定义就会明白。代码如下所示：
+[-->Thread.h Mutex::Autolock声明和实现]
+class Autolock {  
+public:  
+    //构造的时候调用lock。  
+    inline Autolock(Mutex& mutex) : mLock(mutex)  { mLock.lock(); }  
+    inline Autolock(Mutex* mutex) : mLock(*mutex) { mLock.lock(); }  
+    //析构的时候调用unlock。  
+    inline ~Autolock() { mLock.unlock(); }  
+private:  
+    Mutex& mLock;  
+}; 
+
+AutoLock的用法很简单：
+先定义一个Mutex，如 Mutex xlock。
+在使用xlock的地方，定义一个AutoLock，如 AutoLock autoLock（xlock）。
+由于C++对象的构造和析构函数都是自动被调用的，所以在AutoLock的生命周期内，xlock的lock和unlock也就自动被调用了，这样就省去了重复书写unlock的麻烦，而且lock和unlock的调用肯定是一一对应的，这样就绝对不会出错。
+
+分享到： 举报 浏览(1093) 评论 转载
+你可能也喜欢
+
+ 土豪哥~我们来做个朋友呗
+土豪哥~我们来做个朋友呗
+ 天然呆——一只爆红网络的中国喵星人
+天然呆——一只爆红网络的中国喵星人
+ 多年之后，这也将是回忆
+多年之后，这也将是回忆
+ 这兔子逆天了
+这兔子逆天了
+ 【我来做瑜伽】
+【我来做瑜伽】
+ meeka
+meeka
+ 设备节点
+设备节点
+本文最近访客
+
+ ioah
+ioah
+昨天18:45
+ 月di痕
+月di痕
+11月2日
+ esci
+esci
+8月17日
+ 哈佛licy铭路
+哈佛licy铭路
+8月16日
+ 数据库大大家
+数据库大大家
+6月16日
+ D_luciferskiss
+D_luciferskiss
+5月27日
+ 仲亮亮
+仲亮亮
+4月8日
+ 虔诚海洋
+虔诚海洋
+3月7日
+评论
+
+帮助中心 | 空间客服 | 投诉中心 | 空间协议
+©2013 Baidu
+
+百度空间，让世界发现你
+向世界展示自己，发布喜爱的图片、文字和音乐
+简单注册登录
+

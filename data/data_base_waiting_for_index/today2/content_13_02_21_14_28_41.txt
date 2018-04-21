@@ -1,0 +1,350 @@
+ Arc Forumnew | comments | leaders | submit login 
+ 
+
+ Remove all duplicates from a list 
+ 4 points by Mikechaos 19 days ago | 14 comments 
+
+ Hello all!
+Here's a basic function to filter out duplicates in a list (and sort it in the mean time)
+
+
+  (def unique_list (ls)
+       "Removes all duplicated values in LS. Returns a new list"
+       (= ls (sort < ls))
+       ((afn (ls uniq_ls x) ;; uniq_ls -> the list we are building, x-> last inserted value
+             (let y (car ls) ;; y -> actual value
+                  (if (no y) 
+                      uniq_ls ;; we're done, return list
+                    (is x y)
+                    (self (cdr ls) uniq_ls y) ;; current val is same than last one, we don't insert it
+                    (self (cdr ls) (join uniq_ls (list y)) y)))) ;; else we insert it and continue recursion
+        ls () nil)) ;; function call
+
+But I feel I'm missing Arc lisp's power. So I think it's a good function to post out here, since there must be some more elegant manner of solving the mentionned problem. No particular need for the algorithm to sort... Maybe that could be an improvement also made?
+Thanks alot,
+
+Enjoy!
+
+Mike.
+ 
+
+
+  3 points by rocketnia 18 days ago | link
+
+Not to burst your bubble, but Arc's "dedup" already does this. :) Here's Paul Graham's implementation of 'dedup in Arc 3.1:
+
+  (def dedup (xs)
+    (with (h (table) acc nil)
+      (each x xs
+        (unless (h x)
+          (push x acc)
+          (set (h x))))
+      (rev acc)))
+
+If you indent your code block with two spaces, it'll display as code. I think this might be how you wanted your code to look:
+
+  (def unique_list (ls)
+       "Removes all duplicated values in LS. Returns a new list"
+       (= ls (sort < ls))
+       ((afn (ls uniq_ls x) ;; uniq_ls -> the list we are building, x-> last inserted value
+         (let y (car ls) ;; y -> actual value
+          (if (no y) 
+              uniq_ls ;; we're done, return list
+            (is x y)
+            (self (cdr ls) uniq_ls y) ;; current val is same than last one, we don't insert it
+            (self (cdr ls) (join uniq_ls (list y)) y)))) ;; else we insert it and continue recursion
+        ls () nil)) ;; function call
+-----
+ 
+ 
+  2 points by akkartik 18 days ago | link
+
+Here's how I would write unique_list without changing your algorithm:
+
+  (def unique_list (ls (o uniq_ls) (o x))
+    "Returns ls without duplicates; order unspecified.
+    Only works for lists of numbers."
+    (if (no ls)
+          uniq_ls
+        (no uniq_ls)
+          (unique_list (sort < cdr.ls) (list car.ls) car.ls)
+        (iso car.ls x)
+          (unique_list cdr.ls uniq_ls x)
+        'else   ; personal idiosyncracy not an arc idiom
+          (unique_list cdr.ls (cons car.ls uniq_ls) car.ls)))
+
+1. I assume you only want it applied to lists of numbers? Otherwise sort won't work.
+2. Since you're messing up the order anyway, why not return the result in descending rather than ascending order? It's faster.
+
+3. I'd rather just pass car.ls around so I don't need an extra level of indent for y. But slight changes to the code might cause me to revisit that. Arc's ssyntax makes simple expressions look like names for free. (The performance hit is not worth thinking about.)
+
+4. I don't like how the sort is hidden in my solution; perhaps I'm trying too hard to avoid the afn :) I've never liked that idiom, perhaps because it's so hard to indent well.
+
+5. Optional args can often obviate the need for anonymous inner functions.
+
+-----
+ 
+ 
+  2 points by Mikechaos 18 days ago | link
+
+Very interesting! Indeed, I had though about optional args (and that is what I had done first) but didn't want sort called at each rec. I like how you fixed it. Sort might be a bit obfuscated.. But I don't find it really bothering. It's use is straightforward and self explained!
+As I see it, the dot (car.ls) is syntactic sugar for applying a one arg function? Pretty clever! It replaces really well the y, no doubt.
+
+The differences are subtle, but it definitely feels better, my personal alarm gets a bit of rest.
+
+Use of iso. Don't know why I used is.. Question I had, can '=' be use as a comparison operator?
+
+Also I get your use of 'else, but not exactly sure how it passes. Does it count as an expression evaluated to true, so then (unique_list...) gets to be it's true clause/case? Or is is simply not counted at all (making (unique_list...) the false clause of (iso car.ls x). Not sure if I'm making my self clear here, so I'll try and rephrase a bit. A -> 'else gets to be an other if expression (if 'else) wich always evaluated to true -> following expression is the true clause of it. (what I think is happening) B -> 'else isn't counted as a full s-expr (not sure it's the right way of saying this) and so it just goes along with following (unique_list...) -> Makes it the false clause of (iso car.ls x) and not interpreted as an other if. (Then, I don't understand why!)
+
+Finally, and that's really a bonus I'm asking, but since I'm looking into making my next side-project (wich could be a long-term project) in Arc-based lisp, it could get me closer, I'll ask it anyway. As of what I know, since PG's fully involved in YC, and so arc's development is in a semi-dead state, I'd better be at least looking at forks of it. Now, if I understood well, there are two major forks, one you are working on, that would be wart, and anarki (mistaken already?).
+
+Would there be any difference in wart's implementation of the same alorigthm (since it shows a bit more use-case than pg's algorithm), or then, what would be wart's more natural form?
+
+Thanks for the time! It's already more than I could ask!
+
+-----
+ 
+ 
+  5 points by Pauan 18 days ago | link
+
+"As I see it, the dot (car.ls) is syntactic sugar for applying a one arg function? Pretty clever!"
+Arc has the following ssyntax:
+
+
+  foo.bar     -> (foo bar)
+  foo!bar     -> (foo 'bar)
+  
+  (~foo 1)    -> (no (foo 1))
+  (foo:bar 1) -> (foo (bar 1))
+  (foo&bar 1) -> (and (foo 1) (bar 1))
+
+To be honest, I only use the ".", "!", and ":" ssyntax. Also, "~", ":", and "&" work even when they're not in functional position:
+
+  (map ~foo ...)
+  (map foo:bar ...)
+  (map foo&bar ...)
+
+---
+"Use of iso. Don't know why I used is.. Question I had, can '=' be use as a comparison operator?"
+
+The only difference between "is" and "iso" is that "iso" recursively checks lists:
+
+
+  (is  (list 1 2 3) (list 1 2 3))  ; nil
+  (iso (list 1 2 3) (list 1 2 3))  ; t
+
+"=" is always used for assignment, never for comparison. The only built-in equality function is "is", and "iso" is defined using "is".
+---
+
+"Also I get your use of 'else, but not exactly sure how it passes."
+
+Like most Lisps, Arc has a datatype called "symbol", which is roughly equivalent to an "identifier" in other languages. Normally, if you use "else" it will refer to the variable "else", but if you use quote, it will be the symbol "else":
+
+
+  else   ; variable
+  'else  ; symbol
+
+The rule for booleans in Arc is that the symbol "nil" is false, and everything else is true. The symbol "else" is not equal to the symbol "nil", therefore it is true.
+The reason why akkartik used "else" is a personal style difference. It's idiomatic to just leave it off:
+
+
+  (if 1    ; if
+        2  ; then
+      3    ; if
+        4  ; then
+      5)   ; else
+
+---
+"Now, if I understood well, there are two major forks, one you are working on, that would be wart, and anarki (mistaken already?)."
+
+wart isn't a fork of Arc, it's a different language which has some similarities with Arc.
+
+You can find a bunch of Arc info here:
+
+https://sites.google.com/site/arclanguagewiki/
+
+In particular, anarki is a true fork of Arc, which has diverged a lot, so don't expect much compatibility with existing Arc programs. But if you want all kinds of new features, I'd recommend it. I haven't used it myself though, so that's about all I can say about it.
+
+Arc/Nu[1] is a fork of Arc I created, which should be mostly compatible with Arc 3.1, but cleans up the compiler and adds in a few new things. Naturally I recommend using this if you want something similar to Arc 3.1.
+
+Then there's various other implementations of Arc, such as jarc and Rainbow, and an incomplete C implementation of Arc called Arcueid.
+
+---
+
+* [1]: https://github.com/Pauan/ar
+
+-----
+ 
+ 
+  3 points by akkartik 18 days ago | link
+
+
+
+  (if 1    ; if
+        2  ; then
+      3    ; if
+        4  ; then
+      5)   ; else
+
+Yeah, it's problematic how to indent the "5". The above way makes it look like a test rather than an action, and indenting it further makes it seem like part of the same block as 4.
+You can tell that there's no idiomatic way to deal with this because the arc/HN codebase is schizophrenic, using both in different places.
+
+-----
+ 
+ 
+  2 points by rocketnia 17 days ago | link
+
+Well, I always indent it in one of two ways, depending on how much room I have:
+
+  (if 1  2
+      3  4
+         5)
+  
+  (if 1
+    2
+      3
+    4
+    5)
+
+This style may have drawbacks, but I stubbornly use it anyway. :-p
+
+  (list:if 1   ; misaligned condition
+    (do a b c
+      (d e f))
+      (is x 0)  ; looks like part of the previous expr
+    4
+    5)
+
+EDIT: Changed "I like it most of the time anyway" to "I stubbornly use it anyway." XD Somebody upvoted me before my edit....
+-----
+ 
+ 
+  1 point by akkartik 17 days ago | link
+
+I understood what you meant, rocketnia ^_^
+-----
+ 
+ 
+  2 points by Pauan 18 days ago | link
+
+For Nulan, my current thought is that multi-case "if" is too confusing with indentation, so the above would be written like this:
+
+  if 1
+    2
+    if 3
+      4
+      5
+-----
+ 
+ 
+  3 points by akkartik 18 days ago | link
+
+Pauan already did a great job explaining my use of else; nothing to add there. But I'll show off how it would look in wart:
+
+  def (uniqify ls into|result and|x)
+    "Returns ls without duplicates; order unspecified.
+    Only works for lists of numbers."
+    if (no ls)
+         result
+       (no result)
+         (uniqify sort:cdr.ls :and car.ls :into list:car.ls)
+       (car.ls = x)
+         (uniqify cdr.ls :and x :into result)
+       :else
+         (uniqify cdr.ls :and car.ls :into (cons car.ls result))
+
+0. I can choose to skip some of the outer parens if that looks cleaner.
+1. The function name for the def goes inside the param list to mimic the call being defined.
+
+2. The '|' operator binds multiple names to the same argument, so that I can refer to the second arg as either result or into, etc. Multiple names might seem like a bad idea, but they allow me to reorganize the later recursive calls to uniqify to look more clean and mnemonic. If you're familiar with python's keyword args, this is the same idea.
+
+(Though maybe I'm getting too clever in this case; if I ever try to use the and operator inside this function I'm liable to confuse myself.)
+
+3. All params are now optional, like in javascript.
+
+4. '=' is for equality, never assignment. And it can be infix.
+
+It's a little confusing at the start to use colons in two different ways so close to each other, but here's how it looks with wart's syntax highlighting for vim: http://i.imgur.com/S7ZROtD.png. Since symbols with a colon at the start always evaluate to themselves just like literal numbers or strings, I highlight them the same as literal numbers or strings.
+
+---
+
+Feel free to ask us more questions regardless of what language you decide to use[1] for your side project. If it isn't one of the above, maybe you can teach us something.
+
+[1] Nu is strictly superior to arc 3.1 in every way.
+
+[Update: there's a bug in the above code. In my original and here I forgot that the call to sort requires a second arg:
+
+
+  (sort (<) cdr.ls)
+
+We need parens around the '<' to keep wart from parsing it as an infix op.]
+-----
+ 
+ 
+  3 points by rocketnia 17 days ago | link
+
+"It's a little confusing at the start to use colons in two different ways so close to each other, but [...]"
+I was just thinking that. What would you think about keyword args that started with a hyphen instead of a colon?
+
+
+  (uniqify (sort (<) cdr.ls) -and car.ls -into list:car.ls)
+
+This way they look like shell command options, and the whole thing looks like a call to "uniquify-X-and-Y-into". Just an idea. :)
+-----
+ 
+ 
+  2 points by akkartik 17 days ago | link
+
+I like this idea!
+It's too bad this suggestion also uses an operator char, though. Or maybe there's some way to describe keyword args as a macro?!
+
+-----
+ 
+ 
+  2 points by Pauan 18 days ago | link
+
+"perhaps I'm trying too hard to avoid the afn :) I've never liked that idiom, perhaps because it's so hard to indent well."
+That's why Arc/Nu provides alet and awith...
+
+
+  (alet foo 1
+    (self (+ foo 1))
+
+  (awith (foo 1)
+    (self (+ foo 1))
+
+...which are equivalent to this:
+
+  ((afn (foo)
+     (self (+ foo 1)))
+   1)
+-----
+ 
+ 
+  1 point by Mikechaos 18 days ago | link
+
+Ah! No breaking bubble! I searched for it and couldn't get it (there is no complete doc about all pre built function in arc, out there, heh? You just gotta read the source on and on till you get them all, I guess (wich is, in definite, not a bad thing at all!)).
+I actually wanted to re-write it using a hash but couldn't get right away the semantics and syntax they had. This is perfect, It'll get me to discover how they actually work.
+
+Thanks for the tip! It'll render better :)
+
+Though, for the sake of learning (I am, for sure, studying PG's version and learning from it), could anyone quickly comment my code cause and what bad practices I'm doing (I may be a newbie in Lisp, but I still feel when things aren't elegant!).
+
+Thanks to all
+
+-----
+ 
+ 
+  1 point by akkartik 18 days ago | link
+
+(Eek, accidentally clicked down when I meant to vote up.)
+-----
+ 
+ 
+
+
+ 
+ 
+
+ 
+

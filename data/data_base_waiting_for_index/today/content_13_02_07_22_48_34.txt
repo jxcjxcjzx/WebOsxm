@@ -1,0 +1,18 @@
+      
+KLT_Feature
+
+typedef struct {
+KLT_locType x;
+KLT_locType y;
+int val;
+} *KLT_Feature;
+
+A KLT_Feature contains an (x,y) location and a value. (KLT_locType is equal to float.) The value is interpreted as follows:
+A positive value means the feature has just been found by KLTSelectGoodFeatures() or KLTReplaceLostFeatures().
+KLT_TRACKED (0) means the feature has been successfully tracked.
+KLT_NOT_FOUND (-1) means that no feature could be found. For example, if the user attempts to find 150 features in an image, but only 125 can be found, then the remaining 25 will be assigned a value of KLT_NOT_FOUND.
+KLT_SMALL_DET (-2) indicates that the feature has been lost due to the 2 by 2 gradient matrix having a small determinant.
+KLT_MAX_ITERATIONS (-3) means that the feature has been lost because the number of iterations exceeded the maximum allowable.
+KLT_OOB (-4) means that the feature has been lost because it was out of bounds (i.e., it was too close to the image border).
+KLT_LARGE_RESIDUE (-5) means that the feature has been lost because the residue between the two feature windows was too large.
+       

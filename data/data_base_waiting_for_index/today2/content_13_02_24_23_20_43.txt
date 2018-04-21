@@ -1,0 +1,83 @@
+
+Discover  Docs  Blog  Community Sign inSign up   
+Docs
+Open webOS Architecture
+Developer Guide
+Developer Reference
+webOS Application APIs
+Add Contact
+Browser
+Calendar
+Email
+webOS Foundations
+webOS Service APIs
+webOS Data Types
+webOS Configuration Files
+Building Open webOS
+Porting Open webOS
+Share on linkedin Share on facebook Share on twitter Share on email More Sharing Services
+Browser
+You can use the Application Manager's launch method to open the Browser application (com.palm.app.browser) with a specific URL in a separate card.
+
+Notes:
+The browser can load any website that is accessible over conventional HTTP and HTTPS protocols.
+For information about compatibility with Web standards, please see the Browser Standards page.
+Examples
+
+luna-send
+
+luna-send -n 1   luna://com.palm.applicationManager/open '{ "id": "com.palm.app.browser", "params":{"target": "http://www.google.com"}}'
+{ "processId": "success", "returnValue": true }
+Enyo
+
+. . . 
+{
+     name: "launchBrowserCall",
+     kind: "PalmService",
+     service: "palm://com.palm.applicationManager/",
+     method: "launch",
+     onSuccess: "launchFinished",
+     onFailure: "launchFail",
+     onResponse: "gotResponse",
+     subscribe: true
+},
+. . . 
+
+launchFinished: function(inSender, inResponse) {
+    enyo.log("Launch browser success, results=" + enyo.json.stringify(inResponse));
+},
+launchFail: function(inSender, inResponse) {
+    enyo.log("Launch browser failure, results=" + enyo.json.stringify(inResponse));
+},
+launchBrowser: function(inSender, inResponse)
+{
+    this.$.launchBrowserCall.call({"id": "com.palm.app.browser", "params":{"target": "http://www.google.com"}});
+}  
+Mojo
+
+this.controller.serviceRequest("palm://com.palm.applicationManager", {
+    method: "launch",
+    parameters: {
+        id: 'com.palm.app.browser',
+        params: {
+            "target": "http://www.google.com"
+        }
+    }
+});    
+Success
+
+Launch browser success, results=
+{
+    "returnValue": true,   
+    "processId": "success" 
+}
+Sample Code
+
+See Services Sample in the SDK.
+
+485 Potrero Ave. Sunnyvale, CA 94085 
++1 408-617-7000 Main Phone
+Careers
+Sponsored by 
+© 2012 Hewlett-Packard Development Company, L.P. The information contained herein is subject to change without notice. 
+All screen images simulated. Site is best viewed in Chrome, Firefox, Safari, IE9 and above.  Privacy Policy  Terms of Use

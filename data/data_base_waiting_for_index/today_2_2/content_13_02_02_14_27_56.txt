@@ -1,0 +1,104 @@
+网易 新闻 微博 邮箱 相册 阅读 有道 摄影 爱拍 优惠券 云笔记 闪电邮 手机邮 印像派 网易识字  更多   博客 手机博客 博客搬家 博客VIP服务  LiveWriter写博 word写博 邮件写博 短信写博  群博客 博客油菜地 博客话题 博客热点 博客圈子 找朋友 发现小组风格   网易真人搭配社区iStyle
+下载最文艺的手机博客APP>
+下载最文艺的手机博客APP>.创建博客 登录    加关注..   显示下一条  |  关闭 温馨提示！由于新浪微博认证机制调整，您的新浪微博帐号绑定已过期，请重新绑定！立即重新绑定新浪微博》  |  关闭 
+bluexp29的博客
+
+ 
+导航
+首页 日志 相册 音乐 收藏 博友 关于我 .  
+   
+日志  被推荐日志
+最新日志
+Tomcat配置与安装的两种方法Nginx启动出错CentOS6开启FTP及telnet服务安装tomcatcentos 文件新建、删除、移CentOS 6.2 下安装Java jdk 该作者的其他文章
+博主推荐
+相关日志
+随机阅读
+珠海一手拉横琴，一手拉斗门刘思敏：携程推出海外酒店预订新平台 艺龙去哪儿网或将跟进魏震：8月13-17日黄金外汇喊单盈利240点深圳大雨1979北京机场vs.2012爱登堡机场：有的人就是少见多怪佛家的用人故事首页推荐
+动车40元盒饭成本仅20元知情人揭江青的真实死因毛泽东英雄谱少了吴三桂'房姐'41套房钱从哪来的伊能静吴莫愁吓跑庾澄庆阴部里'长了虫子'怎么办更多>>
+
+
+  使用Terracotta和Tomcat建立ACTIVE-PASSIVE模式的集群。  扩展Tomcat 6.x，使用memcached存放session信息.
+【原创】将多个Tomcat实例应用转为Windows服务  2009-08-21 08:43:54|  分类： Web服务器 |  标签： |字号大中小 订阅 .
+
+有使用过Tomcat经验的朋友看到这个标题，就会产生疑问，安装Tomcat后，不就有一个Tomcat服务安装了吗？是的，没错，但不知道你是否将N个应用都用一个Tomcat实例来服务呢？这样的弊端是明显的，某个应用出现问题，需要重新启动Tomcat服务，那势必会影响其他正常运行的N- 1个服务，这样的效果显然不尽人意。理想的情况是一个Tomcat实例对应一个应用，并且每个Tomcat实例都是Windows服务，让Windows 服务控制台来对不同的应用单独进行启动与关闭。
+
+那要怎么做呢？
+
+首先是实现一个Tomcat程序上，运行N个Tomcat实例，然后每个Tomcat实例对应一个应用。
+1.解压Tomcat压缩包（非Tomcat安装版），在%Tomcat%目录下会有bin，common，conf，logs，server，shared，tmp，webapps，work等文件夹与文件，我统称这些为Tomcat程序。
+
+2.创建应用名称为PROJECT[X]的文件夹（非%Tomcat%下），将%Tomcat%文件夹下的conf，logs，tmp，work文件夹拷贝到%PROJECT[X]%目录下。
+
+注：我现在用[X]代替，[X]可以是0-9的数字
+
+3.修改%PROJECT[X]%/conf/server.xml配置文件中的三个端口：
+a.Server port=”8[X]05″ shutdown=”SHUTDOWN”
+b.Connector port=”8[X]80″ maxHttpHeaderSize=”8192″ …
+c.Connector port=”8[X]09″ enableLookups=”false” …
+
+注：Tomcat默认的这三个端口号为8005，8080，8009，PROJECT1对应8105，8180，8109，PROJECT2对应8205，8280，8209，以此类推。
+
+4.现在启动Tomcat实例，在%PROJECT[X]%目录下创建startup.bat脚本，代码如下：
+set JAVA_HOME=D:\JDK
+set CATALINA_BASE=D:\PROJECT[X]
+set CATALINA_HOME=D:\TOMCAT
+%CATALINA_HOME%\bin\catalina start
+
+5.启动各自%PROJECT[X]%的startup.bat，各自独立的Tomcat实例就启动了。
+
+那为什么我会想要将这些各自的Tomcat实例转成Windows服务呢？原因有三点：
+1.多个Tomcat实例启动会有多个Tomcat的SHELL在运行，一个字-丑
+2.通常WEB服务器都需要远程登录，如果使用startup.bat脚本启动的方式，那管理员将不能使用注销，而只能关闭远程连接，这样做的后果是服务器会提示“超出最大连接数”的错误，只能乖乖的请求托管商重新启动服务器，一个字-烦
+3.将Tomcat实例转成Windows服务，可以让应用在系统启动时候一起启动，而不需要手动去启动每个Tomcat实例
+
+其实将Tomcat实例转成Windows服务也是很简单的事情，只需要运行下面脚本
+set JAVA_HOME=D:\JDK
+set CATALINA_BASE=D:\PROJECT[X]
+set CATALINA_HOME=D:\TOMCAT
+%CATALINA_HOME%\bin\service.bat install “PROJECT[X]”
+
+运行脚本后，Windows服务控制台将多了如Apache Tomcat “PROJECT[X]”服务。
+
+  评论这张 
+ 转发至微博 
+ 转发至微博 
+ 0人  |  分享到：         阅读(324)| 评论(0)| 转载 (0) |举报 .
+ 
+  使用Terracotta和Tomcat建立ACTIVE-PASSIVE模式的集群。  扩展Tomcat 6.x，使用memcached存放session信息.
+历史上的今天.
+相关文章
+hudson 持续集成 --实例发布到tomcat2011-08-14 22:37:43 J2EE Axis2 Tomcat WebService实例2011-05-25 19:16:08 jbpm4安装在已有的tomcat与mysql下2011-07-30 07:47:39 MyEclipse + Tomcat + Eclipse 开发调试WEB应用2010-05-26 10:56:38 基于Tomcat5.0和Axis2开发Web Service利用实例_697472011-08-01 06:50:06 .最近读者
+登录后，您可以在此留下足迹。. fantasy  wuxiao_v  m1381308  泡泡 .
+评论
+点击登录|昵称： 
+   取消 
+验证码：换一张 
+ 
+上一页 1... -1-1-1-1-1-1-1... -1下一页..     . 
+ 
+ 
+ 
+ 
+ 
+   
+页脚
+公司简介 - 联系方法 - 招聘信息 - 客户服务 - 隐私政策 - 博客风格 - 手机博客 - VIP博客 - 订阅此博客 
+网易公司版权所有 ©1997-2013
+×
+信息提示
+下应用装游戏超爽超方便
+章骞  美国的海上霸权之路
+南桥  在家炖猪蹄时被传教
+
+河南：大桥坍塌和搜救现场两声巨响谁最希望梁振英受廉署调查
+黄成城：QQ发帖遭劳教上海不如北京堵的根本原因
+姚树洁：我相信博客的威力
+.
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

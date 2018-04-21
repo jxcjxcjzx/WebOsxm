@@ -1,0 +1,292 @@
+
+首页资讯精华论坛问答博客专栏群组更多 ▼
+
+ 
+您还未登录 !登录注册
+
+
+
+
+Sean的部落阁
+
+
+博客
+微博
+相册
+收藏
+留言
+关于我
+
+
+
+
+.
+
+
+
+
+Chapter 1. Meet Hadoop
+博客分类： Hadoop: The Definitive Guide 读书笔记
+ 
+Hadoop .
+
+
+1.      A  zettabyte is 1021 bytes, or equivalently one thousand exabytes, one million petabytes, or one billion terabytes.
+ 
+
+
+
+2.      It has been said that “More data usually beats better algorithms,” which is to say that for some problems (such as recommending movies or music based on past preferences), however fiendish your algorithms are, they can often be beaten simply by having more data (and a less sophisticated algorithm).
+ 
+ 
+ 
+3.      While the storage capacities of hard drives have increased massively over the years, access speeds—the rate at which data can be read from drives—have not kept up.
+ 
+ 
+ 
+4.      The first problem of reading and writing data in parallel to or from multiple disks is hardware failure. The second problem is that most analysis tasks need to be able to combine the data in some way; Various distributed systems allow data to be combined from multiple sources, but doing this correctly is notoriously challenging.
+ 
+ 
+ 
+5.      Hadoop provides: a reliable shared storage and analysis system. The storage is provided by HDFS and analysis by MapReduce. There are other parts to Hadoop, but these capabilities are its kernel.
+ 
+ 
+ 
+6.      MapReduce is a batch query processor, and the ability to run an ad hoc query against your whole dataset and get the results in a reasonable time is transformative.
+ 
+ 
+ 
+7.      Seek time is improving more slowly than transfer rate. Seeking is the process of moving the disk’s head to a particular place on the disk to read or write data. It characterizes the latency of a disk operation, whereas the transfer rate corresponds to a disk’s bandwidth. If the data access pattern is dominated by seeks, it will take longer to read or write large portions of the dataset than streaming through it, which operates at the transfer rate. For updating a small proportion of records in a database, a traditional B-Tree (which is limited by the rate it can perform seeks) works well. For updating the majority of a database, a B-Tree is less efficient than MapReduce, which uses Sort/Merge to rebuild the database.
+ 
+ 
+ 
+8.      MapReduce can be seen as a complement to an RDBMS. MapReduce is a good fit for problems that need to analyze the whole dataset, in a batch fashion, particularly for ad hoc analysis. An RDBMS is good for point queries or updates, where the dataset has been indexed to deliver low-latency retrieval and update times of a relatively small amount of data. MapReduce suits applications where the data is written once, and read many times, whereas a relational database is good for datasets that are continually updated.
+ 
+RDBMS compared to MapReduce 
+
+
+
+
+  
+
+
+Traditional RDBMS 
+
+
+MapReduce 
+
+
+
+
+Data size 
+
+
+Gigabytes 
+
+
+Petabytes 
+
+
+
+
+Access 
+
+
+Interactive and batch 
+
+
+Batch 
+
+
+
+
+Updates 
+
+
+Read and write many times 
+
+
+Write once, read many times 
+
+
+
+
+Structure 
+
+
+Static schema 
+
+
+Dynamic schema 
+
+
+
+
+Integrity 
+
+
+High 
+
+
+Low 
+
+
+
+
+Scaling 
+
+
+Nonlinear 
+
+
+Linear 
+
+
+  
+
+9.      Another difference between MapReduce and an RDBMS is the amount of structure in the datasets that they operate on. MapReduce works well on unstructured or semi-structured data, since it is designed to interpret the data at processing time. In other words, the input keys and values for MapReduce are not an intrinsic property of the data, but they are chosen by the person analyzing the data.
+ 
+ 
+ 
+10.  One of the central assumptions that MapReduce makes is that it is possible to perform (high-speed) streaming reads and writes.
+ 
+ 
+ 
+11.  MapReduce is a linearly scalable programming model. The programmer writes two functions—a map function and a reduce function—each of which defines a mapping from one set of key-value pairs to another. These functions are oblivious to the size of the data or the cluster that they are operating on, so they can be used unchanged for a small dataset and for a massive one.
+ 
+ 
+ 
+12.  The approach in HPC is to distribute the work across a cluster of machines, which access a shared filesystem, hosted by a SAN. This works well for predominantly compute-intensive jobs, but becomes a problem when nodes need to access larger data volumes (hundreds of gigabytes, the point at which MapReduce really starts to shine), since the network bandwidth is the bottleneck and compute nodes become idle.
+ 
+ 
+ 
+13.  MPI(Message Passing Interface) gives great control to the programmer, but requires that he or she explicitly handle the mechanics of the data flow, exposed via low-level C routines and constructs, such as sockets, as well as the higher-level algorithm for the analysis. MapReduce operates only at the higher level: the programmer thinks in terms of functions of key and value pairs, and the data flow is implicit.
+ 
+
+分享到： 
+.
+
+读 AbstractStringBuilder/StringBuilder/S ... | 读 String原代码
+
+前天
+浏览 14
+评论(0)
+分类:编程语言
+相关推荐
+
+
+评论
+
+
+发表评论
+
+ 您还没有登录,请您登录后再发表评论 
+
+
+
+
+
+
+leonzhx
+ 
+浏览: 47427 次
+性别: 
+来自: 上海
+
+
+
+最近访客 更多访客>>
+
+
+
+
+nettom
+
+
+
+
+zzx0421
+
+
+
+
+yuanc00
+
+
+
+
+kimi_chung
+.
+
+文章分类
+■全部博客 (376)
+■Java (21)
+■Java 初学者小问题 (65)
+■设计模式 (7)
+■项目管理 (3)
+■Think in Java读书笔记 (19)
+■数据库 (1)
+■算法 (2)
+■Java practices (6)
+■Effective Java2读书笔记 (2)
+■Linux (1)
+■programming ruby 读书笔记 (5)
+■Core Java读书笔记 (4)
+■Pro Git 读书笔记 (12)
+■Git (2)
+■Maven in Action 读书笔记 (20)
+■Web (8)
+■非技术类书籍 (11)
+■电影 (40)
+■Web Cache (1)
+■jquery (1)
+■历史 (4)
+■Dive Into HTML5 读书笔记 (13)
+■三国演义小学毕业考 (79)
+■高效能人士的7个习惯 读书笔记 (11)
+■Java Performance 读书笔记 (3)
+■Protocol Buffer 学习笔记 (6)
+■Mongo DB 学习笔记 (7)
+■Morphia 学习笔记 (7)
+■Algorithms 学习笔记 (3)
+■String研究 (5)
+■Hadoop: The Definitive Guide 读书笔记 (1)
+
+
+社区版块
+■我的资讯 (0)
+■我的论坛 (0) 
+■我的问答 (0)
+
+
+存档分类
+■2013-01 (7)
+■2012-11 (1)
+■2012-10 (2)
+■更多存档...
+
+
+评论排行榜
+■《Pro Git》读后感
+■第十章 使用Maven进行测试
+
+
+最新评论
+huiyibuzai： 如果最后解析得到的构件版本是时间戳格式的快照，如 1.4.1- ...
+第六章 仓库
+huiyibuzai： 疑问：为什么 compile + provided --> ...
+第五章 坐标和依赖
+wufabeishang： maven-surefire-plugin.xml这个文件时怎 ...
+第十章 使用Maven进行测试
+wufabeishang： 很不错的文章，为什么没有人评论呢。
+第十章 使用Maven进行测试
+leonzhx： 呵呵，是啊：） 有机会也去看看那本书：）
+《Pro Git》读后感
+
+.
+
+
+--------------------------------------------------------------------------------
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ] 
+.

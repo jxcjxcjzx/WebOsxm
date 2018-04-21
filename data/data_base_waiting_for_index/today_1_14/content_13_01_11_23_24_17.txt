@@ -1,0 +1,305 @@
+
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+
+
+业界
+移动开发
+云计算
+软件研发
+专题
+程序员杂志
+.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+编程语言
+开放平台
+HTML5
+前端开发
+智能算法
+架构
+开源
+数据库
+.
+
+
+
+
+
+
+
+.
+订阅软件研发RSSCSDN首页>软件研发 
+
+
+
+
+我是如何Hack Facebook Employees Secure Files Transfer服务的
+
+
+ 发表于2013-01-09 13:29| 829次阅读| 来源CSDN| 0 条评论| 作者王然
+.
+Facebook安全黑客
+
+摘要：互联网上永远没有绝对的安全，即使是Google、Facebook这样世界一流的互联网公司都免不了被Hack的命运。本文是Nir Goldshlager Web应用安全博客上的文章，作者分享了自己如何成功Hack Facebook Employees Secure Files Transfer服务的经验。 
+
+
+我想在这里分享一个发现Facebook Secure Files Transfer for Employees密码重置逻辑缺陷，并进行hack的故事。
+ 
+有时，你会想添加一个新的安全措施（比如使用Acellion的安全文件传输），但相反，它也可能正在把你的组织暴露出去。
+ 
+首先，如果你仔细看看files.fb.com会发现，这个服务属于Accellion。
+ 
+接下来，为了测试密码重置的逻辑缺陷，我们需要一个帐号来试着重置密码。
+ 
+但是，看起来Facebook从视图中删除了注册表单，以防止外部注册Accellion。
+ 
+我发现，如果你知道表单的直接位置（/courier/web/1000@/wmReg.html），就可以很容易地绕过这层保护，然后在files.fb.com中注册一个帐号。
+ 
+
+
+不过现在这个漏洞已经修复，所以你已经不能再在files.fb.com注册帐号了：
+ 
+
+
+不过，我们已经有一个files.fb.com的帐号了，对吗？Cool！
+ 
+接下来，下载Accellion Secure File Sharing Service的45天试用版，有两种：
+ 1.Free 45 Day Cloud Hosted Trial（至多5个用户）
+2.Free 45 Day Virtual Trial（至多5个用户）
+ 
+我选择了Virtual Trial版本，这样就可以获得Accellion所有的文件和源代码，
+ 
+但“坏消息”是，Virtual版本有个保护机制，阻止我通过Virtual版本进入文件，
+ 
+但你可以把这个虚拟驱动器挂载在第二个Linux机器上，这样就绕过了保护机制，因此可以获得了Accellion Secure File Transfer的所有文件名和文件夹。
+ 
+Accellion的源文件（php）使用了ionCube PHP Encoder加密：
+ 
+
+
+老版本的ionCube加密可以这样“解密”：
+ 
+ 
+ 
+ 点击查看大图
+ 
+有一个坏消息！加密工具是新版本的ionCube，因此难以破解，这让我很失望，如果我能得到源代码基本上就可以保证成功了。
+ 
+最终我放弃了，并继续探索：
+ 
+我发现一个有趣的文件——wmPassupdate.html，这个文件用于Accellion Secure Files Transfer的密码重置。
+ 
+我意识到，如果你希望从wmPassupdate.html恢复密码，还需要一个Cookie里的参数，这个参数叫做referer，我发现这个参数的值使用了Base64加密，WTF？！我没想到现在竟然还有使用Base64加密的，但事实正是如此：）
+ 
+ 
+ 
+点击查看大图
+ 
+于是我解密了base64的值，发现被加密的数据是我的邮箱地址（dbeckyxx@gmail.com），Cool！我开始删除所有的“垃圾”Cookie、无语的参数，只保留referer参数
+ 
+回过头来再把另一个，也就是我想要重置密码的邮箱用Base加密（这里是我用来测试的另一个files.fb.com帐号），并复制给referer cookie参数。
+ 
+最后修改POST请求中的邮箱地址参数，并修改受害邮箱帐号的密码。
+ 
+所以——
+ 
+
+
+PoC图片：
+ 
+ 
+ 
+点击查看大图
+ 
+视频演示：YouTube
+ 
+不过，现在Facebook和Accellion都已修复这些问题，我总共提交了20多个Accellion Secure File Transfer Service相关bug，都已修复。
+ 
+接下来我打算发布如何绕过Facebook OAuth，期待你的关注。
+ 
+原文链接：Nir Goldshlager Web Application Security Blog
+
+   .
+
+
+顶0踩0.
+
+
+
+推荐阅读相关主题： applicationservice解密测试加密
+
+
+相关文章
+最新报道
+.
+
+•美国众多银行网站遭DDoS攻击 疑似伊朗所为
+•CSDN早报：谷歌撤销重定向 Windows Phone谷歌地图服务恢复
+•我是如何Hack Facebook Employees Secure Files Transfer服务的
+•最新Skype加密技术：“无声”通话能躲过FBI监听
+•新型恶意软件瞄准Java服务器
+•CSDN早报：App Store下载量突破400亿 开发者分成70亿美元
+.
+
+
+
+
+
+
+.
+
+
+已有0条评论
+
+
+还可以再输入500个字
+
+
+
+您还没有登录! 请 登录 或 注册 ..
+
+最新评论
+最热评论
+.
+
+
+请您注意 ·自觉遵守：爱国、守法、自律、真实、文明的原则
+·尊重网上道德，遵守《全国人大常委会关于维护互联网安全的决定》及中华人民共和国其他各项有关法律法规
+·严禁发表危害国家安全，破坏民族团结、国家宗教政策和社会稳定，含侮辱、诽谤、教唆、淫秽等内容的作品
+·承担一切因您的行为而直接或间接导致的民事或刑事法律责任
+·您在CSDN新闻评论发表的作品，CSDN有权在网站内保留、转载、引用或者删除
+·参与本评论即表明您已经阅读并接受上述条款
+
+
+
+
+
+CSDN官方微信
+扫描二维码,向CSDN吐槽
+微信号：CSDNnews
+
+程序员杂志for iPad 免费下载 
+
+每日资讯快速浏览 
+
+
+
+微博关注
+
+
+
+
+相关热门文章
+
+
+2013年Java继续火的五大理由
+Patrick Wyatt：代码没问题 程序却有bug？
+Linux会是更好的游戏平台？暴雪是这么认为的！
+GitHub历史上最糟糕宕机事故回放及反省
+对话Linus Torvalds：大多黑客甚至连指针都未理解
+TIOBE 2013年1月：不负重望 Objective-C再次赢得桂冠！
+现代Objective-C七宗罪
+淘宝网的技术发展史（一）——个人网站时代
+iOS开发者分享在Google三个月的工作经验
+构建高可扩Web架构和分布式系统实战
+
+
+
+活动
+
+
+
+
+
+
+
+01-23
+
+1月23日CTO俱乐部交流会：金山云大规模存储架构及大型电商架构演化 
+
+
+
+
+01-22
+
+开源力量公开课第四期 Maven与持续集成 
+
+
+
+
+01-17
+
+TUP 第二十七期：产品与设计 
+
+
+
+
+01-15
+
+开源力量公开课第三期——2小时学会iOS应用开发 
+
+
+
+
+01-08
+
+ Go语言，一门面向连接和组合的语言 
+
+
+
+
+01-06
+
+1月6日北京交流会：当当网如何打造个性化推荐&精准营销生态系统 
+
+
+.
+
+热门专区
+win8开发马拉松
+2012微软技术大会
+数据库构架师专区
+IBM AIX学院
+异构编程专区
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

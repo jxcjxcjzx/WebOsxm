@@ -1,0 +1,16 @@
+      
+KLTReplaceLostFeatures()
+
+void KLTReplaceLostFeatures(
+KLT_TrackingContext tc,
+KLT_PixelType *img,
+int ncols,
+int nrows,
+KLT_FeatureList fl);
+
+KLTReplaceLostFeatures() takes an image pointed to by img and a feature list fl. (NOTE: KLT_PixelType is, unless modified by the user, an unsigned char.) If tc->sequentialMode is TRUE, and if KLTTrackFeatures() has previously been called, then img is ignored and instead the image from tc->pyramid_last, tc->pyramid_last_gradx, and tc->pyramid_last_grady is used. Otherwise, the gradients are computed using a Gaussian of sigma = tc->grad_sigma, but not before the image is smoothed with a Gaussian of sigma = (tc->smooth_sigma_fact * max(tc->window_width, tc->window_height)) if tc->smoothBeforeSelecting is TRUE.
+Essentially, the same computation is performed as that of KLTSelectGoodFeatures(), except that only the lost features are replaced, rather than all the features. All new features are guaranteed to be at least tc->mindist pixels away from each other and from all the existing features.
+
+Exactly like KLTSelectGoodFeatures(), if tc->writeInternalImages is TRUE, then the smoothed image and the image derivatives are written to "kltimg_sgfrlf.pgm", "kltimg_sgfrlf_gx.pgm", and "kltimg_sgfrlf_gy.pgm", respectively.
+
+       

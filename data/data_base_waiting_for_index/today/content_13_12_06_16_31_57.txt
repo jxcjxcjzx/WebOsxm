@@ -1,0 +1,581 @@
+百度首页|登录注册
+
+新闻网页贴吧知道音乐图片视频地图百科文库
+帮助
+首页分类频道特色百科玩转百科百科用户百科校园百科合作台南孔庙
+手机百科个人中心
+收藏7128
+nesc
+编辑
+
+nesC 是对 C 的扩展，它基于体现TinyOS 的结构化概念和执行模型而设计 。 TinyOS 是为传感器网络节点而设计的一个事件驱动的操作系统，传感器网络节点拥有非常有限的资源 ( 举例来说., 8K 字节的程序储存器,512个字节的随机存取储存器) 。TinyOS 用 nesC 重新编写。
+目录
+1简介
+2语言背景
+3使用环境
+4主要特性描述
+5语法介绍
+接口
+组件说明
+模块
+调用命令和事件信号
+原子的陈述
+结构
+包含组件
+配线
+配线语义
+中间函数
+配线和参数化函数
+nesC 的协作
+nesC 应用程序
+装载组件K
+载入接口类型I
+多样性
+nesC 支持五种属性
+编译时间常量函数
+6词汇解释
+7美国国家电力安全守则
+1简介
+
+ 1 结构和内容的分离: 程序有组件构成, 它们装配在一起 (" 配线 ") 构成完整程序. 组件定义两类域, 一类用于它们的描述 ( 包含它们的接口请求名称) ，另一类用于它们的补充。组件内部存在作业形式的协作。 控制线程可以通过它的接口进入一个组件。这些线程产生于一件作业或硬件中断。
+ 2 根据接口的设置说明组件功能。 接口可以由组件提供或使用。被提供的接口表现它为使用者提供的功能，被使用的接口表现使用者完成它的作业所需要的功能。
+ 3 接口有双向性: 它们叙述一组接口供给者 (指令)提供的函数和一组被接口的使用者(事件)实现的函数。这允许一个单一的接口能够表现组件之间复杂的交互作用 (举例来说.,当某一事件在一个回调之前发生时，对一些事件的兴趣登记)。 这是危险的，因为 TinyOS 中所有的长指令 (举例来说. 发送包)是非中断的; 他们的完成由一个事件( 发送完成)标志。 通过叙述接口，一个组件不能调用发送指令除非它提供 sendDone 事件的实现。通常指令向下调用，比如， 从应用组件到那些比较靠近硬件的调用,而事件则向上调用。特定的原始事件与硬件中断是关联的 (这种关联是由系统决定的,因此在本参考手册中不作进一步描述)。
+ 4 组件通过接口彼此静态地相连。 这增加运行时效率,支持 rubust 设计, 而且允许更好的程序静态分析。
+ 5 nesC基于由编译器生成完整程序代码的需求设计。这考虑到较好的代码重用和分析。这方面的一例子是 nesC 的编译-时间数据竞争监视器。
+ 6 nesC 的协作模型基于一旦开始直至完成作业 , 并且中断源可以彼此打断作业. nesC 编译器标记由中断源引起的潜在的数据竞争。
+2语言背景
+
+nesc是一种扩展C的编程语言，主要用于传感器网络的编程开发，加州大学伯克利分校研发人员为这个平台开发出微型操作系统TinyOS和编程语言nesC，同时国内外很多大学和机构利用这一平台进行相关问题的研究。
+3使用环境
+
+nesc主要用在Tinyos中，tinyos也是由nesc编写完成的。TinyOS操作系统就是为用户提供一个良好的用户接口。基于以上分析，研发人员在无线传感器节点处理能力和存储能力有限情况下设计一种新型的嵌入式系统TinyOS，具有更强的网络处理和资源收集能力，满足无线传感器网络的要求。为满足无线传感器网络的要求，研究人员在TinyOS中引入4种技术：轻线程、主动消息、事件驱动和组件化编程。轻线程主要是针对节点并发操作可能比较频繁，且线程比较短，传统的进程/线程调度无法满足（使用传统调度算法会产生大量能量用在无效的进程互换过程中）的问题提出的。
+4主要特性描述
+
+由于传感器网络的自身特点，面向其的开发语言也有其相应的特点。主动消息是并行计算机中的概念。在发送消息的同时传送处理这个消息的相应处理函数ID和处理数据，接收方得到消息后可立即进行处理，从而减少通信量。整个系统的运行是因为事件驱动而运行的，没有事件发生时，微处理器进入睡眠状态，从而可以达到节能的目的。组件就是对软硬件进行功能抽象。整个系统是由组件构成的，通过组件提高软件重用度和兼容性，程序员只关心组件的功能和自己的业务逻辑，而不必关心组件的具体实现，从而提高编程效率。
+5语法介绍
+
+接口
+
+nesC 的接口有双向性: 它们描述一个多功能的两组件（供给者和使用者）之间的交互渠道.。 接口叙述一组叫做指令的, 被接口的供给者实现的，被命名的功能和一组叫做事件的, 被接口的使用者实现.的，被命名的功能。
+本节解释接口如何被指定, 第 5 节解释组件如何描述它们提供和使用的接口, 第 6 节解释在 C代码中指令和事件如何被调用和实现，而第 7 节解释组件接口如何被一起联编.
+接口被接口类型指定,如下：
+nesC-file:
+includes-listopt interface
+. . .
+interface:
+interface identifier { declaration-list }
+storage-class-specifier: also one of
+command event async
+这声明接口类型标识符. 这一标识符有全局的作用范围并且属于分开的命名空间,组件和接口类型命名空间。 如此所有接口类型都有清楚的名字以区别于其它接口和所有组件, 同时能不和一般的 C的声明发生任何冲突。
+声明列表中，每个接口类型都有一个分开的声明范围。声明列表必须由有指令或事件存储类型的功能描述组成( 否则, 会发生编译-时间错误). 可选的 async关键字指出指令或事件能在一个中断处理者中被运行。
+通过包含列表，一个接口能可选择地包括 C 文件 (见第9节)。
+一个简单的接口如下:
+interface SendMsg {
+command result_t send(uint16_t address, uint8_t length, TOS_MsgPtr msg);
+event result_t sendDone(TOS_MsgPtr msg, result_t success);
+}
+SendMsg 接口类型提供者必须实现发送指令, 而使用者必须实现 sendDone 事件.
+组件说明
+
+一个 nesC 组件或是一个模块 (第 6 节) 或一个结构 (第 7 节):
+nesC-file:
+includes-listopt module
+includes-listopt configuration
+. . .
+module:
+module identifier specification module-implementation
+configuration:
+configuration identifier specification configuration-implementation
+组件的名字由标识符指定. 这一标识符有全局的作用范围并且属于组件和接口类型命名空间. 一个组件介入两个分组件的作用域:：一个规格作用域,属于 C 中全局的作用域，和一个实现作用域属于规格作用域。
+通过包含列表，一个组件能可选择地包括 C 文件 (见第9节).
+组件规格列出该组件提供或使用的规格元素 (接口请求，指令或事件)。 就如我们在第 4 节中见到的,一个组件必须实现它提供接口的指令和它的使用的接口事件。另外，它必须实现它提供的指令和事件。
+典型地，指令向下调用硬件组件，而事件向上调用应用组件 (这表现为nesC应用如一个应用组件处于顶端的组件曲线图)。 一个控制线程只有通过它的规格元素越过组件。
+每种规格元素有一个名字 (接口实例名,命令名或事件名).这些名字属于总组件-规格作用域的变量命名空间。
+specification:
+{ uses-provides-list }
+uses-provides-list:
+uses-provides
+uses-provides-list uses-provides
+uses-provides:
+uses specification-element-list
+provides specification-element-list
+specification-element-list:
+specification-element
+{ specification-elements }
+specification-elements:
+specification-element
+specification-elements specification-element
+一个组件说明中可以有多个使用和提供指令。多个使用和提供规格元素可以通过包含在{ and}中而组合在一个指令中。举例来说，下面两个说明是一样的：
+module A1 { module A1 {
+uses interface X; uses {
+uses interface Y; interface X;
+} ... interface Y;
+}
+} ...
+一个接口实例描述如下：
+specification-element:
+interface renamed-identifier parametersopt
+. . .
+renamed-identifier:
+identifier
+identifier as identifier
+interface-parameters:
+[ parameter-type-list ]
+接口实例声明的完整语法是 interface X as Y,明确地指明Y作为接口的名字。interface X是interface X as X.的一个速记.
+如果接口-叁数被省略, 那么interface X as Y声明一个简单的接口实例,对应这一组件的一个单一接口。 如果接口-叁数是给出的 (举例来说., interface SendMsg S[uint8 t id]) ，那么就是一个参量接口实例声明，对应这一组件的多个接口, 每个接口对应不同参数值(因此interface SendMsg S[uint8 t id]声明SendMsg类型的 256个接口). 叁数的类型必须是完整的类型 (这里enums 是不允许的).指令或事件能通过包括一个声明了指令或事件及存储类型的标准的 C函数而作为规格元素直接地被包含：
+specification-element:
+declaration
+. . .
+storage-class-specifier: also one of
+command event async
+如果该声明不是带有指令或事件存储类型的函数声明就会产生一编译- 时间错误。在接口中， 文法指出指令或事件能被一中断操纵者运行。
+作为接口实例, 如果没有指定接口叁数，指令 (事件)就是简单的指令 (简单的事件),如果接口叁数是指定的，就是参数化指令 (参数事件)。接口叁数被放置在一般的函数叁数列表之前,举例来说.,
+command void send[uint8 t id](int x):
+direct-declarator: also
+direct-declarator interface-parameters ( parameter-type-list )
+. . .
+注意接口叁数只在组件说明里面指令或事件上被允许, 而不允许在接口类型里面.
+这儿有一个完整的规格例子：
+configuration GenericComm {
+provides {
+interface StdControl as Control;
+// 该接口以当前消息序号作参数
+interface SendMsg[uint8_t id];
+interface ReceiveMsg[uint8_t id];
+}
+uses {
+//发送完成之后为组件作标记
+//重试失败的发送
+event result_t sendDone();
+}
+} ...
+在这个例子中,一般：
+ 提供简单的接口实例类型 StdControl 的控制.
+ 提供接口类型 SendMsg 和 ReceiveMsg 的参数实例; 参数实例分别地叫做 SendMsg 和 ReceiveMsg.
+ 使用事件 sendDone.
+我们说，在组件 K 的规格中提供的一个指令 (事件) F 是K的提供指令(事件) F; 同样地，一个被用于组件 K 的规格的指令 (事件) 是K 的使用指令 (事件) F。
+组件K的提供接口实例X的指令F是K的提供指令X.F；组件K的使用接口实例X的指令F是K的使用指令X.F 。K的提供接口实例X中的事件F是K的使用事件X.F; K的使用接口实例X中的事件F是K的提供事件X.F ( 注意事件的使用和提供根据接口双向属性的颠倒)。
+当使用/提供区别关系不大时，我们常常只简单的提到" K的指令或事件a"。K的指令或事件a可能是参数化的或简单的, 取决于其通信的规格元素的参数化或简单状态.
+模块
+
+模块用C代码实现组件说明：
+module-implementation:
+implementation { translation-unit }
+这里编译基本单位是一连串的 C 声明和定义 ( 见K& R[2 ， pp234 –239])。
+模块编译基本单位的顶层声明属于模块的组件说明域。这些声明的范围是模糊的而且可以是: 任意的标准 C声明或定义，一种作业声明或定义,指令或事件实现.
+实现模块的说明
+编译基本单位必须实现模块的所有的提供指令 (事件)a (例如., 所有的直接提供指令和事件, 以及提供接口的所有指令和使用接口的所有事件). 一个模块能调用它的任一指令和它的任一事件的信号.
+这些指令和事件的实现由如下的 C 语法扩展指定：
+storage-class-specifier: also one of
+command event async
+declaration-specifiers: also
+default declaration-specifiers
+direct-declarator: also
+identifier . identifier
+direct-declarator interface-parameters ( parameter-type-list )
+简单指令或事件a由带有存储类型指令或事件的C 函数定义的语法实现 (注意允许在函数名中直接定义的扩展)。另外，语法关键字必须被包含如果它被包含在a的声明中。举例来说,在SendMsg类型的提供接口Send的模块中：
+command result_t Send.send(uint16_t address, uint8_t length, TOS_MsgPtr msg) {
+...
+return SUCCESS;
+}
+带有接口参数P的参数指令或事件a，由带有存储类型指令或事件的函数定义的C文法实现，这时，函数的普通参数列表要以P作为前缀，并带上方括号 ( 这与组件说明中声明参数化指令或事件是相同的文法)。这些接口叁数声明P 属于a的函数叁数作用域而且和普通的函数参数有相同的作用域。举例来说,在SendMsg类型提供接口Send[uint8 tid]的模块中：
+command result_t Send.send[uint8_t id](uint16_t address, uint8_t length,
+TOS_MsgPtr msg) {
+...
+return SUCCESS;
+}
+以下情况将报告编译- 时间错误：
+ 提供指令或事件没有实现。
+ 类型标志，可选择的接口叁数和指令或事件语法关键字的存在或缺失，或与模块说明不匹配
+调用命令和事件信号
+
+对 C 语法的下列扩展用于调用事件和向指令发出信号:
+postfix-expression:
+postfix-expression [ argument-expression-list ]
+call-kindopt primary ( argument-expression-listopt )
+. . .
+call-kind: one of
+call signal post
+一个简单的指令a使用call _(...)调用, 一件简单的事件使用signal a(...)发送讯号。举例来说,在一个模块中使用SendMsg类型接口Send：call Send.send(1,sizeof(Message), &msg1)。
+一个参数指令a(个别地,一件事件)有 n个接口叁数，类型为t1 , . . . , t n由接口参数表达式e1 , . . . ,en调用如下：call _[e1, . . . , en](...) (个别地,signal _[e1, . . . , en](...))。接口叁数表达式 ei 必须分配类型t i; 实际的接口叁数值是ei影射到t i. 举例来说, 在一个组件中使用类型 SendMsg 的接口Send[uint8 t id]：
+int x = ...;
+call Send.send[x 1](1, sizeof(Message), &msg1);
+指令和事件的执行是立即的,也就是，调用和发送信号行为和函数调用是同样地。实际的指令或事件是由调用还是信号表达运行取决于程序结构联系说明。 这些联系说明可能指定0,1 或更多的实现将被运行。当超过 1个实现被运行, 我们说模块的指令或事件为"扇出"。
+一个模块能为一使用指令或事件a指定默认的调用或信号实现。提供指令或事件的默认实现会引起编译-时间错误。如果a未与任何指令或事件实现联系，默认的实现将被执行。默认的指令或事件由带有默认关键字的指令或事件实现前缀定义：
+declaration-specifiers: also
+default declaration-specifiers
+举例来说, 在一个类型 SendMsg使用接口Send的模块中：
+default command result_t Send.send(uint16_t address, uint8_t length,
+TOS_MsgPtr msg) {
+return SUCCESS;
+}
+/* 允许调用即使接口发送未连接*/
+... call Send.send(1, sizeof(Message), &msg1) ...
+原子的陈述
+
+atomic-stmt:
+atomic statement
+确保陈述被运行 " 好像 " 没有其它的运算同时发生。它用于更新并发的数据结构的互斥变量,等等。 一简单的例子是：
+bool busy; //全局
+void f() {
+bool available;
+atomic {
+available = !busy;
+busy = TRUE;
+}
+if (available) do_something;
+atomic busy = FALSE;
+}
+原子的区段应该很短, 虽然这常常并不是必须的。控制只能" 正常地 " 流入或流出原子的陈述: 任何的 goto, break或continue，跳转入或出一原子陈述都是错误的。返回陈述决不允许进入原子陈述。
+结构
+
+结构通过连接，或配线，集合其他组件实现一个组件说明：
+configuration-implementation:
+implementation { component-listopt connection-list }
+组件列表列出用来建立这一个结构的组件，连接列表指明各组件之间，以及与结构说明之间是怎样装配在一起的。在这一节的其余部分中，我们调用来自结构的外部的规格元素
+, 和来自结构的内在的成份之一的规格元素。
+包含组件
+
+组件列表列出用来建立这一个结构的组件。在结构里面这些组件可随意的重命名，使用共同外形规格元素，或简单的改变组件结构从而避免名称冲突。(以避免必须改变配线)为组件选择的名字属于成份的实现域。
+component-list:
+components
+component-list components
+components:
+components component-line ;
+component-line:
+renamed-identifier
+component-line , renamed-identifier
+renamed-identifier:
+identifier
+identifier as identifier
+如果二个组件使用as给出相同的名字，则会发生编译时间错误(举例来说., components
+X, Y as X)。
+只有一个个别的例子：如果组件 K 被用于二不同的结构 ( 或甚至两次用于相同的结构里面)， 在程序中仍然只有 K(及它的变量) 的唯一实例。
+配线
+
+配线用于连接规格元素 (接口，指令,事件)。本节和下一节(第 7.3 节) 定义配线的语法和编译-时间规则。第 7.4 节详细说明程序配线声明是如何指出在每个调用和信号表达中哪个函数被调用。
+connection-list:
+connection
+connection-list connection
+connection:
+endpoint = endpoint
+endpoint -> endpoint
+endpoint endpoint2:( 联编配线) 一个连接包括二种内在的规格元素。.联编配线总是连结一由endpoint1指定的使用规格元素到一endpoint2指定的提供规格元素。如果这两个条件不能满足, 就会发生编译-时间错误.。
+ endpoint1 endpoint1是等价的。
+在配线的所有三种类型中，两被指定的规格元素必须是一致的,就是说., 它们必须都是指令,或都是事件, 或都是接口实例. 同时, 如果它们是指令(或事件),则它们必须有相同的函数名 如果他们是接口实例，它们必须有相同的接口类型。他们一定是有相同的接口类型的. 如果这些条件不能满足, 就会发生编译-时间错误.。
+如果一个端点是参数化的,则另一个必须也是而且必须有相同的叁数类型;否则就会发生编译-时间错误.。
+相同的规格元素可以被多次连接,举例来说.,:
+configuration C {
+provides interface X;
+} implementation {
+components C1, C2;
+X = C1.X;
+X = C2.X;
+}
+在这个例子中，当接口X中的命令被调用时，多次的配线将会导致接口X的事件的多重信号 ("扇入")，以及多个函数的执行("扇-出")。注意，当二个结构独立地联结相同接口的时候，多重配线也能发生,举例来说.:
+configuration C { } configuration D { }
+implementation { implementation {
+components C1, C2; components C3, C2;
+C1.Y -> C2.Y; C3.Y -> C2.Y;
+} }
+所有的外部规格元素必须配线，否则发生编译-时间错误. 可是,内部的规格元素可以不连接 (它们可能在另外一个结构中配线,或者如果模块有适当的默认事件或指令实现，他们可以不配线).
+隐含连接
+隐含连接可以写成K1 是等价的). 该用法通过规格元素K1 (不妨K2)来引用规格元素 Y，因此K1.Y M.P;
+h2 = M.h;
+}
+图 1: 简单的配线例子
+components M1, M2;
+M2.SC -> M1;
+}
+M2.SC -> M1 这一行与M2.SC -> M1.StdControl. 是等价的。
+配线语义
+
+我们首先撇开参数化接口讨论配线语义. 7.4.1 节将讨论参数化接口。最后，第 7.4.2 节叙述整体上而言，程序配线声明上的要求。我们将会用到图1中的简单程序作为我们运行的例子。
+我们根据中间函数定义配线的意义。每个组件的每个指令或事件都有中间函数. 举例来说,在图 1 中,模块M 有中间函数 IM.P.f ， IM.P.g ， IM.U.f ， IM.U.g ， IM.h. 在例子中，我们以其组件，任意接口实例名，及函数名为基础命名中间函数。中间函数不是使用就是提供。每个中间函数接受与组件说明中相应指令或事件相同的自变量。中间函数体I是调用（执行系列）其它中间函数的列表。I 通过程序配线说明连接到其它中间函数 。I接受的自变量不变的经过被调用的中间函数.I 返回结果列表,(列表元素类型是相应指令或事件返回给I的结果类型)，列表通过连接调用中间函数返回结果构成。返回空值的中间函数适合不相
+连接的指令或事件；返回两个或以上值的中间函数适合“扇出”。
+中间函数
+
+中间函数和结构 一个结构的配线说明指定中间函数体。我们首先扩展配线说明到中间函数而不限于规格元素，并取消配线说明中= 和->的区别。我们用 I1 I2 表示中间函数I1 和I2之间的连结。举例来说，图 1中的结构C 叙述了下列中间函数连接:
+IC.X.f IM.P.f IM.U.f IM.P.f IC.h2IM.h
+IC.X.g IM.P.g IM.U.gIM.P.g
+在结构 C 的连接I1 I2中，二个中间函数之一是被调用的，另一个是调用者。如果下列任一条件成立(我们使用内部或外部的用辞作规格说明并不妨碍结构 C包含连接)，则I1(同样地,I2)是被调用的：
+ 如果 I1 符合一件被提供指令或事件的内部规格元素.
+ 如果 I1 符合一件被使用指令或事件的外部规格元素.
+ 如果 I1 符合一个接口实例X 的指令，而X是内部的且被提供或外部的且被使用的规格元素.
+ 如果 I1 符合一个接口实例X 的事件，而X是外部的且被提供或内部的且被使用的规格元素.
+如果这些情况没有一个成立,则I1 调用者。7.2 节的配线规则确保一个连接 I1I2 不会同时连接二个调用者或二个被调用者。图1的结构 C 中，IC.X.f ， IC.h2 ， IM.P.g,IM.U.f 是调用者而 IC.X.g ， IM.P.f ， IM.U.g,IM.h 是被调用者。如此C的连接说明IC.X.f 调用IM.P.f，IM.P.g调用IC.X.g，等等。
+中间函数和模块 模块中的C代码调用中间函数，或被中间函数调用。
+模块M中提供指令或事件a的中间函数I 包含一个单独调用以运行M中的a。其结果是
+一个单独的调用返回列表。表达式call a(e1, . . . , en)性质如下：
+ 自变量e1, . . . , en 被赋值为v1, . . . , vn.。
+ a对应的中间函数被以自变量v1, . . . , vn调用，返回结果列表L.
+ 如果 L=(w)( 一个独立列表),调用的返回结果就是 w.
+如果 L=(w1,w2, . . . ,wm) (二或更多的元素),调用的结果仰赖于a的返回类型t。如果t=void,则结果是void。否则，t 一定有一联合函数c( 第 10.3节演示联合函数是如何联合类型的),否则发生编译-时间错误。联合函数接受类型t 的两个值并且返回一个类型t的结果。该调用的结果是c(w1, c(w2, . . . , c(wm−1,wm))) ( 注意L中元素次序是任意的).
+list of int IM.P.f() { list of void IM.P.g(int x) {
+return list(M.P.f()); list of int r1 = IC.X.g(x);
+} list of int r1 = IM.U.g(x);
+return list concat(r1, r2);
+}
+list of int IM.U.f() { list of void IM.U.g(int x) {
+return IM.P.f(); return list(M.U.g(x));
+} }
+list of int IC.X.f() { list of void IC.X.g(int x) {
+return IM.P.f(); return empty list;
+} }
+list of void IC.h2() { list of void IM.h() {
+return IM.h(); return list(M.h());
+} }
+如果 L 为空则默认以v1, . . . , vn,为自变量调用执行a，并返回该调用结果。第 7.4.2 节表明如果L为空且a没有默认实现则会发生一编译- 时间错误。
+信号表达式的规则是一样的。
+中间函数举例 图 2使用类C的语法演示了图 1中组件产生的中间函数，其中list(x)产生一个包含X的独立列表，空列表是表示含0个元素的列表的常量，连接列表如锁链般连接两个列表。对M.P.f, M.U.g, M.h的调用,调用模块M中实现的指令和事件(未给出)。
+配线和参数化函数
+
+如果组件K的一条指令或事件a带有类型t1, . . . ,tn的接口叁数，则对每一数组(v1 : t1, . . . , vn :
+tn)存在一个中间函数Ia,v1,...,vn 。
+在模块中，如果中间函数Iv1,...,vn符合参数化的提供指令（或事件）a，则Iv1,...,vn中对a的实现的调用将传递v1, . . . , vn作为a的接口参数。
+下面是对表达式call _[e01, . . . , e0m](e1, . . . , en)讨论：
+ 自变量e1, . . . , en被赋值为 v1, . . . , vn。
+ 自变量e01, . . . , e0m被赋值为v01 , . . . , v0m。
+ v0i 对应ti 类型, 这里t i 是a的第i个接口叁数的类型。
+ a对应的中间函数Iv01 ,...,v0m被以参数v1, . . . , vn,调用，返回列表L。
+ 如果 L 有一个或更多的元素, 在非参数化的情形下产生调用结果
+ 如果 L 为空，a的默认实现会被以自变量v1, . . . , vn,，以接口参数值v01 , . . . , v0m调用，且返回该调用的结果。7.4.2节表明如果L为空且a没有默认实现，则会产生编译-时间错误。
+信号表达式的规则是一样的.
+配线说明中的一个端点关系到一参数化规格元素时，有二种情形：
+ 端点指定叁数值 v1, . . . , vn。若端点符合指令或事件 a1, . . . ,am ，则相应的中间函数为Ia1,v1,...,vn,. . . , Iam,v1,...,vn且配线方式不变。
+ 端点未指定叁数值. 在这情况下,配线说明的两个端点都对应相同接口参数类型t1, . . . ,tn.的参数化规格元素。 如果一个端点对应指令或事件 a1, . . . , am 而另一端点对应指令或事件 β1, . . . , βm,则对所有的1 Iβi,w1,...,wn (就是说., 端点是为所有对应的叁数值连接的).。
+7.4.2 应用级的需求
+一个应用的配线说明必须满足两个需求, 否则就会发生编译时间错误：
+ 没有只包含中间函数的无限循环.
+ 在应用模块中的每个call a ( 或signal a)表达式中：
+–如果调用是非参数化的：如果调用返回空的结果列表，则a一定有默认实现 (结果列表中元素个数只仰赖于配线)。
+–如果调用是参数化的：如果a的接口叁数的任何替代值都返回空结果列表，则a必定有默认的实现 (给定参数值数组的返回结果列表中元素数目只仰赖于配线)。
+注意这种情况不考虑用来在调用点叙述接口参数值的表达。
+nesC 的协作
+
+nesC采用由一旦运行直至完成作业（代表性的实时运算）和硬件异步触发中断控制构成的运行模型。编译器依靠用户提供的事件句柄和原语特征来识别中断源 (见10.3节)。nesC调度程序能以任意次序运行作业,但是必须服从一旦运行直至完成规则 (标准的TinyOS调度程序遵从FIFO（先进先出）策略).因为作业不能独占且是一旦运行直至完成的,所以它们是原子的互不妨碍的，但能够被中断。
+由于这种并行运行模型,在程序共享的状态下特殊数据竞争，导致nesC 程序状态是不稳定的。比如，它的全局和模块内变量 (nesC不含动态存储配置). 为避免竞争，要么只在作业内部访问共享状态，要么只在原子的声明内部访问。编译时，nesC 编译器会报告潜在的数据竞争。
+形式上， nesC 程序代码分为二个部份：
+同步码 (SC)：仅仅在作业内部可达的编码 (函数，指令，事件,作业)
+异步码 (AC)：至少一个中断源可达的代码.
+虽然非抢占消除作业之间的数据竞争, 但是在SC 和 AC，以及AC 和 AC 之间仍然有潜在的竞争。通常，任何从 AC可达的共享状态更新都是一个潜在的数据竞争. nesC 运行的基本常量是：
+无竞争常量：任何共享状态更新要么仅同步码可达，要么仅发生在原子陈述内部. 只要所有对函数f 的调用是在原子陈述内部的，我们就认为对f 的调用是在原子陈述内部的。
+这可能引入一种编译器不能够发现的竞争情况，但它一定是跨越多个原子陈述或作业的，并且是使用中间存储变量的。
+nesC 可能报告实际上不会发生的数据竞争,举例来说., 如果所有的通路都被其他变量上的守卫保护。在这种情况下，为避免多于的消息，程序会用注释存储类型说明注释一个变量v，从而忽略所有关于v的数据竞争警告。注释关键字应谨慎使用。
+对任何异步码的且没有声明异步的指令或事件，nesC 会报告编译- 时间错误。
+这确保那些不安全的代码不会在中断时无意中被调用。
+nesC 应用程序
+
+一个 nesC应用程序有三个部份。:一连串的 C 声明和定义,一组接口类型，和一组组件。nesC 应用程序命名环境构造如下：
+ 最外层的全局命名环境，包含三个命名域: 一个 C 变量，一个用于C声明和定义的C 标签命名域，和一个用于组件和接口类型的组件和接口类型命名域。
+ 通常，C声明和定义可以在全局命名环境内部引入自己的嵌套命名域(用于函数声明和定义的函数内部代码段，等等)。
+ 每个接口类型引入一个命名域，用于保存接口的指令或事件。这种命名域是嵌套于全局命名环境的，所以指令和事件定义能影响全局命名环境中的C类型和标签定义。
+ 每个组件引入二个新命名域。规格命名域，嵌套于全局命名环境，包含一变量命名域用于存放组件规格元素。实现命名域, 嵌套于规格命名域,包含一个变量和一个标签命名域。
+对于结构，作用范围变量命名域包含组件用以引用其包含组件的名字 (7.1节). 对于模块,作用范围保存作业，以及模块体中的C声明和定义。这些声明,及其它可能引入自己的嵌套在作用范围内的命名域 (比如函数体，代码段等等). 由于这种命名域的嵌套结构，模块中的代码可以访问全局命名环境中的C声明和定义，但是不能访问其他组件中的任何声明或定义.。
+构成一个nesC应用程序的C声明和定义，接口类型和组件由一个随选的装载程序决定。nesC 编译器的输入是一个单独的组件K。nesC 编译器首先装载C文件 (第 9.1 节),然后装载组件K(9.2节)。 程序所有代码的装载是装载这两个文件的过程的一部分。nesC 编译器假定所有对函数，指令及事件的调用不以自然的属性 (第 10.3 节) 都发生被装载的代码中(例如., 没有对非自然的函数 " 看不见的 " 调用)。
+在装载文件预处理的时候，nesC 定义NESC 符号，用于识别nesC 语言和编译器版本的数字 XYZ。对于nesC , XYZ 至少为110。
+装载C 文件，nesC组件及接口类型的过程包括定位对应的资源文件。文件定位的机制不是本参考手册中所要讨论的。要详细了解通用编译器是如何作业的，请阅读《the ncc man page.》
+装载 C文件X
+如果 X 已经被装载,就不用再做什么。否则, 就要定位并预处理文件 X.h。C宏定义 ( 由 # define和 #undef) 的改变会影响到所有的后面的文件预处理。来自被预处理的文件X.h的 C声明和定义会进入C全局命名环境，因此对所有的后来的 C文件加工，接口类型和组件是有影响的。
+装载组件K
+
+如果K已经被装载,就不用再做什么。否则, 就要定位并预处理文件 X.nc。对C宏定义( 由 # define和 #undef)的变化被忽略。使用下面的语法分析预处理文件：
+nesC-file:
+includes-listopt interface
+includes-listopt module
+includes-listopt configuration
+includes-list:
+includes
+includes-list includes
+includes:
+includes identifier-list ;
+如果 X.nc没有定义模块K 或结构 K,将报告编译-时间错误。否则，所有的包含列表指定的C文件都将被装载 (9.1节)。然后，组件说明中用到的所有接口类型都将被装载(9.3节)。接着，处理组件说明(第5节). 如果 K 是一个结构, K 指定的 (第 7.1 节) 的所有组件被
+装载 (9.2节)。最后，K的实现被处理 (第6节和第7节)。
+载入接口类型I
+
+如果I已经被装载,就不用再做什么。否则, 就要定位并预处理文件 X.nc。对C宏定义( 由 # define和 #undef)的变化被忽略。预处理文件同上面的nesC-文件一样分析。如果 X.nc没有定义接口I,将报告编译-时间错误。否则，所有的包含列表指定的C文件都将被装载 (9.1节)。接着，处理I的定义(第4节).。
+作为组件或接口包含C 文件的例子，接口类型Bar可能包含用于定义Bar中使用的类型的C文件BarTypes.h：
+Bar.nc: BarTypes.h:
+includes BarTypes; typedef struct {
+interface Bar { int x;
+command result_t bar(BarType arg1); double y;
+} } BarType;
+接口Bar的定义能参考Bar类型, 同样任何使用和提供接口Bar组件也能(装载任何这些组件说明或实现之前，都要先装载接口Bar，自然还有BarTypes.h)
+多样性
+
+没有自变量的函数的C声明的旧风格
+没有自变量的 nesC函数使用（）声明, 而不是 (void)。后者的用法将报告编译-时间错误.。
+旧式的C声明(用())和函数定义(在自变量之后指定参数列表)在接口和组件中是不允许的(会引起编译-时间错误)。
+注意这些变化都不用于C文件(以便现有的.h 文件能被不变的使用).
+注释
+nesC 允许C，接口类型和组件文件中的 //注释 。
+属性
+nesC使用gcc的属性语法声明函数的一些属性，变量及类型。这些属性可以放置在声明(在声明符之后) 或函数定义.(在叁数列表之后)上。 x 的属性是全部x 的声明和定义.上的所有属性的集合。
+nesC 的属性语法是：
+init-declarator-list: also
+init-declarator attributes
+init-declarator-list , init-declarator attributes
+function-definition: also
+declaration-specifiersopt declarator attributesdeclaration-listoptcompound-statement
+attributes:
+attribute
+attributes attribute
+attribute:
+attribute ( ( attribute-list ) )
+attribute-list:
+single-attribute
+attribute-list , single-attribute
+single-attribute:
+identifier
+identifier ( argument-expression-list )
+nesC 支持五种属性
+
+ C：这一属性用于在一个模块的顶层作为C 声明或定义 d( 它被所有其他声明忽略). 这指明d应该出现在全局范围，而不是模块的组件作用域。这允许在C代码中使用（举例来说，如果它是一个函数，则可被调用）d。
+ 自然的: 这一个属性可用于任何函数 f (在模块或 C代码中)。.这指出对f的调用在源代码中是不可见的。典型地,函数自然地被中断源 ,和C主函数调用。第9节讨论 nesC 编译器在编译期间如何使用自然的属性。
+ 事件句柄: 这一个属性可用于任何函数 f (在模块或 C代码中)。它指出f 是一个中断处理函数, 自动被硬件调用。这意味着f 既是自然的又是异步码 (AC)。
+ 原子的事件句柄: 这一个属性可用于任何函数 f (在模块或 C代码中)。它指出f 是一个中断处理函数, 自动被硬件调用，屏蔽中断的运行。这意味着f 既是自然的又是异步码 (AC)。而且，f 运行时好像被封装进一个原子的陈述。
+ 联合 (fnname): 这一属性为类型定义声明中一个类型指定联合函数。联合函数指定该如何联合调用一指令或事件而"扇出“返回的多个结果。举例来说：
+typedef uint8_t result_t __attribute__((combine(rcombine)));
+result_t rcombine(result_t r1, result_t r2)
+{
+return r1 == FAIL ? FAIL : r2;
+}
+当联合指令(或事件)返回类型是t 时，叙述逻辑-相似的行为。详细的语义见第 7.4 节。
+如果类型 t 的联合函数c没有类型t c(t,t)，就会发生编译时间错误。
+使用属性的例子：在文件 RealMain.td 中:
+module RealMain { ... }
+implementation {
+int main(int argc, char **argv) __attribute__((C, spontaneous)) {
+...
+}
+}
+这个例子表明主函数实际上应该出现在 C全局命名空间 (C),所以连接器能找它。它还表明即使在程序任何地方都没有函数调用主函数，主函数同样能够被调用(自然的)。
+编译时间常量函数
+
+nesC有新类型的常量表达式：常量函数。常量函数在语言里面定义的函数，编译时当作一个常数.
+nesC 现在有二种常量函数：
+ unsigned int unique(char *identifier)
+返回值：如果程序包含 n个有相同标示字符串的对unique的调用,每个
+调用返回一个0— n-1之间的无符号整数。
+有意使用unique是为了传递一个独特的整数给参数化接口实例,以便一个组件只要提供一个参数化接口就能唯一地识别连接到那个接口的各种不同组件。
+ unsigned int uniqueCount(char *identifier)
+返回值：如果程序包含 n个有相同标示字符串的对uniqueCount的调用,每个调用都返回n。
+有意使用uniqueCount是为了度量数组(或其他的数据结构)，数组使用uniqueCount返回的数变址。
+举例来说, 一个定时器服务通过一个参数化接口识别它的客户 (每个独立的定时器由此而来)并且unique可以使用uniqueCount来分配正确个数的定时器数据结构。
+附录A 语法
+读本语法时，请翻阅Kernighan and Ritchie (K&R) [2, pp234–239]的附录A。
+下列关键字对 nesC 是新的: as, call, command, components, configuration, event,
+implementation, interface, module, post, provides, signal, task, uses, includes. 这些关键字在 C 文件中是不被保留的。 对应的 C 符号，通过加上_nesc_keyword前缀(举例来说.,_ nesc _keyword _as).，在nesC文件中是可用的。
+nesC所有的标识符均以_nesc开头保留作为内部使用。TinyOS 保留所有的标识符以TOS_和TOSH_开头。
+nesC文件遵循nesC文件要求; .h 文件通过includes包含，遵循来自 K&R 的指令编译单位
+新的规则:
+nesC-file:
+includes-listopt interface
+includes-listopt module
+includes-listopt configuration
+includes-list:
+includes
+includes-list includes
+includes:
+includes identifier-list ;
+interface:
+interface identifier { declaration-list }
+module:
+module identifier specification module-implementation
+module-implementation:
+implementation { translation-unit }
+configuration:
+configuration identifier specification configuration-implementation
+configuration-implementation:
+implementation { component-listopt connection-list }
+component-list:
+components
+component-list components
+components:
+components component-line ;
+component-line:
+renamed-identifier
+component-line , renamed-identifier
+renamed-identifier:
+identifier
+identifier as identifier
+connection-list:
+connection
+connection-list connection
+connection:
+endpoint = endpoint
+endpoint -> endpoint
+endpoint identifier
+postfix-expression
+postfix-expression --
+call-kind: one of
+call signal post
+6词汇解释
+
+·联合函数: 连接前一扇出中指令(或事件信号)调用的多个返回结果的C函数。
+·指令, 事件: 一个函数，作为组件说明的一部分，它要么直接地作为规格元素，要么在组件的一个接口实例中。当直接作为规格元素时，指令和事件有自己的角色 (提供者 , 使用者)，而且可以有接口叁数。而对接口时实例, 我们区分没有接口参数的简单指令(事件)和有接口参数的复杂指令(事件)。指令或事件的接口参数可以从它的常用函数叁数中了解。
+·编译- 时间错误: 一个 nesC 编译器在编译时必须报告的错误。
+·组件: nesC 程序的基本单位。成份有名字并且有二个类型:模块和结构。组件有说明和实现。
+·结构: 一种组件，其实现由别的组件内容通过一特殊配线提供。
+·端点: 在结构的配线陈述中的特别的规格元素的说明, 和可选地一些接口叁数值。参数化端点是没有符合参数化规格元素的叁数值的端点。
+·事件: 见指令.
+·作用域: 变量的生存时间。nesC 有标准的 C作用域: 模糊的,函数,和区段。
+·外部的: 在一个结构C中, 描述C称述中的一种规格元素。见内部的。
+·扇入: 描述有多个调用接口的提供指令或事件。
+·扇出: 描述连接多个指令或事件实现的使用指令或事件。连接函数连接调用这些使用指令或事件的返回结果。
+·接口: 当上下文清楚时，我们使用接口引用接口类型或接口实例。
+·接口实例: 组件说明中，某一接口类型的实例。接口实例有实例名，角色（提供者或使用者），接口类型和可选的接口参数。没有接口参数的接口实例是简单的接口实例，带有参数的是参数化接口实例。
+·接口参数: 接口参数有接口参数名且一定是整数类型。参数化接口实例的每个参数清单都有（概念的）一个独立的简单的接口实例（并且，同样的，在参数化指令或事件的情况下，都有独立的简单的指令或事件）。参数化接口实例允许运行时根据参数值在一套指令（或一套事件）中选择运行。
+·接口类型: 接口类型陈述两组件，提供者和使用者间的交互作用。这种陈述使用一套指令或事件的形式。每个接口类型都有一个明确的名字。接口是双向的: 接口供给者实现它的指令，接口使用者实现它的事件。
+·中间函数: 表现组件指令和行为的虚函数，由整个程序的配线结构指定。见7.4节。
+·内部的: 在一个结构 C 中, 描述C的组件列表中声明的一个组件的规格元素。见外部的。
+·模块: 由C代码提供实现的组件。
+·命名空间: nesC 有标准的 C 变量（也为函数和宏使用），类型标识符（结构，联合，枚举标识名）和标签命名空间。另外，nesC 有组件和接口类型命名空间用于组件和接口类型名。
+参数化指令，参数化事件，参数化接口实例，端点：见指令，事件，接口实例，端点。
+提供，提供者：规格元素的一个角色。接口实例的提供者必须在接口中实现指令；提供指令和事件必须被实现。
+K的提供指令：一个指令，它要么是K提供的规格元素，要么是K的提供接口的指令。
+K的提供事件：一个事件，它要么是K的规格元素，要么是K使用接口的事件。
+·范围: nesC拥有标准的C全局，函数参数和段落范围。另外，组件中还有说明和实现范围和每一接口类型范围。范围被分为命名空间。
+简单指令，简单事件，简单接口实例：见指令，事件，接口实例。
+·规格:说明组件和其他组件交互作用的规格元素列表。
+·规格元素：规格中提供或使用的接口实例，指令或事件。
+·作业：一个 TinyOS作业。
+使用，使用者：规格元素的一种角色。接口实例的使用者必须实现接口中的事件。
+K的使用指令：一个指令，它要么是K的使用规格元素，要么是K的使用接口的指令。
+K的使用事件：一个事件，它要么是K的使用规格元素，要么是K的提供接口的事件。
+·配线：由结构指定的组件规格元素间的连接。
+7美国国家电力安全守则
+
+简写：NESC
+中文名：美国国家电力安全守则
+英文名：National Electric Safety Code(USA)
+词条标签：
+操作系统编程 传感器网络
+如果想提出功能问题或意见建议，请到意见反馈；如果您要 举报侵权或违法信息，请到投诉中心；其他问题请访问百度百科吧
+词条统计
+浏览次数：12717次
+编辑次数：6次 历史版本
+最近更新：2012-08-30
+创建者：Dong__FLy
+词条贡献榜
+辛勤贡献者：
+顾晚惜朝1987	为词条改进贡献了复杂版本的用户，被称为辛勤贡献者
+zhrdbx	为词条改进贡献了复杂版本的用户，被称为辛勤贡献者
+Dong__FLy	为词条改进贡献了复杂版本的用户，被称为辛勤贡献者
+
+百科消息：
+80张韩流天团演出票免费拿
+领取百度阅读100万阅读基金
+百科任务：我的百科我做主
+Mini、Kindle裸奔中，快拦截
+导师计划，手把手教你编词条
+推广链接
+证券软件下载,[官方网站下..
+[正版]证券软件,益盟操盘手证券软件,双市行情,牛熊2策略+送转潜..
+Emoney.cn
+
+
+© 2013 Baidu 使用百度前必读 | 百科协议 | 百度百科合作平台
+登录
+
+

@@ -1,0 +1,203 @@
+
+NextPrevious
+
+Loading Resources
+
+Your application can also monitor the progress of loading content—that is, the progress of loading individual resources on a page. A resource is any data on a page that is loaded separately, such as images, scripts, style sheets and webpages contained in frames. A webpage can include multiple resources, each having their own request and response messages. Once a page is requested, each resource for that page can arrive independently and in any order. Some may load successfully, and others may not. If you want to be notified of the progress, success or failure of loading resources, you need to implement a resource load delegate for your WebView object.
+
+Sequence of Resource Load Delegate Messages
+
+As a resource goes through the process of loading, the WebKit sends a series of messages to the resource load delegate. The exact sequence depends on the resource and if an error occurred during the load. Since WebResourceLoadDelegate Protocol Reference is an informal protocol a message is not sent to the delegate unless it responds to it. For example, the sequence of messages for a resource that loads successfully might be:
+1.
+webView:identifierForInitialRequest:fromDataSource: —invoked before other delegate methods to return the application-defined resource identifier.
+
+2.
+webView:resource:willSendRequest:redirectResponse:fromDataSource: —invoked one or more times before a request to load a resource is sent.
+
+3.
+webView:resource:didReceiveResponse:fromDataSource:—invoked once when the first byte of data arrives.
+
+4.
+webView:resource:didReceiveContentLength:fromDataSource:—invoked zero or multiple times per resource until all the data for that resource is loaded.
+
+5.
+webView:resource:didFinishLoadingFromDataSource: —invoked when all the data for the resource has arrived.
+
+
+If the resource load failed, then webView:resource:didFailLoadingWithError:fromDataSource: is invoked instead of webView:resource:didFinishLoadingFromDataSource:. Other messages per redirects can arrive, too. See WebResourceLoadDelegate Protocol Reference for a complete list of delegate methods.
+
+Identifying Resources
+
+Because resource load delegates might need to distinguish between the different resources on a page, a resource identifier is passed as one of the arguments of the messages to delegates. The identifier remains the same for each load even if the request changes. For example, a request may change if headers are added, the URL is canonicalized, or the URL is redirected. 
+
+Your application can provide this identifier by implementing the webView:identifierForInitialRequest:fromDataSource: method to create and return a resource identifier. Otherwise, the resource identifier passed to subsequent delegate messages will not be unique. For example, this method can return a sequential number:
+
+
+
+
+- (id)webView:(WebView *)sender 
+
+
+identifierForInitialRequest:(NSURLRequest *)request fromDataSource:(WebDataSource *)dataSource 
+
+
+{ 
+
+
+    // Return some object that can be used to identify this resource 
+
+
+    return [NSNumber numberWithInt:resourceCount++]; 
+
+
+} 
+
+Tracking Resource Load Progress
+
+One reason for implementing a resource load delegate is to track the progress of individual resource loads. For example, you can keep track of the number of resources successfully and unsuccessfully loaded per page by implementing the following delegate methods. In this example, the resource status is displayed as “Loaded X of Y resources, Z resource errors.” Each delegate method below increments these X, Y and Z values. Follow these steps to display the resource load status messages:
+1.
+Add these instance variables to your delegate class:
+
+
+
+
+ int resourceCount; 
+
+
+ int resourceFailedCount; 
+
+
+ int resourceCompletedCount; 
+
+2.
+Implement the webView:resource:willSendRequest:redirectResponse:fromDataSource: method to update the display when the WebKit begins to load a resource. Note that this method also allows you to return a modified request. Normally you don’t need to modify it.
+
+
+
+
+-(NSURLRequest *)webView:(WebView *)sender 
+
+
+resource:(id)identifier 
+
+
+willSendRequest:(NSURLRequest *)request 
+
+
+redirectResponse:(NSURLResponse *)redirectResponse 
+
+
+fromDataSource:(WebDataSource *)dataSource 
+
+
+{ 
+
+
+    // Update the status message 
+
+
+    [self updateResourceStatus]; 
+
+
+    return request; 
+
+
+} 
+
+3.
+Implement the updateResourceStatus method, invoked in the sample code above, to use the resourceCount instance variable to update the display. You increment the resourceCount instance variable in the webView:identifierForInitialRequest:fromDataSource: method as shown in “Identifying Resources.”
+
+4.
+Implement the webView:resource:didFailLoadingWithError:fromDataSource: method to increment the number of failed resource loads and update the display as in:
+
+
+
+
+-(void)webView:(WebView *)sender resource:(id)identifier 
+
+
+didFailLoadingWithError:(NSError *)error 
+
+
+fromDataSource:(WebDataSource *)dataSource 
+
+
+{ 
+
+
+    resourceFailedCount++; 
+
+
+    // Update the status message 
+
+
+    [self updateResourceStatus]; 
+
+
+} 
+
+5.
+Implement the webView:resource:didFinishLoadingFromDataSource: method to increment the number of successful resource loads, and update the display as in:
+
+
+
+
+-(void)webView:(WebView *)sender 
+
+
+resource:(id)identifier 
+
+
+didFinishLoadingFromDataSource:(WebDataSource *)dataSource 
+
+
+{ 
+
+
+    resourceCompletedCount++; 
+
+
+    // Update the status message 
+
+
+    [self updateResourceStatus]; 
+
+
+} 
+
+6.
+Implement the updateResourceStatus method to update your display.
+
+7.
+Also, implement the frame load webView:didStartProvisionalLoadForFrame: delegate method to reset these variables to 0 when a new page load starts.
+
+8.
+Build and run your application.
+
+
+When you run your application you should see a progress message showing the total number of resources per page, and progressively how many resources are loaded successfully and unsuccessfully.
+
+NextPrevious
+
+
+
+
+--------------------------------------------------------------------------------
+
+
+ © 2003, 2012 Apple Inc. All Rights Reserved. (Last updated: 2012-11-09)
+
+ Did this document help you? YesIt's good, but...Not helpful... 
+
+
+Shop the Apple Online Store (1-800-MY-APPLE), visit an Apple Retail Store, or find a reseller.
+Mailing Lists
+RSS Feeds
+ .
+
+Copyright © 2010 Apple Inc. All rights reserved.
+Terms of Use
+Privacy Policy
+. 
+
+

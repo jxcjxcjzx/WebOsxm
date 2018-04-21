@@ -1,0 +1,884 @@
+网易 新闻 
+微博 
+邮箱 
+相册 
+阅读 
+有道 
+摄影 
+爱拍 
+优惠券 
+云笔记 
+闪电邮 
+手机邮 
+印像派 
+网易识字 
+ 
+更多   博客 手机博客 
+博客搬家 
+博客VIP服务 
+ 
+LiveWriter写博 
+word写博 
+邮件写博 
+短信写博 
+ 
+群博客 
+博客油菜地 
+博客话题 
+博客热点 
+博客圈子 
+找朋友 发现小组风格   网易真人搭配社区iStyle下载最文艺的手机博客APP>下载最文艺的手机博客APP>创建博客 登录    加关注   显示下一条  |  关闭 温馨提示！由于新浪微博认证机制调整，您的新浪微博帐号绑定已过期，请重新绑定！立即重新绑定新浪微博》  |  关闭 老狗的博客
+ 导航
+首页 日志 相册 音乐 收藏 博友 关于我      日志    签了MTK，结束找工作
+基于PXA270的嵌入式系统脱机实现  2009-05-12 23:00:56|  分类： 默认分类 |  标签： |字号大
+中
+小 订阅 
+ 
+
+硬件环境：处理器：Intel Xscale PXA270
+
+          Flash：Intel JS28F256P30B （2X32M）
+
+          SDRAM：HY57V561620FTP
+
+软件环境：U-boot + linux-2.4.21 + 文件系统（jffs2）
+
+系统可以通过NFS挂载文件系统。但是在脱机的过程中遇到了些问题。要想实现u-boot+kernel+jffs2的脱机运行，必须在内核中加入针对Flash的MTD驱动（包括Flash地址映射和MTD分区表）。这样，内核启动后才能找到文件系统所在的Flash分区，正确挂载文件系统。
+
+内核启动参数：root=/dev/mtdblock2 rw console=ttyS0,115200 console=tty0
+
+下面是修改过程：
+
+一．           在driver/mtd/maps目录下加入Flash的MTD驱动文件xsbase270.c。
+
+下面是主要的关于我的Flash的配置信息和分区表代码：
+
+#define ROM_ADDR        0x00000000      //Flash的映射首地址
+
+#define WINDOW_SIZE     64*1024*1024    //Flash大小
+
+ 
+
+#ifdef CONFIG_PM
+
+struct pm_dev       *flash_pmdev;
+
+#endif
+
+ 
+
+static struct map_info maps = {
+
+    .name =         "flashLeo",
+
+    .size =         WINDOW_SIZE,
+
+    .phys =         0x00000000,    
+
+    .buswidth =     4//32//4/*modified by yan*/   /*buswidth:4*8=32bit*/
+
+};
+
+/*add by Leo*/
+
+static struct mtd_partition partitions[] = {
+
+        {
+
+                name:           "boot",
+
+                size:           0x00040000,
+
+                offset:         0,
+
+                mask_flags:     MTD_WRITEABLE,
+
+#ifdef CONFIG_ARCH_XSBASE270
+
+                flags: MTD_XIP
+
+#endif
+
+        },{
+
+                name:           "kernel",
+
+                size:           0x00140000,
+
+                offset:         0x00040000,
+
+                mask_flags:     MTD_WRITEABLE,
+
+#ifdef CONFIG_ARCH_XSBASE270
+
+                flags: MTD_XIP
+
+#endif
+
+        },{
+
+                name:           "Rootfs",       //revised by wangjue from "rootfs",
+
+                size:           0x03B00000,//MTDPART_SIZ_FULL,
+
+                offset:         0x00180000,
+
+#ifdef CONFIG_ARCH_XSBASE270
+
+                flags: MTD_XIP
+
+#endif
+
+        }
+
+};
+
+注意：Flash分区时要注意不要跨越Flash块。因此，有必要查看手册看Flash的块大小。否则系统运行时会报告错误：
+
+VFS：tried fs_name=<jffs2> err=-22
+
+Kernel panic:VFS:unable to mount root on 1f:02
+
+在这里我的Flash块大小为0x040000。
+
+二．           运行之后挂载发现如下问题：
+
+Probing flash at physical address 0x00000000(32-bit width)
+
+Intel/sharp Extended Query Table at 0x010A
+
+Unknown IntelExt Extended Query Version 1.4
+
+gen_probe: No Supported Vendor Command Set found
+
+physmap flash device: 0 at 0
+
+Failed to ioremap
+
+…
+
+地址映射没有成功，没有运行到加载MTD分区表的地方。“Unknown IntelExt Extended Query Version 1.4”这句感觉是在验证Flash的版本。于是在driver/mtd/chips/cfi_cmd_0001.c中找到了这句：
+
+if (extp->MajorVersion != '1' ||
+
+            (extp->MinorVersion < '0' || extp->MinorVersion > '3')) {
+
+                  printk(KERN_WARNING "  Unknown IntelExt Extended Query "
+
+                   "version %c.%c.\n",  extp->MajorVersion,
+
+                   extp->MinorVersion);
+
+            kfree(extp);
+
+            return NULL;
+
+        }
+
+这里的确是在验证Flash的版本。从代码和打印的信息可以知道我们Flash的版本是1.4。所以，索性在这里将版本验证识别范围包括进1.4版本。所以将上述代码改为：
+
+if (extp->MajorVersion != '1' ||
+
+            (extp->MinorVersion < '0' || extp->MinorVersion > '4')) {
+
+                  printk(KERN_WARNING "  Unknown IntelExt Extended Query "
+
+                   "version %c.%c.\n",  extp->MajorVersion,
+
+                   extp->MinorVersion);
+
+            kfree(extp);
+
+            return NULL;
+
+        }
+
+编译之后运行发现Flash的地址映射还是不成。运行之后与原来输出信息相仿，没有了” Unknown IntelExt Extended Query”。证明Flash版本的验证问题已经解决。但继续向下运行发现出现了新的问题：
+
+Failed to allocate memory
+
+…….
+
+在cfi_cmd_0001.c文件中找到了错误的出处：
+
+ofs += (extp->NumProtectionFields - 1) * (sizeof(__u32) + 6);
+
+ 
+
+        /* Burst Read info */
+
+        ofs += 6;
+
+ 
+
+        /* Number of device hardware-parition regions within the device */
+
+        num_r = *((unsigned char*)(extp+1) + ofs);
+
+        ofs ++;
+
+ 
+
+        /* Partition Region info */
+
+        rinfo = (struct cfi_intelext_regioninfo*)((unsigned char*)(extp+1) + ofs);
+
+ 
+
+        for (ri=0; ri<num_r; ri++) {
+
+ 
+
+            rinfo->NumIdentPartitions=le16_to_cpu(rinfo->NumIdentPartitions);
+
+ 
+
+            num_p += rinfo->NumIdentPartitions;
+
+ 
+
+            for (j=0; j<rinfo->NumBlockTypes; j++) {
+
+                binfo = rinfo->BlockTypes + j;
+
+ 
+
+                binfo->NumIdentBlocks = le16_to_cpu(binfo->NumIdentBlocks);
+
+                binfo->BlockSize = le16_to_cpu(binfo->BlockSize);
+
+            }
+
+ 
+
+            rinfo = (struct cfi_intelext_regioninfo*)(rinfo->BlockTypes +
+
+                    rinfo->NumBlockTypes);
+
+ 
+
+        }
+
+                printk("num_p is %d\n",num_p);
+
+        priv = (struct flprivate*)kmalloc(num_p * sizeof(struct flhwpart) +
+
+                sizeof(struct flprivate), GFP_KERNEL);
+
+ 
+
+        if (!priv) {
+
+            printk(KERN_ERR "Failed to allocate memory \n");
+
+            return NULL;
+
+        }
+
+看来是对Flash的空间分配出了问题。直觉应该是待分配的空间太大所致（老实说感觉空间分配不成功八成是空间不足的原因）。于是将num_p打印出来，发现的确很大（具体不记得了，应该100000以上）。继续在这段代码附近看发现在其上还有功能相近的一段代码：
+
+if (extp->MajorVersion == '1' && extp->MinorVersion <'3') {  
+
+                        /*
+
+             * Single-hwpart part, so set up static
+
+             * hwpart region info
+
+             */
+
+            single_part = 1; // it's a single-partition part; used later for hwpart setup
+
+            priv = (struct flprivate*)kmalloc(1 * sizeof(struct flhwpart) +
+
+                    sizeof(struct flprivate), GFP_KERNEL);
+
+ 
+
+            if (!priv) {
+
+                printk(KERN_ERR "Failed to allocate memory 002\n");
+
+                return NULL;
+
+            }
+
+            rinfo = (struct cfi_intelext_regioninfo*)kmalloc(sizeof(struct cfi_intelext_regioninfo), GFP_KERNEL);
+
+            if (!rinfo) {
+
+                printk(KERN_ERR "Failed to allocate memory 003\n");
+
+                return NULL;
+
+            }
+
+            rinfo->NumIdentPartitions = 1;
+
+            rinfo->NumOpAllowed = 1;
+
+            rinfo->NumOpAllowedSimProgMode = 1;
+
+            rinfo->NumOpAllowedSimEraMode = 1;
+
+            priv->num_writing = priv->num_erasing = 0;
+
+            priv->num_hwparts = 1;
+
+            priv->hwparts = (struct flhwpart*) (priv+1);
+
+            priv->extp = extp;
+
+            hwpart = priv->hwparts;
+
+            hwpart->offset = 0;
+
+            hwpart->size = (1 << cfi->cfiq->DevSize) * cfi->interleave * cfi->numchips;
+
+            hwpart->info   = 0;
+
+            hwpart->ref_point_counter = 0;
+
+            hwpart->state  = FL_READY;
+
+            hwpart->oldstate  = FL_READY;
+
+            hwpart->is_swrww = 1;
+
+            hwpart->mutex  = &hwpart->_spinlock;
+
+            spin_lock_init(&hwpart->_spinlock);
+
+            init_waitqueue_head(&hwpart->wq);
+
+            goto skipmpsetup;
+
+        }
+
+于是想之前空间分配不成功，极有可能是执行的空间分配代码并不适合我们的Flash。而由于版本不符而跳过的上边的这段代码也许却适合我们的Flash。于是我做了如下修改：
+
+if (extp->MajorVersion == '1' && extp->MinorVersion >'3') {
+
+另外从网上得知MTD的主设备号为31，会与其它设备冲突，所以应该改为30.（include/linux/mtd/mtd.h中）
+
+编译之后运行出现了盼望已久的分区表信息。
+
+Creating 3 MTD partitions on “flashLeo”
+
+0x00000000—0x00040000:”boot”
+
+mtd: Giving out device 0 to “boot”
+
+0x00040000—0x00180000:”kernel”
+
+mtd: Giving out device 1 to “kernel”
+
+0x00180000—0x003c80000:”Rootfs”
+
+mtd: Giving out device 2 to “Rootfs”
+
+…
+
+VFS：test name=</dev/root>
+
+VFS: fs_name=<jffs2>
+
+VFS: root name=<1f:02>
+
+Mtdblock_open
+
+Ok
+
+Mtdblock_release
+
+Ok
+
+VFS:tried fs_name=<jffs2> err=-22
+
+Kernel panic: VFS：unable to mount root fs on 1f:02
+
+三．从上边的调试信息可以看出Flash地址映射和MTD分区表的加载都已经成功了。但还是提示无法挂载文件系统。在网上查了查发现要挂载的设备为“1f:02”：要挂载的设备的主设备号是1f(31),次设备号是02，即mtdblock2。明明已经在内核参数中指定了mtdblock2，可内核还是找不到文件系统。而且指出MTD的主设备号还是31，并没有是我改过来的30。MTD设备对应的设备号应该是31。貌似我所改过的地方没有起作用，似乎只是一次声明，告知内核MTD设备的主设备号，而不是为其进行分配。所以我就重新改为了31。
+
+继续编译运行的确挂载了文件系统。哈哈！
+
+附录：xsbase270.c文件内容：
+
+#include <linux/module.h>
+
+#include <linux/types.h>
+
+#include <linux/kernel.h>
+
+#include <linux/slab.h>
+
+#include <linux/init.h>
+
+#include <asm/io.h>
+
+#include <linux/mtd/mtd.h>
+
+#include <linux/mtd/map.h>
+
+#include <linux/mtd/partitions.h>
+
+#include <linux/mtd/flashchip.h>
+
+#include <linux/mtd/cfi_cmdset_0001.h>
+
+#include <linux/mtd/cfi.h>
+
+#include <linux/mtd/xip.h>
+
+#include <linux/pm.h>
+
+ 
+
+ 
+
+#define ROM_ADDR        0x00000000
+
+#define WINDOW_SIZE     64*1024*1024
+
+ 
+
+#ifdef CONFIG_PM
+
+struct pm_dev       *flash_pmdev;
+
+#endif
+
+ 
+
+static struct map_info maps = {
+
+    .name =         "flashLeo",
+
+    .size =         WINDOW_SIZE,
+
+    .phys =         0x00000000,    
+
+    .buswidth =     4//32//4/*modified by yan*/   /*buswidth:4*8=32bit*/
+
+};
+
+/*add by Leo*/
+
+static struct mtd_partition partitions[] = {
+
+        {
+
+                name:           "boot",
+
+                size:           0x00040000,
+
+                offset:         0,
+
+                mask_flags:     MTD_WRITEABLE,
+
+#ifdef CONFIG_ARCH_XSBASE270
+
+                flags: MTD_XIP
+
+#endif
+
+        },{
+
+                name:           "kernel",
+
+                size:           0x00140000,
+
+                offset:         0x00040000,
+
+                mask_flags:     MTD_WRITEABLE,
+
+#ifdef CONFIG_ARCH_XSBASE270
+
+                flags: MTD_XIP
+
+#endif
+
+        },{
+
+                name:           "Rootfs",       //revised by wangjue from "rootfs",
+
+                size:           0x03B00000,//MTDPART_SIZ_FULL,
+
+                offset:         0x00180000,
+
+#ifdef CONFIG_ARCH_XSBASE270
+
+                flags: MTD_XIP
+
+#endif
+
+        }
+
+};
+
+ 
+
+/*
+
+static struct mtd_partition partitions[] = {
+
+    {
+
+        name:       "boot",
+
+        size:       0x00040000,
+
+        offset:     0,
+
+        mask_flags: MTD_WRITEABLE,
+
+#ifdef CONFIG_ARCH_XSBASE270
+
+        flags: MTD_XIP
+
+#endif
+
+    },{
+
+        name:       "kernel",
+
+        size:       0x00140000,
+
+        offset:     0x00040000,
+
+        mask_flags: MTD_WRITEABLE,
+
+#ifdef CONFIG_ARCH_XSBASE270
+
+        flags: MTD_XIP
+
+#endif
+
+    },{
+
+#ifdef CONFIG_BLK_DEV_INITRD
+
+        name:       "ramdisk",
+
+        size:       0x00300000,
+
+        offset:     0x00180000,
+
+#ifdef CONFIG_ARCH_XSBASE270
+
+        flags: MTD_XIP
+
+#endif
+
+    },{
+
+        name:       "usr",//"user",
+
+        size:       MTDPART_SIZ_FULL,
+
+        offset:     0x00480000,
+
+#ifdef CONFIG_ARCH_XSBASE270
+
+        flags: MTD_XIP
+
+#endif
+
+#else
+
+        name:       "Rootfs",   //revised by wangjue from "rootfs",
+
+        size:       0x1e80000,//MTDPART_SIZ_FULL,
+
+        offset:     0x00180000,
+
+#ifdef CONFIG_ARCH_XSBASE270
+
+        flags: MTD_XIP
+
+#endif
+
+#endif
+
+    }
+
+};
+
+*/
+
+static struct mtd_info *mymtd;
+
+static struct mtd_partition *parsed_parts;
+
+static int nr_parsed_parts;
+
+ 
+
+static const char* probes[] = { "cmdlinepart", NULL };
+
+ 
+
+#include <linux/mtd/cfi.h>
+
+ 
+
+ 
+
+static int __init init_xsbase27x(void)
+
+{
+
+    int ret = 0, i;
+
+ 
+
+    printk( "Probing flash at physical address 0x%08lx (%d-bit buswidth)\n",
+
+        maps.phys, maps.buswidth * 8 );
+
+ 
+
+    maps.virt = (unsigned long)__ioremap(maps.phys, maps.size, 0);
+
+//  maps.virt = (unsigned long)ioremap(maps.phys, maps.size/*, 0*/);/*modified by yan*/
+
+    if (!maps.virt) {
+
+        printk("Failed to ioremap maps.virt\n");
+
+        return -EIO;
+
+    }
+
+    printk("----ioremap(**0)-------------------\n");
+
+    maps.cached = __ioremap(maps.phys, maps.size, L_PTE_BUFFERABLE | L_PTE_CACHEABLE);
+
+//  maps.cached = ioremap(maps.phys, maps.size/*, L_PTE_BUFFERABLE | L_PTE_CACHEABLE*/);/*modified by yan*/
+
+ 
+
+    if (!maps.cached)
+
+        printk("KERN_WARNING Failed to ioremap cached %s.\n", maps.name);
+
+ 
+
+    simple_map_init(&maps);
+
+    printk("----------map init---------\n");
+
+        printk("--------do_map_probe begin---------\n");
+
+    mymtd = do_map_probe("cfi_probe", &maps);
+
+        printk("--------do_map_probe end---------\n");
+
+    if (!mymtd) {
+
+                printk("--------do_map_probe failed---------\n");
+
+        iounmap((void *)maps.virt);
+
+        if (maps.cached) iounmap(maps.cached);
+
+        return -ENXIO;
+
+    }
+
+    printk("after do_map_probe-------------------\n");
+
+    mymtd->owner = THIS_MODULE;
+
+ 
+
+    /*
+
+     * Set the is_swrww flag in appropriate hwparts; e.g.
+
+     * the hwparts that contain an XIP partition.
+
+     */
+
+#ifdef CONFIG_ARCH_XSBASE270
+
+    {
+
+        printk("-----------config_arch_xsbase270---------\n");
+
+        struct flhwpart* hwpart = NULL;
+
+        struct cfi_private* cfi = maps.fldrv_priv;
+
+        long adr = 0;
+
+        printk("cfi->numchips----------%d\n",cfi->numchips);
+
+        for (i = 0; i <cfi->numchips; i++) {
+
+            int j;
+
+            struct flchip* chip = &cfi->chips[i];
+
+            struct flprivate *priv = (struct flprivate*) chip->priv;
+
+            for (j = 0; j <priv->num_hwparts; j++) {
+
+                int k;
+
+                hwpart = priv->hwparts + j;
+
+                int is_swrww = 0;
+
+                for (k = 0; k < ARRAY_SIZE(partitions); k++) {
+
+                    long part_start = partitions[k].offset;
+
+                    long part_end = part_start + partitions[k].size;
+
+                    if (((part_start >= adr) && (part_start < (adr + hwpart->size))) ||
+
+                        ((part_end >= adr) && (part_end < (adr + hwpart->size))) ||
+
+                        ((part_start < adr) && (part_end >= (adr + hwpart->size)))) {
+
+                        if (k == 0) {
+
+                            is_swrww = partitions[k].flags && MTD_XIP;
+
+                        } else {
+
+                            is_swrww |= (partitions[k].flags && MTD_XIP);
+
+                        }
+
+                    }
+
+                }
+
+                if (is_swrww) {
+
+                    printk("Using SW/RWW for hwpart %d.\n", j);
+
+                }
+
+                hwpart->is_swrww = is_swrww;
+
+                adr += hwpart->size;
+
+            }
+
+            adr += (1<<cfi->chipshift);
+
+        }
+
+    }
+
+ 
+
+    /* Unlock the flash device. */
+
+        printk("--------unlock the flash device---------\n");
+
+    for (i = 0; i < mymtd->numeraseregions; i++) {
+
+        int j;
+
+        for( j = 0; j < mymtd->eraseregions[i].numblocks; j++) {
+
+            mymtd->unlock(mymtd, mymtd->eraseregions[i].offset +
+
+                      j * mymtd->eraseregions[i].erasesize,
+
+                      mymtd->eraseregions[i].erasesize);
+
+        }
+
+    }
+
+#endif
+
+ 
+
+    ret = parse_mtd_partitions(mymtd, probes, &parsed_parts, 0);
+
+    if (ret > 0) nr_parsed_parts = ret;
+
+ 
+
+    if (!mymtd) {
+
+        printk(KERN_WARNING "%s is absent.  Skipping\n", maps.name);
+
+    } else if (nr_parsed_parts) {
+
+        add_mtd_partitions(mymtd, parsed_parts, nr_parsed_parts);
+
+    } else {
+
+        add_mtd_partitions(mymtd, partitions, ARRAY_SIZE(partitions));
+
+    }
+
+    printk("--------init xsbase270 flash over---------\n");
+
+    return 0;
+
+}
+
+ 
+
+static void __exit cleanup_xsbase27x(void)
+
+{
+
+    if (mymtd) {
+
+        if (nr_parsed_parts)
+
+            del_mtd_partitions(mymtd);
+
+        else
+
+            del_mtd_device(mymtd);
+
+ 
+
+        map_destroy(mymtd);
+
+        if (parsed_parts)
+
+            kfree(parsed_parts);
+
+    }
+
+ 
+
+    if (maps.virt)
+
+        iounmap((void *)maps.virt);
+
+    
+
+    if (maps.cached)
+
+        iounmap((void *)maps.cached);
+
+}
+
+ 
+
+module_init(init_xsbase27x);
+
+module_exit(cleanup_xsbase27x);
+
+  评论这张  转发至微博  转发至微博  0人  |  分享到：         阅读(179)| 评论(1)| 转载 (0) |举报 
+ 
+  签了MTK，结束找工作
+历史上的今天
+
+最近读者
+
+评论              页脚
+公司简介 - 联系方法 - 招聘信息 - 客户服务 - 隐私政策 - 博客风格 - 手机博客 - VIP博客 - 订阅此博客 
+网易公司版权所有 ©1997-2013
+

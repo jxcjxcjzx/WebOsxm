@@ -1,0 +1,398 @@
+
+
+
+
+lishuaijun0731的专栏
+
+
+
+
+
+ 
+
+
+
+•目录视图
+•摘要视图
+•订阅
+ 
+
+
+
+2013中国大数据大会赠票申请        文思海辉第一届在线编程大赛      消灭0回答，赢下载分      订阅CSDN社区周刊，及时了解社区精华内容      办公大师系列经典丛书 诚聘译者 
+
+
+
+js 学习总结 
+
+2010-12-09 14:41440人阅读评论(2)收藏举报
+ 
+variablesparameters活动functionjs引擎引擎
+
+ 
+今天有空学习了下js
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+1 从网上找了些学习的资料。
+ 
+ 
+ 
+
+
+解析过程
+ 
+1、执行顺序
+ •编译型语言，编译步骤分为：词法分析、语法分析、语义检查、代码优化和字节生成。 
+•解释型语言，通过词法分析和语法分析得到语法分析树后，就可以开始解释执行了。这里是一个简单原始的关于解析过程的原理，仅作为参考，详细的解析过程（各种JS引擎还有不同）还需要更深一步的研究 
+
+JavaScript执行过程，如果一个文档流中包含多个script代码段（用script标签分隔的js代码或引入的js文件），它们的运行顺序是：
+ 1.步骤1. 读入第一个代码段（js执行引擎并非一行一行地执行程序，而是一段一段地分析执行的） 
+2.步骤2. 做词法分析和语法分析，有错则报语法错误（比如括号不匹配等），并跳转到步骤5 
+3.步骤3. 对【var】变量和【function】定义做“预解析“（永远不会报错的，因为只解析正确的声明） 
+4.步骤4. 执行代码段，有错则报错（比如变量未定义） 
+5.步骤5. 如果还有下一个代码段，则读入下一个代码段，重复步骤2 
+6.步骤6. 结束 
+
+2、特殊说明
+全局域（window）域下所有JS代码可以被看成是一个“匿名方法“，它会被自动执行，而此“匿名方法“内的其它方法则是在被显示调用的时候才被执行
+3、关键步骤
+上面的过程，我们主要是分成两个阶段
+ 1.解析：就是通过语法分析和预解析构造合法的语法分析树。 
+2.执行：执行具体的某个function，JS引擎在执行每个函数实例时，都会创建一个执行环境（ExecutionContext）和活动对象（activeObject）（它们属于宿主对象，与函数实例的生命周期保持一致） 
+
+3、关键概念
+到这里，我们再更强调以下一些概念，这些概念都会在下面用一个一个的实体来表示，便于大家理解
+ •语法分析树（SyntaxTree）可以直观地表示出这段代码的相关信息,具体的实现就是JS引擎创建了一些表，用来记录每个方法内的变量集（variables），方法集（functions）和作用域（scope）等 
+•执行环境（ExecutionContext）可理解为一个记录当前执行的方法【外部描述信息】的对象,记录所执行方法的类型，名称，参数和活动对象（activeObject） 
+•活动对象（activeObject）可理解为一个记录当前执行的方法【内部执行信息】的对象,记录内部变量集（variables）、内嵌函数集（functions）、实参（arguments）、作用域链（scopeChain）等执行所需信息，其中内部变量集（variables）、内嵌函数集（functions）是直接从第一步建立的语法分析树复制过来的 
+•词法作用域：变量的作用域是在定义时决定而不是执行时决定，也就是说词法作用域取决于源码，通过静态分析就能确定，因此词法作用域也叫做静态作用域。 with和eval除外，所以只能说JS的作用域机制非常接近词法作用域（Lexical scope） 
+•作用域链：词法作用域的实现机制就是作用域链（scopeChain）。作用域链是一套按名称查找（Name Lookup）的机制，首先在当前执行环境的 ActiveObject 中寻找，没找到，则顺着作用域链到父 ActiveObject 中寻找，一直找到全局调用对象（Global Object） 
+
+4、实体表示
+
+ 
+解析模拟
+ 
+估计，看到这儿，大家还是很朦胧吧，什么是语法分析树，语法分析树到底长什么样子，作用域链又怎么实现的，活动对象又有什么内容等等，还是不是太清晰，下面我们就通过一段实际的代码来模拟整个解析过程，我们就把语法分析树，活动对象实实在在的创建出来，理解作用域，作用域链的到底是怎么实现的
+1、模拟代码
+ 
+1./*全局（window）域下的一段代码*/ 
+2.var i = 1,j = 2,k = 3; 
+3.function a(o,p,x,q){ 
+4.    var x = 4; 
+5.        alert(i); 
+6.    function b(r,s) { 
+7.        var i = 11,y = 5; 
+8.            alert(i); 
+9.        function c(t){ 
+10.          var z = 6; 
+11.                alert(i); 
+12.        }; 
+13.            //函数表达式 
+14.        var d = function(){ 
+15.                alert(y); 
+16.            }; 
+17.            c(60); 
+18.            d(); 
+19.    }; 
+20.        b(40,50); 
+21.} 
+22.a(10,20,30); 
+
+
+2、语法分析树
+上面的代码很简单，就是先定义了一些全局变量和全局方法，接着在方法内再定义局部变量和局部方法，现在JS解释器读入这段代码开始解析，前面提到 JS 引擎会先通过语法分析和预解析得到语法分析树，至于语法分析树长什么样儿，都有些什么信息，下面我们以一种简单的结构：一个 JS 对象(为了清晰表示个各种对象间的引用关系，这里的只是伪对象表示，可能无法运行)来描述语法分析树（这是我们比较熟悉的，实际结构我们不去深究，肯定复杂得多，这里是为了帮助理解解析过程而特意简化）
+ 
+1./** 
+2.* 模拟建立一棵语法分析树，存储function内的变量和方法 
+3.*/ 
+4.var SyntaxTree = { 
+5.        // 全局对象在语法分析树中的表示 
+6.    window: { 
+7.        variables:{ 
+8.            i:{ value:1}, 
+9.            j:{ value:2}, 
+10.            k:{ value:3} 
+11.        }, 
+12.        functions:{ 
+13.            a: this.a 
+14.        } 
+15.    }, 
+16.  
+17.    a:{ 
+18.        variables:{ 
+19.            x:"undefined" 
+20.        }, 
+21.        functions:{ 
+22.            b: this.b 
+23.        }, 
+24.        scope: this.window 
+25.    }, 
+26.  
+27.    b:{ 
+28.        variables:{ 
+29.            y:"undefined" 
+30.        }, 
+31.        functions:{ 
+32.            c: this.c, 
+33.            d: this.d 
+34.        }, 
+35.        scope: this.a 
+36.    }, 
+37.  
+38.    c:{ 
+39.        variables:{ 
+40.            z:"undefined" 
+41.        }, 
+42.        functions:{}, 
+43.        scope: this.b 
+44.    }, 
+45.  
+46.    d:{ 
+47.        variables:{}, 
+48.        functions:{}, 
+49.        scope: { 
+50.           myname:d, 
+51.           scope: this.b 
+52.        } 
+53.    } 
+54.}; 
+
+
+上面就是关于语法分析树的一个简单表示，正如我们前面分析的，语法分析树主要记录了每个 function 中的变量集（variables），方法集（functions）和作用域（scope）
+语法分析树关键点
+ •1变量集（variables）中，只有变量定义，没有变量值，这时候的变量值全部为“undefined” 
+•2作用域（scope），根据词法作用域的特点，这个时候每个变量的作用域就已经明确了，而不会随执行时的环境而改变。【什么意思呢？就是我们经常将一个方法 return 回去，然后在另外一个方法中去执行，执行时，方法中变量的作用域是按照方法定义时的作用域走。其实这里想表达的意思就是不管你在多么复杂，多么远的地方执行该方法，最终判断方法中变量能否被访问还是得回到方法定义时的地方查证】 
+•3作用域（scope）建立规则 
+•a对于函数声明和匿名函数表达式来说，[scope]就是它创建时的作用域 
+•b对于有名字的函数表达式，[scope]顶端是一个新的JS对象（也就是继承了Object.prototype），这个对象有两个属性，第一个是自身的名称，第二个是定义的作用域，第一个函数名称是为了确保函数内部的代码可以无误地访问自己的函数名进行递归。 
+
+3、执行环境与活动对象
+语法分析完成，开始执行代码。我们调用每一个方法的时候，JS 引擎都会自动为其建立一个执行环境和一个活动对象，它们和方法实例的生命周期保持一致，为方法执行提供必要的执行支持，针对上面的几个方法，我们这里统一为其建立了活动对象（按道理是在执行方法的时候才会生成活动对象，为了便于演示，这里一下子定义了所有方法的活动对象），具体如下：
+执行环境
+ 
+1./** 
+2.* 执行环境:函数执行时创建的执行环境 
+3.*/ 
+4.var ExecutionContext = { 
+5.    window: { 
+6.        type: "global", 
+7.        name: "global", 
+8.        body: ActiveObject.window 
+9.    }, 
+10.  
+11.    a:{ 
+12.        type: "function", 
+13.        name: "a", 
+14.        body: ActiveObject.a, 
+15.        scopeChain: this.window.body 
+16.    }, 
+17.  
+18.    b:{ 
+19.        type: "function", 
+20.        name: "b", 
+21.        body: ActiveObject.b, 
+22.        scopeChain: this.a.body 
+23.    }, 
+24.  
+25.    c:{ 
+26.        type: "function", 
+27.        name: "c", 
+28.        body: ActiveObject.c, 
+29.        scopeChain: this.b.body 
+30.    }, 
+31.  
+32.    d:{ 
+33.        type: "function", 
+34.        name: "d", 
+35.        body: ActiveObject.d, 
+36.        scopeChain: this.b.body 
+37.    } 
+38.} 
+
+
+上面每一个方法的执行环境都存储了相应方法的类型（function）、方法名称（funcName）、活动对象（ActiveObject）、作用域链（scopeChain）等信息,其关键点如下：
+ •body属性，直接指向当前方法的活动对象 
+•scopeChain属性，作用域链，它是一个链表结构，根据语法分析树中当前方法对应的scope属性，它指向scope对应的方法的活动对象（ActivceObject），变量查找就是跟着这条链条查找的 
+
+活动对象
+ 
+1./** 
+2.* 活动对象：函数执行时创建的活动对象列表 
+3.*/ 
+4.var ActiveObject = { 
+5.        window: { 
+6.        variables:{ 
+7.            i: { value:1}, 
+8.            j: { value:2}, 
+9.            k: { value:3} 
+10.        }, 
+11.        functions:{ 
+12.            a: this.a 
+13.        } 
+14.    }, 
+15.  
+16.    a:{ 
+17.        variables:{ 
+18.            x: {value:4} 
+19.        }, 
+20.        functions:{ 
+21.            b: SyntaxTree.b 
+22.        }, 
+23.        parameters:{ 
+24.            o: {value: 10}, 
+25.            p: {value: 20}, 
+26.            x: this.variables.x, 
+27.            q: "undefined" 
+28.        }, 
+29.        arguments:[this.parameters.o,this.parameters.p,this.parameters.x] 
+30.    }, 
+31.  
+32.    b:{ 
+33.        variables:{ 
+34.            y:{ value:5} 
+35.        }, 
+36.        functions:{ 
+37.            c: SyntaxTree.c, 
+38.            d: SyntaxTree.d 
+39.        }, 
+40.        parameters:{ 
+41.            r:{value:40}, 
+42.            s:{value:50} 
+43.        }, 
+44.        arguments:[this.parameters.r,this.parameters.s] 
+45.    }, 
+46.  
+47.    c:{ 
+48.        variables:{ 
+49.            z:{ value:6} 
+50.        }, 
+51.        functions:{}, 
+52.        parameters:{ 
+53.            u:{value:70} 
+54.        }, 
+55.        arguments:[this.parameters.u] 
+56.    }, 
+57.  
+58.    d:{ 
+59.        variables:{}, 
+60.        functions:{}, 
+61.        parameters:{}, 
+62.        arguments:[] 
+63.    } 
+64.} 
+
+
+上面每一个活动对象都存储了相应方法的内部变量集（variables）、内嵌函数集（functions）、形参（parameters）、实参（arguments）等执行所需信息，活动对象关键点
+ •创建活动对象，从语法分析树复制方法的内部变量集（variables）和内嵌函数集（functions） 
+•方法开始执行，活动对象里的内部变量集全部被重置为 undefined 
+•创建形参（parameters）和实参（arguments）对象，同名的实参，形参和变量之间是【引用】关系 
+•执行方法内的赋值语句，这才会对变量集中的变量进行赋值处理 
+•变量查找规则是首先在当前执行环境的 ActiveObject 中寻找，没找到，则顺着执行环境中属性 ScopeChain 指向的 ActiveObject 中寻找，一直到 Global Object（window） 
+•方法执行完成后，内部变量值不会被重置，至于变量什么时候被销毁，请参考下面一条 
+•方法内变量的生存周期取决于方法实例是否存在活动引用，如没有就销毁活动对象 
+•6和7 是使闭包能访问到外部变量的根本原因   
+•http://www.alixixi.com/web/a/2010062560089.shtml
+ 
+ 
+ 
+
+更多 
+
+•下一篇：js 学习总结2
+ 
+
+
+查看评论
+ 
+
+
+
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+核心技术类目
+
+ 全部主题 数据挖掘 SOA UML 开放平台 HTML5 开源 移动开发 iOS Android移动游戏 Windows Phone JavaScript CSS 游戏引擎 云计算 大数据 Hadoop OpenStack云平台 PHP MongoDB JSON Xcode Node.js 前端开发 神经网络 安全 Java .NET MySQL textview BigTable web框架 SQL Redis CouchDB Linux 可穿戴计算 NoSQL Ruby API GPL XAML ASP.NET 前端开发 虚拟化 框架 机器学习 数据中心 IE10 敏捷 集群
+ 
+
+
+
+
+个人资料 
+
+lishuaijun0731 
+
+
+
+
+◦访问：4337次
+◦积分：138分
+◦排名：千里之外
+ ◦原创：10篇
+◦转载：2篇
+◦译文：0篇
+◦评论：4条
+ 
+文章搜索
+
+ 
+文章存档 
+•2011年03月(2)
+•2011年01月(1)
+•2010年12月(9)
+ 
+阅读排行 • hibernateTemplate find() createQuery()(1738) 
+• 转载 解决乱码的问题（java jsp等）(636) 
+• js 学习总结(440) 
+• 浏览器不更新JSP(133) 
+• js 学习总结2(83) 
+• tomcat 虚拟路径的学习(77) 
+• js 学习总结 5(70) 
+• mysql 常见的一个错误（安装完成后出错）(66) 
+• js 学习总结3(64) 
+• java 比较时间的大小(61) 
+
+评论排行 • js 学习总结(2) 
+• mysql 常见的一个错误（安装完成后出错）(1) 
+• 转载 解决乱码的问题（java jsp等）(1) 
+• hibernateTemplate find() createQuery()(0) 
+• 浏览器不更新JSP(0) 
+• java 比较时间的大小(0) 
+• tomcat 虚拟路径的学习(0) 
+• js 学习总结2(0) 
+• java 学习(0) 
+• js 学习总结 5(0) 
+
+推荐文章 
+最新评论 •js 学习总结
+xingxing1828: 马克 
+
+•js 学习总结
+WindowsXPaccp: jhjj 
+
+•转载 解决乱码的问题（java jsp等）
+xiebinghu: 地址栏上直接输入URL地址乱码没解决 
+
+•mysql 常见的一个错误（安装完成后出错）
+zhangxuehuan: ,很实用 
+
+
+
+
+
+

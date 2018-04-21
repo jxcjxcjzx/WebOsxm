@@ -1,0 +1,18 @@
+      
+KLTSelectGoodFeatures()
+
+void KLTSelectGoodFeatures(
+KLT_TrackingContext tc,
+KLT_PixelType *img,
+int ncols,
+int nrows,
+KLT_FeatureList fl);
+
+KLTSelectGoodFeatures() takes an image pointed to by img. (NOTE: KLT_PixelType is, unless modified by the user, an unsigned char.) If tc->smoothBeforeSelecting is set to TRUE, then the image is smoothed by convolving with a Gaussian of sigma = tc->smooth_sigma_fact * max(tc->window_width, tc->window_height); otherwise, the image is not smoothed. In either case, gradients are computed from the resulting image by convolving with the derivative of a Gaussian of sigma = tc->grad_sigma. These gradients (one in the x direction and the other in the y direction) are used to select the features.
+Pixels throughout the image are then measured as to their "goodness", which is a measure of their trackability. Generally each pixel within the image's interior is considered, where the interior is defined by tc->borderx and tc->bordery (i.e., setting these parameters to zero causes the interior to equal the whole image). The parameter tc->nSkippedPixels can be used to speed up the process in the following way: its default value is zero, in which case every pixel within the interior is considered; if it is set to one, then every other pixel within the interior is considered; setting it to two causes every third pixel to be considered; and similarly for higher values. Since neighboring pixels generally have similar goodness values, then skipping every other one will probably not noticeably decrease performance.
+
+The goodness of each pixel is measured as the minimum eigenvalue of the 2 by 2 gradient matrix computed from the tc->window_width by tc->window_height window around the pixel. After all the pixels have been considered, they are sorted in descending order according to goodness. Then, one by one the top fl->nFeatures features (or pixels) whose minimum eigenvalue is at least tc->min_eigenvalue are selected, ensuring that each new feature is at least tc->mindist pixels away from all the other features.
+
+If tc->writeInternalImages is TRUE, then the smoothed image and the image derivatives are written to "kltimg_sgfrlf.pgm", "kltimg_sgfrlf_gx.pgm", and "kltimg_sgfrlf_gy.pgm", respectively. This allows the user to more intelligently select the parameters for smoothing and differentiating.
+
+       

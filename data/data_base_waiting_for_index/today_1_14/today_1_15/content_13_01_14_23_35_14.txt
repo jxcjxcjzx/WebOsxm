@@ -1,0 +1,241 @@
+
+首页资讯精华论坛问答博客专栏群组更多 ▼
+
+ 
+您还未登录 !登录注册
+
+
+
+
+
+
+
+博客
+微博
+相册
+收藏
+留言
+关于我
+
+
+
+
+.
+
+
+
+
+Apache Hadoop 版本
+博客分类： Hadoop
+ 
+hadoopmapreducehbase .
+
+
+
+
+ 
+由于Hadoop版本混乱多变，因此，Hadoop的版本选择问题一直令很多初级用户苦恼。本文总结了Apache Hadoop和Cloudera Hadoop的版本衍化过程，并给出了选择Hadoop版本的一些建议。
+ 
+1. Apache Hadoop
+ 
+1.1  Apache版本衍化
+ 
+截至目前（2012年12月23日），Apache Hadoop版本分为两代，我们将第一代Hadoop称为Hadoop 1.0，第二代Hadoop称为Hadoop 2.0。第一代Hadoop包含三个大版本，分别是0.20.x，0.21.x和0.22.x，其中，0.20.x最后演化成1.0.x，变成了稳定版，而0.21.x和0.22.x则NameNode HA等新的重大特性。第二代Hadoop包含两个版本，分别是0.23.x和2.x，它们完全不同于Hadoop 1.0，是一套全新的架构，均包含HDFS Federation和YARN两个系统，相比于0.23.x，2.x增加了NameNode HA和Wire-compatibility两个重大特性。
+ 
+经过上面的大体解释，大家可能明白了Hadoop以重大特性区分各个版本的，总结起来，用于区分Hadoop版本的特性有以下几个：
+ 
+（1）Append     支持文件追加功能，如果想使用HBase，需要这个特性。
+ 
+（2）RAID        在保证数据可靠的前提下，通过引入校验码较少数据块数目。详细链接：
+ 
+https://issues.apache.org/jira/browse/HDFS/component/12313080
+ 
+（3）Symlink    支持HDFS文件链接，具体可参考： https://issues.apache.org/jira/browse/HDFS-245
+ 
+（4）Security    Hadoop安全，具体可参考：https://issues.apache.org/jira/browse/HADOOP-4487
+ 
+（5） NameNode HA  具体可参考：https://issues.apache.org/jira/browse/HDFS-1064
+ 
+（6） HDFS Federation和YARN
+ 
+
+
+需要注意的是，Hadoop 2.0主要由Yahoo独立出来的hortonworks公司主持开发。
+ 
+1.2  Apache版本下载
+ 
+（1） 各版本说明：http://hadoop.apache.org/releases.html。
+ 
+（2） 下载稳定版：找到一个镜像，下载stable文件夹下的版本。
+ 
+（3） Hadoop最全版本：http://svn.apache.org/repos/asf/hadoop/common/branches/，可直接导到eclipse中。
+ 
+2. Cloudera Hadoop
+ 
+2.1  CDH版本衍化
+ 
+Apache当前的版本管理是比较混乱的，各种版本层出不穷，让很多初学者不知所措，相比之下，Cloudera公司的Hadoop版本管理的要很多。
+ 
+我们知道，Hadoop遵从Apache开源协议，用户可以免费地任意使用和修改Hadoop，也正因此，市面上出现了很多Hadoop版本，其中比较出名的一是Cloudera公司的发行版，我们将该版本称为CDH（Cloudera Distribution Hadoop）。截至目前为止，CDH共有4个版本，其中，前两个已经不再更新，最近的两个，分别是CDH3（在Apache Hadoop 0.20.2版本基础上演化而来的）和CDH4在Apache Hadoop 2.0.0版本基础上演化而来的），分别对应Apache的Hadoop 1.0和Hadoop 2.0，它们每隔一段时间便会更新一次。
+ 
+
+
+Cloudera以patch level划分小版本，比如patch level为923.142表示在原生态Apache Hadoop 0.20.2基础上添加了1065个patch（这些patch是各个公司或者个人贡献的，在Hadoop jira上均有记录），其中923个是最后一个beta版本添加的patch，而142个是稳定版发行后新添加的patch。由此可见，patch level越高，功能越完备且解决的bug越多。
+ 
+Cloudera版本层次更加清晰，且它提供了适用于各种操作系统的Hadoop安装包，可直接使用apt-get或者yum命令进行安装，更加省事。
+ 
+2.2 CDH版本下载
+ 
+（1） 版本含义介绍：
+ 
+https://ccp.cloudera.com/display/DOC/CDH+Version+and+Packaging+Information
+ 
+（2）各版本特性查看：
+ 
+https://ccp.cloudera.com/display/DOC/CDH+Packaging+Information+for+Previous+Releases
+ 
+（3）各版本下载：
+ 
+CDH3：http://archive.cloudera.com/cdh/3/
+ 
+CDH4：http://archive.cloudera.com/cdh4/cdh/4/
+ 
+注意，Hadoop压缩包在这两个链接中的最上层目录中，不在某个文件夹里，很多人进到链接还找不到安装包！
+ 
+3. 如何选择Hadoop版本
+ 
+当前Hadoop版本比较混乱，让很多用户不知所措。实际上，当前Hadoop只有两个版本：Hadoop 1.0和Hadoop 2.0，其中，Hadoop 1.0由一个分布式文件系统HDFS和一个离线计算框架MapReduce组成，而Hadoop 2.0则包含一个支持NameNode横向扩展的HDFS，一个资源管理系统YARN和一个运行在YARN上的离线计算框架MapReduce。相比于Hadoop 1.0，Hadoop 2.0功能更加强大，且具有更好的扩展性、性能，并支持多种计算框架。
+ 
+当我们决定是否采用某个软件用于开源环境时，通常需要考虑以下几个因素：
+ 
+（1）是否为开源软件，即是否免费。
+ 
+（2） 是否有稳定版，这个一般软件官方网站会给出说明。
+ 
+（3） 是否经实践验证，这个可通过检查是否有一些大点的公司已经在生产环境中使用知道。
+ 
+（4） 是否有强大的社区支持，当出现一个问题时，能够通过社区、论坛等网络资源快速获取解决方法。
+ 
+考虑到以上几个因素，我们分析一下开源软件Hadoop。对于Hadoop 2.0而言，目前尚不稳定，无法用于生产环境，因此，如果当前你正准备使用Hadoop，那么只能从Hadoop 1.0中选择一个版本，而目截至目前（2012年12月23日），Apache和Cloudera最新的稳定版分别是Hadoop 1.0.4和CDH3U4，因此，你可以从中任选一个使用。
+ 
+
+
+
+转自：http://dongxicheng.org/mapreduce-nextgen/how-to-select-hadoop-versions/
+
+
+分享到： 
+.
+
+使用automake
+
+2013-01-10 22:41
+浏览 27
+评论(0)
+分类:编程语言
+相关推荐
+
+
+评论
+
+
+发表评论
+
+ 您还没有登录,请您登录后再发表评论 
+
+
+
+
+
+
+ipjmc
+ 
+浏览: 48725 次
+性别: 
+来自: 北京
+
+
+
+最近访客 更多访客>>
+
+
+
+
+songbin0201
+
+
+
+
+et009tw
+
+
+
+
+sunbird.work
+
+
+
+
+shang223
+.
+
+文章分类
+■全部博客 (99)
+■Android 2D 编程 (8)
+■Android 文章 (49)
+■Android网站收藏 (1)
+■JAVA (6)
+■IT网站收藏 (1)
+■网站架构 (4)
+■Linux (3)
+■JavaScript (9)
+■Android推送 (0)
+■CSS (5)
+■git (1)
+■HTTP (1)
+■Android事件处理 (1)
+■thrift (2)
+■python (1)
+■推荐 (1)
+■Hadoop (1)
+■C/C++ (4)
+
+
+社区版块
+■我的资讯 (0)
+■我的论坛 (0) 
+■我的问答 (0)
+
+
+存档分类
+■2013-01 (1)
+■2012-11 (4)
+■2012-10 (9)
+■更多存档...
+
+
+评论排行榜
+■Android Scroller简单用法
+■Android文件存储
+■显示PopupWindow
+
+
+最新评论
+yahier：   为什么我的popupwindow 有时不显示呢。经过测试 ...
+显示PopupWindow
+zhuruyi： 例子效果不错
+Android Scroller简单用法
+Jclick： ...
+Android布局文件中命名空间的解析
+m331006： 从 GPRS 到 WIFI 或者从WIFI到GPRS都会收到两 ...
+使用ConnectivityManager监听网络状态变化
+yourancao520： 好文章 ，学习了。
+在一个Activity中使用多个Dialog
+
+.
+
+
+--------------------------------------------------------------------------------
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ] 
+.

@@ -1,0 +1,356 @@
+jxc0我的：收件箱资源博客空间设置|帮助|退出首页业界移动云计算研发论坛博客下载
+更多
+bingqingsuimeng的专栏
+目录视图摘要视图订阅
+文思海辉第一届在线编程大赛      消灭0回答，赢下载分      订阅CSDN社区周刊，及时了解社区精华内容      办公大师系列经典丛书 诚聘译者
+ 多核中percpu
+分类： linux内核中驱动相关机制 2012-08-12 12:00 1055人阅读 评论(0) 收藏 举报
+structattributes数据结构linkerx86module
+What is percpu data?
+        percpu data 是内核为smp系统中不同CPU之间的数据保护方式，系统为每个CPU维护一段私有的空间，在这段空间中的数据只有这个CPU能访问。但是这种方式不提供 对异步函数访问的保护，因此在同一个CPU上还要另外的同步原语的协作。
+
+arch/x86/kernel/vmlinux.lds中有:
+..... 
+ /* will be freed after init
+   * Following ALIGN() is required to make sure no other data falls on the
+   * same page where __smp_alt_end is pointing as that page might be freed
+   * after boot. Always make sure that ALIGN() directive is present after
+   * the section which contains __smp_alt_end.
+   */
+  . = ALIGN(PAGE_SIZE);
+
+  /* will be freed after init */
+  . = ALIGN(PAGE_SIZE);        /* Init code and data */
+....
+....////省略若干行
+....
+  . = ALIGN(PAGE_SIZE);
+  .data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {
+    __per_cpu_start = .;
+    *(.data.percpu.page_aligned)
+    *(.data.percpu)
+    *(.data.percpu.shared_aligned)
+    __per_cpu_end = .;
+  }
+  . = ALIGN(PAGE_SIZE);
+  /* freed after init ends here */
+
+        这说明__per_cpu_start和__per_cpu_end标识.data.percpu这个section的开头和结尾。并且，整个. data.percpu这个section都在__init_begin和__init_end之间，也就是说，该section所占内存会在系统启动后 释放(free)掉。
+
+<include/linux/percpu.h>
+
+#define DEFINE_PER_CPU(type, name)                    \
+    __attribute__((__section__(".data.percpu")))            \
+    PER_CPU_ATTRIBUTES __typeof__(type) per_cpu__##name
+
+在x86和ARM中，PER_CPU_ATTRIBUTES定义为空宏，所以
+static DEFINE_PER_CPU(struct runqueue, runqueues); 
+会扩展成
+__attribute__((__section__(".data.percpu"))) __typeof__(struct runqueue) per_cpu__runqueues;
+也就是在.data.percpu这个section中定义了一个变量per_cpu__runqueues，其类型是struct runqueue。
+事实上，这里所谓的变量per_cpu__runqueues，其实就是相对于__per_cpu_start的偏移量。（在x86中是段＋偏移的寻址方式，在ARM中如何？）
+初始化函数
+在start_kernel()函数中会调用setup_per_cpu_areas()
+#ifndef CONFIG_HAVE_SETUP_PER_CPU_AREA
+unsigned long __per_cpu_offset[NR_CPUS] __read_mostly;
+
+EXPORT_SYMBOL(__per_cpu_offset);一个全局变量
+
+static void __init setup_per_cpu_areas(void)
+{
+    unsigned long size, i;
+    char *ptr;
+    unsigned long nr_possible_cpus = num_possible_cpus();
+
+    /* Copy section for each CPU (we discard the original) */
+    size = ALIGN(PERCPU_ENOUGH_ROOM, PAGE_SIZE);
+    ptr = alloc_bootmem_pages(size * nr_possible_cpus);
+
+    for_each_possible_cpu(i) {
+        __per_cpu_offset[i] = ptr - __per_cpu_start;
+        memcpy(ptr, __per_cpu_start, __per_cpu_end - __per_cpu_start);
+        ptr += size;
+    }
+}
+#endif /* CONFIG_HAVE_SETUP_PER_CPU_AREA */
+
+        在该函数中，为每个CPU分配一段内存，并将.data.percpu中的数据拷贝到其中，每个CPU各有一份，其中CPU n对应的专有数据区的首地址为__per_cpu_offset[n]。这样，前述相应于__per_cpu_start的偏移量 per_cpu__runqueues就变成了相应于__per_cpu_offset[n]的偏移量，这样.data.percpu这个section 在系统初始化后就可以释放了。	
+
+
+
+
+
+
+
+
+
+
+////在percpu.h中
+#define PERCPU_ENOUGH_ROOM                        \
+    (__per_cpu_end - __per_cpu_start + PERCPU_MODULE_RESERVE)
+
+#define PERCPU_MODULE_RESERVE    8192  ////保留空间
+数据结构
+
+<arch/x86/include/asm/pda.h>
+/* Per processor datastructure. %gs points to it while the kernel runs */
+struct x8664_pda {
+    struct task_struct *pcurrent;    /* 0  Current process */
+    unsigned long data_offset;    /* 8 Per cpu data offset from linker
+                       address */
+    unsigned long kernelstack;    /* 16 top of kernel stack for current */
+    unsigned long oldrsp;        /* 24 user rsp for system call */
+    int irqcount;            /* 32 Irq nesting counter. Starts -1 */
+    unsigned int cpunumber;        /* 36 Logical CPU number */
+#ifdef CONFIG_CC_STACKPROTECTOR
+    unsigned long stack_canary;    /* 40 stack canary value */
+                    /* gcc-ABI: this canary MUST be at
+                       offset 40!!! */
+#endif
+    char *irqstackptr;
+    short nodenumber;        /* number of current node (32k max) */
+    short in_bootmem;        /* pda lives in bootmem */
+    unsigned int __softirq_pending;
+    unsigned int __nmi_count;    /* number of NMI on this CPUs */
+    short mmu_state;
+    short isidle;
+    struct mm_struct *active_mm;
+    unsigned apic_timer_irqs;
+    unsigned irq0_irqs;
+    unsigned irq_resched_count;
+    unsigned irq_call_count;
+    unsigned irq_tlb_count;
+    unsigned irq_thermal_count;
+    unsigned irq_threshold_count;
+    unsigned irq_spurious_count;
+} ____cacheline_aligned_in_smp;
+
+extern struct x8664_pda **_cpu_pda;
+extern void pda_init(int);
+
+#define cpu_pda(i) (_cpu_pda[i])
+操作函数、宏
+<include/asm-generic/percpu.h>
+#define per_cpu(var, cpu) \
+    (*SHIFT_PERCPU_PTR(&per_cpu_var(var), per_cpu_offset(cpu)))
+
+所以这个宏展开为：
+#define per_cpu(var,cpu)\
+   (*RELOC_HIDE(&per_cpu_varvar,cpu_pda(cpu)->data_offset))
+即：
+per_cpu_varvar[cpu_pda(cpu)->data_offset]
+
+因此，per_cpu这个宏的功能是：为cpu选择一个
+每CPU数组元素，数组名为per_cpu__varvar.
+<include/asm-generic/percpu.h>
+/*
+ * Add a offset to a pointer but keep the pointer as is.
+ *
+ * Only S390 provides its own means of moving the pointer.
+ */
+#ifndef SHIFT_PERCPU_PTR
+#define SHIFT_PERCPU_PTR(__p, __offset)    RELOC_HIDE((__p), (__offset))
+#endif
+=========================================================
+<include/linux/compiler-gcc.h>
+/* This macro obfuscates arithmetic on a variable address so that gcc
+   shouldn't recognize the original var, and make assumptions about it */
+
+#define RELOC_HIDE(ptr, off)                    \
+  ({ unsigned long __ptr;                                \
+    __asm__ ("" : "=r"(__ptr) : "0"(ptr));        \
+    (typeof(ptr)) (__ptr + (off)); })
+////这个宏返回一个ptr型的指针，指向ptr+off
+=========================================================
+<include/asm-generic/percpu.h>
+#define per_cpu_var(var) per_cpu__##var
+///这个宏就定义一变量，
+////如#define per_cpu_var(runqueues) per_cpu__runqueuesvar
+==========================================================
+
+#define per_cpu_offset(x) (__per_cpu_offset(x))
+#define __per_cpu_offset(cpu) (cpu_pda(cpu)->data_offset)
+////data_offset-----Per cpu data offset from linker address.链接时候给定
+的这个变量的偏移地址,也就是这个变量的名字
+extern struct x8664_pda **_cpu_pda;
+#define cpu_pda(i) (_cpu_pda[i])////全局变量
+struct x8664_pda 是一个Per processor datastructure.用来描述一个percpu data.
+这个数据结构的描述见“数据结构”一节。
+注：这个结构只是在x86体系结构下面的，在ARM下如何？？？
+get_cpu_var(var) 和  __get_cpu_var(var) 
+#define get_cpu_var(var) (*({                \
+    extern int simple_identifier_##var(void);    \
+    preempt_disable();                \                         ////禁止内核抢占
+    &__get_cpu_var(var); }))
+==================================================
+#define __get_cpu_var(var) \
+    (*SHIFT_PERCPU_PTR(&per_cpu_var(var), my_cpu_offset))
+相当于：*per_cpu_varvar[my_cpu_offset]	 
+put_cpu_var(var)
+#define put_cpu_var(var) preempt_enable()////仅仅是启动内核抢占！！！什么意思呢？
+alloc_percpu(type)  动态分配type类型的每CPU数组，返回其地址。
+#define alloc_percpu(type)        (type *)__alloc_percpu(sizeof(type))
+#define __alloc_percpu(size)        percpu_alloc_mask((size), GFP_KERNEL, cpu_possible_map)
+#define percpu_alloc_mask(size, gfp, mask)        __percpu_alloc_mask((size), (gfp), &(mask))
+在mm/allocpercpu.c中定义：
+/**
+ * percpu_alloc_mask - initial setup of per-cpu data
+ * @size: size of per-cpu object
+ * @gfp: may sleep or not etc.
+ * @mask: populate per-data for cpu's selected through mask bits
+ *
+ * Populating per-cpu data for all online cpu's would be a typical use case,
+ * which is simplified by the percpu_alloc() wrapper.
+ * Per-cpu objects are populated with zeroed buffers.
+ */
+void *__percpu_alloc_mask(size_t size, gfp_t gfp, cpumask_t *mask)
+{
+    /*
+     * We allocate whole cache lines to avoid false sharing
+     */
+    size_t sz = roundup(nr_cpu_ids * sizeof(void *), cache_line_size());
+    void *pdata = kzalloc(sz, gfp);
+    void *__pdata = __percpu_disguise(pdata);
+
+    if (unlikely(!pdata))
+        return NULL;
+    if (likely(!__percpu_populate_mask(__pdata, size, gfp, mask)))
+        return __pdata;
+    kfree(pdata);
+    return NULL;
+}
+EXPORT_SYMBOL_GPL(__percpu_alloc_mask);
+更多 0
+上一篇：多核中percpu的数据分配
+下一篇：详细透彻的分析DM9000网卡驱动程序（4）---我是苦行僧
+
+查看评论
+
+  暂无评论
+
+发表评论
+用 户 名：
+qqjxc
+评论内容：
+插入代码
+
+  
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+核心技术类目
+全部主题 Java VPN Android iOS ERP IE10 Eclipse CRM JavaScript Ubuntu NFC WAP jQuery 数据库 BI HTML5 Spring Apache Hadoop .NET API HTML SDK IIS Fedora XML LBS Unity Splashtop UML components Windows Mobile Rails QEMU KDE Cassandra CloudStack FTC coremail OPhone CouchBase 云计算 iOS6 Rackspace Web App SpringSide Maemo Compuware 大数据 aptech Perl Tornado Ruby Hibernate ThinkPHP Spark HBase Pure Solr Angular Cloud Foundry Redis Scala Django Bootstrap
+个人资料
+ 访问我的空间 
+bingqingsuimeng
+ 
+
+访问：104369次
+积分：1731分
+排名：第6109名
+原创：18篇转载：326篇译文：0篇评论：21条
+文章搜索
+
+文章分类
+linux驱动程序设计(50)
+c/c+程序设计(51)
+人生哲理(1)
+android驱动(2)
+linux内核中驱动相关机制(14)
+linux网络编程(8)
+linux内核启动流程(1)
+linux应用程序-点点滴滴(8)
+linux驱动程序之--电源管理(7)
+linux驱动程序之-时钟管理(5)
+linux驱动程序之-输入子系统(11)
+linux驱动程序之-设备驱动模型(13)
+linux驱动程序之-热插拔(7)
+linux驱动程序之-调试经验(6)
+linux驱动程序之-mmc/sd卡驱动(8)
+linux驱动程序之-块设备驱动(5)
+linux驱动程序之-实例程序(2)
+linux驱动程序之-mtd子系统(9)
+linux应用程序-onvif(3)
+linux驱动程序之-音频子系统（ASOC）(27)
+linux驱动程序之--显示子系统frambuffer(2)
+linux驱动程序之-rtc子系统(1)
+linux性能调优之-oprofile(15)
+linux文件系统之-proc，sys，debugfs(0)
+linux文件系统之-proc(1)
+linux驱动程序之-video(2)
+linux驱动程序之-iis(3)
+linux驱动程序之-v4l2（video）(2)
+linux驱动程序之-iic(4)
+linux应用程序之服务器优化(16)
+linux应用程序之-sqlite3(7)
+linux应用程序之-svn工具常见问题(4)
+linu应用程序之-html语法详解(1)
+linux运维之-LXC虚拟化(3)
+linux内核之-内存管理(3)
+linux内核之--深入理解linux内核(2)
+linux应用程序之-nginx服务器分析(16)
+linux应用程序之--程序员实用算法(4)
+linux应用程序之--脚本和命令(3)
+linux应用程序之---视频编解码(15)
+linux应用程序之---流媒体(13)
+生活随风--常用小技巧(2)
+linux应用程序之--web开发（html php js）(4)
+文章存档
+2013年12月(4)
+2013年11月(6)
+2013年10月(12)
+2013年09月(6)
+2013年08月(29)
+展开
+阅读排行
+详细透彻的分析DM9000网卡驱动程序（3）---谁是谁的谁？(3765)
+sqlite操作语句(2784)
+NAPI(2532)
+INIT_WORK和INIT_DELAYED_WORK详解(2431)
+linux下热插拔事件的产生是怎样通知到用户空间，kobject_uevent_env之uevent(2412)
+MMC/SD卡驱动实例开发讲解(一)(1906)
+late_initcall和module_init(1808)
+./autogen.sh: line 44: libtoolize: command not found(1753)
+USB 3G网卡驱动流程(1727)
+linux下热插拔事件的产生是怎样通知到用户空间，kobject_uevent_env之uevent_helper(1460)
+评论排行
+详细透彻的分析DM9000网卡驱动程序（2）---好戏开始了(3)
+INIT_WORK和INIT_DELAYED_WORK详解(2)
+MMC/SD卡驱动实例开发讲解(一)(1)
+MMAP和madvise的配套使用(1)
+linux内核空间和用户空间的是怎样区别的，如何交互，如何从用户空间进入内核空间(1)
+onvif开发总结(1)
+softlock---Kernel panic - not syncing: softlockup: hung tasks(1)
+Device Tree Usage(1)
+mmc卡驱动中host层的probe函数分析(1)
+详细透彻的分析DM9000网卡驱动程序（3）---谁是谁的谁？(1)
+推荐文章
+
+最新评论
+linux内核空间和用户空间的是怎样区别的，如何交互，如何从用户空间进入内核空间
+cc-c: 留个记号。呵呵
+linux_sound_alsa_ALSA体系SOC子系统中数据流分析
+乾坤幻影: 这个帖子真不错，谢谢分享
+onvif开发总结
+weiwei2012start: 我运行到这个函数soap_send___wsdd__Prober 然后进去到 soap_seria...
+./autogen.sh: line 44: libtoolize: command not found
+jackyzzy: 楼主，求教怎么安装libtool？apt-get update更新不了。另外，checking fo...
+sqlite操作语句
+zsp1983: 本人正在学习中，本文对初学者还是很有用的。
+MMC/SD卡驱动实例开发讲解(一)
+jason6765599: 很好，先mark一下，细细看。
+Device Tree Usage
+hjwu1212: good!!!
+INIT_WORK和INIT_DELAYED_WORK详解
+hs794502825: 赞！
+INIT_WORK和INIT_DELAYED_WORK详解
+卧石青篱: 这个文档的风格我喜欢，哈哈
+SD卡驱动调试经验
+fenglin1803: 你好，我想请教您一个问题，最近我在调试SD卡，用的AVR点单片机。不知道为什么，彩屏初始化之后刷出来...
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved GongshangLogo
+  

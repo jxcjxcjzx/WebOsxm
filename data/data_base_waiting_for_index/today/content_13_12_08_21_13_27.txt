@@ -1,0 +1,385 @@
+
+
+
+
+你好，游客 登录注册搜索
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+首页Linux新闻Linux教程数据库技术Linux编程服务器应用Linux安全Linux下载Linux认证Linux主题Linux壁纸Linux软件数码手机电脑
+ 
+
+
+
+首页 → Linux教程 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+背景：
+阅读新闻
+
+
+
+
+
+
+Linux内存模型之bootmem分配器<一>
+
+
+
+[日期：2012-02-03]
+
+来源：Linux社区  作者：gdt_a20
+
+[字体：大 中 小] 
+
+
+
+
+
+
+
+
+
+
+简介：bootmem分配器是系统启动初期的内存分配方式，在耳熟能详的伙伴系统，slab系统建立前内存都是利用bootmem分配器来分配的，伙伴系统框架建立起来后，bootmem会过度到伙伴系统，bootmem大致思想就是收集内存中的可用内存，然后建立bit位图，然后需要的内存从这些空闲内存中分配，分配了就标记占用，当然这种分配方式很低效，但是由于只占用启动阶段很少一部分，所以也大可接受了，好了，废话不多说，一起看代码吧，
+ 
+相关阅读：http://www.linuxidc.com/Linux/2012-02/53138.htm
+
+一、初始化部分
+init/main.c中
+start_kernel函数
+{
+  ...
+  setup_arch(&command_line);
+  ...
+}
+代码位于arch/arm/kernel/setup.c中，
+void __init setup_arch(char **cmdline_p)
+{
+ ...
+ paging_init(mdesc);
+ ...
+}
+
+
+ 
+
+*******************************************************
+*  继续跟进paging_init函数在arch/arm/mm/mmu.c中
+*  
+*******************************************************
+
+/*
+ * paging_init() sets up the page tables, initialises the zone memory
+ * maps, and sets up the zero page, bad page and bad page tables.
+ */
+void __init paging_init(struct machine_desc *mdesc)
+{
+    void *zero_page;
+
+    memblock_set_current_limit(lowmem_limit);
+
+    build_mem_type_table();
+    prepare_page_table();
+    map_lowmem();
+    devicemaps_init(mdesc);
+    kmap_init();
+
+    top_pmd = pmd_off_k(0xffff0000);
+
+    /* allocate the zero page. */
+    zero_page = early_alloc(PAGE_SIZE);
+
+    bootmem_init();
+
+    empty_zero_page = virt_to_page(zero_page);
+    __flush_dcache_page(NULL, empty_zero_page);
+ 
+}
+ 
+
+
+***************************************************************
+*  其中的bootmem_init()就是我们要找的，对应arm的定义在
+*  arch/arm/mm/init.c
+***************************************************************
+void __init bootmem_init(void)
+{
+    unsigned long min, max_low, max_high;
+
+    max_low = max_high = 0;
+
+        /*
+         *找到内存区域大小，max_low低端内存上界限
+         *max_high 总内存上界
+         */
+    find_limits(&min, &max_low, &max_high);
+
+
+        //arm bootmem初始化
+    arm_bootmem_init(min, max_low);
+
+    /*
+     * Sparsemem tries to allocate bootmem in memory_present(),
+     * so must be done after the fixed reservations
+     */
+    arm_memory_present();
+
+    /*
+     * sparse_init() needs the bootmem allocator up and running.
+     */
+    sparse_init();
+
+    /*
+     * Now free the memory - free_area_init_node needs
+     * the sparse mem_map arrays initialized by sparse_init()
+     * for memmap_init_zone(), otherwise all PFNs are invalid.
+     */
+    arm_bootmem_free(min, max_low, max_high);
+
+    high_memory = __va(((phys_addr_t)max_low << PAGE_SHIFT) - 1) + 1;
+
+    /*
+     * This doesn't seem to be used by the Linux memory manager any
+     * more, but is used by ll_rw_block.  If we can get rid of it, we
+     * also get rid of some of the stuff above as well.
+     *
+     * Note: max_low_pfn and max_pfn reflect the number of _pages_ in
+     * the system, not the maximum PFN.
+     */
+    max_low_pfn = max_low - PHYS_PFN_OFFSET;
+    max_pfn = max_high - PHYS_PFN_OFFSET;
+}
+
+*******************************************************
+*  这里的函数需要一个一个的过一下，先看这个
+*  find_limits(&min, &max_low, &max_high)函数
+*  同文件夹下
+*******************************************************
+static void __init find_limits(unsigned long *min, unsigned long *max_low,
+    unsigned long *max_high)
+{
+    struct meminfo *mi = &meminfo;  //内存bank的表述结构
+    int i;
+
+    *min = -1UL;
+    *max_low = *max_high = 0;
+
+    for_each_bank (i, mi) {
+        struct membank *bank = &mi->bank[i];
+        unsigned long start, end;
+
+        start = bank_pfn_start(bank);
+        end = bank_pfn_end(bank);
+
+        if (*min > start)
+            *min = start;             //保证min最后是最小值
+        if (*max_high < end)    //保证最后的max_high是最大值
+            *max_high = end;
+        if (bank->highmem)      //如果bank是高端内存那么不再标记max_low
+            continue;
+        if (*max_low < end)     //如果是普通内存，那么max_low继续跟着增大
+            *max_low = end;
+    }
+} 
+
+
+
+
+
+
+
+
+
+•1
+•2
+•3
+•下一页
+•
+
+
+ 
+
+•0
+•
+
+•顶一下
+ 
+
+
+
+
+
+
+
+Linux设备模型之mmc，sd子系统<三>
+
+Linux内存模型之bootmem分配器<二>
+
+
+
+
+
+
+
+相关资讯       Linux基础知识  
+
+
+
+
+
+
+
+•Linux文件系统详解  (07月27日)
+ •Linux下进程的建立  (02月16日)
+ •Linux下与Windows画图工具极像的一  (02月06日)
+ 
+•Linux基础篇之部分知识要点  (03月14日)
+ •Linux 上修改 IP 地址和 hostname   (02月09日)
+ •Linux 快速删除大量小文件方法  (12/13/2012 09:24:09)
+ 
+
+
+
+
+
+
+
+图片资讯       
+
+
+
+
+
+•Linux下与Windows画图
+•Linux下的基本网络配
+•Linux文件属性详细图
+•如何改造 Linux 虚拟
+•Linux中断详解
+•Linux系统的中断、系
+•Linux内存管理之分段
+•expect实现交互式密码
+
+
+
+
+
+
+
+本文评论 　　查看全部评论 (0)
+
+
+
+
+
+
+
+
+表情： 姓名： 匿名 字数 
+
+　　　同意评论声明 　　　发表
+ 
+
+
+评论声明 ■尊重网上道德，遵守中华人民共和国的各项有关法律法规
+■承担一切因您的行为而直接或间接导致的民事或刑事法律责任
+■本站管理人员有权保留或删除其管辖留言中的任意内容
+■本站有权在网站内转载或引用您的评论
+■参与本评论即表明您已经阅读并接受上述条款
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+最新资讯
+
+
+
+
+ •Ansible 快速上手
+ •Steam 进入 RPMFusion 仓库
+ •Solr创建索引源码解析
+ •如何将 MongoDB MapReduce 速度提升 20 倍
+ •Wireshark 1.10.3 发布，网络封包分析软件
+ •OrientDB 1.6.0 发布，基于文档的数据库
+ •Funcito 1.3.0 发布，Java 函数式编程库
+ •Topologic 7 发布，几何图元渲染器
+ •libefgy 3 发布，常用 C++ 数学模板定义
+ •CloverETL Designer 3.5.0 M2 发布
+ 
+
+
+
+
+
+
+本周热门
+
+
+
+
+ •Windows 7下硬盘安装Ubuntu 13.04图文教程
+ •Ubuntu 12.04和Windows 7双系统安装图解
+ •Windows 7下硬盘安装Ubuntu 13.10图文教程
+ •U盘启动安装Ubuntu 13.04
+ •Windows 7硬盘安装Ubuntu 12.10图文教程
+ •虚拟机下安装BackTrack5 (BT5)教程及BT5汉化
+ •U盘安装Ubuntu 12.10
+ •RedHat Linux9 安装图文教程(完整版)
+ •Virtualbox虚拟机安装Ubuntu图文教程
+ •VMware9安装Ubuntu 12.10图文详细教程
+ 
+
+
+
+
+
+
+
+
+Linux公社简介 - 广告服务 - 网站地图 - 帮助信息 - 联系我们
+本站（LinuxIDC）所刊载文章不代表同意其说法或描述，仅为提供更多信息，也不构成任何建议。
+
+ 
+Copyright © 2006-2011　Linux公社　All rights reserved 浙ICP备06018118号 
+

@@ -1,0 +1,390 @@
+
+
+首页
+开源软件
+讨论区
+代码分享
+博客
+翻译
+资讯
+Android
+招聘
+
+
+ 当前访客身份：游客 [ 登录 | 加入开源中国 ] 
+
+
+
+当前位置：讨论区 » 技术分享» Python
+
+
+软件代码讨论区新闻博客
+
+
+
+
+
+
+
+
+简单而直接的Python web 框架：web.py
+
+小编辑 发表于 2010-3-21 08:31 2年前, 6回/8501阅, 最后回答: 4天前 
+
+讨论区 » 技术分享
+
+
+
+参加OSC应用开发大赛，拿Nexus 4手机 活动详情
+
+
+
+web.py 是一个Python 的web 框架，它简单而且功能强大。web.py 是公开的，无论用于什么用途都是没有限制的。
+ 
+先让大家感受一下web.py 的简单而强大：
+ 
+import weburls = (    '/(.*)', 'hello')class hello:    def GET(self, name):        i = web.input(times=1)        if not name: name = 'world'        for c in xrange(int(i.times)): print 'Hello,', name+'!'if __name__ == "__main__": web.run(urls, globals()) 
+看看，上面就是一个基于web.py 的完整的Web 应用。不信?!将上面的代码保存为文件code.py，在命令行下执行python code.py。然后打开你的浏览器，打开地址：http://localhost:8080/RossWan，看看结 果 ：）没有意外的话(当然要先安装web.py，下面会有介绍)，浏览器会显示“Hello, RossWan!”。这是一个最简单的Hello world Web 应用。是不是很简单？！下面将较为详细地介绍下web.py 。Find fun :)
+ 
+1. 安装
+ 
+单击这里下载web.py 的安装文件，将下载得到的文件web.py-0.21.tar.gz 解压，进入解压后的文件夹，在命令行下执行：python setup.py install，在Linux 等系统下，需要root 的权限，可以执行：sudo python setup.py install。
+ 
+安装完毕之后，就可以正式开始web.py 之旅…
+ 
+2. URL 处理
+ 
+对于一个站点来说，URL 的组织是最重要的一个部分，因为这是用户看得到的部分，而且直接影响到站点是如何工作的，在著名的站点如：del.icio.us ，其URLs 甚至是网页界面的一部分。而web.py 以简单的方式就能够构造出一个强大的URLs。
+ 
+在每个web.py 应用，必须先import web 模块：
+ 
+import web 
+现在，我们须要告诉web.py URL 如何组织，让我们以一个简单例子开始：
+ 
+urls = (  '/', 'index'    ) 
+在上面的例子中，第一部分（‘/’）是一个匹配URL 的正则表达式，像/，/help/faq，/item/(\d+)，等等；第二部分（‘index’）是一个类名，匹配的请求将会被发送过去。
+ 
+现在，我们需要编写index 类。当大部人浏览网页的时候，他们都没有注意到，浏览器是通过HTTP 跟World Wide Web 通信的。通信的细节不太重要，但要明白一点，用户是通过URLs（例如 / 或者 /foo?f=1）来请求web 服务器完成一定请求的（例如 GET 或者POST）。
+ 
+GET 是最普遍的方法，用来请求一个页面。当我们在浏览器里输入“harvard.edu” 的时候，实际上它是向Web 服务器请求GET ”/“。另一个常见的方法是POST，常用于提交特定类型的表单，例如利用信用卡付费和处理一个订单。注意，GET URLs 能够被搜索引擎索引得到（想像一下Google 尝试购买你网站上的所用物品）。
+ 
+在我们的web.py 代码中。我们清晰区分这两种方法：
+ 
+class index:    def GET(self):        print "Hello, world!" 
+当接收到一个GET 请求时，上面的GET 方法将会被web.py 调用。
+ 
+好的。现在，我们只需添加最后一行代码，让web.py 启动网页应用：
+ 
+if __name__ == "__main__": web.run(urls, globals()) 
+上面告诉web.py 如何配置URLs，以及找寻的类在文件中的全局命名空间。
+ 
+整个code.py 文件的内容如下：
+ 
+import weburls = (  '/', 'index'    )class index:    def GET(self):        print "Hello, world!"if __name__ == "__main__": web.run(urls, globals()) 
+注意到没有，虽然我说了很多东西，但实际上web 应用的代码就只得上面的几行，而且这是一个完整的web.py 应用。在你的命令行下输入：
+ 
+$ python code.pyLaunching server: http://0.0.0.0:8080/ 
+现在，你的web.py 应用已经启动了服务器。通过浏览器访问http://localhost:8080/ 的话，会见到”Hello, world！“。在启动服务器的时候，你可以在python code.py 后面添加IP 地址/端口 来控制web.py 启动的服务器。例如：python code.py 8888。
+ 
+3. 调试
+ 
+web.py 本身也提供调试的工具。在最后的“if name …” 代码前面添加：
+ 
+web.webapi.internalerror = web.debugerror 
+并在最后的“if name …” 添加”web.reloader“：
+ 
+if __name__ == "__main__": web.run(urls, globals(), web.reloader) 
+上面的代码会使你在调试的阶段得到更多有用的信息。web.reloader 其实是一个中间件，当你在运行时修改了code.py 文件后，web.reloader 会重新加载code.py 文件，让你在浏览器上立刻可以看到变化。如何有多何变化的话，还是需要重新启动服务器。web.py 也提供web.profiler ,可以输出有用的信息，有关每个页面的每个函数调用的次数，这用助于你改善代码。
+ 
+4. 模板
+ 
+在Python 里面编写HTML 代码是相当累赘的，而在HTML 里嵌入Python 代码则有趣得多。幸运地，web.py 使这过程变得相当容易。
+ 
+注意：旧版本的web.py 是用Cheetah templates 模板的，你可以继续使用，但官方已不再提供支持。
+ 
+在我们的web 应用里，添加一个新的文件夹用来组织模板文件（例如”/templates“）。然后再新建一个HTML 文件（例如：”index.html“）:
+ 
+<em>Hello</em>, world! 
+或者，你可以用web.py 的模板语言用编写这个HTML 文件：
+ 
+$def with (name)$if name:    I just wanted to say <em>hello</em> to $name.$else:    <em>Hello</em>, world! 
+注意上面代码的缩进！
+ 
+正如你所见的，上面的模板看上去跟这Python 文件很相似，以def with 语句开始，但在关键字前需要添加”$“。
+ 
+注意：在模板内的变量，如果包含有HTML 标记，以$ 方式引用变量的话，HTML 标记只会以纯文本的显示出来。要想HTML 标记产生效果，可以用$: 引用变量。
+ 
+现在，回到code.py 文件，在”import web” 的下一行添加：
+ 
+render = web.template.render('templates/') 
+这告诉web.py 在哪里可以搜索得到模板目录。
+ 
+提示：可在render 调用里添加cache = False 使得每次访问页面时都重载模板。
+ 
+下面继续修改code.py 文件的GET 方法：
+ 
+def GET(self):    name = 'Bob'    print render.index(name) 
+上面的”index“ 是模板的名字，”name“ 是传递过去的参数。
+ 
+修改code.py 文件的urls 变量：
+ 
+urls=(    '/(.*)', 'index') 
+上面的“/(.*)” 是一个正则表达式。
+ 
+再将GET 方法修改如下：
+ 
+def GET(self,name):    print render.index(name) 
+现在，访问”/“的话，会显示”Hello, world!“；访问”/Joe“ 的话，会显示”I just want to say hello to Joe“。
+ 
+如果你想学习更多关于web.py templates 的话，可以访问templetor page。
+ 
+5. 数据库
+ 
+注意：在你开始连接数据库之前，请先安装正确的数据库驱动。例 如，MySQL 使用MySALdb，Postgre 使用psycopg2。
+ 
+添加以下代码，则可以正确配置你的数据库：
+ 
+web.config.db_parameters = dict(    dbn='postgres',user='username',pw='password',db='dbname') 
+现在，先行在数据库里创建一个简单的表：
+ 
+CREATE TABLE todo (  id serial primary key,  title text,  created timestamp default now(),  done boolean default 'f'); 
+初始化一行：
+ 
+INSERT INTO todo (title) VALUES ('Learn web.py'); 
+回到code.py，修改GET 方法如下：
+ 
+def GET(self):    todos = web.select('todo')    print render.index(todos) 
+修改urls 变量：
+ 
+urls = (    '/', 'index') 
+重新编辑index.html 文件如下：
+ 
+$def with (todos)<ul>$for todo in todos:    <li id="t$todo.id">$todo.title</li></ul> 
+现在，可以访问”/“，如果显示”Learn web.py“，则祝贺你成功了！
+ 
+现在，再让我们看看如何向数据库写入。
+ 
+在index.html 文件的尾部添加如下内容：
+ 
+<form method="post" action="add">   <p>       <input type="text" name="title" />       <input type="submit" value="Add" />   </p></form> 
+修改code.py 文件的urls 变量如下：
+ 
+urls = ('/', 'index',    '/add', 'add') 
+在code.py 里添加一个类：
+ 
+class add:    def POST(self):        i = web.input()        n = web.insert('todo', title=i.title)        web.seeother('/') 
+web.input 使你能够方便地访问用户通过表单提交上来的变量。web.insert 用于向数据库的 “todo” 表插入数据，并且返回新插入行的ID。web.seeother 用于重转向到”/“。
+ 
+提示：对于数据库的操作，还有web.transact()， web.commit()， web.rollback()，web.update()。
+ 
+在web.py 里，还有web.input，web.query 和其它的函数，返回”Storage objects”，可以像字典型类(dictionaries) 的使用。
+ 
+6. 总结
+ 
+web.py 的确相当的小巧，应当归属于轻量级的web 框架。但这并不影响web.py 的强大，而且使用起来很简单、很直接。在实际应用上，web.py 更多的是学术上的价值，因为你可以看到更多web 应用的底层，这在当今“抽象得很好”的web 框架上是学不到的 ：） 如果想了解更多web.py，可以访问web.py 的官方文档。
+ 
+这篇教程到这里也要结束了，如果你对web.py 有兴趣，可以搜索更多关于web.py 的文档看看，你一定会发现更酷的东西。Have fun!
+
+
+标签：Python web.py
+
+补充话题说明»
+
+ 
+
+
+分享到 
+
+收藏
+
+30
+
+举报
+
+踩0 | 顶0
+
+
+
+按默认排序 | 显示最新评论 | 回页面顶部共有6个评论 发表评论»
+
+
+
+
+ValueError 回答于 2011-02-28 06:14 
+
+举报
+
+
+
+勘误勘误～
+
+当前的3.x版本已经不能使用 web.run(urls, globals()) 了哈～现在要
+
+if __name__ == "__main__":
+    app = web.application(urls, globals())
+    app.run()
+而且现版 print 的内容只能在终端输出，不会被发送到响应流。要输出响应只能 return
+
+
+
+
+有帮助(2) | 没帮助(0) | 评论(0) | 引用此评论 
+
+
+
+
+
+IdleMan 回答于 2012-10-15 15:19 
+
+举报
+
+
+人工收藏
+
+
+
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论 
+
+
+
+
+
+___py_liang 回答于 2012-10-15 22:54 
+
+举报
+
+
+好文章!! 
+
+
+
+
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论 
+
+
+
+
+
+何传友 回答于 2012-10-17 18:49 
+
+举报
+
+
+ok,
+
+
+
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论 
+
+
+
+
+
+windyi 回答于 2012-10-19 11:23 
+
+举报
+
+
+赞一个。。。
+
+
+
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论 
+
+
+
+
+
+sigai 回答于 2013-01-29 23:40 
+
+举报
+
+
+
+ 运行服务后习惯性的打开 
+
+
+http://0.0.0.0:8080/
+
+ 了 悲剧了 
+
+应该打开 
+
+http://localhost:8080/  
+
+
+
+
+
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+回评论顶部 | 回页面顶部
+ 
+
+有什么技术问题吗？ 我要提问
+
+全部(445)...小编辑的其他问题网页设计：使用 CSS3 Box Shadow 实现的 10 个创新技术(21回/4356阅,3天前)
+JavaME 与 Java Card 的新趋势及应用交流活动【北京】(1回/88阅,23天前)
+使用 X-Frame-Options header 拒绝被嵌入框架(iframe…)(2回/179阅,2个月前)
+推荐给开发人员的实用命令行工具(31回/7677阅,2个月前)
+淘宝技术发展 —— 前言(25回/8959阅,2个月前)
+
+ 
+
+类似的话题web.py 数据库操作指南(0回/2181阅,2年前)
+使用 web.py 创建一个 blog 系统(2回/3791阅,2年前)
+Python模版的选择重点(4回/1421阅,1年前)
+web.py 连接新浪微博(3回/1112阅,1年前)
+Web.py 初探：安装与HelloWorld(1回/1006阅,1年前)
+web.py 入门(7回/3183阅,1年前)
+python在线开发环境 pythonanywhere(4回/541阅,2个月前)
+lighttpd＋web.py 搭建web service(1回/2059阅,3年前)
+在GAE中使用web.py(0回/356阅,1年前)
+如何在客户端控制webservice调用的timeout(0回/257阅,9个月前)
+Python peps是个好东西(4回/662阅,9个月前)
+python下的MySQLdb使用(0回/230阅,9个月前)
+给micolog博客添加了一个天气预报小插件(2回/317阅,2年前)
+我常用的几个第三方 Python 库(0回/288阅,11个月前)
+两个 Python 的冷技巧(0回/54阅,11个月前)
+两个 Python 的冷技巧（2）(0回/40阅,11个月前)
+
+ 
+
+
+
+
+© 开源中国(OsChina.NET) | 关于我们 | 广告联系 | @新浪微博 | 开源中国手机版 | 粤ICP备12009483号-3
+ 
+开源中国手机客户端：AndroidiPhoneWP7 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

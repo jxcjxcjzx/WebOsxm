@@ -1,0 +1,2036 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+lishaoqi_scau的专栏
+
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年4月微软MVP申请开始啦！    写给13岁的CSDN论坛    CSDN博客频道年终送好礼！
+ 2012CSDN博客之星评选正式上线      2000元大奖征异构开发博文      Q14年互联网产品进化史 
+
+
+
+Linux音频设备驱动 
+.
+2012-03-07 13:2989人阅读评论(0)收藏举报
+
+
+From:http://blog.csdn.net/hare_lee/article/details/7001491
+ 
+ Linux音频编程指南
+ 
+  
+虽然目前Linux的优势主要体现在网络服务方面，但事实上同样也有着非常丰富的媒体功能，本文就是以多媒体应用中最基本的声音为对象，介绍如何在Linux平台下开发实际的音频应用程序，同时还给出了一些常用的音频编程框架。
+ 一、数字音频
+ 
+音频信号是一种连续变化的模拟信号，但计算机只能处理和记录二进制的数字信号，由自然音源得到的音频信号必须经过一定的变换，成为数字音频信号之后，才能送到计算机中作进一步的处理。
+ 
+数字音频系统通过将声波的波型转换成一系列二进制数据，来实现对原始声音的重现，实现这一步骤的设备常被称为模/数转换器（A/D）。A/D转换器以每秒钟上万次的速率对声波进行采样，每个采样点都记录下了原始模拟声波在某一时刻的状态，通常称之为样本（sample），而每一秒钟所采样的数目则称为采样频率，通过将一串连续的样本连接起来，就可以在计算机中描述一段声音了。对于采样过程中的每一个样本来说，数字音频系统会分配一定存储位来记录声波的振幅，一般称之为采样分辩率或者采样精度，采样精度越高，声音还原时就会越细腻。
+ 
+数字音频涉及到的概念非常多，对于在Linux下进行音频编程的程序员来说，最重要的是理解声音数字化的两个关键步骤：采样和量化。采样就是每隔一定时间就读一次声音信号的幅度，而量化则是将采样得到的声音信号幅度转换为数字值，从本质上讲，采样是时间上的数字化，而量化则是幅度上的数字化。下面介绍几个在进行音频编程时经常需要用到的技术指标：
+ 
+采样频率 
+采样频率是指将模拟声音波形进行数字化时，每秒钟抽取声波幅度样本的次数。采样频率的选择应该遵循奈奎斯特（Harry Nyquist）采样理论：如果对某一模拟信号进行采样，则采样后可还原的最高信号频率只有采样频率的一半，或者说只要采样频率高于输入信号最高频率的两倍，就能从采样信号系列重构原始信号。正常人听觉的频率范围大约在20Hz~20kHz之间，根据奈奎斯特采样理论，为了保证声音不失真，采样频率应该在40kHz左右。常用的音频采样频率有8kHz、11.025kHz、22.05kHz、16kHz、37.8kHz、44.1kHz、48kHz等，如果采用更高的采样频率，还可以达到DVD的音质。
+ 量化位数 
+量化位数是对模拟音频信号的幅度进行数字化，它决定了模拟信号数字化以后的动态范围，常用的有8位、12位和16位。量化位越高，信号的动态范围越大，数字化后的音频信号就越可能接近原始信号，但所需要的存贮空间也越大。
+ 声道数 
+声道数是反映音频数字化质量的另一个重要因素，它有单声道和双声道之分。双声道又称为立体声，在硬件中有两条线路，音质和音色都要优于单声道，但数字化后占据的存储空间的大小要比单声道多一倍。
+ 
+
+ 
+ 
+
+ 回页首 
+ 
+ 
+ 
+ 
+二、声卡驱动
+ 
+出于对安全性方面的考虑，Linux下的应用程序无法直接对声卡这类硬件设备进行操作，而是必须通过内核提供的驱动程序才能完成。在Linux上进行音频编程的本质就是要借助于驱动程序，来完成对声卡的各种操作。
+ 
+对硬件的控制涉及到寄存器中各个比特位的操作，通常这是与设备直接相关并且对时序的要求非常严格，如果这些工作都交由应用程序员来负责，那么对声卡的编程将变得异常复杂而困难起来，驱动程序的作用正是要屏蔽硬件的这些底层细节，从而简化应用程序的编写。目前Linux下常用的声卡驱动程序主要有两种：OSS和ALSA。
+ 
+最早出现在Linux上的音频编程接口是OSS（Open Sound System），它由一套完整的内核驱动程序模块组成，可以为绝大多数声卡提供统一的编程接口。OSS出现的历史相对较长，这些内核模块中的一部分（OSS/Free）是与Linux内核源码共同免费发布的，另外一些则以二进制的形式由4Front Technologies公司提供。由于得到了商业公司的鼎力支持，OSS已经成为在Linux下进行音频编程的事实标准，支持OSS的应用程序能够在绝大多数声卡上工作良好。
+ 
+虽然OSS已经非常成熟，但它毕竟是一个没有完全开放源代码的商业产品，ALSA（Advanced Linux Sound Architecture）恰好弥补了这一空白，它是在Linux下进行音频编程时另一个可供选择的声卡驱动程序。ALSA除了像OSS那样提供了一组内核驱动程序模块之外，还专门为简化应用程序的编写提供了相应的函数库，与OSS提供的基于ioctl的原始编程接口相比，ALSA函数库使用起来要更加方便一些。ALSA的主要特点有：
+ 
+支持多种声卡设备 
+模块化的内核驱动程序 
+支持SMP和多线程 
+提供应用开发函数库 
+兼容OSS应用程序 
+ALSA和OSS最大的不同之处在于ALSA是由志愿者维护的自由项目，而OSS则是由公司提供的商业产品，因此在对硬件的适应程度上OSS要优于ALSA，它能够支持的声卡种类更多。ALSA虽然不及OSS运用得广泛，但却具有更加友好的编程接口，并且完全兼容于OSS，对应用程序员来讲无疑是一个更佳的选择。
+ 
+ 
+ 
+ 
+ 
+
+ 回页首 
+ 
+ 
+ 
+ 
+三、编程接口
+ 
+如何对各种音频设备进行操作是在Linux上进行音频编程的关键，通过内核提供的一组系统调用，应用程序能够访问声卡驱动程序提供的各种音频设备接口，这是在Linux下进行音频编程最简单也是最直接的方法。
+ 
+3.1 访问音频设备
+ 
+无论是OSS还是ALSA，都是以内核驱动程序的形式运行在Linux内核空间中的，应用程序要想访问声卡这一硬件设备，必须借助于Linux内核所提供的系统调用（system call）。从程序员的角度来说，对声卡的操作在很大程度上等同于对磁盘文件的操作：首先使用open系统调用建立起与硬件间的联系，此时返回的文件描述符将作为随后操作的标识；接着使用read系统调用从设备接收数据，或者使用write系统调用向设备写入数据，而其它所有不符合读/写这一基本模式的操作都可以由ioctl系统调用来完成；最后，使用close系统调用告诉Linux内核不会再对该设备做进一步的处理。
+ 
+open系统调用 
+系统调用open可以获得对声卡的访问权，同时还能为随后的系统调用做好准备，其函数原型如下所示： int open(const char *pathname, int flags, int mode);
+  
+ 
+参数pathname是将要被打开的设备文件的名称，对于声卡来讲一般是/dev/dsp。参数flags用来指明应该以什么方式打开设备文件，它可以是O_RDONLY、O_WRONLY或者O_RDWR，分别表示以只读、只写或者读写的方式打开设备文件；参数mode通常是可选的，它只有在指定的设备文件不存在时才会用到，指明新创建的文件应该具有怎样的权限。
+ 
+ 如果open系统调用能够成功完成，它将返回一个正整数作为文件标识符，在随后的系统调用中需要用到该标识符。如果open系统调用失败，它将返回-1，同时还会设置全局变量errno，指明是什么原因导致了错误的发生。
+ read系统调用 
+系统调用read用来从声卡读取数据，其函数原型如下所示： int read(int fd, char *buf, size_t count);
+   
+
+参数fd是设备文件的标识符，它是通过之前的open系统调用获得的；参数buf是指向缓冲区的字符指针，它用来保存从声卡获得的数据；参数count则用来限定从声卡获得的最大字节数。如果read系统调用成功完成，它将返回从声卡实际读取的字节数，通常情况会比count的值要小一些；如果read系统调用失败，它将返回-1，同时还会设置全局变量errno，来指明是什么原因导致了错误的发生。
+ write系统调用 
+系统调用write用来向声卡写入数据，其函数原型如下所示： size_t write(int fd, const char *buf, size_t count);
+  
+ 
+系统调用write和系统调用read在很大程度是类似的，差别只在于write是向声卡写入数据，而read则是从声卡读入数据。参数fd同样是设备文件的标识符，它也是通过之前的open系统调用获得的；参数buf是指向缓冲区的字符指针，它保存着即将向声卡写入的数据；参数count则用来限定向声卡写入的最大字节数。
+ 如果write系统调用成功完成，它将返回向声卡实际写入的字节数；如果read系统调用失败，它将返回-1，同时还会设置全局变量errno，来指明是什么原因导致了错误的发生。无论是read还是write，一旦调用之后Linux内核就会阻塞当前应用程序，直到数据成功地从声卡读出或者写入为止。
+ ioctl系统调用 
+系统调用ioctl可以对声卡进行控制，凡是对设备文件的操作不符合读/写基本模式的，都是通过ioctl来完成的，它可以影响设备的行为，或者返回设备的状态，其函数原型如下所示：
+ int ioctl(int fd, int request, ...);
+  
+ 
+参数fd是设备文件的标识符，它是在设备打开时获得的；如果设备比较复杂，那么对它的控制请求相应地也会有很多种，参数request的目的就是用来区分不同的控制请求；通常说来，在对设备进行控制时还需要有其它参数，这要根据不同的控制请求才能确定，并且可能是与硬件设备直接相关的。
+ close系统调用 
+当应用程序使用完声卡之后，需要用close系统调用将其关闭，以便及时释放占用的硬件资源，其函数原型如下所示： int close(int fd);
+  
+ 
+参数fd是设备文件的标识符，它是在设备打开时获得的。一旦应用程序调用了close系统调用，Linux内核就会释放与之相关的各种资源，因此建议在不需要的时候尽量及时关闭已经打开的设备。
+ 3.2 音频设备文件
+ 
+对于Linux应用程序员来讲，音频编程接口实际上就是一组音频设备文件，通过它们可以从声卡读取数据，或者向声卡写入数据，并且能够对声卡进行控制，设置采样频率和声道数目等等。
+ 
+/dev/sndstat 
+设备文件/dev/sndstat是声卡驱动程序提供的最简单的接口，通常它是一个只读文件，作用也仅仅只限于汇报声卡的当前状态。一般说来，/dev/sndstat是提供给最终用户来检测声卡的，不宜用于程序当中，因为所有的信息都可以通过ioctl系统调用来获得。 Linux提供的cat命令可以很方便地从/dev/sndstat获得声卡的当前状态： [xiaowp@linuxgam sound]$ cat /dev/sndstat
+ /dev/dsp 
+
+声卡驱动程序提供的/dev/dsp是用于数字采样（sampling）和数字录音（recording）的设备文件，它对于Linux下的音频编程来讲非常重要：向该设备写数据即意味着激活声卡上的D/A转换器进行放音，而向该设备读数据则意味着激活声卡上的A/D转换器进行录音。目前许多声卡都提供有多个数字采样设备，它们在Linux下可以通过/dev/dsp1等设备文件进行访问。
+ 
+DSP是数字信号处理器（Digital Signal Processor）的简称，它是用来进行数字信号处理的特殊芯片，声卡使用它来实现模拟信号和数字信号的转换。声卡中的DSP设备实际上包含两个组成部分：在以只读方式打开时，能够使用A/D转换器进行声音的输入；而在以只写方式打开时，则能够使用D/A转换器进行声音的输出。严格说来，Linux下的应用程序要么以只读方式打开/dev/dsp输入声音，要么以只写方式打开/dev/dsp输出声音，但事实上某些声卡驱动程序仍允许以读写的方式打开/dev/dsp，以便同时进行声音的输入和输出，这对于某些应用场合（如IP电话）来讲是非常关键的。
+ 
+在从DSP设备读取数据时，从声卡输入的模拟信号经过A/D转换器变成数字采样后的样本（sample），保存在声卡驱动程序的内核缓冲区中，当应用程序通过read系统调用从声卡读取数据时，保存在内核缓冲区中的数字采样结果将被复制到应用程序所指定的用户缓冲区中。需要指出的是，声卡采样频率是由内核中的驱动程序所决定的，而不取决于应用程序从声卡读取数据的速度。如果应用程序读取数据的速度过慢，以致低于声卡的采样频率，那么多余的数据将会被丢弃；如果读取数据的速度过快，以致高于声卡的采样频率，那么声卡驱动程序将会阻塞那些请求数据的应用程序，直到新的数据到来为止。
+ 
+在向DSP设备写入数据时，数字信号会经过D/A转换器变成模拟信号，然后产生出声音。应用程序写入数据的速度同样应该与声卡的采样频率相匹配，否则过慢的话会产生声音暂停或者停顿的现象，过快的话又会被内核中的声卡驱动程序阻塞，直到硬件有能力处理新的数据为止。与其它设备有所不同，声卡通常不会支持非阻塞（non-blocking）的I/O操作。
+ 
+无论是从声卡读取数据，或是向声卡写入数据，事实上都具有特定的格式（format），默认为8位无符号数据、单声道、8KHz采样率，如果默认值无法达到要求，可以通过ioctl系统调用来改变它们。通常说来，在应用程序中打开设备文件/dev/dsp之后，接下去就应该为其设置恰当的格式，然后才能从声卡读取或者写入数据。
+ 
+/dev/audio 
+/dev/audio类似于/dev/dsp，它兼容于Sun工作站上的音频设备，使用的是mu-law编码方式。如果声卡驱动程序提供了对/dev/audio的支持，那么在Linux上就可以通过cat命令，来播放在Sun工作站上用mu-law进行编码的音频文件： [xiaowp@linuxgam sound]$ cat audio.au > /dev/audio
+  
+ 
+由于设备文件/dev/audio主要出于对兼容性的考虑，所以在新开发的应用程序中最好不要尝试用它，而应该以/dev/dsp进行替代。对于应用程序来说，同一时刻只能使用/dev/audio或者/dev/dsp其中之一，因为它们是相同硬件的不同软件接口。
+ 
+
+/dev/mixer 
+在声卡的硬件电路中，混音器（mixer）是一个很重要的组成部分，它的作用是将多个信号组合或者叠加在一起，对于不同的声卡来说，其混音器的作用可能各不相同。运行在Linux内核中的声卡驱动程序一般都会提供/dev/mixer这一设备文件，它是应用程序对混音器进行操作的软件接口。混音器电路通常由两个部分组成：输入混音器（input mixer）和输出混音器（output mixer）。
+ 输入混音器负责从多个不同的信号源接收模拟信号，这些信号源有时也被称为混音通道或者混音设备。模拟信号通过增益控制器和由软件控制的音量调节器后，在不同的混音通道中进行级别（level）调制，然后被送到输入混音器中进行声音的合成。混音器上的电子开关可以控制哪些通道中有信号与混音器相连，有些声卡只允许连接一个混音通道作为录音的音源，而有些声卡则允许对混音通道做任意的连接。经过输入混音器处理后的信号仍然为模拟信号，它们将被送到A/D转换器进行数字化处理。
+ 输出混音器的工作原理与输入混音器类似，同样也有多个信号源与混音器相连，并且事先都经过了增益调节。当输出混音器对所有的模拟信号进行了混合之后，通常还会有一个总控增益调节器来控制输出声音的大小，此外还有一些音调控制器来调节输出声音的音调。经过输出混音器处理后的信号也是模拟信号，它们最终会被送给喇叭或者其它的模拟输出设备。对混音器的编程包括如何设置增益控制器的级别，以及怎样在不同的音源间进行切换，这些操作通常来讲是不连续的，而且不会像录音或者放音那样需要占用大量的计算机资源。由于混音器的操作不符合典型的读/写操作模式，因此除了open和close两个系统调用之外，大部分的操作都是通过ioctl系统调用来完成的。与/dev/dsp不同，/dev/mixer允许多个应用程序同时访问，并且混音器的设置值会一直保持到对应的设备文件被关闭为止。
+ 为了简化应用程序的设计，Linux上的声卡驱动程序大多都支持将混音器的ioctl操作直接应用到声音设备上，也就是说如果已经打开了/dev/dsp，那么就不用再打开/dev/mixer来对混音器进行操作，而是可以直接用打开/dev/dsp时得到的文件标识符来设置混音器。
+ /dev/sequencer 
+目前大多数声卡驱动程序还会提供/dev/sequencer这一设备文件，用来对声卡内建的波表合成器进行操作，或者对MIDI总线上的乐器进行控制，一般只用于计算机音乐软件中。
+ 
+
+
+ 
+ 
+
+ 回页首 
+ 
+ 
+ 
+ 
+四、应用框架
+ 
+在Linux下进行音频编程时，重点在于如何正确地操作声卡驱动程序所提供的各种设备文件，由于涉及到的概念和因素比较多，所以遵循一个通用的框架无疑将有助于简化应用程序的设计。
+ 
+4.1 DSP编程
+ 
+对声卡进行编程时首先要做的是打开与之对应的硬件设备，这是借助于open系统调用来完成的，并且一般情况下使用的是/dev/dsp文件。采用何种模式对声卡进行操作也必须在打开设备时指定，对于不支持全双工的声卡来说，应该使用只读或者只写的方式打开，只有那些支持全双工的声卡，才能以读写的方式打开，并且还要依赖于驱动程序的具体实现。Linux允许应用程序多次打开或者关闭与声卡对应的设备文件，从而能够很方便地在放音状态和录音状态之间进行切换，建议在进行音频编程时只要有可能就尽量使用只读或者只写的方式打开设备文件，因为这样不仅能够充分利用声卡的硬件资源，而且还有利于驱动程序的优化。下面的代码示范了如何以只写方式打开声卡进行放音（playback）操作：
+ 
+int handle = open("/dev/dsp", O_WRONLY);
+ if (handle == -1) {
+  perror("open /dev/dsp");
+  return -1;
+ }
+  
+ 
+
+运行在Linux内核中的声卡驱动程序专门维护了一个缓冲区，其大小会影响到放音和录音时的效果，使用ioctl系统调用可以对它的尺寸进行恰当的设置。调节驱动程序中缓冲区大小的操作不是必须的，如果没有特殊的要求，一般采用默认的缓冲区大小也就可以了。但需要注意的是，缓冲区大小的设置通常应紧跟在设备文件打开之后，这是因为对声卡的其它操作有可能会导致驱动程序无法再修改其缓冲区的大小。下面的代码示范了怎样设置声卡驱动程序中的内核缓冲区的大小：
+ 
+int setting = 0xnnnnssss;
+ int result = ioctl(handle, SNDCTL_DSP_SETFRAGMENT, &setting);
+ if (result == -1) {
+  perror("ioctl buffer size");
+  return -1;
+ }
+ // 检查设置值的正确性
+  
+ 
+
+在设置缓冲区大小时，参数setting实际上由两部分组成，其低16位标明缓冲区的尺寸，相应的计算公式为buffer_size = 2^ssss，即若参数setting低16位的值为16，那么相应的缓冲区的大小会被设置为65536字节。参数setting的高16位则用来标明分片（fragment）的最大序号，它的取值范围从2一直到0x7FFF，其中0x7FFF表示没有任何限制。
+ 
+接下来要做的是设置声卡工作时的声道（channel）数目，根据硬件设备和驱动程序的具体情况，可以将其设置为0（单声道，mono）或者1（立体声，stereo）。下面的代码示范了应该怎样设置声道数目：
+ 
+int channels = 0; // 0=mono 1=stereo
+ int result = ioctl(handle, SNDCTL_DSP_STEREO, &channels);
+ if ( result == -1 ) {
+  perror("ioctl channel number");
+  return -1;
+ }
+ if (channels != 0) {
+  // 只支持立体声
+ }
+  
+ 
+
+采样格式和采样频率是在进行音频编程时需要考虑的另一个问题，声卡支持的所有采样格式可以在头文件soundcard.h中找到，而通过ioctl系统调用则可以很方便地更改当前所使用的采样格式。下面的代码示范了如何设置声卡的采样格式：
+ 
+int format = AFMT_U8;
+ int result = ioctl(handle, SNDCTL_DSP_SETFMT, &format);
+ if ( result == -1 ) {
+  perror("ioctl sample format");
+  return -1;
+ }
+ // 检查设置值的正确性
+  
+ 
+
+声卡采样频率的设置也非常容易，只需在调用ioctl时将第二个参数的值设置为SNDCTL_DSP_SPEED，同时在第三个参数中指定采样频率的数值就行了。对于大多数声卡来说，其支持的采样频率范围一般为5kHz到44.1kHz或者48kHz，但并不意味着该范围内的所有频率都会被硬件支持，在Linux下进行音频编程时最常用到的几种采样频率是11025Hz、16000Hz、22050Hz、32000Hz和44100Hz。下面的代码示范了如何设置声卡的采样频率：
+ 
+int rate = 22050;
+ int result = ioctl(handle, SNDCTL_DSP_SPEED, &rate);
+ 
+if ( result == -1 ) {
+  perror("ioctl sample format");
+  return -1;
+ }
+ // 检查设置值的正确性
+   
+
+
+
+4.2 Mixer编程
+ 
+声卡上的混音器由多个混音通道组成，它们可以通过驱动程序提供的设备文件/dev/mixer进行编程。对混音器的操作是通过ioctl系统调用来完成的，并且所有控制命令都由SOUND_MIXER或者MIXER开头，表1列出了常用的几个混音器控制命令：
+ 
+名 称 作 用 
+SOUND_MIXER_VOLUME 主音量调节 
+SOUND_MIXER_BASS 低音控制 
+SOUND_MIXER_TREBLE 高音控制 
+SOUND_MIXER_SYNTH FM合成器 
+SOUND_MIXER_PCM 主D/A转换器 
+SOUND_MIXER_SPEAKER PC喇叭 
+SOUND_MIXER_LINE 音频线输入 
+SOUND_MIXER_MIC 麦克风输入 
+SOUND_MIXER_CD CD输入 
+SOUND_MIXER_IMIX 回放音量 
+SOUND_MIXER_ALTPCM 从D/A 转换器 
+SOUND_MIXER_RECLEV 录音音量 
+SOUND_MIXER_IGAIN 输入增益 
+SOUND_MIXER_OGAIN 输出增益 
+SOUND_MIXER_LINE1 声卡的第1输入 
+SOUND_MIXER_LINE2 声卡的第2输入 
+SOUND_MIXER_LINE3 声卡的第3输入 
+
+表1 混音器命令 
+对声卡的输入增益和输出增益进行调节是混音器的一个主要作用，目前大部分声卡采用的是8位或者16位的增益控制器，但作为程序员来讲并不需要关心这些，因为声卡驱动程序会负责将它们变换成百分比的形式，也就是说无论是输入增益还是输出增益，其取值范围都是从0到100。在进行混音器编程时，可以使用SOUND_MIXER_READ宏来读取混音通道的增益大小，例如在获取麦克风的输入增益时，可以使用如下的代码：
+ 
+int vol;
+ ioctl(fd, SOUND_MIXER_READ(SOUND_MIXER_MIC), &vol);
+ printf("Mic gain is at %d %%\n", vol);
+  
+ 
+
+对于只有一个混音通道的单声道设备来说，返回的增益大小保存在低位字节中。而对于支持多个混音通道的双声道设备来说，返回的增益大小实际上包括两个部分，分别代表左、右两个声道的值，其中低位字节保存左声道的音量，而高位字节则保存右声道的音量。下面的代码可以从返回值中依次提取左右声道的增益大小：
+ 
+int left, right;
+ left = vol & 0xff;
+ right = (vol & 0xff00) >> 8;
+ printf("Left gain is %d %%, Right gain is %d %%\n", left, right);
+  
+ 
+
+类似地，如果想设置混音通道的增益大小，则可以通过SOUND_MIXER_WRITE宏来实现，此时遵循的原则与获取增益值时的原则基本相同，例如下面的语句可以用来设置麦克风的输入增益：
+ 
+vol = (right << 8) + left;
+ ioctl(fd, SOUND_MIXER_WRITE(SOUND_MIXER_MIC), &vol);
+  
+ 
+
+在编写实用的音频程序时，混音器是在涉及到兼容性时需要重点考虑的一个对象，这是因为不同的声卡所提供的混音器资源是有所区别的。声卡驱动程序提供了多个ioctl系统调用来获得混音器的信息，它们通常返回一个整型的位掩码（bitmask），其中每一位分别代表一个特定的混音通道，如果相应的位为1，则说明与之对应的混音通道是可用的。例如通过SOUND_MIXER_READ_DEVMASK返回的位掩码，可以查询出能够被声卡支持的每一个混音通道，而通过SOUND_MIXER_READ_RECMAS返回的位掩码，则可以查询出能够被当作录音源的每一个通道。下面的代码可以用来检查CD输入是否是一个有效的混音通道：
+ 
+  ioctl(fd, SOUND_MIXER_READ_DEVMASK, &devmask);
+ if (devmask & SOUND_MIXER_CD)
+   printf("The CD input is supported");
+    
+
+
+如果进一步还想知道其是否是一个有效的录音源，则可以使用如下语句：
+ 
+ioctl(fd, SOUND_MIXER_READ_RECMASK, &recmask);
+ if (recmask & SOUND_MIXER_CD)
+   printf("The CD input can be a recording source");
+  
+ 
+
+目前大多数声卡提供多个录音源，通过SOUND_MIXER_READ_RECSRC可以查询出当前正在使用的录音源，同一时刻能够使用几个录音源是由声卡硬件决定的。类似地，使用SOUND_MIXER_WRITE_RECSRC可以设置声卡当前使用的录音源，例如下面的代码可以将CD输入作为声卡的录音源使用：
+ 
+devmask = SOUND_MIXER_CD;
+ ioctl(fd, SOUND_MIXER_WRITE_DEVMASK, &devmask);
+  
+ 
+
+此外，所有的混音通道都有单声道和双声道的区别，如果需要知道哪些混音通道提供了对立体声的支持，可以通过SOUND_MIXER_READ_STEREODEVS来获得。
+ 
+4.3 音频录放框架
+ 
+下面给出一个利用声卡上的DSP设备进行声音录制和回放的基本框架，它的功能是先录制几秒种音频数据，将其存放在内存缓冲区中，然后再进行回放，其所有的功能都是通过读写/dev/dsp设备文件来完成的：
+ 
+/*
+  * sound.c
+  */
+ #include 
+#include 
+#include 
+#include 
+#include 
+#include 
+#include 
+#define LENGTH 3    /* 存储秒数 */
+ #define RATE 8000   /* 采样频率 */
+ #define SIZE 8      /* 量化位数 */
+ #define CHANNELS 1  /* 声道数目 */
+ /* 用于保存数字音频数据的内存缓冲区 */
+ unsigned char buf[LENGTH*RATE*SIZE*CHANNELS/8];
+ int main()
+ {
+   int fd; /* 声音设备的文件描述符 */
+   int arg; /* 用于ioctl调用的参数 */
+   int status;   /* 系统调用的返回值 */
+   /* 打开声音设备 */
+   fd = open("/dev/dsp", O_RDWR);
+   if (fd < 0) {
+     perror("open of /dev/dsp failed");
+     exit(1);
+   }
+   /* 设置采样时的量化位数 */
+   arg = SIZE;
+   status = ioctl(fd, SOUND_PCM_WRITE_BITS, &arg);
+   if (status == -1)
+     perror("SOUND_PCM_WRITE_BITS ioctl failed");
+   if (arg != SIZE)
+     perror("unable to set sample size");
+   /* 设置采样时的声道数目 */
+   arg = CHANNELS; 
+  status = ioctl(fd, SOUND_PCM_WRITE_CHANNELS, &arg);
+   if (status == -1)
+     perror("SOUND_PCM_WRITE_CHANNELS ioctl failed");
+   if (arg != CHANNELS)
+     perror("unable to set number of channels");
+   /* 设置采样时的采样频率 */
+   arg = RATE;
+   status = ioctl(fd, SOUND_PCM_WRITE_RATE, &arg);
+ 
+if (status == -1)
+     perror("SOUND_PCM_WRITE_WRITE ioctl failed");
+   /* 循环，直到按下Control-C */
+   while (1) {
+     printf("Say something:\n");
+     status = read(fd, buf, sizeof(buf)); /* 录音 */
+     if (status != sizeof(buf))
+       perror("read wrong number of bytes");
+     printf("You said:\n");
+     status = write(fd, buf, sizeof(buf)); /* 回放 */
+     if (status != sizeof(buf))
+       perror("wrote wrong number of bytes");
+     /* 在继续录音前等待回放结束 */
+     status = ioctl(fd, SOUND_PCM_SYNC, 0); 
+    if (status == -1)
+       perror("SOUND_PCM_SYNC ioctl failed");
+   }
+ }
+   
+
+
+
+4.4 混音器框架
+ 
+下面再给出一个对混音器进行编程的基本框架，利用它可以对各种混音通道的增益进行调节，其所有的功能都是通过读写/dev/mixer设备文件来完成的：
+ 
+/*
+  * mixer.c
+  */
+ #include 
+#include 
+#include 
+#include 
+#include 
+#include 
+/* 用来存储所有可用混音设备的名称 */
+ const char *sound_device_names[] = SOUND_DEVICE_NAMES;
+ int fd;                  /* 混音设备所对应的文件描述符 */
+ int devmask, stereodevs; /* 混音器信息对应的位图掩码 */
+ char *name;
+ /* 显示命令的使用方法及所有可用的混音设备 */
+ void usage()
+ {
+   int i;
+   fprintf(stderr, "usage: %s    "       %s    "Where is one of:\n", name, name);
+   for (i = 0 ; i < SOUND_MIXER_NRDEVICES ; i++)
+     if ((1 << i) & devmask) /* 只显示有效的混音设备 */
+       fprintf(stderr, "%s ", sound_device_names[i]);
+   fprintf(stderr, "\n");
+   exit(1);
+ }
+ int main(int argc, char *argv[])
+ {
+   int left, right, level;  /* 增益设置 */
+   int status;              /* 系统调用的返回值 */
+   int device;              /* 选用的混音设备 */
+   char *dev;               /* 混音设备的名称 */
+   int i;
+   name = argv[0];
+   /* 以只读方式打开混音设备 */
+   fd = open("/dev/mixer", O_RDONLY);
+   if (fd == -1) {
+     perror("unable to open /dev/mixer");
+     exit(1);
+   }
+   
+  /* 获得所需要的信息 */
+   status = ioctl(fd, SOUND_MIXER_READ_DEVMASK, &devmask);
+   if (status == -1)
+     perror("SOUND_MIXER_READ_DEVMASK ioctl failed");
+   status = ioctl(fd, SOUND_MIXER_READ_STEREODEVS, &stereodevs);
+   if (status == -1)
+     perror("SOUND_MIXER_READ_STEREODEVS ioctl failed");
+   /* 检查用户输入 */
+   if (argc != 3 && argc != 4)
+     usage();
+   /* 保存用户输入的混音器名称 */
+   dev = argv[1];
+   /* 确定即将用到的混音设备 */
+   for (i = 0 ; i < SOUND_MIXER_NRDEVICES ; i++)
+     if (((1 << i) & devmask) && !strcmp(dev, sound_device_names[i]))
+       break;
+   if (i == SOUND_MIXER_NRDEVICES) { /* 没有找到匹配项 */
+     fprintf(stderr, "%s is not a valid mixer device\n", dev);
+     usage();
+   }
+   /* 查找到有效的混音设备 */
+   device = i;
+   /* 获取增益值 */
+   if (argc == 4) {
+     /* 左、右声道均给定 */
+     left  = atoi(argv[2]);
+     right = atoi(argv[3]);
+   } else {
+     /* 左、右声道设为相等 */
+     left  = atoi(argv[2]);
+     right = atoi(argv[2]);
+   }
+   
+  /* 对非立体声设备给出警告信息 */
+   if ((left != right) && !((1 << i) & stereodevs)) {
+     fprintf(stderr, "warning: %s is not a stereo device\n", dev);
+   }
+   
+  /* 将两个声道的值合到同一变量中 */
+   level = (right << 8) + left;
+   
+  /* 设置增益 */
+   status = ioctl(fd, MIXER_WRITE(device), &level);
+   if (status == -1) {
+     perror("MIXER_WRITE ioctl failed");
+     exit(1);
+   }
+   /* 获得从驱动返回的左右声道的增益 */
+   left  = level & 0xff;
+   right = (level & 0xff00) >> 8;
+   /* 显示实际设置的增益 */
+   fprintf(stderr, "%s gain set to %d%% / %d%%\n", dev, left, right);
+   /* 关闭混音设备 */
+   close(fd);
+   return 0;
+ }
+  
+ 
+
+编译好上面的程序之后，先不带任何参数执行一遍，此时会列出声卡上所有可用的混音通道：
+ 
+[xiaowp@linuxgam sound]$ ./mixer
+ usage: ./mixer 
+       ./mixer 
+ 
+ Where is one of:
+ 
+
+vol pcm speaker line mic cd igain line1 phin video
+   
+
+
+
+之后就可以很方便地设置各个混音通道的增益大小了，例如下面的命令就能够将CD输入的左、右声道的增益分别设置为80%和90%：
+ 
+[xiaowp@linuxgam sound]$ ./mixer cd 80 90
+ cd gain set to 80% / 90%
+  
+ 
+ 五、小结
+ 
+随着Linux平台下多媒体应用的逐渐深入，需要用到数字音频的场合必将越来越广泛。虽然数字音频牵涉到的概念非常多，但在Linux下进行最基本的音频编程却并不十分复杂，关键是掌握如何与OSS或者ALSA这类声卡驱动程序进行交互，以及如何充分利用它们提供的各种功能，熟悉一些最基本的音频编程框架和模式对初学者来讲大有裨益。
+ 
+ 
+ 
+
+参考资料 
+
+1. OSS是Linux上最早出现的声卡驱动程序，http://www.opensound.com是它的核心网站，从中可以了解到许多与OSS相关的信息。
+ 
+2. ALSA是目前广泛使用的Linux声卡驱动程序，并且提供了一些库函数来简化音频程序的编写，在其官方网站http://www.alsa-project.org/上可以了解到ALSA的许多信息，并能够下载到最新的驱动程序和工具软件。
+ 
+3. Ken C. Pohlmann著，苏菲译，数字音频原理与应用（第四合版），北京：电子工业出版社，2002
+ 
+4. 钟玉琢等编著，多媒体技术及其应用，北京：机械工业出版社，2003
+ 
+ 
+ 
+Linux音频设备驱动-1
+ 
+ 
+ 
+
+
+
+
+
+本章导读
+ 在Linux中，先后出现了音频设备的两种框架OSS和ALSA，本节将在介绍数字音频设备及音频设备硬件接口的基础上，展现OSS和ALSA驱动的结构。
+ 17.1～17.2节讲解了音频设备及PCM、IIS和AC97硬件接口。
+ 17.3节阐述了Linux OSS音频设备驱动的组成、mixer接口、dsp接口及用户空间编程方法。
+ 17.4节阐述了Linux ALSA音频设备驱动的组成、card和组件管理、PCM设备、control接口、AC97 API及用户空间编程方法。
+ 17.5节以S3C2410通过IIS接口外接UDA1341编解码器的实例讲解了OSS驱动。
+ 17.6节以PXA255通过AC97接口外接AC97 编解码器的实例讲解了ALSA驱动。
+ 17.1数字音频设备
+ 目前，手机、PDA、MP3等许多嵌入式设备中包含了数字音频设备，一个典型的数字音频系统的电路组成如图17.1所示。图17.1中的嵌入式微控制器 /DSP中集成了PCM、IIS或AC97音频接口，通过这些接口连接外部的音频编解码器即可实现声音的AD和DA转换，图中的功放完成模拟信号的放大功能。
+ 
+图17.1 典型的数字音频系统电路
+ 音频编解码器是数字音频系统的核心，衡量它的指标主要有：
+ 采样频率
+ 采样的过程就是将通常的模拟音频信号的电信号转换成二进制码0和1的过程，这些0和1便构成了数字音频文件。如图17.2中的正弦曲线代表原始音频曲线，方格代表采样后得到的结果，二者越吻合说明采样结果越好。
+ 采样频率是每秒钟的采样次数，我们常说的 44.1kHz 采样频率就是每秒钟采样44100 次。理论上采样频率越高，转换精度越高，目前主流的采样频率是48kHz。
+ 量化精度
+ 量化精度是指对采样数据分析的精度，比如24bit量化精度就是是将标准电平信号按照2的24次方进行分析，也就是说将图17.2中的纵坐标等分为224等分。量化精度越高，声音就越逼真。
+ 
+图17.2 数字音频采样
+ 17.2音频设备硬件接口
+ 17.2.1 PCM接口
+ 针对不同的数字音频子系统，出现了几种微处理器或DSP与音频器件间用于数字转换的接口。
+ 最简单的音频接口是PCM（脉冲编码调制）接口，该接口由时钟脉冲（BCLK）、帧同步信号（FS）及接收数据（DR）和发送数据（DX）组成。在FS信号的上升沿，数据传输从MSB（Most Significant Bit）字开始，FS频率等于采样率。FS信号之后开始数据字的传输，单个的数据位按顺序进行传输，1个时钟周期传输1个数据字。发送MSB时，信号的等级首先降到最低，以避免在不同终端的接口使用不同的数据方案时造成MSB的丢失。
+ PCM接口很容易实现，原则上能够支持任何数据方案和任何采样率，但需要每个音频通道获得一个独立的数据队列。
+ 17.2.2 IIS接口
+ IIS 接口（Inter-IC Sound）在20世纪80年代首先被飞利浦用于消费音频，并在一个称为LRCLK（Left/Right CLOCK）的信号机制中经过多路转换，将两路音频信号变成单一的数据队列。当LRCLK为高时，左声道数据被传输；LRCLK为低时，右声道数据被传输。与PCM相比，IIS更适合于立体声系统。对于多通道系统，在同样的BCLK和LRCLK条件下，并行执行几个数据队列也是可能的。
+ 17.2.3 AC97接口
+ AC'97（Audio Codec 1997）是以Intel为首的五个PC厂商Intel、Creative Labs、NS、Analog Device与Yamaha共同提出的规格标准。与PCM和IIS不同，AC'97不只是一种数据格式，用于音频编码的内部架构规格，它还具有控制功能。 AC'97采用AC-Link与外部的编解码器相连，AC-Link接口包括位时钟（BITCLK）、同步信号校正（SYNC）和从编码到处理器及从处理器中解码（SDATDIN与SDATAOUT）的数据队列。AC'97数据帧以SYNC脉冲开始，包括12个20位时间段（时间段为标准中定义的不同的目的服务）及16位“tag”段，共计256个数据序列。例如，时间段“1”和“2”用于访问编码的控制寄存器，而时间段“3”和“4”分别负载左、右两个音频通道。“tag”段表示其他段中哪一个包含有效数据。把帧分成时间段使传输控制信号和音频数据仅通过4根线到达9个音频通道或转换成其他数据流成为可能。与具有分离控制接口的IIS方案相比，AC'97明显减少了整体管脚数。一般来说，AC'97 编解码器采用TQFP48封装，如图17.3所示。
+ 
+图17.3 AC97 Codec芯片
+ PCM、IIS和AC97各有其优点和应用范围，例如在CD、MD、MP3随身听多采用IIS接口，移动电话会采用PCM接口，具有音频功能的PDA则多使用和PC一样的AC'97编码格式。
+ 17.3 Linux OSS音频设备驱动
+ 17.3.1 OSS驱动的组成
+ OSS标准中有2个最基本的音频设备：mixer（混音器）和DSP（数字信号处理器）。
+ 在声卡的硬件电路中，mixer是一个很重要的组成部分，它的作用是将多个信号组合或者叠加在一起，对于不同的声卡来说，其混音器的作用可能各不相同。OSS驱动中，/dev/mixer设备文件是应用程序对mixer进行操作的软件接口。
+ 混音器电路通常由两个部分组成：输入混音器（input mixer）和输出混音器（output mixer）。输入混音器负责从多个不同的信号源接收模拟信号，这些信号源有时也被称为混音通道或者混音设备。模拟信号通过增益控制器和由软件控制的音量调节器后，在不同的混音通道中进行级别（level）调制，然后被送到输入混音器中进行声音的合成。混音器上的电子开关可以控制哪些通道中有信号与混音器相连，有些声卡只允许连接一个混音通道作为录音的音源，而有些声卡则允许对混音通道做任意的连接。经过输入混音器处理后的信号仍然为模拟信号，它们将被送到A/D转换器进行数字化处理。
+ 输出混音器的工作原理与输入混音器类似，同样也有多个信号源与混音器相连，并且事先都经过了增益调节。当输出混音器对所有的模拟信号进行了混合之后，通常还会有一个总控增益调节器来控制输出声音的大小，此外还有一些音调控制器来调节输出声音的音调。经过输出混音器处理后的信号也是模拟信号，它们最终会被送给喇叭或者其它的模拟输出设备。对混音器的编程包括如何设置增益控制器的级别，以及怎样在不同的音源间进行切换，这些操作通常来讲是不连续的，而且不会像录音或者放音那样需要占用大量的计算机资源。由于混音器的操作不符合典型的读/写操作模式，因此除了 open()和close()两个系统调用之外，大部分的操作都是通过ioctl()系统调用来完成的。与/dev/dsp不同，/dev/mixer允许多个应用程序同时访问，并且混音器的设置值会一直保持到对应的设备文件被关闭为止。
+ DSP也称为编解码器，实现录音（录音）和放音（播放），其对应的设备文件是/dev/dsp或/dev/sound/dsp。OSS声卡驱动程序提供的/dev/dsp是用于数字采样和数字录音的设备文件，向该设备写数据即意味着激活声卡上的D/A转换器进行放音，而向该设备读数据则意味着激活声卡上的A/D转换器进行录音。
+ 在从DSP设备读取数据时，从声卡输入的模拟信号经过A/D转换器变成数字采样后的样本，保存在声卡驱动程序的内核缓冲区中，当应用程序通过 read()系统调用从声卡读取数据时，保存在内核缓冲区中的数字采样结果将被复制到应用程序所指定的用户缓冲区中。需要指出的是，声卡采样频率是由内核中的驱动程序所决定的，而不取决于应用程序从声卡读取数据的速度。如果应用程序读取数据的速度过慢，以致低于声卡的采样频率，那么多余的数据将会被丢弃（即overflow）；如果读取数据的速度过快，以致高于声卡的采样频率，那么声卡驱动程序将会阻塞那些请求数据的应用程序，直到新的数据到来为止。
+ 在向DSP设备写入数据时，数字信号会经过D/A转换器变成模拟信号，然后产生出声音。应用程序写入数据的速度应该至少等于声卡的采样频率，过慢会产生声音暂停或者停顿的现象（即underflow）。如果用户写入过快的话，它会被内核中的声卡驱动程序阻塞，直到硬件有能力处理新的数据为止。
+ 与其它设备有所不同，声卡通常不需要支持非阻塞（non-blocking）的I/O操作。即便内核OSS驱动提供了非阻塞的I/O支持，用户空间也不宜采用。
+ 无论是从声卡读取数据，或是向声卡写入数据，事实上都具有特定的格式（format），如无符号8位、单声道、8KHz采样率，如果默认值无法达到要求，可以通过ioctl()系统调用来改变它们。通常说来，在应用程序中打开设备文件/dev/dsp之后，接下去就应该为其设置恰当的格式，然后才能从声卡读取或者写入数据。
+ 17.3.2 mixer接口
+ int register_sound_mixer(struct file_operations *fops, int dev);
+ 上述函数用于注册1个混音器，第1个参数fops即是文件操作接口，第2个参数dev是设备编号，如果填入-1，则系统自动分配1个设备编号。mixer是 1个典型的字符设备，因此编码的主要工作是实现file_operations中的open()、ioctl()等函数。
+ mixer接口file_operations中的最重要函数是ioctl()，它实现混音器的不同IO控制命令，代码清单17.1给出了1个ioctl()的范例。
+ 代码清单17.1 mixer()接口ioctl()函数范例
+ 1 static int mixdev_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg)
+ 2 {
+ 3    ...
+ 4    switch (cmd)
+ 5    {
+ 6      case SOUND_MIXER_READ_MIC:
+ 7        ...
+ 8      case SOUND_MIXER_WRITE_MIC:
+ 9        ...
+ 10     case SOUND_MIXER_WRITE_RECSRC:
+ 11       ...
+ 12     case SOUND_MIXER_WRITE_MUTE:
+ 13       ...
+ 14   }
+ 15   //其它命令
+ 16   return mixer_ioctl(codec, cmd, arg);
+ 17 }
+ 17.3.3 DSP接口
+ int register_sound_dsp(struct file_operations *fops, int dev);
+ 上述函数与register_sound_mixer()类似，它用于注册1个dsp设备，第1个参数fops即是文件操作接口，第2个参数dev是设备编号，如果填入-1，则系统自动分配1个设备编号。dsp也是1个典型的字符设备，因此编码的主要工作是实现file_operations中的 read()、write()、ioctl()等函数。
+ dsp接口file_operations中的read()和write()函数非常重要，read()函数从音频控制器中获取录音数据到缓冲区并拷贝到用户空间，write()函数从用户空间拷贝音频数据到内核空间缓冲区并最终发送到音频控制器。
+ dsp接口file_operations中的ioctl()函数处理对采样率、量化精度、DMA缓冲区块大小等参数设置IO控制命令的处理。
+ 在数据从缓冲区拷贝到音频控制器的过程中，通常会使用DMA，DMA对声卡而言非常重要。例如，在放音时，驱动设置完DMA控制器的源数据地址（内存中 DMA缓冲区）、目的地址（音频控制器FIFO）和DMA的数据长度，DMA控制器会自动发送缓冲区的数据填充FIFO，直到发送完相应的数据长度后才中断一次。
+ 在OSS驱动中，建立存放音频数据的环形缓冲区（ring buffer）通常是值得推荐的方法。此外，在OSS驱动中，一般会将1个较大的DMA缓冲区分成若干个大小相同的块（这些块也被称为“段”，即 fragment），驱动程序使用DMA每次在声音缓冲区和声卡之间搬移一个fragment。在用户空间，可以使用ioctl()系统调用来调整块的大小和个数。
+ 除了read()、write()和ioctl()外，dsp接口的poll()函数通常也需要被实现，以向用户反馈目前能否读写DMA缓冲区。
+ 在OSS驱动初始化过程中，会调用register_sound_dsp()和register_sound_mixer()注册dsp和mixer设备；在模块卸载的时候，会调用如代码清单17.2。
+ 代码清单17.2 OSS驱动初始化注册dsp和mixer设备
+ 1 static int xxx_init(void)
+ 2 {
+ 3    struct xxx_state *s = &xxx_state;
+ 4    ...
+ 5    //注册dsp设备
+ 6    if ((audio_dev_dsp = register_sound_dsp(&xxx_audio_fops, - 1)) < 0)
+ 7      goto err_dev1;
+ 8    //设备mixer设备 
+9    if ((audio_dev_mixer = register_sound_mixer(&xxx_mixer_fops, - 1)) < 0)
+ 10     goto err_dev2;
+ 11   ...
+ 12 }
+ 13
+ 14 void __exit xxx_exit(void)
+ 15 {
+ 16 //注销dsp和mixer设备接口
+ 17 unregister_sound_dsp(audio_dev_dsp);
+ 18 unregister_sound_mixer(audio_dev_mixer);
+ 19 ...
+ 20 }
+ 根据17.3.2和17.3.3节的分析，可以画出一个Linux OSS驱动结构的简图，如图17.4所示。
+ 
+图17.4 Linux OSS驱动结构
+ 17.3.4 OSS用户空间编程
+ 1、DSP编程
+ 对OSS驱动声卡的编程使用Linux文件接口函数，如图17.5，DSP接口的操作一般包括如下几个步骤：
+ ① 打开设备文件/dev/dsp。
+ 采用何种模式对声卡进行操作也必须在打开设备时指定，对于不支持全双工的声卡来说，应该使用只读或者只写的方式打开，只有那些支持全双工的声卡，才能以读写的方式打开，这还依赖于驱动程序的具体实现。Linux允许应用程序多次打开或者关闭与声卡对应的设备文件，从而能够很方便地在放音状态和录音状态之间进行切换。
+ ② 如果有需要，设置缓冲区大小。
+ 运行在Linux内核中的声卡驱动程序专门维护了一个缓冲区，其大小会影响到放音和录音时的效果，使用ioctl()系统调用可以对它的尺寸进行恰当的设置。调节驱动程序中缓冲区大小的操作不是必须的，如果没有特殊的要求，一般采用默认的缓冲区大小也就可以了。如果想设置缓冲区的大小，则通常应紧跟在设备文件打开之后，这是因为对声卡的其它操作有可能会导致驱动程序无法再修改其缓冲区的大小。
+ ③ 设置声道（channel）数量。
+ 根据硬件设备和驱动程序的具体情况，可以设置为单声道或者立体声。
+ ④ 设置采样格式和采样频率
+ 采样格式包括AFMT_U8（无符号8位）、AFMT_S8（有符号8位）、AFMT_U16_LE（小端模式，无符号16位）、 AFMT_U16_BE（大端模式，无符号16位）、AFMT_MPEG、AFMT_AC3等。使用SNDCTL_DSP_SETFMT IO控制命令可以设置采样格式。
+ 对于大多数声卡来说，其支持的采样频率范围一般为5kHz到44.1kHz或者48kHz，但并不意味着该范围内的所有连续频率都会被硬件支持，在Linux下进行音频编程时最常用到的几种采样频率是11025Hz、16000Hz、22050Hz、32000Hz 和44100Hz。使用SNDCTL_DSP_SPEED IO控制命令可以设置采样频率。
+ ⑤ 读写/dev/dsp实现播放或录音。
+ 
+图17.5 OSS dsp接口用户空间操作流程
+ 代码清单17.3的程序实现了利用/dev/dsp接口进行声音录制和播放的过程，它的功能是先录制几秒钟音频数据，将其存放在内存缓冲区中，然后再进行放音。
+ 代码清单17.3 OSS DSP接口应用编程范例
+ 1 #include <unistd.h>
+ 2 #include <fcntl.h>
+ 3 #include <sys/types.h>
+ 4 #include <sys/ioctl.h>
+ 5 #include <stdlib.h>
+ 6 #include <stdio.h>
+ 7 #include <linux/soundcard.h>
+ 8 #define LENGTH 3    /* 存储秒数 */
+ 9 #define RATE 8000   /* 采样频率 */
+ 10 #define SIZE 8      /* 量化位数 */
+ 11 #define CHANNELS 1 /* 声道数目 */
+ 12 /* 用于保存数字音频数据的内存缓冲区 */
+ 13 unsigned char buf[LENGTH *RATE * SIZE * CHANNELS / 8];
+ 14 int main()
+ 15 {
+ 16   int fd; /* 声音设备的文件描述符 */
+ 17   int arg; /* 用于ioctl调用的参数 */
+ 18   int status; /* 系统调用的返回值 */
+ 19   /* 打开声音设备 */
+ 20   fd = open("/dev/dsp", O_RDWR);
+ 21   if (fd < 0)
+ 22   {
+ 23     perror("open of /dev/dsp failed");
+ 24     exit(1);
+ 25   }
+ 26   /* 设置采样时的量化位数 */
+ 27   arg = SIZE;
+ 28   status = ioctl(fd, SOUND_PCM_WRITE_BITS, &arg);
+ 29   if (status == - 1)
+ 30     perror("SOUND_PCM_WRITE_BITS ioctl failed");
+ 31   if (arg != SIZE)
+ 32     perror("unable to set sample size");
+ 33   /* 设置采样时的通道数目 */
+ 34   arg = CHANNELS;
+ 35   status = ioctl(fd, SOUND_PCM_WRITE_CHANNELS, &arg);
+ 36   if (status == - 1)
+ 37     perror("SOUND_PCM_WRITE_CHANNELS ioctl failed");
+ 38   if (arg != CHANNELS)
+ 39     perror("unable to set number of channels");
+ 40   /* 设置采样率 */
+ 41   arg = RATE;
+ 42   status = ioctl(fd, SOUND_PCM_WRITE_RATE, &arg);
+ 43   if (status == - 1)
+ 44     perror("SOUND_PCM_WRITE_WRITE ioctl failed");
+ 45   /* 循环，直到按下Control-C */
+ 46   while (1)
+ 47   {
+ 48     printf("Say something:\n");
+ 49     status = read(fd, buf, sizeof(buf)); /* 录音 */
+ 50     if (status != sizeof(buf))
+ 51       perror("read wrong number of bytes");
+ 52     printf("You said:\n");
+ 53     status = write(fd, buf, sizeof(buf)); /* 放音 */
+ 54     if (status != sizeof(buf))
+ 55       perror("wrote wrong number of bytes");
+ 56     /* 在继续录音前等待放音结束 */
+ 57     status = ioctl(fd, SOUND_PCM_SYNC, 0);
+ 58     if (status == - 1)
+ 59       perror("SOUND_PCM_SYNC ioctl failed");
+ 60   }
+ 61 }
+ 2、mixer编程
+ 声卡上的混音器由多个混音通道组成，它们可以通过驱动程序提供的设备文件/dev/mixer进行编程。对混音器的操作一般都通过ioctl()系统调用来完成，所有控制命令都以SOUND_MIXER或者MIXER开头，表17.1列出了常用的混音器控制命令。
+ 表17.1 混音器常用命令
+ 命 令 作 用
+ SOUND_MIXER_VOLUME 主音量调节
+ SOUND_MIXER_BASS 低音控制
+ SOUND_MIXER_TREBLE 高音控制
+ SOUND_MIXER_SYNTH FM合成器
+ SOUND_MIXER_PCM 主D/A转换器
+ SOUND_MIXER_SPEAKER PC喇叭
+ SOUND_MIXER_LINE 音频线输入
+ SOUND_MIXER_MIC 麦克风输入
+ SOUND_MIXER_CD CD输入
+ SOUND_MIXER_IMIX 放音音量
+ SOUND_MIXER_ALTPCM 从D/A 转换器
+ SOUND_MIXER_RECLEV 录音音量
+ SOUND_MIXER_IGAIN 输入增益
+ SOUND_MIXER_OGAIN 输出增益
+ SOUND_MIXER_LINE1 声卡的第1输入
+ SOUND_MIXER_LINE2 声卡的第2输入
+ SOUND_MIXER_LINE3 声卡的第3输入
+ 对声卡的输入增益和输出增益进行调节是混音器的一个主要作用，目前大部分声卡采用的是8位或者16位的增益控制器，声卡驱动程序会将它们变换成百分比的形式，也就是说无论是输入增益还是输出增益，其取值范围都是从0到100。
+ SOUND_MIXER_READ宏
+ 在进行混音器编程时，可以使用 SOUND_MIXER_READ宏来读取混音通道的增益大小，例如如下代码可以获得麦克风的输入增益：
+ ioctl(fd, SOUND_MIXER_READ(SOUND_MIXER_MIC), &vol);
+ 对于只有一个混音通道的单声道设备来说，返回的增益大小保存在低位字节中。而对于支持多个混音通道的双声道设备来说，返回的增益大小实际上包括两个部分，分别代表左、右两个声道的值，其中低位字节保存左声道的音量，而高位字节则保存右声道的音量。下面的代码可以从返回值中依次提取左右声道的增益大小：
+ int left, right;
+ left = vol & 0xff;
+ right = (vol & 0xff00) >> 8;
+ SOUND_MIXER_WRITE宏
+ 如果想设置混音通道的增益大小，则可以通过SOUND_MIXER_WRITE宏来实现，例如下面的语句可以用来设置麦克风的输入增益：
+ vol = (right << 8) + left;
+ ioctl(fd, SOUND_MIXER_WRITE(SOUND_MIXER_MIC), &vol);
+ 查询Mixer信息
+ 声卡驱动程序提供了多个ioctl()系统调用来获得混音器的信息，它们通常返回一个整型的位掩码，其中每一位分别代表一个特定的混音通道，如果相应的位为1，则说明与之对应的混音通道是可用的。
+ 通过 SOUND_MIXER_READ_DEVMASK返回的位掩码查询出能够被声卡支持的每一个混音通道，而通过 SOUND_MIXER_READ_RECMAS返回的位掩码则可以查询出能够被当作录音源的每一个通道。例如，如下代码可用来检查CD输入是否是一个有效的混音通道：
+ ioctl(fd, SOUND_MIXER_READ_DEVMASK, &devmask);
+ if (devmask & SOUND_MIXER_CD)
+ printf("The CD input is supported");
+ 如下代码可用来检查CD输入是否是一个有效的录音源：
+ ioctl(fd, SOUND_MIXER_READ_RECMASK, &recmask);
+ if (recmask & SOUND_MIXER_CD)
+ printf("The CD input can be a recording source");
+ 大多数声卡提供了多个录音源，通过 SOUND_MIXER_READ_RECSRC可以查询出当前正在使用的录音源，同一时刻可使用2个或2个以上的录音源，具体由声卡硬件本身决定。相应地，使用 SOUND_MIXER_WRITE_RECSRC可以设置声卡当前使用的录音源，如下代码可以将CD输入作为声卡的录音源使用：
+ devmask = SOUND_MIXER_CD;
+ ioctl(fd, SOUND_MIXER_WRITE_RECSRC, &devmask);
+ 此外，所有的混音通道都有单声道和双声道的区别，如果需要知道哪些混音通道提供了对立体声的支持，可以通过SOUND_MIXER_READ_STEREODEVS来获得。
+ 代码清单17.4的程序实现了利用/dev/mixer接口对混音器进行编程的过程，该程序可对各种混音通道的增益进行调节。
+ 代码清单17.4 OSS mixer接口应用编程范例
+ 1   #include <unistd.h>
+ 2   #include <stdlib.h>
+ 3   #include <stdio.h>
+ 4   #include <sys/ioctl.h>
+ 5   #include <fcntl.h>
+ 6   #include <linux/soundcard.h>
+ 7   /* 用来存储所有可用混音设备的名称 */
+ 8   const char *sound_device_names[] = SOUND_DEVICE_NAMES;
+ 9   int fd; /* 混音设备所对应的文件描述符 */
+ 10 int devmask, stereodevs; /* 混音器信息对应的bit掩码 */
+ 11 char *name;
+ 12 /* 显示命令的使用方法及所有可用的混音设备 */
+ 13 void usage()
+ 14 {
+ 15    int i;
+ 16    fprintf(stderr, "usage: %s <device> <left-gain%%> <right-gain%%>\n"
+ 17      "%s <device> <gain%%>\n\n""Where <device> is one of:\n", name, name);
+ 18    for (i = 0; i < SOUND_MIXER_NRDEVICES; i++)
+ 19      if ((1 << i) &devmask)
+ 20     /* 只显示有效的混音设备 */
+ 21        fprintf(stderr, "%s ", sound_device_names[i]);
+ 22    fprintf(stderr, "\n");
+ 23    exit(1);
+ 24 }
+ 25 
+26 int main(int argc, char *argv[])
+ 27 {
+ 28    int left, right, level; /* 增益设置 */
+ 29    int status; /* 系统调用的返回值 */
+ 30    int device; /* 选用的混音设备 */
+ 31    char *dev; /* 混音设备的名称 */
+ 32    int i;
+ 33    name = argv[0];
+ 34    /* 以只读方式打开混音设备 */
+ 35    fd = open("/dev/mixer", O_RDONLY);
+ 36    if (fd == - 1)
+ 37    {
+ 38      perror("unable to open /dev/mixer");
+ 39      exit(1);
+ 40    }
+ 41 
+42    /* 获得所需要的信息 */
+ 43    status = ioctl(fd, SOUND_MIXER_READ_DEVMASK, &devmask);
+ 44    if (status == - 1)
+ 45      perror("SOUND_MIXER_READ_DEVMASK ioctl failed");
+ 46    status = ioctl(fd, SOUND_MIXER_READ_STEREODEVS, &stereodevs);
+ 47    if (status == - 1)
+ 48      perror("SOUND_MIXER_READ_STEREODEVS ioctl failed");
+ 49    /* 检查用户输入 */
+ 50    if (argc != 3 && argc != 4)
+ 51      usage();
+ 52    /* 保存用户输入的混音器名称 */
+ 53    dev = argv[1];
+ 54    /* 确定即将用到的混音设备 */
+ 55    for (i = 0; i < SOUND_MIXER_NRDEVICES; i++)
+ 56      if (((1 << i) &devmask) && !strcmp(dev, sound_device_names[i]))
+ 57        break;
+ 58    if (i == SOUND_MIXER_NRDEVICES)
+ 59    {
+ 60       /* 没有找到匹配项 */
+ 61      fprintf(stderr, "%s is not a valid mixer device\n", dev);
+ 62      usage();
+ 63    }
+ 64    /* 查找到有效的混音设备 */
+ 65    device = i;
+ 66    /* 获取增益值 */
+ 67    if (argc == 4)
+ 68    {
+ 69      /* 左、右声道均给定 */
+ 70      left = atoi(argv[2]);
+ 71      right = atoi(argv[3]);
+ 72    }
+ 73    else
+ 74    {
+ 75      /* 左、右声道设为相等 */
+ 76      left = atoi(argv[2]);
+ 77      right = atoi(argv[2]);
+ 78    }
+ 79 
+80    /* 对非立体声设备给出警告信息 */
+ 81    if ((left != right) && !((1 << i) &stereodevs))
+ 82    {
+ 83      fprintf(stderr, "warning: %s is not a stereo device\n", dev);
+ 84    }
+ 85 
+86    /* 将两个声道的值合到同一变量中 */
+ 87    level = (right << 8) + left;
+ 88 
+89    /* 设置增益 */
+ 90    status = ioctl(fd, MIXER_WRITE(device), &level);
+ 91    if (status == - 1)
+ 92    {
+ 93      perror("MIXER_WRITE ioctl failed");
+ 94      exit(1);
+ 95    }
+ 96    /* 获得从驱动返回的左右声道的增益 */
+ 97    left = level &0xff;
+ 98    right = (level &0xff00) >> 8;
+ 99    /* 显示实际设置的增益 */
+ 100   fprintf(stderr, "%s gain set to %d%% / %d%%\n", dev, left, right);
+ 101   /* 关闭混音设备 */
+ 102   close(fd);
+ 103   return 0;
+ 104 }
+ 编译上述程序为可执行文件mixer，执行./mixer <device> <left-gain%> <right-gain%>或./mixer <device> <gain%>可设置增益，device可以是vol、pcm、speaker、line、mic、cd、igain、line1、 phin、video。
+ 17.4 Linux ALSA音频设备驱动
+ 17.4.1 ALSA的组成
+ 虽然OSS已经非常成熟，但它毕竟是一个没有完全开放源代码的商业产品，而ALSA （Advanced Linux Sound Architecture）恰好弥补了这一空白，它符合GPL，是在Linux下进行音频编程时另一种可供选择的声卡驱动体系结构，其官方网站为http://www.alsa-project.org/。ALSA除了像OSS那样提供了一组内核驱动程序模块之外，还专门为简化应用程序的编写提供了相应的函数库，与OSS提供的基于ioctl的原始编程接口相比，ALSA函数库使用起来要更加方便一些。ALSA的主要特点有：
+ 支持多种声卡设备
+ 模块化的内核驱动程序
+ 支持SMP和多线程
+ 提供应用开发函数库（alsa-lib）以简化应用程序开发
+ 支持OSS API，兼容OSS应用程序
+ ALSA 具有更加友好的编程接口，并且完全兼容于OSS，对应用程序员来讲无疑是一个更佳的选择。ALSA系统包括驱动包alsa-driver、开发包 alsa-libs、开发包插件alsa-libplugins、设置管理工具包alsa-utils、其他声音相关处理小程序包alsa-tools、特殊音频固件支持包alsa- firmware、OSS接口兼容模拟层工具alsa-oss共7个子项目，其中只有驱动包是必需的。
+ alsa- driver指内核驱动程序，包括硬件相关的代码和一些公共代码，非常庞大，代码总量达数十万行；alsa-libs指用户空间的函数库，提供给应用程序使用，应用程序应包含头文件asoundlib.h，并使用共享库libasound.so；alsa-utils包含一些基于ALSA的用于控制声卡的应用程序，如alsaconf（侦测系统中声卡并写一个适合的ALSA配置文件）、alsactl（控制ALSA声卡驱动的高级设置）、 alsamixer（基于ncurses的混音器程序）、amidi（用于读写ALSA RawMIDI）、amixer（ALSA声卡混音器的命令行控制）、aplay（基于命令行的声音文件播放）、arecord（基于命令行的声音文件录制）等。
+ 目前ALSA内核提供给用户空间的接口有：
+ 信息接口（Information Interface，/proc/asound）
+ 控制接口（Control Interface，/dev/snd/controlCX）
+ 混音器接口（Mixer Interface，/dev/snd/mixerCXDX）
+ PCM接口（PCM Interface，/dev/snd/pcmCXDX）
+ Raw迷笛接口（Raw MIDI Interface，/dev/snd/midiCXDX）
+ 音序器接口（Sequencer Interface，/dev/snd/seq）
+ 定时器接口（Timer Interface，/dev/snd/timer）
+ 和OSS类似，上述接口也以文件的方式被提供，不同的是这些接口被提供给alsa-lib使用，而不是直接给应用程序使用的。应用程序最好使用alsa-lib，或者更高级的接口，比如jack提供的接口。
+ 图17.6给出了ALSA声卡驱动与用户空间体系结构的简图，从中可以看出ALSA内核驱动与用户空间库及OSS之间的关系。
+ 
+图17.6 ALSA体系结构
+ 17.4.1 card和组件管理
+ 对于每个声卡而言，必须创建1个“card”实例。card是声卡的“总部”，它管理这个声卡上的所有设备（组件），如PCM、mixers、MIDI、synthesizer等。因此，card和组件是ALSA声卡驱动中的主要组成元素。
+ 1、创建card
+ struct snd_card *snd_card_new(int idx, const char *xid,
+     struct module *module, int extra_size);
+ idx是card索引号、xid是标识字符串、module一般为THIS_MODULE，extra_size是要分配的额外数据的大小，分配的extra_size大小的内存将作为card->private_data。
+ 2、创建组件
+ int snd_device_new(struct snd_card *card, snd_device_type_t type,
+      void *device_data, struct snd_device_ops *ops);
+ 当 card被创建后，设备（组件）能够被创建并关联于该card。第1个参数是snd_card_new()创建的card指针，第2个参数type 指的是device-level即设备类型，形式为SNDRV_DEV_XXX，包括SNDRV_DEV_CODEC、 SNDRV_DEV_CONTROL、SNDRV_DEV_PCM、SNDRV_DEV_RAWMIDI等，用户自定义设备的device-level是 SNDRV_DEV_LOWLEVEL，ops参数是1个函数集（定义为snd_device_ops结构体）的指针，device_data是设备数据指针，注意函数snd_device_new()本身不会分配设备数据的内存，因此应事先分配。
+ 3、组件释放
+ 每个ALSA预定义的组件在构造时需调用snd_device_new()，而每个组件的析构方法则在函数集中被包含。对于PCM、AC97此类预定义组件，我们不需关心它们的析构，而对于自定义的组件，则需要填充snd_device_ops中的析构函数指针dev_free，这样，当snd_card_free()被调用时，组件将自动被释放。
+ 4、芯片特定的数据（Chip-Specific Data）
+ 芯片特定的数据一般以struct xxxchip结构体形式组织，这个结构体中包含芯片相关的I/O端口地址、资源指针、中断号等，其意义等同于字符设备驱动中的 file->private_data。定义芯片特定的数据主要有2种方法，一种方法是将sizeof(struct xxxchip)传入snd_card_new()的extra_size参数，它将自动成员snd_card的private_data成员，如代码清单17.5；另一种方法是在snd_card_new()传入给extra_size参数0，再分配sizeof(struct xxxchip)的内存，将分配内存的地址传入snd_device_new()的device_data的参数，如代码清单17.6。
+ 代码清单17.5 创建芯片特定的数据方法1
+ 1 struct xxxchip //芯片特定的数据结构体
+ 2 {
+ 3    ...
+ 4 };
+ 5 card = snd_card_new(index, id, THIS_MODULE, sizeof(struct
+ 6 xxxchip)); //创建声卡并申请xxx_chi内存作为card-> private_data
+ 7 struct xxxchip *chip = card->private_data;
+ 代码清单17.6 创建芯片特定的数据方法2
+ 1 struct snd_card *card;
+ 2 struct xxxchip *chip;
+ 3 //使用0作为第4个参数，并动态分配xxx_chip的内存：
+ 4 card = snd_card_new(index[dev], id[dev], THIS_MODULE, 0);
+ 5 ...
+ 6 chip = kzalloc(sizeof(*chip), GFP_KERNEL);
+ 7 //在xxxchip结构体中，应该包括声卡指针：
+ 8 struct xxxchip
+ 9 {
+ 10   struct snd_card *card;
+ 11   ...
+ 12 };
+ 13 //并将其card成员赋值为snd_card_new()创建的card指针：
+ 14 chip->card = card;
+ 15 static struct snd_device_ops ops =
+ 16 {
+ 17   .dev_free = snd_xxx_chip_dev_free, //组件析构
+ 18 };
+ 19 ...
+ 20 //创建自定义组件
+ 21 snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+ 22 //在析构函数中释放xxxchip内存
+ 23 static int snd_xxx_chip_dev_free(struct snd_device *device)
+ 24 {
+ 25   return snd_xxx_chip_free(device->device_data); //释放
+ 26 }
+ 5、注册/释放声卡
+ 当snd_card被准备好以后，可使用snd_card_register()函数注册这个声卡：
+ int snd_card_register(struct snd_card *card)
+ 对应的snd_card_free()完成相反的功能：
+ int snd_card_free(struct snd_card *card);
+ 
+ 
+ 
+
+Linux音频设备驱动-2
+ 
+ 
+ 
+
+
+
+17.4.2 PCM设备
+ 每个声卡最多可以有4个PCM实例，1个PCM实例对应1个设备文件。PCM实例由PCM放音和录音流组成，而每个PCM流又由1个或多个PCM子流组成。有的声卡支持多重放音功能，例如，emu10k1包含1个32个立体声子流的PCM放音设备。
+ 1、PCM实例构造
+ int snd_pcm_new(struct snd_card *card, char *id, int device,
+ int playback_count, int capture_count, struct snd_pcm ** rpcm);
+ 第 1个参数是card指针，第2个是标识字符串，第3个是PCM设备索引（0表示第1个PCM设备），第4和第5个分别为放音和录音设备的子流数。当存在多个子流时，需要恰当地处理open()、close()和其它函数。在每个回调函数中，可以通过snd_pcm_substream的number成员得知目前操作的究竟是哪个子流，如：
+ struct snd_pcm_substream *substream;
+ int index = substream->number;
+ 一种习惯的做法是在驱动中定义1个PCM“构造函数”，负责PCM实例的创建，如代码清单17.7。
+ 代码清单17.7 PCM设备“构造函数”
+ 1 static int __devinit snd_xxxchip_new_pcm(struct xxxchip *chip)
+ 2 {
+ 3    struct snd_pcm *pcm;
+ 4    int err;
+ 5    //创建PCM实例
+ 6    if ((err = snd_pcm_new(chip->card, "xxx Chip", 0, 1, 1, &pcm)) < 0)
+ 7      return err;
+ 8    pcm->private_data = chip; //置pcm->private_data为芯片特定数据
+ 9    strcpy(pcm->name, "xxx Chip");
+ 10   chip->pcm = pcm;
+ 11   ...
+ 12   return 0;
+ 13 }
+ 2、设置PCM操作
+ void snd_pcm_set_ops(struct snd_pcm *pcm, int direction, struct snd_pcm_ops *ops);
+ 第1个参数是snd_pcm的指针，第2个参数是SNDRV_PCM_STREAM_PLAYBACK或SNDRV_PCM_STREAM_CAPTURE，而第3个参数是PCM操作结构体snd_pcm_ops，这个结构体的定义如代码清单17.8。
+ 代码清单17.8 snd_pcm_ops结构体
+ 1 struct snd_pcm_ops
+ 2 {
+ 3   int (*open)(struct snd_pcm_substream *substream);//打开
+ 4   int (*close)(struct snd_pcm_substream *substream);//关闭
+ 5   int (*ioctl)(struct snd_pcm_substream * substream,
+ 6         unsigned int cmd, void *arg);//io控制
+ 7   int (*hw_params)(struct snd_pcm_substream *substream,
+ 8      struct snd_pcm_hw_params *params);//硬件参数
+ 9   int (*hw_free)(struct snd_pcm_substream *substream); //资源释放
+ 10 int (*prepare)(struct snd_pcm_substream *substream);//准备
+ 11 //在PCM被开始、停止或暂停时调用
+ 12 int (*trigger)(struct snd_pcm_substream *substream, int cmd);
+ 13 snd_pcm_uframes_t (*pointer)(struct snd_pcm_substream *substream);// 当前缓冲区的硬件位置
+ 14 //缓冲区拷贝
+ 15 int (*copy)(struct snd_pcm_substream *substream, int channel,
+ 16       snd_pcm_uframes_t pos,
+ 17       void __user *buf, snd_pcm_uframes_t count);
+ 18 int (*silence)(struct snd_pcm_substream *substream, int channel,
+ 19          snd_pcm_uframes_t pos, snd_pcm_uframes_t count);
+ 20 struct page *(*page)(struct snd_pcm_substream *substream,
+ 21         unsigned long offset);
+ 22 int (*mmap)(struct snd_pcm_substream *substream, struct vm_area_struct *vma);
+ 23 int (*ack)(struct snd_pcm_substream *substream);
+ 24 };
+ snd_pcm_ops中的所有操作都需事先通过snd_pcm_substream_chip()获得xxxchip指针，例如：
+ int xxx()
+ {
+ struct xxxchip *chip = snd_pcm_substream_chip(substream);
+ ...
+ }
+ 当1个PCM子流被打开时，snd_pcm_ops中的open()函数将被调用，在这个函数中，至少需要初始化runtime->hw字段，代码清单17.9给出了open()函数的范例。
+ 代码清单17.9 snd_pcm_ops结构体中open()函数
+ 1 static int snd_xxx_open(struct snd_pcm_substream *substream)
+ 2 {
+ 3    //从子流获得xxxchip指针
+ 4    struct xxxchip *chip = snd_pcm_substream_chip(substream);    
+5    //获得PCM运行时信息指针
+ 6    struct snd_pcm_runtime *runtime = substream->runtime;
+ 7    ...
+ 8    //初始化runtime->hw
+ 9    runtime->hw = snd_xxxchip_playback_hw;
+ 10   return 0;
+ 11 }
+ 上述代码中的snd_xxxchip_playback_hw是预先定义的硬件描述。在open()函数中，可以分配1段私有数据。如果硬件配置需要更多的限制，也需设置硬件限制。
+ 当PCM子流被关闭时，close()函数将被调用。如果open()函数中分配了私有数据，则在close()函数中应该释放substream的私有数据，代码清单17.10给出了close()函数的范例。
+ 代码清单17.10 snd_pcm_ops结构体中close()函数
+ 1 static int snd_xxx_close(struct snd_pcm_substream *substream)
+ 2 {
+ 3   //释放子流私有数据
+ 4   kfree(substream->runtime->private_data);
+ 5   //...
+ 6 }
+ 驱动中通常可以给snd_pcm_ops的ioctl()成员函数传递通用的snd_pcm_lib_ioctl()函数。
+ snd_pcm_ops的hw_params()成员函数将在应用程序设置硬件参数（PCM子流的周期大小、缓冲区大小和格式等）的时候被调用，它的形式如下：
+ static int snd_xxx_hw_params(struct snd_pcm_substream *substream,struct snd_pcm_hw_params *hw_params);
+ 在这个函数中，将完成大量硬件设置，甚至包括缓冲区分配，这时可调用如下辅助函数：
+ snd_pcm_lib_malloc_pages(substream, params_buffer_bytes(hw_params));
+ 仅当DMA缓冲区已被预先分配的情况下，上述调用才可成立。
+ 与hw_params()对应的函数是hw_free()，它释放由hw_params()分配的资源，例如，通过如下调用释放snd_pcm_lib_malloc_pages()缓冲区：
+ snd_pcm_lib_free_pages(substream);
+ 当 PCM被“准备”时，prepare()函数将被调用，在其中可以设置采样率、格式等。prepare()函数与hw_params()函数的不同在于对 prepare()的调用发生在snd_pcm_prepare()每次被调用的时候。prepare()的形式如下：
+ static int snd_xxx_prepare(struct snd_pcm_substream *substream);
+ trigger()成员函数在PCM被开始、停止或暂停时调用，函数的形式如下：
+ static int snd_xxx_trigger(struct snd_pcm_substream *substream, int cmd);
+ cmd 参数定义了具体的行为，在trigger()成员函数中至少要处理SNDRV_PCM_TRIGGER_START和 SNDRV_PCM_TRIGGER_STOP命令，如果PCM支持暂停，还应处理SNDRV_PCM_TRIGGER_PAUSE_PUSH和 SNDRV_PCM_TRIGGER_PAUSE_RELEASE命令。如果设备支持挂起/恢复，当能量管理状态发生变化时将处理 SNDRV_PCM_TRIGGER_SUSPEND和SNDRV_PCM_TRIGGER_RESUME这2个命令。注意trigger()函数是原子的，中途不能睡眠。代码清单17.11给出了1个trigger()函数的范例。
+ 代码清单17.11 snd_pcm_ops结构体中trigger()函数
+ 1 static int snd_xxx_trigger(struct snd_pcm_substream *substream, int cmd)
+ 2 {
+ 3    switch (cmd)
+ 4    {
+ 5      case SNDRV_PCM_TRIGGER_START:
+ 6        // 开启PCM引擎
+ 7        break;
+ 8      case SNDRV_PCM_TRIGGER_STOP:
+ 9        // 停止PCM引擎
+ 10       break;
+ 11     ...//其它命令
+ 12     default:
+ 13       return - EINVAL;
+ 14   }
+ 15 }
+ pointer()函数用于PCM中间层查询目前缓冲区的硬件位置，该函数以帧的形式返回0～buffer_size – 1的位置（ALSA 0.5.x中为字节形式），此函数也是原子的。
+ copy() 和silence()函数一般可以省略，但是，当硬件缓冲区不处于常规内存中时需要。例如，一些设备有自己的不能被映射的硬件缓冲区，这种情况下，我们不得不将数据从内存缓冲区拷贝到硬件缓冲区。例外，当内存缓冲区在物理和虚拟地址上都不连续时，这2个函数也必须被实现。
+ 3、分配缓冲区
+ 分配缓冲区的最简单方法是调用如下函数：
+ int snd_pcm_lib_preallocate_pages_for_all(struct snd_pcm *pcm,
+        int type, void *data, size_t size, size_t max);
+ type 参数是缓冲区的类型，包含SNDRV_DMA_TYPE_UNKNOWN（未知）、SNDRV_DMA_TYPE_CONTINUOUS（连续的非DMA 内存）、SNDRV_DMA_TYPE_DEV （连续的通用设备），SNDRV_DMA_TYPE_DEV_SG（通用设备SG-buffer）和 SNDRV_DMA_TYPE_SBUS（连续的SBUS）。如下代码将分配64KB的缓冲区：
+ snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
+ snd_dma_pci_data(chip->pci),64*1024, 64*1024);
+ 4、设置标志
+ 在构造PCM实例、设置操作集并分配缓冲区之后，如果有需要，应设置PCM的信息标志，例如，如果PCM设备只支持半双工，则这样定义标志：
+ pcm->info_flags = SNDRV_PCM_INFO_HALF_DUPLEX;
+ 5、PCM实例析构
+ PCM 实例的“析构函数”并非是必须的，因为PCM实例会被PCM中间层代码自动释放，如果驱动中分配了一些特别的内存空间，则必须定义“析构函数”，代码清单 17.x给出了PCM“析构函数”与对应的“构造函数”，“析构函数”会释放“构造函数”中创建的xxx_private_pcm_data。
+ 代码清单17.12 PCM设备“析构函数”
+ 1 static void xxxchip_pcm_free(struct snd_pcm *pcm)
+ 2 {
+ 3    /* 从pcm实例得到chip */
+ 4    struct xxxchip *chip = snd_pcm_chip(pcm);
+ 5    /* 释放自定义用途的内存 */
+ 6    kfree(chip->xxx_private_pcm_data);
+ 7    ...
+ 8 }
+ 9 
+10 static int __devinit snd_xxxchip_new_pcm(struct xxxchip *chip)
+ 11 {
+ 12   struct snd_pcm *pcm;
+ 13   ...
+ 14   /* 分配自定义用途的内存 */
+ 15   chip->xxx_private_pcm_data = kmalloc(...);
+ 16   pcm->private_data = chip;
+ 17   /* 设置“析构函数” */
+ 18   pcm->private_free = xxxchip_pcm_free;
+ 19   ...
+ 20 }
+ 上述代码第4行的snd_pcm_chip()从PCM实例指针获得xxxchip指针，实际上它就是返回第16行给PCM实例赋予的xxxchip指针。
+ 6、PCM信息运行时指针
+ 当 PCM子流被打开后，PCM运行时实例（定义为结构体snd_pcm_runtime，如代码清单17.13）将被分配给这个子流，这个指针通过 substream->runtime获得。运行时指针包含各种各样的信息：hw_params及sw_params配置的拷贝、缓冲区指针、 mmap记录、自旋锁等，几乎要控制PCM的所有信息均能从中取得。
+ 代码清单17.13 snd_pcm_runtime结构体
+ 1 struct snd_pcm_runtime
+ 2 {
+ 3    /* 状态 */
+ 4    struct snd_pcm_substream *trigger_master;
+ 5    snd_timestamp_t trigger_tstamp; /* 触发时间戳 */
+ 6    int overrange;
+ 7    snd_pcm_uframes_t avail_max;
+ 8    snd_pcm_uframes_t hw_ptr_base; /* 缓冲区复位时的位置 */
+ 9    snd_pcm_uframes_t hw_ptr_interrupt; /* 中断时的位置*/
+ 10   /* 硬件参数 */
+ 11   snd_pcm_access_t access; /* 存取模式 */
+ 12   snd_pcm_format_t format; /* SNDRV_PCM_FORMAT_* */
+ 13   snd_pcm_subformat_t subformat; /* 子格式 */
+ 14   unsigned int rate; /* rate in Hz */
+ 15   unsigned int channels; /* 通道 */
+ 16   snd_pcm_uframes_t period_size; /* 周期大小 */
+ 17   unsigned int periods; /* 周期数 */
+ 18   snd_pcm_uframes_t buffer_size; /* 缓冲区大小 */
+ 19   unsigned int tick_time; /* tick time */
+ 20   snd_pcm_uframes_t min_align; /* 格式对应的最小对齐*/
+ 21   size_t byte_align;
+ 22   unsigned int frame_bits;
+ 23   unsigned int sample_bits;
+ 24   unsigned int info;
+ 25   unsigned int rate_num;
+ 26   unsigned int rate_den;
+ 27   /* 软件参数 */
+ 28   struct timespec tstamp_mode; /* mmap时间戳被更新*/
+ 29   unsigned int period_step;
+ 30   unsigned int sleep_min; /* 睡眠的最小节拍 */
+ 31   snd_pcm_uframes_t xfer_align;
+ 32   snd_pcm_uframes_t start_threshold;
+ 33   snd_pcm_uframes_t stop_threshold;
+ 34   snd_pcm_uframes_t silence_threshold; /* Silence填充阈值 */
+ 35   snd_pcm_uframes_t silence_size; /* Silence填充大小 */
+ 36   snd_pcm_uframes_t boundary;
+ 37   snd_pcm_uframes_t silenced_start;
+ 38   snd_pcm_uframes_t silenced_size;
+ 39   snd_pcm_sync_id_t sync; /* 硬件同步ID */
+ 40   /* mmap */
+ 41   volatile struct snd_pcm_mmap_status *status;
+ 42   volatile struct snd_pcm_mmap_control *control;
+ 43   atomic_t mmap_count;
+ 44   /* 锁/调度 */
+ 45   spinlock_t lock;
+ 46   wait_queue_head_t sleep;
+ 47   struct timer_list tick_timer;
+ 48   struct fasync_struct *fasync;
+ 49   /* 私有段 */
+ 50   void *private_data;
+ 51   void(*private_free)(struct snd_pcm_runtime *runtime);
+ 52   /* 硬件描述 */
+ 53   struct snd_pcm_hardware hw;
+ 54   struct snd_pcm_hw_constraints hw_constraints;
+ 55   /* 中断回调函数 */
+ 56   void(*transfer_ack_begin)(struct snd_pcm_substream*substream);
+ 57   void(*transfer_ack_end)(struct snd_pcm_substream *substream);
+ 58   /* 定时器 */
+ 59   unsigned int timer_resolution; /* timer resolution */
+ 60   /* DMA */
+ 61   unsigned char *dma_area; /* DMA区域*/
+ 62   dma_addr_t dma_addr; /* 总线物理地址*/
+ 64   size_t dma_bytes; /* DMA区域大小 */
+ 65   struct snd_dma_buffer *dma_buffer_p; /* 被分配的缓冲区 */
+ 66   #if defined(CONFIG_SND_PCM_OSS) || defined(CONFIG_SND_PCM_OSS_MODULE)
+ 67     /* OSS信息 */
+ 68     struct snd_pcm_oss_runtime oss;
+ 69   #endif
+ 70 };
+ snd_pcm_runtime中的大多数记录对被声卡驱动操作集中的函数是只读的，仅仅PCM中间层可更新或修改这些信息，但是硬件描述、中断回调函数、DMA缓冲区信息和私有数据是例外的。
+ 下面解释snd_pcm_runtime结构体中的几个重要成员：
+ 硬件描述
+ 硬件描述（snd_pcm_hardware结构体）包含了基本硬件配置的定义，需要在open()函数中赋值。runtime实例保存的是硬件描述的拷贝而非指针，这意味着在open()函数中可以修改被拷贝的描述（runtime->hw），例如：
+ struct snd_pcm_runtime *runtime = substream->runtime;
+ ...
+ runtime->hw = snd_xxchip_playback_hw; /* “大众”硬件描述 */
+ /* 特定的硬件描述 */
+ if (chip->model == VERY_OLD_ONE)
+ runtime->hw.channels_max = 1;
+ snd_pcm_hardware结构体的定义如代码清单17.14。
+ 代码清单17.14 snd_pcm_hardware结构体
+ 1 struct snd_pcm_hardware
+ 2 {
+ 3   unsigned int info; /* SNDRV_PCM_INFO_* /
+ 4   u64 formats;   /* SNDRV_PCM_FMTBIT_* */
+ 5   unsigned int rates; /* SNDRV_PCM_RATE_* */
+ 6   unsigned int rate_min; /* 最小采样率 */
+ 7   unsigned int rate_max; /* 最大采样率 */
+ 8   unsigned int channels_min; /* 最小的通道数 */
+ 9   unsigned int channels_max; /* 最大的通道数 */
+ 10 size_t buffer_bytes_max; /* 最大缓冲区大小 */
+ 11 size_t period_bytes_min; /* 最小周期大小 */
+ 12 size_t period_bytes_max; /* 最大奏曲大小 */
+ 13 unsigned int periods_min; /* 最小周期数 */
+ 14 unsigned int periods_max; /* 最大周期数 */
+ 15 size_t fifo_size; /* FIFO字节数 */
+ 16 };
+ snd_pcm_hardware 结构体中的info字段标识PCM设备的类型和能力，形式为SNDRV_PCM_INFO_XXX。info字段至少需要定义是否支持mmap，当支持时，应设置SNDRV_PCM_INFO_MMAP标志；当硬件支持interleaved或non-interleaved格式，应设置 SNDRV_PCM_INFO_INTERLEAVED或SNDRV_PCM_INFO_NONINTERLEAVED标志，如果都支持，则二者都可设置；MMAP_VALID和BLOCK_TRANSFER标志针对OSS mmap，只有mmap被真正支持时，才可设置MMAP_VALID；SNDRV_PCM_INFO_PAUSE意味着设备可支持暂停操作，而 SNDRV_PCM_INFO_RESUME意味着设备可支持挂起/恢复操作；当PCM子流能被同步，如同步放音和录音流的start/stop，可设置 SNDRV_PCM_INFO_SYNC_START标志。
+ formats包含PCM设备支持的格式，形式为SNDRV_PCM_FMTBIT_XXX，如果设备支持多种模式，应将各种模式标志进行“或”操作。
+ rates包含了PCM设备支持的采样率，形式如SNDRV_PCM_RATE_XXX，如果支持连续的采样率，则传递CONTINUOUS。
+ rate_min和rate_max分别定义了最大和最小的采样率，注意要与rates字段相符。
+ channel_min和channel_max定义了最大和最小的通道数量。
+ buffer_bytes_max定义最大的缓冲区大小，注意没有buffer_bytes_min字段，这是因为它可以通过最小的周期大小和最小的周期数量计算出来。
+ period信息与OSS中的fragment对应，定义了PCM中断产生的周期。更小的周期大小意味着更多的中断，在录音时，周期大小定义了输入延迟，在放音时，整个缓冲区大小对应着输出延迟。
+ PCM可被应用程序通过alsa-lib发送hw_params来配置，配置信息将保存在运行时实例中。对缓冲区和周期大小的配置以帧形式存储，而frames_to_bytes()和 bytes_to_frames()可完成帧和字节的转换，如：
+ period_bytes = frames_to_bytes(runtime, runtime->period_size);
+ DMA缓冲区信息
+ 包含dma_area（逻辑地址）、dma_addr（物理地址）、dma_bytes（缓冲区大小）和dma_private（被ALSA DMA分配器使用）。可以由snd_pcm_lib_malloc_pages()实现，ALSA中间层会设置DMA缓冲区信息的相关字段，这种情况下，驱动中不能再写这些信息，只能读取。也就是说，如果使用标准的缓冲区分配函数snd_pcm_lib_malloc_pages()分配缓冲区，则我们不需要自己维护DMA缓冲区信息。如果缓冲区由自己分配，则需在hw_params()函数中管理缓冲区信息，至少需管理dma_bytes和 dma_addr，如果支持mmap，则必须管理dma_area，对dma_private的管理视情况而定。
+ 运行状态
+ 通过 runtime->status可以获得运行状态，它是snd_pcm_mmap_status结构体的指针，例如，通过 runtime->status->hw_ptr可以获得目前的DMA硬件指针。此外，通过runtime->control可以获得 DMA应用指针，它指向snd_pcm_mmap_control结构体指针。
+ 私有数据
+ 驱动中可以为子流分配一段内存并赋值给runtime->private_data，注意不要与pcm->private_data混淆，后者一般指向xxxchip，而前者是在PCM设备的open()函数中分配的动态数据，如：
+ static int snd_xxx_open(struct snd_pcm_substream *substream)
+ {
+ struct xxx_pcm_data *data;
+ ....
+ data = kmalloc(sizeof(*data), GFP_KERNEL);
+ substream->runtime->private_data = data; //赋值runtime->private_data
+ ....
+ } 
+中断回调函数：
+ transfer_ack_begin()和transfer_ack_end()函数分别在snd_pcm_period_elapsed()的开始和结束时被调用。
+ 根据以上分析，代码清单17.15给出了一个完整的PCM设备接口模板。
+ 代码清单17.15 PCM设备接口模板
+ 1   #include <sound/pcm.h>
+ 2   ....
+ 3   /* 放音设备硬件定义 */
+ 4   static struct snd_pcm_hardware snd_xxxchip_playback_hw =
+ 5   {
+ 6     .info = (SNDRV_PCM_INFO_MMAP | SNDRV_PCM_INFO_INTERLEAVED |
+ 7       SNDRV_PCM_INFO_BLOCK_TRANSFER | SNDRV_PCM_INFO_MMAP_VALID),
+ 8     .formats = SNDRV_PCM_FMTBIT_S16_LE,
+ 9     .rates = SNDRV_PCM_RATE_8000_48000,
+ 10    .rate_min = 8000,
+ 11    .rate_max = 48000,
+ 12    .channels_min = 2,
+ 13    .channels_max = 2,
+ 14    .buffer_bytes_max = 32768,
+ 15    .period_bytes_min = 4096,
+ 16    .period_bytes_max = 32768,
+ 17    .periods_min = 1,
+ 18    .periods_max = 1024,
+ 19 };
+ 20 
+21 /* 录音设备硬件定义 */
+ 22 static struct snd_pcm_hardware snd_xxxchip_capture_hw =
+ 23 {
+ 24    .info = (SNDRV_PCM_INFO_MMAP | SNDRV_PCM_INFO_INTERLEAVED |
+ 25      SNDRV_PCM_INFO_BLOCK_TRANSFER | SNDRV_PCM_INFO_MMAP_VALID),
+ 26    .formats = SNDRV_PCM_FMTBIT_S16_LE,
+ 27    .rates = SNDRV_PCM_RATE_8000_48000,
+ 28    .rate_min = 8000,
+ 29    .rate_max = 48000,
+ 30    .channels_min = 2,
+ 31    .channels_max = 2,
+ 32    .buffer_bytes_max = 32768,
+ 33    .period_bytes_min = 4096,
+ 34    .period_bytes_max = 32768,
+ 35    .periods_min = 1,
+ 36    .periods_max = 1024,
+ 37 };
+ 38 
+39 /* 放音：打开函数 */
+ 40 static int snd_xxxchip_playback_open(struct snd_pcm_substream*substream)
+ 41 {
+ 42    struct xxxchip *chip = snd_pcm_substream_chip(substream);
+ 43    struct snd_pcm_runtime *runtime = substream->runtime;
+ 44    runtime->hw = snd_xxxchip_playback_hw;
+ 45    ... // 硬件初始化代码
+ 46    return 0;
+ 47 }
+ 48 
+49 /* 放音：关闭函数 */
+ 50 static int snd_xxxchip_playback_close(struct snd_pcm_substream*substream)
+ 51 {
+ 52    struct xxxchip *chip = snd_pcm_substream_chip(substream);
+ 53    // 硬件相关的代码
+ 54    return 0;
+ 55 }
+ 56 
+57 /* 录音：打开函数 */
+ 58 static int snd_xxxchip_capture_open(struct snd_pcm_substream*substream)
+ 59 {
+ 60    struct xxxchip *chip = snd_pcm_substream_chip(substream);
+ 61    struct snd_pcm_runtime *runtime = substream->runtime;
+ 62    runtime->hw = snd_xxxchip_capture_hw;
+ 63    ... // 硬件初始化代码
+ 64    return 0;
+ 65 }
+ 66 
+67 /* 录音：关闭函数 */
+ 68 static int snd_xxxchip_capture_close(struct snd_pcm_substream*substream)
+ 69 {
+ 70    struct xxxchip *chip = snd_pcm_substream_chip(substream);
+ 71    ... // 硬件相关的代码
+ 72    return 0;
+ 73 }
+ 74 /* hw_params函数 */
+ 75 static int snd_xxxchip_pcm_hw_params(struct snd_pcm_substream*substream, struct
+ 76    snd_pcm_hw_params *hw_params)
+ 77 {
+ 78    return snd_pcm_lib_malloc_pages(substream, params_buffer_bytes(hw_params));
+ 79 }
+ 80 /* hw_free函数 */
+ 81 static int snd_xxxchip_pcm_hw_free(struct snd_pcm_substream*substream)
+ 82 {
+ 83    return snd_pcm_lib_free_pages(substream);
+ 84 }
+ 85 /* prepare函数 */
+ 86 static int snd_xxxchip_pcm_prepare(struct snd_pcm_substream*substream)
+ 87 {
+ 88    struct xxxchip *chip = snd_pcm_substream_chip(substream);
+ 89    struct snd_pcm_runtime *runtime = substream->runtime;
+ 90    /* 根据目前的配置信息设置硬件
+ 91     * 例如：
+ 92     */
+ 93    xxxchip_set_sample_format(chip, runtime->format);
+ 94    xxxchip_set_sample_rate(chip, runtime->rate);
+ 95    xxxchip_set_channels(chip, runtime->channels);
+ 96    xxxchip_set_dma_setup(chip, runtime->dma_addr, chip->buffer_size, chip
+ 97      ->period_size);
+ 98    return 0;
+ 99 }
+ 100 /* trigger函数 */
+ 101 static int snd_xxxchip_pcm_trigger(struct snd_pcm_substream*substream, int cmd)
+ 102 {
+ 103   switch (cmd)
+ 104   {
+ 105     case SNDRV_PCM_TRIGGER_START:
+ 106       // do something to start the PCM engine
+ 107       break;
+ 108     case SNDRV_PCM_TRIGGER_STOP:
+ 109       // do something to stop the PCM engine
+ 110       break;
+ 111     default:
+ 112       return - EINVAL;
+ 113   }
+ 114 }
+ 115
+ 116 /* pointer函数 */
+ 117 static snd_pcm_uframes_t snd_xxxchip_pcm_pointer(struct snd_pcm_substream
+ 118   *substream)
+ 119 {
+ 120   struct xxxchip *chip = snd_pcm_substream_chip(substream);
+ 121   unsigned int current_ptr;
+ 122   /*获得当前的硬件指针*/
+ 123   current_ptr = xxxchip_get_hw_pointer(chip);
+ 124   return current_ptr;
+ 125 }
+ 126 /* 放音设备操作集 */
+ 127 static struct snd_pcm_ops snd_xxxchip_playback_ops =
+ 128 {
+ 129   .open = snd_xxxchip_playback_open,
+ 130   .close = snd_xxxchip_playback_close,
+ 131   .ioctl = snd_pcm_lib_ioctl,
+ 132   .hw_params = snd_xxxchip_pcm_hw_params,
+ 133   .hw_free = snd_xxxchip_pcm_hw_free,
+ 134   .prepare = snd_xxxchip_pcm_prepare,
+ 135   .trigger = snd_xxxchip_pcm_trigger,
+ 136   .pointer = snd_xxxchip_pcm_pointer,
+ 137 };
+ 138 /* 录音设备操作集 */
+ 139 static struct snd_pcm_ops snd_xxxchip_capture_ops =
+ 140 {
+ 141   .open = snd_xxxchip_capture_open,
+ 142   .close = snd_xxxchip_capture_close,
+ 143   .ioctl = snd_pcm_lib_ioctl,
+ 144   .hw_params = snd_xxxchip_pcm_hw_params,
+ 145   .hw_free = snd_xxxchip_pcm_hw_free,
+ 146   .prepare = snd_xxxchip_pcm_prepare,
+ 147   .trigger = snd_xxxchip_pcm_trigger,
+ 148   .pointer = snd_xxxchip_pcm_pointer,
+ 149 };
+ 150
+ 151 /* 创建1个PCM设备 */
+ 152 static int __devinit snd_xxxchip_new_pcm(struct xxxchip *chip)
+ 153 {
+ 154   struct snd_pcm *pcm;
+ 155   int err;
+ 156   if ((err = snd_pcm_new(chip->card, "xxx Chip", 0, 1, 1, &pcm)) < 0)
+ 157     return err;
+ 158   pcm->private_data = chip;
+ 159   strcpy(pcm->name, "xxx Chip");
+ 160   chip->pcm = pcm;
+ 161   /* 设置操作集 */
+ 162   snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK, &snd_xxxchip_playback_ops);
+ 163   snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE, &snd_xxxchip_capture_ops);
+ 164   /* 分配缓冲区 */
+ 165   snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
+ 166     snd_dma_pci_data(chip - > pci), 64 *1024, 64 *1024);
+ 167   return 0;
+ 168 }
+ 17.4.3控制接口
+ 1、control
+ 控制接口对于许多开关（switch）和调节器（slider）而言应用相当广泛，它能从用户空间被存取。control的最主要用途是mixer，所有的 mixer元素基于control内核API实现，在ALSA中，control用snd_kcontrol结构体描述。
+ ALSA有一个定义很好的AC97控制模块，对于仅支持AC97的芯片而言，不必实现本节的内容。
+ 创建1个新的control至少需要实现snd_kcontrol_new中的info()、get()和put()这3个成员函数，snd_kcontrol_new结构体的定义如代码清单17.16。
+ 代码清单17.16 snd_kcontrol_new结构体
+ 1 struct snd_kcontrol_new
+ 2 {
+ 3    snd_ctl_elem_iface_t iface; /*接口ID，SNDRV_CTL_ELEM_IFACE_XXX */
+ 4    unsigned int device; /* 设备号 */
+ 5    unsigned int subdevice; /* 子流（子设备）号 */
+ 6    unsigned char *name; /* 名称(ASCII格式) */
+ 7    unsigned int index; /* 索引 */
+ 8    unsigned int access; /* 访问权限 */
+ 9    unsigned int count; /* 享用元素的数量 */
+ 10   snd_kcontrol_info_t *info;
+ 11   snd_kcontrol_get_t *get;
+ 12   snd_kcontrol_put_t *put;
+ 13   unsigned long private_value;
+ 14 };
+ iface 字段定义了control的类型，形式为SNDRV_CTL_ELEM_IFACE_XXX，通常是MIXER，对于不属于mixer的全局控制，使用 CARD。如果关联于某类设备，则使用HWDEP、 PCM、RAWMIDI、TIMER或SEQUENCER。
+ name是名称标识字符串，control的名称非常重要，因为control的作用由名称来区分。对于名称相同的control，则使用index区分。name定义的标准是 “SOURCE DIRECTION FUNCTION”即“源 方向功能”，SOURCE定义了control的源，如“Master”、“PCM”、“CD”和“Line”，方向则为“Playback”、 “Capture”、“Bypass Playback”或“Bypass Capture”，如果方向省略，意味着playback和capture双向，第3个参数可以是“Switch”、“Volume”和“Route” 等。
+ “SOURCE DIRECTION FUNCTION”格式的名称例子如Master Capture Switch、PCM Playback Volume。
+ 下面几种control的命名不采用“SOURCE DIRECTION FUNCTION”格式，属于例外：
+ 全局控制
+ “Capture Source”、 “Capture Switch”和“Capture Volume”用于全局录音源、输入开关和录音音量控制；“Playback Switch”、“Playback Volume”用于全局输出开关和音量控制。
+ 音调控制
+ 音调控制名称的形式为“Tone Control – XXX”，例如“Tone Control – Switch”、“Tone Control – Bas”和“Tone Control – Center”。
+ 3D控制
+ 3D控制名称的形式为“3D Control – XXX”，例如“3D Control – Switch”、“3D Control – Center”和“3D Control – Space”。
+ 麦克风增益（Mic boost）
+ 麦克风增益被设置为“Mic Boost”或“Mic Boost (6dB)”。
+ snd_kcontrol_new 结构体的access字段是访问控制权限，形式如SNDRV_CTL_ELEM_ACCESS_XXX。 SNDRV_CTL_ELEM_ACCESS_READ意味着只读，这时put()函数不必实现；SNDRV_CTL_ELEM_ACCESS_WRITE意味着只写，这时get()函数不必实现。若control值频繁变化，则需定义 VOLATILE标志。当control处于非激活状态时，应设置INACTIVE标志。
+ private_value字段包含1个长整型值，可以通过它给info()、get()和put()函数传递参数。
+ 2、info()函数
+ snd_kcontrol_new结构体中的info()函数用于获得该control的详细信息，该函数必须填充传递给它的第2个参数snd_ctl_elem_info结构体，info()函数的形式如下：
+ static int snd_xxxctl_info(struct snd_kcontrol *kcontrol, struct snd_ctl_elem_info *uinfo);
+ snd_ctl_elem_info结构体的定义如代码清单17.17。
+ 代码清单17.17 snd_ctl_elem_info结构体
+ 1 struct snd_ctl_elem_info
+ 2 {
+ 3    struct snd_ctl_elem_id id; /* W: 元素ID */
+ 4    snd_ctl_elem_type_t type; /* R: 值类型 - SNDRV_CTL_ELEM_TYPE_* */
+ 5    unsigned int access; /* R: 值访问权限(位掩码) - SNDRV_CTL_ELEM_ACCESS_* */
+ 6    unsigned int count; /* 值的计数 */
+ 7    pid_t owner; /* 该control的拥有者PID */
+ 8    union
+ 9    {
+ 10     struct
+ 11     {
+ 12       long min; /* R: 最小值 */
+ 13       long max; /* R: 最大值 */
+ 14       long step; /* R: 值步进 (0 可变的) */
+ 15     } integer;
+ 16     struct
+ 17     {
+ 18       long long min; /* R: 最小值 */
+ 19       long long max; /* R: 最大值 */
+ 20       long long step; /* R: 值步进 (0 可变的) */
+ 21     } integer64;
+ 22     struct
+ 23     {
+ 24       unsigned int items; /* R: 项目数 */
+ 25       unsigned int item; /* W: 项目号 */
+ 26       char name[64]; /* R: 值名称 */
+ 27     } enumerated; /* 枚举 */
+ 28     unsigned char reserved[128];
+ 29   }
+ 30   value;
+ 31   union
+ 32   {
+ 33     unsigned short d[4];
+ 34     unsigned short *d_ptr;
+ 35   } dimen;
+ 36   unsigned char reserved[64-4 * sizeof(unsigned short)];
+ 37 };
+ snd_ctl_elem_info 结构体的type字段定义了control的类型，包括BOOLEAN、INTEGER、ENUMERATED、BYTES、IEC958和 INTEGER64。count字段定义了这个control中包含的元素的数量，例如1个立体声音量control的count = 2。value是1个联合体，其所存储的值的具体类型依赖于type。代码清单17.18给出了1个info()函数填充 snd_ctl_elem_info结构体的范例。
+ 代码清单17.18 snd_ctl_elem_info结构体中info()函数范例
+ 1 static int snd_xxxctl_info(struct snd_kcontrol *kcontrol, struct
+ 2   snd_ctl_elem_info *uinfo)
+ 3 {
+ 4   uinfo->type = SNDRV_CTL_ELEM_TYPE_BOOLEAN;//类型为BOOLEAN
+ 5   uinfo->count = 1;//数量为1
+ 6   uinfo->value.integer.min = 0;//最小值为0
+ 7   uinfo->value.integer.max = 1;//最大值为1
+ 8   return 0;
+ 9 }
+ 枚举类型和其它类型略有不同，对枚举类型，应为目前项目索引设置名称字符串，如代码清单17.19。
+ 代码清单17.19 填充snd_ctl_elem_info结构体中枚举类型值
+ 1 static int snd_xxxctl_info(struct snd_kcontrol *kcontrol, struct
+ 2    snd_ctl_elem_info *uinfo)
+ 3 {
+ 4    //值名称字符串
+ 5    static char *texts[4] =
+ 6    {
+ 7      "First", "Second", "Third", "Fourth"
+ 8    };
+ 9    uinfo->type = SNDRV_CTL_ELEM_TYPE_ENUMERATED;//枚举类型
+ 10   uinfo->count = 1;//数量为1
+ 11   uinfo->value.enumerated.items = 4;//项目数量为1
+ 12   //超过3的项目号改为3
+ 13   if (uinfo->value.enumerated.item > 3)
+ 14     uinfo->value.enumerated.item = 3;
+ 15   //为目前项目索引拷贝名称字符串
+ 16   strcpy(uinfo->value.enumerated.name, texts[uinfo->value.enumerated.item]);
+ 17   return 0;
+ 18 }
+ 3、get()函数
+ get()函数用于得到control的目前值并返回用户空间，代码清单17.20给出了get()函数的范例。
+ 代码清单17.20 snd_ctl_elem_info结构体中get()函数范例
+ 1 static int snd_xxxctl_get(struct snd_kcontrol *kcontrol, struct
+ 2   snd_ctl_elem_value *ucontrol)
+ 3 {
+ 4   //从snd_kcontrol获得xxxchip指针
+ 5   struct xxxchip *chip = snd_kcontrol_chip(kcontrol);
+ 6   //从xxxchip获得值并写入snd_ctl_elem_value
+ 7   ucontrol->value.integer.value[0] = get_some_value(chip);
+ 8   return 0;
+ 9 }
+ get() 函数的第2个参数的类型为snd_ctl_elem_value，其定义如代码清单10.21。snd_ctl_elem_value结构体的内部也包含 1个由integer、integer64、enumerated等组成的值联合体，它的具体类型依赖于control的类型和info()函数。
+ 代码清单17.21 snd_ctl_elem_value结构体
+ 1 struct snd_ctl_elem_value
+ 2 {
+ 3    struct snd_ctl_elem_id id; /* W: 元素ID */
+ 4    unsigned int indirect: 1; /* W: 使用间接指针(xxx_ptr成员) */
+ 5    //值联合体
+ 6    union
+ 7    {
+ 8      union
+ 9      {
+ 10       long value[128];
+ 11       long *value_ptr;
+ 12     } integer;
+ 13     union
+ 14     {
+ 15       long long value[64];
+ 16       long long *value_ptr;
+ 17     } integer64;
+ 18     union
+ 19     {
+ 20       unsigned int item[128];
+ 21       unsigned int *item_ptr;
+ 22     } enumerated;
+ 23     union
+ 24     {
+ 25       unsigned char data[512];
+ 26       unsigned char *data_ptr;
+ 27     } bytes;
+ 28     struct snd_aes_iec958 iec958;
+ 29   }
+ 30   value; /* 只读 */
+ 31   struct timespec tstamp;
+ 32   unsigned char reserved[128-sizeof(struct timespec)];
+ 33 };
+ 
+ 
+ 
+
+
+Linux音频设备驱动-3
+ 
+ 
+ 
+
+
+
+4、put()函数
+ put()用于从用户空间写入值，如果值被改变，该函数返回1，否则返回0；如果发生错误，该函数返回1个错误码。代码清单17.22给出了1个put()函数的范例。
+ 代码清单17.22 snd_ctl_elem_info结构体中put()函数范例
+ 1 static int snd_xxxctl_put(struct snd_kcontrol *kcontrol, struct
+ 2    snd_ctl_elem_value *ucontrol)
+ 3 {
+ 4    //从snd_kcontrol获得xxxchip指针
+ 5    struct xxxchip *chip = snd_kcontrol_chip(kcontrol);
+ 6    int changed = 0;//缺省返回值为0
+ 7    //值被改变
+ 8    if (chip->current_value != ucontrol->value.integer.value[0])
+ 9    {
+ 10     change_current_value(chip, ucontrol->value.integer.value[0]);
+ 11     changed = 1;//返回值为1
+ 12   }
+ 13   return changed;
+ 14 }
+ 对于get()和put()函数而言，如果control有多于1个元素，即count>1，则每个元素都需要被返回或写入。
+ 5、构造control
+ 当所有事情准备好后，我们需要创建1个control，调用snd_ctl_add()和snd_ctl_new1()这2个函数来完成，这2个函数的原型为：
+ int snd_ctl_add(struct snd_card *card, struct snd_kcontrol *kcontrol);
+ 
+struct snd_kcontrol *snd_ctl_new1(const struct snd_kcontrol_new *ncontrol,
+       void *private_data);
+ snd_ctl_new1()函数用于创建1个snd_kcontrol并返回其指针，snd_ctl_add()函数用于将创建的snd_kcontrol添加到对应的card中。
+ 6、变更通知
+ 如果驱动中需要在中断服务程序中改变或更新1个control，可以调用snd_ctl_notify()函数，此函数原型为：
+ void snd_ctl_notify(struct snd_card *card, unsigned int mask, struct snd_ctl_elem_id *id);
+ 该函数的第2个参数为事件掩码（event-mask），第3个参数为该通知的control元素id指针。
+ 例如，如下语句定义的事件掩码SNDRV_CTL_EVENT_MASK_VALUE意味着control值的改变被通知：
+ snd_ctl_notify(card, SNDRV_CTL_EVENT_MASK_VALUE, id_pointer);
+ 17.4.4 AC97 API接口
+ ALSA AC97编解码层被很好地定义，利用它，驱动工程师只需编写少量底层的控制函数。
+ 1、AC97实例构造
+ 为了创建1个AC97实例，首先需要调用snd_ac97_bus()函数构建AC97总线及其操作，这个函数的原型为：
+ int snd_ac97_bus(struct snd_card *card, int num, struct snd_ac97_bus_ops *ops,
+    void *private_data, struct snd_ac97_bus **rbus);
+ 该函数的第3个参数ops是1个snd_ac97_bus_ops结构体，其定义如代码清单17.23。
+ 代码清单17.23 snd_ac97_bus_ops结构体
+ 1 struct snd_ac97_bus_ops
+ 2 {
+ 3    void(*reset)(struct snd_ac97 *ac97); //复位函数
+ 4    //写入函数
+ 5    void(*write)(struct snd_ac97 *ac97, unsigned short reg, unsigned short val);
+ 6    //读取函数
+ 7    unsigned short(*read)(struct snd_ac97 *ac97, unsigned short reg);
+ 8    void(*wait)(struct snd_ac97 *ac97);
+ 9    void(*init)(struct snd_ac97 *ac97);
+ 10 };
+ 接下来，调用snd_ac97_mixer()函数注册混音器，这个函数的原型为：
+ int snd_ac97_mixer(struct snd_ac97_bus *bus, struct snd_ac97_template *template, struct snd_ac97 **rac97);
+ 代码清单17.24演示了AC97实例的创建过程。
+ 代码清单17.24 AC97实例的创建过程范例
+ 1 struct snd_ac97_bus *bus;
+ 2 //AC97总线操作
+ 3 static struct snd_ac97_bus_ops ops =
+ 4 {
+ 5    .write = snd_mychip_ac97_write,
+ 6    .read = snd_mychip_ac97_read,
+ 7 };
+ 8 //AC97总线与操作创建
+ 9 snd_ac97_bus(card, 0, &ops, NULL, &bus);
+ 10 //AC97模板
+ 11 struct snd_ac97_template ac97;
+ 12 int err;
+ 13 memset(&ac97, 0, sizeof(ac97));
+ 14 ac97.private_data = chip;//私有数据
+ 15 //注册混音器
+ 16 snd_ac97_mixer(bus, &ac97, &chip->ac97);
+ 上述代码第1行的snd_ac97_bus结构体指针bus的指针被传入第9行的snd_ac97_bus()函数并被赋值，chip->ac97的指针被传入第16行的snd_ac97_mixer()并被赋值，chip->ac97将成员新创建AC97实例的指针。
+ 如果1个声卡上包含多个编解码器，这种情况下，需要多次调用snd_ac97_mixer()并对snd_ac97的num成员（编解码器序号）赋予相应的序号。驱动中可以为不同的编解码器编写不同的snd_ac97_bus_ops成员函数中，或者只是在相同的一套成员函数中通过ac97.num获得序号后再区分进行具体的操作。
+ 2、snd_ac97_bus_ops成员函数
+ snd_ac97_bus_ops结构体中的read()和write()成员函数完成底层的硬件访问，reset()函数用于复位编解码器，wait()函数用于编解码器标准初始化过程中的特定等待，如果芯片要求额外的等待时间，应实现这个函数，init()用于完成编解码器附加的初始化。代码清单17.25给出了read()和write()函数的范例。
+ 代码清单17.25 snd_ac97_bus_ops结构体中read()和write()函数范例
+ 1 static unsigned short snd_xxxchip_ac97_read(struct snd_ac97 *ac97, unsigned
+ 2    short reg)
+ 3 {
+ 4    struct xxxchip *chip = ac97->private_data;
+ 5    ...
+ 6    return the_register_value; //返回寄存器值
+ 7 }
+ 8 
+9 static void snd_xxxchip_ac97_write(struct snd_ac97 *ac97, unsigned short reg,
+ 10   unsigned short val)
+ 11 {
+ 12   struct xxxchip *chip = ac97->private_data;
+ 13   ...
+ 14   // 将被给的寄存器值写入codec
+ 15 }
+ 3、修改寄存器
+ 如果需要在驱动中访问编解码器，可使用如下函数：
+ void snd_ac97_write(struct snd_ac97 *ac97, unsigned short reg, unsigned short value);
+ 
+int snd_ac97_update(struct snd_ac97 *ac97, unsigned short reg, unsigned short value);
+ 
+int snd_ac97_update_bits(struct snd_ac97 *ac97, unsigned short reg, unsigned short mask, unsigned short value);
+ 
+unsigned short snd_ac97_read(struct snd_ac97 *ac97, unsigned short reg);
+ snd_ac97_update()与void snd_ac97_write()的区别在于前者在值已经设置的情况下不会再设置，而后者则会再写一次。snd_ac97_update_bits()用于更新寄存器的某些位，由mask决定。
+ 除此之外，还有1个函数可用于设置采样率：
+ int snd_ac97_set_rate(struct snd_ac97 *ac97, int reg, unsigned int rate);
+ 这个函数的第2个参数reg可以是AC97_PCM_MIC_ADC_RATE、AC97_PCM_FRONT_DAC_RATE、 AC97_PCM_LR_ADC_RATE和AC97_SPDIF，对于AC97_SPDIF而言，寄存器并非真地被改变了，只是相应的IEC958状态位将被更新。
+ 4、时钟调整
+ 在一些芯片上，编解码器的时钟不是48000而是使用PCI时钟以节省1个晶体，在这种情况下，我们应该改变bus->clock为相应的值，例如intel8x0和es1968包含时钟的自动测量函数。
+ 5、proc文件
+ ALSA AC97接口会创建如/proc/asound/card0/codec97#0/ac97#0-0和ac97#0-0+regs这样的proc文件，通过这些文件可以察看编解码器目前的状态和寄存器。
+ 如果1个chip上有多个codecs，可多次调用snd_ac97_mixer()。
+ 17.4.5 ALSA用户空间编程
+ ALSA驱动的声卡在用户空间不宜直接使用文件接口，而应使用alsa-lib，代码清单17.26给出了基于ALSA音频驱动的最简单的放音应用程序。
+ 代码清单17.26 ALSA用户空间放音程序
+ 1 #include <stdio.h>
+ 2 #include <stdlib.h>
+ 3 #include <alsa/asoundlib.h>
+ 4 
+5 main(int argc, char *argv[])
+ 6 {
+ 7    int i;
+ 8    int err;
+ 9    short buf[128];
+ 10   snd_pcm_t *playback_handle;   //PCM设备句柄
+ 11   snd_pcm_hw_params_t *hw_params; //硬件信息和PCM流配置
+ 12   //打开PCM，最后1个参数为0意味着标准配置
+ 13   if ((err = snd_pcm_open(&playback_handle, argv[1], SND_PCM_STREAM_PLAYBACK, 0)
+ 14     ) < 0)
+ 15   {
+ 16     fprintf(stderr, "cannot open audio device %s (%s)\n", argv[1], snd_strerror
+ 17       (err));
+ 18     exit(1);
+ 19   }
+ 20   //分配snd_pcm_hw_params_t结构体
+ 21   if ((err = snd_pcm_hw_params_malloc(&hw_params)) < 0)
+ 22   {
+ 23     fprintf(stderr, "cannot allocate hardware parameter structure (%s)\n",
+ 24       snd_strerror(err));
+ 25     exit(1);
+ 26   }
+ 27   //初始化hw_params
+ 28   if ((err = snd_pcm_hw_params_any(playback_handle, hw_params)) < 0)
+ 29   {
+ 30     fprintf(stderr, "cannot initialize hardware parameter structure (%s)\n",
+ 31       snd_strerror(err));
+ 32     exit(1);
+ 33   }
+ 34   //初始化访问权限
+ 35   if ((err = snd_pcm_hw_params_set_access(playback_handle, hw_params,
+ 36     SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
+ 37   {
+ 38     fprintf(stderr, "cannot set access type (%s)\n", snd_strerror(err));
+ 39     exit(1);
+ 40   }
+ 41   //初始化采样格式
+ 42   if ((err = snd_pcm_hw_params_set_format(playback_handle, hw_params,
+ 43     SND_PCM_FORMAT_S16_LE)) < 0)
+ 44   {
+ 45     fprintf(stderr, "cannot set sample format (%s)\n", snd_strerror(err));
+ 46     exit(1);
+ 47   }
+ 48   //设置采样率，如果硬件不支持我们设置的采样率，将使用最接近的
+ 49   if ((err = snd_pcm_hw_params_set_rate_near(playback_handle, hw_params, 44100,
+ 50     0)) < 0)
+ 51   {
+ 52     fprintf(stderr, "cannot set sample rate (%s)\n", snd_strerror(err));
+ 53     exit(1);
+ 54   }
+ 55   //设置通道数量
+ 56   if ((err = snd_pcm_hw_params_set_channels(playback_handle, hw_params, 2)) < 0)
+ 57   {
+ 58     fprintf(stderr, "cannot set channel count (%s)\n", snd_strerror(err));
+ 59     exit(1);
+ 60   }
+ 61   //设置hw_params
+ 62   if ((err = snd_pcm_hw_params(playback_handle, hw_params)) < 0)
+ 63   {
+ 64     fprintf(stderr, "cannot set parameters (%s)\n", snd_strerror(err));
+ 65     exit(1);
+ 66   }
+ 67   //释放分配的snd_pcm_hw_params_t结构体
+ 68   snd_pcm_hw_params_free(hw_params);
+ 69   //完成硬件参数设置，使设备准备好
+ 70   if ((err = snd_pcm_prepare(playback_handle)) < 0)
+ 71   {
+ 72     fprintf(stderr, "cannot prepare audio interface for use (%s)\n",
+ 73       snd_strerror(err));
+ 74     exit(1);
+ 75   }
+ 76
+ 77   for (i = 0; i < 10; ++i)
+ 78   {
+ 79     //写音频数据到PCM设备
+ 80     if ((err = snd_pcm_writei(playback_handle, buf, 128)) != 128)
+ 81     {
+ 82       fprintf(stderr, "write to audio interface failed (%s)\n", snd_strerror
+ 83         (err));
+ 84       exit(1);
+ 85     }
+ 86   }
+ 87   //关闭PCM设备句柄
+ 88   snd_pcm_close(playback_handle);
+ 89   exit(0);
+ 90 }
+ 由上述代码可以看出，ALSA用户空间编程的流程与17.3.4节给出的OSS驱动用户空间编程的流程基本是一致的，都经过了“打开――设置参数――读写音频数据”的过程，不同在于OSS打开的是设备文件，设置参数使用的是Linux ioctl()系统调用，读写音频数据使用的是Linux read()、write()文件API，而ALSA则全部使用alsa-lib中的API。
+ 把上述代码第80行的snd_pcm_writei()函数替换为snd_pcm_readi()就编程了1个最简单的录音程序。
+ 代码清单17.27的程序打开1个音频接口，配置它为立体声、16位、44.1khz采样和基于interleave的读写。它阻塞等待直接接口准备好接收放音数据，这时候将数据拷贝到缓冲区。这种设计方法使得程序很容易移植到类似JACK、LADSPA、Coreaudio、VST等callback机制驱动的系统。
+ 代码清单17.27 ALSA用户空间放音程序（基于“中断”）
+ 1   #include <stdio.h>
+ 2   #include <stdlib.h>
+ 3   #include <errno.h>
+ 4   #include <poll.h>
+ 5   #include <alsa/asoundlib.h>
+ 6 
+7   snd_pcm_t *playback_handle;
+ 8   short buf[4096];
+ 9 
+10 int playback_callback(snd_pcm_sframes_t nframes)
+ 11 {
+ 12    int err;
+ 13    printf("playback callback called with %u frames\n", nframes);
+ 14    /* 填充缓冲区 */
+ 15    if ((err = snd_pcm_writei(playback_handle, buf, nframes)) < 0)
+ 16    {
+ 17      fprintf(stderr, "write failed (%s)\n", snd_strerror(err));
+ 18    }
+ 19 
+20    return err;
+ 21 }
+ 22 
+23 main(int argc, char *argv[])
+ 24 {
+ 25 
+26    snd_pcm_hw_params_t *hw_params;
+ 27    snd_pcm_sw_params_t *sw_params;
+ 28    snd_pcm_sframes_t frames_to_deliver;
+ 29    int nfds;
+ 30    int err;
+ 31    struct pollfd *pfds;
+ 32 
+33    if ((err = snd_pcm_open(&playback_handle, argv[1], SND_PCM_STREAM_PLAYBACK, 0)
+ 34      ) < 0)
+ 35    {
+ 36      fprintf(stderr, "cannot open audio device %s (%s)\n", argv[1], snd_strerror
+ 37        (err));
+ 38      exit(1);
+ 39    }
+ 40 
+41    if ((err = snd_pcm_hw_params_malloc(&hw_params)) < 0)
+ 42    {
+ 43      fprintf(stderr, "cannot allocate hardware parameter structure (%s)\n",
+ 44        snd_strerror(err));
+ 45      exit(1);
+ 46    }
+ 47 
+48    if ((err = snd_pcm_hw_params_any(playback_handle, hw_params)) < 0)
+ 49    {
+ 50      fprintf(stderr, "cannot initialize hardware parameter structure (%s)\n",
+ 51        snd_strerror(err));
+ 52      exit(1);
+ 53    }
+ 54 
+55    if ((err = snd_pcm_hw_params_set_access(playback_handle, hw_params,
+ 56      SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
+ 57    {
+ 58      fprintf(stderr, "cannot set access type (%s)\n", snd_strerror(err));
+ 59      exit(1);
+ 60    }
+ 61 
+62    if ((err = snd_pcm_hw_params_set_format(playback_handle, hw_params,
+ 63      SND_PCM_FORMAT_S16_LE)) < 0)
+ 64    {
+ 65      fprintf(stderr, "cannot set sample format (%s)\n", snd_strerror(err));
+ 66      exit(1);
+ 67    }
+ 68 
+69    if ((err = snd_pcm_hw_params_set_rate_near(playback_handle, hw_params, 44100,
+ 70      0)) < 0)
+ 71    {
+ 72      fprintf(stderr, "cannot set sample rate (%s)\n", snd_strerror(err));
+ 73      exit(1);
+ 74    }
+ 75 
+76    if ((err = snd_pcm_hw_params_set_channels(playback_handle, hw_params, 2)) < 0)
+ 77    {
+ 78      fprintf(stderr, "cannot set channel count (%s)\n", snd_strerror(err));
+ 79      exit(1);
+ 80    }
+ 81 
+82    if ((err = snd_pcm_hw_params(playback_handle, hw_params)) < 0)
+ 83    {
+ 84      fprintf(stderr, "cannot set parameters (%s)\n", snd_strerror(err));
+ 85      exit(1);
+ 86    }
+ 87 
+88    snd_pcm_hw_params_free(hw_params);
+ 89 
+90    /* 告诉ALSA当4096个以上帧可以传递时唤醒我们 */
+ 91    if ((err = snd_pcm_sw_params_malloc(&sw_params)) < 0)
+ 92    {
+ 93      fprintf(stderr, "cannot allocate software parameters structure (%s)\n",
+ 94        snd_strerror(err));
+ 95      exit(1);
+ 96    }
+ 97    if ((err = snd_pcm_sw_params_current(playback_handle, sw_params)) < 0)
+ 98    {
+ 99      fprintf(stderr, "cannot initialize software parameters structure (%s)\n",
+ 100       snd_strerror(err));
+ 101     exit(1);
+ 102   }
+ 103   /* 设置4096帧传递一次数据 */
+ 104   if ((err = snd_pcm_sw_params_set_avail_min(playback_handle, sw_params, 4096))
+ 105     < 0)
+ 106   {
+ 107     fprintf(stderr, "cannot set minimum available count (%s)\n", snd_strerror
+ 108       (err));
+ 109     exit(1);
+ 110   }
+ 111   /* 一旦有数据就开始播放 */
+ 112   if ((err = snd_pcm_sw_params_set_start_threshold(playback_handle, sw_params,
+ 113     0U)) < 0)
+ 114   {
+ 115     fprintf(stderr, "cannot set start mode (%s)\n", snd_strerror(err));
+ 116     exit(1);
+ 117   }
+ 118   if ((err = snd_pcm_sw_params(playback_handle, sw_params)) < 0)
+ 119   {
+ 120     fprintf(stderr, "cannot set software parameters (%s)\n", snd_strerror(err));
+ 121     exit(1);
+ 122   }
+ 123
+ 124   /* 每4096帧接口将中断内核，ALSA将很快唤醒本程序 */
+ 125
+ 126   if ((err = snd_pcm_prepare(playback_handle)) < 0)
+ 127   {
+ 128     fprintf(stderr, "cannot prepare audio interface for use (%s)\n",
+ 129       snd_strerror(err));
+ 130     exit(1);
+ 131   }
+ 132
+ 133   while (1)
+ 134   {
+ 135
+ 136     /* 等待，直到接口准备好传递数据，或者1秒超时发生 */
+ 137     if ((err = snd_pcm_wait(playback_handle, 1000)) < 0)
+ 138     {
+ 139       fprintf(stderr, "poll failed (%s)\n", strerror(errno));
+ 140       break;
+ 141     }
+ 142
+ 143     /* 查出有多少空间可放置playback数据 */
+ 144     if ((frames_to_deliver = snd_pcm_avail_update(playback_handle)) < 0)
+ 145     {
+ 146       if (frames_to_deliver == - EPIPE)
+ 147       {
+ 148         fprintf(stderr, "an xrun occured\n");
+ 149         break;
+ 150       }
+ 151       else
+ 152       {
+ 153         fprintf(stderr, "unknown ALSA avail update return value (%d)\n",
+ 154           frames_to_deliver);
+ 155         break;
+ 156       }
+ 157     }
+ 158
+ 159     frames_to_deliver = frames_to_deliver > 4096 ? 4096 : frames_to_deliver;
+ 160
+ 161     /* 传递数据 */
+ 162     if (playback_callback(frames_to_deliver) != frames_to_deliver)
+ 163     {
+ 164       fprintf(stderr, "playback callback failed\n");
+ 165       break;
+ 166     }
+ 167   }
+ 168
+ 169   snd_pcm_close(playback_handle);
+ 170   exit(0);
+ 171 }
+ 
+
+
+
+
+分享到： 
+
+上一篇：linux kill用法、killall、pkill、xkill
+下一篇：OSS linux下的音频程序
+ . 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+骑墙头等红杏
+ 
+
+
+
+
+访问：4818次
+积分：147分
+排名：千里之外
+.原创：8篇
+转载：18篇
+译文：0篇
+评论：1条
+. 
+文章搜索
+
+. 
+文章存档
+2012年09月(1).
+2012年08月(1).
+2012年07月(1).
+2012年06月(2).
+2012年05月(1).
+.
+.
+.
+
+展开.
+ 
+阅读排行QList介绍(882)
+LINUX下的JRTP编程(684)
+linux 用speex库压缩音频(299)
+SPEEX 语音压缩(295)
+关于SPEEX延迟问题(280)
+linux下的音频采集(210)
+QT工程中的文件介绍（1）----*.pro文件(200)
+编译Linphone 需要的软件包(198)
+基于C 的speex编程(169)
+NSF设置(167)
+ 
+评论排行关于SPEEX延迟问题(1)
+QT工程中的文件介绍（1）----*.pro文件(0)
+linux下的音频采集(0)
+linux音频的播放(0)
+linux 用speex库压缩音频(0)
+ortp库使用入门(0)
+编译Linphone 需要的软件包(0)
+2440 LED驱动(0)
+LINUX下的JRTP编程(0)
+深入OSS开发(0)
+ 
+推荐文章 
+最新评论 关于SPEEX延迟问题
+ph694264813: 求demo 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

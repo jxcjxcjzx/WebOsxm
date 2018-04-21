@@ -1,0 +1,600 @@
+
+首页资讯精华论坛问答博客专栏群组更多 ▼
+
+ 
+您还未登录 !登录注册
+
+
+
+
+su1216
+
+
+博客
+微博
+相册
+收藏
+留言
+关于我
+
+
+
+
+.
+
+
+
+
+android安全问题（四） 抢先开机启动 - 结果篇
+博客分类： android
+ 
+android静态广播接收器接收顺序无序广播广播接收器优先级病毒.
+
+
+导读：我们以如何抢先开机启动为例，来说明接收无序广播的静态广播接收器的接收顺序 
+
+（注意，文本只是陈述结果，所以叫结果篇，之后的文章再给出源码分析）
+ 
+ 
+ 
+首先先说一下android中的广播和广播接收器
+ 广播可以分为有序、无序和sticky共三种
+ 广播接收器可以分为静态和动态两种
+
+
+ 首先我们要明确两个问题
+1.接收无序广播的接收器接收到广播的顺序是有序的
+ 2.接收无序广播的接收器也一样可以设置优先级的 
+
+
+这里主要说一下多个应用中的静态广播接收器（优先级都相同的情况下 ）接收无序广播时的接收顺序 
+注意：这里主要描述结论，具体原理后续给出 
+注意：本文在提及的同时出现在同一设备的静态接收器默认具有相同的优先级，这点很重要 
+
+我们以开机时候发出的广播android.intent.action.BOOT_COMPLETED为例，这是个无序广播
+ 如果应用想要开启自启动，那么就要监听这个广播，程序启动之前，动态广播接收器肯定是无法使用的，我相信大家对此没有什么疑问
+ 如果先接收到，那么程序就会先启动，至于先启动的优势，我想那些迫不及待的人比谁都清楚
+
+
+ 接收顺序到底与什么有关，说实话，我也不清楚，不过先别急着拍我，我也不是完全不知道……
+顺序与解析应用的顺序是一致的，但是解析应用的顺序是怎样的呢？
+ 首先要告诉大家的是，这和你apk的文件名没有关系！ 
+比如a.apk、b.apk两个应用，结果并不能保证a能比b先接收到，或者b能比a先接收到 
+然后告诉大家，这和apk的文件名有关系！ 
+没错，但是为什么这么说？
+用户安装一个应用有这么几个步骤 
+1下载一款应用，假设下载下来的时候这个应用叫new.apk
+ 2安装。一般情况下，用户会在手机中操作，点击文件，然后系统会安装页面……然后大家都知道。另一种情况程序猿可能喜欢使用adb install -r new.apk 
+大家都知道，第三方应用会存放在/data/app目录下
+ 当安装完毕之后，我们去这里看看，发现一个严峻的问题，那就是，你找不到一个叫new.apk的文件！
+ 那你会找到什么？你会找到一个文件，他的名字是以与new.apk这个应用包名开始的，然后可能会跟着"-数字.apk"，比如：com.android.test-1.apk 
+接收的顺序与这个名字是有关的！那么关系是怎样的呢？
+系统在开机的时候，会按着一个顺序解析apk 
+1.首先，会解析手机中的/system/framework这个目录，原生系统中，这下面就一个apk - framework-res.apk
+ 当然各个厂商也会加入自己的内容，比如我的这个目录下就有com.htc.resources.apk
+ 2.然后受到重视的文件夹按顺序分别为：
+ /system/app
+ /vendor/app
+ /data/app
+ /drm/app-private 
+（代码分析在下一篇博客给出）
+
+ 那么每个文件夹下解析的顺序是怎样的呢
+ 我们先只看/data/app，也就是用户安装的第三方应用的存放位置
+ 
+这与下面代码返回结果的顺序是一致的
+ 
+
+
+Java代码  
+1.File file = new File("/data/app/");  
+2.String[] files = file.list();  
+ 
+也就是说，我们按顺序打印这个数组，就能知道哪个接收器会先接收到这个广播，哪个会后接收到（为什么与这个结果一致，下篇文章分析）
+ 
+（记住：本文默认说的这些接收器假设具有相同的优先级，如果优先级不同，当然是高优先级的先接收到）
+ 
+ 
+ 
+现在大家可能有这么几个疑问：
+ 
+1.String[] java.io.File.list()，这个函数的返回结果是怎样的顺序呢？ 
+
+
+
+2.如何执行上面那段代码呢？ 
+
+ 
+ 
+首先回答问题1
+ 
+我不知道！
+ 
+我们来看看javadoc给出的说明 
+
+javadoc 写道
+ 
+There is no guarantee that the name strings in the resulting array will appear in any specific order; they are not, in particular, guaranteed to appear in alphabetical order.
+ 
+说的很清楚，人家不给你任何保证
+ 
+听说在windows下执行的时候，结果会按着字母顺序排列，可惜，android是linux
+ 
+但是我们可以耍赖，打印一下上面结果，如果自己的应用拍在后面，就改包名，直到你能排到前面，当然这不是什么好办法，但我也没有什么更好的办法了
+ 
+ 
+ 
+现在回答问题2
+ 
+执行这段代码需要root权限，因为一般应用是没有这个目录的读取权限的
+ 
+如果手机没有root怎么办？你不会找一个root过的来查看结果吗……
+ 
+ 
+ 
+ 
+ 
+我做了一个实验，我写了几个只有receiver的应用，把他们的包名分别设置为大家常用的、关系的应用包名 
+
+飞信：cn.com.fetion
+ 
+LBE隐私卫士：com.lbe.security.lite
+ 
+Handsent：com.handsent.nextsms
+ 
+金山手机卫士：com.ijinshan.mguard
+ 
+360手机卫士：com.qihoo360.mobilesafe
+ 
+QQ手机管家：com.tencent.qqpimsecure
+ 
+一个测试应用：com.example.boottest
+ 
+
+
+
+Java代码  
+1.File file = new File("/data/app/");  
+2.String[] files = file.list();  
+3.for (int i = 0; i < files.length; i++) {  
+4.    System.out.println("/data/app/:files["+(i+1)+"]:" + files[i]);  
+5.}  
+ 
+结果为： 
+
+/data/app/:files[8]:com.tencent.qqpimsecure-1.apk
+ 
+/data/app/:files[9]:com.qihoo360.mobilesafe-1.apk
+ 
+/data/app/:files[10]:com.ijinshan.mguard-1.apk
+ 
+/data/app/:files[11]:cn.com.fetion-1.apk
+ 
+/data/app/:files[12]:com.lbe.security.lite-1.apk
+ 
+/data/app/:files[13]:com.handsent.nextsms-1.apk
+ 
+/data/app/:files[14]:com.example.boottest-1.apk
+ 
+ 
+ 
+实际接收顺序为： 
+
+12-06 15:19:58.187: I/System.out(1880): getPackageName:com.tencent.qqpimsecure
+ 
+12-06 15:19:58.288: I/System.out(1893): getPackageName:com.qihoo360.mobilesafe
+ 
+12-06 15:19:58.378: I/System.out(1906): getPackageName:com.ijinshan.mguard
+ 
+12-06 15:19:58.488: I/System.out(1920): getPackageName:cn.com.fetion
+ 
+12-06 15:19:58.608: I/System.out(1933): getPackageName:com.lbe.security.lite
+ 
+12-06 15:19:58.718: I/System.out(1946): getPackageName:com.handsent.nextsms
+ 
+12-06 15:19:58.908: I/System.out(1959): getPackageName:com.example.boottest
+ 
+ 
+ 
+ 
+ 
+如果其中一个优先级较高，比如cn.com.fetion，那么实际的接收顺序为 
+
+getPackageName:cn.com.fetion
+ getPackageName:com.tencent.qqpimsecure
+ getPackageName:com.qihoo360.mobilesafe
+ getPackageName:com.ijinshan.mguard
+ getPackageName:com.lbe.security.lite
+ getPackageName:com.handsent.nextsms
+ getPackageName:com.example.boottest
+ 
+最后注意： 
+
+上面只是一个简单测试，并不是这些应用就是按着这个顺序，因为他们优先级也许不一致，也许在/data/app下的文件名不一致，导致顺序不一致 
+
+不过，看到这里，你应该知道如何去先于他们开机启动了
+ 
+ 
+ 
+ 
+ 
+对于ROOT后的机器 
+
+留给大家一个问题，如果我是病毒，那我应该怎样去做呢？
+ 
+显然，最理想的方式就是找个壳子应用，把实体病毒apk放到/system/framework目录中去，当然别忘了把自己的优先级设置成最高，不然也是白费 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+android手机root后的安全问题 （一） 
+
+android手机root后的安全问题 （二） 
+
+android手机root后的安全问题 （三） 
+
+android手机root后的安全问题 （四） 
+
+ 
+ 
+
+
+android安全问题（一） 静音拍照与被拍
+ 
+android安全问题（二） 程序锁
+ 
+android安全问题（三） 钓鱼程序
+ 
+android安全问题（四） 抢先开机启动 - 结果篇
+ 
+android安全问题（五） 抢先拦截短信 - 结果篇
+
+ 
+ 
+ 
+ 
+请大家不要用root的手机随意下载软件，更不要以任何借口制造任何病毒！ 
+
+ 
+ 
+ 
+ 
+转贴请保留以下链接 
+
+本人blog地址
+ 
+http://su1216.iteye.com/ 
+
+http://blog.csdn.net/su1216/ 
+
+ 
+
+
+
+1 
+顶
+
+0 
+踩.
+
+分享到： 
+.
+
+《Linux命令行与shell脚本编程大全》 第 ... | 《Linux命令行与shell脚本编程大全》 第 ...
+
+2012-12-09 13:37
+浏览 624
+评论(14)
+分类:移动开发
+相关推荐
+
+
+评论
+
+
+14 楼 su1216 2012-12-31   
+
+
+bca3218 写道
+
+
+su1216 写道
+
+
+bca3218 写道
+
+filelist我返回的空指针，应该是程序没root权，不知如何弄，验证不了。
+filelist返回的顺序也可能是对的，但我前面的观点是 每个系统返回的都不一样。
+
+data/app下面的文件名是什么，并不取决于你安装前文件的名字，也不完全和你应用包名一致
+没发现我list出来的结果很多有带有“-1”吗
+list的结果和字母顺序无关，所以多了个“-1”，list的结果就和之前不一样了
+最近加班，又忙着搬家，所以还没来得及写“原因篇”
+包名－1.apk
+
+包名－1.apk
+也不一定都是这样
+
+所以list顺序结果每个手机上可能不一致，即使是同一个rom 
+
+13 楼 bca3218 2012-12-31   
+
+
+su1216 写道
+
+
+bca3218 写道
+
+filelist我返回的空指针，应该是程序没root权，不知如何弄，验证不了。
+filelist返回的顺序也可能是对的，但我前面的观点是 每个系统返回的都不一样。
+
+data/app下面的文件名是什么，并不取决于你安装前文件的名字，也不完全和你应用包名一致
+没发现我list出来的结果很多有带有“-1”吗
+list的结果和字母顺序无关，所以多了个“-1”，list的结果就和之前不一样了
+最近加班，又忙着搬家，所以还没来得及写“原因篇”
+包名－1.apk 
+
+12 楼 su1216 2012-12-31   
+
+
+bca3218 写道
+
+filelist我返回的空指针，应该是程序没root权，不知如何弄，验证不了。
+filelist返回的顺序也可能是对的，但我前面的观点是 每个系统返回的都不一样。
+
+data/app下面的文件名是什么，并不取决于你安装前文件的名字，也不完全和你应用包名一致
+没发现我list出来的结果很多有带有“-1”吗
+list的结果和字母顺序无关，所以多了个“-1”，list的结果就和之前不一样了
+最近加班，又忙着搬家，所以还没来得及写“原因篇” 
+
+11 楼 su1216 2012-12-31   
+
+
+bca3218 写道
+
+filelist我返回的空指针，应该是程序没root权，不知如何弄，验证不了。
+filelist返回的顺序也可能是对的，但我前面的观点是 每个系统返回的都不一样。
+
+我上面说的data/app目录那段你看了没有
+这个目录下，文件的名字，和我列出的是不一样的
+我之前说过，结果和什么有关和什么没有关系 
+
+10 楼 su1216 2012-12-31   
+
+
+bca3218 写道
+
+filelist我返回的空指针，应该是程序没root权，不知如何弄，验证不了。
+filelist返回的顺序也可能是对的，但我前面的观点是 每个系统返回的都不一样。
+
+
+
+bca3218 写道
+
+第一，这全部是我做的实验包，优先权全部为int的最大值，所有接收广播只有打印一个log.e，只有包名不同。安装完所有包要重启一次。
+第二，虚拟机通过ddms发短信；真机用其它号码发送到本机，通过logcat查看log打印。
+我不管什么filelist什么的，通过接收短信来看的。你对我实验环境还有什么看法
+
+
+环境没啥问题
+结果也没啥问题
+我不知道你想表明什么呢 
+
+9 楼 bca3218 2012-12-31   
+
+filelist我返回的空指针，应该是程序没root权，不知如何弄，验证不了。 
+filelist返回的顺序也可能是对的，但我前面的观点是 每个系统返回的都不一样。
+ 
+
+8 楼 bca3218 2012-12-31   
+
+第一，这全部是我做的实验包，优先权全部为int的最大值，所有接收广播只有打印一个log.e，只有包名不同。安装完所有包要重启一次。 
+第二，虚拟机通过ddms发短信；真机用其它号码发送到本机，通过logcat查看log打印。 
+我不管什么filelist什么的，通过接收短信来看的。你对我实验环境还有什么看法
+ 
+
+7 楼 su1216 2012-12-30   
+
+
+bca3218 写道
+
+虚拟机的log，qq在360前面
+
+
+
+Java代码  
+1.com.lbe.security.lite  
+2.com.tencent.qqpimsecure  
+3.com.qihoo360.mobilesafe  
+4.com.betalee.ccSMSBlocker  
+
+这个log是如何打出来的
+我上面说过，顺序是和File.list的返回值一样，前提是他们的优先级相同
+对你的data/app执行File.list 
+
+6 楼 su1216 2012-12-30   
+
+
+bca3218 写道
+
+虚拟机的log，qq在360前面
+
+
+
+Java代码  
+1.com.lbe.security.lite  
+2.com.tencent.qqpimsecure  
+3.com.qihoo360.mobilesafe  
+4.com.betalee.ccSMSBlocker  
+
+然后呢 
+
+5 楼 bca3218 2012-12-30   
+
+虚拟机的log，qq在360前面
+
+
+
+Java代码  
+1.com.lbe.security.lite  
+2.com.tencent.qqpimsecure  
+3.com.qihoo360.mobilesafe  
+4.com.betalee.ccSMSBlocker  
+ 
+
+4 楼 bca3218 2012-12-30   
+
+每个系统好像都是随机的。
+本人手机打印LOG
+
+
+
+Java代码  
+1.12-30 22:49:50.701: E/name(2526): com.qihoo360.mobilesafe  
+2.12-30 22:49:51.201: E/name(2544): com.tencent.qqpimsecure  
+3.12-30 22:49:51.701: E/name(2552): org.ijinshan.mguard  
+4.12-30 22:49:51.701: E/name(2562): com.ijinshan.mguard  
+5.12-30 22:49:51.701: E/name(2570): org.betalee.ccSMSBlocker  
+6.12-30 22:49:51.701: E/name(2578): com.betalee.ccSMSBlocker  
+7.12-30 22:49:52.201: E/name(2586): com.lbe.security.lite  
+8.12-30 22:49:52.201: E/name(2594): com.handsent.nextsms  
+
+
+虚拟机的log
+
+
+
+Java代码  
+1.com.lbe.security.lite  
+2.com.qihoo360.mobilesafe  
+3.com.tencent.qqpimsecure  
+4.com.betalee.ccSMSBlocker  
+ 
+
+3 楼 su1216 2012-12-28   
+
+
+bca3218 写道
+
+有人测试说，同优先级的静态是谁先安装就谁先接收，我没测试过。系统里有记录那个apk安装顺序的吗？
+
+这要看你的测试方法了
+如果只测试两个，恰好接收顺序又是安装顺序……
+
+我不知道系统会记录安装顺序，接收广播顺序也和这完全没有关系 
+
+2 楼 bca3218 2012-12-28   
+
+有人测试说，同优先级的静态是谁先安装就谁先接收，我没测试过。系统里有记录那个apk安装顺序的吗？
+ 
+
+1 楼 bca3218 2012-12-28   
+
+飞信为什么排在11，这真看不出规律啊。
+ 
+
+发表评论
+
+ 您还没有登录,请您登录后再发表评论 
+
+
+
+
+
+
+su1216
+ 
+浏览: 65617 次
+性别: 
+来自: 北京
+
+
+
+最近访客 更多访客>>
+
+
+
+
+rimoer
+
+
+
+
+zht19880706
+
+
+
+
+heavensay
+
+
+
+
+woyaowenzi
+.
+
+博客专栏
+深入入门正则表达式（jav...
+浏览量：6019.android手机的安全问...
+浏览量：18362.
+
+文章分类
+■全部博客 (93)
+■android (37)
+■Unix & Linux 大学教程 (22)
+■Linux命令行与shell脚本编程大全 (10)
+■java (5)
+■java多线程 (3)
+■虚拟机 (7)
+■设计模式 (1)
+■正则表达式 (6)
+■数据库 (1)
+■其他 (1)
+■转贴 (1)
+
+
+社区版块
+■我的资讯 (0)
+■我的论坛 (70) 
+■我的问答 (19)
+
+
+存档分类
+■2013-02 (1)
+■2013-01 (5)
+■2012-12 (7)
+■更多存档...
+
+
+评论排行榜
+■android手机root后的安全问题 （二）
+■android安全问题（二） 程序锁
+■android安全问题（四） 抢先开机启动 - ...
+■android安全问题（三） 钓鱼程序
+■android手机root后的安全问题 （一）
+
+
+最新评论
+N_HH： su1216 写道N_HH 写道那个，请问，pm是什么。。不懂 ...
+android手机root后的安全问题 （四）
+su1216： N_HH 写道那个，请问，pm是什么。。不懂。shell@an ...
+android手机root后的安全问题 （四）
+N_HH： 那个，请问，pm是什么。。不懂。
+android手机root后的安全问题 （四）
+su1216： tjwink 写道既然已经知道su的数据库地址，可以直接用DB ...
+android手机root后的安全问题 （三）
+tjwink： 既然已经知道su的数据库地址，可以直接用DBOpenHelpe ...
+android手机root后的安全问题 （三）
+
+.
+
+
+--------------------------------------------------------------------------------
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ] 
+.

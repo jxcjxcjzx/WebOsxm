@@ -1,0 +1,45 @@
+      
+KLTWrite...() / KLTRead...()
+
+void KLTWriteFeatureListToPPM(
+KLT_FeatureList fl,
+KLT_PixelType *greyimg,
+int ncols,
+int nrows,
+char *filename);
+
+KLTWriteFeatureListToPPM() writes the image pointed to by greyimg to the PPM file named filename. The features in fl are overlayed in red.
+void KLTWriteFeatureList(
+KLT_FeatureList fl,
+char *filename,
+char *fmt);
+
+void KLTWriteFeatureHistory(
+KLT_FeatureHistory fh,
+char *filename,
+char *fmt);
+
+void KLTWriteFeatureTable(
+KLT_FeatureTable ft,
+char *filename,
+char *fmt);
+
+
+These functions write feature lists, feature histories, and feature tables to a file named filename (or to stderr if filename is NULL). The third parameter, 'fmt', is either:
+NULL, indicating that a binary file is being created, or
+a format string, indicating that a text file is being created. The string, which must begin with '%' and end with 'd' or 'f' (e.g., "%3d" or "%5.1f"), governs the printing of the feature locations (the feature values are always printed with "%5d"). For example, a particular feature will be written as "(128.2,364.8)= 7634" if 'fmt' is "%5.1f", or as "(128,365)= 7634" if 'fmt' is "%3d".
+Binary files are generally preferred since they are smaller and introduce no truncation error. However, text files permit easy viewing off-line.
+KLT_FeatureList KLTReadFeatureList(
+KLT_FeatureList fl,
+char *filename);
+
+KLT_FeatureHistory KLTReadFeatureHistory(
+KLT_FeatureHistory fh,
+char *filename);
+
+KLT_FeatureTable KLTReadFeatureTable(
+KLT_FeatureTable ft,
+char *filename);
+
+These functions read feature lists, feature histories, and feature tables from a file named 'filename' (The file may be either text or binary). If the first parameter is NULL, then a structure of the same size as that in the file is created, filled, and returned. Otherwise, the structure indicated by the first parameter is filled and returned. Note that the structure passed must be the same size as the structure in the file (i.e., the nFeatures field must be identical, as well as the nFrames field).
+       

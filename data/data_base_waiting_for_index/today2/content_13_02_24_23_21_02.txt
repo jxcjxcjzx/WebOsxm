@@ -1,0 +1,102 @@
+
+Discover  Docs  Blog  Community Sign inSign up   
+Docs
+Open webOS Architecture
+Developer Guide
+Developer Reference
+webOS Application APIs
+Add Contact
+Browser
+Calendar
+Email
+webOS Foundations
+webOS Service APIs
+webOS Data Types
+webOS Configuration Files
+Building Open webOS
+Porting Open webOS
+Share on linkedin Share on facebook Share on twitter Share on email More Sharing Services
+Calendar
+You can use the Application Manager's launch method to bring up the Calendar application at a specific date, or you can use the open method to add a new Calendar event on the user's behalf.
+
+To use the launch method, pass in an object with the id property set to "com.palm.app.calendar", and a params property set to an object that specifies a date expressed as a timestamp in milliseconds.
+
+To add a new event, you construct an Event object and then use the Application Manager's open method to invoke the Calendar app, passing it the object you have created. The Calendar app will create a new event and display a scene allowing the user to make edits or additions as needed.
+
+See Also:
+
+Event schema
+Examples
+
+luna-send launch
+
+// Open the calendar to May 1, 2011
+luna-send -P -n 1 palm://com.palm.applicationManager/launch
+  '{"id": "com.palm.app.calendar", "params": {"date": "1304226000000"}}'
+Enyo launch
+
+components: [
+  {
+      name: "openCalendarToDateCall",
+      kind: "PalmService",
+      service: "palm://com.palm.applicationManager/",
+      method: "open",
+      onSuccess: "openCalendarToDateSuccess",
+      onFailure: "openCalendarToDateFailure",
+      onResponse: "gotResponse",
+      subscribe: true
+  },
+  ...
+
+],
+
+...
+
+openCalendarToDateSuccess: function(inSender, inResponse) {
+  enyo.log("Open calendar to date success, results=" + enyo.json.stringify(inResponse));
+},
+openCalendarToDateFailure: function(inSender, inResponse) {
+  enyo.log("Open calendar to date failure, results=" + enyo.json.stringify(inResponse));
+},
+openCalendarToDate: function(inSender, inResponse) {
+  var params = { "date": "1304226000000" }
+  this.$.openCalendarToDateCall.call({"id": "com.palm.app.calendar", "params": params});
+}
+Mojo open
+
+this.controller.serviceRequest("palm://com.palm.applicationManager", {
+  method: "open",
+  parameters: 
+  {
+      id: "com.palm.app.calendar",
+      params:
+      {
+          newEvent: {
+          subject: 'Take daily medicine',  // string
+          dtstart: '1290711600000', // string representing the start date/time as timestamp in milliseconds
+          dtend: '1290718800000',  // string representing the end date/time as timestamp in milliseconds
+          location: 'Wherever I am!', // string
+          rrule: {
+              freq: "DAILY",
+              count: 3
+          },  // rrule object -- see Calendar schema for details
+          tzId: "America/Los_Angeles", // string representing a standard Olson timezone name
+          alarm: [
+              {
+                  alarmTrigger: {
+                      valueType: "DURATION",
+                      value: "-PT15M"
+                  }
+              }
+          ], // array of alarm objects -- see Calendar schema for details
+          note: 'Take allergy medicine, 1 pill',  // string
+          allDay: false  // boolean
+      }
+  }
+});
+485 Potrero Ave. Sunnyvale, CA 94085 
++1 408-617-7000 Main Phone
+Careers
+Sponsored by 
+© 2012 Hewlett-Packard Development Company, L.P. The information contained herein is subject to change without notice. 
+All screen images simulated. Site is best viewed in Chrome, Firefox, Safari, IE9 and above.  Privacy Policy  Terms of Use

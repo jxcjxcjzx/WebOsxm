@@ -1,0 +1,447 @@
+
+
+
+
+ganggang112800的专栏
+
+
+
+ 
+
+
+•目录视图
+•摘要视图
+•订阅
+ 
+
+
+
+《这些年，我们读过的技术经典图书》主题有奖征文       专访李铁军：从医生到金山首席安全专家的转变      独一无二的职位：开源社区经理        CSDN博客第三期云计算最佳博主评选
+ 
+
+
+约瑟夫环问题的讨论 具体的实现代码；其实很简单。 
+
+分类： database2011-12-02 16:29310人阅读评论(0)收藏举报
+ 
+数据结构nullstruct算法游戏c
+
+  
+2、编写一个求解Josephus问题的函数。用整数序列, 2, 3, ……, n表示顺序围坐在圆桌周围的人。然后使用n = 9, s = 1, m = 5，以及n = 9, s = 1, m = 0，或者n = 9, s = 1, m = 10作为输入数据，检查你的程序的正确性和健壮性。最后分析所完成算法的时间复杂度。定义JosephusCircle类，其中含完成初始化、报数出圈成员函数、输出显示等方法。（可以选做其中之一）
+ 
+加强题：
+ 
+1、采用数组作为求解过程中使用的数据结构。
+ 
+提高题：
+ 
+2、采用循环链表作为求解过程中使用的数据结构。运行时允许指定任意n、s、m数值，直至输入 n = 0 退出程序。
+ 
+程序代码：
+ 
+#include"stdafx.h"
+ 
+#include<iostream>
+ 
+usingnamespacestd;
+ 
+ 
+ 
+structNode
+ 
+{
+ 
+       Node* next;
+ 
+       intiData;
+ 
+};
+ 
+ 
+ 
+// 这个简单的类中应该包括三个数据元素;
+ 
+// 1.总共的人数n；.从第几个人开始s；.数到几m出列
+ 
+classJosephouCircle
+ 
+{
+ 
+public:
+ 
+       voidSetValue();
+ 
+       voidPickOut();
+ 
+       voidShow(Node*);
+ 
+private:
+ 
+       intiTotal;   // 总共的人数;
+ 
+       intiNum;   // 总共数几个数字;
+ 
+       intiFirst;
+ 
+};
+ 
+ 
+ 
+// 设置初值的大小；
+ 
+voidJosephouCircle::SetValue()
+ 
+{
+ 
+       cout << "请输入参与的人数，从第几个人开始，以及数到多少停止：" << endl;
+ 
+       cin >> iTotal;
+ 
+       cin >> iNum;
+ 
+       cin >> iFirst;
+ 
+}
+ 
+ 
+ 
+ 
+ 
+voidJosephouCircle::PickOut()
+ 
+{
+ 
+       Node* p = NULL;
+ 
+       Node* head = NULL,*r;
+ 
+       // 构建一个循环链表
+ 
+       for (inti = 1;i <= iTotal;++ i)
+ 
+       {
+ 
+              p = newNode;
+ 
+              p->iData = i;                     // 编号，建立新的结点;
+ 
+              if (head == NULL)                      
+
+              {
+ 
+                     head = p;
+ 
+              }
+ 
+              else
+ 
+              {
+ 
+                     r->next = p;
+ 
+              }
+ 
+              r = p;
+ 
+       }
+ 
+       p->next = head;
+ 
+       p = head;
+ 
+       for (inti = 1;i <= iFirst;++ i)
+ 
+       {
+ 
+ 
+ 
+              p = p->next;
+ 
+       }
+ 
+       while(p->next != p)
+ 
+       {
+ 
+              for (inti = 1;i < iNum;++ i)
+ 
+              {
+ 
+                     r = p;
+ 
+                     p = p->next;
+ 
+              }
+ 
+              r->next = p->next;
+ 
+              Show(p);
+ 
+              free(p);
+ 
+              p = r->next;
+ 
+       }
+ 
+       cout << "最后被删除的一个元素为：" << endl;
+ 
+       Show(p);
+ 
+}
+ 
+ 
+ 
+voidJosephouCircle::Show(Node* p)
+ 
+{
+ 
+       cout << p->iData << " ";
+ 
+}
+ 
+ 
+ 
+ 
+ 
+intmain(intargc,char* argv[])
+ 
+{
+ 
+       JosephouCircleJo1;
+ 
+       Jo1.SetValue();
+ 
+       Jo1.PickOut();
+ 
+       return 0;
+ 
+}
+ 
+代码二：不同的实现方法：
+ 
+/* 约瑟夫问题：已知n个人（不妨以编号1,2,3，···n表示）围坐在一张圆桌周围。从编号为k的人开始报数，数到m的人
+ 
+出列；他的下一个人又从1开始报数，数到m的那个人又出列；依次规则重复下去，直到圆桌周围的人全部出列。
+ 
+ 
+ 
+ 
+ 
+问题解决方法：1.建立一个具有n个链接点，且无头结点的循环链表；
+ 
+2.确定第一个报数点的位置；
+ 
+3.不断地从链表中删除一个链接点，直至链表中只剩有一个链接点。游戏结束；
+ 
+*/
+ 
+ 
+ 
+#include "StdAfx.h"
+ 
+#include <iostream>
+ 
+using namespace std;
+ 
+ 
+ 
+typedef struct Node
+ 
+{
+ 
+       Node* next;
+ 
+       int iData;
+ 
+}ReNode,*ReLinkList;
+ 
+ 
+ 
+//////////////////////////////////////////////////////////////////////////
+ 
+// n代表的是建立n个链接点，m表示要报的数字，每次数到多少的之后就可以推出；k表示开始数数的编号。
+ 
+void Josephus(int n,int m,int k)
+ 
+{
+ 
+       ReLinkList p,r,head = NULL;
+ 
+       for (int i = 1;i <= n;++ i)  // 编号从一开始的
+ 
+       {
+ 
+              p = (ReLinkList)malloc(sizeof(ReNode));
+ 
+              p->iData = i;
+ 
+              if (head == NULL)
+ 
+              {
+ 
+                     head = p;
+ 
+              }
+ 
+              else
+ 
+              {
+ 
+                     r->next = p;
+ 
+              }
+ 
+              r = p;
+ 
+       }
+ 
+       p->next = head;
+ 
+       p = head;
+ 
+       for (i = 1;i < k;++ i)
+ 
+       {
+ 
+              r = p;
+ 
+              p = p->next;    
+
+       }                      // 此时p从第一个结点出发，
+ 
+       while(p->next != p)
+ 
+       {
+ 
+              for (int i = 1;i < m; ++ i)
+ 
+              {
+ 
+                     r = p;
+ 
+                     p = p->next;
+ 
+              }
+ 
+              r->next = p->next;
+ 
+              cout << p->iData << endl;   // 输出一个结点的编号；
+ 
+              free(p);
+ 
+              p = r->next;        // p指向新的出发结点;
+ 
+       }
+ 
+       cout << "最后被删除的结点为：" << endl;
+ 
+       cout << p->iData << endl;
+ 
+}
+ 
+int main(int argc,char* argv[])
+ 
+{
+ 
+       int a = 5;
+ 
+       int b = 3;
+ 
+       int c = 2;
+ 
+       cout << "请输入总共的人数、密码的大小和从第几个人开始的整数：" << endl;
+ 
+       cin >> a >> b >> c;
+ 
+       Josephus(a,b,c);
+ 
+       cin >> a;
+ 
+       return 0;
+ }
+ 
+•上一篇：sizeof的小小总结
+•下一篇：八皇后问题程序代码及分析
+ 
+
+
+查看评论
+ 
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+个人资料 
+
+ganggang112800 
+
+
+
+
+◦访问：6204次
+◦积分：298分
+◦排名：千里之外
+ ◦原创：25篇
+◦转载：1篇
+◦译文：0篇
+◦评论：2条
+ 
+
+文章搜索
+
+ 
+文章分类 • database(19) 
+• c++/c(7) 
+• manage(1) 
+• php&Mysql(0) 
+• TOEFL 专栏(1) 
+
+文章存档 
+•2013年08月(1)
+•2013年03月(2)
+•2012年12月(2)
+•2012年09月(1)
+•2012年04月(1)
+•2011年12月(8)
+•2011年11月(12)
+ 
+阅读排行 • 顺序队列出现假溢出现象的解决办法(957) 
+• 线性表的插入、删除等操作（code and summary）(488) 
+• 八皇后问题程序代码及分析(481) 
+• 怎样做好一个团队领导 情商与智商共存(442) 
+• 关于两个栈的共享空间问题理解。(325) 
+• 约瑟夫环问题的讨论 具体的实现代码；其实很简单。(310) 
+• 二叉树的性质及实现代码 ！！！！(303) 
+• 栈的链式存储 c实现的几种基本操作(271) 
+• 为了托福一个难以深知的痛(218) 
+• sql sever 2005 管理用户数据库(181) 
+
+评论排行 • sizeof的小小总结(1) 
+• 八皇后问题程序代码及分析(1) 
+• 约瑟夫环问题的讨论 具体的实现代码；其实很简单。(0) 
+• 对于树的一些认识。 一般的树。(0) 
+• 二叉树的性质及实现代码 ！！！！(0) 
+• 循环结点的前驱删除操作(0) 
+• 深入解析VisualC++文件系统编程(0) 
+• 为了托福一个难以深知的痛(0) 
+• sql sever 2005 系统存储过程(0) 
+• sql sever 2005 管理用户数据库(0) 
+
+推荐文章 
+最新评论 •八皇后问题程序代码及分析
+fox_fain: 不错，借鉴参考了，谢谢楼主 
+
+•sizeof的小小总结
+darkbus111: 呵呵 
+
+
+
+

@@ -1,0 +1,597 @@
+
+
+
+
+Gang.Wang
+ 
+纸上得来终觉浅，绝知此事要躬行 http://www.wgblogs.com/
+
+ 博客园
+ 首页
+ 博问
+ 闪存
+ 新随笔
+ 联系
+ 订阅 
+管理
+ 
+随笔-190  文章-0  评论-104  
+
+
+
+
+
+
+(转) Android 安全机制
+
+
+
+
+1 Android 安全机制概述
+
+Android 是一个权限分离的系统 。 这是利用 Linux 已有的权限管理机制，通过为每一个 Application 分配不同的 uid 和 gid ， 从而使得不同的 Application 之间的私有数据和访问（ native 以及 java 层通过这种 sandbox 机制，都可以）达到隔离的目的 。 与此 同时， Android 还 在此基础上进行扩展，提供了 permission 机制，它主要是用来对 Application 可以执行的某些具体操作进行权限细分和访问控制，同时提供了 per-URI permission 机制，用来提供对某些特定的数据块进行 ad-hoc 方式的访问。
+
+1.1 uid 、 gid 、 gids
+
+Android 的权限分离的基础是建立在 Linux 已有的 uid 、 gid 、 gids 基础上的 。
+
+UID 。 Android 在 安装一个应用程序，就会为 它 分配一个 uid （参考 PackageManagerService 中的 newUserLP 实现）。其中普通 A ndroid 应用程序的 uid 是从 10000 开始分配 （参见 Process.FIRST_APPLICATION_UID ）， 10000 以下是系统进程的 uid 。
+
+GID 。对 于普通应用程序来说， gid 等于 uid 。由于每个应用程序的 uid 和 gid 都不相同， 因此不管是 native 层还是 java 层都能够达到保护私有数据的作用 。
+
+GIDS 。 gids 是由框架在 Application 安装过程中生成，与 Application 申请的具体权限相关。 如果 Application 申请的相应的 permission 被 granted ，而且 中有对应的 gid s ， 那么 这个 Application 的 gids 中将 包含这个 gid s 。
+
+uid gid gids 的 详细 设置过程：
+
+请参考 Act i vityManagerService 中的 startProcessLocked 。在通过 zygote 来启动一个 process 时，直接将 uid 传给 给了 gid 。再通过 zygote 来 fork 出新的进程（ zygote.java 中的 forkAndSpecialize ），最终在 native 层（ dalvik_system_zygote.c ）中的 forkAndSpecializeCommon 中通过 linux 系统调用来进行 gid 和 uid 和 gids 的设置。
+
+1.2 permission
+
+一个权限主要包含三个方面的信息：权限的名称；属于的权限组；保护级别。一个权限组是指把权限按照功能分成的不同的集合。每一个权限组包含若干具体权限，例如在 COST_MONEY 组中包含 android.permission.SEND_SMS ， android.permission.CALL_PHONE 等和费用相关的权限。
+
+每个权限通过 protectionLevel 来标识保护级别： normal ， dangerous ， signature ， signatureorsystem 。不同的保护级别代表了程序要使用此权限时的认证方式。 normal 的权限只要申请了就可以使用； dangerous 的权限在安装时需要用户确认才可以使用； signature 和 signatureorsystem 的权限需要使用者的 app 和系统使用同一个数字证书。
+
+Package 的权限信息主要 通过在 AndroidManifest.xml 中通过一些标签来指定。如 <permission> 标签， <permission-group> 标签 <permission-tree> 等标签。如果 package 需要申请使用某个权限，那么需要使用 <use-permission> 标签来指定。
+
+2 Android permission 管理机制
+
+2.1 Framework permission 机制
+
+2.1.1 安装入口
+
+permission 的初始化，是指 permission 的向系统申请，系统进行检测并授权，并建立相应的数据结构。绝大多数的情况下 permission 都是从一个 package 中扫描所得，而这发生在 package 安装和升级的时候。一般有如下几种 安装入口：
+
+n packageInstaller ， package 被下载安装时会触发使用。 packageInstaller 会通过 AppSecurityPermissions 来检查 dangerous 的权限，并对用户给出提示。
+
+n pm 命令 。
+
+n adb install 。最终还是 调用 pm install 来安装 apk 包。
+
+n 拷贝即安装。 PackageManagerService 中使用 AppDirObserver 对 /data/app/ 进行监视 ，如果有拷贝即触发安装。
+
+这些安装方式 最终都会通过调用 PackageManagerService 中的函数来完成程序的安装。
+
+2.1.2 permission 创建
+
+第一步，从 AndroidManifest.xml 中提取 permission 信息。主要提取如下信息：
+
+² shared uid
+
+指定与其它 package 共享同一个 uid 。
+
+² permission
+
+提取 permissions 标签指定属性。它使用 permissionInfo 来描述一个权限的基本信息。需要指定 protectedLevel 信息，并指定所属 group 信息。它将被添加到这个 package 的 permissions 这个 list 结构中。
+
+² permission-tree
+
+提取 permissions-tree 标签属性。 permissions-tree 也通过 permissionInfo 来描述，并被添加到 package 的 permissions 这个 list 结构中。 permission-tree 只是一个名字空间，用来向其中动态添加一些所谓 Dynamic 的 permission ，这些 permission 可以动态修改。这些 permission 名称要以 permission-tree 的名称开头。它本身不是一种权限，没有 protectedLevel 和所属 group 。只是保存了所属的 packge 和权限名（带有 package 前缀的）。
+
+² permission-group
+
+定义 permission 组信息，用 PermissionGroup 表示。本身不代表一个权限，会添加进入 package 的 permissionGroups 这个 list 中。
+
+² uses-permission
+
+定义了 package 需要申请的权限名。将权限名添加到 package 的 requestedPermissions 这个 list 中。
+
+² adopt-permissions
+
+将该标签指定的 name 存入 package 的 mAdoptPermissions 这个 list 中。 Name 指定了这个 package 需要从 name 指定的 package 进行权限领养。在 system package 进行升级时使用。
+
+第二步。获取 Package 中的证书，验证，并将签名信息保存在 Package 结构中。
+
+1. 如果该 package 来自 system img （系统 app ），那么只需要从该 Package 的 AndroidManifest.xml 中获取签名信息，而无需验证其完整性。但是如果这个 package 与其它 package 共享一个 uid ，那么这个共享 uid 对应的 sharedUser 中保存的签名与之不一致，那么签名验证失败。
+
+2. 如果是普通的 package ，那么需要提取证书和签名信息，并对文件的完成性进行验证。
+
+第三步。如果是普通的 package ，那么清除 package 的 mAdoptPermissions 字段信息（系统 package 升级才使用）。
+
+第四步。如果在 AndroidManifest.xml 中指定了 shared user ，那么先查看全局 list 中（ mSharedUsers ）是否该 uid 对应的 SharedUserSetting 数据结构，若没有则新分配一个 uid ，创建 SharedUserSetting 并保存到全局全局 list （ mSharedUsers ）中。
+
+mUserIds 保存了系统中已经分配的 uid 对应的 SharedUserSetting 结构。每次分配时总是从第一个开始轮询，找到第一个空闲的位置 i ，然后加上 FIRST_APPLICATION_UID 即可。
+
+第五步。创建 PackageSettings 数据结构。并将 PackageSettings 与 SharedUserSetting 进行绑定。其中 PackageSettings 保存了 SharedUserSetting 结构；而 SharedUserSetting 中会使用 PackageSettings 中的签名信息填充自己内部的签名信息，并将 PackageSettings 添加到一个队列中，表示 PackageSettings 为其中的共享者之一。
+
+在创建时，首先会以 packageName 去全局数据结构 mPackages 中查询是否已经有对应的 PackageSettings 数据结构存在。如果已经存在 PackageSettings 数据结构（比如这个 package 已经被 uninstall ，但是还没有删除数据，此时 package 结构已经被释放）。那么比较该 package 中的签名信息（从 AndroidManifest 中扫描得到）与 PackageSettings 中的签名信息是否匹配。如果不匹配但是为 system package ，那么信任此 package ，并将 package 中的签名信息更新到已有的 PackageSettings 中去，同时如果这个 package 与其它 package 共享了 uid ，而且 shared uid 中保存的签名信息与当前 package 不符，那么签名也验证失败。
+
+第六步。如果 mAdoptPermissions 字段不为空，那么处理 permission 的领养（从指定的 package 对应的 PackageSettings 中，将权限的拥有者修改为当前 package ，一般在 system app 升级的时候才发生，在此之前需要验证当被领养的 package 已经被卸载，即检查 package 数据结构是否存在）。
+
+第七步。添加自定义权限。将 package 中定义的 permissionGroup 添加到全局的列表 mPermissionGroups 中去；将 package 中定义的 permissions 添加到全局的列表中去（如果是 permission-tree 类型，那么添加到 mSettings.mPermissionTrees ，如果是一般的 permission 添加到 mSettings.mPermissions 中）。
+
+第八步。清除不一致的 permission 信息。
+
+1. 清除不一致的 permission-tree 信息。如果该 permission-tree 的 packageSettings 字段为空，说明还未对该 package 进行过解析（若代码执行到此处时 packageSettings 肯定已经被创建过），将其 remove 掉。如果 packageSettings 不为空，但是对应的 package 数据结构为空（说明该 package 已经被卸载，但数据还有保留），或者 package 数据结构中根本不含有这个 permission-tree ，那么将这个 permission-tree 清除。
+
+2. 清除不一致的 permission 信息。如果 packageSettings 或者 package 结构为空（未解析该 package 或者被卸载，但数据有保留），或者 package 中根本没有定义该 permission ，那么将该 permission 清除。
+
+第九步。对每一个 package 进行轮询，并进行 permission 授权。
+
+1. 对申请的权限进行检查，并更新 grantedPermissions 列表
+
+2. 如果其没有设置 shared user id ，那么将其 gids 初始化为 mGlobalGids ，它从 permission.xml 中读取。
+
+3. 遍历所有申请的权限，进行如下检查
+
+1 ）如果是该权限是 normal 或者 dangerous 的。通过检查。
+
+2 ）如果权限需要签名验证。如果签名验证通过。还需要进行如下检查
+
+* 如果程序升级，而且是 system package 。那么是否授予该权限要看原来的 package 是否被授予了该权限。如果被授予了，那么通过检查，否则不通过。
+
+* 如果是新安装的。那么检查通过。
+
+4. 如果 3 中检查通过，那么将这个 permission 添加到 package 的 grantedPermissions 列表中，表示这个 permission 申请成功（ granted ）。申请成功的同时会将这个申请到的 permission 的 gids 添加到这个 package 的 gids 中去。
+
+5. 将 permissionsFixed 字段标准为 ture ，表示这个 packge 的 permission 进行过修正。后续将禁止对非 system 的 app 的权限进行再次修正。
+
+2.1.3 Dynamic permission 的管理
+
+PackageManagerService 提供了 addPermission/ removePermission 接口用来动态添加和删除一些权限。但是这些权限必须是所谓的动态权限（ BasePermission.TYPE_DYNAMIC ）。
+
+一个 Package 如果要添加 Dynamic permissions ，首先必须要在 manifest 中申明 <permission-tree> 标签，它实际上是一个权限的名字空间（例如，“ com.foo.far ”这个权限就是 permission-tree “com.foo ”的成员），本身不是一个权限。一个 Package 只能为自己的 permission-tree 或者拥有相同的 uid 的 package 添加或者删除权限。
+
+Package 不能够通过这种接口去修改在 manifest 中静态申请的权限，否则抛出异常。
+
+首先查找这个 permission 在全局 permission 列表 mSettings.mPermissions 中是否存在。如果存在，而且类型为 BasePermission.TYPE_DYNAMIC 那么根据传入的权限信息修改全局表中的权限信息，并触发 permissions.xml 的持久化。
+
+如果在全局的 permission 列表 mSettings.mPermissions 中没有找到，先找到这个 permission 所在 permissionTree ，然后添加到全局 permission 列表 mSettings.mPermissions 中去，并触发 permissions.xml 的持久化。
+
+2.1.4 Uri permission 的管理
+
+下面两个 接口 主要用于 Uri permission 的管理 （其实现在 ActivityManagerService 中）。
+
+// 为指定的 uid 和 targetPkg 添加对某个 content Uri 的读或者写权限。
+
+public void grantUriPermission(IApplicationThread caller, String targetPkg, Uri uri, int mode) throws RemoteException;
+
+// 清除所有通过 grantUriPermission 对某个 Uri 授予的权限。
+
+public void revokeUriPermission(IApplicationThread caller, Uri uri, int mode) throws RemoteException;
+
+grantUriPermission 主要的实现过程分析。
+
+grantUriPermission 分析：
+
+1. 验证 caller 的 ProcessRecord 和 targetPkg 不为空。否则检测不通过。
+
+2. 验证所请求的 mode 为 Intent.FLAG_GRANT_READ_URI_PERMISSION 或者为 Intent.FLAG_GRANT_WRITE_URI_PERMISSION ，否则不通过。
+
+3. 确保参数 Uri 是一个 content Uri 。否则，则检测不通过。
+
+4. 通过 Uri 得到目标 ContentProvider ，如果不存在，则检测不通过。
+
+5. 从 PackageManagerService 中获得 targetPkg 对应的 uid 。
+
+6. 检查 target uid 所对应的 package 是否真正需要这个权限？
+
+先判断要申请的是读还是写权限，然后查看对应的 ContentProvider 中对应的 readPermission writePermission 字段是否保存了权限名称。 如果该字段不为空，则以 target uid 和该权限名去PackageManagerService 中去查找该 uid 是否被 granted 了该权限。如果已经获得了该权限，那么无需再去为这个 Activity 去申请这个 Uri 权限了，返回。否者继续执行如下操作。
+
+7. 检查这个 ContentProvider 的 grantUriPermissions 开关变量，是否允许对其它 package 进行权限的 grant 操作。如果禁止，那么抛出异常。
+
+8. 检查这个 ContentProvider 是否设置了 Uri 的过滤类型 uriPermissionPatterns ，如果设置了过滤类型，则将需要申请权限的 Uri 与之匹配。匹配不同过，则抛出异常。
+
+9. 检查调用者自己是否有权限访问这个 Uri 。如果没有，抛出异常。
+
+10. 从 mGrantedUriPermissions 中取得 target uid 对应的 HashMap<Uri, UriPermission> 数据结构。用 target uid 和 Uri 生成 UriPermission 并保存在 mGrantedUriPermissions 中。
+
+revokeUriPermission 实现分析。
+
+找到该 Uri 对应的 ContentProvider ，然后删除 mGrantedUriPermissions 中与 Uri 对应的所有权限。
+
+2.2 permission 的动态检查
+
+这里的动态检查是指是 package 在程序运行过程中进行某些操作或者数据访问时才进行的 check ，与之对应的是应用程序安装或者升级时 PackageManagerService 通过扫描包中的静态权限信息相对应。
+
+系统与权限 检查 相关的机制的实现主要集中在 PackageManagerService 和 ActivityManagerService 中。 ActivityManagerService 主要负责的是底层的 uid 层次的身份检查； PackageManagerService 则维护了 uid 到自己拥有的和被授予的权限的一张表。在通过 ActivityManagerService 的身份检查后， PackageManagerService 根据请求者的 uid 来查看这张表，判断其是否具有相应的权限。
+
+除此之外， per-URI permission 机制的实现也需要一张表，它维护在 ActivityManagerService 中，它建立了从 content URI 到被授权访问这个 URI 的 component 之间的映射。但是它也需要借助 PackageManagerService 的机制来辅助实现。
+
+2.2.1 framework 提供的接口
+
+Android framework 中提供了一些接口用来对外来的访问（包括自己）进行权限检查 。 这些接口 主要通过 ContextWrapper 提供，具体实现在 ContextImpl 中 。如果 package 接受到外来访问者的操作请求，那么可以调用这些接口进行权限检查。一般情况下可以把这些接口的检查接口分为两种，一种是返回错误，另一种是抛出异常。
+
+主要包含如下几组：
+
+n permission 和 uid 检查 API
+
+下面这一组接口主要用来检查某个调用（或者是其它 package 或者是自己）是否拥有访问某个 permission 的权限。参数中 pid 和 uid 可以指定，如果没有指定，那么 framework 会通过 Binder 来获取调用者的 uid 和 pid 信息，加以填充。返回值为 PackageManager.PERMISSION_GRANTED 或者 PackageManager.PERMISSION_DENIED 。
+
+public int checkPermission(String permission, int pid, int uid) // 检查某个 uid 和 pid 是否有 permission 权限
+
+public int checkCallingPermission(String permission) // 检查调用者是否有 permission 权限，如果调用者是自己那么返回 PackageManager.PERMISSION_DENIED
+
+public int checkCallingOrSelfPermission(String permission) // 检查自己或者其它调用者是否有 permission 权限
+
+下面这一组和上面类似，如果遇到检查不通过时，会抛出异常，打印消息 。
+
+public void enforcePermission(String permission, int pid, int uid, String message)
+
+public void enforceCallingPermission(String permission, String message)
+
+public void enforceCallingOrSelfPermission(String permission, String message)
+
+n per-URI 检查 API
+
+为某个 package 添加访问 content Uri 的读或者写权限。
+
+public void grantUriPermission(String toPackage, Uri uri, int modeFlags)
+
+public void revokeUriPermission(Uri uri, int modeFlags)
+
+检查某个 pid 和 uid 的 package 是否拥有 uri 的读写权限，返回值表示是否被 granted 。
+
+public int checkUriPermission(Uri uri, int pid, int uid, int modeFlags)
+
+public int checkCallingUriPermission(Uri uri, int modeFlags)
+
+public int checkCallingOrSelfUriPermission(Uri uri, int modeFlags)
+
+public int checkUriPermission(Uri uri, String readPermission,String writePermission, int pid, int uid, int modeFlags)
+
+检查某个 pid 和 uid 的 package 是否拥有 uri 的读写权限，如果失败则抛出异常，打印消息 。
+
+public void enforceUriPermission(Uri uri, int pid, int uid, int modeFlags, String message)
+
+public void enforceCallingUriPermission(Uri uri, int modeFlags, String message)
+
+public void enforceCallingOrSelfUriPermission(Uri uri, int modeFlags, String message)
+
+public void enforceUriPermission(Uri uri, String readPermission, String writePermission,int pid, int uid, int modeFlags, String message)
+
+2.2.2 实现分析
+
+ContextImpl.java 中提供的 API ，其实都是由 ActivityManagerService 中的如下几个接口进行的封装。
+
+public int checkPermission(String permission, int pid, int uid) throws RemoteException; // 主要用于一般的 permission 检查
+
+public int checkUriPermission(Uri uri, int pid, int uid, int mode) throws RemoteException; // 主要用于 Content Uri 的 permission 检查
+
+n checkPermission 的实现分析
+
+1. 如果传入的 permission 名称为 null ，那么返回 PackageManager.PERMISSION_DENIED 。
+
+2. 判断调用者 uid 是否符合要求 。
+
+1 ） 如果 uid 为 0 ，说明是 root 权限的进程，对权限不作控制。
+
+2 ） 如果 uid 为 system server 进程的 uid ，说明是 system server ，对权限不作控制。
+
+3 ） 如果是 ActivityManager 进程本身，对权限不作控制。
+
+4 ）如果调用者 uid 与参数传入的 req uid 不一致，那么返回 PackageManager.PERMISSION_DENIED 。
+
+3. 如果通过 2 的检查后，再 调用 PackageManagerService.checkUidPermission ，判断 这个 uid 是否拥有相应的权限，分析如下 。
+
+1 ） 首先它通过调用 getUserIdLP ，去 PackageManagerService.Setting.mUserIds 数组中，根据 uid 查找 uid （也就是 package ）的权限列表。一旦找到，就表示有相应的权限。
+
+2 ） 如果没有找到，那么再去 PackageManagerService.mSystemPermissions 中找。这些信息是启动时，从 /system/etc/permissions/platform.xml 中读取的。这里记录了一些系统级的应用的 uid 对应的 permission 。
+
+3 ）返回结果 。
+
+n 同样 checkUriPermission 的实现 主要在 ActivityManagerService 中，分析如下：
+
+1. 如果 uid 为 0 ，说明是 root 用户，那么不控制权限。
+
+2. 否则，在 ActivityManagerService 维护的 mGrantedUriPermissions 这个表中查找这个 uid 是否含有这个权限，如果有再检查其请求的是读还是写权限。
+
+3 Android 签名机制
+
+关于签名机制，其实分两个阶段。
+
+包扫描阶段需要进行完整性和证书的验证。普通 package 的签名和证书是必须要先经过验证的。具体做法是对 manifest 下面的几个文件进行完整性检查。完整性检查包括这个 jar 包中的所有文件。如果是系统 package 的话，只需要使用 AndroidMenifest.xml 这个文件去提取签名和验证信息就可以了。
+
+在权限创建阶段。如果该 package 来自 system img （系统 app ），那么 trust it ，而且使用新的签名信息去替换就的信息。前提是如果这个 package 与其它 package 共享一个 uid ，那么这个共享 uid 对应的 sharedUser 中保存的签名与之不一致，那么签名验证失败。有些时候系卸载一个 app ，但是不删除数据，那么其 PackageSettings 信息会保留，其中会保存签名信息。这样再安装是就会出现不一致。
+
+3.1 Android Package 签名原理
+
+android 中系统和 app 都是需要签名的。可以自己通过 development/tools/make_key 来生成公钥和私钥。
+
+android 源代码中提供了工具 ./out/host/linux-x86/framework/signapk.jar 来进行手动签名。签名的主要作用在于限制对于程序的修改仅限于同一来源。系统中主要有两个地方会检查。如果是程序升级的安装，则要检查新旧程序的签名证书是否一致，如果不一致则会安装失败；对于申请权限的 protectedlevel 为 signature 或者 signatureorsystem 的，会检查权限申请者和权限声明者的证书是否是一致的。签名相关文件可以从 apk 包中的 META-INF 目录下找到。
+
+signapk.jar 的源代码在 build/tools/signapk ，签名主要有以下几步：
+
+l 将除去 CERT.RSA ， CERT.SF ， MANIFEST.MF 的所有文件生成 SHA1 签名
+
+首先将除了 CERT.RSA ， CERT.SF ， MANIFEST.MF 之外的所有非目录文件分别用 SHA-1 计算摘要信息，然后使用 base64 进行编码，存入 MANIFEST.MF 中。 如果 MANIFEST.MF 不存在，则需要创建。存放格式是 entry name 以及对应的摘要
+
+l 根据 之前计算的 SHA1 摘要信息，以及 私钥生成 一系列的 signature 并写入 CERT.SF
+
+对 整个 MANIFEST.MF 进行 SHA1 计算，并将摘要信息存入 CERT.SF 中 。然后对之前计算的所有摘要信息使用 SHA1 再次计算数字签名，并写入 CERT.SF 中。
+
+l 把公钥和签名信息写入 CERT.RST
+
+把之前整个的签名输出文件 使用私有密钥计算签名。同时将签名结果，以及之前声称的公钥信息写入 CERT.RSA 中保存。
+
+3.2 Package 的签名验证
+
+安装时对一个 package 的签名验证的主要逻辑在 JarVerifier.java 文件的 verifyCertificate 函数中实现。 其主要的思路是通过提取 cert.rsa 中的证书和签名信息，获取签名算法等信息，然后按照之前对 apk 签名的方法进行计算，比较得到的签名和摘要信息与 apk 中保存的匹配。
+
+第一步。提取证书信息，并对 cert.sf 进行完整性验证。
+
+1. 先找到是否有 DSA 和 RSA 文件 ，如果找到则对其进行 decode ，然后读取其中的所有的证书列表（这些证书会被保存在 Package 信息中，供后续使用）。
+
+2. 读取这个文件中的签名数据信息块列表，只取第一个签名数据块。读取其中的发布者和证书序列号。
+
+3. 根据证书序列号，去匹配之前得到的所有证书，找到与之匹配的证书。
+
+4. 从之前得到的签名数据块中读取签名算法和编码方式等信息
+
+5. 读取 cert.sf 文件，并计算整个的签名，与数据块中的签名（编码格式的）进行比较，如果相同则完整性校验成功。
+
+第二步。使用 cert.sf 中的摘要信息，验证 MANIFEST.MF 的完整性。
+
+在 cert.sf 中提取 SHA1-Digest-Manifest 或者 SHA1-Digest 开头的签名 数据块 （ -Digest-Manifest 这个是整个 MANIFEST.MF 的摘要 信息，其它的是 jar 包中其它文件的摘要信息 ）， 并逐个对这些数据块 进行验证。验证的方法是，现将 cert.sf 看做是很多的 entries ，每个 entries 包含了一些基本信息，如这个 entry 中使用的摘要算法（ SHA1 等），对 jar 包中的哪个文件计算了摘要，摘要结果是什么。 处理时先找到每个摘要数据开中的文件信息，然后从 jar 包中读取，然后使用 -Digest 之前的摘要算法进行计算，如果计算结果与摘要数据块中保存的信息的相匹配，那么就完成验证。
+
+　
+
+
+ 作者：GangWang
+出处：http://www.cnblogs.com/GnagWang/
+本文版权归作者和博客园共有，欢迎转载，但未经作者同意必须保留此段声明，且在文章页面明显位置给出原文连接，否则保留追究法律责任的权利。 
+　 
+
+
+
+
+
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+
+
+
+
+Gang.Wang
+ 关注 - 21
+ 粉丝 - 69 
+
+
+
++加关注 
+
+
+3
+
+0
+
+
+ (请您对文章做出评价) 
+
+
+« 博主上一篇：android:windowSoftInputMode
+» 博主下一篇：Android 2.2 结束进程的方法
+
+ 
+posted @ 2011-03-21 16:47 Gang.Wang 阅读(11604) 评论(5) 编辑 收藏
+ 
+
+
+评论列表
+ 
+
+
+
+  
+#1楼2011-05-01 23:19 scull  
+
+你好
+
+请问可不可以告诉我这篇文章是从哪里转载过来的？？
+
+我想看看有没有其它资料
+
+并且想向作者咨询几个问题
+
+支持(0)反对(0)
+
+
+
+   
+#2楼[楼主] 2011-06-07 16:19 Gang.Wang  
+
+@scull
+不好意思，我刚找了一下也没有找到， 下次我如果转文章的话，一定会注明转的地方。 也一道向作者表示歉意
+
+支持(0)反对(0)
+
+
+
+   
+#3楼2011-12-12 21:58 shallon[未注册用户]
+
+好文，很详细
+
+
+
+  
+#4楼2012-02-09 11:52 sysuchjm[未注册用户]
+
+帅气啊，这篇文章～～
+
+
+
+  
+#5楼2012-12-05 15:49 1tao888  
+
+dududu
+
+支持(0)反对(0)
+
+ 
+
+
+刷新评论刷新页面返回顶部
+ 
+
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+
+ 
+博客园首页博问新闻闪存程序员招聘知识库
+ 
+
+
+
+
+
+最新IT新闻:
+ · 剥开周鸿祎 天天向上背后的故事
+ · 马云知天命：固执坚持不动摇
+ · 若不是那五次拒绝！惠普或成今日之苹果
+ · 新疆阿勒泰发现世界第四大铁陨石 引发官争民抢
+ · 伊朗的猴子宇航员真的安全返回了？
+» 更多新闻...
+
+最新知识库文章:
+
+ · HTML5之美
+ · 每天工作的第一个小时，做什么？
+ · Hadoop 分布式文件系统：架构和设计
+ · 异常的代价
+ · 从P1到P7——第八年
+
+» 更多知识库文章... 
+
+
+
+
+
+
+
+公告
+
+ 
+
+
+昵称：Gang.Wang
+园龄：2年10个月
+粉丝：69
+关注：21
++加关注
+ 
+
+
+
+
+
+搜索
+ 
+ 
+ 
+ 
+ 
+
+常用链接
+ 我的随笔
+我的评论
+我的参与
+最新评论
+我的标签
+ 
+
+
+我的标签
+ 
+
+随笔分类(156)
+android(49) 
+C#(20) 
+C++(22) 
+IOS(41) 
+Python(5) 
+Read Book Notes(3) 
+UITest(5) 
+Windows(11) 
+
+
+随笔档案(190)
+2012年6月 (4) 
+2012年5月 (2) 
+2012年4月 (4) 
+2012年3月 (1) 
+2012年1月 (3) 
+2011年12月 (2) 
+2011年11月 (2) 
+2011年10月 (2) 
+2011年9月 (19) 
+2011年8月 (6) 
+2011年7月 (7) 
+2011年6月 (18) 
+2011年5月 (5) 
+2011年4月 (8) 
+2011年3月 (8) 
+2011年2月 (10) 
+2011年1月 (8) 
+2010年12月 (10) 
+2010年11月 (11) 
+2010年10月 (3) 
+2010年9月 (8) 
+2010年8月 (6) 
+2010年7月 (11) 
+2010年6月 (4) 
+2010年4月 (18) 
+2010年3月 (10) 
+
+
+最新评论
+
+1. Re:auto_ptr
+讲的比较清楚--岁月漫步
+2. Re:关于WM_NCHITTEST消息
+谢谢楼主，很好用，不过下次写的再详细点就更好了，最好把源代码写出来，小子是个新手，看完后还得参考其它资料才弄出来的，谢谢--小虫有角
+3. Re:java synchronized详解
+我@lee0oo0引用可以推断：如果一个类中定义了一个synchronized的static函数A，也定义了一个synchronized 的instance函数B，那么这个类的同一对象Obj在多线程中分别访问A和B两个方法时，不会构成同步，因为它们的锁都不一样。A方法的锁是Obj这个对象，而B的锁是Obj所属的那个Class。这里是不是混淆了A锁的Class吧,B锁的是对象吧应该是混淆了。--vanezkw
+4. Re:[转]8大你不得不知的Android调试工具
+好文，受益了--everett力
+5. Re:(转) Android 安全机制
+dududu--1tao888
+ 
+
+阅读排行榜
+
+1. java synchronized详解(55449)
+2. android 设置Button或者ImageButton的背景透明 半透明 透明(20182)
+3. (转) Android 安全机制(11604)
+4. Android中Toast的用法简介(11081)
+5. android 中管理短信(7454)
+ 
+
+评论排行榜
+
+1. 关于WM_NCHITTEST消息(20)
+2. java synchronized详解(14)
+3. android 中管理短信(7)
+4. 写给自己对软件测试经历的总结(7)
+5. (转) Android 安全机制(5)
+ 
+
+推荐排行榜
+ 
+1. java synchronized详解(24)
+2. android 中管理短信(4)
+3. (转) Android 安全机制(3)
+4. 写给自己对软件测试经历的总结(3)
+5. 关于WM_NCHITTEST消息(3)
+ 
+
+
+
+

@@ -1,0 +1,191 @@
+首页 资讯 精华 论坛 问答 博客 专栏 群组 更多 ▼ 您还未登录 ! 登录 注册
+Peng的技术博客
+博客微博相册收藏留言关于我
+  
+Java中Comparable和Comparator实现对象比较
+
+博客分类： Java知识点
+Java算法 
+★  Java知识点汇总 
+全球软件项目外包平台 兼职做外包 挣Money！
+   
+ 当需要排序的集合或数组不是单纯的数字型时，通常可以使用Comparator或Comparable，以简单的方式实现对象排序或自定义排序。下面通过两个例子分别用Comparable和Comparator实现对User对象中年龄排序。
+ 
+1.通过实现Comparable接口，根据User的年龄进行排序。
+ 
+Java代码  收藏代码
+import java.util.Arrays;  
+  
+/** 
+ * @author pengcqu 
+ *  
+ */  
+public class ComparableUser implements Comparable {  
+  
+    private String id;  
+    private int age;  
+  
+    public ComparableUser(String id, int age) {  
+        this.id = id;  
+        this.age = age;  
+    }  
+  
+    public int getAge() {  
+        return age;  
+    }  
+  
+    public void setAge(int age) {  
+        this.age = age;  
+    }  
+  
+    public String getId() {  
+        return id;  
+    }  
+  
+    public void setId(String id) {  
+        this.id = id;  
+    }  
+  
+    public int compareTo(Object o) {  
+        return this.age - ((ComparableUser) o).getAge();  
+    }  
+  
+    /** 
+     * 测试方法 
+     */  
+    public static void main(String[] args) {  
+        ComparableUser[] users = new ComparableUser[] {  
+                new ComparableUser("u1001", 25),  
+                new ComparableUser("u1002", 20),  
+                new ComparableUser("u1003", 21) };  
+        Arrays.sort(users);  
+        for (int i = 0; i < users.length; i++) {  
+            ComparableUser user = users[i];  
+            System.out.println(user.getId() + " " + user.getAge());  
+        }  
+    }  
+  
+}  
+ 
+ 
+2. 通过实现Comparator接口，根据User的年龄进行排序。
+ 
+Java代码  收藏代码
+public class User {  
+  
+    private String id;  
+    private int age;  
+  
+    public User(String id, int age) {  
+        this.id = id;  
+        this.age = age;  
+    }  
+  
+    public int getAge() {  
+        return age;  
+    }  
+  
+    public void setAge(int age) {  
+        this.age = age;  
+    }  
+  
+    public String getId() {  
+        return id;  
+    }  
+  
+    public void setId(String id) {  
+        this.id = id;  
+    }  
+      
+  
+}  
+ 
+Java代码  收藏代码
+import java.util.Arrays;  
+import java.util.Comparator;  
+  
+/** 
+ * @author pengcqu 
+ *  
+ */  
+public class UserComparator implements Comparator {  
+  
+    public int compare(Object arg0, Object arg1) {  
+        return ((User) arg0).getAge() - ((User) arg1).getAge();  
+    }  
+  
+    /** 
+     * 测试方法 
+     */  
+    public static void main(String[] args) {  
+        User[] users = new User[] { new User("u1001", 25),  
+                new User("u1002", 20), new User("u1003", 21) };  
+        Arrays.sort(users, new UserComparator());  
+        for (int i = 0; i < users.length; i++) {  
+            User user = users[i];  
+            System.out.println(user.getId() + " " + user.getAge());  
+        }  
+    }  
+}  
+ 
+选择Comparable接口还是Comparator？
+ 一个类实现了Comparable接口则表明这个类的对象之间是可以相互比较的，这个类对象组成的集合就可以直接使用sort方法排序。
+Comparator可以看成一种算法的实现，将算法和数据分离，Comparator也可以在下面两种环境下使用：
+1、类的设计师没有考虑到比较问题而没有实现Comparable，可以通过Comparator来实现排序而不必改变对象本身
+2、可以使用多种排序标准，比如升序、降序等。
+ 
+ 
+相关链接:
+★  Java基础知识点汇总 
+★ 【下载】经典常用算法 Java和C语言两种实现（含代码图例）
+★ 【下载】Java各种排序算法实现(含代码)
+
+ 
+3 
+顶2 
+踩 分享到：    
+Java中的JNDI （Java命名与目录接口） | Java中String和StringBuffer的区别
+2009-10-15 00:03浏览 6438评论(0)分类:企业架构相关推荐
+评论
+发表评论
+  您还没有登录,请您登录后再发表评论
+pengcqu的博客
+pengcqu
+浏览: 115765 次
+性别: Icon_minigender_1
+来自: 未来
+
+最近访客 更多访客>>
+greatwqs的博客greatwqs还是不用心的博客还是不用心安静的转着的博客安静的转着KeepMoving龙强的博客KeepMoving龙强
+文章分类
+全部博客 (57)
+Java知识点 (30)
+乱七八糟 (16)
+职场 (4)
+XML技术 (2)
+算法学习 (0)
+趣味 (1)
+读书 (4)
+社区版块
+我的资讯 (1)
+我的论坛 (16)
+我的问答 (0)
+存档分类
+2010-03 (6)
+2009-11 (2)
+2009-10 (49)
+更多存档...
+最新评论
+yayaaihuanghui： 当需要插入数据的时候，如果是在集合的前段（大概集合容量的前1/ ...
+Java中ArrayList和LinkedList区别
+桑枯海： 为什么不能使用谢-谢-楼-主呢，有点不科学啊，你的头像真不错。 ...
+Java知识点汇总
+dongbiying： 只有ie打开才是正确的 。。。。 其他浏览器是乱码 。。。 ...
+Java各种排序算法（含代码）
+pimkle： 楼主 你的头像的胸是p的吧, 感觉有点长太上面了...还有 谢 ...
+Java中ArrayList和LinkedList区别
+sure： 写得不错。二者都顺序插入元素，性能相当。
+Java中ArrayList和LinkedList区别
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ]
+

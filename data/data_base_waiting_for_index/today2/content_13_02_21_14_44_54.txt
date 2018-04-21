@@ -1,0 +1,99 @@
+
+
+
+
+
+
+
+
+
+
+
+lua-l archive
+
+ 
+
+
+Search lua-l
+ 
+This index contains 97,197 documents and 1,244,562 keywords. Last update on 2013-02-20 .
+ 
+
+Query: [How to search] 
+
+Display: 10 20 30 50 100 Description: normal short Sort by: score date, oldest first date, newest first 
+
+Query
+
+Single term query
+ 
+The query specifies only one term for retrieving all documents which contain the term. e.g.,
+ 
+namazu 
+
+AND query
+
+ The query specifies two or more terms for retrieving all documents which contain both terms. You can insert the and operator between the terms. e.g.,
+ 
+Linux and Netscape 
+
+You can omit the and operator. Terms which is separated by one ore more spaces is assumed to be AND query.
+ 
+OR query
+ 
+The query specifies two or more terms for retrieving all documents which contain either term. You can insert the or operator between the terms. e.g.,
+ 
+Linux or FreeBSD 
+
+NOT query
+ 
+The query specifies two or more terms for retrieving all documents which contain a first term but doesn't contain the following terms. You can insert the not operator between the terms to do NOT query. e.g.,
+ 
+Linux not UNIX 
+
+Grouping
+ 
+You can group queries by surrounding them by parentheses. The parentheses should be separated by one or more spaces. e.g.,
+ 
+( Linux or FreeBSD ) and Netscape not Windows 
+
+Phrase searching
+ 
+You can search for a phrase which consists of two or more terms by surrounding them with double quotes like "..." or with braces like {...}. In Namazu, precision of phrase searching is not 100 %, so it causes wrong results occasionally. e.g.,
+ 
+{GNU Emacs} 
+
+Substring matching
+ 
+The are three types of substring matching searching. 
+Prefix matching inter* (terms which begin with inter) Inside matching *text* (terms which contain text) Suffix matching *net (terms which terminated with net)
+ Regular expressions
+
+ You can use regular expressions for pattern matching. The regular expressions must be surrounded by slashes like /.../. Namazu uses Ruby's regular regular expressions engine. It offers generally Perl compatible flavor. e.g.,
+ 
+/pro(gram|blem)s?/ 
+
+Field-specified searching
+ 
+You can limit your search to specific fields such as Subject:, From:, Message-Id:. It's especially convenient for Mail/News documents. e.g.,
+ •+subject:Linux
+ (Retrieving all documents which contain Linux in a Subject: field) 
+•+subject:"GNU Emacs"
+ (Retrieving all documents which contain GNU Emacs in a Subject: field) 
+•+from:foo@bar.jp
+ (Retrieving all documents which contain foo@bar.jp in a From: field) 
+•+message-id:<199801240555.OAA18737@foo.bar.jp>
+ (Retrieving a certain document which contains specified Message-Id:) 
+
+Notes
+ •In any queries, Namazu ignores case distinctions of alphabet characters. In other words, Namazu does case-insensitive pattern matching in any time.
+ •Japanese phrases are forced to be segmented into morphemes automatically and are handled them as phrase searching. This processing causes invalid segmentation occasionally.
+ •Alphabet, numbers or a part of symbols (duplicated in ASCII) characters which defined in JIS X 0208 (Japanese Industrial Standards) are handled as ASCII characters.
+ •Namazu can handle a term which contains symbols like TCP/IP. Since this handling isn't complete, you can describe TCP and IP instead of TCP/IP, but it may cause noisy results.
+ •Substring matching and field-specified searching takes more time than other methods.
+ •If you want to use and, or or not simply as terms, you can surround them respectively with double quotes like "..." or braces like {...}.
+ 
+--------------------------------------------------------------------------------
+
+Search by Namazu v2.0.18 
+

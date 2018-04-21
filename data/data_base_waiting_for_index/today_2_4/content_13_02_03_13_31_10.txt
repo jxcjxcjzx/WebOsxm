@@ -1,0 +1,4493 @@
+
+学习笔记
+jstl
+
+ 
+第9章 JSTL标签库
+JSTL标签库的使用是为类弥补html表的不足，规范自定义标签的使用而诞生的。在告别modle1模式开发应用程序后，人们开始注重软件的分层设计，不希望在jsp页面中出现java逻辑代码，同时也由于自定义标签的开发难度较大和不利于技术标准化产生了自定义标签库。JSTL标签库可分为5类：
+
+q        核心标签库
+
+q        I18N格式化标签库
+
+q        SQL标签库
+
+q        XML标签库
+
+q        函数标签库
+
+本章将对这些内容一一讲述。
+
+9.1 核心标签库
+JSTL的核心标签库标签共13个，从功能上可以分为4类：表达式控制标签、流程控制标签、循环标签、URL操作标签。使用这些标签能够完成JSP页面的基本功能，减少编码工作。
+
+（1）表达式控制标签：out标签、set标签、remove标签、catch标签。
+
+（2）流程控制标签：if标签、choose标签、when标签、otherwise标签。
+
+（3）循环标签：forEach标签、forTokens标签。
+
+（4）URL操作标签：import标签、url标签、redirect标签。
+
+在JSP页面引入核心标签库的代码为：
+
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+下面将按照功能分类，分别讲解每个标签的功能和使用方式。
+
+9.2.1 表达式控制标签
+
+表达式控制分类中包括<c:out>、<c:set>、<c:remove>、<c:chtch>4个标签，现在分别介绍它们的功能和语法。
+
+1．<c:out>标签
+
+【功能】：用来显示数据对象（字符串、表达式）的内容或结果。
+
+在使用Java脚本输出时常使用的方式为：
+
+<% out.println(“字符串”)%>
+
+<%=表达式%>
+
+在web开发中，为了避免暴露逻辑代码会尽量减少页面中的Java脚本，使用<c:out>标签就可以实现以上功能。
+
+<c:out value=”字符串”>
+
+<c:out value=”EL表达式”>
+
+提示：JSTL的使用是和EL表达式分不开的，EL表达式虽然可以直接将结果返回给页面，但有时得到的结果为空，<c:out>有特定的结果处理功能，EL的单独使用会降低程序的易读性，建议把EL的结果输入放入<c:out>标签中。
+
+<c:out>标签的使用有两种语法格式。
+
+【语法1】：
+
+<c:out value=”要显示的数据对象” [escapeXml=”true|false”] [default=”默认值”]>
+
+【语法2】：
+
+<c:out value=”要显示的数据对象” [escapeXml=”true|false”]>默认值
+
+</c:out>
+
+这两种方式没有本质的区别，只是格式上的差别。标签的属性介绍如下。
+
+q        value：指定要输出的变量或表达式。
+
+q        escapeXml：设定是否转换特殊字符（如&lt、&gt等一些转义字符），在默认值为true的情况下直接在输出&lt的，如果改为false将会进行转义输出“<”等。
+
+q        default：为默认输出结果。如果使用表达式得到的结果为null（注意与空区别），将会输出默认结果。
+
+【示例代码】：代码9.1演示了<c:out>的使用，以及在不同属性值状态下的结果。
+
+代码9.1 <c:out>标签使用示例：coredemo01.jsp
+
+1     <%@ page pageEncoding="gbk" %>
+
+2     <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+3     <html>
+
+4     <head>
+
+5              <title>out标签的使用</title>
+
+6     </head>
+
+7     <body>
+
+8              <li>（1）<c:out value="北京源智天下科技有限公司"></c:out></li>
+
+9              <li>（2）<c:out value="&lt未使用字符转义&gt" /></li>
+
+10              <li>（3）<c:out value="&lt使用字符转义&gt" escapeXml="false"></c:out></li>
+
+11              <li>（4）<c:out value="${null}">使用了默认值</c:out></li>
+
+12              <li>（5）<c:out value="${null}"></c:out></li>
+
+13     </body>
+
+14     </html>
+
+【代码解析】：
+
+（1）第8行为<c:out>的value属性赋值为字符串。
+
+（2）第9行和第10行对比，在改变escapeXml属性后页面输出的转义字符。
+
+（3）第11行value得到null，如果方法体内有值，将输出方法体中的字符串，否则不输出，第12行没有输出结果。
+
+程序运行结果如图9.1所示。
+
+
+
+图9.1 coredemo01.jsp运行结果
+
+【代码解析】：
+
+（1）直接输出了一个字符串。
+
+（2）字符串中有转义字符，但在默认情况下没有转换。
+
+（3）使用了转义字符&lt和&gt分别转换成<和>符号。
+
+（4）设定了默认值，从EL表达式${null}得到空值，所以直接输出设定的默认值。
+
+（5）未设定默认值，输出结果为空。
+
+2．<c:set>标签
+
+功能：主要用于将变量存取于JSP范围中或JavaBean属性中。
+
+<c:set>标签的编写共有4种语法格式。
+
+语法1：存值，把一个值放在指定（page、session等）的map中。
+
+<c:set value=”值1” var=”name1” [scope=”page|request|session|application”]>
+
+含义：把一个变量名为name1值为“值1”的变量存储在指定的scope范围内。
+
+语法2：
+
+<c:set var=”name2” [scope=”page|request|session|application”]>
+
+值2
+
+</c:set>
+
+含义：把一个变量名为name2，值为值2的变量存储在指定的scope范围内。
+
+语法3：
+
+<c:set value=”值3” target=”JavaBean对象” property=”属性名”/>
+
+含义：把一个值为“值3”赋值给指定的JavaBean的属性名。相当与setter()方法。
+
+语法4：
+
+<c:set target=”JavaBean对象” property=”属性名”>
+
+值4
+
+</c:set>
+
+含义：把一个值4赋值给指定的JavaBean的属性名。
+
+提示：从共能上分语法1和语法2、语法3和语法4的效果是一样的只是把value值放置的位置不同至于使用那个根据个人的喜爱，语法1和语法2是向scope范围内存储一个值，语法3和语法4是给指定的JavaBean赋值。
+
+【示例代码】：代码给出了给指定scope范围赋值的示例。使用<c:set>标签把值放入session、application对象中。同时使用EL表达式得到存入的值。
+
+代码9.2 使用<c:set>存取值：coredemo02.jsp
+
+1     <%@ page language="java" pageEncoding="gbk"%>
+
+2     <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+3     <html>
+
+4     <head>
+
+5     <title>set标签的使用</title>
+
+6     </head>
+
+7     <body>
+
+8     <li>把一个值放入session中。<c:set value="coo" var="name1" scope="session"></c:set>
+
+9     <li>从session中得到值:${sessionScope.name1 }
+
+10     <li>把另一个值放入application中。<c:set var="name2" scope="application">olive</c:set>
+
+11              <li> 使用out标签和EL表达式嵌套得到值：
+
+12              <c:out value="${applicationScope.name2}">未得到name的值</c:out></li>
+
+13     <li>未指定scope的范围，会从不同的范围内查找得到相应的值：${name1 }、${name2 }
+
+14     </body>
+
+15     </html>
+
+【代码解析】：
+
+（1）第8行通过<c:set>标签将值name1的值放入session范围中。
+
+（2）第9行使用EL表达式得到name1的值。
+
+（3）第10行把name2放入application范围中。
+
+（4）第11行使用EL表达式从application范围中取值，用<c:out>标签输出使得页面规范化。
+
+（5）第13行不指定范围使用EL自动查找得到值。
+
+程序运行的结果如图9.2所示。
+
+
+
+图9.2 coredemo02.jsp
+
+在代码中未使用任何Java脚本使用程序的功能。为了对比期间，代码9.3给出了使用Java脚本实现以上功能的例子。
+
+代码9.3 Java脚本实现值的存取：getvalue.jsp
+
+1     <%@page language="java" pageEncoding="gbk"%>
+
+2     <html>
+
+3     <head>
+
+4     <title>set标签的使用</title>
+
+5     </head>
+
+6     <body>
+
+7     <li>把一个值放入session中。<%session.setAttribute("name1","coo"); %></li>
+
+8     <li>从session中得到值:<% out.println(session.getAttribute("name1"));   %></li>
+
+9     <li>把另一个值放入application中。<% application.setAttribute("name2","olive"); %></li>
+
+10     <li> 从application中得到值：<% out.println(application.getAttribute("name2")); %></li>
+
+11     </body>
+
+12     </html>
+
+【代码解析】：使用JSP内置对象的方法实现存值和取值的功能。
+
+程序运行结果如图9.3所示：
+
+
+
+图9.3 getvalue.jsp运行结果
+
+提示：本章示例为了方便期间都是从一个页面中存取，在开发中值的存取是为了不同的JSP页面之间共享数据
+
+从两个程序对比来看，JSTL实习了使用标签完成取值赋值的功能，减少代码的编写量同时避免了逻辑代码暴露的危险。
+
+【程序示例】：代码9.4和代码9.5演示使用<c:set标签>操纵JavaBean。
+
+（1）创建一个JavaBean对象。
+
+代码9.4 JavaBean（vo数据传输对象）：Person.java
+
+1     package org.olive;
+
+2     public class Person {
+
+3              private String name;                                      //定义私有变量姓名字符串
+
+4              private int age;                                                //定义私用变量年龄整型
+
+5              private char sex;                                             //定义私用变量性别字符性
+
+6              private String home;                                      //定义私用变量家乡字符串
+
+7              public String getName() {                             //name的getter方法
+
+8                        return name;
+
+9              }
+
+10              public void setName(String name) {          //name的setter方法。
+
+11                        this.name = name;
+
+12              }
+
+13              public int getAge() {                                        //age的getter方法
+
+14                        return age;
+
+15              }
+
+16              public void setAge(int age) {                        //age的setter方法
+
+17                        this.age = age;
+
+18              }
+
+19              public char getSex() {                                    //sex的getter方法
+
+20                        return sex;
+
+21              }
+
+22              public void setSex(char sex) {                      //sex的setter方法
+
+23                        this.sex = sex;
+
+24              }
+
+25              public String getHome() {                             //home的getter方法
+
+26                        return home;
+
+27     }
+
+28              public void setHome(String home) {                   //home的setter方法
+
+29                       this.home = home;
+
+30              }
+
+31     }
+
+【代码解析】：一个只有getter和setter方法的JavaBean或者说一个pojo类，作为一个vo（数据传输对象）。定义了四个变量age、name、sex和home。
+
+（2）创建JSP页面，实现对值的操作。
+
+代码9.5 操作JavaBean：coredemo03.jsp
+
+1     <%@ page language="java" pageEncoding="gbk"%>
+
+2     <jsp:useBean id="person" class="org.olive.Person" />
+
+3     <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+4     <html>
+
+5     <head>
+
+6     <title>set标签的使用</title>
+
+7     </head>
+
+8     <body>
+
+9              <c:set target="${person}" property="name">maverick</c:set>
+
+10              <c:set target="${person}" property="age">25</c:set>
+
+11              <c:set target="${person}" property="sex">男</c:set>
+
+12              <c:set target="${person}" property="home">china</c:set>
+
+13              <li>使用的目标对象为：${person }
+
+14              <li>从Bean中获得的name值为：<c:out value="${person.name}"></c:out>
+
+15              <li>从Bean中获得的age值为：<c:out value="${person.age}"></c:out>
+
+16              <li>从Bean中获得的sex值为：<c:out value="${person.sex}"></c:out>
+
+17              <li>从Bean中获得的home值为：<c:out value="${person.home}"></c:out>
+
+18              </body>
+
+19     </html>
+
+【代码解析】：
+
+（1）第1行设置页面格式和字符编码集。
+
+（2）第2行使用JSP的指令元素指定要使用的JavaBean。
+
+（3）第3行引入JSTL核心标签库。
+
+（4）第9~12行设置JavaBean的属性值，等同与setter方法。
+
+（5）使用EL表达式得到JavaBean的属性值，并用out标签输出。
+
+【关键代码】：
+
+<jsp:useBean id="person" class="org.olive.Person" />
+
+负责实例化Bean，id指定实例化后的对象名，可以通过${person}得到person在内存中的值（或者使用person.toString()方法）。
+
+<c:set target="${person}" property="name">maverick</c:set>
+
+Target指向实例化后的对象，property指向要插入值的参数名。
+
+注意：使用target时一定要指向实例化后的JavaBean对象，也就是要跟<jsp:useBean>配套使用，也可以java脚本实例化，但这就失去了是用标签的本质意义。
+
+使用Java脚本实例化：
+
+<%@page import=”org.olive.Person”%
+
+<% Person person=new Person(); %>
+
+程序运行结果如图9.4所示。
+
+
+
+图9.4 coredemo03.jsp运行结果
+
+3．<c:remove>标签
+
+<c:remove>标签主要用来从指定的JSP范围内移除指定的变量。
+
+【语法】：
+
+<c:remove var=”变量名” [scope=”page|request|session|application”]/>
+
+其中var属性是必须的，scope可以以省略。
+
+【示例程序】：代码9.6使用set标签在session中插入2个值，然后用remove标签移除。
+
+代码9.6 <c:remove>标签示例：coredemo04.jsp
+
+1       <%@ page language="java" pageEncoding="gbk"%>
+
+2       <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+3       <html>
+
+4       <head>
+
+5       <title>remove标签的使用</title>
+
+6       </head>
+
+7       <body> 
+
+8                <li><c:set var="name" scope="session">olive</c:set>
+
+9                <li><c:set var="age" scope="session">25</c:set>
+
+10              <li><c:set var="sex" scope="session">男</c:set>
+
+11              <li><c:out value="${sessionScope.name}"></c:out>
+
+12              <li><c:out value="${sessionScope.age}"></c:out>
+
+13              <li><c:out value="${sessionScope.sex}"></c:out>
+
+14              <li><c:remove var="age"/>
+
+15              <li><c:out value="${sessionScope.name}"></c:out>
+
+16              <li><c:out value="${sessionScope.age}"></c:out>
+
+17              <li><c:out value="${sessionScope.sex}"></c:out>
+
+18              </body>
+
+19    </html>
+
+【代码解析】：
+
+（1）第8~9行使用set标签向session中插入三个值：name值为olive、age值为25、sex值为男。
+
+（2）第11~13行使用out和EL表达式输出name、age、sex的值。
+
+（3）第14行使用remove标签移除age的值，然后使用步骤第11~13行中的三个输出作为比较。
+
+4．<c:catch>标签
+
+用来处理JSP页面中产生的异常，并将异常信息存储。
+
+【语法】：
+
+<c:catch var=”name1”>
+
+容易产生异常的代码
+
+</c:catch>
+
+【参数说明】：
+
+var表示由用户定义存取异常信息的变量的名称。省略后也可以实现异常的捕获，当就不能显示的输出异常信息。
+
+【示例代码】：代码9.7使用<c:catch></c:catch>标签，并设计一个异常并输出异常信息。
+
+代码9.7 <c:catch>标签使用示例：coredemo05.jsp
+
+1       <%@ page language="java" pageEncoding="gbk"%>
+
+2       <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+3       <html>
+
+4       <head>
+
+5       <title>JSTL: -- catch标签实例</title>
+
+6       </head>
+
+7       <body>
+
+8       <h4>catch标签实例</h4>
+
+9       <hr>
+
+10              <c:catch  var=”error”>
+
+11     <       c:set target="Dank" property="hao"></c:set>
+
+12              </c:catch>
+
+13     <c:out value="${errors}"/>
+
+14     </body>
+
+15     </html>
+
+【代码解析】：
+
+（1）第10~12把容易产生异常的代码放在<c:catch></c:catch>中，自定义一个变量error用于存储异常信息。
+
+（2）第11行实现了一段异常代码，向一个不存在的JavaBean中插入一个值。
+
+（3）第13行用EL表达式得到error的值，并使用<c:out>标签输出。
+
+程序结果如图所示。
+
+
+
+图9.5 coredemo05.jsp
+
+图中异常信息的提示为：在<set>标签中用不正确的参数“hao”。如果不捕获程序中的异常，也就是不使用<c:catch></c:catch>捕获容易产生异常的代码，将会出现如图9.6所示，这是在开发中不允许的。
+
+
+
+图9.6 程序异常
+
+提示：本示例没有使用捕获Java脚本的样式，如果使用标签再使用Java脚本的意义不大，由此可以看出<c:catch/>主要用于页面标签产生的异常。
+
+9.2.2 流程控制标签
+
+流程控制标签主要用于对页面简单业务逻辑进行控制。流程控制标签包含有4个：<c:if>标签、<c:choose>标签、<c:when>标签和<c:otherwise>标签。下面将介绍这些标签的功能和使用方式。
+
+1．<c:if>标签
+
+<c:if>同程序中的if作用相同，用来实现条件控制。
+
+【语法1】：
+
+<c:if test=”条件1” var=”name” [scope=”page|request|session|application”]>
+
+【语法2】：
+
+<c:if test=”条件2” var=”name”[scope=”page|request|session|application”]>
+
+【参数说明】：
+
+（1）test属性用于存放判断的条件，一般使用EL表达式来编写。
+
+（2）var指定名称用来存放判断的结果类型为true或false。
+
+（3）scope用来存放var属性存放的范围。
+
+【使用场景】：在开发中经常会出现不同用户的权限，首先对用户名进行判断（包括进行数据库验证，该功能可以由JavaBean实现，使用EL表达式得到一个布尔型的结果），把判断的结果存放在不同的JSP范围内（比如常用的session内），这样在每个页面都可以得到该用户的权限信息，根据不同权限的用户显示不同的结果。
+
+【示例代码】：代码9.8实现了用户输入用户名提交到自身页面，页面判断用户是否为admin，如果是将出现欢迎界面，如果不是显示不同结果。
+
+代码9.8 <c:if>标签使用示例：coredemo06.jsp
+
+1     <%@ page language="java" pageEncoding="gbk"%>
+
+2     <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+3     <html>
+
+4     <head>
+
+5     <title>JSTL: -- if标签示例</title>
+
+6     </head>
+
+7     <body>
+
+8              <h4>if标签示例</h4>
+
+9              <hr>
+
+10              <form action="coredom06.jsp" method="post">
+
+11              <input type="text" name="uname" value="${param.uname}">
+
+12              <input type="submit" value="登录">
+
+13              </form>
+
+14              <c:if test="${param.uname=='admin' }" var=”adminchock”>
+
+15              <c:out value="管理员欢迎您！">
+
+16              </c:out>
+
+17              </c:if>
+
+18              ${adminchock}
+
+19</body>
+
+20</html>
+
+【代码解析】：
+
+（1）第10~13行创建一个表单，表单中的元素为一个text文本输入框，一个提交按钮，并把信息提交给本页。
+
+（2）第14行使用if标签进行判断，如果输入的为admin将显示出定义的字符串，并把检验后的结果赋给adminchock，存储在默认的page范围中。
+
+（3）第18行使用EL表达式得到adminchock的值，如果输入的用户名为admin将显示true。
+
+程序运行效果如图9.7所示。
+
+
+
+图9.7 coredemo06.jsp运行结果
+
+提示：可以把adminchock的属性范围设置为session，可以在其他的页面中得到adminchock的值，使用<c:if text=”${adminchock}”><c:if>判断，实现不同的权限。
+
+2．<c:choose>、<c:when>和<c:otherwise>标签
+
+这3个标签通常情况下是一起使用的，<c:choose>标签作为<c:when>和<c:otherwise>标签的父标签来使用。
+
+【语法1】：
+
+<c:choose>
+
+         <c:when>
+
+…..//业务逻辑1
+
+         <c:otherwise>
+
+…..//业务逻辑2
+
+         <c:otherwise>
+
+….//业务逻辑3
+
+</c:choose>
+
+【语法2】：
+
+<c:when text=”条件”>
+
+表达式
+
+</c:when>
+
+【语法3】：
+
+<c:otherwise>
+
+表达式
+
+</c:otherwise>
+
+【参数说明】：
+
+（1）语法1为3个标签的嵌套使用方式，<c:choose>标签只能和<c:when>标签共同使用。
+
+（2）语法2为<c:when>标签的使用方式，该标签都条件进行判断，一般情况下和<c:choose>共同使用。
+
+（3）<c:otherwise>不含有参数，只能跟<c:when>共同使用，并且在嵌套中只允许出现一次。
+
+【示例代码】：代码9.9设定一个score变量的值为85，使用嵌套标签进行判断，根据判断返回结果。
+
+代码9.9 循环控制标签：coredemo07.jsp
+
+1     <%@ page language="java" pageEncoding="gbk"%>
+
+2     <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+3     <html>
+
+4     <head>
+
+5              <title>JSTL: -- choose及其嵌套标签标签示例</title>
+
+6     </head>
+
+7     <body>
+
+8              <h4>choose及其嵌套标签示例</h4>
+
+9     <hr>
+
+10              <c:set var="score">85</c:set>
+
+11              <c:choose>
+
+12              c:when test="${score>=90}">
+
+13              你的成绩为优秀！
+
+14              </c:when>
+
+15              <c:when test="${score>=70&&score<90}">
+
+16              您的成绩为良好!
+
+17              </c:when>
+
+18              <c:when test="${score>60&&score<70}">
+
+19              您的成绩为及格
+
+20              </c:when>
+
+21              <c:otherwise>
+
+22              对不起，您没有通过考试！
+
+23              </c:otherwise>
+
+24              </c:choose>
+
+25              </body>
+
+26     </html>
+
+【代码解析】：
+
+（1）第10行通过set标签设定score的值为85。
+
+（2）第12~22行使用<c:when>进行条件判断。如果大于等于90，输出“您的成绩为优秀”；
+
+如果大于等于70小于90，输出“您的成绩为良好”；大于等于60小于70，输出“您的成绩为及格”；其他（otherwise）输出“对不起，您没能通过考试”。
+
+程序运行结果如图9.8所示。
+
+
+
+图9.8 coredemo07.jsp运行结果
+
+9.2.3 循环标签
+
+循环标签主要实现迭代操作。主要包含两个标签：<c:forEach>和<c:forTokens>标签，接下来将详细介绍这两个标签的用法。
+
+1．<c:forEach>标签
+
+该标签根据循环条件遍历集合（Collection）中的元素。
+
+【语法】：
+
+<c:forEach var=”name” items=”Collection” varStatus=”StatusName” begin=”begin” end=”end” step=”step”>
+
+本体内容
+
+</c:forEach>
+
+【参数解析】：
+
+（1）var设定变量名用于存储从集合中取出元素。
+
+（2）items指定要遍历的集合。
+
+（3）varStatus设定变量名，该变量用于存放集合中元素的信息。    
+
+（4）begin、end用于指定遍历的起始位置和终止位置（可选）。
+
+（5）step指定循环的步长。
+
+参数类型和相关说明见表9-1。
+
+表9-1 循环标签属性说明
+
+名称
+
+EL
+
+类型
+
+是否必须
+
+默认值
+
+var
+
+N
+
+String
+
+是
+
+无
+
+items
+
+Y
+
+Arrays
+
+Collection
+
+Iterator
+
+Enumeration
+
+Map
+
+String []args
+
+是
+
+无
+
+begin
+
+Y
+
+int
+
+否
+
+0
+
+end
+
+Y
+
+int
+
+否
+
+集合中最后一个元素
+
+step
+
+Y
+
+int
+
+否
+
+1
+
+varStatus
+
+N
+
+String
+
+否
+
+无
+
+其中varStatus有4个状态属性（见表9-2）。
+
+表9-2 varStatus的4个状态
+
+属性名
+
+类型
+
+说明
+
+index
+
+int
+
+当前循环的索引值
+
+count
+
+int
+
+循环的次数
+
+frist
+
+boolean
+
+是否为第一个位置
+
+last
+
+boolean
+
+是否为第二个位置
+
+【示例代码】：代码9.10实现了遍历的两种方式：设定起始位置、不设定起始位置。同时实现了获得原属的状态信息。
+
+代码9.10 <c:forEach>标签使用示例：coredemo08.jsp
+
+1     <%@ page contentType="text/html;charset=GBK" %>
+
+2     <%@page import="java.util.List"%>
+
+3     <%@page import="java.util.ArrayList"%>
+
+4     <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+5     <html>
+
+6     <head>
+
+7              <title>JSTL: -- forEach标签实例</title>
+
+8     </head>
+
+9     <body>
+
+10     <h4><c:out value="forEach实例"/></h4>
+
+11     <hr>
+
+12              <%
+
+13                       List a=new ArrayList();
+
+14                       a.add("贝贝");
+
+15                       a.add("晶晶");
+
+16                       a.add("欢欢");
+
+17                       a.add("莹莹");
+
+18                        a.add("妮妮");
+
+19              request.setAttribute("a",a);
+
+20              %>
+
+21              <B><c:out value="不指定begin和end的迭代：" /></B><br>
+
+22             <c:forEach var="fuwa" items="${a}">
+
+23             &nbsp;<c:out value="${fuwa}"/><br>
+
+24              </c:forEach>
+
+25              <B><c:out value="指定begin和end的迭代：" /></B><br>
+
+26              <c:forEach var="fuwa" items="${a}" begin="1" end="3" step="2">
+
+27              &nbsp;<c:out value="${fuwa}" /><br>
+
+28              </c:forEach>
+
+29              <B><c:out value="输出整个迭代的信息：" /></B><br>
+
+30              <c:forEach var="fuwa" items="${a}" begin="3" end="4" step="1" varStatus="s">
+
+31              &nbsp;<c:out value="${fuwa}" />的四种属性：<br>
+
+32              &nbsp;&nbsp;所在位置，即索引：<c:out value="${s.index}" /><br>
+
+33              &nbsp;&nbsp;总共已迭代的次数：<c:out value="${s.count}" /><br>
+
+34              &nbsp;&nbsp;是否为第一个位置：<c:out value="${s.first}" /><br>
+
+35              &nbsp;&nbsp;是否为最后一个位置：<c:out value="${s.last}" /><br>
+
+36              </c:forEach>
+
+37     </body>
+
+38     </html>
+
+【代码解析】：
+
+（1）第13~18行通过Java脚本创建了一个集合对象a，并添加元素。
+
+（2）第19行使用setAttribute()方法把集合存入request范围内。
+
+（3）第22~24行未指定begin和end属性，直接从集合开始遍历到集合结束为止。
+
+（4）第26~28行指定从集合的第二个（index值为1）元素开始，到第四个（index值为3）元素截止（index的值从0开始）。并指定step为2即每隔两个遍历一次。
+
+（5）第30~35指定varStatus的属性名为s，并取出存储的状态信息。
+
+程序运行结果如图9.9所示。
+
+
+
+图9.9 coredemo08.jsp运行结果
+
+【总结】：
+
+（1）从图中可以看到不使用begin和end的迭代，从集合的第一个元素开始，遍历到最后一个元素。
+
+（2）指定begin的值为1、end的值为3、step的值为2，从第二个开始首先得到晶晶，每两个遍历一次，则下一个显示的结果为莹莹，end为3则遍历结束。
+
+（3）从指定的begin和end的值来看遍历第四个和第五个，因得到莹莹和妮妮。相关状态信息如图所示。
+
+提示：本例使用的list是在JSP页面中使用Java脚本创建的，是因为JSTL缺少创建集合的功能，在开发中一般不会如此，可通过访问数据库得到数据集合，和通过设定JavaBean的值得到数据集合
+
+2．<c:forTokens>
+
+该标签用于浏览字符串，并根据指定的字符将字符串截取。
+
+语法：
+
+<c:forTokens items=”strigOfTokens” delims=””delimiters [var=”name” begin=”begin” end=”end” step=”len” varStatus=”statusName”] >
+
+【参数说明】
+
+（1）items指定被迭代的字符串。
+
+（2）delims指定使用的分隔符。
+
+（3）var指定用来存放遍历到的成员。
+
+（4）begin指定遍历的开始位置（int型从取值0开始）。
+
+（5）end指定遍历结束的位置（int型，默认集合中最后一个元素）。
+
+（6）step遍历的步长（大于0的整型）。
+
+（7）varStatus存放遍历到的成员的状态信息。
+
+【示例代码】：代码9.11实现了遍历一个有符号的字符串，把指定的符号移除。指定begin和end值，并获得遍历到的元素的状态信息。
+
+代码9.11 <c:forTokens>标签的示例：coredemo09.jsp
+
+1     <%@ page contentType="text/html;charset=GBK" %>
+
+2     <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+3     <html>
+
+4     <head>
+
+5              <title>JSTL: -- forTokens标签实例</title>
+
+6     </head>
+
+7     <body>
+
+8     <h4><c:out value="forToken实例"/></h4>
+
+9     <hr>
+
+10              <c:forTokens items="北、京、欢、迎、您" delims="" var="c1">
+
+11              <c:out value="${c1}"></c:out>
+
+12              </c:forTokens><br>
+
+13              <c:forTokens items="123-4567-8854" delims="-" var="t">
+
+14              <c:out value="${t}"></c:out>
+
+15             </c:forTokens><br>
+
+16    <c:forTokens items="1*2*3*4*5*6*7" delims="*" begin="1" end="3" var="n" varStatus="s">
+
+17              &nbsp;<c:out value="${n}" />的四种属性：<br>
+
+18              &nbsp;&nbsp;所在位置，即索引：<c:out value="${s.index}" /><br>
+
+19              &nbsp;&nbsp;总共已迭代的次数：<c:out value="${s.count}" /><br>
+
+20              &nbsp;&nbsp;是否为第一个位置：<c:out value="${s.first}" /><br>
+
+21              &nbsp;&nbsp;是否为最后一个位置：<c:out value="${s.last}" /><br>
+
+22     </c:forTokens>
+
+23    </body>
+
+24     </html>
+
+【代码解析】：
+
+（1）本示例共实现了3个<c:forToken>循环，10~12行第一个循环实现了遍历给定字符串“北、京、欢、迎、您”，并除去循环中遇到的“、”号。
+
+（2）13~15行第2个循环遍历一串带有分隔符的电话号码，不读取分隔符号，将显示一个字符串。
+
+（3）16~22行第3个循环遍历一个带“*”号的字符串，根据指定的起始位置把元素取出，并显示每个元素的状态信息。
+
+提示：分隔符的作用是根据标识，截取字符串。如果未设定分隔符或在字符串中没有找到分隔付，将把整个元素作为一个元素截取。在实际应用中用于在除去某些符号在页面中显示。
+
+程序运行结果如图9.10所示。
+
+
+
+图9.10 coredemo08.jsp
+
+<c:forToken>的属性varStatus的使用同<c:forEach>的使用方法相同，在此就再不表述。
+
+9.2.4 URL操作标签
+
+JSTL包含3个与URL操作有关的标签，分别为：<c:import>、<c:redirect>和<c:url>标签。它们的作用为：显示其他文件的内容、网页导向、产生URL。下面将详细介绍这3个标签的使用方法。
+
+1．<c:import>标签
+
+该标签可以把其他静态或动态文件包含到本JSP页面。同<jsp:include>的区别为：只能包含同一个web应用中的文件。而<c:import>可以包含其他web应用中的文件，甚至是网络上的资源。
+
+语法1：
+
+<c:import url=”url” [context=”context”][ value=”value”]
+
+[scope=”page|request|session|application”] [charEncoding=”encoding”]>
+
+语法2：
+
+<c:import url=”url” varReader=”name” [context=”context”][charEncoding=”encoding”]>
+
+主要参数见表9-3。
+
+表9-3 <c:import>标签参数说明
+
+名称
+
+说明
+
+EL
+
+类型
+
+必须
+
+默认值
+
+url
+
+被导入资源的URL路径
+
+Y
+
+String
+
+是
+
+无
+
+context
+
+相同服务器下其他的web工程，必须以“"”开头
+
+Y
+
+String
+
+否
+
+无
+
+var
+
+以String类型存入被包含文件的内容。
+
+N
+
+String
+
+否
+
+无
+
+Scope
+
+var变量的JSP范围
+
+N
+
+String
+
+否
+
+page
+
+charEncoding
+
+被导入文件的编码格式
+
+Y
+
+String
+
+否
+
+无
+
+varReader
+
+以Reader类型存储被包含文件内容
+
+N
+
+String
+
+否
+
+无
+
+【参数说明】：
+
+（1）URL为资源的路径，当应用的资源不存在时系统会抛出异常，因此该语句应该放在<c:catch></c:catch>语句块中捕获。应用资源有两种方式：绝对路径和相对路径。使用绝对路径示例如下：
+
+<c:import url=”http://www.baidu.com”>
+
+使用相对路径的实例如下：
+
+<c:import url=”aa.txt”>
+
+aa.txt放在同一文件目录。
+
+如果以“/”开头表示应用的根目录下。例如：tomcat应用程序的根目录文件夹为webapps。导入webapps下的文件bb.txt的编写方式为：
+
+<c:import url=”/bb.txt”>
+
+如果访问webapps管理文件夹中其他web应用就要用context属性。
+
+（2）context属性用于在访问其他web应用的文件时，指定根目录。例如，访问root下的index.jsp的实现代码为：
+
+<c:import url=”/index.jsp” context=”/root”>
+
+等同于webapps/root/index.jsp
+
+（3）var、scope、charEncoding、varReader是可选属性。具体使用方式见示例代码。
+
+【示例代码】：代码9.12实现了从绝对路径导入文件和从相对路径导入，同时使用var对象指定用变量来存储文件，并输出存入的文件内容。
+
+代码9.12 <c:import>标签示例：coredemo10.jsp
+
+1     <%@ page contentType="text/html;charset=GBK" %>
+
+2     <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+3     <html>
+
+4     <head>
+
+5              <title>JSTL: -- import标签实例</title>
+
+6     </head>
+
+7     <body>
+
+8     <h4><c:out value="import实例"/></h4>
+
+9     <hr>
+
+10     <h4><c:out value="绝对路径引用的实例" /></h4>
+
+11     <c:catch var="error1">
+
+12     <c:import url="http://www.baidu.com"/>
+
+13    </c:catch>
+
+14    <c:out value="${error1}"></c:out>
+
+15    <hr>
+
+16     <h4>
+
+17     <c:out value="相对路径引用的实例，引用本应用中的文件" /></h4>
+
+18     <c:catch>
+
+19     <c:import url="a1.txt" charEncoding="gbk"/>
+
+20     </c:catch>
+
+21     <hr>
+
+22     <h4><c:out value="使用字符串输出、相对路径引用的实例，并保存在session范围内" /></h4>
+
+23     <c:catch var="error3">
+
+24     <c:import var="myurl" url="a1.txt" scope="session" charEncoding="gbk"></c:import>
+
+25     <c:out value="${myurl}"></c:out>
+
+26     <c:out value="${myurl}" />
+
+27     </c:catch>
+
+28     <c:out value="${error3}"></c:out>
+
+29     </body>
+
+30     </html>
+
+【代码解析】：
+
+（1）第12行使用绝对路径导入百度首页，导入时使用<c:catch></c:catch>（11和12行）捕获异常。
+
+（2）使用相对路径导入同一文件夹下的a1.txt文件，接收的字符编码格式使用charEncoding设置为gbk。
+
+（3）同样导入a1.txt，不同的时使用var定义的变量接收要导入的文件，并存储在session中，如果在其他页面同样也要导入该文件，只须使用<c:out>输出a1.txt的值即可。
+
+程序结果如图9.11所示。
+
+
+
+图9.11 coredemo10.jsp运行结果
+
+【说明】：
+
+（1）在使用绝对路径导入时，因为电脑没有联网所以抛出异常。
+
+（2）使用相对路径输出时，同样是引入的a1.txt文件显示的结果却不相同，这可以说明直接使用<c:import>导入，不设定var参数是直接在页面中显示的文本信息。而使用var参数输出时输出的实现存入的字符串。
+
+提示：读者在练习时可以使用Tomcat的首页来导入url=”http://127.0.0.1:8080”来显示效果。
+
+2．<c:redirect>标签
+
+该标签用来实现了请求的重定向。同时可以在url中加入指定的参数。例如：对用户输入的用户名和密码进行验证，如果验证不成功重定向到登录页面；或者实现web应用不同模块之间的衔接。
+
+【语法1】：
+
+<c:redirect url=”url” [context=”context”]>
+
+【语法2】：
+
+<c:redirect url=”url”[context=”context”]>
+
+<c:param name=”name1” value=”value1”>
+
+</c:redirect>
+
+【参数说明】：
+
+（1）url指定重定向页面的地址，可以是一个string类型的绝对地址或相对地址。
+
+（2）用于导入其他web应用中的页面。
+
+【示例代码】：代码9.13实现了当请求页面时重定向到tomcat首页。
+
+代码9.13 <c:redirect>标签示例：coredemo11.jsp
+
+<%@ page contentType="text/html;charset=GBK" %>
+
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<c:redirect url="http://127.0.0.1:8080">
+
+<c:param name="uname">olive</c:param>
+
+<c:param name="password">01234</c:param>
+
+</c:redirect>
+
+【代码解析】
+
+（1）使用重定向与载入页面不同，载入页面时在本页面中插入其他页面，而重定向是请求转发，等于在页面中重新输入了一次url。当重定向到某个页面时浏览器中的地址会发生变化。
+
+（2）使用重定向时不用使用<c:catch>语句，当输入页面访问不到时，浏览器会报错，跟程序运行无关。如果使用重定向时页面定义的内容将不会得到显示。
+
+（3）在重定向时为URL添加了两个参数和参数值：uname=olive和password=01234。
+
+程序运行结果如图9.12所示。
+
+
+
+图9.12 coredemo11.jsp运行结果
+
+提示：注意图中的URL地址已经发生转变，同时可以看到传入的参数以参数值。
+
+3．<c:url>标签
+
+该标签用于动态生成一个String类型的URL，可以同<c:redirect>标签共同使用，也可以使用html的<a>标签实现超链接。
+
+【语法1】：指定一个url不做修改，可以选择把该url存储在JSP不同的范围中。
+
+<c:url value=”value” [var=”name”][scope=”page|request|session|application”]
+
+[context=”context”]/>
+
+【语法2】：给url加上指定参数及参数值，可以选择以name存储该url。
+
+<c:url value=”value” [var=”name”][scope=”page|request|session|application”]
+
+[context=”context”]>
+
+<c:param name=”参数名” value=”值”>
+
+</c:url>
+
+【示例代码】：代码9.14实现了使用动态生成url实现了网页的超链接。
+
+代码9.14 <c:url>标签示例：coredemo12.jsp
+
+<%@ page contentType="text/html;charset=GBK" %>
+
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<c:out value="url标签使用"></c:out>
+
+<h4>使用url标签生成一个动态的url，并把值存入session中.</h4>
+
+<hr>
+
+<c:url value="http://127.0.0.1:8080" var="url" scope="session">
+
+</c:url>
+
+<a href="${url}">Tomcat首页</a>
+
+程序运行结果如图9.13所示。
+
+
+
+图9.13 coredemo12.jsp运行结果
+
+单击图中超链接可以直接访问到Tomcat首页。
+
+9.3 I18N格式标签库
+JSTL标签提供了对国际化（I18N）的支持，它可以根据发出请求的客户端地域的不同来显示不同的语言。同时还提供了格式化数据和日期的方法。实现这些功能需要I18N格式标签库（I18N-capable formation tags liberary）。引入该标签库的方法为：
+
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+I18N格式标签库提供了11个标签，这些 标签从功能上可以划分为3类如下：
+
+（1）数字日期格式化。formatNumber标签、formatData标签、parseNumber标签、parseDate标签、timeZone标签、setTimeZone标签。
+
+（2）读取消息资源。bundle标签、message标签、setBundle标签。
+
+（3）国际化。setlocale标签、requestEncoding标签。
+
+接下将详细介绍这些标签的功能和使用方式。
+
+9.3.1 数字日期格式化
+
+数字日期格式化标签共有6个，用来将数字或日期转换成设定的格式。
+
+1．<frm:formatNumber/>标签
+
+该标签依据特定的区域将数字改变为不同的格式来显示。
+
+【语法1】：
+
+<frm:formatNumber value=”被格式化的数据”[type=”number|currency|percent”]
+
+                                               [pattern=”pattern”]
+
+                                               [currencyCode=”code”]
+
+                                               [currencySymbol=”symbol”]
+
+                                               [groupingUsed=”true|false”]
+
+                                               [maxIntergerDigits=”maxDigits”]
+
+                                               [minIntergerDigits=”minDigits”]
+
+                                               [maxFractionDigits=”maxDigits”]
+
+                                               [minFractionDigits=”minDigits”]
+
+                                               [var=”name”]
+
+                                               [scope=page|request|session|application]
+
+/>
+
+【语法2】：
+
+<frm:formatNumber [type=”number|currency|percent”]
+
+                                               [pattern=”pattern”]
+
+                                               [currencyCode=”code”]
+
+                                               [currencySymbol=”symbol”]
+
+                                               [groupingUsed=”true|false”]
+
+                                               [maxIntergerDigits=”maxDigits”]
+
+                                               [minIntergerDigits=”minDigits”]
+
+                                               [maxFractionDigits=”maxDigits”]
+
+                                               [minFractionDigits=”minDigits”]
+
+                                               [var=”name”]
+
+                                               [scope=page|request|session|application]
+
+> 
+
+被格式化的数据
+
+<frm:formatNumber>
+
+属性说明如表9-4所示。
+
+表9-4 <fmt:formatNumber>标签参数说明
+
+名称
+
+说明
+
+EL
+
+类型
+
+必须
+
+默认值
+
+value
+
+要格式化的数据
+
+是
+
+String
+
+是
+
+无
+
+type
+
+指定类型（单位、货币、百分比等）见表
+
+是
+
+String
+
+否
+
+number
+
+pattern
+
+格式化的数据样式
+
+是
+
+String
+
+否
+
+无
+
+currencyCode
+
+货币单位代码
+
+是
+
+String
+
+否
+
+无
+
+cuttencySymbol
+
+货币符号（$、￥）
+
+是
+
+String
+
+否
+
+无
+
+groupingUsed
+
+是否对整数部分进行分组如（9，999）
+
+是
+
+boolean
+
+是
+
+true
+
+maxIntergerDigits
+
+整数部分最对显示多少位数
+
+是
+
+int
+
+否
+
+无
+
+minIntergerDigits
+
+整数部分最少显示多少位
+
+是
+
+int
+
+否
+
+无
+
+maxFractionDigits
+
+小数部分最多显示多少位
+
+是
+
+int
+
+否
+
+无
+
+minFractionDigits
+
+小数部分最少显示多少位
+
+是
+
+int
+
+否
+
+无
+
+var
+
+存储格式化后的数据
+
+否
+
+String
+
+否
+
+无
+
+scope
+
+var的JSP范围
+
+否
+
+String
+
+否
+
+page
+
+Type属性的类型应用见表9-5.
+
+表9-5 Type的属性类型
+
+类型
+
+说明
+
+示例
+
+number
+
+数字格式
+
+0.8
+
+currency
+
+当地货币
+
+￥0.80
+
+percent
+
+百分比格式
+
+80%
+
+【示例代码】：代码9.14实现了对数字的格式化、货币的格式、货币的格式化。使用<frm:formatNumber>的各种属性的设定。
+
+代码9.14 <fmt:formatNumber>标签示例：fmtdemo01.jsp
+
+<%@ page language="java" pageEncoding="gbk"%>
+
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<html>
+
+ <head>     
+
+    <title>I18N标签库</title>
+
+ </head>
+
+ <body>
+
+ <h4 align="center"><c:out value="<frm:number>标签的使用"></c:out></h4>
+
+ <hr>
+
+ <table border=1 cellpadding="0" cellspacing="0" align="center">
+
+ <tr align="center">
+
+<td width="100">类型 </td>
+
+<td width="100">使用数据</td>
+
+<td width="100">结果</td>
+
+<td width="300">说明</td>
+
+ </tr>
+
+ <tr>
+
+ <td>数字格式化</td><td>108.75</td>
+
+ <td><fmt:formatNumber type="number" pattern="###.#">108.75</fmt:formatNumber></td>
+
+ <td>使用pattern可以定义显示的样式。本例设定为###.#小数部分将使用四舍五入法。</td>
+
+ </tr>
+
+ <tr>
+
+ <td>数字格式化</td><td>9557</td>
+
+ <td><fmt:formatNumber type="number" pattern="#.####E0">9557</fmt:formatNumber></td>
+
+ <td>使用科学计数法。</td> 
+
+ </tr>
+
+ <tr>
+
+ <td>数字格式化</td><td>9557</td>
+
+ <td><fmt:formatNumber type="number" >9557</fmt:formatNumber></td>
+
+ </td>
+
+ <td>使用默认分组。</td>
+
+ </tr>
+
+ <tr>
+
+ <td>数字格式化</td><td>9557</td>
+
+ <td><fmt:formatNumber type="number" groupingUsed="false" >9557</fmt:formatNumber></td>
+
+ <td>不使用分组。</td>
+
+ </tr>
+
+ <tr>
+
+ <td>数字格式化</td><td>9557</td>
+
+ <td><fmt:formatNumber type="number" maxIntegerDigits="3">9557</fmt:formatNumber></td>
+
+ <td>使用位数限定，根据指定的位数显示，其他数字忽略。例如：9不被显示。</td>
+
+ </tr>
+
+ <tr>
+
+ <td>百分比格式化</td><td>0.98</td>
+
+ <td><fmt:formatNumber type="percent">0.98</fmt:formatNumber></td>
+
+ <td>用百分比形式显示一个数据。</td>
+
+ </tr>
+
+ <tr>
+
+ <td>货币格式化</td><td>188.88</td>
+
+ <td><fmt:formatNumber type="currency" >188.8</fmt:formatNumber></td>
+
+<td>将一个数据转化为货币形式输出。</td>
+
+ </tr>
+
+ <tr>
+
+ <td>存储数据</td><td>188.88</td>
+
+ <td><fmt:formatNumber type="currency" var="money">188.8</fmt:formatNumber>
+
+ <c:out value="${money}"></c:out>
+
+ </td>
+
+ <td>存储的money的值为${money} </td>
+
+ </tr>
+
+ </table>
+
+ </body>
+
+</html>
+
+【代码说明】：
+
+（1）从应用角度可以把属性分为三类：数字格式化、货币格式化、百分比格式化。使用type指定类型。
+
+（2）应用于数字格式化的属性有：partten属性、maxIntegerDigits属性、minIntegerDigits属性、maxFractionDigits属性和minFactionDigits属性。其中partten属性在设定格式化样式时会比较准确如：四舍五入、科学计数法的使用。而使用maIntegerDirgits等属性时，只把设定位数以外的数字舍去。
+
+（3）货币格式化可以使用数字格式化的所有属性。如果有必要建议使用partten属性。currencyCode属性和currencySymbol只用于货币格式化。
+
+（4）百分比格式化使用到的属性为type属性、partten属性，设定type属性的类型为percent即可。
+
+（5）使用var属性时，会将格式化后的值存在JSP的某个范围内（一个String类型的字符串包括符号等）。<frm:forNumber>将不再输出格式化后的值可以使用EL表达式输出。
+
+（6）通用属性：type属性、partten属性、var属性和scope属性。
+
+程序运行结果如图9.14所示。
+
+图9.14 fmtdemo01.jsp运行结果
+
+提示：如果给定的数据类型有错误将或产生异常。例如：给定的数据为aa进行类型转化，将使应用程序无法显示。因此在实际应用中显示的格式化应该放入<c:catch/>语句中。
+
+2．<frm:parseNumber>标签
+
+将格式化后的数字、货币、百分比都转化为数字类型。
+
+【语法1】：
+
+<fmt:parseNumber value="number" [type=”number|currency|percent”]
+
+                                                        [pattern=”pattern”]
+
+                                                        [parseLocale=”locale”]                       
+
+                                                        [intergerOnly=”true|false”]
+
+                                                        [scope=”page|request|session|application”]
+
+/>
+
+【语法2】：
+
+<fmt:parseNumber [type=”number|currency|percent”]
+
+                                                        [pattern=”pattern”]
+
+                                                        [parseLocale=”locale”]
+
+                                                        [intergerOnly=”true|false”]
+
+                                                        [scope=”page|request|session|application”]
+
+> 
+
+Number
+
+</fmt:parseNumber>
+
+属性说明见表9-6。
+
+表9-6 <fmt:parseNumber>标签参数说明
+
+名称
+
+说明
+
+EL
+
+类型
+
+是否必须
+
+默认值
+
+value
+
+被解析的字符串
+
+是
+
+String
+
+是
+
+无
+
+type
+
+指定单位（数字、货币、百分比）
+
+是
+
+String
+
+是
+
+number
+
+pattern
+
+格式样式
+
+是
+
+String
+
+否
+
+无
+
+parseLocale
+
+用来替代默认区域的设定
+
+是
+
+String，
+
+Java.util.
+
+Locale
+
+是
+
+默认本地样式
+
+var
+
+存储已经格式化的数据
+
+否
+
+String
+
+否
+
+无
+
+scope
+
+var变量的作用域
+
+否
+
+String
+
+是
+
+page
+
+<fmt:parseNumber>可以看作是<fmt:formatNumber>的逆运算。相应的参数和类型的配置和使用<fmt:formatNumber>格式化时相同。
+
+【示例代码】：代码9.15实现了从字符串中提取数据，并用合适的数据类型进行存储（浮点性、整型等）。可以对转换后的数据进行加法运算。
+
+代码9.15 <fmt:parseNumber>标签示例：fmtdemo02.jsp
+
+<%@ page language="java" pageEncoding="gbk"%>
+
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<html>
+
+ <head>
+
+ <title>I18N标签库</title>
+
+ </head>
+
+ <body>
+
+ <h4 ><c:out value="<frm:parseNumber>标签的使用"></c:out></h4>
+
+ <hr>
+
+ </body>
+
+ <fmt:formatNumber type="currency" var="money">188.8</fmt:formatNumber>
+
+ <li>格式化前的数据为：<c:out value="${money}"></c:out>
+
+ <fmt:parseNumber var="money" type="currency">${money}</fmt:parseNumber>
+
+ <li>格式化后的数据为:<c:out value="${money}"></c:out>
+
+ <li>可以对格式化的后的数据进行运算： 
+
+ <c:out value="${money+200}"></c:out>
+
+ <li>对百分比进行格式化98%为：
+
+ <fmt:parseNumber type="percent">98%</fmt:parseNumber>
+
+</html>
+
+【代码解析】：
+
+（1）首先使用<fmt:formatNumber>将188.8转换为字符串￥188.8并在page范围内存储一个String类型的变量，变量名为money。
+
+（2）使用<fmt:parseNumber>将￥188.8转化为浮点型的数据188.8并赋值为变量money，
+
+则变量money转变为一个浮点型的值188.8，对188.8进行加运算。
+
+（3）直接对一个百分比数98%进行转化。
+
+程序运行结果如图9.15所示。
+
+
+
+图9.15 fmtdemo02.jsp运行结果
+
+提示：<fmt:parseNumber>属性参数的配置和使用同<fmt:formatNumber>标签使用的方式一样。同时，在进行类型转换时如果给出的类型不正确将会出现异常。例如在进行百分比转化时如果没有给type类型或者给出type类型但提供的数据中没有%都会产生异常。因此在实际应用中用<c:catch/>捕获异常。
+
+3．<fmt:formatDate>标签
+
+该标签主要用来格式化日期和时间。
+
+【语法】：
+
+<fmt: formatDate value=”date” [type=”time|date|both”]
+
+                                     [pattern=”pattern”]
+
+                                     [dateStyle=”default|short|medium|long|full”]
+
+                                     [timeStyle=”default|short|medium|long|full”]
+
+                                     [timeZone=”timeZone”]
+
+                                     [var=”name”]
+
+                                     [scope=”page|request|session|application”]
+
+/>
+
+参数说明见表9-7。
+
+表9-7 <fmt:formatDate>标签属性说明
+
+属性名
+
+说明
+
+EL
+
+类型
+
+必须
+
+默认值
+
+value
+
+将要格式化的日期对象。
+
+是
+
+Java.util.Date
+
+是
+
+无
+
+type
+
+显示的部分（日期、时间或者两者）。
+
+是
+
+String
+
+否
+
+date
+
+partten
+
+格式化的样式。
+
+是
+
+String
+
+否
+
+无
+
+dateStyle
+
+设定日期的显示方式。
+
+是
+
+String
+
+否
+
+default
+
+timeStyle
+
+设定时间的显示方式。
+
+是
+
+String
+
+否
+
+default
+
+timeZone
+
+设定使用的时区。
+
+是
+
+String
+
+否
+
+当地所用时区
+
+var
+
+存储已格式化的日期或时间。
+
+否
+
+String
+
+否
+
+无
+
+scope
+
+指定var存储的JSP范围。
+
+否
+
+String
+
+否
+
+无
+
+其中type属性参数说明见表9-8。
+
+表9-8 type属性参数说明
+
+参数名
+
+说明
+
+time
+
+只显示时间
+
+date
+
+只显示时期
+
+both
+
+显示日期和时间
+
+【示例程序】：代码9.16实现了对日期的格式化，使用了type、dateStyle、timeStyle等属性。
+
+代码9.16 <fmt:formatDate>标签示例：fmtdemo03.jsp
+
+<%@ page language="java" pageEncoding="gbk"%>
+
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<jsp:useBean id="date" class="java.util.Date"></jsp:useBean>
+
+<html>
+
+ <head>  
+
+    <title>I18N标签库</title>
+
+ </head>
+
+ <body>
+
+<fmt:formatDate value="${date}"></fmt:formatDate><br>
+
+<fmt:formatDate value="${date}" type="both"></fmt:formatDate><br>
+
+<fmt:formatDate value="${date}" type="both" dateStyle="default"
+
+ timeStyle="default"></fmt:formatDate><br>
+
+   <fmt:formatDate value="${date}" type="both" dateStyle="short"
+
+ timeStyle="short"></fmt:formatDate><br>
+
+   <fmt:formatDate value="${date}" type="both" dateStyle="long"
+
+ timeStyle="long"></fmt:formatDate><br>
+
+   <fmt:formatDate value="${date}" type="both" dateStyle="full"
+
+timeStyle="full"></fmt:formatDate><br>
+
+   <fmt:formatDate value="${date}" type="both" dateStyle="full"
+
+timeStyle="full"></fmt:formatDate><br>
+
+   </body>
+
+</html>
+
+【代码解析】：
+
+（1）首先通过配置JavaBean在页面上实例化java.util.Date对象。实现代码如下：
+
+<jsp:useBean id="date" class="java.util.Date"></jsp:useBean>
+
+（2）对日期对象进行格式化时${date}是一个日期对象，如果给value设的值为String时程序会报错。
+
+（3）设置type为both时，将显示日期和时间，同时示例中依次改变dateStyle和timeStyle的值作为比较。
+
+程序结果如图9.16所示。
+
+
+
+图9.16 fmtdemo03.jsp
+
+使用IE的语言标签可以设置语言种类如图9.17所示。
+
+
+
+9.17 改变使用默认语言
+
+语言设为英文是程序效果如图9.18所示。
+
+
+
+图9.18 语言为英文状态下的显示
+
+4．<fmt:parseDate>标签
+
+<fmt:parseDate>标签主要将字符串类型的时间或日期转化为时间或日期对象。
+
+【语法1】：
+
+<fmt:parseDate value=”date” [type=”time|date|both”]
+
+                                                        [pattern=”pattern”]
+
+                                                        [parseLocale=”locale”]
+
+                                                        [dateStyle=”default|short|medium|long|full”]
+
+                                                        [timeStyle=”default|short|medium|long|full”]
+
+                                                        [timeZone=”timezone”]
+
+                                                        [var=”name”]
+
+                                                        [scope=”page|request|session|application”]
+
+/>
+
+【语法2】：
+
+<fmt:parseDate [type=”time|date|both”]
+
+                                                        [pattern=”pattern”]
+
+                                                        [parseLocale=”locale”]
+
+                                                        [dateStyle=”default|short|medium|long|full”]
+
+                                                        [timeStyle=”default|short|medium|long|full”]
+
+                                                        [timeZone=”timezone”]
+
+                                                        [var=”name”]
+
+                                                        [scope=”page|request|session|application”]
+
+> 
+
+Date
+
+</fmt:parseDate>
+
+【参数说明】参数说明见表9-9.
+
+表9-9 <fmt:parseData>标签属性说明
+
+属性名
+
+说明
+
+EL
+
+类型
+
+必须
+
+默认值
+
+value
+
+将要格式化的日期时间
+
+是
+
+String
+
+是
+
+无
+
+type
+
+字符串的类型（日期、时间或全部）
+
+EL
+
+String
+
+是
+
+date
+
+pattern
+
+字符串使用的时间样式
+
+是
+
+String
+
+是
+
+无
+
+parseLocale
+
+取代默认地区设定
+
+是
+
+String
+
+是
+
+默认地区
+
+dateStyle
+
+字符串使用的日期显示方式
+
+是
+
+String
+
+否
+
+default
+
+timeStyle
+
+字符串使用的时间显示格式
+
+是
+
+String
+
+否
+
+default
+
+timeZone
+
+使用的时区
+
+是
+
+String
+
+否
+
+当地区时
+
+var
+
+使用var定义的名字保存对象
+
+否
+
+String
+
+否
+
+无
+
+scope
+
+var的JSP范围
+
+否
+
+String
+
+否
+
+page
+
+【示例代码】：代码9.16实现了以下功能：首先，使用了<fmt:formatDate>把一个日期对象格式化成一个日期的字符串，并把该字符串以参数名为a存储page范围内。其次，使用<fmt:parseDate>方法把a的值（字符串）格式化成一个Date并以参数名为b存储在page范围内。最后，使用Java脚本证明生成的b为对象。
+
+代码9.16：<fmt:formatDate>标签示例：fmtdemo04.jsp
+
+<%@ page language="java" pageEncoding="gbk"%>
+
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<jsp:useBean id="date" class="java.util.Date"></jsp:useBean>
+
+<html>
+
+ <head>  
+
+    <title>I18N标签库</title>
+
+ </head>
+
+ <body>
+
+   <H4><c:out value="<frm:parseDate>标签的使用"></c:out></H4>
+
+   <hr>
+
+<fmt:formatDate value="${date}" var="a" type="both"
+
+dateStyle="full" timeStyle="full"></fmt:formatDate>
+
+<fmt:parseDate var="b" type="both" dateStyle="full" timeStyle="full">
+
+${a}
+
+</fmt:parseDate>
+
+   <%
+
+   out.println(pageContext.getAttribute("b").toString());
+
+   out.println("<br>");
+
+   out.println(pageContext.getAttribute("b").hashCode());
+
+   %>
+
+   </body>
+
+</html>
+
+【代码解析】：
+
+（1）使用<fmt:formatDate>把日期对象格式化成字符串。
+
+（2）使用<fmt:parseDate>把字符串对象转化为日期对象，注意同（1）中的参数对比，可以发现两者是一个互逆的过程。
+
+（3）使用Java脚本进行测试Date对象的toString()方法可以输出时间字符串。hashCode()可以得到一个对象的hashCode。该方法只能应用于对象，因此可以证明得到的是一个日期对象。
+
+程序运行结果如图9.19所示。
+
+
+
+图9.19 fmtdemo04.jsp
+
+提示：<fmt:formatDate>和<fmt:parseDate>是相反的运算过程，可以对照学习。本例中的Java脚本的作用是为了证明生成的的确是一个对象。
+
+5．<fmt:setTimeZone>标签
+
+该标签用于设定默认时区或者将时区存储在指定的JSP范围内。
+
+【语法】：
+
+<fmt:setTimeZone value=”value” [var=”name”][scope=”page|request|session|application”]/>
+
+【参数说明】：见表9-10
+
+表9-10 <fmt:setTimeZone>标签属性说明
+
+参数名
+
+说明
+
+EL
+
+类型
+
+必须
+
+默认值
+
+value
+
+使用的时区
+
+是
+
+String
+
+Java.util.TimeZone
+
+是
+
+无
+
+var
+
+使用var定义的参数名保存值
+
+否
+
+String
+
+否
+
+无
+
+scope
+
+存储var的JSP范围
+
+否
+
+String
+
+否
+
+page
+
+value用来设定使用的时区，例如中国使用的时区为CST，其他的还有EST、PST等。可以把时区存储在指定的JSP范围内，例如存储在session中，用户访问的所有页面都可以显示使用的设定的时区下对应的时间。
+
+【示例代码】
+
+<fmt:setTimeZone value=”EST” scope=”session”/>
+
+提示：有关TimeZone的说明见JDK帮助文档的java.util.TimeZone类。
+
+6．<fmt:timeZone>标签
+
+该标签主要用于设置标签体内使用的时区。
+
+【语法】：
+
+<fmt:timeZone value=”timeZone”>
+
+…..
+
+</fmt:timeZone>
+
+使用<fmt:timeZone></fmt:timeZone>只会应用到标签体内使用的时区，对标签外部将不产生影响。
+
+9.3.2 读取消息资源
+
+读取消息资源用到的标签主要有4个：<fmt:message>标签、<fmt:param>标签、<fmt:bundle>标签和<fmt:setBundle>标签。主要用于从资源文件中读取信息。
+
+1．<fmt:bundle>标签
+
+该标签主要用于将资源文件绑定于它的标签体中的显示。
+
+【语法】：
+
+<fmt:bundle basename=”name”[prefix=”prefix”]>
+
+….标签主题
+
+</fmt:bundle>
+
+【参数说明】：见表9-11。
+
+表9-11 <fmt:bundle>标签属性说明
+
+参数名
+
+说明
+
+EL
+
+类型
+
+必须
+
+默认值
+
+basename
+
+指定使用的资源文件的名称
+
+是
+
+String
+
+是
+
+无
+
+prefix
+
+前置关键字
+
+是
+
+String
+
+否
+
+无
+
+2．<fmt:setBundle>标签
+
+该标签主要用于绑定资源文件或者把资源文件保存在指定的JSP范围内。
+
+【语法】：
+
+<fmt:setBundle basename=”name” [var=”name”]
+
+                                     [scope=”page|request|session|application”]
+
+> 
+
+【参数说明】：见表9-12。
+
+表9-12 <fmt:setBundle>标签属性说明
+
+参数名
+
+说明
+
+EL
+
+类型
+
+必须
+
+默认值
+
+basename
+
+指定使用的资源文件的名称
+
+是
+
+String
+
+是
+
+无
+
+var
+
+指定将资源文件保存的名称
+
+否
+
+String
+
+否
+
+无
+
+scope
+
+设定将资源文件保存的JSP范围
+
+否
+
+String
+
+否
+
+page
+
+3．<fmt:message>标签
+
+该标签主要负责读取本地资源文件，从指定的消息文本资源文件中读取键值，并且可以将键值保存在指定的JSP范围内。
+
+【语法1】：
+
+<fmt:message key=”keyName”[bundle=”bundle”]
+
+                                     [scope=”page|request|session|application”]
+
+/>
+
+【语法2】：
+
+<fmt:message key=”keyName”[bundle=”bundle”]
+
+                                     [scope=”page|request|session|application”]
+
+> 
+
+<fmt:param/>
+
+</fmt:message>
+
+【语法3】：
+
+<fmt:message key=”keyName”[bundle=”bundle”]
+
+                                                        [scope=”page|request|session|application”]
+
+> 
+
+key<fmt:param/>
+
+…
+
+</fmt:message>
+
+【参数说明】：见表9-13。
+
+表9-13 <fmt:message>标签属性说明
+
+参数名
+
+说明
+
+EL
+
+类型
+
+必须
+
+默认值
+
+key
+
+指定键值的名称（索引）
+
+是
+
+String
+
+是
+
+无
+
+bundle
+
+指定消息文本的来源
+
+是
+
+LocalizationContext
+
+否
+
+无
+
+var
+
+指定存储键值的变量名
+
+否
+
+String
+
+否
+
+无
+
+scope
+
+指定var的作用域
+
+否
+
+String
+
+否
+
+page
+
+提示：建议此处的bundle使用EL表达式，因为属性bundle的类型为LocalizationContext，而不是一个String类型的URL。
+
+【示例代码】：代码9.17实现从指定的资源文件中读取对应key的值。
+
+首先编写一个资源文件内容下
+
+name=olive
+
+password=01234
+
+使用标签从资源文件中读取相应的值。
+
+代码9.17 <fmt:message>标签示例：fmtdemo05.jsp
+
+<%@ page language="java" pageEncoding="gbk"%>
+
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<jsp:useBean id="date" class="java.util.Date"></jsp:useBean>
+
+<html>
+
+ <head>  
+
+    <title>I18N标签库</title>
+
+ </head>
+
+ <body>
+
+   <H4><c:out value="资源文件读取示例"></c:out></H4>
+
+   <hr>
+
+   <fmt:bundle basename="message">
+
+   <c:out value="从message资源文件中得到的key为name的值为："></c:out>
+
+   <fmt:message key="name" ></fmt:message>
+
+   </fmt:bundle>
+
+   <hr>
+
+   <fmt:setBundle basename="message" var="m"/>
+
+   <fmt:message key="password" bundle="${m}"></fmt:message>
+
+    ${m}
+
+   </body>
+
+</html>
+
+【代码解析】：
+
+（1）使用<fmt:bundle>标签指定从message.properties文件中读取值。
+
+（2）使用<fmt:message>标签读取资源文件中key为name的值。<fmt:message>标签放在<fmt:bundle>标签体内使用。
+
+（3）使用<fmt:setBundle>标签在page范围绑定一个配置文件，以m为参数名存储。
+
+（4）使用<fmt:message>标签得到key为password的值，此处指定资源文件的方式为使用<fmt:message>标签的bundle属性来设定。
+
+（5）输出参数m的值，加深对bundle的理解。
+
+程序运行结果如图所示。
+
+
+
+图9.20 fmtdemo05.jsp运行效果
+
+<fmt:bundle>标签中有一个prefix属性，该标签用来指明前缀。例如配置文件内容如下：
+
+org.person.name=olive
+
+org.personpassword=01234
+
+如果不使用prefix标签，在取值是要指明前缀。例如：
+
+<fmt:bundle basename=”message”>
+
+<fmt:message key=”org.person.name”></fmt:message>
+
+<fmt:message key=”org.person.password”></fmt:message>
+
+</fmt:bundle>
+
+使用prefix属性可以简化取值时的代码。
+
+<fmt:bundle basename=”message” prefix=”org.person”>
+
+<fmt:message key=”name”></fmt:message>
+
+<fmt:message key=”password”></fmt:message>
+
+</fmt:bundle>
+
+4．<fmt:param>标签
+
+该标签主要用于当<fmt:message>中资源文件中获得键值时，动态的为资源文件中的变量赋值。
+
+【语法1】：
+
+<fmt:param value=”value”/>
+
+【语法2】：
+
+<fmt:param >
+
+…标签主体
+
+</fmt:param>
+
+【示例代码】：
+
+（1）创建资源文件。在message.properties文件中增加一个key和value。
+
+news={0} welcome to out website!<br>today is :{1,date}
+
+表达的含义是键news对应的是一个字符串，字符串中还有动态变量{0}表示第一个动态变量，{1,date}表示第二个动态变量并且该变量是一个日期类型的对象。
+
+（2）通过标签从资源文件中取出键值，并给动态变量赋值显示在页面。
+
+代码9.18 <fmt:param>标签示例：fmtdemo06.jsp
+
+<%@ page language="java" pageEncoding="gbk"%>
+
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<jsp:useBean id="date" class="java.util.Date"></jsp:useBean>
+
+<html>
+
+ <head>  
+
+    <title>I18N标签库</title>
+
+ </head>
+
+ <body>
+
+   <H4><c:out value="<fmt:param>标签的使用"></c:out></H4>
+
+   <hr>
+
+   <fmt:bundle basename="message">
+
+   <fmt:message key="news">
+
+   <fmt:param value="olive" />
+
+   <fmt:param value="${date}"/>
+
+   </fmt:message>
+
+   </fmt:bundle>
+
+   </body>
+
+</html>
+
+【代码解析】：
+
+（1）使用<fmt:bundle>标签把资源文件绑定在标签体内。
+
+（2）在<fmt:bundle>标签体内使用<fmt:message>得到键值。
+
+（3）使用<fmt:param>为资源文件中的动态变量赋值。
+
+程序运行结果如图9.21所示。
+
+
+
+图9.21 fmtdemo06.jsp运行结果
+
+提示：资源文件经过修改后，应用程序需要重载才能生效。
+
+9.3.3 国际化
+
+国际化这个分类中共包含两个标签：用于设定语言地区<fmt:setLocale/>和用于设定请求的字符编码的<fmt:requestEncoding>标签。
+
+1．<fmt:setLocale/>标签
+
+<fmt:setLocale>标签用来设定用户语言区域。
+
+【语法】：
+
+<fmt:setLocale value=”locale”[variant=”variant”]
+
+                            [scope=”page|request|session|application”]>
+
+【参数说明】：见表9-14。
+
+表9-14 <fmt:setLocale>标签属性说明
+
+参数名
+
+说明
+
+EL
+
+类型
+
+必须
+
+默认值
+
+value
+
+指定区域代码
+
+是
+
+String
+
+java.util.Locale
+
+是
+
+无
+
+variant
+
+操作系统的类型
+
+是
+
+String
+
+是
+
+无
+
+scope
+
+设定时区的作用范围
+
+否
+
+String
+
+是
+
+page
+
+value属性用来指定使用的语言代码，可以从浏览器的【工具】---【Internet选项】---【语言】---【添加】中查看浏览器支持的语言种类及语言代码。例如：中文（zh_cn）、台湾（zh_tw）、香港（zh_mo）等。
+
+【示例代码】：代码9.19实现了设定不同的区域代码，根据不同的区域代码浏览将显示不同格式的日期。
+
+代码9.19 <fmt:setLocale>标签示例：fmtdemo07.jsp
+
+<%@ page language="java" pageEncoding="gbk"%>
+
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<jsp:useBean id="date" class="java.util.Date"></jsp:useBean>
+
+<html>
+
+ <head>  
+
+    <title>I18N标签库</title>
+
+ </head>
+
+ <body>
+
+   <H4><c:out value="<fmt:setlocale>标签的使用"></c:out></H4>
+
+   <hr>
+
+   <fmt:setLocale value="en_us" />
+
+   <fmt:formatDate value="${date}" type="both" dateStyle="full" timeStyle="full"/>
+
+   <hr>
+
+   <fmt:setLocale value="zh_cn" />
+
+   <fmt:formatDate value="${date}" type="both" dateStyle="full" timeStyle="full"/>
+
+   <hr>
+
+   <fmt:setLocale value="zh_TW"/>
+
+   <fmt:formatDate value="${date}" type="both" dateStyle="full" timeStyle="full"/>
+
+   </body>
+
+</html>
+
+【代码解析】：
+
+（1）浏览器默认跟您使用的操作系统的语言相同，因此默认值zh_cn。使用<fmt:setLocale/>标签设置使用的语言为en_us（英语）。使用<fmt:formateDate>格式化输出的时间字符串，该标签会根据不同的语言输出不同的日期格式。
+
+（2）使用的语言修改为zh_cn，再次用格式化输出。
+
+（3）使用语言修改为zh_TW，输出格式化后的时间。
+
+程序运行结果如图所示。
+
+
+
+图9.22 fmtdemo07.jsp运行结果
+
+2．<fmt:requestEncoding>标签
+
+该标签用于设定请求的编码格式。功能同servletRequest.setCharacterEncoding()方法相同。
+
+【语法】：
+
+<fmt:requestEncoding [value=”charEncoding”]/>
+
+【参数说明】：
+
+value属性用来指定使用的编码集例如：gbk、gb2312等。当没有给出value的值时将会自动搜索取寻找合适的编码方式，因此能够很好的解决中文乱码问题。
+
+9.4 SQL标签库
+JSTL提供了与数据库相关操作的标签，可以直接从页面上实现数据库操作的功能，在开发小型网站是可以很方便的实现数据的读取和操作。本章将详细介绍这些标签的功能和使用方法。
+
+SQL标签库从功能上可以划分为两类：设置数据源标签、SQL指令标签。
+
+引入SQL标签库的指令代码为：
+
+<%@ taglib prefix="sql" uri="http://java.sun.com/jsp/jstl/sql" %>
+
+9.4.1 设置数据源
+
+使用<sql:setDataSource>标签可以实现对数据源的配置。
+
+【语法1】：直接使用已经存在的数据源。
+
+<sql:setDataSource dataSource=”dataSource”[var=”name”]
+
+                            [scope=”page|request|session|application”]/>
+
+【语法2】：使用JDBC方式建立数据库连接。
+
+<sql:setDataSource driver=”driverClass” url=”jdbcURL”
+
+                                               user=”username”
+
+                                               password=”pwd”                
+
+                                               [var=”name”]
+
+                                               [scope=”page|request|session|application”]/>
+
+【参数说明】：见表9-15
+
+表9-15 <sql:DataSource>标签属性说明
+
+参数名
+
+说明
+
+EL
+
+类型
+
+必须
+
+默认值
+
+dataSource
+
+数据源
+
+是
+
+String
+
+Javax.sql.DataSource
+
+否
+
+无
+
+driver
+
+使用的JDBC驱动
+
+是
+
+String
+
+否
+
+无
+
+url
+
+连接数据库的路径
+
+是
+
+String
+
+否
+
+无
+
+user
+
+连接数据库的用户名
+
+是
+
+String
+
+否
+
+无
+
+password
+
+连接数据库的密码
+
+是
+
+String
+
+否
+
+无
+
+var
+
+指定存储数据源的变量名
+
+否
+
+String
+
+否
+
+无
+
+scope
+
+指定数据源存储的JSP范围
+
+否
+
+String
+
+否
+
+page
+
+提示：是否必须是相对的，比如说如果使用数据源则，driver、url等就不再被使用。如果使用JDBC则要用到driver、url、user、password属性。
+
+例如连接SQL Server需要进行如下配置：
+
+Driver="com.microsoft.jdbc.sqlserver.SQLServerDriver"
+
+url=” jdbc:microsoft:sqlserver://localhost:1433; DatabaseName=pubs"
+
+user=”sa”
+
+password=””
+
+使用<fmt:setDataSource>配置的代码如下：
+
+<fmt:setDataSource driver=”com.microsoft.jdbc.sqlserver.SQLServerDriver”
+
+                   url=”jdbc.microsoft:sqlserver://localhost:1433;DatabaseName=pubs”
+
+                   user=”sa”
+
+                   password=””>
+
+如果连接其他数据库，只须把相对应的项修改即可。
+
+提示：可以把数据连接的配置存入session中，如果再用到数据库连接只须配置使用DataSource属性。
+
+9.4.2 SQL操作标签
+
+JSTL提供了<sql:query>、<sql:update>、<sql:param>、<sql:dateParam>和<sql:transaction>这5个标签，通过使用SQL语言操作数据库，实现增加、删除、修改等操作。下面将介绍这5个标签的功能和使用方式。
+
+1．<sql:query>标签
+
+<sql:query>标签用来查询数据。
+
+【语法1】：
+
+<sql:query sql=”sqlQuery” var=”name” [scope=”page|request|session|application”]
+
+                   [dataSource=”dateSource”]
+
+                   [maxRow=”maxRow”]
+
+                   [startRow=”starRow”]/>
+
+【语法2】：
+
+<sql:query var=”name” [scope=”page|request|session|application”]
+
+                   [dataSource=”dateSource”]
+
+                   [maxRow=”maxRow”]
+
+                   [startRow=”starRow”]
+
+> 
+
+sqlQuery
+
+</sql:query>
+
+【属性说明】：见表9-16。
+
+表9-16 <sql:query>标签属性说明
+
+参数名
+
+说明
+
+EL
+
+类型
+
+必须
+
+默认值
+
+sql
+
+查询数据的SQL语句
+
+是
+
+String
+
+是
+
+无
+
+dataSource
+
+数据源对象
+
+是
+
+String
+
+Javax.sql.DataSoutce
+
+否
+
+无
+
+maxRow
+
+设定最多可以暂存数据的行数
+
+是
+
+String
+
+否
+
+无
+
+startRow
+
+设定从那一行数据开始
+
+是
+
+String
+
+否
+
+无
+
+var
+
+指定存储查询结果的变量名
+
+否
+
+String
+
+是
+
+无
+
+scope
+
+指定结果的作用域
+
+否
+
+String
+
+否
+
+page
+
+使用<sql:query>必须指定数据源，dataSource是可选的，如果未给定该属性标签会在page范围内查找是否设置过数据源，如果没有找到将抛出异常。
+
+一般情况下使用<sql:setDateSource>标签设置一个数据源存储在session范围中，当需要数据库连接时使用dataSource属性并实现数据库的操作。
+
+<sql:query>的var属性是必须的用来存放结果集，如果没有指定scope范围则默认为page，即在当前页面我们可以随时输出查询结果。结果集有一系列的属性如表9-17所示。
+
+maxRows和startRow属性用来操作结果集，使用SQL语句首先吧数据放入内存中，检查是否设置了startRow属性，如果设置了就从starRow指定的那一行开始取maxRows个值，如果没有设定则从第一行开始取。
+
+表9-17 结果集参数说明
+
+属性名
+
+类型
+
+说明
+
+rowCount
+
+int
+
+结果集中的记录总数
+
+Rows
+
+Java.util.Map
+
+以字段为索引查询的结果
+
+rowsByIndex
+
+Object[]
+
+以数字为作索引的查询结果
+
+columnNames
+
+String[]
+
+字段名称数组
+
+limitedByMaxRows
+
+boolean
+
+是否设置了maxRows属性来限制查询记录的数量
+
+提示：limitedByMaxRows用来判断程序是否收到maxRows属性的限制。并不是说设定了maxRows属性，得到结果集的limitedByMaxRows的属性都为true，当取出的结果集小于maxRows时，则maxRows没有对结果集起到作用此时也为false。例如可以使用startRow属性限制结果集的数据量。
+
+结果集的作用就是定义了数据在页面中的显示方式。下面给出了结果集每个属性的作用。
+
+q        rowCount属性。该属性统计结果集中有效记录的量，可以使用于大批量数据分页显示。
+
+q        Rows属性。等到每个字段对应的值。返回的结果为：字段名={字段值···}
+
+q        rowsByIndex属性。常用得到数据库中数据的方式，从有效行的第一个元素开始遍历，到最后一个有效行的最后一个元素。
+
+q        columnNames属性。用于得到数据库中的字段名。
+
+q        limitedByMaxRows属性。用于判断是否受到了maxRows的限制。
+
+【示例代码】：代码9.20给出了配置数据库连接，和使用<sql:query>查询数据以及结果集属性的使用。
+
+代码9.20 数据库示查询示例：sqldemo01.jsp
+
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%@ taglib prefix="sql" uri="http://java.sun.com/jsp/jstl/sql" %>
+
+<%@ page contentType="text/html;charset=GBK"%>
+
+<html>
+
+<head>
+
+ <title>JSTL: SQL标签</title>
+
+</head>
+
+<body >
+
+<h3>SQL标签库</h3>
+
+<hr>
+
+<sql:setDataSource driver="com.microsoft.jdbc.sqlserver.SQLServerDriver"
+
+         url="jdbc:microsoft:sqlserver://localhost:1433;DatabaseName=pubs"
+
+         user="sa" password="" />
+
+<sql:query var="result" sql="select * from person" maxRows="2" startRow="1"/>
+
+结果集的实质是：${result}<br>
+
+得到的行数为：${result.rowCount}<br>
+
+是否收到了maxRows的限制：${result.limitedByMaxRows}
+
+<hr>
+
+<table border="1" align="center">
+
+<tr><c:forEach var="columnName" items="${result.columnNames}">
+
+<td>
+
+<c:out value="${columnName}"/>
+
+</td>
+
+</c:forEach> </tr>
+
+<c:forEach var="row" items="${result.rowsByIndex}">
+
+<tr>
+
+<c:forEach var="column" items="${row}">
+
+<td><c:out value="${column}"/></td>
+
+</c:forEach>
+
+</tr>
+
+</c:forEach>
+
+</table>
+
+</body>
+
+</html>
+
+【代码解析】：
+
+（1）配置数据源。使用<sql:dataSource>标签配置数据源，因为只共本页使用因此存储在默认的page范围中。
+
+（2）使用<sql:query>标签进行数据库查询，并定义了maxRows和startRow属性。并把结果集存储于作用于page范围的result变量。使用${result}输出可以发现结果集就是一个ResultImpl类。
+
+提示：在进行数据源配置时程序不会检查数据库连接是否配置正确，直接根据设定的数据库及连接访问，如果没有找到则抛出操作的表异常，因此要放如<c:catch></c:catch>同时在编写程序时一定要注意数据源是否配置正确。
+
+（3）使用结果集的rowCount属性得到记录的总量。代码为：
+
+${result.rowCount}
+
+（4）使用结果集的limitedMaxRows属性判断是否收到maxRows设定的影响。代码为：
+
+${result.limitedMaxRows}
+
+（5）从结果集中得到数据库中定义的所有的字段。${result.columnnames}得到的结果是一个字符串数组，因此需要使用<c:forEach>循环输出。代码如下：
+
+<c:forEach var="columnName" items="${result.columnNames}">
+
+<c:out value="${columnName}"/>
+
+</c:forEach>
+
+（6）从结果集中得到所有的值。首先要遍历每一行，然后遍历每一行中的元素，因此需要循环嵌套。代码如下：
+
+<c:forEach var="columnName" items="${result.columnNames}">
+
+<c:out value="${columnName}"/>
+
+</c:forEach>
+
+<c:forEach var="row" items="${result.rowsByIndex}">
+
+<c:forEach var="column" items="${row}">
+
+<c:out value="${column}"/></td>
+
+</c:forEach>
+
+</c:forEach>
+
+提示：在代码解析中省略了html元素表格等标签的元素，本示例适用于任何数据库表，只要把数据库的URL、使用的JDBC进行相应的配置和操作的数据表名进行相应的修改即可看到结果。
+
+程序运行结果如图9.23所示。
+
+
+
+图9.23 查询操作结果图
+
+2．<sql:update>标签
+
+<sql:update>用来实现操作数据库如：使用create、update、delete和insert等SQL语句，并返回影响记录的条数。
+
+【语法1】：SQL语句放在标签属性中。
+
+<sql:update sql=”SQL语句” [var=”name”] [scope=”page|request|session|application”]
+
+                                                        [dateSource=”dateSource”]/>
+
+【语法2】：SQL语句放在标签体内。
+
+<sql:update [var=”name”] [scope=”page|request|session|application”]
+
+                                                        [dateSource=”dateSource”]
+
+> 
+
+SQL语句
+
+</sql:update>
+
+【参数说明】：见表9-18。
+
+表9-18 <sql:update>标签属性说明
+
+参数名
+
+说明
+
+EL
+
+类型
+
+必须
+
+默认值
+
+sql
+
+查询数据的SQL语句
+
+是
+
+String
+
+是
+
+无
+
+dataSource
+
+数据源对象
+
+是
+
+String
+
+Javax.sql.DataSoutce
+
+否
+
+无
+
+var
+
+指定存储查询结果的变量名
+
+否
+
+String
+
+是
+
+无
+
+scope
+
+指定结果的作用域
+
+否
+
+String
+
+否
+
+page
+
+提示：<sql:update>标签的属性同<sql:query>标签的属性相比只减少了maxRows和startRow2个属性。其他参数用法一样。
+
+使用<sql:update>可以实现数据表的创建、插入数据、更行数据、删除数据。使用时只须在标签中放入正确的SQL语句即可，同时要捕获可能产生的异常。本节只对一个简单的插入操作进行说明。
+
+【示例代码】：代码9.21实现了创建一个表、实现数据的插入。
+
+代码9.21 数据库创建、数据插入示例：sqldemo02.jsp
+
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%@ taglib prefix="sql" uri="http://java.sun.com/jsp/jstl/sql" %>
+
+<%@ page contentType="text/html;charset=GBK"%>
+
+<html>
+
+<head>
+
+ <title>JSTL: SQL标签</title>
+
+</head>
+
+<body >
+
+<h3>SQL标签库</h3>
+
+<hr>
+
+<sql:setDataSource driver="com.microsoft.jdbc.sqlserver.SQLServerDriver"
+
+         url="jdbc:microsoft:sqlserver://localhost:1433;DatabaseName=pubs"
+
+         user="sa" password="" />
+
+实现数据库表的创建<br>
+
+<sql:update var="result1">
+
+create table c_user (
+
+          id int primary key ,
+
+     name varchar(80),
+
+     sex varchar(80),
+
+)
+
+</sql:update>
+
+<c:catch var="error">
+
+<sql:update var="result2" >
+
+insert c_user values(05,'Linda','女')
+
+insert c_user values(01,'Rom','男' )
+
+</sql:update>
+
+影响的记录数为：<c:out value="${result2}"></c:out>
+
+</c:catch>
+
+<c:out value="${error}"></c:out><br>
+
+<hr>
+
+</body>
+
+</html>
+
+【代码解析】：
+
+（1）配置数据源。
+
+（2）使用<sql:update>标签创建一个新表。
+
+（3）向表中插入两行数据。
+
+提示：本示例也没有针对固定的表进行操作，在使用时直接运行即可，如果使用的是其他数据库，需要更改数据源配置和SQL语句部分修改。
+
+程序运行结果如图9.24所示。
+
+
+
+图9.24 sqldemo02.jsp运行效果
+
+从图9.24中可以发现，使用<sql:update>的var属性记录结果是不准确的，尤其是在一个标签中使用多条sql语句只能记录下第一条。在数据库中创建的c_user表如图9.25所示。
+
+
+
+图9.25 SQL表的内容
+
+3．<sql:param>标签
+
+<sql:param>标签用于动态的为SQL语句设定参数，同<sql:query>标签共同使用。可以防止SQL注入作用类似于java.sql.PreparedStatement。
+
+【语法1】：
+
+<sql:param value=”value”/>
+
+【语法2】：
+
+<sql:param>
+
+Value
+
+</sql:param>
+
+【参数说明】：
+
+value的作用为SQL中的参数赋值。
+
+【使用示例】：
+
+<sql:query var=”result”>
+
+select * from person where 序号=？
+
+<sql:query>
+
+4．<sql:dateParam>标签
+
+<sql:dataParam>标签主要用于为SQL标签填充日期类型的参数值。
+
+【语法】：
+
+<sql:dateParam value=”date”[type=”timestamp|time|date”]/>
+
+【参数说明】：
+
+q        value属性：java.util.Date类型的参数。
+
+q        type属性：指定填充日期的类型timestamp（全部日期和时间）、time（填充的参数为时间）、date（填充的参数为日期）。
+
+5．<sql:transaction>标签
+
+<sql:transaction>标签提供了数据操作的一种安全机制（即事务回滚），当操作数据库的某条SQL语句发生异常时，取消<sql:transaction>标签体中的所有操作，恢复原来的状态，重新对数据库进行操作。
+
+【语法】：
+
+<sql:transaction [dataSource=”dataSource”]
+
+[isolation=”read_committed|read_uncommitted|repeatable|serializable”]
+
+> 
+
+<sql:query>
+
+<sql:uptade>
+
+</sql:transation>
+
+9.5 XML标签库
+JSTL提供了操作xml文件的标签库，使用xml标签库可以省去使用Dom和SAX标签库的繁琐，能轻松的读取xml文件的内容。
+
+9.5.1 XML核心标签库
+
+1．<x:parse>标签
+
+<x:parse/>标签用来解析指定的xml文件。
+
+【语法1】：
+
+<x:parse doc=”xmlDocument”
+
+{var=”name”[scope=”page|request|session|application”]|varDom=”name”[scope=”page|request|session|application”]}
+
+systemId=”systemId”
+
+filter=”filter”
+
+/>
+
+【语法2】：
+
+<x:parse
+
+{var=”name”[scope=”page|request|session|application”]|varDom=”name”[scope=”page|request|session|application”]}
+
+systemId=”systemId”
+
+filter=”filter”
+
+> 
+
+xmlDocument
+
+</x:parse>
+
+【参数说明】：见表9-20。
+
+表9-20 <x:parse>标签属性说明
+
+属性名
+
+说明
+
+EL
+
+类型
+
+必须
+
+默认值
+
+doc
+
+指定解析的xml文件
+
+是
+
+String/Reader
+
+是
+
+无
+
+var
+
+存储解析后的xml文件
+
+否
+
+String
+
+否
+
+无
+
+scope
+
+指定var的JSP范围
+
+否
+
+String
+
+否
+
+page
+
+varDom
+
+以（org.w3c.dom.Doucemet）的形式存储解析的xml文件
+
+否
+
+String
+
+否
+
+无
+
+scopeDom
+
+指定varDom的JSP范围
+
+否
+
+String
+
+否
+
+page
+
+systemId
+
+xml文件的url
+
+是
+
+String
+
+否
+
+无
+
+filter
+
+解析xml文件的过滤器
+
+否
+
+Org.xml.sax.Filter
+
+否
+
+无
+
+提示：doc指定解析的xml文件并不是指定xml文件的路径，而是同<c:import>共同使用，由<c:import>加载并存储，然后使用<x:parse>解析。
+
+例如：如果解析person.xml文件需要通过如下代码实现对xml文件的解析。
+
+<c:import var="docString" url="person.xml"/><!--引入person.xml文件-->
+
+<x:parse var="doc" doc="${docString}"/>
+
+<c:import>语句用来导入或存储文件到JSP。如果不使用var来存储，xml文件将显式的出现在JSP文件中。
+
+<x:parse>标签只用来解析xml文件，并不显示xml文件中的内容，如果想得到xml的节点元素或值需要使用<x:out>元素来实现。
+
+2．<x:out>标签
+
+<x:out>标签主要用来输出xml的信息。
+
+【语法】：
+
+<x:out select=”XpathExperssion”[excapeXml=”true|false”]>
+
+【参数说明】：见表9-21。
+
+表9-21 <x:out>标签属性说明
+
+属性名
+
+说明
+
+EL
+
+类型
+
+必须
+
+默认值
+
+select
+
+指定使用的XPath语句
+
+否
+
+String
+
+是
+
+无
+
+escapeXml
+
+是否转换特殊字符。如<等
+
+否
+
+boolean
+
+是
+
+true
+
+提示：使用XPath语句需要用到xalan.jar支持包，可以从示例程序的lib中获取，获得直接从myEclipse中可以找到。
+
+【示例代码】：
+
+3．<x:set>标签
+
+<x:set>标签用于将从xml文件节点解析的内容存储到JSP属性范围中。
+
+【语法】：
+
+<x:set select=”XPathExperssion” var=”name” scope=”page|request|session|application”>
+
+【参数说明】：
+
+（1）select通过指定的XPath表达式语句获取节点的值。
+
+（2）var指定用于存储值的变量名。
+
+（3）指定var的JSP属性范围。
+
+9.5.2 XML流程控制
+
+使用xml标签库的流程控制标签可以迭代处理xml文件的内容，流程控制可以分为以下两个方面的内容：
+
+（1）条件判断。
+
+（2）循环功能。
+
+1．<x:if>
+
+<x:if>主要用于条件判断。
+
+【语法1】：未含有本体内容。
+
+<x:if select=”XPathExperssion” var=”name”[scope=”page|request|session|application”]/>
+
+【语法2】：含有本体内容。
+
+<x:if select=”XPathExperssion” var=”name”[scope=”page|request|session|application”]
+
+> 
+
+本体内容
+
+</x:if>
+
+语法1只把根据条件表达式得到的结果的存储在JSP范围中，语法2根据<x:if>标签根据条件表达式的结果决定是否执行本体内的代码。
+
+【参数说明】：
+
+（1）select用来指定使用的XpathExperssion表达式。
+
+（2）var设定标量名用来存储表达式的结果。
+
+（3）scope指定var存储的JSP属性范围。
+
+2．<x:choose>、<x:when>和<x:otherwise>标签
+
+同核心标签库的<c:choose>、<c:when>和<c:otherwise>标签作用相似，只是使用的条件表达式不同。
+
+<x;choose>是主标签，<x:when>和<x:otherwise>放在<x:choose>标签体内共同使用。
+
+【语法】：
+
+<x:choose>
+
+<x:when>
+
+<x:when>
+
+<x:otherwise>
+
+</x:choose>
+
+其中只有<x:when>有属性。
+
+【语法】：
+
+<x:when select=”XPathExperssion”>
+
+3．<x:forEach>标签
+
+<x;forEach>标签实现了对xml文档的遍历。
+
+【语法】：
+
+<x:forEach select=”XPathExperssion”[var=”name”][varStartus=”StartusName”]
+
+[begin=”begin”][end=”end”][step=”step”]
+
+> 
+
+//标签主体
+
+</x:forEach>
+
+【参数说明】：见表9-22。
+
+表9-22 <x:forEach>标签属性说明
+
+属性名
+
+说明
+
+EL
+
+类型
+
+必须
+
+默认值
+
+select
+
+指定使用的XPath语句
+
+否
+
+String
+
+是
+
+无
+
+var
+
+用于存储表达式的结果
+
+否
+
+String
+
+否
+
+无
+
+varStatus
+
+用来存放循环到的变量的相关信息
+
+否
+
+String
+
+否
+
+无
+
+begin
+
+循环的起始位置
+
+是
+
+int
+
+否
+
+无
+
+end
+
+循环的终止位置
+
+是
+
+int
+
+否
+
+无
+
+9.5.3 xml的文件转换
+
+<x:transform>和<x:param>能轻易使用XSLT样式包装xml文件，成为另一种显示方式。
+
+1．<x:transform>标签
+
+使用该标签可以轻松的实现xml到XSLT的转化。
+
+【语法1】：
+
+<x:transform doc=”xmldoc” xslt=”XSLTStytlesheet”[docSystemId=”xmlsystemid”]
+
+[result=”result”]
+
+[var=”name”]
+
+[scope=”scopeName”]
+
+[xsltSystemId=”xsltsystemid”]/>
+
+【语法2】：
+
+<x:transform doc=”xmldoc” xslt=”XSLTStytlesheet”[docSystemId=”xmlsystemid”]
+
+[result=”result”]
+
+[var=”name”]
+
+[scope=”scopeName”]
+
+[xsltSystemId=”xsltsystemid”]
+
+> 
+
+<x:param/>
+
+</x:transform>
+
+【语法3】：
+
+<x:transform doc=”xmldoc” xslt=”XSLTStytlesheet”[docSystemId=”xmlsystemid”]
+
+[result=”result”]
+
+[var=”name”]
+
+[scope=”scopeName”]
+
+[xsltSystemId=”xsltsystemid”]
+
+> 
+
+Xml文件内容
+
+<x:param/>
+
+</x:transform>
+
+【参数说明】：见表9-23。
+
+表9-23 <x:transform>标签属性说明
+
+属性名
+
+说明
+
+EL
+
+类型
+
+必须
+
+默认值
+
+doc
+
+指定xml文件来源
+
+是
+
+String
+
+是
+
+无
+
+xslt
+
+转化xml的样式模板
+
+是
+
+String
+
+是
+
+无
+
+docSystemId
+
+xml文件的URI
+
+是
+
+String
+
+否
+
+无
+
+xsltSystemId
+
+xslt文件的URI
+
+是
+
+String
+
+否
+
+无
+
+result
+
+用来存储转换后的结果对象
+
+是
+
+java.xml.transform
+
+是
+
+无
+
+var
+
+以org.w3c.dom.Documet类型存储转换后的结果
+
+否
+
+String
+
+否
+
+无
+
+scope
+
+var的属性范围
+
+否
+
+String
+
+否
+
+无
+
+2．<x:param>标签
+
+该标签用来为<x:transform>标签转换参数。
+
+【语法1】：
+
+<x:param name=”name” value=”value”/>
+
+【语法2】：
+
+<x:param name=”name” value=”value”
+
+> 
+
+Value
+
+</x:param>
+
+【参数说明】：
+
+（1）name指定参数的名称。
+
+（2）value指定参数值。
+
+发表于 2008-10-25 18:33 嘉木 阅读(22843) 评论(1)  编辑  收藏
+ 
+
+评论
+# re: jstl
+谢谢博主，辛苦了，写的很详细
+Neway 评论于 2013-01-23 10:55  回复  更多评论    
+ 
+新用户注册  刷新评论列表  
+
+找优秀程序员，就在博客园
+博客园  博问  IT新闻  Java程序员招聘
+标题		
+姓名		
+主页		
+验证码	*  	
+内容(请不要发表任何与政治相关的内容) 
+
+ Remember Me?
+	  登录      
+[使用Ctrl+Enter键可以直接提交]
+
+IT新闻：
+· Sycamore穷途末路：从450亿美元到一无所有
+· 柯达完成数字影像专利出售 交易价5.27亿美元
+· 海航空地联网测试空中发微博 姐玩的是寂寞！
+· 施密特预言媒体：低劣报道泛滥 老牌媒体更重要
+· Facebook宣布在美国重新启用TS面部识别功能
+博客园首页随笔：
+· 2013年计划
+· 现代软件工程讲义 6 用户调研
+· LINUX下的ORACLE按周7个文件覆盖备份
+· CentOS-6.3安装配置cmake
+· virtualBox虚拟机到vmware虚拟机转换
+知识库：
+· HTML5之美
+· 每天工作的第一个小时，做什么？
+· Hadoop 分布式文件系统：架构和设计
+· 异常的代价
+· 从P1到P7——第八年
+网站导航:
+博客园   IT新闻   知识库   C++博客   程序员招聘   管理
+ 
+ 	
+<	2013年2月	>
+日	一	二	三	四	五	六
+27	28	29	30	31	1	2
+3	4	5	6	7	8	9
+10	11	12	13	14	15	16
+17	18	19	20	21	22	23
+24	25	26	27	28	1	2
+3	4	5	6	7	8	9
+ 导航
+BlogJava
+首页
+发新随笔
+发新文章
+联系
+聚合
+管理
+ 统计
+随笔： 3
+文章： 2
+评论： 2
+引用： 0
+常用链接
+
+我的随笔
+我的评论
+我的参与
+最新评论
+留言簿(1)
+
+给我留言
+查看公开留言
+查看私人留言
+随笔档案
+2008年11月 (2)
+2008年10月 (1)
+文章档案
+2008年10月 (2)
+搜索
+
+ 
+最新评论  
+
+1. re: jstl
+谢谢博主，辛苦了，写的很详细
+--Neway
+2. re: 明年中国的十个预言
+很好，有见解有深度也有一定的文采
+--honeyjava
+阅读排行榜
+
+1. 明年中国的十个预言(186)
+2. (转)狼来了你还敢跳槽吗？(134)
+3. 7个顶级心理预言 (118)
+评论排行榜
+
+1. 明年中国的十个预言(1)
+2. 7个顶级心理预言 (0)
+3. (转)狼来了你还敢跳槽吗？(0)
+
+Powered by: 博客园
+模板提供：沪江博客
+Copyright ©2013 嘉木
+

@@ -1,0 +1,391 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+网络的资源是无限的
+
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年1月当选微软MVP名单揭晓！    CSDN博客频道年终送好礼获奖名单公布！
+ 2012CSDN博客之星火热出炉！      2000元大奖征异构开发博文      2013年全国百所高校巡讲讲师招募 
+
+
+
+tesseract3.01的训练和使用 
+.
+ 分类： OCR2011-11-29 10:291174人阅读评论(3)收藏举报
+
+
+相关源码、资源下载：http://code.google.com/p/tesseract-ocr/downloads/list
+ 
+ 
+ 
+训练步骤：
+ 
+1、  Generate Training Images：生成tif图像文件(简单的几个汉字)；
+ 
+如：ABC.Roman.exp0.tif([lang].[fontname].exp[num].tif)
+ 
+2、  Make Box Files：由上tif图像文件生成box文件；由tesseract.exe生成box文件；打开生成的box文件，修改其中不正确的部分；
+ 
+配置文件参数："batch.nochop", "makebox"
+ 
+运行文件：tesseractmain.cpp
+ 
+如：ABC.Roman.exp0.box
+ 
+3、  Run Tesseract for Training：
+ 
+配置文件参数："nobatch", "box.train"或"nobatch", "box.train.stderr"
+ 
+运行文件：tesseractmain.cpp
+ 
+生成的文件包括：ABC.Roman.exp0.tr 、ABC.Roman.exp0.txt 
+
+4、  Compute the Character Set：
+ 
+运行文件：unicharset_extractor.cpp
+ 
+生成的文件：unicharset
+ 
+5、  font_properties：
+ 
+需要自己创建一个txt文件，如font_properties.txt
+ 
+运行文件：mftraining.cpp
+ 
+生成的文件：inttemp、Microfeat、pffmtable、ABC.unicharset
+ 
+6、  Clustering：
+ 
+运行文件：mftraining.cpp（类似5）
+ 
+运行文件：cntraining.cpp
+ 
+生成的文件：normproto
+ 
+7、  Dictionary Data：
+ 
+需要自己创建5个txt文件，如：frequent_words_list.txt、words_list.txt、punc_list.txt、number_list.txt、user_words_list.txt
+ 
+运行文件：wordlist2dawg.cpp
+ 
+生成的文件：ABC.freq-dawg、ABC.word-dawg、(ABC.punc-dawg、ABC.number-dawg、ABC.user-words)
+ 
+8、  The last file：
+ 
+需要自己手动创建一个unicharambigs文件
+ 
+9、  Putting it all together：
+ 
+将normproto, Microfeat, inttemp, pffmtable四个文件重命名以ABC.为前缀，分别改为ABC.normproto, ABC.Microfeat, ABC.inttemp, ABC.pffmtable
+ 
+运行文件：combine_tessdata.cpp
+ 
+生成的文件：ABC.traineddata
+ 
+ 
+ 
+以上的所有.cpp文件均可以根据自己的实际要求进行相应的修改。
+ 
+ 
+ 
+使用：
+ 
+将生成的ABC.traineddata文件拷贝到tessdata目录下，然后调用tesseractmain.cpp文件执行即可。
+ 
+ 
+ 
+参考文献：
+ 
+1、  http://code.google.com/p/tesseract-ocr/wiki/TrainingTesseract3
+ 
+2、  http://www.docin.com/p-216160535.html
+ 
+3、  http://blog.wudilabs.org/entry/f25efc5f/
+ 
+4、  http://blog.csdn.net/dyfleoo/article/details/6959591
+ 
+5、  http://blog.csdn.net/fengbingchun/article/details/6920667
+ 
+6、http://code.google.com/p/tesseract-ocr/wiki/ReadMe 
+ 
+分享到： 
+
+上一篇：C#中OpenFileDialog的使用
+下一篇：Log4cplus1.04的使用
+ .
+顶1踩0. 
+
+
+查看评论
+ 
+2楼 zuibunan14 2012-03-19 12:15发表[回复] 就是说可以在Debug模式下进行调试吗，我在XP下试试1楼 zuibunan14 2012-03-15 12:09发表[回复] 编译源码的时候，如果是debug版本，会出现“应用程序并行配置不正确”的问题，无法进行调试，但在Release版本不会出现这个问题。
+不知道你又没有遇到这样的问题？Re: fengbingchun 2012-03-15 17:51发表[回复] 回复zuibunan14：你用的是不是windows 7系统呀，我当时用的xp在Release和Debug下都没问题。
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+fengbingchun
+ 
+
+
+
+
+访问：146222次
+积分：2654分
+排名：第2176名
+.原创：70篇
+转载：258篇
+译文：0篇
+评论：129条
+. 
+文章分类2-D BarCode(1)
+CxImage(6)
+CMake(6)
+ActiveX(19)
+C#(5)
+Beyond Compare(1)
+Cloud Computing(1)
+Contour Detection(11)
+Code::Blocks(4)
+C/C++(27)
+Data Structures &amp; Algorithms(4)
+CImg(5)
+Database(1)
+DevPartner Studio(1)
+Emgu CV(1)
+Feature Extraction(1)
+GPU(1)
+Image Processing(18)
+Image Recognition(7)
+Image Registration(13)
+ImageMagick(4)
+Java(4)
+Linux(5)
+Log(2)
+Mathematical Knowledge(9)
+Matlab(34)
+MFC(15)
+MinGW(3)
+Neural Network(3)
+Non-technical(7)
+Notepad++(3)
+OCR(7)
+Office(2)
+OpenCV(65)
+OpenMP(3)
+Photoshop(2)
+Python(4)
+Software Development(11)
+System architecture(1)
+Subversion(5)
+Target Detection(2)
+Target Tracking(2)
+VC6(10)
+VS2008(24)
+Watermark(5)
+Windows7(4)
+wxWidgets(2)
+Windows Core Programming(31)
+ 
+Free Codes pudn 
+freecode 
+Peter's Functions 
+CodeProject 
+SourceCodeOnline 
+Computer Vision Source Code 
+Codesoso 
+Digital Watermarking 
+SourceForge 
+HackChina 
+oschina 
+libsvm 
+joys99 
+CodeForge 
+cvchina 
+tesseract-ocr 
+sift 
+TiRG 
+imgSeek 
+OpenSURF
+ 
+Friendly Link OpenCL 
+Python 
+poesia-filter 
+TortoiseSVN 
+imgSeek 
+Notepad 
+Beyond Compare 
+CMake 
+VIGRA 
+CodeGuru 
+vchome 
+aforgenet 
+CVLAB 
+Doxygen
+Coursera
+OpenMP
+ 
+Technical Forum Matlab China 
+OpenCV China 
+The CImg Library 
+Open Computer Vision Library 
+CxImage 
+ImageMagick 
+ImageMagick China 
+OpenCV_China 
+Subversion China
+ 
+Technical Blog 邹宇华 
+深之JohnChen 
+HUNNISH 
+周伟明 
+superdont 
+carson2005 
+OpenHero 
+Netman(Linux) 
+wqvbjhc 
+yang_xian521 
+gnuhpc 
+gnuhpc 
+千里8848 
+CVART 
+tornadomeet 
+gotosuc 
+onezeros 
+hellogv 
+abcjennifer 
+crzy_sparrow 
+
+评论排行harris角点检测与ncc匹配(11)
+CImg库介绍(10)
+tesseract-ocr(10)
+图像配准算法(8)
+图像配准----RANSAC(7)
+OpenCV运动检测跟踪(blob track)框架组成模块详解(6)
+小波矩特征提取matlab代码(5)
+图像二值化----otsu（最大类间方差法、大津算法）(4)
+vigra1.8.0的使用(4)
+Windows7 64位下vs2008配置OpenCV2.3.1(4)
+ 
+最新评论 tesseract-ocr
+夏梦c: @fengbingchun:谢谢你耐心的解答 嘿 很感动 我自己在好好琢磨一下 
+
+tesseract-ocr
+fengbingchun: @dream_cl39:你可以先看看源代码中tesseract工程的实例代码，在此基础上进行修改。 
+
+tesseract-ocr3.02字符识别过程操作步骤
+fengbingchun: @dream_cl39::) 
+
+tesseract-ocr
+fengbingchun: @dream_cl39:不好意思，都过一年多了，找不到了，不过3.01的配置不难，建议你看看goog... 
+
+tesseract-ocr3.02字符识别过程操作步骤
+夏梦c: 还没看呢 谢谢 先顶一个 
+
+tesseract-ocr
+夏梦c: lz 能否把你自己用来测试配置好的3.01的例子发给我一下 最好是可以打开 直接运行的 dream_... 
+
+tesseract-ocr
+夏梦c: @fengbingchun:谢谢 我用的是3.01的 那是不是我贴的那段代码哪里有问题呢 
+
+tesseract-ocr
+fengbingchun: @dream_cl39:我试着改了一下3.02，识别中文不会出现乱码了，你参考http://blog... 
+
+tesseract-ocr
+fengbingchun: @dream_cl39:你用的是3.01还是3.02,我试了试3.01没问题，3.02确实读中文有乱... 
+
+Windows 7 64位机上OpenCV2.4.3的编译、安装与配置
+fengbingchun: @dqgcs1990::) 
+
+
+阅读排行opencv 检测直线、线段、圆、矩形(3175)
+举例说明使用MATLAB Coder从MATLAB生成C/C++代码步骤(2846)
+图像配准算法(2776)
+图像处理和图像识别中常用的OpenCV函数(2548)
+二维物体形状识别方法比较(2112)
+opencv实现二值图像细化的算法(1826)
+cvDrawContours：在图像上绘制外部和内部轮廓(1733)
+opencv图像旋转(1692)
+图像二值化----otsu（最大类间方差法、大津算法）(1561)
+WIN32 C++ 遍历文件夹(1404)
+ 
+文章存档
+2013年01月(1).
+2012年12月(1).
+2012年11月(4).
+2012年10月(2).
+2012年09月(2).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

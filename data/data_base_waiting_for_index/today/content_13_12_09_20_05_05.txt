@@ -1,0 +1,66 @@
+
+Git服务器搭建及SSH无密码登录设置
+
+
+
+[日期：2011-12-03]
+
+来源：Linux社区  作者：mingz_free
+
+[字体：大 中 小] 
+
+
+
+
+
+
+
+
+
+
+服务器svn异常，恐其挂，遂转投Git.
+ 
+搭建过程中碰到一些问题，网上查到的答案很多都不完整，这里简单介绍一下.
+ 
+搭建环境:
+ 
+服务器一个,系统为Arch Linux,简称为A
+ 
+小组电脑B一台，系统为Ubuntu,简称为B
+ 
+两台电脑连接在实验室内部服务器中，动态分配ip.
+ 
+A是学长搭建，已经有ssh服务器功能，可以拨号上网。
+ 
+B是自己用的电脑，基本功能完善。
+ 
+过程简介:
+ 
+A和B分别安装git。
+ 
+在A中建立一个git帐号，用于多人使用。
+ 
+/home/git 下建立.ssh目录（注意，是.ssh。。有个点！)
+ 
+chmod 700 -R .ssh
+ 
+在B中使用ssh-keygen -t rsa 建立密匙和公匙，即id_rsa 和 id_rsa.pub
+ 
+将id_rsa.pub 拷贝到B的/home/git/.ssh/中，添加到authorized_keys文件后，如果没有这个文件可以如下:
+ 
+cat id_rsa.pub > authorized_keys
+ 
+将authorized_keys 权限改为644
+ 
+下面是关键，上面的网上都有讲，下面的很多人都忽略了，即sshd相关设置问题:
+ 
+打开文件/etc/ssh/sshd_config
+ 
+RSAAuthentication yes            #开启RSA认证功能
+ 
+PubkeyAuthentication yes      #开启公匙认证
+ 
+StricModes no                          #据说不改会强制要求登录用户和文件拥有者用户相同
+ 
+有了上面步骤，git服务器用起来就方便多了.......
+

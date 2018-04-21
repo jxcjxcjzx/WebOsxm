@@ -1,0 +1,457 @@
+
+
+Chinaunix首页　| 　论坛　| 　问答　| 　博客登录 | 注册
+
+
+
+博文博主
+
+
+
+
+
+
+
+
+
+
+残剑
+
+我觉得最有价值的东西就是——能和那些有梦想有追求有能力的人一起去经历那些最有意义的事情!
+
+
+•2013 Hadoop中国技术峰会（11.22-11.23，北京） 
+•第三届Oracle技术嘉年华（11.17-11.18，北京） 
+•2013阿里云开发者大会（10.24-10.26，杭州） 
+
+首页　| 　博文目录　| 　关于我
+ 
+
+
+
+
+txgc_wm
+•博客访问： 422032 
+•博文数量： 433 
+•博客积分： 9916 
+•博客等级： 中将 
+•技术积分： 5599 
+•用 户 组： 普通用户
+•注册时间： 2011-05-29 23:27 
+•
+
+•
+•
+•
+•
+
+
+个人简介
+
+简单！
+
+
+文章分类
+
+
+全部博文（439）
+•BackTrack（1） 
+•Mosquitto（2） 
+•OpenGL（1） 
+•SDL（2） 
+•Ubuntu Phone（1） 
+•Qt（1） 
+
+
+
+•V4L2（1） 
+•Android手机应用（2） 
+•VNC（1） 
+•Scala（3） 
+•数据库（13） 
+
+
+
+
+
+
+
+•JavaScript/Html（2） 
+•Server开发/搭建（10） 
+
+
+
+•GitHub（6） 
+•Android开发（51） 
+
+
+
+
+
+
+
+
+
+
+
+•DLAN技术（1） 
+•IDE编程环境（7） 
+•Upnp技术（1） 
+•Java（24） 
+
+
+
+
+
+
+
+•路由器/防火墙（8） 
+•数据结构/算法（7） 
+•加/解密（2） 
+•Shell（25） 
+
+
+
+
+
+•音视频编解码（14） 
+•Maven（2） 
+•网络应用（26） 
+
+
+
+
+
+
+
+•茶余饭后（38） 
+
+
+
+
+
+
+
+
+
+
+
+•学习建议（2） 
+•Cable技术（4） 
+•Ubuntu（46） 
+
+
+
+•Linux lib库文件（12） 
+•Linux设备驱动（16） 
+•计算机技术（2） 
+•Linux应用（66） 
+
+
+
+
+
+
+
+•嵌入式开发（39） 
+
+
+
+
+
+
+
+
+
+•未分配的博文（0） 
+
+
+文章存档
+
+
+2013年（57）
+
+
+
+
+
+
+
+
+
+2012年（326）
+
+
+
+
+
+
+
+
+
+
+
+
+
+2011年（50）
+
+
+
+
+
+
+
+我的朋友
+•
+jackywgw
+
+•
+zaroge
+
+•
+moonlehe
+
+•
+jizhao
+
+•
+platinum
+
+•
+duanlin
+
+•
+ccjsj1
+
+•
+aullik5
+
+•
+sure-fir
+
+
+
+最近访客
+•
+transist
+
+•
+gongg08
+
+•
+shenhail
+
+•
+三文冰鱼
+
+•
+wchming1
+
+•
+letmetry
+
+•
+辉捺天韵
+
+•
+zhangkai
+
+•
+terryjk
+
+
+
+订阅
+•
+•
+
+
+推荐博文
+•·HIVE的基础知识
+•·Metasploit【一】：BackTrack...
+•·/etc/sudoer文件配置简析...
+•·MySQL常见的出错代码解析...
+•·CISCO 端口出现err-disabled ...
+
+
+热词专题
+•·MYSQL插入二进制数据
+•·C 按行读写函数
+•·apache keepalived
+•·分盘分坏了开机找不到硬盘...
+•·递归调用的递归深度影响因素...
+ 
+
+
+
+ffmpeg主要数据结构及其之间的关系2013-01-11 21:58:16
+
+
+
+分类： LINUX
+
+
+
+
+一、FFMPEG数据结构
+
+
+      AVCodecContext：这是一个描述编解码器上下文的数据结构，包含了众多编解码器需要的参数信息。
+
+      如果是单纯使用libavcodec，这部分信息需要调用者进行初始化；如果是使用整个FFMPEG库，这部分信息在调用 av_open_input_file和av_find_stream_info的过程中根据文件的头信息及媒体流内的头部信息完成初始化。其中几个主要域的释义如下：
+
+    extradata/extradata_size： 这个buffer中存放了解码器可能会用到的额外信息，在av_read_frame中填充。一般来说，首先，某种具体格式的demuxer在读取格式头 信息的时候会填充extradata，其次，如果demuxer没有做这个事情，比如可能在头部压根儿就没有相关的编解码信息，则相应的parser会继 续从已经解复用出来的媒体流中继续寻找。在没有找到任何额外信息的情况下，这个buffer指针为空。
+    time_base：
+    width/height：视频的宽和高。
+    sample_rate/channels：音频的采样率和信道数目。
+    sample_fmt： 音频的原始采样格式。
+    codec_name/codec_type/codec_id/codec_tag：编解码器的信息。
+
+      AVStream：该结构体描述一个媒体流。
+
+      主要域的释义如下，其中大部分域的值可以由av_open_input_file根据文件头的信息确定，缺少的信息需要通过调用av_find_stream_info读帧及软解码进一步获取：
+
+    index/id：index对应流的索引，这个数字是自动生成的，根据index可以从AVFormatContext::streams表中索引到该流；而id则是流的标识，依赖于具体的容器格式。比如对于MPEG TS格式，id就是pid。
+    time_base：流的时间基准，是一个实数，该流中媒体数据的pts和dts都将以这个时间基准为粒度。通常，使用av_rescale/av_rescale_q可以实现不同时间基准的转换。
+    start_time：流的起始时间，以流的时间基准为单位，通常是该流中第一个帧的pts。
+    duration：流的总时间，以流的时间基准为单位。
+    need_parsing：对该流parsing过程的控制域。
+    nb_frames：流内的帧数目。
+    r_frame_rate/framerate/avg_frame_rate：帧率相关。
+    codec：指向该流对应的AVCodecContext结构，调用av_open_input_file时生成。
+    parser：指向该流对应的AVCodecParserContext结构，调用av_find_stream_info时生成。 
+
+     AVFormatContext：这个结构体描述了一个媒体文件或媒体流的构成和基本信息。
+
+      这是FFMpeg中最为基本的一个结构，是其他所有结构的根，是一个多媒体文件或流的根本抽象。其中:
+
+    nb_streams和streams所表示的AVStream结构指针数组包含了所有内嵌媒体流的描述；
+    iformat和oformat指向对应的demuxer和muxer指针；
+    pb则指向一个控制底层数据读写的ByteIOContext结构。
+    start_time和duration是从streams数组的各个AVStream中推断出的多媒体文件的起始时间和长度，以微妙为单位。 
+
+      通常，这个结构由av_open_input_file在内部创建并以缺省值初始化部分成员。但是，如果调用者希望自己创建该结构，则需要显式为该结构的一些成员置缺省值——如果没有缺省值的话，会导致之后的动作产生异常。以下成员需要被关注：
+
+    probesize
+    mux_rate
+    packet_size
+    flags
+    max_analyze_duration
+    key
+    max_index_size
+    max_picture_buffer
+    max_delay 
+
+     AVPacket：定义在avcodec.h中。FFMPEG使用AVPacket来暂存解复用之后、解码之前的媒体数据（一个音/视频帧、一个字幕包等）及附加信息（解码时间戳、显示时间戳、时长等）。其中：
+
+    dts表示解码时间戳，pts表示显示时间戳，它们的单位是所属媒体流的时间基准。
+    stream_index给出所属媒体流的索引；
+    data为数据缓冲区指针，size为长度；
+    duration为数据的时长，也是以所属媒体流的时间基准为单位；
+    pos表示该数据在媒体流中的字节偏移量；
+    destruct为用于释放数据缓冲区的函数指针；
+    flags为标志域，其中，最低为置1表示该数据是一个关键帧。 
+
+        AVPacket 结构本身只是个容器，它使用data成员指向实际的数据缓冲区，这个缓冲区可以通过av_new_packet创建，可以通过av_dup_packet 拷贝，也可以由FFMPEG的API产生（如av_read_frame），使用之后需要通过调用av_free_packet释放。 av_free_packet调用的是结构体本身的destruct函数，它的值有两种情况：1)av_destruct_packet_nofree或 0；2)av_destruct_packet，其中，前者仅仅是将data和size的值清0而已，后者才会真正地释放缓冲区。FFMPEG内部使用 AVPacket结构建立缓冲区装载数据，同时提供destruct函数，如果FFMPEG打算自己维护缓冲区，则将destruct设为 av_destruct_packet_nofree，用户调用av_free_packet清理缓冲区时并不能够将其释放；如果FFMPEG不会再使用 该缓冲区，则将destruct设为av_destruct_packet，表示它能够被释放。对于缓冲区不能够被释放的AVPackt，用户在使用之前 最好调用av_dup_packet进行缓冲区的克隆，将其转化为缓冲区能够被释放的AVPacket，以免对缓冲区的不当占用造成异常错误。而 av_dup_packet会为destruct指针为av_destruct_packet_nofree的AVPacket新建一个缓冲区，然后将原 缓冲区的数据拷贝至新缓冲区，置data的值为新缓冲区的地址，同时设destruct指针为av_destruct_packet。
+
+时间信息
+
+      时间信息用于实现多媒体同步。同步的目的在于展示多媒体信息时，能够保持媒体对象之间固有的时间关系。同步有两类，一类是流内同步，其主要任务是保证单个媒体流内的时间关系，以满足感知 要求，如按照规定的帧率播放一段视频；另一类是流间同步，主要任务是保证不同媒体流之间的时间关系，如音频和视频之间的关系（lipsync）。
+
+       对于固定速率的媒体，如固定帧率的视频或固定比特率的音频，可以将时间信息（帧率或比特率）置于文件首部（header），如AVI的hdrl List、MP4的moov box，还有一种相对复杂的方案是将时间信息嵌入媒体流的内部，如MPEG TS和Real video，这种方案可以处理变速率的媒体，亦可有效避免同步过程中的时间漂移。
+
+FFMPEG会为每一个数据包打上时间标 签，以更有效地支持上层应用的同步机制。时间标签有两种，一种是DTS，称为解码时间标签，另一种是PTS，称为显示时间标签。对于声音来说 ，这两个时间标签是相同的，但对于某些视频编码格式，由于采用了双向预测技术，会造成DTS和PTS的不一致。
+
+时间信息的获取：
+
+      通过调用av_find_stream_info，多媒体应用可以从AVFormatContext对象中拿到媒体文件的时间信息：主要是总时间长度和开始时间，此外还有与时间信息相关的比特率和文件大小。其中时间信息的单位是AV_TIME_BASE：微秒。 
+
+
+
+二、主要数据结构间的关系
+
+
+ 
+       1. 红色字体的first_protocol first_iformat first_avcodec， 这三个不同的头指针，分别为ffmpeg支持
+ 
+不同的数据源、不同格式以及不同编码的音视频数据提供了处理的可能。
+ 
+       2. ffplay主要划分为四大部分: 数据源, 解复用, 解码, 显示播放. ffplay使用SDL库进行视频显示和声音播放,至于同步在ffplay中自个做的.
+ 
+　　首先, 谈谈数据源相应的数据结构: URLContext, ByteIOContext. 这两个与音视频数据相关, URLProtocol
+ 
+体现在功能函数上. 上图中, URLContext的 void *priv_data 指向了FILE结构体, 其实这是作者的一点点失误,
+ 
+ffmpeg使用的是c的底层io, 没有使用stdio. c底层io是不带缓存的, 所以加上了ByteIOContext为无缓冲io提供缓
+ 
+存, 避免频繁的进行i/o操作.
+ 
+　　其次, 解复用对应的数据结构: AVFormatContext中的void *priv_data字段, AVStream, AVStream中void *
+ 
+priv_data结合AVInputeFormat的使用, 从下一层的ByteIOContext的buffer中将音视频数据分离.
+
+　　最后, 解码对应的数据结构: AVCodecContext, AVCodec体现在功能函数上, 其中AVCodecContext的void *priv_data字段是特定的decodec.
+ 
+　　数据源 --> char *buffer --> 解复用 --> AVPacket(音频包, 视频包) --> 解码 --> AVFrame(video) / audio_buffer(audio).
+ 
+       3. first_protocol将file, tcp, udp, rtp...数据当成协议看待, 各自均提供URLProtocol结构体实例以功能函数的形式进行体现. first_iformat将ffmpeg所支持的所有格式串连到一起, first_avcodec将ffmpeg支持的所有编码器串连到一起.
+ 
+　　三个指针链表是如何确定相应实例的呢?
+ 
+　　a. (first_protocol, argv[1]参数) 参数例如: file://pathname/filename 协议: file, 默认也为file; rtsp://ip_address/filename 协议:rtsp
+ 
+　　b. (first_iformat, is->iformat->read_probe()) 　
+ 
+　　c. (first_avcodec, is->iformat->read_head())
+
+
+
+
+
+阅读(607) | 评论(0) | 转发(1) | 
+
+
+0
+
+上一篇：hotplug应用实例：自动连接无线网
+
+下一篇：SDL使用
+
+
+相关热门文章
+•关于五星级酒店设计的几点...
+•超声波去眼袋解决了终身大事...
+•错峰出行 畅游香港纯玩旅游...
+•国庆访澳游客创新高，湖南在澳...
+•《甜心巧克力》曝特辑 林志玲...
+•linux 常见服务端口
+•【ROOTFS搭建】busybox的httpd...
+•什么是shell
+•linux socket的bug??
+•linux的线程是否受到了保护？...
+•南岸哪里有富婆包養鸭子信息...
+•如何通过手机号码定位找人?如...
+•门头沟哪里有怎么找富婆包养男...
+•通州区哪里有怎么找富婆包养男...
+•贵州怎么找富婆包养男人信息...
+
+
+
+给主人留下些什么吧！~~
+
+
+
+
+评论热议
+
+
+ 请登录后评论。 
+登录 注册
+ 
+
+关于我们 | 关于IT168 | 联系方式 | 广告合作 | 法律声明 | 免费注册
+Copyright 2001-2010 ChinaUnix.net All Rights Reserved 北京皓辰网域网络信息技术有限公司. 版权所有 
+
+感谢所有关心和支持过ChinaUnix的朋友们 
+京ICP证041476号 京ICP证060528号
+ 

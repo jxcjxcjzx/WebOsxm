@@ -1,0 +1,431 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+L-BAKE
+
+巴克的空间--JAVA
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+CSDN客服工作问卷调查        智能开发框架 JEECG 作者张代浩专访
+ 2012CSDN博客之星火热出炉！        2013年全国百所高校巡讲讲师招募 
+
+
+
+什么是代码的自文档化（Self Documenting Code）？ 
+.
+ 分类： JAVA基础2011-11-28 14:13129人阅读评论(0)收藏举报
+
+
+ 唯一能完整并正确地描述代码的文档时代码本身，通常情况下，这也是你能获得的唯一文档。因此，我们应当努力使代码成为良好的文档，一种人人可以读懂的文档。这也就是通常所说的良好的可读性，做到了这一点，犯错的可能性就降低了，同时代码的维护成本也降低了——人们不需要花太多时间去熟悉你的代码。（更多信息，可以参考Ward Cunningham的wiki）
+ 
+代码自文档化的技巧 
+
+我们可以采用多种方式来提高代码的可读性。其中一些技巧是非常基础的，我们在编程之初已学习过，而有些则更为巧妙。这里首先给出两个例子，加深一下你对代码可读性好坏的印象。
+ 
+
+
+
+[java] view plaincopyprint?
+01.让人郁闷的代码  
+02.static int fval(int i)  
+03.{  
+04.    int ret = 2;  
+05.    for (int n1 = 1, n2 = 1, i2 = i - 3; i2 >= 0; --i2)  
+06.    {  
+07.        n1 = n2; n2 = ret; ret = n1 + n2;  
+08.    }  
+09.    return (i < 2) ? 1 : ret;  
+10.}  
+
+ 
+
+
+[java] view plaincopyprint?
+01.让人舒服的代码  
+02.static int fibonacci(int position)  
+03.{  
+04.    if (position < 2)  
+05.    {  
+06.        return 1;  
+07.    }  
+08.  
+09.    int previousButOne = 1;  
+10.    int previous = 1;  
+11.    int answer = 2;  
+12.  
+13.    for (int n = 2; n < position; n++)  
+14.    {  
+15.        previousButOne = previous;  
+16.        previous = answer;  
+17.        answer = previousButOne + previous;  
+18.    }  
+19.  
+20.    return answer;  
+21.}  
+
+ 
+看到第一个函数，是不是想骂人了？骂完了，你还得跟踪代码才能了解代码在干什么；而第二个则很清晰，你会由衷的感谢代码的作者。事实上，两者的功能一样，都是计算斐波纳契序列的值。所以说，为了不被人骂，我们也得注重代码的可读性:) 下面来看看有哪些具体的技巧。
+ 1）好的代码样式 
+
+代码的样式极大地影响着代码的清晰度。
+ 
+a）让“正常”流程贯穿你的代码，异常情况不该扰乱它。比如在使用if…else…时。
+ 
+b）避免过多的嵌套
+ 
+c）还有其它更为基本的，比如代码行不要过长，一行内只有一个语句等等（见前面的坏例子）。
+ 
+2）选择有意义的名称 
+
+这一点怎么强调都不过分。如果文件、类型、函数、变量、参数都有了适当的名称，那么将减少大量的注释。这种方式可以让我们编写更接近于自然语言的代码。
+ 
+关于有意义的名称，可以写另一篇文章了。这里仅作简单介绍。
+ 
+a）属性、变量和参数命名
+ 
+如果是名词性的内容，用名词命名。如user，userName（考虑一下两者的不同），还有elapsedTime等等。
+ 
+如果是逻辑性的内容，要体现出来。比如isEmpty，isRunning等等。对比下面的代码：
+ 
+使用良好的命名
+ <!--
+ 
+Code highlighting produced by Actipro CodeHighlighter (freeware)
+ http://www.CodeHighlighter.com/
+ 
+-->if(isEmpty)
+ {
+ }
+ 
+if(flag)
+ {
+ }
+ 
+b）函数/方法命名
+ 
+函数往往表示行为，所以在逻辑上应包含一个动词，如Reset、Start等等。
+ 
+有时我们还可以隐含参数和返回值的信息，如看到ContainsKey，我们可以了解它的参数应当是key，而返回值为bool类型的值，表示是否包含该key。
+ 
+这样的例子，从.NET Framework的类库中可以大量看到，要学习这些规范，建议阅读《.NET设计规范》。
+ 
+回头看看那个可恶的fval()，你能看出它是干什么的吗？
+ 
+c）类型和命名空间的命名
+ 
+这些也有一些约定俗成的东西，比如Attribute、Exception和接口命名等等，最重要的是团队内保持一致。在此不再赘述。
+ 
+d）文件的命名 
+
+一般而言，文件的名字应该能反映出所包含的类型。但在.NET中，有partial类的概念，同一个类的代码可能分布在不同文件中，这时建议先对代码进行合理的分组，其中一个主文件，它的名称与类型名称相同，其它文件以此为基础，并且整个团队保持一致。比如ASP.NET中的Default.aspx.cs和Default.aspx.designer.cs。
+ 
+关于命名，还有一个要注意的地方：并非写得越多越好。比如PersonClass，DataObject，还有常见的匈牙利命名法，iCount，strName这样的都该放弃，别人从count和name就可以了解到足够的信息了。
+ 
+3）分解为原子函数 
+
+《重构》一书曾提到，“当我看到一段需要注释才能让人理解意图的代码，我就会将它放进一个独立的函数中”。这种方式衍生的一个问题是，函数细化到什么程度？
+ 
+a）一个函数，一种操作：同时为此操作起一个容易理解的名字，这时，注释还需要吗？
+ 
+b）减少副作用：副作用总需要额外的说明
+ 
+c）简短：虽然你是想只包含一种操作，但发现最后的代码竟然有数百行，那说明还不够细化，继续分解，如此递归下去
+ 
+4）通过语言层面的机制减少误解
+ 
+a）如果参数是非负整数，那么考虑用uint来代替int，否则就需要添加注释来说明
+ 
+b）如果需要一个不能被改变的值，就使用readonly或const
+ 
+c）使用枚举描述一组相关的值
+ 
+d）选择合适的修饰符，当你为方法使用的修饰符是public或private时，别人读到时的感受肯定不同
+ 
+5）使用常量 
+
+在阅读代码的时候，映入眼帘的如果是这样的代码：if(counter == 76)，相信你会变得紧张、不知所措，这样的数字称为魔数（Magic Number）。我们的程序不需要像魔术那样让人看不懂，我们现在讨论的是提高可读性。为它添加一个有意义的名字吧，比如bananasPerCake，它的一个额外好处是带来了更好的可维护性，因为现在只要修改一处。
+ 
+这里针对不仅仅是数字，而是任何让人看不懂的硬编码。
+ 
+6）强调重要的代码 
+
+有时代码的读者不需要了解所有信息，这时可以：
+ 
+a）在类中按一定的顺序进行声明。比如public的成员放在前面，这往往是读者最需要了解的，可以考虑的一种方式是使用C#中的#region。
+ 
+b）隐藏不重要的信息，这时自然就强调了重要的信息了
+ 
+c）限制嵌套的条件语句的数量，否则就容易掩盖那些重要的条件分支了
+ 
+7）考虑上下文信息 
+
+在一个地方就只考虑它该考虑的事情。比如异常处理，在团队内可以约定，统一在业务逻辑层进行处理，而不是在任何地方都进行处理。
+ 
+关于相关的技巧就写到这里，相信还会第8, 9, …, N条可以补充，不过在这些之后如果还是不满足怎么办？这时候考虑使用注释。
+ 
+N+1）编写有意义的注释 
+
+如果不能以代码本身的方式提高可读性，最后才考虑注释。关于编写注释，又可以写一篇文章了，这里只想说，把注释作为最后一种选择，而且添加的注释应该给代码带来附加价值。
+ 
+不过，我们总有犯错误的时候，怎样补救呢？重构代码吧，为了自己，也为了其他要阅读你代码的人。不过，可以使用一些好用的工具，免得在重构的时候继续犯错，这里推荐一个免费的工具：CodeRush Xpress，我曾做过一个介绍。它极大地增强了VS的重构能力，对于上面提供的几点比如代码样式、重命名、提取方法、提取常量都提供了良好的支持。
+ 
+最后，介绍一下我最近在考虑的一种编码方式，希望它能帮助你编写更具可读性的代码。 
+
+前面说了这么多，其目的就是让代码具有更好的可读性，那最有可读性的文本是什么呢？当然是自然语言，但我们不能以自然语言编码（至少现在还不行）。那么退一步，考虑伪代码，它介于自然语言和编程语言之间，形式非常灵活。如果能以伪代码的方式编码，是不是也很好？这里还是借助于CodeRush Xpress。
+ 
+以接近伪代码的方式编程 
+
+以我最近遇到的一个问题为例，不过要简化一下。客户需要以编程的方式从VSS上Checkout一个文件，现在了解到实现此功能需要的信息有文件的服务器端路径，本地路径，本次操作的注释信息，还有如果本地文件如果是可写的，要提示用户是否覆盖，暂时先考虑这些。首先对于输入的服务器端路径可能对应文件夹，也可能对应文件，要分开考虑，此时可以写出如下的代码：
+ 
+C# Code
+ <!--
+ 
+Code highlighting produced by Actipro CodeHighlighter (freeware)
+ http://www.CodeHighlighter.com/
+ 
+-->public void Checkout()
+ {
+     string serverPath;
+     string localPath;
+     string comment;
+ 
+    if (IsFile(serverPath))
+     {
+         CheckoutFile(serverPath, localPath, comment);
+     }
+     else
+     {
+         CheckoutFolder(serverPath, localPath, comment);
+     }
+ }
+ 
+
+这样需要三个新方法：IsFile、CheckoutFile和CheckoutFolder，注意它们的命名表达了我的思路（意图）。在VS中可以生成它们的方法存根：
+ 
+
+
+IsFile比较简单，先不管它，现在考虑CheckoutFile的实现。在Checkout一个文件时，要考虑本地文件可写的情况，可以写出如下的代码：
+ 
+C# Code
+ <!--
+ 
+Code highlighting produced by Actipro CodeHighlighter (freeware)
+ http://www.CodeHighlighter.com/
+ 
+-->private void CheckoutFile(string serverPath, string localPath, string comment)
+ {
+     if (IsWritable(localPath))
+     {
+         if (!WantToGetLocalCopy())
+         {
+             CheckoutWithoutGettingLocalCopy(serverPath, localPath, comment);
+         }
+     }
+ 
+    CheckoutAndGetLocalCopy(serverPath, localPath, comment);
+ }
+ 
+
+这里又添加了几个方法，方法名同样表达了思路。到这一步方法们都比较小了，可以直接实现，对于CheckoutFolder，也按同样方式实现。最后检查一下，开始声明的几个局部变量应该作为参数，把它们“提升”为参数：
+ 
+
+
+这样完成了Checkout方法。这种方式的好处在于基本上按照自然的思维方式来编码，把想做的事情命名为方法即可，可读性自然较高。而且，最终将方法分解、细化，符合前面的第三条。建议尝试一下这种方法。
+ 
+小结
+ 
+文档的可读性是如此重要，以至于可以作为程序员是否职业的一个标准。通过本文的分析可以了解到，使代码自文档化是提高可读性的最佳选择。
+ 
+ 
+ 
+分享到： 
+
+上一篇：hibernate 联合查询，返回多个表（对应着多个对象）的操作【元组】
+下一篇：java中计算两个日期相差几天
+ . 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+巴克
+ 
+
+
+
+
+访问：87900次
+积分：3349分
+排名：第1503名
+.原创：241篇
+转载：147篇
+译文：0篇
+评论：6条
+. 
+文章搜索
+
+. 
+文章分类dorado(26)
+Flex(11)
+Flex Java 通信：blazeds(2)
+HTML(8)
+HTML DOM(10)
+JavaScript知识(36)
+Java知识(75)
+JQuery+JSON(11)
+【H】hibernate知识(25)
+【S】spring知识(19)
+数据库(15)
+LINUX(0)
+ORACLE(9)
+JAVA基础(49)
+Myeclipse(16)
+日志(3)
+服务器(12)
+JAVA-相关配置【xml、properties】(9)
+其它资料(9)
+Jboss(1)
+JUnit4(2)
+struts2(7)
+java 多线程(1)
+servlet(2)
+webservice(6)
+事务控制(12)
+数据源配置(11)
+Atomikos 数据源(2)
+java 解析xml 或者properties(3)
+日期处理(1)
+浏览器展示pdf(1)
+Timer(1)
+海量数据查询(2)
+startUML(1)
+ 
+文章存档
+2013年01月(10).
+2012年12月(12).
+2012年11月(15).
+2012年10月(5).
+2012年09月(4).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+阅读排行js对象, 数组 , json 互相转换【jquery.json-2.3.js下载】(3731)
+如何向MyEclipse导入已有项目：(2828)
+获取java文件所在的路径(2131)
+盘点收房时常见六大问题(1816)
+WebLogic 服务器通过控制台部署war包(1504)
+Map：containsKey、containsValue 获取Map集合的键值的 值(1448)
+普通java类获取request(1277)
+在applicationContext.xml文件中配置SessionFactory和dataSource的bean(1168)
+CXF [web service]整合spring 总结(1030)
+session失效 :相关问题 session监听器(1022)
+ 
+评论排行在applicationContext.xml文件中配置SessionFactory和dataSource的bean(2)
+JS去掉字符串中的重复数据(2)
+监听器ServletContextListener小记(1)
+int转化为long(1)
+servlet 的web.xml配置文件中的介绍(0)
+hiberante 关联关系中CRUD的操作 cascade 和 fetch(0)
+hibernate JPA 关联关系 fetch(0)
+myeclipse building workspace如何禁止及提高myeclipse速度(0)
+FlexBuilder优化技巧(0)
+称隐式转换和强制转换(0)
+ 
+推荐文章 
+最新评论 在applicationContext.xml文件中配置SessionFactory和dataSource的bean
+guoyongfeng123: 谢谢，内容写得很好 
+
+int转化为long
+waiting_for_mm: 不错，我也碰到这个问题了，好了 
+
+监听器ServletContextListener小记
+kjmiou: 获取到端口没有?我现在是直接去读tomcat的文件获取的. 
+
+JS去掉字符串中的重复数据
+巴克: 目的不是去“，” 
+
+JS去掉字符串中的重复数据
+txm496200: 不能去掉“，” 
+
+在applicationContext.xml文件中配置SessionFactory和dataSource的bean
+wuming5920: 还是有点模糊，学习中。。。 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

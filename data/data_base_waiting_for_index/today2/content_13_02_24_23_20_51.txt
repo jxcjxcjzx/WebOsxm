@@ -1,0 +1,85 @@
+
+Discover  Docs  Blog  Community Sign inSign up   
+Docs
+Open webOS Architecture
+Developer Guide
+Developer Reference
+webOS Application APIs
+Add Contact
+Browser
+Calendar
+Email
+webOS Foundations
+webOS Service APIs
+webOS Data Types
+webOS Configuration Files
+Building Open webOS
+Porting Open webOS
+Share on linkedin Share on facebook Share on twitter Share on email More Sharing Services
+Add Contact
+The Contacts app will create a new contact and display a scene allowing the user to make edits or additions. Note that the contact is not actually created until the user presses the 'Done' option.
+
+To do this, create a Contact object and pass it to the Contacts app, which you can launch using the Application Manager's open method.
+
+See Also:
+
+Contacts schema
+Example
+
+	var contact = {
+	    name: {
+	        "familyName": "Doe",
+	        "givenName": "John",
+	        "middleName": "J.",
+	        "honorificPrefix": "Mr."
+	    },
+
+	    birthday: "1977-01-18",
+	    nickname: "Johnny",
+	    phoneNumbers: [{
+	            value: "4085555678",
+	            type: "type_work",
+	            primary : true
+	        },{
+	            value: "4085558765",
+	            type: "type_fax",
+	            primary : false
+	        }
+	    ],
+	    emails: {
+	        value: "john@does.com",
+	        type: "type_work",
+	        primary : true
+	    },
+	    addresses: {
+	        "streetAddress": '123 Main St.',
+	        "locality": 'Centerville',
+	        "region": "CA",
+	        "postalCode": '98765',
+	        "country": "USA"
+	    },
+	    organizations : {
+	        "name"        : "John Doe and Sons",
+	        "title"       : "CEO",
+	        "primary"     : true
+	    }
+	}
+
+	this.controller.serviceRequest("palm://com.palm.applicationManager", {
+	    method: "open",
+	    parameters: 
+	        {
+	            id: "com.palm.app.contacts",
+	            params: 
+	            {
+	                contact: contact,
+	                launchType: "newContact"
+	            }
+	        }
+	});
+485 Potrero Ave. Sunnyvale, CA 94085 
++1 408-617-7000 Main Phone
+Careers
+Sponsored by 
+© 2012 Hewlett-Packard Development Company, L.P. The information contained herein is subject to change without notice. 
+All screen images simulated. Site is best viewed in Chrome, Firefox, Safari, IE9 and above.  Privacy Policy  Terms of Use

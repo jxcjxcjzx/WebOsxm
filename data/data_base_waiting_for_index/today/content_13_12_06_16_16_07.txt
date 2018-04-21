@@ -1,0 +1,285 @@
+
+相册广场游戏登录注册关注此空间
+长江的空间
+技术的汇集地：人杰地灵．
+2007-11-04 17:33 java实现的简单文本编辑器 代码实现（二）
+/***********************************************************************************************/
+//FontEdit
+package edit;
+import javax.swing.*;
+import java.awt.BorderLayout;
+import javax.swing.BorderFactory;
+import java.awt.Rectangle;
+import javax.swing.border.TitledBorder;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.Dimension;
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseAdapter;
+/**
+* <p>Title: 文本字体设置 </p>
+* @author not attributable
+* @version 1.0
+*/
+public class FontEdit extends JFrame {
+    private Edit edit;
+    public FontEdit(Edit edit) {
+        try {
+            jbInit();
+            this.edit = edit;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+    private void jbInit() throws Exception {
+        this.getContentPane().setLayout(null);
+        jList1.setBorder(BorderFactory.createEtchedBorder());
+        jList1.addMouseListener(new FontEdit_jList1_mouseAdapter(this));
+        jList1.setVisible(true);
+        //jList1.setBounds(new Rectangle(29, 66, 163, 175));
+        JScrollPane jScrollPane1 = new JScrollPane(jList1);
+        jScrollPane1.setBounds(new Rectangle(29, 66, 163, 175));
+        jComboBox1.setBounds(new Rectangle(224, 136, 130, 24));
+        jComboBox1.addActionListener(new FontEdit_jComboBox1_actionAdapter(this));
+        jLabel2.setBorder(null);
+        jButton1.setBounds(new Rectangle(248, 263, 86, 32));
+        jButton1.setText("关闭");
+        jButton1.addActionListener(new FontEdit_jButton1_actionAdapter(this));
+        jButton2.setBounds(new Rectangle(75, 263, 86, 32));
+        jButton2.setText("确认");
+        jButton2.addActionListener(new FontEdit_jButton2_actionAdapter(this));
+        jTextField1.setBorder(BorderFactory.createRaisedBevelBorder());
+        jTextField1.setText("    Hello world");
+        jTextField1.setBounds(new Rectangle(216, 173, 156, 67));
+        jCheckBox1.addActionListener(new FontEdit_jCheckBox1_actionAdapter(this));
+        jCheckBox2.addActionListener(new FontEdit_jCheckBox2_actionAdapter(this));
+        this.getContentPane().add(jScrollPane1);
+        jLabel3.setText("字体大小：");
+        jLabel3.setBounds(new Rectangle(216, 101, 103, 28));
+        jCheckBox2.setText("斜体");
+        jCheckBox2.setBounds(new Rectangle(302, 66, 67, 25));
+        jLabel2.setText("样式：");
+        jLabel2.setBounds(new Rectangle(217, 35, 136, 26));
+        jCheckBox1.setText("粗体");
+        jCheckBox1.setBounds(new Rectangle(217, 64, 76, 27));
+        this.getContentPane().add(jCheckBox1);
+        this.getContentPane().add(jLabel1);
+        this.getContentPane().add(jCheckBox2);
+        this.getContentPane().add(jLabel2);
+        this.getContentPane().add(jLabel3);
+        this.getContentPane().add(jComboBox1);
+        this.getContentPane().add(jButton2);
+        this.getContentPane().add(jButton1);
+        this.getContentPane().add(jTextField1);
+        jLabel1.setText("字体：");
+        jLabel1.setBounds(new Rectangle(27, 35, 158, 22));
+        //========================================
+        //jList1得到本地所有字体
+        String[] fonts = java.awt.GraphicsEnvironment.
+                         getLocalGraphicsEnvironment().
+                         getAvailableFontFamilyNames();
+        jList1.setListData(fonts);
+        //jComboBox1得到字体大小
+        for (int i = 1; i < 30; i++) {
+            jComboBox1.addItem(i);
+        }
+        this.jComboBox1.setSelectedItem(14);
+        this.setSize(new Dimension(400, 340));
+        this.setLocation((this.getToolkit().getScreenSize().width - 400) / 2,
+                         (this.getToolkit().getScreenSize().height - 340) / 2);
+        this.setVisible(true);
+    }
+    JList jList1 = new JList();
+    JLabel jLabel1 = new JLabel();
+    JCheckBox jCheckBox1 = new JCheckBox();
+    JLabel jLabel2 = new JLabel();
+    JCheckBox jCheckBox2 = new JCheckBox();
+    JLabel jLabel3 = new JLabel();
+    JComboBox jComboBox1 = new JComboBox();
+    JButton jButton1 = new JButton();
+    JButton jButton2 = new JButton();
+    JTextField jTextField1 = new JTextField();
+    TitledBorder titledBorder1 = new TitledBorder("");
+    public void jButton2_actionPerformed(ActionEvent e) {
+        //设置字体
+        if (!jList1.isSelectionEmpty()) {
+            font = jList1.getSelectedValue().toString();
+        }
+        //设置字体样式
+        this.setStyle();
+        //设置字体大小
+        size = (Integer)this.jComboBox1.getSelectedItem();
+        //设置edit窗体的文本字体
+        this.setFonts(edit.jTextArea1);
+        //完成后隐藏
+        this.setVisible(false);
+    }
+    private static String font = "宋体";
+    private static int style = java.awt.Font.PLAIN;
+    private static int size = 14;
+    /**
+     * 设置任意控件的字体
+     * @param c Component 控件
+     */
+    private void setFonts(java.awt.Component c) {
+        c.setFont(new java.awt.Font(font, style, size));
+    }
+    /**
+     * 设置字体的样式
+     */
+    private void setStyle() {
+        style = java.awt.Font.PLAIN;
+        if (jCheckBox1.isSelected()) {
+            style += java.awt.Font.BOLD;
+        }
+        if (jCheckBox2.isSelected()) {
+            style += java.awt.Font.ITALIC;
+        }
+    }
+    /**
+     * 字体选择事件
+     * @param e MouseEvent 鼠标单击
+     */
+    public void jList1_mouseClicked(MouseEvent e) {
+        if (!jList1.isSelectionEmpty()) {
+            font = jList1.getSelectedValue().toString();
+            this.setFonts(this.jTextField1);
+        }
+    }
+    /**
+     * 字体样式选择事件1
+     * @param e ActionEvent 选择事件
+     */
+    public void jCheckBox1_actionPerformed(ActionEvent e) {
+        this.setStyle();
+        this.setFonts(this.jTextField1);
+    }
+    /**
+     * 字体样式选择事件2
+     * @param e ActionEvent 选择事件
+     */
+    public void jCheckBox2_actionPerformed(ActionEvent e) {
+        this.setStyle();
+        this.setFonts(this.jTextField1);
+    }
+    /**
+     * 关闭按钮事件
+     * @param e ActionEvent
+     */
+    public void jButton1_actionPerformed(ActionEvent e) {
+        this.setVisible(false);
+    }
+    /**
+     * 字体大小选择事件
+     * @param e ActionEvent
+     */
+    public void jComboBox1_actionPerformed(ActionEvent e) {
+        size=(Integer)jComboBox1.getSelectedItem();
+        this.setFonts(this.jTextField1);
+    }
+}
+
+class FontEdit_jComboBox1_actionAdapter implements ActionListener {
+    private FontEdit adaptee;
+    FontEdit_jComboBox1_actionAdapter(FontEdit adaptee) {
+        this.adaptee = adaptee;
+    }
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jComboBox1_actionPerformed(e);
+    }
+}
+
+class FontEdit_jButton1_actionAdapter implements ActionListener {
+    private FontEdit adaptee;
+    FontEdit_jButton1_actionAdapter(FontEdit adaptee) {
+        this.adaptee = adaptee;
+    }
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jButton1_actionPerformed(e);
+    }
+}
+
+class FontEdit_jCheckBox1_actionAdapter implements ActionListener {
+    private FontEdit adaptee;
+    FontEdit_jCheckBox1_actionAdapter(FontEdit adaptee) {
+        this.adaptee = adaptee;
+    }
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jCheckBox1_actionPerformed(e);
+    }
+}
+
+class FontEdit_jCheckBox2_actionAdapter implements ActionListener {
+    private FontEdit adaptee;
+    FontEdit_jCheckBox2_actionAdapter(FontEdit adaptee) {
+        this.adaptee = adaptee;
+    }
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jCheckBox2_actionPerformed(e);
+    }
+}
+
+class FontEdit_jList1_mouseAdapter extends MouseAdapter {
+    private FontEdit adaptee;
+    FontEdit_jList1_mouseAdapter(FontEdit adaptee) {
+        this.adaptee = adaptee;
+    }
+    public void mouseClicked(MouseEvent e) {
+        adaptee.jList1_mouseClicked(e);
+    }
+}
+
+class FontEdit_jButton2_actionAdapter implements ActionListener {
+    private FontEdit adaptee;
+    FontEdit_jButton2_actionAdapter(FontEdit adaptee) {
+        this.adaptee = adaptee;
+    }
+    public void actionPerformed(ActionEvent e) {
+        adaptee.jButton2_actionPerformed(e);
+    }
+}
+#Java
+分享到： 浏览(829) 评论 转载
+你可能也喜欢
+
+ 秋天，我来过
+秋天，我来过
+ 　她有一套漂亮的假动作。
+　她有一套漂亮的假动作。
+ 雾霾之秋
+雾霾之秋
+ 【空间周刊 - 人物志 - Vol 10】特别访谈：城市女巫---安2046
+【空间周刊 - 人物志 - Vol 10】特别访谈：城市女巫---安2046
+ 今夕夏花暮雨开
+今夕夏花暮雨开
+ 喜宴
+喜宴
+ Eclipse 中警告：不能读取 AppletViewer 的属性文件解决
+Eclipse 中警告：不能读取 AppletViewer 的属性文件解决
+本文最近访客
+
+ 孙悟空54
+孙悟空54
+8月9日
+ wrskook
+wrskook
+5月28日
+ BIA012790197
+BIA012790197
+4月15日
+ 桜井真一
+桜井真一
+1月6日
+ 与风齐菲
+与风齐菲
+1月3日
+评论
+
+帮助中心 | 空间客服 | 投诉中心 | 空间协议
+©2013 Baidu
+
+百度空间，让世界发现你
+向世界展示自己，发布喜爱的图片、文字和音乐
+简单注册登录
+

@@ -1,0 +1,941 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+首页
+我的主页
+相册
+广场
+游戏
+
+ 昵称搜索
+ 
+
+
+消息 
+ 
+
+私信
+ 
+模板
+ 
+设置
+ 
+退出 
+
+关注此空间
+ 
+
+
+
+
+
+
+
+
+默念、情
+
+
+
+ 
+
+
+
+
+
+
+2012-10-16 20:08
+
+Qt常用类
+ 
+
+
+QChar            表示一个字符的类,包含于QtCore
+
+判断:
+
+bool isDigit() const;//判断是否是十进制数字('0'-'9')
+
+bool isLetter() const;//判断是否是字母
+
+bool isNumber() const;//判断是否是数字,包括正负号,小数点等
+
+bool isLetterOrNumber() const;//判断力是否是字母或数字
+
+bool isLower() const;判断是否是小写字母
+
+bool isUpper() const;//判断是否是大写字母
+
+bool isNull() const;//判断是否是空字符'0'
+
+bool isPrint() const;//判断是否是可打印字符
+
+bool isSpace() const;//判断是否是分隔符,包括空格等
+
+转换:
+
+char toAscii() const;//得到字符的ASCII码
+
+QChar toLower() const;//转换成小写字母
+
+QChar toUpper() const;转换成大写字母
+
+ushort unicode() const;//得到Unicode编码
+
+比较:
+
+bool operator != (QChar c1, QChar c2);//判断c1是否不等于c2
+
+bool operator < (QChar c1, QChar c2);//   ......是否小于...
+
+bool operator <= (QChar c1, QChar c2);
+
+bool operator == (QChar c1, QChar c2);
+
+bool operator > (QChar c1, QChar c2);
+
+bool operator >= (QChar c1, QChar c2);
+
+QString          表示字符串的类,包含于QtCore
+
+判断:            bool isEmpty() const; //判断是否为空字符串
+
+转换:            将字符串转换成数值
+
+double toDouble(bool *ok = 0) const;//ok参数指向一个bool型变量,这个参数用于指出转换是否成功的信息.       
+
+float toFloat(bool *ok = 0) const;
+
+int toInt(bool *ok = 0, int base = 10) const;//base则有是转换成整数类型时的基,十进制就是10,八进制就是8
+
+long toLong(bool *ok = 0, int base = 10) const;//长整型数
+
+short toShort(bool *ok = 0, int base = 10) const;//短整型数
+
+uint toUInt(bool *ok = 0, int base = 10) const;
+
+ulong toULong(bool *ok = 0, int base = 10) const;
+
+ushort otUShort(bool *ok = 0, int base = 10) const;
+
+QString toLower() const;//转换为小写
+
+QString toUpper() const;//转换成大写
+
+比较:
+
+int compare(const QString &s1, const QString &s2, 
+
+Qt::CaseSensitivity cs = Qt::CaseSensitive );//比较两个字符串,
+
+参数cs有两个取值, Qt::CaseInsensitive表示对大小写不敏感 Qt::CaseSensitive表示敏感
+
+返回值的含义:大于0表示s1大于s2,等于0表示相等,小于0表示小于
+
+查找:
+
+bool contains(const QString &str(或QChar ch),
+
+Qt::CaseSensitivity cs = Qt::CaseSensitive) const;//判断QString对象是否包含指定的字符串或字符
+
+int count(const QString &str(或QChar ch),
+
+Qt::CaseSensitivity cs = Qt::CaseSensitive) const;//得到包含某特定字符串或字符个数
+
+int indexOf(const QString &str(或QChar ch), int from = 0,//from是查找的起点
+
+Qt::CaseSensitivity cs = Qt::CaseSensitive) const;//得到某个特定字符串或字符位置
+
+字符串处理:
+
+QString &operator = (const QString &other);//复制另外一个QString对象other
+
+QString &operator = (const char *str);//复制普通字符串
+
+QString &operator = (char ch);//复制字符
+
+QString &operator = (QChar ch);//复制QChar类对象
+
+以下函数可将另一个字符串或字符接在QString对象后面,形成一个整体的字符串:
+
+QString &append(const QString &str);接续QString对象
+
+QString &append(const char *str);//接续普通字符串
+
+QString &append(QChar ch);//接续QChar对象
+
+!!如果把append换成prepend,则表示接在原字符串的前面
+
+!!!!!用法:如: QString str; str.append("hello");就表示在str后面接上"hello"
+
+在QString对象的任意位置插入另一个字符串或字符:
+
+QString &insert(int position, const QString &str);插入字符串
+
+QString &insert(int position, const QChar *pch, int size);//插入QChar数组
+
+QString &insert(int position, QChar ch);//插入QChar对象
+
+QString &remove(int position, int n);//移除QString对象中从位置position开始的n个字符
+
+QString &remove(QChar ch, Qt::CaseSensitivity cs = Qt::CaseSensitive);//这个和下面的句子都是移除指定的字符串或字符
+
+QString &remove(const QString &str, Qt::CaseSensitivity cs = Qt::CaseSensitive
+
+替换操作:       将QString对象从position开始的n个字符替换为新内容
+
+QString &replace(int position, int n, const QString &after);//替换QString对象
+
+QString &replace(int position, int n, const QChar *pch, int size);//替换QChar数组
+
+QString &replace(int position, int n, QChar after);//替换QChar对象
+
+如果形如:QString &replace(const QString &before, const QString &after, Qt::CaseSensitivity cs = Qt::CaseSensitive);则可以搜索指定的字符串或字符进行替换
+
+清空一个QString对象的内容,使这成为空字符串:  void clear();
+
+截断QString对象,也就是去年指定位置后的所有内容:  void truncate(int position);
+
+截掉QString对象最后的若干个字符:   void chop(int n);//截掉最后的n个字符
+
+以下函数可以得到QString对象的子字符串:
+
+QString left(int n) const;//得到左边n个字符构成的子字符串
+
+QString right(int n) const;//得到右边n个字符构成的子字符串
+
+QString mid(int position, int n = -1);//从中间得到子字符串,position是子字符串的起始位置,n是字符的个数,如果n为-1,则表示一直到原字符串的结尾
+
+注意上述三个函数并不修改QString对象自身,而是返回一个临时对象以供使用
+
+截去对象中头部和尾部的空白字符(包括空格,回车,换行,制表符等):  QString trimmed() const;
+
+这个函数不仅去掉对象头尾的空白字符,还能将中间的连续多个空白字符全部替换成一个空格:   QString simplified() const;
+
+索引:   QString类也像普通的字符串一样可以根据下标得到某个位置上的字符
+
+const QChar operator[](int(或uint) position) const;//这样对对象的取字符操作就类似于对一个字符数组的操作
+
+统计:    以下两个成员函数都可以得到QString对象中字符的个数
+
+int size() const;       int length() const;     注意字符的个数并不一定等于字节数
+
+QPorint:      代表一个坐标点,从属于QtCore库,可以认为是一个整型的横坐标和一个整型的纵坐标的组合
+
+构造:
+
+QPoint();//构造横纵坐标均为0的QPoint对象
+
+QPoint(int x, int y);//构造横纵坐标分别为x和y的QPoint对象
+
+属性:         
+
+通过下面两个函数可以得到QPoint对象中的横纵坐标的引用,这些引用都不是只读的,也就是说可以通过它们直接修改QPoint对象的横纵坐标
+
+int &rx();//得到横坐标的引用
+
+int &ry();//等到纵坐标的引用
+
+设置QPoint对象中的横纵坐标:
+
+void setX(int x);//设置横坐标为x
+
+void setY(int y);//设置纵坐标为y
+
+下面两个函数则是只读的,可以获得QPoint对象中的横纵坐标:
+
+int x() const;//获得横坐标
+
+int y() const;//获得纵坐标
+
+操作符:   支持加法和减法的复合赋值操作
+
+QPoint &operator += (const QPoint &point);//加赋值
+
+QPoint &operator -= (const QPoint &point);//减赋值
+
+const QPoint operator + (const QPoint &p1, const QPoint &p2);//加法
+
+const QPoint operator - (const QPoint &p1, const QPoint &p2);//减法
+
+const QPoint operator - (const QPoint &point);//取负数
+
+bool operator == (const QPoint &p1, const QPoint &p2);//判断是否相等
+
+bool operator != (const QPoint &p1, const QPoint &p2);//判断是否不等
+
+QSize:           代表一个矩形区域的大小,从属于QtCore库,可以认为是由一个整型的宽度和整型的高度组合而成的
+
+构造:
+
+QSize();//构造一个非法的QSize对象
+
+QSize(int width, int height);//构造宽度为width,高度为height的QSize对象
+
+属性:
+
+int &rwidth();//得到宽度的引用,这两个引用可直接修改对象的宽度和高度
+
+int &rheight();//得到高度的引用
+
+void setWidth(int width);//设置宽度
+
+void setHeight(int height);//设置高度
+
+int width() const;//获得宽度,这两个都不能修改
+
+int height() const;//获得高度
+
+操作符:        支持和QPoint类相似的操作符
+
+QRect       代表一个矩形区域,实现在QtCore库,是一个QPoint对象和一个QSize对象的组合,QPoint对象是它的左上角的坐标,QSize对象则是它的大小
+
+构造:
+
+无参数的构造函数QRect()将构造一个高度和宽度都为0的矩形区域,
+
+QRect(const QPoint &topLeft, const QSize &size);//构造一个左上角坐标为topLeft,大小为size的矩形区域,
+
+QRect(int x, int y, int width, int height);等价于:QRect(QPoint(x, y), QSize(width, height));//构造一个左上角横纵坐标分别为x和y,宽度为width,高度为height的矩形
+
+属性: 
+
+获取属性:int left/top/x/y/width/height/topLeft/size() const;
+
+设置属性:void返回类型,然后在前面要加上set
+
+void setRect(int x, int y, int width, int height);//改变矩形区域的所有属性
+
+void moveLeft(int x);//左上角横坐标移动到x
+
+void moveTop(int y);//左上角纵坐标移动到y
+
+void moveTopLeft(const QPoint &position);左上角坐标移动到position
+
+void moveTo(int x, int y);//左上角坐标移动到(x,y)
+
+void moveTo(const QPoint &position);//左上角坐标移动到position
+
+操作符:
+
+按位与操作符可以求两个QRect对象的相交区域:
+
+QRect operator & (const QRect &rectangle) const;//求相交区域
+
+QRect &operator &= (const QRect &rectangle);//求相交区域后赋值
+
+按位或操作符可以得到能够同时包含两个QRect对象的最小矩形区域;
+
+QRect operator | (const QRect &rectangle) const;//求合并区域
+
+QRect &operator |= (const QRect &rectangle);//求合并区域后赋值
+
+判断相等与否:
+
+bool operator != (const QRect &r1, const QRect &r2);//判断是否不等
+
+bool operator == (const QRect 7r1, const QRect &r2);//判断是否相等
+
+QFont:       代表字体,实现在QtGui库中
+
+构造:
+
+QFont();//由应用程序的默认字体构造亲字体对象
+
+QFont(const QString &family, int pointSize = -1, int weight = -1, bool italic = false);
+
+//family:字体的名称. pointSize:字体的点大小,如果这个参数小于等于0,则自动设为12. weight:字体的粗细. italic:字体是否为斜体
+
+QPixmap:   代表图像,实现在QtGui库中
+
+构造:
+
+QPixmap();//构造大小为0的空图像
+
+QPixmap(const QSize &size);//构造大小为size的图像,图像数据未初始化
+
+QPixmap(int width, int height);//等价于QPixmap(QSize(width, height));
+
+QPixmap(const QString &fileName, const char *format = 0, Qt::ImageConversionFlags flags = Qt::AutoColor);//从指定的文件中加载图像并生成QPixmap对象
+
+//fileName:文件名.. format:字符串,表示图像文件的格式,如果为0,将进行自动识别..flags:表示颜色的转换模式
+
+图像参数:
+
+int depth() const;//颜色深度,即每像素所占的byte(比特)数
+
+int width() const;//图像宽度,单位是像素
+
+int height() const;//图像高度,单机是像素
+
+QSize size() const;//图像的大小,即QSize(width(), height());
+
+QRect rect() const;//图像的矩形区域,即QRect(QPoint(0,0), size());
+
+加载和保存图像:
+
+bool load(const QString &fileName, const char *format = 0, QT:ImageConversionFlags flags = Qt::AutoColor);
+
+//从文件中加载图像,返回true表示加载成功,false则表示加载失败
+
+bool save(const QString &fileName, const char *format = 0, int quality = -1) const;
+
+//将图像保存到文件,  fileName:文件名. format:字符串,表示图像文件的格式,如果为0,自动确定.  quality:表示图像保存的质量,质量越低压缩率越大,越不清晰,取值范围为0~100,-1表示采用默认值.
+
+判断:         bool isNull() const;//判断是否为空图像
+
+QIcon:        代表图标,实现在QtGui库中,是一系列图像的组合,每个图像代表窗口在某种状态下应该显示的图标
+
+构造:
+
+QIcon();//构造一个空图像构成的图标
+
+QIcon(const QPixmap &pixmap);//从QPixmap对象构造图标,此时系统会自动产生窗口不同状态下对应的图像,比如窗口在禁用状态下其图标为灰色
+
+QIcon(const QString &fileName);//从图像文件构造图标,此时,文件并不是立刻加载,而是当图标要显示时才加载
+
+添加图像:
+
+void addFile(const &fileName, const QSize &size = QSize(), Mode mode = Normal, State state = Off);
+
+//fileName:文件名  size:指定大小　mode：指定使用模式，即窗口在何种状态下使用这个图像　state：指定使用状态
+
+//Mode为QIcon类的成员类型,有以下取值. QIcon::Normal:窗口为使能状态,但未激活 QIcon::Disabled:窗口为禁用状态 QIcon::Active:窗口为激活状态 QIcon::Selected:窗口被选中
+
+//QIcon::Off:窗口在关状态  QIcon::On:窗口在开状态
+
+void addPixmap(const QPixmap &pixmap, Mode mode = Normal, State state = Off);//直接将QPixmap对象添加到QIcon对象中,pixmap是要添加的QPixmap对象
+
+获取图像:
+
+QPixmap pixmap(const QSize &size, Mode mode = Normal, State state = Off) const;等价于pixmap(QSize(w,h), mode, state);//size是指定的大小, modet state则是使用模式和状态
+
+判断是否为空图像构成的图标:  bool isNull() const;
+
+QWidget:   代表一般的窗口,实现在QtGui库中
+
+构造:
+
+QWidget(QWidget *parent = 0, Qt::WindowFlags f = 0);
+
+//parent指向父窗口,如果这个参数为0,则窗口就成为一个顶级窗口
+
+//WindowFlags包括:
+
+Qt::FrameWindowHint:没有边框的窗口
+
+Qt::WindowStaysOnTopHint://总在最上面的窗口
+
+Qt::CustomizeWindowHint://自定义窗口标题栏,以下标志必须与这个标志一起使用才有效,否则窗口将有默认的标题栏
+
+Qt::WindowTitleHint:显示窗口标题栏
+
+Qt::WindowSystemMenuHint://显示系统菜单
+
+Qt::WindowMinimizeButtonHint://显示最小化按钮
+
+Qt::WindowMaximizeButtonHint://显示最大化按钮
+
+Qt::WindowMinMaxButtonsHint://显示最小化按钮和最大化按钮
+
+Qt::WindowCloseButtonHint://显示关闭按钮
+
+独立窗口:     窗口构造的时候如果有Qt::Window标志,那么它就是一个独立窗口,否则就是一个依附于其他独立窗口的窗口部件.
+
+独立窗口一般有自己的外边框和标题栏,可以有移动,改变大小等操作
+
+顶级窗口一定是独立窗口,但独立窗口不一定是顶级的,它可以有父窗口,当父窗口被析构时它也会随之被析构
+
+bool isWindow() const;//判断是否为独立窗口
+
+QWidget *window() const;//得到所在的独立窗口,当然,如果窗口本身就是独立窗口,那么得到的就是自己
+
+QWidget *parentWidget() const;//得到窗口的父窗口
+
+窗口标题:
+
+QString windowTitle() const;//获得窗口标题
+
+void setWindowTitle(const QString &text);//设置窗口标题
+
+几何参数:   指的是窗口的大小和位置,一个窗口有两套几何参数,一套是窗口外边框所占的矩形区域,另一套是窗口客户区所占的矩形区域,所谓窗口客户区就是窗口中除去边框和标题栏用来显示内容的区域
+
+对于一个窗口部件来说,它的两套几何参数是一致的
+
+const QRect &geometry() const;//获取客户区几何参数
+
+void setGeometry(int x, int y, int w, int h);//设置客户区几何参数
+
+void setGeometry(const QRect &rect);//设置客户区几何参数
+
+QRect framGeometry() const;//获取外边框几何参数
+
+QSize frameSize() const;//获得外边框的窗口大小
+
+void move(int x, int y);//将窗口左上角移动到期坐标(x,y)处 (外边框几何参数)
+
+void move(const QPoint &pos0;//将窗口左上角移动到pos处 (外边框几何参数)
+
+void resize(int w, int h);//将窗口的宽度改为w,高度改为h (客户区几何参数)
+
+void resize(const QSize &size);//将窗口的大小改为size (客户区几何参数)
+
+QRect rect() const;//获取窗口客户区域,它获得的坐标都是相对于窗口自己的客户区的,也就是说横纵坐标永远是0
+
+可见性与隐藏:    可见指是否显示在屏幕上的属性,被其他窗口暂时遮挡的窗口也属于可见的
+
+bool isVisible() const;//多年窗口是否可见
+
+bool isHidden() const;//判断窗口是否隐藏
+
+virtual void setVisible(bool visible);//设置窗口是否隐藏
+
+void setHidden(bool hidden);//等价于setVisible(hidden)
+
+void show();//显示窗口,等价于setVisible(true);  
+
+void hide();//隐藏窗口,等价于setHidden(true);
+
+窗口状态:
+
+bool isMinimized() const;//判断窗口是否为最小化
+
+bool isMaximized() const;//判断窗口是否为最大化
+
+bool isFullScreen() const;//判断窗口是否全屏
+
+void showMinimized();//以最小化方式显示窗口,这是一个槽
+
+void showMaximized();//以最大化方式显示窗口,这是一个槽
+
+void showFullScreen();//以全屏方式显示窗口,这是一个槽
+
+void showNormal();//以正常方式显示窗口,这是一个槽
+
+Qt::WindowStates windowState() const;//获取窗口状态
+
+void setWindowState(Qt::WindowStates windowState);//设置窗口状态
+
+这里的Qt::WindowStates有以下几个取值:  这些取值可以用"按位或"的方法组合起来使用
+
+Qt::WindowNoState:无标志,正常状态
+
+Qt::WinowMinimized:最小化状态
+
+Qt::WindowMaximized:最大化状态
+
+Qt::WindowFullScreen://全屏状态
+
+Qt::WindowActive:激活状态
+
+使能:   处于使能状态的窗口才能处理键盘和鼠标等输入事件,反之,处于禁用状态的窗口不能处理这些事件,是否处于使能状态由属性enabled表示
+
+bool isEnabled() const;//获得窗口的使能状态
+
+void setEnabled(bool enable);//设置窗口的使能状态,这是一个槽
+
+void setDisabled(bool disable);//等价于setEnabled(!disable),这是一个槽
+
+激活状态:   当有多个独立窗口同时存在时,只有一个处于激活状态
+
+bool isActiveWindow() const;//判断窗口所在的独立窗口是否激活
+
+void activateWindow()//设置窗口所在的独立窗口为激活状态
+
+焦点:        用来控制同一个独立窗口内哪一个部件可以接受键盘事件,同一时刻只能有一个部件获得焦点
+
+bool hasFocus() const;//判断窗口是否获得焦点
+
+void setFocus();//使窗口获得焦点,这是一个槽
+
+void clearFocus(0;//使窗口失去焦点
+
+QWidget *focusWidget() const;//得到窗口内获得焦点的子窗口
+
+事件:
+
+virtual void closeEvent(QCloseEvent *event);//关闭事件
+
+virtual void showEvent(QShowEvent *event);显示
+
+virtual void hideEvent(QHideEvent *event);//隐藏
+
+virtual void moveEvent(QMoveEvent *event);//移动
+
+virtual void resizeEvent(QResizeEvent *event);//改变大小
+
+virtual void keyPressEvent(QKeyEvent *event);//键盘键按下
+
+virtual void keyReleaseEvent(QKeyEvent *event);键盘键松开
+
+virtual void mousePressEvent(QMouseEvent *event);//鼠标键按下
+
+virtual void mouseReleaseEvent(QMouseEvent *event);//鼠标键松开
+
+virtual void mouseDoubleClickEvent(QMouseEvent *event);//鼠标键双击
+
+virtual void mouseMoveEvent(QMouseEvent *event);//鼠标移动
+
+virtual void enterEvent(QEvent *event);//鼠标进入窗口
+
+virtual void leaveEvent(QEvent *event);//鼠标离开窗口
+
+virtual void wheelEvent(QWheelEvent *event);//鼠标滚轮移动
+
+QDialog:         代表对话框,用来实现那些只是暂时存在的用户界面,是独立的窗口,但通常也有父窗口
+
+对话框有模态和非模态两种,,非模态对话框的行为和使用方法都类似于普通的窗口,模态对话框则有所不同,当模态对话框显示时,其他窗口将全部进入非激活状态,不能接受键盘和鼠标事件,
+
+模态的方式又可分为两种,一种是对整个应用程序模态,这时它的出现将导致程序中的所有窗口失去响应;另一种是对窗口模态,这时仅仅会导致它所在的整个窗口树失去响应
+
+构造:
+
+QDialog(QWidget *parent = 0, Qt::WindowFlags f = 0);
+
+模态性:
+
+void setModal(bool modal);//设置对话框的模态性,当modal为true时为模态,默认对整个应用程序模态
+
+void setWindowModality(Qt::WindowModality windowModality);//设为对窗口模态.Qt::WindowModality有以下取值:  Qt::NonModal:非模态 Qt::WindowModal:窗口模态 Qt::ApplicationModal:应用程序模态
+
+Qt::WindowModality windowModality() const;//得到窗口的模态性
+
+bool isModal() const;//判断窗口是否为模态的
+
+QLabel:  代表标签,是一个用于显示文本或图像的窗口部件
+
+构造:
+
+QLabel(QWidget *parent = 0, Qt::WindowFlags f = 0);
+
+QLabel(const QString &text, QWidget *parent = 0, Qt::WindowFlags f = 0);//能够同时通过参数text给出要显示的文本,因此是最常用的构造方式
+
+属性:
+
+QString text() const;//获取显示的文本
+
+void setText(const QString &text);//设置显示的文本,这是一个槽
+
+const QPixmap *pixmap() const;//获取显示的图像
+
+void setPixmap(const QPixmap &pixmap);//设置显示的图像,这是一个槽
+
+void setNum(int num);//设置显示的文本为代表整数num的字符串,这是一个槽
+
+void setNum(double num);//设置显示的文本为代表浮点数num的字符串
+
+void clear;//清空显示内容
+
+alignment代表显示内容的对齐方式:
+
+Qt::Alignment alignment() const;//获取对齐方式
+
+void setAlignment(Qt::Alignment align);//设置对齐方式
+
+Qt::Alignment有以下取值:  Qt::AlignLeft:水平方向靠左 Qt::AlignRight:水平方向靠右 Qt::AlignHCenter:水平方向居中 Qt::AlignJustify:水平方向调整间距两端对齐 
+
+Qt::AlignTop:垂直方向靠上 Qt::AlignBottom:垂直方向靠下 Qt::AlignVCenter:垂直方向居中 Qt::AlignCenter:等价于Qt::AlignHcenter | Qt::AlignVCenter,即水平和垂直方向都居中
+
+indent代表文本的缩进值:
+
+int indent() const://获取文本缩进值
+
+void setIndent(int indent);//设置文本缩进值
+
+margin代表显示内容的边距:
+
+int margin() const;//获取边距
+
+void setMargin(int margin);//设置边距
+
+wordWrap代表显示的文本是否允许换行:
+
+bool wordWrap() const;//判断是否允许换行
+
+void setWordWrap(bool on);//设置是否允许行换行
+
+scaledContents表示显示图像时是否允许缩放:
+
+bool hasScaledContents() const;//判断是否允许图像缩放
+
+void setScaledContents(bool on);//设置是否允许图像缩放,如果允许缩放,则显示图像时会进行缩放以填满整个显示区域
+
+QAbstractButton:   是QPushButton, QCheckBox,QRadioButton等类的基类,它可以代表按钮,单选钮,复选钮等重要窗口部件,通常不会直接使用这个类
+
+bool isCheckable() const;//判断是否支持开关状态
+
+void setCheckable(bool on);//设置是否支持开关状态
+
+bool isChecked() const;//判断是否打开
+
+void setChecked(bool on);//设置是否打开,这是一个槽
+
+bool autoExclusive() const;//判断是否排他
+
+void setAutoExclusive(bool on);//设置是否排他
+
+bool isDown() const;//判断是否被按下
+
+void setDown(bool on);//设置是否被按下,设置这个属性仅仅是改变按钮外观,不会发射任何信号
+
+QIcon icon() const;//获得图标
+
+void setIcon(const QIcon &icon);//设置图标
+
+QString text() const;//获得文本
+
+void setText(const QString &text);//设置文本
+
+QKeySequence shortcut() const;//获得快捷键
+
+void setShortcut(const QKeySequence &key);//设置快捷键
+
+设置快捷键所需的QKeySequence对象可用如下方式构造:QKeySequence("Ctrl+p");表示Ctrl+p组合键的QKeySequence对象
+
+QPushButton:     代表按钮,它继承了QAbstractButton,因此也有其全部的属性,信号和槽
+
+构造:
+
+QPushButton(QWidget *parent = 0);
+
+QPushButton(const QString &text, QWidget *parent = 0);
+
+QPushButton(const QIcon &icon, const QString &text, QWidget *parent = 0);//text是按钮上显示的文本,icon是按钮的图标,生成的对象默认是没有开关状态的
+
+属性:
+
+bool isFlat() const;//判断外观是否为扁平状
+
+void setFlat(bool flat);//设置外观是否为扁平状
+
+如果为true,则按钮是扁平的,否则就是立体的
+
+如果一个按钮在对话框中,那么它就有默认和自动默认的概念,分别由default属性以及autoDefault属性控制:
+
+bool isDefault(0 const;//判断按钮是否为默认按钮
+
+void setDefault(bool on);//设置按钮是否为默认按钮
+
+bool autoDefault() const;//判断按钮是否为自动默认按钮
+
+void setAutoDefault(bool)//设置按钮是否为自动默认按钮
+
+对话框中同一时刻只能有一个默认按钮,当用户按回车键时,等价于在对话框中单击这个按钮.实际上,对话框中还有一个主默认按钮的概念.
+
+一个自动默认按钮得到焦点时,就会变成默认按钮;失去焦点时,主默认按钮就成为默认按钮.
+
+而设置一个按钮的默认属性为true将同时使它成为对话框的主默认按钮
+
+QCheckBox:        代表复选按钮,也是继承QAbstractButton类
+
+构造:
+
+QCheckBox(QWidget *parent = 0);
+
+QCheckBox(const QString 7text, QWidget *parent = 0)//text表示要显示的文本,生成的复选按钮默认是不排他的
+
+属性:
+
+bool isTristate() const;//判断是否是三态的
+
+void setTristate(bool y = true);//设置是否为三态的
+
+三态的复选钮不只有打开和关闭两种状态,其状态由checkState属性来代表:
+
+Qt::CheckState checkState() const;//获得状态
+
+void setCheckState(Qt::CheckState state);//设置状态
+
+Qt::CheckState是一个枚举类型,它的取值: Qt::Unchecked:未选中 Qt::PartiallyChecked:部分选中 Qt::Checked:选中
+
+部分选中的状态经常用来表示一个选项树中某个选项的子选项有的选中,有的未选的状态.如果一个复选钮不是三态的,则也可以用从QAbstractButton继承来的checked属性操作它的状态
+
+void stateChanged(int state);//当复选钮的状态发生变化时,将发射以下信号,其中state表示复选按钮的新状态
+
+QRadioButton:    表示单选钮,也继承了QAbstractButton类
+
+构造:  QRadioButton(const QString &text, QWidget *parent = 0);生成的单选钮默认是排他的
+
+QLineEdit:     表示编辑框,它可以让用户输入一个单行文本
+
+构造:
+
+QLineEdit(QWidget *parent = 0);
+
+QLineEdit(const QString &contents, QWidget *parent = 0);//contents表示编辑框的内容
+
+属性:
+
+Qt::Alignment alignment() const;//获取对齐方式
+
+void setAlignment(Qt::Alignment flag);//设置对齐方式,Qt::Alignment与QLabel类的alignment属性相同
+
+int maxLength() const;//判断是否为只读的
+
+void setMaxLength(int len);//设置最大输入长度
+
+bool isReadOnly() const;//判断是否为只读的
+
+void setReadOnly(bool on);//设置是否为只读的
+
+QString text() const;//获取编辑框的内容
+
+void setText(const QString &text);//设置编辑框的内容,这是一个槽
+
+QString displayText() const;//临到显示的内容,因为比如一个密码输入框,输入的密码不显示,得使用这个函数获得
+
+bool hasFrame() const;//判断有没有边框
+
+void setFrame(bool on);//设置有没有边框
+
+void setTextMargins(int left, int top, int right, int bottom);//设置边距
+
+void getTextMargins(int *left, int *top, int *right, int *bottom) const;//获取边距
+
+这两个函数分别用于设置和获取文本显示的边距,上,下,左,右4个边距可以独立进行设置
+
+信号:
+
+void textChanged(const QString &text);//当编辑框内容发生变化时,会发射这个信号,text是变化后的内容
+
+void textEdited(const QString &text);//当编辑框的内容被编辑时,会发射这个信号,它只在用户进行修改的时候发射,在程序中用seftText修改则不发射,而后者则在两种情况下都会发射
+
+void returnPressed();//当在编辑框中按下回车键时,将发射这个信号,可以作为用户结束输入的一种条件
+
+void editingFinished();//在按下回车键或者编辑框失去焦点时发射
+
+槽:
+
+void clear();//清空内容
+
+
+
+ 
+#网络文摘#Qt 
+
+
+
+分享到： 
+
+举报 浏览(271) 评论 转载 
+
+
+
+你可能也喜欢
+ 花样
+ 凉拌金针菇
+ 伤人的不是无情，而是自作多情
+ 终生受益的做人、做事、交友秘籍
+ 生活中必须注意的43个细节
+ 孤儿花
+ Ubuntu11.10下安装Qt环境及Qt Creator开发工具
+ 
+
+
+
+
+
+
+
+本文最近访客
+ 海棠慧子 
+3月6日
+
+ 落叶空旷 
+12月31日
+
+ 彭yz彭 
+12月27日
+
+ houxn22 
+11月12日
+
+ 一点晴 
+11月2日
+
+ 
+评论
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 发布  
+
+
+
+
+
+
+
+
+
+
+
+帮助中心 | 空间客服 | 投诉中心 | 空间协议
+
+©2013 Baidu
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

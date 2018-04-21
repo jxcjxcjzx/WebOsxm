@@ -1,0 +1,35 @@
+
+Discover  Docs  Blog  Community Sign inSign up   
+Docs
+Open webOS Architecture
+Developer Guide
+Developing JavaScript Services
+Developing Synergy Connectors
+Open webOS Tools
+System Policy Components
+Platform Portability Layer Module Tutorial
+Developer Reference
+Building Open webOS
+Porting Open webOS
+Share on linkedin Share on facebook Share on twitter Share on email More Sharing Services
+System Policy Components
+Powerd
+
+Powerd is one of the primary daemons that is started when Open webOS boots. It is responsible for monitoring battery parameters like temperature, current, voltage and other inputs, and making decisions about battery charging. It interfaces with the underlying hardware using the Nyx client library, talking to the battery and charger modules for the platform. At the same time it exposes the battery and charging information to the upper layers through the Luna Service Bus. Powerd also has the capability to run the necessary CTIA checks for temperature limits on the platform.
+
+Sleepd
+
+Sleepd is one of the important daemons started when Open webOS boots. It is responsible for scheduling platform sleeps as soon as it is idle, so that we see optimum battery performance. To achieve this it keeps polling on the system to see if any of the other services or processes need the platform running, and if not it sends the suspend message to all these components (so that they can finish whatever they are doing ASAP and suspend). Sleepd then lets the kernel know that the platform is ready to sleep. Once an interrupt (such as key press) has woken the platform up, sleepd lets the entire system know that the platform is up and running so that all the activities can resume.
+
+Sleepd also manages the RTC alarms on the system by maintaining a SQlite database for all the requested alarms.
+
+Storaged
+
+Storaged is responsible for enabling and disabling Mass Storage Mode (MSM) on the platform. MSM allows the mounting of a partition of the storage on the platform as an external drive on a host computer using the mass storage device class USB protocol. Storaged is an on-demand daemon, i.e. it is only started when the platform is connected to a host computer via USB and exits as soon as it is disconnected.
+
+485 Potrero Ave. Sunnyvale, CA 94085 
++1 408-617-7000 Main Phone
+Careers
+Sponsored by 
+© 2012 Hewlett-Packard Development Company, L.P. The information contained herein is subject to change without notice. 
+All screen images simulated. Site is best viewed in Chrome, Firefox, Safari, IE9 and above.  Privacy Policy  Terms of Use

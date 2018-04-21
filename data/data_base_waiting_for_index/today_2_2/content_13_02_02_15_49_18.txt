@@ -1,0 +1,505 @@
+
+
+
+
+蓝枫工作室
+ 
+
+博客园
+首页
+新闻
+新随笔
+联系
+管理
+订阅
+ 
+随笔- 47  文章- 0  评论- 3  
+
+
+
+
+
+
+JWNL体验
+
+
+
+
+JWNL是用JAVA语言编写的用于读取WordNet词典库的组件库。
+ 
+此次采用JWNL1.4-RC2，最高支持WordNet2.1(WINDOWS)，3.0(UNIX)。
+ 
+1. 配置WordNet词典库。
+ 
+    配置文件位置：..\jwnl14-rc2\config\file_properties.xml中的<param name="dictionary_path" value="D:\Programs\WordNet\2.1\dict"/>
+ 
+2. 在Main函数中使用JWNL加载    
+ 
+1 String propsFile = "..\jwnl14-rc2\config\file_properties.xml";
+2 JWNL.initialize(new FileInputStream(propsFile)); 
+3. 获得某一单词，如dog
+ 
+1 IndexWord DOG = Dictionary.getInstance().getIndexWord(POS.NOUN, "dog"); 
+4. 获得单词的直接上义词(Hypernym)
+ 
+    使用PointerUtils.getInstance().getDirectHypernyms(Synset synset)
+ 
+1 this.demonstrateListOperation(DOG); 
+　具体方法实现：
+ 
+
+
+ 1     private void demonstrateListOperation(IndexWord word) throws JWNLException { 2         // Get all of the hypernyms (parents) of the first sense of <var>word</var> 3         PointerTargetNodeList hypernyms = PointerUtils.getInstance().getDirectHypernyms(word.getSense(1)); 4         System.out.println("Direct hypernyms of \"" + word.getLemma() + "\":"); 5         for(int idx = 0; idx < hypernyms.size(); idx++){ 6             PointerTargetNode nn = (PointerTargetNode)hypernyms.get(idx); 7             for(int wrdIdx = 0; wrdIdx < nn.getSynset().getWordsSize(); wrdIdx++){ 8                 System.out.println("Syn" + idx + " of direct hypernyms of\"" + word.getLemma() + "\" : " +  9                         nn.getSynset().getWord(wrdIdx).getLemma());10             }11         }        12         hypernyms.print();        13     } 
+
+
+5. 获得所有下义词树(Hyponym)，包含了其下义词的下义词
+ 
+     5.1 直接使用JWNL的方法打印出，单词DOG所有的下义词
+ 
+
+
+1     this.demonstrateListOperation(ACCOMPLISH);
+2 
+3 
+4     private void demonstrateTreeOperation(IndexWord word) throws JWNLException {
+5         // Get all the hyponyms (children) of the first sense of <var>word</var>
+6         PointerTargetTree hyponyms = PointerUtils.getInstance().getHyponymTree(word.getSense(1));
+7         System.out.println("Hyponyms of \"" + word.getLemma() + "\":");        
+8         hyponyms.print();
+9     } 
+
+
+　　5.2 通过循环获得单词的下义词来遍历DOG的所有下义词
+ 
+
+
+ 1     BMTreeNode root = new BMTreeNode(DOG.getLemma()); 2     demonstrateTreeOperation(DOG.getSense(1), root); 3     System.out.println(root.toString()); 4  5  6     private void demonstrateTreeOperation(Synset word, BMTreeNode myTreeNode) throws JWNLException { 7         // Get all the hyponyms (children) of the first sense of <var>word</var> 8         PointerTargetNodeList hypernyms = PointerUtils.getInstance().getDirectHyponyms(word); 9         System.out.println("Direct hypernyms of \"" + getAllWordString(word.getWords()) + "\":");10         for(int idx = 0; idx < hypernyms.size(); idx++){11             PointerTargetNode nn = (PointerTargetNode)hypernyms.get(idx);12             if (nn.getSynset().getWordsSize() > 0){13                 BMTreeNode child = new BMTreeNode(getAllWordString(nn.getSynset().getWords()));14                 myTreeNode.addChild(child);15                 this.demonstrateTreeOperation(nn.getSynset(), child);16             }17         }18     } 
+
+
+　　5.3 将所有下义词添加到一个JTree控件中
+ 
+
+
+ 1     HyponymsWindow win = new HyponymsWindow();
+ 2     DefaultMutableTreeNode rootTreeNode = new DefaultMutableTreeNode(CAT.getLemma());
+ 3     win.getDefaultTreeModel().setRoot(rootTreeNode);
+ 4     demonstrateTreeOperation(CAT.getSense(1),win, rootTreeNode);
+ 5     win.setVisible(true);
+ 6 
+ 7 
+ 8     private void demonstrateTreeOperation(Synset word,HyponymsWindow win,DefaultMutableTreeNode parentTreeNode) throws JWNLException {
+ 9         // Get all the hyponyms (children) of the first sense of <var>word</var>
+10         PointerTargetNodeList hypernyms = PointerUtils.getInstance().getDirectHyponyms(word);
+11         //System.out.println("Direct hypernyms of \"" + getAllWordString(word.getWords()) + "\":");
+12         for (int idx = 0; idx < hypernyms.size(); idx++) {
+13             PointerTargetNode nn = (PointerTargetNode) hypernyms.get(idx);
+14             if (nn.getSynset().getWordsSize() > 0) {
+15                 String strWord = this.getAllWordString(nn.getSynset().getWords());
+16                 DefaultMutableTreeNode childTreeNode = new DefaultMutableTreeNode(strWord);
+17                 win.getDefaultTreeModel().insertNodeInto(childTreeNode, parentTreeNode, idx);
+18                 this.demonstrateTreeOperation(nn.getSynset(), win, childTreeNode);
+19             }
+20         }
+21     } 
+
+
+6. 源代码：
+ 
+    6.1 Ex1.java
+ 
+
+
+  1 /**  2  * Java WordNet Library (JWNL)  3  * See the documentation for copyright information.  4  *  5  * @version 1.1  6  */  7 package org.bluemaplestudio;  8   9 import net.didion.jwnl.JWNL; 10 import net.didion.jwnl.JWNLException; 11 import net.didion.jwnl.data.IndexWord; 12 import net.didion.jwnl.data.POS; 13 import net.didion.jwnl.data.PointerType; 14 import net.didion.jwnl.data.PointerUtils; 15 import net.didion.jwnl.data.Synset; 16 import net.didion.jwnl.data.Word; 17 import net.didion.jwnl.data.list.PointerTargetNode; 18 import net.didion.jwnl.data.list.PointerTargetNodeList; 19 import net.didion.jwnl.data.list.PointerTargetTree; 20 import net.didion.jwnl.data.relationship.AsymmetricRelationship; 21 import net.didion.jwnl.data.relationship.Relationship; 22 import net.didion.jwnl.data.relationship.RelationshipFinder; 23 import net.didion.jwnl.data.relationship.RelationshipList; 24 import net.didion.jwnl.dictionary.Dictionary; 25  26 import java.io.FileInputStream; 27 import java.util.Iterator; 28  29 import javax.swing.tree.DefaultMutableTreeNode; 30  31 /** 32   * 示例代码，知识共享 33   * @author tanyongbin 34   * 2011-7-31 35   * Email: briandottan@gmail.com 36   */ 37 public class Ex1 { 38     private static final String USAGE = "java Examples <properties file>"; 39  40     public static void main(String[] args) { 41         if (args.length != 1) { 42             System.out.println(USAGE); 43             System.exit(-1); 44         } 45  46         String propsFile = args[0]; 47         try { 48             // initialize JWNL (this must be done before JWNL can be used) 49             JWNL.initialize(new FileInputStream(propsFile)); 50             new Ex1().go(); 51         } catch (Exception ex) { 52             ex.printStackTrace(); 53             System.exit(-1); 54         } 55     } 56  57     private IndexWord ACCOMPLISH; 58     private IndexWord DOG; 59     private IndexWord CAT; 60     private IndexWord FUNNY; 61     private IndexWord DROLL; 62     private String MORPH_PHRASE = "running-away"; 63  64     public Ex1() throws JWNLException { 65         ACCOMPLISH = Dictionary.getInstance().getIndexWord(POS.VERB, "accomplish"); 66         DOG = Dictionary.getInstance().getIndexWord(POS.NOUN, "dog"); 67         CAT = Dictionary.getInstance().lookupIndexWord(POS.NOUN, "cat"); 68         FUNNY = Dictionary.getInstance().lookupIndexWord(POS.ADJECTIVE, "funny"); 69         DROLL = Dictionary.getInstance().lookupIndexWord(POS.ADJECTIVE, "droll"); 70     } 71  72     public void go() throws JWNLException { 73         demonstrateMorphologicalAnalysis(MORPH_PHRASE); 74          75         demonstrateListOperation(DOG); 76          77         BMTreeNode root = new BMTreeNode(DOG.getLemma()); 78         demonstrateTreeOperation(DOG.getSense(1), root); 79         System.out.println(root.toString()); 80          81         demonstrateTreeOperation(DOG); 82          83         HyponymsWindow win = new HyponymsWindow(); 84     DefaultMutableTreeNode rootTreeNode = new DefaultMutableTreeNode(CAT.getLemma()); 85     win.getDefaultTreeModel().setRoot(rootTreeNode); 86     demonstrateTreeOperation(CAT.getSense(1),win, rootTreeNode); 87         win.setVisible(true); 88     } 89  90     private void demonstrateMorphologicalAnalysis(String phrase) throws JWNLException { 91         // "running-away" is kind of a hard case because it involves 92         // two words that are joined by a hyphen, and one of the words 93         // is not stemmed. So we have to both remove the hyphen and stem 94         // "running" before we get to an entry that is in WordNet 95         System.out.println("Base form for \"" + phrase + "\": " + 96                            Dictionary.getInstance().lookupIndexWord(POS.VERB, phrase)); 97     } 98  99     private void demonstrateListOperation(IndexWord word) throws JWNLException {100         // Get all of the hypernyms (parents) of the first sense of <var>word</var>101         PointerTargetNodeList hypernyms = PointerUtils.getInstance().getDirectHypernyms(word.getSense(1));102         System.out.println("Direct hypernyms of \"" + word.getLemma() + "\":");103         for(int idx = 0; idx < hypernyms.size(); idx++){104             PointerTargetNode nn = (PointerTargetNode)hypernyms.get(idx);105             for(int wrdIdx = 0; wrdIdx < nn.getSynset().getWordsSize(); wrdIdx++){106                 System.out.println("Syn" + idx + " of direct hypernyms of\"" + word.getLemma() + "\" : " + 107                         nn.getSynset().getWord(wrdIdx).getLemma());108             }109         }        110         hypernyms.print();        111     }112 113     private void demonstrateTreeOperation(IndexWord word) throws JWNLException {114         // Get all the hyponyms (children) of the first sense of <var>word</var>115         PointerTargetTree hyponyms = PointerUtils.getInstance().getHyponymTree(word.getSense(1));116         System.out.println("Hyponyms of \"" + word.getLemma() + "\":");        117         hyponyms.print();118     }119     120     private void demonstrateTreeOperation(Synset word, BMTreeNode myTreeNode) throws JWNLException {121         // Get all the hyponyms (children) of the first sense of <var>word</var>122         PointerTargetNodeList hypernyms = PointerUtils.getInstance().getDirectHyponyms(word);123         System.out.println("Direct hypernyms of \"" + getAllWordString(word.getWords()) + "\":");124         for(int idx = 0; idx < hypernyms.size(); idx++){125             PointerTargetNode nn = (PointerTargetNode)hypernyms.get(idx);126             if (nn.getSynset().getWordsSize() > 0){127                 BMTreeNode child = new BMTreeNode(getAllWordString(nn.getSynset().getWords()));128                 myTreeNode.addChild(child);129                 this.demonstrateTreeOperation(nn.getSynset(), child);130             }131         }132     }133     134     private void demonstrateTreeOperation(Synset word, HyponymsWindow win, DefaultMutableTreeNode parentTreeNode) throws JWNLException {135         // Get all the hyponyms (children) of the first sense of <var>word</var>136         PointerTargetNodeList hypernyms = PointerUtils.getInstance().getDirectHyponyms(word);137         //System.out.println("Direct hypernyms of \"" + getAllWordString(word.getWords()) + "\":");138         for (int idx = 0; idx < hypernyms.size(); idx++) {139             PointerTargetNode nn = (PointerTargetNode) hypernyms.get(idx);140             if (nn.getSynset().getWordsSize() > 0) {141                 String strWord = this.getAllWordString(nn.getSynset().getWords());142                 DefaultMutableTreeNode childTreeNode = new DefaultMutableTreeNode(strWord);143                 win.getDefaultTreeModel().insertNodeInto(childTreeNode, parentTreeNode, idx);144                 this.demonstrateTreeOperation(nn.getSynset(), win, childTreeNode);145             }146         }147     }148     149     private String getAllWordString(Word[] words){150         String result = "";151         int wrdLen = words.length;152         for(int idx = 0; idx < wrdLen; idx++){153             result += words[idx].getLemma() + ",";154         }155         if (result.length() > 0) result = result.substring(0, result.length() - 1);156         return result;157     }158 } 
+
+
+　　6.2 BMTreeNode.java
+ 
+
+
+ 1 package org.bluemaplestudio;
+ 2 
+ 3 import java.util.ArrayList;
+ 4 import java.util.List;
+ 5 
+ 6 /**
+ 7  * 示例代码，知识共享
+ 8  * @author tanyongbin
+ 9  * 2011-7-31
+10  * Email: briandottan@gmail.com
+11  */
+12 public class BMTreeNode {
+13     //默认构造函数
+14     public BMTreeNode(String name) {
+15         this.name = name;
+16         this.childList = new ArrayList<BMTreeNode>();
+17     }
+18     
+19     private String name;
+20     private List<BMTreeNode> childList;
+21     
+22     public String getName() {
+23         return name;
+24     }
+25     public void setName(String name) {
+26         this.name = name;
+27     }
+28     public List<BMTreeNode> getChildList() {
+29         return childList;
+30     }
+31     public void setChildList(List<BMTreeNode> childList) {
+32         this.childList = childList;
+33     }
+34     public void addChild(BMTreeNode child){
+35         this.childList.add(child);
+36     }
+37     public void removeChild(BMTreeNode child){
+38         this.childList.remove(child);
+39     }
+40     public void removeChildAt(int index){
+41         this.childList.remove(index);
+42     }
+43     public void removeallChild(){
+44         this.childList.clear();
+45     }
+46     
+47     @Override
+48     public String toString() {
+49         // TODO Auto-generated method stub
+50         String output =  "Node Name: " + this.name + ". My children(child): ";
+51         int len = this.childList.size();
+52         if (len > 0){
+53         for(int idx = 0; idx < len; idx++){
+54             BMTreeNode child = this.childList.get(idx);
+55             output += "\n\t   " + child.toString();
+56         }
+57         }
+58         else{
+59             output += "null";
+60         }
+61         return output;
+62     }
+63 
+64 } 
+
+
+　　6.3 HyponymsWindow.java
+ 
+
+
+ 1 package org.bluemaplestudio; 2  3 import javax.swing.GroupLayout; 4 import javax.swing.JFrame; 5 import javax.swing.JPanel; 6 import javax.swing.JScrollPane; 7 import javax.swing.JTree; 8 import javax.swing.SwingUtilities; 9 import javax.swing.UIManager;10 import javax.swing.UnsupportedLookAndFeelException;11 import javax.swing.plaf.TreeUI;12 import javax.swing.plaf.metal.DefaultMetalTheme;13 import javax.swing.plaf.metal.MetalLookAndFeel;14 import javax.swing.plaf.metal.OceanTheme;15 import javax.swing.tree.DefaultMutableTreeNode;16 import javax.swing.tree.DefaultTreeModel;17 18 /**19  * 示例代码，知识共享20  * @author tanyongbin21  * 2011-7-3122  * Email: briandottan@gmail.com23  */24 public class HyponymsWindow extends JFrame {25     private JPanel mainPanel = null;26     private JScrollPane jScrollPane1 = null;27     private JTree jTree1 = null;28     private DefaultTreeModel defaultTreeModel = null;29     30     public DefaultTreeModel getDefaultTreeModel() {31         return defaultTreeModel;32     }33 34     public HyponymsWindow(){35         mainPanel = new JPanel();36         jScrollPane1 = new JScrollPane();37         jTree1 = new JTree();38         jTree1.setShowsRootHandles(true);39         40         defaultTreeModel = (DefaultTreeModel) jTree1.getModel();41         mainPanel.setName("mainPanel");42         jScrollPane1.setName("jScrollPane1");43         jTree1.setName("jTree1");44         jScrollPane1.setViewportView(jTree1);45         46         GroupLayout mainPanelLayout = new GroupLayout(mainPanel);47         mainPanel.setLayout(mainPanelLayout);48         mainPanelLayout.setHorizontalGroup(49             mainPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)50             .addGroup(mainPanelLayout.createSequentialGroup()51                 .addGap(70, 70, 70)52                 .addComponent(jScrollPane1, GroupLayout.PREFERRED_SIZE, 257, GroupLayout.PREFERRED_SIZE)53                 .addContainerGap(209, Short.MAX_VALUE))54         );55         mainPanelLayout.setVerticalGroup(56             mainPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)57             .addGroup(mainPanelLayout.createSequentialGroup()58                 .addContainerGap()59                 .addComponent(jScrollPane1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)60                 .addContainerGap(26, Short.MAX_VALUE))61         );62         mainPanel.add(jScrollPane1);63         this.setContentPane(mainPanel);64         this.setSize(1024, 768);65         66         try {67             MetalLookAndFeel.setCurrentTheme(new OceanTheme());68             UIManager.setLookAndFeel(new MetalLookAndFeel());69 //            UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");70             SwingUtilities.updateComponentTreeUI(this);71         } catch (UnsupportedLookAndFeelException e) {72             // TODO Auto-generated catch block73             e.printStackTrace();74         }75     }76     77     public void addTreeNodeOperation(DefaultMutableTreeNode childNode, DefaultMutableTreeNode parentNode, int idx){78         defaultTreeModel.insertNodeInto(childNode, parentNode, idx);79     }80 } 
+
+
+
+
+
+
+分类: 应用技术
+ 
+标签: WordNet, JWNL
+ 
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+
+
+
+
+蓝枫工作室
+ 关注 - 3
+ 粉丝 - 9 
+
+
+
++加关注 
+
+
+2
+
+0
+
+
+ (请您对文章做出评价) 
+
+
+« 博主上一篇：Jena初体验
+» 博主下一篇：Protege OWL API体验
+
+ 
+posted @ 2011-07-31 21:24 蓝枫工作室 阅读(483) 评论(1) 编辑 收藏
+ 
+
+
+
+发表评论
+ 
+
+
+
+  
+#1楼 2012-11-27 15:26 | dbbrun  
+
+学习啦~~~
+
+支持(0)反对(0)
+
+
+ 
+
+
+刷新评论刷新页面返回顶部
+ 
+
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+
+ 
+博客园首页博问新闻闪存程序员招聘知识库
+ 
+
+
+
+
+
+最新IT新闻:
+ · 剥开周鸿祎 天天向上背后的故事
+ · 马云知天命：固执坚持不动摇
+ · 若不是那五次拒绝！惠普或成今日之苹果
+ · 新疆阿勒泰发现世界第四大铁陨石 引发官争民抢
+ · 伊朗的猴子宇航员真的安全返回了？
+» 更多新闻...
+
+最新知识库文章:
+
+ · HTML5之美
+ · 每天工作的第一个小时，做什么？
+ · Hadoop 分布式文件系统：架构和设计
+ · 异常的代价
+ · 从P1到P7——第八年
+
+» 更多知识库文章... 
+
+
+
+
+
+
+
+
+
+
+昵称：蓝枫工作室
+园龄：2年11个月
+粉丝：9
+关注：3
++加关注
+ 
+
+
+
+
+
+
+
+<
+
+2011年7月
+
+>
+
+ 
+
+
+日
+
+一
+
+二
+
+三
+
+四
+
+五
+
+六
+
+
+
+26
+
+27
+
+28
+
+29
+
+30
+
+1
+
+2
+
+
+
+3
+
+4
+
+5
+
+6
+
+7
+
+8
+
+9
+
+
+
+10
+
+11
+
+12
+
+13
+
+14
+
+15
+
+16
+
+
+
+17
+
+18
+
+19
+
+20
+
+21
+
+22
+
+23
+
+
+
+24
+
+25
+
+26
+
+27
+
+28
+
+29
+
+30
+
+
+
+31
+
+1
+
+2
+
+3
+
+4
+
+5
+
+6
+
+ 
+
+
+
+搜索
+ 
+ 
+ 
+ 
+ 
+
+常用链接
+ 我的随笔
+我的评论
+我的参与
+最新评论
+我的标签
+更多链接
+ 
+
+
+我的标签
+ Ontology(2)
+OWL(1)
+Protege(1)
+RDF(1)
+WordNet(1)
+中文(1)
+Jena(1)
+JWNL(1)
+ 
+
+随笔分类(44)
+GIS大杂烩(34) 
+应用技术(10) 
+
+
+随笔档案(47)
+2012年8月 (2) 
+2012年6月 (2) 
+2012年5月 (4) 
+2012年4月 (1) 
+2012年1月 (1) 
+2011年10月 (1) 
+2011年8月 (2) 
+2011年7月 (2) 
+2010年7月 (1) 
+2010年4月 (21) 
+2010年2月 (10) 
+
+
+最新评论
+
+1. Re:基于ArcEngine实现分组统计面积的功能
+请问博主：pQueryFilter.subfield="qsdwdm,qsxz,dlbm,sum(mj) as mj,sum(tkmj) as tkmj" 我运行不成功但是 将 sum(mj) as  删掉就成功  怎么回事啊你用的是arcengine10吗？--centryst
+2. Re:JWNL体验
+学习啦~~~--dbbrun
+3. Re:ESRI World File的涵义
+你好   我想问一下 那个worldfile创建好了之后再哪查看啊？？--飞雪陌上花开
+ 
+
+阅读排行榜
+
+1. 十六进制RGB颜色表(8605)
+2. Protege OWL API体验(1013)
+3. ubuntu安装锐捷客户端(824)
+4. (转)GIS相关的SCI、EI期刊(506)
+5. JWNL体验(483)
+ 
+
+评论排行榜
+
+1. JWNL体验(1)
+2. 基于ArcEngine实现分组统计面积的功能(1)
+3. ESRI World File的涵义(1)
+4. Protege OWL API体验(0)
+5. SDE表结构分析(0)
+ 
+推荐排行榜
+ 
+
+1. JWNL体验(2)
+ 
+
+
+Copyright ©2013 蓝枫工作室 
+

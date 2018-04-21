@@ -1,0 +1,370 @@
+网易 
+博客 
+发现
+小组
+风格
+ 
+下载最文艺的手机博客APP>
+创建博客登录  加关注
+Mr.Right
+不顾一切的去想，于是我们有了梦想。脚踏实地的去做，于是梦想成了现实。
+首页
+日志
+相册
+音乐
+收藏
+博友
+关于我
+  
+日志
+  
+阿英
+人生一年又一年,只要每年都有所积累,有所成长,都有那么一次自己认为满意的花开时刻就好。即使一时不顺,也要敞开胸怀。生命的荣枯并不是简单的重复,一时的得失不是成败的尺度。花开不是荣耀,而是一个美丽的结束,花谢也不是耻辱,而是一个低调的开始。
+  加博友   关注他
+最新日志
+【转载】净空法师：往生西方
+【转载】净空法师开示：佛法
+【转载】以後再不會到這裡來
+【转载】娑婆世界是自性變現
+【转载】吃腰子不能补肾 多
+崇尚求知，扬善制恶的伊斯兰
+随机阅读
+可能丢失的光明
+如何做一个讨厌的女人
+浅析杜甫诗作《玉华宫》
+男人接受不了什么样的女人？
+首页推荐
+正月初二赵匡胤黄袍加身
+刘谦不想成为下个赵本山
+庄则栋被毛泽东喊为祖宗
+西游降魔篇里全都是人妖
+女性私处为何会逐渐变黑
+民俗为何认为蛇年是凶年
+更多>>
+
+
+
+ 孙悟空成功的秘诀 compressive sensing matlab demo 压缩感知入门
+MATLAB Particle Filter Demo 粒子滤波  
+
+2012-05-23 13:58:22|  分类： 编程 |  标签：粒子滤波  matlab   |字号 订阅
+%% clear memory, screen, and close all figures
+clear, clc, close all;
+
+ 
+%% Process equation x[k] = sys(k, x[k-1], u[k]);
+nx = 1;  % number of states
+sys = @(k, xkm1, uk) xkm1/2 + 25*xkm1/(1+xkm1^2) + 8*cos(1.2*k) + uk; % (returns column vector)   %注意是函数句柄哦
+
+%% Observation equation y[k] = obs(k, x[k], v[k]);
+ny = 1;                                           % number of observations
+obs = @(k, xk, vk) xk^2/20 + vk;                  % (returns column vector)
+
+%% PDF of process noise and noise generator function
+nu = 1;                                           % size of the vector of process noise
+sigma_u = sqrt(10);
+p_sys_noise   = @(u) normpdf(u, 0, sigma_u);  % 我以前不知道从normpdf中的采样就是normrnd,下面程序中没有用p_sys_noise
+gen_sys_noise = @(u) normrnd(0, sigma_u); % sample from p_sys_noise (returns column vector)
+
+%% PDF of observation noise and noise generator function
+nv = 1;                                           % size of the vector of observation noise
+sigma_v = sqrt(1);
+p_obs_noise   = @(v) normpdf(v, 0, sigma_v);
+gen_obs_noise = @(v) normrnd(0, sigma_v);         % sample from p_obs_noise (returns column vector)
+
+%% Initial PDF
+% p_x0 = @(x) normpdf(x, 0,sqrt(10));  % initial pdf , 注意p_x0根本没有用到，写出来的目的是让大家看看从它采样
+gen_x0 = @(x) normrnd(0, sqrt(10));     % sample from p_x0 (returns column vector)
+
+%% Transition prior PDF p(x[k] | x[k-1])
+% (under the suposition of additive process noise)
+% p_xk_given_xkm1 = @(k, xk, xkm1) p_sys_noise(xk - sys(k, xkm1, 0));
+
+%% Observation likelihood PDF p(y[k] | x[k])
+% (under the suposition of additive process noise)
+p_yk_given_xk = @(k, yk, xk) p_obs_noise(yk - obs(k, xk, 0));
+
+%% Number of time steps
+T = 40;
+
+%% Separate memory space
+x = zeros(nx,T);  y = zeros(ny,T);
+u = zeros(nu,T);  v = zeros(nv,T);
+
+%% Simulate system
+xh0 = 0;                                  % initial state
+u(:,1) = 0;                               % initial process noise
+v(:,1) = gen_obs_noise();          % initial observation noise，注意 gen_obs_noise()产出一个标量值
+x(:,1) = xh0;
+y(:,1) = obs(1, xh0, v(:,1));
+for k = 2:T
+   % here we are basically sampling from p_xk_given_xkm1 and from p_yk_given_xk
+   u(:,k) = gen_sys_noise();              % simulate process noise，括号里没参数因为gen_sys_noise的函数体与参数无关
+   v(:,k) = gen_obs_noise();              % simulate observation noise
+   x(:,k) = sys(k, x(:,k-1), u(:,k));     % simulate state
+   y(:,k) = obs(k, x(:,k),   v(:,k));     % simulate observation
+end
+
+%% Separate memory
+xh = zeros(nx, T); xh(:,1) = xh0;
+yh = zeros(ny, T); yh(:,1) = obs(1, xh0, 0);
+ 
+% 采用一个结构体放particle filter的参数很层次感，以后多学着点
+pf.k               = 1;                   % initial iteration number
+pf.Ns              = 200;                 % number of particles
+pf.w               = zeros(pf.Ns, T);     % weights
+pf.particles       = zeros(nx, pf.Ns, T); % particles
+pf.gen_x0          = gen_x0;              % function for sampling from initial pdf p_x0
+pf.p_yk_given_xk   = p_yk_given_xk;       % function of the observation likelihood PDF p(y[k] | x[k])
+pf.gen_sys_noise   = gen_sys_noise;       % function for generating system noise
+
+%% Estimate state
+for k = 2:T
+   fprintf('Iteration = %d/%d\n',k,T);
+   % state estimation
+   pf.k = k; % 迭代次数
+   %[xh(:,k), pf] = particle_filter(sys, y(:,k), pf, 'multinomial_resampling');
+   [xh(:,k), pf] = particle_filter(sys, y(:,k), pf, 'systematic_resampling');    % xh 就是 xhat
+ 
+   % filtered observation
+   yh(:,k) = obs(k, xh(:,k), 0);  % 注意 v = 0 表示估计的状态通过量测方程直接就得到滤波后输出的结果
+end
+
+%% Make plots of the evolution of the density
+figure
+hold on;
+xi = 1:T;
+yi = -25:0.25:25;
+[xx,yy] = meshgrid(xi,yi);
+den = zeros(size(xx));
+xhmode = zeros(size(xh));
+
+for i = xi
+   % for each time step perform a kernel density estimation
+   den(:,i) = ksdensity(pf.particles(1,:,i), yi,'kernel','epanechnikov');
+   [~, idx] = max(den(:,i));
+
+   % estimate the mode of the density
+   xhmode(i) = yi(idx);
+   plot3(repmat(xi(i),length(yi),1), yi', den(:,i)); % 原来是plot3画出来的waterfall图
+end
+view(3);
+box on;
+title('Evolution of the state density','FontSize',14)
+
+figure
+mesh(xx,yy,den);   
+title('Evolution of the state density','FontSize',14)
+
+%% plot of the state vs estimated state by the particle filter vs particle paths
+figure
+hold on;
+h1 = plot(1:T,squeeze(pf.particles),'y');
+h2 = plot(1:T,x,'b','LineWidth',4);
+h3 = plot(1:T,xh,'r','LineWidth',4);
+h4 = plot(1:T,xhmode,'g','LineWidth',4);
+legend([h2 h3 h4 h1(1)],'state','mean of estimated state','mode of estimated state','particle paths');
+title('State vs estimated state by the particle filter vs particle paths','FontSize',14);
+
+%% plot of the observation vs filtered observation by the particle filter
+figure
+plot(1:T,y,'b', 1:T,yh,'r');
+legend('observation','filtered observation');
+title('Observation vs filtered observation by the particle filter','FontSize',14);
+
+return;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%555
+function [xhk, pf] = particle_filter(sys, yk, pf, resampling_strategy)
+%% Generic particle filter
+%
+% Note: when resampling is performed on each step this algorithm is called
+% the Bootstrap particle filter
+%
+% Usage:
+% [xhk, pf] = particle_filter(sys, yk, pf, resamping_strategy)
+%
+% Inputs:
+% sys  = function handle to process equation
+% yk   = observation vector at time k (column vector)
+% pf   = structure with the following fields
+%   .k                = iteration number
+%   .Ns               = number of particles
+%   .w                = weights   (Ns x T)
+%   .particles        = particles (nx x Ns x T)
+%   .gen_x0           = function handle of a procedure that samples from the initial pdf p_x0
+%   .p_yk_given_xk    = function handle of the observation likelihood PDF p(y[k] | x[k])
+%   .gen_sys_noise    = function handle of a procedure that generates system noise
+% resampling_strategy = resampling strategy. Set it either to 
+%                       'multinomial_resampling' or 'systematic_resampling'
+%
+% Outputs:
+% xhk   = estimated state
+% pf    = the same structure as in the input but updated at iteration k
+%
+% Reference:
+% [1] Arulampalam et. al. (2002).  A tutorial on particle filters for 
+%     online nonlinear/non-gaussian bayesian tracking. IEEE Transactions on 
+%     Signal Processing. 50 (2). p 174--188
+
+%% Programmed by:
+% Diego Andres Alvarez Marin (diegotorquemada@gmail.com)
+% Universidad Nacional de Colombia at Manizales, February 29, 2012
+
+%%
+k = pf.k;
+if k == 1
+   error('error: k must be an integer greater or equal than 2');
+end
+
+%% Initialize variables
+Ns = pf.Ns;                              % number of particles
+nx = size(pf.particles,1);               % number of states
+
+wkm1 = pf.w(:, k-1);                     % weights of last iteration
+if k == 2
+   for i = 1:Ns                          % simulate initial particles
+      pf.particles(:,i,1) = pf.gen_x0(); % at time k=1
+   end   
+   wkm1 = repmat(1/Ns, Ns, 1);           % all particles have the same weight
+end
+
+%%
+% The importance sampling function:
+% PRIOR: (this method is sensitive to outliers)   THIS IS THE ONE USED HERE
+% q_xk_given_xkm1_yk = pf.p_xk_given_xkm1;
+
+% OPTIMAL:
+% q_xk_given_xkm1_yk = q_xk_given_xkm1^i_yk;
+% Note this PDF can be approximated by MCMC methods: they are expensive but 
+% they may be useful when non-iterative schemes fail
+
+%% Separate memory
+xkm1 = pf.particles(:,:,k-1); % extract particles from last iteration;
+xk   = zeros(size(xkm1));     % = zeros(nx,Ns);
+wk   = zeros(size(wkm1));     % = zeros(Ns,1);
+
+%% Algorithm 3 of Ref [1]
+
+ 
+
+ 
+for i = 1:Ns
+   % xk(:,i) = sample_vector_from q_xk_given_xkm1_yk given xkm1(:,i) and yk
+   % Using the PRIOR PDF: pf.p_xk_given_xkm1: eq 62, Ref 1.
+   xk(:,i) = sys(k, xkm1(:,i), pf.gen_sys_noise());
+   
+   % Equation 48, Ref 1.
+   % wk(i) = wkm1(i) * p_yk_given_xk(yk, xk(:,i))*p_xk_given_xkm1(xk(:,i), xkm1(:,i))/q_xk_given_xkm1_yk(xk(:,i), xkm1(:,i), yk);
+   
+   % weights (when using the PRIOR pdf): eq 63, Ref 1
+   wk(i) = wkm1(i) * pf.p_yk_given_xk(k, yk, xk(:,i));
+   
+   % weights (when using the OPTIMAL pdf): eq 53, Ref 1
+   % wk(i) = wkm1(i) * p_yk_given_xkm1(yk, xkm1(:,i)); % we do not know this PDF
+end;
+
+%% Normalize weight vector
+wk = wk./sum(wk);
+
+%% Calculate effective sample size: eq 48, Ref 1
+Neff = 1/sum(wk.^2);
+
+%% Resampling
+% remove this condition and sample on each iteration:
+% [xk, wk] = resample(xk, wk, resampling_strategy);
+%if you want to implement the bootstrap particle filter
+resample_percentaje = 0.50;
+Nt = resample_percentaje*Ns;
+if Neff < Nt
+   disp('Resampling ...')
+   [xk, wk] = resample(xk, wk, resampling_strategy);
+   % {xk, wk} is an approximate discrete representation of p(x_k | y_{1:k})
+end
+
+%% Compute estimated state
+xhk = zeros(nx,1);
+for i = 1:Ns;
+   xhk = xhk + wk(i)*xk(:,i);
+end
+
+%% Store new weights and particles
+pf.w(:,k) = wk;
+pf.particles(:,:,k) = xk;
+
+return; % bye, bye!!!
+
+%% Resampling function
+function [xk, wk, idx] = resample(xk, wk, resampling_strategy)
+
+Ns = length(wk);  % Ns = number of particles
+
+% wk = wk./sum(wk); % normalize weight vector (already done)
+
+switch resampling_strategy
+   case 'multinomial_resampling'
+      with_replacement = true;
+      idx = randsample(1:Ns, Ns, with_replacement, wk);
+%{
+      THIS IS EQUIVALENT TO:
+      edges = min([0 cumsum(wk)'],1); % protect against accumulated round-off
+      edges(end) = 1;                 % get the upper edge exact
+      % this works like the inverse of the empirical distribution and returns
+      % the interval where the sample is to be found
+      [~, idx] = histc(sort(rand(Ns,1)), edges);
+%}
+   case 'systematic_resampling'
+      % this is performing latin hypercube sampling on wk
+      edges = min([0 cumsum(wk)'],1); % protect against accumulated round-off
+      edges(end) = 1;                 % get the upper edge exact
+      u1 = rand/Ns;
+      % this works like the inverse of the empirical distribution and returns
+      % the interval where the sample is to be found
+      [~, idx] = histc(u1:1/Ns:1, edges);
+   % case 'regularized_pf'      TO BE IMPLEMENTED
+   % case 'stratified_sampling' TO BE IMPLEMENTED
+   % case 'residual_sampling'   TO BE IMPLEMENTED
+   otherwise
+      error('Resampling strategy not implemented')
+end;
+
+xk = xk(:,idx);                    % extract new particles
+wk = repmat(1/Ns, 1, Ns);          % now all particles have the same weight
+
+return;  % bye, bye!!!
+
+分享到：        阅读(336)| 评论(0)| 转载 (0) |举报
+
+ 孙悟空成功的秘诀 compressive sensing matlab demo 压缩感知入门
+历史上的今天
+OpenGL采用显示列表显示文字完整范例2011-05-23 16:01:07
+Ansys电磁铁分析学习笔记2010-05-23 23:58:18
+初学ANSYS电磁应该知道的一些基本概念2010-05-23 23:32:57
+ANSYS低频电磁场的场路耦合分析功能及 感应电机场路耦合分析应用2010-05-23 12:58:29
+穷人和富人的10大差异2010-05-23 01:55:28
+最近读者
+登录后，您可以在此留下足迹。 
+fangmiao
+  
+yexuan02
+  
+nzdwahmy
+  
+bear
+  
+yangyuan
+  
+BeSereni
+  
+向南
+ 
+qgg539
+评论
+点击登录|昵称：
+
+ 
+
+ 
+公司简介 - 联系方法 - 招聘信息 - 客户服务 - 隐私政策 - 博客风格 - 手机博客 - VIP博客 - 订阅此博客
+网易公司版权所有 ©1997-2013
+精选来自：生如行影

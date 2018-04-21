@@ -1,0 +1,141 @@
+首页/购机行情/连锁加盟/网购/小游戏/数码/游戏库/Hi科技/下载/中文游戏/游戏专题/论坛/巴士游戏 PSP|PSV|NDS|3DS|PS3|PS4|X360|WiiU|安卓|iPhone5|苹果|iPad|腾讯游戏|网游|单机|页游|手游
+
+
+您现在的位置： 安卓中文网 >> Android开发教程 >> 开发教程 >> 正文
+
+电玩巴士《炉石传说》大量激活码发放中！
+Android OpenGL分享心得
+2011年3月1日11:27来源：Android中文网我有话说(0人参与)
+　　这是网友初学Android OpenGL的一些心得，在这里和大家一起分享，希望对初学OpenGL的开发者有所帮助。这篇教程主要是一些理论的讲解，可以让你初步了解Android OpenGL的开发。
+
+　　首先是先把Dev Guide翻译了一下：
+　　1.summary：
+　　通过OpenGL API，Android包含对高性能3D图形的支持 — 具体而言，是指OpenGL ES API 。OpenGL ES 是根据OpenGL规范进行裁剪后定制而形成的一套标准，针对嵌入式设备而设计。各版本的OpenGL ES都广泛地向主要的OpenGL标准看齐。目前，Android支持OpenGL ES1.0，即相当于OpenGL 1.3。换言之，假设你的应用程序能够在桌面系统上结合OpenGL 1.3运行，那么它亦将能够运行在Android上。Android提供的这一API类似于J2ME中的OpenGL ES API（JSR 239）。然而，有可能并非完全一致；因此，对一些偏差要多加留意。
+
+　　2.Using the API
+　　这里给出一个比较抽象的使用API的步骤：
+　　1.编写一个自定义的 View 子类。
+　　2.取得一个OpenGLContext句柄，以便使用 OpenGL 提供的那些功能。
+　　3.在View 类的 onDraw() 方法里，取得一个指向GL对象的句柄，并调用它所提供的一些方法来执 行GL操作。
+
+　　3.参考
+　　ApiDemo中的com.android.samples.graphics.GLSurfaceViewActivity.java可以做很好的参考。当然也不能忘记看文档哦。
+
+　　接下来就是例子了，其实，我就是把apidemo中的GLSurfaceViewActivity分离了出来。
+
+　　注意一下几点：
+　　1.OpenGL有自己的Surface --> GLSurfaceView
+　　2.GLSurfaceView需要你注册一个Renderder，它是GLSurfaceView.Renderer接口，一般来说多是自己实现的，例如里中的SimpleRenderer。
+　　3.注意例子中的Activity的setContentView(mGLSurfaceView);是GLSurfaceView类型。
+
+　　summary：
+　　一个SurfaceView的实现，用专门surface供显示OpenGL的描绘，它提供例如下面一个特性：
+　　1.管理一个surface，它是一个特殊的内存能被混合到Android的view System。
+　　2.管理EGL显示，能让OpenGL描绘到一个surface中。
+　　3.接收用户提供的描绘器对象，来做实际的描绘。
+　　4.在一个专门的线程上进行描绘工作，从UI线程上减少翻译的表现。
+　　5.支持询问式和连续的描绘。
+　　6.任选，wraps，trace或者error-check 描绘器的的OpenGL调用。
+
+　　Using GLSurfaceView
+　　通常通过继承使用GLSurfaceView，并重载一个或多个View System input event方法。如果你的应用不需要重载事件方法，那么GLSurfaceView能被用作as-is关系。对于大部分的GLSurfaceView的行为是通过set方法进行客制化的，而不是通过继承。例如：不像一个正常的View，drawing被托付给一个分离的绘画器对象，这个对象是通过调用setRenderer方法注册的。
+
+　　Initializing GLSurfaceView
+　　Summary
+　　GLSurfaceView的初始化就是setRenderer。然后，如果你需要，你可以在调用setRenderer之前，通过下面中的一个或者多个方法修改GLSurfaceView的默认行为：    
+　　* setDebugFlags(int)     
+　　* setEGLConfigChooser(boolean)
+　　* setEGLConfigChooser(EGLConfigChooser)     
+　　* setEGLConfigChooser(int, int, int, int, int, int)     
+　　* setGLWrapper(GLWrapper)   
+
+　　Choosing an EGL Configuration
+　　一个Anroid设备可能支持多种类型的Surface。这些可用的Surface的区别可能是数据显示了多少个channel，每一个channel分配了多少个bit。因此，在开始绘画前，GLSurfaceView的第一件不得不做的事是使用那种Surface。    
+
+　　默认GLSurfaceView选择一个最接近16-bit R5G6B5的Surface，拥有一个16-bit depth的buffer，没有模板（no stencil）。如果你更喜欢一个不同的Surface（例如，你不需要depth buffer）你能通过setEGLConfigChooser方法覆盖默认的行为。
+
+　　Debug Behavior
+　　你能通过一个或多个调试方法改变GLSurfaceView的行为。这些方法在setRenderer方法前后都可以，一般在调用setRenderer之前，这样能马上生效。那几个方法就自己去看Reference了。
+
+　　Setting a Renderer
+　　最后你必须调用setRenderer方法注册一个GLSurfaceView.Renderer。这个绘画器负责OpenGL实际的绘画。
+
+　　Rendering Mode     
+　　一旦绘画器设置了，你能控制这个绘画器连续的画或者询问式的画。默认是连续的画。
+
+　　Activity Life-cycle     
+　　一个GLSurfaceView必须在Activity停止和恢复时被通知。在Activity停止和恢复时，GLSurfaceView客户端需要调用onPause()和onResume()方法。这些方法允许GLSurfaceView停止和恢复绘画线程，并也GLSurfaceView释放和重建OpenGL显示。
+
+　　Handling events
+　　为了处理事件，你通常需要继承GLSurfaceView并覆盖适当的方法，就像你对其他view的一样。然而，当处理事件时，你可能需要与绘画线程中的绘画器通信。你能用任何Java标准的跨线程机制。另外，一个简单的方式是通过queueEvent(Runnable方法。例子将Reference了 。
+
+
+
+
+
+
+(编辑: wudihan 内容纠错)
+分享到：
+0
+观后感：
+1
+	3
+	15
+	0
+	0
+	2
+
+4%	14%	71%	0%	0%	9%
+效果拔群	别闹	保持沉默	囧雷无比	纳尼？	我很赞同
+效果拔群	别闹	保持沉默	囧雷无比	纳尼？	我很赞同
+
+相关文章：
+·Android开发应用中Activity详解12-04-12·Android开发中Activity布局管理12-04-12·Android开发五大布局对象的学习12-04-12·在MyEclipse上搭建Android开发平台12-04-12·安卓开发中反编译Android apk文件12-04-12·Android开发中Activity之间传值与跳转12-04-12·Android开发基础创建一个Activity教程12-04-12·Android开发基础教程 创建HelloWorld12-04-12·Android开发中一个模仿launcher的实例12-04-11·Android中SimpleCursorAdapter简单使用12-04-11
+android教程
+android开发
+android开发入门
+Android开发者
+android开发者联盟
+aoc e960
+三星手机 nexus
+金山毒霸2012猎豹
+LG Nexus 4
+金山手机毒霸
+已有0条评论(点击查看) - 所有评论 - 我要留言 -
+
+用户名：  密码： 
+ 
+
+巴士开服更多>>
+游戏名称	开服时间	服务器	礼包
+武易	
+今天16:00
+双线138服	
+烈焰	
+今天19:00
+双线99服	
+武易	
+今天20:00
+双线139服	
+大闹天宫O	
+今天10:00
+双线30服	
+武尊	
+今天10:00
+双线172服	
+热门新闻排行本周本月
+年底购机需谨慎 十款奸商最爱翻新手机盘点185823iPhone 5S未入前三 国外网友票选10佳手机104530三星苹果旗舰大吐槽 2013热门手机N大遗憾53531四核时代1080P屏幕为王！靓屏安卓手机盘点44813不只有官网才能抢购 小米产品电商抢购汇总28040Nexus 5/Note 3领衔 年末必将降价手机盘点24533魅族MX4采用5.5英寸屏幕 分辨率达2560×153622793小米公布“新玩意儿”细节 12月10日正式开卖16791兰博基尼推限量版手机 12月首发售价24000元14006三星Galaxy Duos 2曝光 双卡双待内存提升13745
+
+
+
+巴士图库
+
+
+
+
+
+关于我们  广告投放  联系我们  网站地图  友情链接  诚聘英才  版权声明  WAP手机版
+京ICP备08003486号  京ICP证070145号  京网文[2011]0213-072号  京公网安备110107000110
+
+
+Copyright 2004-2013 TGBUS Corporation, All Rights Reserved 关闭广告

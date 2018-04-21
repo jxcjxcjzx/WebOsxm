@@ -1,0 +1,9 @@
+      
+KLTChangeTCPyramid()
+
+void KLTChangeTCPyramid(
+KLT_TrackingContext tc,
+int search_range);
+
+KLTChangeTCPyramid() is a convenience function that updates the nPyramidLevels and subsampling fields of the tc structure, based on the value of search_range. The function is designed so that the tracker will be able find displacements up to search_range. For example, if search_range is 1 (pixel), then nPyramidLevels will be one and subsampling will be irrelevant, because there will be no need for multiresolution tracking. However, if search_range is 25 (pixels), then nPyramidLevels will be 2 and subsampling will be 8. The tracker is not guaranteed to find all displacements up to search_range pixels, so it is probably a good idea to overestimate the value. However, too much overestimation will make it more likely for ambiguity to confuse the tracker.
+

@@ -1,0 +1,111 @@
+《VC++技术内幕》学习笔记(18)  2008-03-27 08:22:10|  分类： VC编程 |  标签： |字号大中小 订阅 .
+
+字号： 大大  中中  小小 
+《VC++技术内幕》学习笔记(18)
+
+ 
+
+第十八章 打印和打印预览
+
+18.1 Windows的打印
+
+实现MFC应用程序打印功能有两种方法，一种是让OnDraw函数既处理屏幕输出又处理打印输出；另一种是让OnDraw处理屏幕输出而让OnPrint处理打印输出。用OnDraw函数处理打印的话必然会添加很多打印特有的代码段，而且为了让打印功能更加完备，通常必需要在OnPrint函数中添加打印页眉、页角等代码，使得程序看起来比较凌乱。依我个人的经验，打印和屏幕输出有很多应该是不同的，比如在屏幕输出时我们可以设置很多背景和线条颜色，如果打印也这么设置的话必然会造成打印输出缓慢(要打印的象素多)，有时打印机是黑白的，再多色彩打出来也就那么两三种颜色，得不偿失。当然打印图片得程序是个例外。我们通常更实际得把打印机输出得程序段放在OnPrint中，把屏幕输出程序段放在OnDraw中。
+
+一般来说，用Visual C++编制需要打印的程序时，在用AppWizard生成工程文件时就加入打印和打印预览选项（该选项在AppWizard的第四步）。若用手工加入，则稍微麻烦些。
+
+　　MFC对于打印的支持是在视类CView中实现的，该类中有如下几个成员函数是与打印或打印预览有关的：
+
+BOOL OnPreparePrinting(CPrintInfopInfo)
+
+void OnBeginPrinting(CDCpDC, CPrintInfopInfo)　　
+
+void OnEndPrinting(CDCpDC, CPrintInfopInfo)
+
+ 
+
+void OnPrepareDC(CDCpDC, CPrintInfopInfo)
+
+void OnPrint(CDCpDC, CPrintInfopInfo)
+
+　　其中，pDC是打印或显示的设备场指针，pInfo是打印过程信息指针。pInfo包含许多有用的信息，如打印的总页数、当前打印页的页码、是打印还是打印预览、是否继续打印等，具体参数内容和意义可以参考MFC联机手册。
+
+　　以上几个函数都是虚函数，可以重载。若在用AppWizard生成工程文件时选择了打印和打印预览选项，则函数OnPreparePrinting、OnBeginPrinting、OnEndPrinting自动地被AppWizard插入到你的视类中加以重载。另外两个函数则可以手工加入，如果使用的是Visual C++ 4.0以上版本，可以通过ClassWizard加入到视类中。
+
+　　这几个函数在用户选择打印命令时由应用框架自动调用，用户程序不用显式调用。下面讲述这几个函数在打印过程中的调用顺序及其意义。
+
+　　1.OnPreparePrinting
+
+　　OnPreparePrinting函数最先被调用，用来初始化打印机等。在Print对话框被显示之前就要被调用。比如，若没有安装打印机，则该函数将提示用户安装打印机。用户程序可以向其中加入别的初始化代码，比如，计算打印你的文档所需要的总页数，然后调用视类中的打印机初始化函数BOOL DoPreparePrinting(CPrintInfopInfo)即可。而用AppWizard生成的代码中，OnPreparePrinting函数将只是调用函数DoPreparePrinting，并传递参数。
+
+ 
+
+　　2.OnBeingPrinting
+
+　　OnBeingPrinting函数是在Print对话框退出之后、开始打印文档之前调用的函数，用户可以在其中加入另一些对于打印过程的初始化代码，比如分配打印过程中将要使用的“笔”（CPen）、“刷子”（CBrush）等，默认的代码中该函数将直接返回。
+
+　　3.OnEndPrinting
+
+　　OnEndPrinting函数是与OnBeginPrinting函数相对应的函数，它在打印完成后由应用框架调用，用于释放在OnBeginPrinting中分配的“对象”，如“笔”、“刷子”等，其默认的代码中该函数将直接返回。
+
+ 
+
+4.OnPrepareDC
+
+OnPrepareDC函数用于在打印前准备打印设备场，如窗口大小、原点，视图大小、原点等。同时该函数在视类显示文档内容时也被调用，默认的代码中该函数调用基类中的OnPrepareDC函数。
+
+ 
+
+5.OnPrint
+
+OnPrint函数则是具体的打印过程，它利用前面准备好的设备环境进行打印。
+
+这几个函数中，OnPreparePrinting、OnBeginPrinting、OnEndPrinting函数在一次打印过程中将只被调用一次，不管这一次打印内容有多少页，而OnPrepareDC、OnPrint函数则每打印一页都将被调用一次，这种调用次序对于打印是很有用的。在编程中，相信大家只要用好这几个基本函数，一定会编制出满意的Windows打印程序。  
+
+18.1.1 标准打印对话框
+
+18.1.2 交互选择打印页码
+
+18.1.3 显示页和打印页
+
+18.2 打印预览
+
+18.3 有关打印机的程序设计
+
+为了有效地使用打印机，必须了解函数调用的先后次序，并且必须知道应该重载哪些函数。
+
+18.3.1 打印机设备环境和CView::OnDraw函数
+
+就是OnDraw函数的参数(CDC*，设备环境)既可以是显示设备环境也可以是打印设备环境。根据调用它的函数不同而改变。
+
+18.3.2 CView::OnPrint函数
+
+在调用OnPrint函数之前应注意设置映射模式。
+
+18.3.3 准备设备环境——CView::OnPreParetDC函数
+
+如果需要使用MM_TEXT以外的显示映射模式，就可以在 OnPrePareDC函数中进行设置。
+
+18.3.4 打印任务的开始和结束
+
+18.4 EX18A示例程序——一个所见即所得的打印程序
+
+1、CStringArray中包含的是实际的对象，而CObArray中包含的则是指向对象的指针。当需要删除数组中的元素时，这一区别就显得非常重要了。
+
+2、应用程序框架在从归档中载入数据之前，会首先调用DeleteContents函数，因此，我们用不着考虑对数组的清除工作。
+
+3、我们必须对所有的CScrollView派生类的OnInitialUpdate函数进行重载。
+
+18.5 读取打印机矩形框
+
+18.6 再看模板集合类—— CArray类
+
+1、它是一个数组，其中的元素可通过索引访问，就像CStringArray一样。
+
+2、该数组包含的是实际的对象，而不是指向对象的指针。
+
+3、该数组元素的类并不一定是从CObject派生的。
+
+18.7 多页打印程序
+
+如果程序是滚动视图，则可以在CStringView::OnInitialUpdate()函数中设置映射模式，否则必须重载OnPrepareDC函数设置映射模式：pDC->SetMapMode();
+

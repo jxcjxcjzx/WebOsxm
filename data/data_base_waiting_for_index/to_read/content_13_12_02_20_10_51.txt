@@ -1,0 +1,143 @@
+中国IT实验室LOGO 首页 | 互联网 | IT动态 | IT培训 | Cisco | Windows | Linux | Java | .Net | Oracle | 软件测试 | C/C++ | 嵌入式 | 存储世界服务器 | 华为 | 网络设备 | IDC | 安全 | 求职招聘 | 数字网校 | 北大青鸟 | 技术专题 | 电子书下载 | 教学视频 | 源码下载 | 搜索 | 博客 | 活动沙龙 | 论坛
+
+中国IT实验室Linux频道	
+  	
+  
+
+	
+首页		资讯动态		认证考试		新手入门		核心技术		高级技术		J2EE		J2ME		Java&XML		开源技术		其他技术		RSS订阅		论坛		专题
+
+您现在的位置： 中国IT实验室 >> Java >> 核心技术 >> 高级编程 >> 正文
+Java实现Comparable接口
+央邦0首付，低押金先就业后付款
+[上海央邦]学一送一,超值!
+50000年薪起，顶级4G手机开发！ 【安博亚威】CCIE考试通过率第一！
+Windows高级工程师的培训地
+java培训到达内，行业领先品牌
+文章来源中国IT实验室收集整理 作者佚名 更新时间2012-2-15 10:44:05 保存本文保存本文 推荐给好友推荐给好友 收藏本页收藏本页
+欢迎进入Java社区论坛，与200万技术人员互动交流 >>进入
+　　Java.lang.Comparable接口中唯一的方法是compareTo（），在该方法中可以进行简单的相等比较以及执行顺序比较，接口实现框架如下：[java] view plaincopyprint？
+　　public class ComparableImpl implements Comparable<ComparableImpl> {
+　　@Override public int compareTo（ComparableImpl o） { // TODO Auto-generated method stub return 0；}
+　　}一个类实现了Comparable接口，则说明它的实例具有内在的排序关系，就可以跟多种泛型算法以及依赖于该接口的集合实现进行协作。依赖于比较关系的类包括有序集合类TreeSet和TreeMap，以及工具类Collections和Arrays.若一个数组中的元素实现了Comparable接口，则可以直接使用Arrays类的sort方法对这个数组进行排序。Java平台库中的所有值类（value classes）都实现了Comparable接口。
+　　Comparable的规范说明如下：将当前这个对象与指定对象进行顺序比较。当该对象小于、等于或大于指定对象时，分别返回一个负整数、零或者正整数。如果由于指定对象的类型而使得无法进行比较，则抛出ClassCastException异常。
+　　compareTo方法的实现必须满足如下几个限制条件：自反性、对称性、传递性和非空性。
+　　一般来说，comparaTo方法的相等测试应该返回与equals方法相同的结果。如果相同，则由compareTo方法施加的顺序关系被称为“与equals一致”；如果不同，则顺序关系被称为“与equals不一致”。如果一个类的compareTo方法与equals方法的顺序关系不一致，那么它仍然能正常工作，只是，如果一个有序集合包含了该类的实例，则这个集合可能无法遵循某些集合接口的通用约定。因为集合接口的通用约定是按照equals方法定义的，而有序集合使用了由compareTo施加的相等测试。下面是实现了Comparable接口的类，同时，该类还重写了equals和hashCode等方法：[java] view plaincopyprint？
+　　public abstract class ZLTextPosition implements Comparable<ZLTextPosition> {
+　　public abstract int getParagraphIndex（）；public abstract int getElementIndex（）；public abstract int getCharIndex（）；
+　　public boolean samePositionAs（ZLTextPosition position） { return getParagraphIndex（） == position.getParagraphIndex（） && getElementIndex（） == position.getElementIndex（） && getCharIndex（） == position.getCharIndex（）；}
+　　@Override public int compareTo（ZLTextPosition position） { final int p0 = getParagraphIndex（）；final int p1 = position.getParagraphIndex（）；if （p0 ！= p1） { return p0 < p1 ？ -1 ： 1；}
+　　final int e0 = getElementIndex（）；final int e1 = position.getElementIndex（）；if （e0 ！= e1） { return e0 < e1 ？ -1 ： 1；}
+　　final int c0 = getCharIndex（）；final int c1 = position.getCharIndex（）；if （c0 ！= c1） { return c0 < c1 ？ -1 ： 1；} return 0；}
+　　@Override public boolean equals（Object obj） { if （this == obj） { return true；} if （！（obj instanceof ZLTextPosition）） { return false；}
+　　final ZLTextPosition position = （ZLTextPosition）obj；return samePositionAs（position）；}
+　　@Override public int hashCode（） { return （getParagraphIndex（） << 16） + （getElementIndex（） << 8） + getCharIndex（）；}
+　　@Override public String toString（） { return getClass（）。getName（） + " " + getParagraphIndex（） + " " + getElementIndex（） + " " + getCharIndex（）；}
+　　}
+ 
+   【责编:eric】
+
+相关文章
+用Java实现的日志切割清理工具
+Java创建线程的两个方法
+Java Annotation详解
+Java对数组的复制
+jsp生成静态的html文件
+java类的生命周期
+Java反射机制：简单谈谈动态代理
+java回调
+java容器---Collection
+探索J2ME应用：如何对记录进行排序
+编辑推荐
+· [高级编程]JAVA多线程模式之Balking
+· [基础入门]利用字符串连接巧妙解决问题
+· [高级编程]实现Java调用.net DLL的方法
+· [网络编程]Java设置与读取Cookie属性
+· [基础入门]和我共同了解Java是什么
+· [基础入门]Java语言与C++语言在作用域上的差异
+· [基础入门]Java源代码的折行规则
+· [基础入门]Java中的静态数组与动态数组
+· [基础入门]Java版简易俄罗斯方块
+· [基础入门]随机数组合，随机号码产生器
+
+相关产品和培训
+
+文章评论
+
+　友情推荐链接
+·Asp源码 PHP源码
+·CGI源码 JSP源码
+·建站书籍教程
+·服务器软件 .net源码
+·建站工具软件
+·IDC资讯大全
+·机房品质万里行
+·IDC托管必备知识
+·网站推广优化
+·全国IDC报价
+
+
+　认证培训
+· “暖冬工程”IT就业培训-先就业后付款！
+· 蓝点世纪Java EE工程师培训
+· No.1高薪热门职业【网络系统集成】
+· Java/C++培训100％名企就业
+· “紧缺人才培养计划”上海地区启动
+· [上海]交大慧谷CCNP培训特价3990元
+　专题推荐
+
+　·Java EE 6规范中文版
+　·Oracle 10g OCP考证秘笈
+　·算法分析与设计之五大常用算法
+　·开发必备 漫谈Java加密保护
+　·嵌入式开发--ARM技术专题
+　·C/C++指针，认真了解，灵活运用
+　·.NET开发：C#实用基础教程
+　·软件测试工具QTP学习专题
+　·嵌入式开发单片机解决方案专题
+　·Java开发环境 Greenfoot 程序员手册
+
+ 
+　今日更新
+· Java实现Comparable接口
+· JSP知识点总结
+· 解析JVM内存区域组成
+· 用Java实现的日志切割清理工具
+· Java创建线程的两个方法
+· Java Annotation详解
+· Java对数组的复制
+· MemCached java 操作
+· jsp生成静态的html文件
+· java类的生命周期
+　社区讨论
+
+　博客论点
+
+　频道精选
+· 新版CCNA考试大纲 07年8月1日生效
+· 新手学习宝典：Linux常用命令全集
+· 知已知彼，深入了解系统安全知识
+· 从入门到精通 java初学者实践系列教程
+· 共同学习——Oracle入门基础专题
+· ADO.net与PowerBuilder的综合比较
+· 评论：中国互联网“钱”途何在？
+· 中科院：龙芯要成"中国奔腾" 能卖1亿颗
+　Java	频道导航
+新手入门： 
+安装配置 | 开发工具 | JDK | oop面向对象
+核心技术： 
+SwingAwtApplet | 高级编程 | 网络编程Jvm技术 | JavaMedia
+高级技术： 
+设计模式 | UML／OO | p2p／Jxta | 多线程 | JavaSecurity
+J2EE： 
+J2ee核心 | Servlet／Jsp | EJB
+| JDBC／JDO | Rmi／Corba／Jini | Mvcwea | 应用服务器
+J2ME： 
+核心技术 | 嵌入式 | 无线开发
+Java&XML： 
+XMLBeans | WebServices
+开源技术： 
+ANT | Struts | Hibernate | Spring
+Eclipse | JBoss | Tomcat | JUnit
+其他技术
+

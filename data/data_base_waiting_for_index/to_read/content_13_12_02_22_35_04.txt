@@ -1,0 +1,619 @@
+
+
+
+
+
+
+张逸:晴窗笔记
+ 
+
+•博客园
+ •首页
+ •博问
+ •闪存
+ •新随笔
+ •联系
+ •订阅 
+•管理
+ 
+
+
+
+
+
+
+
+Java平台AOP技术研究
+
+
+
+
+1、引言
+
+2、AOP技术基础
+
+3、Java平台AOP技术研究
+
+4、.Net平台AOP技术研究
+
+3.1 Java平台AOP技术概览
+ 
+3.1.1 AOP技术在Java平台中的应用
+ 
+AOP在实验室应用和商业应用上，Java平台始终走在前面。从最初也是目前最成熟的AOP工具——AspectJ，到目前已经融和在企业级容器JBoss中的JBoss AOP，均建立在Java平台上。
+ 
+前面已经描述到，AOP的目的就是将核心关注点和横切关注点分离，实际上这就是一种分散关注（seperation of concerns）的思路。在Java平台下，如果要开发企业级的应用，非J2EE莫属。一个J2EE应用系统只有部署在J2EE容器中才能运行，那么为什么要划分为J2EE容器和J2EE应用系统？ 通过对J2EE容器运行机制的分析，我们发现：实际上J2EE容器分离了一般应用系统的一些通用功能，例如事务机制、安全机制以及对象池或线程池等性能优化机制。这些功能机制是每个应用系统几乎都需要的，因此可以从具体应用系统中分离出来，形成一个通用的框架平台，而且，这些功能机制的设计开发有一定难度，同时运行的稳定性和快速性都非常重要，必须经过长时间调试和运行经验积累而成，因此，形成了专门的J2EE容器服务器产品，如Tomcat JBoss、Websphere、WebLogic等。
+ 
+从J2EE将应用系统和容器分离的策略，我们能够看到AOP的影子。J2EE应用系统就相当于AOP技术中的核心关注点，它的内容主要包括企业系统的商业逻辑；而J2EE容器则类似于横切关注点，实现的是通用的功能机制。不过业界在选择J2EE容器时，对于EJB这种重量级容器服务器而言，虽然欣赏其高效、稳定及企业级的容器服务，但对于整个容器的高开销、高成本以及过于复杂的解决方案均深怀戒心。因此，随着J2EE的逐步演化，“轻量级容器架构”通过开源社区如激流一般的驱动力，逐渐占据了J2EE技术的强势地位。而所谓“轻量级容器”与EJB提供的重量级架构的区别，就在于借助了AOP技术和IoC（Inversion of Control，反转模式）机制，降低了代码对于专用接口的依赖性，以简短、轻便、专注、可移植的方式实现业务对象。事实上，我们看到的美好前景是，如果所有企业级服务都可以通过AOP机制提供给普通Java对象，那么深盔重铠的应用服务器就不再有存在的价值了。
+ 
+正是看到了AOP技术在企业级开发中的巨大潜力，而“轻量级容器”也唤起了改革EJB容器的呼声（事实上，最新的 EJB V3.0 标准就使用了轻量级容器模型），越来越多的AOP工具在Java平台下应运而生，从而形成了目前AOP工具百家争鸣的局面。其中，应用最为广泛的主要包括AspectJ、Spring AOP和JBoss AOP等。
+ 
+3.1.2 Java平台下AOP工具的比较
+ 
+AOP是一项新技术，而在Java平台下实现该技术的工具也非常多。虽然AOP的技术要素从本质上来讲是一致的，但各种工具的实现方法也各有不同，本节基于AOP的技术要素，对当前应用较广泛的AspectJ、Spring AOP和JBoss AOP进行比较。
+ 
+3.1.2.1 AOP实现机制的区别
+ 
+同样是实现AOP，且AOP的技术要素完全相同，但各种AOP工具对于AOP实现的底层机制却是不尽相同的。
+ 
+AspectJ采用了源代码生成技术来实现AOP。它提供了一套独有的基于Java平台的AOP语法，以及专有的AspectJ编译器。编译器在编译具有AspectJ语法的Java程序时，能够识别诸如aspect，pointcut等特殊关键字，然后利用静态织入的方式，修改需要被截取的方法所属类的源代码，把advice或者introduce的业务逻辑代码注入到正确的位置。利用AspectJ，可以将核心关注点完全独立出来，然后通过AspectJ语法，编写符合核心关注点要求的横切关注点代码，最后通过AspectJ编译器，将这两者在后期结合起来。采用这种静态织入技术，使得运用了AOP技术的系统在运行性能上未受到任何损失，因为它没有利用反射技术或代理技术，而仅仅是程序的静态扩展而已。然而这种源代码生成方式实现的AOP虽然在性能上具备一定的优势，但它同时会给开发带来一定的问题。例如代码的后期修改会给系统带来不可估量的影响。
+ 
+Spring AOP是Spring框架中的一部分，但可以作为一个独立的模块单独存在。Spring AOP实现AOP技术从本质上来讲，是利用了JDK提供的动态代理技术。而从实际的实现方式来看，则是利用了IoC（Inversion of Control，反转模式）机制，同时采用了AOP联盟（AOP Alliance）的通用AOP接口。首先，Spring AOP通过xml配置文件配置了pointcut，并利用Interceptor（拦截机）作为设定的触发条件。Interceptor是由用户自定义的，它相当于是AOP中的advice，但该Interceptor需要实现AOP联盟的通用AOP接口，例如org.aopalliance.intercept.MethodInterceptor。最后定义一个Spring AOP ProxyFactory用于加载执行AOP组件，并利用IoC机制将advice注入到接口以及实现类中。
+ 
+JBoss 4.0提供了AOP框架。与Spring一样，这个框架可与JBoss应用服务器紧密结合，也可以单独运行在自己的应用中。JBoss AOP同样需要Interceptor拦截器来完成对方法的拦截，它要求所有的Interceptor都必须实现org.jboss.aop.Interceptor接口。在这个接口中最重要的方法就是invoke()。该方法对元数据直接进行操作，并利用反射的原理去拦截方法的消息。Interceptor相当于AOP的advice，至于pointcut，则在xml配置文件中配置。可以看出，Spring AOP和JBoss AOP在实现上属于动态织入的方式，它们与AspectJ在实现上是迥然不同的两种方式。
+ 
+3.1.2.2 关于“Aspect（方面）”的区别
+ 
+在对aspect的声明上，可以使用类似Java的代码，注释或xml。考虑一个常用的例子，对Account类的授权策略，如果以AOP技术来实现，运用不同的AOP工具，它们在方面声明技术上的差异，是显而易见的。
+ 
+Aspect 中的方面声明类似于 Java 语言中的类声明，如图3.1 所示。
+ 
+
+图3.1 AspectJ中的方面声明
+ 
+由于 AspectJ 是 Java 语言语法和语义的扩展，所以它提供了自己的一套处理方面的关键字。除了包含字段和方法之外，AspectJ 的方面声明还包含pointcut和advice成员。示例中的pointcut使用了修饰符（modifier）和通配符（wildcard）模式来表达“所有公共方法”。对帐户的访问，由 pointcut 参数提供。advice使用这个参数，而pointcut则用 this(account) 把它绑定。这样做的效果，就是捕获了正在执行的方法所隶属的Account对象。否则，advice的主体与方法的主体相似。advice可以包含认证代码，或者就像在这个示例中一样，可以调用其他方法。
+ 
+JBoss AOP 基于 XML 的风格来声明方面，如图 3.2 所示。
+
+ 
+
+图3.2 JBoss AOP的方面声明
+ 
+在 XML 风格中，aspect、pointcut和advice的声明都以 XML 形式表示的。advice的实现，用的是普通的 Java 方法，由JBoss AOP框架调用。pointcut和pointcut到advice的绑定都在方面中用XML注释声明。JBoss 没有显式地绑定 Account 参数，而是提供了对当前正在执行的对象的反射访问，因此需要把类型转换到对应的类型。JBoss AOP还可以通过标签的方式对方面进行声明。标签均以“@”字符开始，它的使用有点类似于.Net中的Attribute。
+ 
+Spring AOP同样是基于 XML 的风格来声明方面，如图3.3所示。
+
+ 
+
+图3.3 Spring AOP的方面声明
+ 
+与JBoss AOP类似，Spring的advice实现是带有特殊参数的Java方法，由 Spring 框架调用。XML描述accountBean，Spring框架通过它访问 Account 对象，包括通知使用的拦截器 advisor 及其匹配模式，还有应用到模式的向前（before） 通知。
+ 
+由于Spring AOP利用了IoC机制，因此比较JBoss AOP而言，在xml配置文件中提供了更加精细的配置。而构建、运行和配置 Spring AOP 方面的过程则与JBoss AOP基本相同，不过Spring AOP依赖的是Spring框架方便的、最小化的运行时配置，所以不需要独立的启动器。
+ 
+3.1.2.3 语言机制的区别
+ 
+    由于实现机制和语法风格的不同，三种AOP工具在语言机制上也有很大的不同，以下从四个方面来描述AspectJ、JBossAOP和Spring AOP之间的区别。
+ 
+（1）pointcut匹配和复合：AspectJ和 JBoss AOP 提供了类似的类型模式支持。它们都允许签名方面的匹配，对于 Java 5 应用程序来说，这些匹配包括注释和泛型。AspectJ提供了一种简洁的引用多个类型的技术（例如 Account+ 表示帐户的所有子类型）。所有的工具都支持通配符匹配。Spring AOP 还提供了对正则表达式的支持。虽然这看起来可能是一个强大的优势，但还是要指出其他技术已经选择了放弃正则表达式，好让pointcut读起来不是太难，同时不会存在潜在的损害。pointcut复合操作符基本上都是相同的。Spring AOP 不提供“非”操作，这个操作通常与没有在 Spring AOP 连接点模型的容器（containment）连接点结合使用。
+ 
+（2）advice形式：AspectJ 支持比其他技术更多的advice形式，而 JBoss AOP 只支持一种advice形式。每种通知形式都可以表达成 around advice，所以 JBoss 的技术是无限的，而且它确实提供了额外的简单性。不好的一面是它损失了简洁性。另外，强迫advice去遵守普通的 Java 规则（就像注释和 XML 风格做的那样），在一些情况下容易出问题，因为这些规则是为方法设计的。AspectJ 拥有把被通知方法的异常“软化”的能力，这很有用，但是不符合方法异常检测的标准语义。
+ 
+（3）join point上下文：在 AspectJ中，通过指定和绑定pointcut参数访问动态连接点的状态，类似于在 Java 语言中声明方法参数的技术（请参阅图3.1）。这为连接点上下文提供了静态类型化的好处。JBoss AOP 和 Spring AOP 反射性地访问连接点的状态，这消除了在切入点表达式中参数绑定的复杂性，代价是参数静态类型化。Java 程序员习惯了方法参数静态类型化带来的好处，同时还可以从pointcut参数的静态类型化得到同样的好处。所以，在 JBoss AOP 最近的发行版本中，有提供静态类型化的“args”的计划。
+ 
+（4）扩展性：aspect的扩展性支持库方面的部署，这样可以在日后为特定程序将这些库方面具体化。例如，一个方面库可以提供应用程序监视需要的全部逻辑和基础设施。但是，要采用某个特定项目的库，那么库使用的pointcut必须扩展成应用程序特定的join point。AspectJ 用抽象方面支持扩展性，抽象方面包含抽象的pointcut和具体的advice。扩展抽象方面的子方面必须具体化pointcut。JBoss AOP 使用了完全不同的技术，没有使用抽象切入点机制。扩展是通过生成aspect的子类、并在 XML 中或通过注释定义新的advice绑定而实现的。pointcut到advice的显式绑定为JBoss AOP提供了显著优势，从而可以很容易地把方面扩展到新系统，无需要生成子类。
+ 
+3.2 Java平台下AOP主流工具研究
+ 
+3.2.1 AsepctJ研究
+ 
+AspectJ作为Java编程语言扩展的AOP工具，使得我们运用AOP技术能够像普通的Java编程那样，特殊之处，仅在于我们需要使用AspectJ提供的特殊语法。接下来，我将通过一些实例，介绍如何运用AspectJ实现AOP技术。
+ 
+3.2.1.1 AspectJ语言特性
+ 
+设定我们的开发项目中需要应用到日志记录，根据前面介绍的AOP知识，我们已经能够从这个需求中识别出横切关注点——日志记录。因此，我们需要定义关于“日志记录”的aspect：
+ 
+public aspect AutoLog
+{ 
+    pointcut publicMethods() : execution(public * org.apache.cactus..*(..));
+    pointcut logObjectCalls() : execution(* Logger.*(..));
+    pointcut loggableCalls() : publicMethods() && ! logObjectCalls(); 
+ 
+    before() : loggableCalls()
+    {
+      Logger.entry(thisJoinPoint.getSignature().toString());
+    }
+    after() : loggableCalls()
+    {
+      Logger.exit(thisJoinPoint.getSignature().toString());
+    }
+}
+ 
+如果仅仅熟悉Java编程，会发现有很多关键字是Java语言中不曾包含的，它们均是AspectJ提供的。
+ 
+分析上述的代码，首先是aspect的声明，它类似于Java中的类声明，定义了一个aspect：AutoLog。在这个方面中分别包含了pointcut和advice。
+ 
+pointcut共有三个：publicMethod、logObjectCalls和loggableCalls。publicMethod将选择org.apache.cactus包中的所有公共（public）方法的执行。所谓“选择”，就意味着它的join point为其选择的方法。当这些方法被调用时，就会执行pointcut的advice代码。而在pointcut中，execution 是一个原始的 Pointcut（就象 int 是一种原始的 Java 类型）。它选择与括号中定义的方法说明匹配的任何方法的执行。方法说明允许包含通配符。logObjectCalls的pointcut则选择Logger 类中的所有方法的执行。第三个pointcut比较特殊，它使用&& !合并了前两个 Pointcut，这意味着它选者了除Logger类中的公共方法以外， org.apache.cactus 中所有的公共方法。
+ 
+advice在aspect中，被用来完成实际的日志纪录。advice有三种，分别为before、after和around。如上述代码中定义的advice：
+before() : loggableCalls()
+{
+    Logger.entry(thisJoinPoint.getSignature().toString());
+}
+ 
+该advice的定义表示的含义是，如果org.apache.cactus中所有的公共方法（Logger类的公共方法除外）被执行，则在这些方法执行之前，需要先执行该advice定义的逻辑。
+ 
+3.2.1.2 AspectJ的高级语言特性
+ 
+在本文第二部分介绍AOP技术时，提到了横切技术的分类。其中，静态横切技术能够扩展一个对象的结构。使用引入（Introduction），Aspect 可以向类中添加新的方法和变量、声明一个类实现一个接口或将检查异常转换为未检查异常（unchecked exception）。
+ 
+3.2.1.2.1 向现有类添加变量和方法
+ 
+假设您有一个表示持久存储的数据缓存的对象。为了测量数据的“更新程度”，您可能决定向该对象添加时间戳记字段，以便容易地检测对象是否与后备存储器同步。由于对象表示业务数据，根据AOP的知识，我们应该将这种机制性细节从对象中隔离。使用 AspectJ，可以用如下代码中所显示的语法来向现有的类添加时间戳记：
+ 
+public aspect Timestamp
+{
+    private long ValueObject.timestamp;
+    public long ValueObject.getTimestamp()
+    {
+       return timestamp;
+    }
+    public void ValueObject.timestamp()
+    {     
+       this.timestamp = System.currentTimeMillis();
+    }
+}
+ 
+通过introduction，我们就非常方便的为ValueObject类型添加了timestamp的变量和相关方法。除了必须限定在哪个类上声明引入的方法和成员变量以外，声明引入的方法和成员变量几乎与声明常规类成员相同。
+ 
+3.2.1.2.2实现多继承功能
+ 
+利用introduction，AspectJ允许向接口和类添加成员，也突破了Java语言只能单继承的限制，允许程序按C++方式那样实现多继承。如果您希望上述的aspect Timestamp能够泛化 （generalize），以便能够对各种对象重用时间戳记代码，可以定义一个称为 TimestampedObject 的接口，并使用引入（Introduction）来将相同成员和变量添加到接口而不是添加到具体类中，如下所示:
+public interface TimestampedObject
+{
+    long getTimestamp();
+    void timestamp();
+}
+public aspect Timestamp
+{
+    private long TimestampedObject.timestamp;
+    public long TimestampedObject.getTimestamp()
+    {
+        return timestamp;
+    }
+    public void TimestampedObject.timestamp()
+    {
+        this.timestamp = System.currentTimeMillis();
+    }
+}
+ 
+Timestamp方面由于在TimestampedObject接口中引入（introduction）了方法的实现，使得TimestampedObject接口改变其本质，成为了一个特殊的类类型。特殊之处就在于一个已经继承了一个类的类类型，通过AspectJ的语法，仍然可以再次继承TimestampedObject，这就间接地实现了类的多继承。而这个特殊的AspectJ语法就是declare parents语法。declare parents和其它AspectJ 类型表达一样，可以同时应用于多个类型：
+declare parents: ValueObject || BigValueObject implements TimestampedObject;
+ 
+3.2.1.3 编译器及工具支持
+ 
+    要让aspect能够正常工作，必须将aspect加入到它们要修改的代码中去。这项工作由AspectJ提供的ajc编译器完成。ajc 编译器用来编译类和 Aspect 代码。ajc 既可以作为编译器也可以作为预编译器操作，生成有效的 .class 或 .java 文件，可以在任何标准 Java 环境（添加一个小的运行时 JAR）中编译和运行这些文件。
+ 
+要使用 AspectJ 进行编译，将需要显式地指定希望在给定编译中包含的源文件（Aspect 和类），ajc不象javac那样简单地为相关导入模块搜索类路径。之所以这样做，是因为标准 Java 应用程序中的每个类都是相对分离的组件。为了正确操作，一个类只要求其直接引用的类的存在。Aspect 表示跨越多个类的行为的聚集。因此，需要将 AOP 程序作为一个单元来编译，而不能每次编译一个类。
+ 
+AspectJ 当前版本的一个重要限制是其编译器只能将aspect加入到它拥有源代码的代码中。也就是说，不能使用ajc将Advice添加到预编译类中。AspectJ 团队认为这个限制只是暂时的，AspectJ 网站承诺未来的版本（正式版 2.0）将允许字节码的修改。
+ 
+AspectJ发行版包含了几种开发工具。这预示着 AspectJ 将有美好的前景，因为它表明了作者对这一部分的一个重要承诺，使 AspectJ 对于开发人员将是友好的。对于面向 Aspect 的系统工具支持尤其重要，因为程序模块可能受到它们所未知的模块所影响。
+ 
+随 AspectJ 一起发布的一个最重要的工具是图形结构浏览器，它展示了 Aspect 如何与其它系统组件交互。这个结构浏览器既可以作为流行的 IDE 的插件，也可以作为独立的工具。图3.4显示了先前讨论的日志记录示例的视图。
+
+ 
+
+图3.4 AspectJ提供的“结构浏览器”工具
+ 
+除了结构浏览器和核心编译器之外，您还可以从 AspectJ 网站下载一个 Aspect 支持的调试器、一个javadoc工具、一个Ant任务以及一个Emacs 插件。
+ 
+3.2.2 JBoss AOP研究
+ 
+JBoss AOP关于AOP的实现与AspectJ是两种完全不同的风格。由于Java利用元数据来存储有关类型、方法、字段的相关信息，因此，可以通过Java提供的反射功能获得模块相关的元数据，对方法进行拦截，并将被拦截的方法与aspect逻辑进行关联。
+ 
+3.2.2.1 拦截器（Interceptor）
+ 
+在JBoss AOP中，是用拦截器来实现advice的。可以自定义拦截器，拦截方法调用、构造函数调用以及对字段的访问，但JBoss要求这些自定义的拦截器，必须实现org.jboss.aop.Interceptor接口：
+ 
+public interface Interceptor
+{
+    public String getName();
+    public InvocationResponse invoke(Invocation invocation) throws Throwable;
+}
+ 
+在JBoss　AOP中，被拦截的字段、构造器和方法均被转化为通用的invoke方法调用。方法的参数接收一个Invocation对象，而方法的返回值、字段的存取以及构造函数则被填入一个InvocationResponse对象。Invocation对象同时还驱动拦截链。下面我们自定义一个拦截器，它能够拦截构造函数和方法的调用，并将跟踪信息打印到控制台上：
+import org.jboss.aop.*;
+import java.lang.reflect.*;
+ 
+public class TracingInterceptor implements Interceptor
+{
+    public String getName()
+    {
+        return TracingInterceptor;
+    }
+    public InvocationResponse invoke(Invocation invocation) throws Throwable
+    {
+        String message = null;
+        if (invocation.getType() == InvocationType.METHOD)
+        {
+            Method method = MethodInvocation.getMethod(invocation);
+            message = method: + method.getName();
+        }
+        else
+        {
+            if (invocation.getType() == InvocationType.CONSTRUCTOR)
+            {
+                Constructor c = ConstructorInvocation.getConstructor(invocation);
+                message = constructor: + c.toString();
+            }
+            else
+            {
+                // 不对字段作处理，太繁琐；
+                return invocation.invokeNext();
+            }
+            System.out.println(Entering + message);
+        }
+        // 继续。调用真正的方法或者构造函数
+        InvocationResponse rsp = invocation.invokeNext();
+        System.out.println(Leaving + message);
+        return rsp;
+    }
+}
+ 
+在自定义的TracingInterceptor类中，invoke()方法对invocation的类型作判断，以根据方法、构造函数和字段类型，分别作出不同的操作。而其中，invocation.invokeNext()则表示通过一个拦截链获得下一个invocation。
+ 
+定义的拦截必须在xml文件配置，使其绑定到具体的类。这个定义即为AOP中的切入点pointcut。例如具体的类为BusinessObject，则该pointcut在xml中的定义如下：
+<?xml version="1.0" encoding="UTF-8">
+<aop>
+    <interceptor-pointcut class="BusinessObject">
+        <interceptors>
+            <interceptor class="TracingInterceptor" />
+        </interceptors>
+    </interceptor-pointcut>
+</aop>
+ 
+上面的pointcut绑定TracingInterceptor到一个叫做BusinessObject的类。如果要将该Interceptor绑定到多个类，还可以利用正则表达式。例如，如果你想绑定由JVM载入的类，类表达式将变为 .*。如果你仅仅想跟踪一个特定的包，那么表达式将是bruce.zhang.mypackge.*。
+ 
+当JBoss AOP独立运行时，任何符合 META-INF/jboss-aop.xml模式的XML文件将被JBoss AOP 运行期程序载入。如果相关的路径被包含在任何JAR或你的CLASSPATH目录中，该XML文件将在启动时，由JBoss AOP 运行期程序载入。
+ 
+JBoss AOP还提供了过滤功能，可以通过在xml文件中配置过滤的标志，使一些特定的方法（包括字段的访问）被过滤，从而不再执行Interceptor的相关逻辑。例如，我们要过滤BusinessObject类的所有get()和set()方法，以及main()方法，则可以修改上述的xml文件：
+<?xml version="1.0" encoding="UTF-8">
+<aop>
+    <class-metadata group="tracing" class=" BusinessObject ">
+        <method name="(get.*)|(set.*)">
+            <filter>true</filter>
+        </method>
+        <method name="main">
+            <filter>true</filter>
+        </method>
+    </class-metadata>
+</aop>
+ 
+相应的，Interceptor代码也应作相关的修改，使其能够识别配置文件中的filter属性：
+public class TracingInterceptor implements Interceptor
+{
+    ……//getName()方法略；
+    public InvocationResponse invoke(Invocation invocation) throws Throwable
+    {
+        String filter=(String)invocation.getMetaData(tracing, filter);
+        if (filter != null && filter.equals(true))
+            return invocation.invokeNext();
+        ……//后面的代码略；
+    }
+}
+ 
+3.2.2.2 引入（Introduction）
+ 
+JBoss AOP同样提供introduction功能，通过它，就可以为现有的类引入第三方接口或类的API了。例如，我们可以为具体的类如BusinessObject提供Tracing的开关，使得BusinessObject对象能够根据具体的情况打开或关闭aspect的Tracing功能。为实现该功能，可以定义一个Tracing接口：
+public interface Tracing
+{
+    void enableTracing();
+    void disableTracing();
+}
+ 
+接下来需要定义一个混合类，它实现了接口Tracing。当BusinessObject类被实例化时，该混合类的实例就会被绑定到BusinessObject上。实现方法如下：
+import org.jboss.aop.Advised;
+ 
+public class TracingMixin implements Tracing
+{
+    Advised advised;
+ 
+    Public TracingMixin(Object obj)
+    {
+        this.advised = (Advised)obj;
+    }
+    public void enableTracing()
+    {
+        advised._getInstanceAdvisor().getMetaData().addMetaData("tracing", "filter", true);
+    }
+    public void disableTracing()
+    {
+        advised._getInstanceAdvisor().getMetaData().addMetaData("tracing", "filter", false);
+    }
+}
+ 
+enableTracing()方法将filter属性绑定到对象实例。disableTracing()方法作同样的事，但是将filter属性设置为false。
+ 
+定义了Tracing接口和实现了该接口的混合类后，就可以在xml文件中定义一个pointcut，强制BusinessObject类实现Tracing接口：
+<?xml version="1.0" encoding="UTF-8">
+<aop>
+    <introduction-pointcut class="BusinessObject">
+        <mixin>
+            <interfaces>Tracing</interfaces>
+            <class>TracingMixin</class>
+            <construction>new TracingMixin(this)</construction>
+        </mixin>
+    </introduction-pointcut>
+</aop>
+ 
+注意xml文件中的标签，它代表的含义是当BusinessObject对象被实例化时，将执行该标签内的代码。以本例而言，当创建BusinessObject对象时，一个TracingMixin类的实例将被创建。任何单行的Java代码都可以放到标签中。
+ 
+通过“引入（introduction）”功能，在处理BusinessObject对象时，就可以视其为Tracing接口类型而进行操作了，如下的示例：
+ 
+public class BusinessObject
+{
+    public BusinessObject () {}
+    public void helloWorld() { System.out.println(Hello World!); }
+ 
+    public static void main(String[] args)
+    {
+        BusinessObject bo = new BusinessObject ();
+        Tracing trace = (Tracing)this;
+        bo.helloWorld();
+       
+        System.out.println("Turn off tracing.");
+        trace.disableTracing();
+        bo.helloWorld();
+       
+        System.out.println("Turn on tracing.");
+        trace.enableTracing();
+        bo.helloWorld();
+    }
+}
+ 
+注意如下代码：
+Tracing trace = (Tracing)this;
+ 
+此时this代表的即为BusinessObject，从Java代码的角度来看，由于BusinessObject并没有实现Tracing接口，因此这行代码所示的显式转换为Tracing类型是不成功的。但通过“引入”功能，使得BusinessObject通过混合类，实现了Tracing接口，从而使得如上的代码能够顺利执行。隐含的意义就是，我们没有修改BusinessObject的定义，而是通过AOP技术，为BusinessObject扩展实现了第三方提供的接口Tracing。
+ 
+3.2.3 Spring AOP研究
+ 
+Spring AOP使用纯Java实现，不需要特别的编译过程，也不需要控制类装载层次。与JBoss AOP相同，它仍然利用了拦截器完成对方法的拦截。然而，Spring AOP实现AOP的主要技术却主要来自于AOP联盟，如拦截器应实现org.aopalliance.intercept.MethodInterceptor 接口，而所有advice必须实现org.aopalliance.aop.Advice标签接口。此外，Spring实现AOP的目标也不同于其他大部分AOP框架，它的目标不是提供及其完善的AOP实现，而是提供一个和Spring IoC紧密整合的AOP实现，帮助解决企业应用 中的常见问题。因此，Spring AOP的功能通常是和Spring IoC容器联合使用的。AOP Advice是用普通的bean定义语法来定义的，Advice和pointcut本身由Spring IoC 管理。这是一个重要的其他AOP实现的区别。
+ 
+3.2.3.1 切入点（pointcut）
+ 
+Spring的切入点模型能够使pointcut独立于advice类型被重用。同样的pointcut有可能接受不同的advice。将Pointcut接口分成两个部分有利于重用类和方法的匹配部分，并且组合细粒度的操作（如和另一个方法匹配器执行一个“并”的操作）。
+ 
+在Spring的切入点中，org.springframework.aop.Pointcut接口是重要的接口，它用来指定通知到特定的类和方法目标。完整的接口定义如下:
+public interface Pointcut
+{
+    ClassFilter getClassFilter();
+    MethodMatcher getMethodMatcher();
+}
+ 
+ClassFilte类型也是一个接口，该接口被用来将切入点限制到一个给定的目标类的集合。 如果matches()永远返回true，所有的目标类都将被匹配。
+public interface ClassFilter
+{
+    boolean matches(Class clazz);
+}
+ 
+MethodMatcher接口通常更加重要。完整的接口定义如下：
+public interface MethodMatcher
+{
+    boolean matches(Method m, Class targetClass);
+    boolean matches(Method m, Class targetClass, Object[] args);
+    boolean isRuntime();
+}
+ 
+matches(Method, Class) 方法被用来测试这个切入点是否匹配目标类的给定方法。这个测试可以在AOP代理创建的时候执行，避免在所有方法调用时都需要进行 测试。如果2个参数的matches()方法对某个方法返回true，并且MethodMatcher的isRuntime()也返回true，那么3个参数的matches()方法将在每次方法调用的时候被调用。这使切入点能够在目标advice被执行之前立即查看传递给方法调用的参数。由于大部分MethodMatcher都是静态的，意味着isRuntime()方法会返回false。此种情况下，3个参数的matches()方法永远不会被调用。
+ 
+Spring AOP提供了几个实用的切入点实现，其中较为常用的是正则表达式切入点：org.springframework.aop.support.RegexpMethodPointcut，它使用Perl 5的正则表达式的语法。使用这个类你可以定义一个模式的列表。如果任何一个匹配，那个切入点将被计算成 true。用法如下：
+<bean id="settersAndAbsquatulatePointcut"
+    class="org.springframework.aop.support.RegexpMethodPointcut">
+    <property name="patterns">
+        <list>
+            <value>.*get.*</value>
+            <value>.*absquatulate</value>
+        </list>
+    </property>
+</bean>
+ 
+不过，更多情况下是直接使用RegexpMethodPointcut一个实用子类： RegexpMethodPointcutAdvisor。它允许我们同时引用一个advice（在Spring AOP中，advice可以是拦截器，也可以是before advice，throws advice等)。这就简化了bean的装配，因为一个bean可以同时当作pointcut和advice，如下所示：
+<bean id="myPointcutAdvisor" class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+    <property name="advice">
+        <ref local="MyInterceptor" />
+    </property>
+    <property name="patterns">
+        <list>
+            <value>.*save.*</value>
+            <value>.*do.*</value>
+        </list>
+    </property>
+</bean>
+ 
+注意配置文件中的myPointcutAdvisor，在Spring AOP中，一个advisor就是一个aspect完整的模块化表示。通过advisor，可以将pointcut和advice（在此处即为MyInterceptor）绑定起来。
+ 
+3.2.3.2 通知（advice）
+ 
+Spring AOP的advice可以跨越多个被advice对象共享，或者每个被advice对象有自己的advice。要实现advice，最简单的做法就是定义一个拦截器（Interceptor）。它采用了AOP联盟（AOP Alliance）的通用AOP接口（接口定义为aopalliance.jar）。要实现advice，需要实现aopalliance.jar中定义的MethodInterceptor接口。
+ 
+例如，我们定义了一个业务对象接口BusinessObject及其实现类BusinessObjectImpl，该业务对象能够存储数据，其定义如下：
+public interface BusinessObject
+{
+    public void save();
+}
+public class BusinessObjectImpl implements BusinessObject
+{
+    public void save()
+    {
+         System.out.println("saving domain object......");
+    }
+}
+ 
+现在需要为业务对象BusinessObject的Save()方法，提供Lock机制。根据Spring AOP的实现方式，我们可以定义一个LockInterceptor来实现MethodInterceptor接口：
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+ 
+public class LockInterceptor implements MethodInterceptor
+{
+    public Object invoke(MethodInvocation invocation) throws Throwable
+    {
+        // TODO Auto-generated method stub
+        lock();
+        Object ret= invocation.proceed();
+        unlock();
+        return ret;
+    }
+    private void lock()
+    {
+        System.out.println("lock domain object...");
+    }
+    private void unlock()
+    {
+        System.out.println("unlock domain object...");
+    }
+}
+ 
+为将interceptor与具体的advice绑定起来，需要在配置文件中配置bean：
+&lt;bean id="MyInterceptor" class="test.aop.spring.LockInterceptor"/&gt;
+ 
+3.2.3.3 AOP代理与IoC容器
+ 
+由于Spring中提供了IoC容器（例如BeanFactory），因此我们可以通过Ioc机制，利用ProxyFactoryBean来创建AOP代理。ProxyFactoryBean和其他Spring的 FactoryBean实现一样，引入一个间接的层次。如果你定义一个名字为foo的ProxyFactoryBean，引用foo的对象所看到的不是ProxyFactoryBean实例本身，而是由实现ProxyFactoryBean的类的 getObject()方法所创建的对象。这个方法将创建一个包装了目标对象 的AOP代理。
+ 
+AOP代理利用的是Java的动态代理技术，通过它就可以加载并执行AOP组件。同时，还需要通过IoC的方式将advice注入到接口以及其实现类。以前面的业务对象BusinessObject为例，在xml配置文件中的配置如下：
+<bean id="myAOPProxy" class="org.springframework.aop.framework.ProxyFactoryBean">
+    <property name="proxyInterfaces">
+       <value>test.aop.spring.BusinessObject</value>
+    </property>
+    <property name="target">
+       <ref local="impl" />
+    </property>
+    <property name="interceptorNames">
+       <value>myPointcutAdvisor</value>
+    </property>
+</bean>
+<bean id="impl" class="test.aop.spring.BusinessObjectImpl"/>
+ 
+通过上述对pointcut、advice、advisor和AOP代理的配置，我们就可以轻易地在Spring中实现AOP，例如：
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
+ 
+public class App
+{
+    private BusinessObject bo = null;
+    public static void main(String[] args)
+    {
+        ApplicationContext ctx=new FileSystemXmlApplicationContext("Bean.xml");
+        bo= (BusinessObject) ctx.getBean("myAOPProxy");
+        bo.save();
+    }
+}
+ 
+首先，通过AOP代理获得BusinessObject对象。当调用BusinessObject对象的save()方法时，拦截器LockInterceptor根据RegexpMethodPointcutAdvisor配置的pointcut和advice之间的关系，判定该方法的调用为join point，从而拦截该方法调用，并注入advice的执行逻辑，即lock()和unlock()，最终实现了AOP。
+ 
+3.2.3.4 引入（introduction）
+ 
+在Spring AOP中，将introduction当作advice来处理。与一般的advice一样，introduction advice相当于一种特殊类型的拦截通知，需要实现IntroductionAdvisor和IntroductionInterceptor接口，而IntroductionInterceptor接口继承自MethodInterceptor：
+public interface IntroductionInterceptor extends MethodInterceptor
+{
+    boolean implementsInterface(Class intf);
+}
+ 
+Introduction通知不能被用于任何pointcut，因为它只能作用于类层次上，而不是方法。我们可以只用InterceptionIntroductionAdvisor来实现导入通知，它有下面的方法：
+public interface InterceptionIntroductionAdvisor extends InterceptionAdvisor
+{
+    ClassFilter getClassFilter();
+    IntroductionInterceptor getIntroductionInterceptor();
+    Class[] getInterfaces();
+}
+ 
+接下来，我以JBoss AOP一节中的例子来说明introduction在Spring AOP中的应用。我们的目标仍然是为一个已有的业务对象引入第三方接口Tracing：
+public interface Tracing
+{
+    void enableTracing();
+    void disableTracing();
+    boolean enabled();
+}
+ 
+首先，我们需要一个做大量转化的IntroductionInterceptor。在这里，我们继承 org.springframework.aop.support.DelegatingIntroductionInterceptor 实现类。当然我们可以直接实现IntroductionInterceptor接口，但是大多数情况下 DelegatingIntroductionInterceptor是最合适的。
+ 
+DelegatingIntroductionInterceptor的设计是将introduction委托到真正实现introduction接口的接口，隐藏完成这些工作的拦截器。委托可以使用构造方法参数设置到任何对象中；默认的委托就是自己（当无参数的构造方法被使用时）。这样在下面的例子里，委托是DelegatingIntroductionInterceptor的子类 TracingMixin。给定一个委托（默认是自身）的 DelegatingIntroductionInterceptor实例寻找被这个委托（而不是IntroductionInterceptor）实现的所有接口，并支持它们中任何一个导入。子类如TracingMixi也可能调用suppressInterflace(Class intf) 方法来隐藏不应暴露的接口。然而，不管IntroductionInterceptor 准备支持多少接口，IntroductionAdvisor将控制哪个接口将被实际暴露。一个导入的接口将隐藏目标的同一个接口的所有实现。
+ 
+这样，TracingMixin继承DelegatingIntroductionInterceptor并自己实现接口Tracing。父类自动选择支持introduction的Tracing，所以我们不需要指定它。用这种方法我们可以导入任意数量的接口。
+public class TracingMixin extends DelegatingIntroductionInterceptor implements Tracing
+{
+    private boolean enabled;
+    public void enableTracing ()
+    {
+        this.enabled = true;
+    }
+ 
+    public void disableTracing ()
+    {
+        this. enabled = false;
+    }
+ 
+    public boolean enabled()
+    {
+        return this.enabled;
+    }
+    public Object invoke(MethodInvocation invocation) throws Throwable
+    {      
+        return super.invoke(invocation);
+    }
+}
+ 
+通常不要需要改写invoke()方法：实现DelegatingIntroductionInterceptor就足够了，如果是引入的方法，DelegatingIntroductionInterceptor实现会调用委托方法， 否则继续沿着连接点处理。
+ 
+所需的introduction advisor是很简单的。只需保存一个独立的TracingMixin实例，并指定导入的接口，在这里就是Tracing。此时，TracingMixin没有相关配置，所以我们简单地使用new来创建它。
+ 
+public class TracingMixinAdvisor extends DefaultIntroductionAdvisor
+{
+    public TracingMixinAdvisor() {
+        super(new TracingMixin(),Tracing.class);
+    }
+}
+ 
+我们可以非常简单地使用这个advisor。它不需要任何配置。（但是，有一点是必要的：就是不可能在没有IntroductionAdvisor 的情况下使用IntroductionInterceptor。） 和引入一样，通常 advisor必须是针对每个实例的，并且是有状态的。我们会有不同的TracingMixinAdvisor。每个被通知对象，会有不同的TracingMixin。advisor组成了被通知对象的状态的一部分。
+ 
+在Spring中，Spring AOP的核心API已经基本稳定了。和Spring的其它部分一样， AOP框架是模块化的，在保留基础设计的同时提供扩展。在Spring 1.1到1.2阶段有很多地方可能会有所提高，但是这些地方也保留了向后兼容性。它们是：
+ 
+（一）性能的提高：AOP代理的创建由工厂通过策略接口处理。因此能够支持额外的AOP 代理类型而不影响用户代码或核心实现。
+（二）更具表达力的pointcut：Spring目前提供了一个具有表达力的切入点接口，同时添加了更多的切入点实现。Spring正在考虑提供一个简单但具有强大表达式语言的实现。
+
+ 
+
+
+
+
+
+
+posted @ 2005-09-21 11:25 张逸 阅读(...) 评论(...)  编辑 收藏
+ 
+
+
+
+刷新评论刷新页面返回顶部
+ 
+
+
+博客园首页博问新闻闪存程序员招聘知识库
+ 
+
+
+
+
+
+公告
+
+ 
+
+
+
+
+
+
+Copyright ©2013 张逸 
+

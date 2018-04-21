@@ -1,0 +1,294 @@
+网易 
+博客 
+发现
+小组
+风格
+ 
+下载最文艺的手机博客APP>
+创建博客登录  加关注
+Remember to Forget
+记事本 博客已迁移 jcchen.tk
+首页
+日志
+音乐
+收藏
+博友
+关于我
+  
+日志
+  
+Remember
+  加博友   关注他
+ 他的网易微博
+最新日志
+putty连接ssh
+python docstring
+读懂diff
+java swing
+linux下mysql的root密码忘记
+git ignore
+随机阅读
+大牌演员孙红雷也曾遭遇“潜规则”？
+刘思敏：携程推出海外酒店预订新平台 艺龙去哪儿网或将跟进
+扩大校长公选，推进现代大学制度建设
+《夜话港乐》——32.林夕：三千首歌曲的快乐与哀愁
+【生活禅】退休后如何过上优质生活（图）？
+学习日记之六十一
+首页推荐
+小宽：餐厅年夜饭没年味
+中国导弹锁定日本护卫舰
+汪精卫此生最后悔的事情
+潘石屹卖房是否涉嫌洗钱
+男友提出同居只为了做爱
+女性初夜的真实感受(图)
+更多>>
+
+
+
+ 多个块元素时margin负值的问题 css sprits技术中 background的position问题
+液态布局技巧：宽度自适  
+
+2010-12-19 02:24:38|  分类： CSS |字号 订阅
+宽度自适应也是液态布局的重要技巧之一，我所知的实现方法有四种：绝对定位法，margin负值法，自身浮动法以及table。下面我将通过一个简单的例子来简单的说明一下这三种方法。
+
+假设现在我们有这样一个布局：左中右三栏，左右两栏宽度固定，中间栏宽度自适应。左右两栏的宽度为200像素。
+
+1.绝对定位法：
+
+基本原理：左右两栏采用绝对定位，分别固定于页面的左右两侧，中间的主体栏用左右margin值撑开距离。
+
+CSS代码如下：
+
+view plaincopy to clipboardprint?
+html,body{margin:0; height:100%;}  
+#left,#right{position:absolute; top:0; width:200px; height:100%;}  
+#left{left:0; background:#a0b3d6;}  
+#right{rightright:0; background:#a0b3d6;}  
+#main{margin:0 210px; background:#ffe6b8; height:100%;  
+HTML代码如下：
+
+view plaincopy to clipboardprint?
+<div id="left"></div>  
+<div id="main"></div>  
+<div id="right"></div>  
+注意：HTML中的三个层的顺序是可以任意颠倒的，这与其他方法是不同的
+
+此方法的优点是，理解容易，上手简单，内部元素基本不影响布局。但是缺点也不小，当客户端的分辨率较小，或是认为的缩小浏览器的尺寸时会出现重叠的现象，左右两个层会覆盖中间的main。
+
+2.margin负值法：
+
+基本原理：首先，中间的主体要使用双层标签。外层div宽度100%显示，并且浮动（本例左浮动，下面所述依次为基础），内层div为真正的主体内 容，含有左右210像素的margin值。左栏与右栏都是采用margin负值定位的，左栏左浮动，margin-left为-100%，由于前面的 div宽度100%与浏览器，所以这里的-100%margin值正好使左栏div定位到了页面的左侧；右侧栏也是左浮动，其margin-left也是 负值，大小为其本身的宽度即200像素。
+
+CSS代码如下：
+
+view plaincopy to clipboardprint?
+html,body{margin:0; height:100%;}  
+#main{width:100%; height:100%; float:left;}  
+#main #body{margin:0 210px; background:#ffe6b8; height:100%;}  
+#left,#right{width:200px; height:100%; float:left; background:#a0b3d6;}  
+#left{margin-left:-100%;}  
+#right{margin-left:-200px;}  
+HTML代码如下：
+
+view plaincopy to clipboardprint?
+<div id="main">  
+<div id="body"></div>  
+</div>  
+<div id="left"></div>  
+<div id="right"></div>  
+注意：mian层一定要出现在第一的位置，left和right就随意。
+
+优点：布局不受内部元素的影响，对外部环境也有一定的适应性。但是代码相对于绝对定位法明显复杂些，多次使用到百分比单位，容易混淆，后期如果出现BUG，排查不易！
+
+3.自身浮动法：
+
+基本原理：左栏左浮动，右栏右浮动，主体直接放后面，就实现了自适应。
+
+CSS代码：
+
+view plaincopy to clipboardprint?
+html,body{margin:0; height:100%;}  
+#main{height:100%; margin:0 210px; background:#ffe6b8;}  
+#left,#right{width:200px; height:100%; background:#a0b3d6;}  
+#left{float:left;}  
+#right{float:rightright;}  
+HTML代码：
+
+view plaincopy to clipboardprint?
+<div id="left"></div>  
+<div id="right"></div>  
+<div id="main"></div>  
+注意：此方法的main层出现在最后的位置，与其他方法又不相同。
+
+此方法的优点是：代码足够简洁与高效
+
+不足在于：中间主体（main）存在克星：clear:both属性。如果要使用此方法，需避免明显的clear样式。
+
+4.table
+
+最后，我想说的是无论是高度自适应也好，还是宽度自适应也好，table都是最佳的实现方法。各大浏览器中table标签本身自带就已经具备的了自适应的特性，我想这比我们自己再想方设法去用DIV模拟来的好用的多。
+
+
+
+转载自： http://www.kampfer-lw.com/?p=333
+
+
+
+样例代码：
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>液态布局: 宽度自适应</title>
+<style type="text/css">
+body {
+    margin: 0px; 
+    height: 100%;
+    font-size: 14px;
+}
+.title {
+    font-weight: bold;
+}
+#absolute_position {
+    position: relative;
+    width: 100%;
+    height: 300px;
+}
+#absolute_position #left, #right {
+    position: absolute;
+    top: 0px;
+    width: 200px;
+    height: 100%;
+}
+#absolute_position #left {
+    left: 0px;
+    background: #a0b3d6;
+}
+#absolute_position #right {
+    right: 0px;
+    background: #a0b3d6;
+}
+#absolute_position #main {
+    margin: 0 210px;
+    height: 100%;
+    background: #ffe6b8;
+}
+.clear {
+    clear: both;
+    height: 10px;
+    background: #000;
+}
+
+#margin_neg {
+    position: relative;
+    width: 100%;
+    height: 300px;
+}
+#margin_neg #main2 {
+    width: 100%;
+    height: 100%;
+    float: left;
+}
+#margin_neg #main2 #body {
+    margin: 0px 210px;
+    background: #ffe6b8;
+    height: 100%;
+}
+#margin_neg #left2, #right2 {
+    background: #a0b3d6;
+    width: 200px;
+    height: 100%;
+    float: left;
+}
+#margin_neg #left2 {
+    margin-left: -100%;
+}
+#margin_neg #right2 {
+    margin-left: -200px;
+}
+#float_self {
+    position: relative;
+    width: 100%;
+    height: 300px;
+}
+#float_self #main3 {
+    background: #ffe6b8;
+    height: 100%;
+    margin: 0px 210px;
+}
+#float_self #left3, #right3 {
+    width: 200px;
+    height: 100%;
+    background: #a0b3d6;
+}
+#left3 {
+    float: left;
+}
+#right3 {
+    float: right;
+}
+</style>
+</head>
+<body>
+<div id="absolute_position">
+    <div id="left"></div>
+    <div id="main"></div>
+    <div id="right"></div>
+</div>
+<div class="clear"></div>
+<div id="margin_neg">
+  <div id="main2">
+    <div id="body"></div>
+  </div>
+  <div id="left2"></div>
+  <div id="right2"></div>
+</div>
+<div class="clear"></div>
+<div id="float_self">
+  <div id="left3"></div>
+  <div id="right3"></div>
+  <div id="main3"></div>
+</div>
+</body>
+</html>
+
+
+
+分享到：        阅读(248)| 评论(0)| 转载 (0) |举报
+ 多个块元素时margin负值的问题 css sprits技术中 background的position问题
+历史上的今天
+Tomcat中web工程虚拟目录的配置方法2012-12-19 01:30:05
+Linux系统中Vmware Workstation的安装及卸载2011-12-19 01:56:02
+相关文章
+用Jquery 使div的绝对居中 对应 IE，firefox,chrome2011-02-25 13:55:17
+div+css排版解决兼容性问题2011-05-09 11:48:58
+如何让2个并列的div根据内容自动保持同等高度2011-09-14 09:44:48
+HEIGHT=\'2010-06-24 00:47:51
+引用 DIV+CSS面试八个题2010-06-26 23:21:45
+最近读者
+登录后，您可以在此留下足迹。 
+callblue
+  
+三石
+  
+莫名冬雪
+  
+cctvasia
+  
+╰ぷ暒輪
+  
+龙洱
+  
+yuan2040
+  
+chiefer
+评论
+点击登录|昵称：
+
+ 
+  
+  
+ 
+公司简介 - 联系方法 - 招聘信息 - 客户服务 - 隐私政策 - 博客风格 - 手机博客 - VIP博客 - 订阅此博客
+网易公司版权所有 ©1997-2013
+精选来自：潘晓春 stevepan

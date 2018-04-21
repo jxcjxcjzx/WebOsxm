@@ -1,0 +1,2392 @@
+
+
+
+
+结构之法 算法之道
+
+Google或baidu搜索：“结构之法”，进入本博客
+
+
+ 
+
+
+•目录视图
+•摘要视图
+•订阅
+ 
+
+
+
+《这些年，我们读过的技术经典图书》主题有奖征文       专访李铁军：从医生到金山首席安全专家的转变      独一无二的职位：开源社区经理        CSDN博客第三期云计算最佳博主评选
+ 
+
+
+永久勘误:微软等面试100题系列，答案V0.4版[第41-60题答案] 
+
+分类： 06.MS 100' answers08.MS 100' one Keys2011-02-01 14:2515777人阅读评论(20)收藏举报
+ 
+面试微软permutationnull算法matrix
+
+ 
+永久勘误：微软面试100系列答案V0.4版[第41-60题答案]
+ 
+ 
+ 
+作者：July、何海涛等网友
+ 
+---------------------------
+几点声明:
+ 
+I、  此微软面试100题系列永久更新，答案永久勘误，永久优化。
+随时，永远，欢迎，任何人，针对任何一题，提出自己的思路、意见。
+并对那些修正公布于博客上的答案的网友，表示最大的感谢。
+II、 不管你愿不愿意相信或承认，这份微软等面试100题资料+答案系列，在整个网上，都是独一无二的，
+且，它的的确确、真真实实的帮助了不下10万人。
+任何人，在引用此份资料或答案，必须注明出处：http://blog.csdn.net/v_JULY_v
+III、此份面试题系列暂仅限学习交流，任何组织、出版团体或个人不得私自据为己有，或侵权将其出版，违者必究。
+向您的真诚，表示最大的敬意。谢谢。
+ 
+ 
+ 
+全部资源，下载地址：
+http://v_july_v.download.csdn.net/
+100题永久维护（众网友，思路回复）地址：
+http://topic.csdn.net/u/20101126/10/b4f12a00-6280-492f-b785-cb6835a63dc9.html
+ 
+
+前40题的答案，请参考这里：
+答案V0.2版[第1题-20题答案]
+http://blog.csdn.net/v_JULY_v/archive/2011/01/10/6126406.aspx
+答案V0.3版[第21-40题答案]
+http://blog.csdn.net/v_JULY_v/archive/2011/01/10/6126444.aspx
+---------------------------------------------------------------------------
+ 
+
+40、求固晶机的晶元查找程序
+晶元盘由数目不详的大小一样的晶元组成，晶元并不一定全布满晶元盘，
+ 
+照相机每次这能匹配一个晶元，如匹配过，则拾取该晶元，
+若匹配不过，照相机则按测好的晶元间距移到下一个位置。
+求遍历晶元盘的算法 求思路。
+ 
+ 
+ 
+关于第41题，请看以下网友的回复：
+xiuxianshen
+感觉很简单啊，你对应你的元件个数新建两个相同维数的一维数组，
+一组保存检测的匹配情况，一组保存该元件的距离，二维数组也可以，
+遍历前先考虑数据参数就可以了。
+ 
+ 
+ 
+kicming
+难就难在元件的分布情况是未知的 对机器来说 它是不知道边界的 它自己不知道换行 
+所以很难规定换行的条件 比如从左向右找 找到某个地方发现没有元件了 
+那是换行还是不换行呢 
+
+换行的话，右边可能还有元件，不换行，可能当前已经到晶元盘边界了 再往右找就是地板了.. 
+所以想求一个“盲目”遍历算法。
+ 
+ 
+ 
+
+41.请修改append函数，利用这个函数实现：
+两个非降序链表的并集，1->2->3 和 2->3->5 并为 1->2->3->5
+另外只能输出结果，不能修改两个链表的数据。
+ 
+ 
+ 
+此题，合并链表，要求将俩个非有序排列的链表，有顺序的合并。
+如下：
+//引自一网友。
+#include <stdio.h>
+#include <malloc.h>
+ 
+typedef struct lnode {
+    
+    int data;
+    struct lnode *next;
+}lnode,*linklist;
+ 
+linklist creatlist(int m)//创建链表
+{
+    
+    linklist p,l,s;
+    int i;
+    p=l=(linklist)malloc(sizeof(lnode));
+    p->next=NULL;
+    printf("请输入链表中的一个数字：");
+    scanf("%d",&p->data);
+    for(i=2;i<=m;i++)
+    {
+        s=(linklist)malloc(sizeof(lnode));
+        s->next = NULL;
+        printf("请输入第%d个数字",i);
+        scanf("%d",&s->data);
+        p->next=s;
+        p=p->next;
+    }
+    printf("/n");
+    return l;    
+}
+void print(linklist h)//打印链表
+{
+    linklist p=h->next;
+    int t=1;
+    printf("打印各个数字：/n");
+    do
+    { 
+        printf("请输出第%d个数:",t);
+        printf("%d/n",p->data);
+        p=p->next;
+        t++;
+    }while(p); 
+}
+linklist mergelist(void)//两个链表合并
+{
+    int e,n;
+    linklist pa,pb,pc,head;
+    printf("请输入第一个链表的长度：");
+    scanf("%d",&e);
+    pa=creatlist(e);
+    printf("请输入第二个链表的长度：");
+    scanf("%d",&n); 
+    pb=creatlist(n);
+    head=pc=(linklist)malloc(sizeof(lnode));
+    pc->next=NULL;
+    while(pa&&pb)
+    {
+        if(pa->data<=pb->data) 
+        {
+            pc->next=pa;
+            pc=pa;
+            pa=pa->next;
+        }
+        else
+        {
+            pc->next=pb;
+            pc=pb;
+            pb=pb->next;
+        }
+    }
+    pc->next=pa?pa:pb;
+    return head; 
+}
+void main()
+{
+    linklist head;
+    head=mergelist(); 
+    print(head);
+}
+ 
+///////////////////////////////////
+请输入第一个链表的长度：5
+请输入链表中的一个数字：3
+请输入第2个数字2
+请输入第3个数字1
+请输入第4个数字7
+请输入第5个数字9
+ 
+请输入第二个链表的长度：5
+请输入链表中的一个数字：6
+请输入第2个数字4
+请输入第3个数字5
+请输入第4个数字8
+请输入第5个数字7
+ 
+打印各个数字：
+请输出第1个数:3
+请输出第2个数:2
+请输出第3个数:1
+请输出第4个数:6
+请输出第5个数:4
+请输出第6个数:5
+请输出第7个数:7
+请输出第8个数:8
+请输出第9个数:7
+请输出第10个数:9
+Press any key to continue
+ 
+
+//引用yangsen600。
+#include <stdio.h>
+#include <stdlib.h>
+#include <malloc.h>
+ 
+struct Node
+{
+    int num;
+    Node * next;
+};
+ 
+Node * createTail()
+{
+    int x;
+    Node *head = NULL, *p = NULL, *tail = NULL;
+    puts("/nplease enter some digits(end of '.'):");
+    while( 1 == scanf("%d",&x) )
+    {
+        p = (Node *)malloc(sizeof(Node));
+        p->num = x;
+        p->next = NULL;
+        if( NULL == head )
+        {
+            tail = p;
+            head = tail;
+        }
+        else
+        {
+            tail->next = p;
+            tail = p;
+        }
+    }
+    getchar();
+    return head;
+}
+ 
+Node * CombinationNode(Node* head1, Node* head2)
+{
+    Node *head,*tail,*p = head1,*q = head2,*s;
+    
+    if( NULL == p )
+        return q;
+    if( NULL == q )
+        return p;
+    
+    tail = p;
+    if( p->num > q->num)        
+        tail = q;
+    head = tail;
+    
+    while( NULL != p && NULL != q )
+    {
+        if(p->num <= q->num )         
+        //如果p所指元素<q所指元素，那么把p所指元素，率先拉入合并后的链表中，
+        //p赋给s，并从p的下一个元素p->next查找。
+        //直到发现p所指 不再 < q，而是p > q了 即转至下述代码的else部分。
+        {
+            s = p;       
+            p = p->next;
+        }
+        else
+        {
+            s = q;
+            q = q->next;
+        }
+        tail->next = s;
+        tail = s;
+    }
+    
+    if( NULL == p )
+        p = q;
+    s = p;
+    tail->next = s;
+    
+    return head;
+}
+ 
+void printHead(Node *head)
+{
+    if( NULL == head )
+        return;
+    printf("List: ");
+    while(head)
+    {
+        printf("%d->",head->num);
+        head = head->next;
+    }
+    puts("NUL");
+}
+ 
+void main( void )
+{
+    Node* head1,*head2,*head;
+    head1 = createTail();
+    printHead(head1);
+    
+    head2 = createTail();
+    printHead(head2);
+    
+    head = CombinationNode(head1,head2);
+    printHead(head);
+}
+ 
+//////////////////////////////////////////
+please enter some digits(end of '.'):
+3 2 1 7 9.
+List: 3->2->1->7->9->NUL
+ 
+please enter some digits(end of '.'):
+6 4 5 8 7.
+List: 6->4->5->8->7->NUL
+List: 3->2->1->6->4->5->7->8->7->9->NUL
+Press any key to continue
+//与上述那段，输出结果一致。
+ 
+已知两个链表head1 和head2 各自有序，请把它们合并成一个链表依然有序。
+//非递归实现 链表合并排序：
+Node * Merge(Node *head1 , Node *head2)
+{
+    if ( head1 == NULL)
+        return head2 ;
+    if ( head2 == NULL)
+        return head1 ;
+    Node *head = NULL ;
+    Node *p1 = NULL;
+    Node *p2 = NULL;
+    if ( head1->data < head2->data )
+    {
+        head = head1 ;
+        p1 = head1->next;
+        p2 = head2 ;
+    }
+    else
+    {
+        head = head2 ;
+        p2 = head2->next ;
+        p1 = head1 ;
+    }
+    Node *pcurrent = head ;
+    while ( p1 != NULL && p2 != NULL)
+    {
+        if ( p1->data <= p2->data )
+        {
+            pcurrent->next = p1 ;
+            pcurrent = p1 ;
+            p1 = p1->next ;
+        }
+        else
+        {
+            pcurrent->next = p2 ;
+            pcurrent = p2 ;
+            p2 = p2->next ;
+        }
+    }
+    if ( p1 != NULL )
+        pcurrent->next = p1 ;
+    if ( p2 != NULL )
+        pcurrent->next = p2 ;
+    return head ;
+}
+ 
+
+//递归实现，
+Node * MergeRecursive(Node *head1 , Node *head2)
+{
+  if ( head1 == NULL )
+    return head2 ;
+  if ( head2 == NULL)
+    return head1 ;
+  Node *head = NULL ;
+  if ( head1->data < head2->data )
+  {
+    head = head1 ;
+    head->next = MergeRecursive(head1->next,head2);
+  }
+  else
+  {
+    head = head2 ;
+    head->next = MergeRecursive(head1,head2->next);
+  }
+  return head ;
+}
+ 
+
+不放比较一下，这俩段核心代码，注意其区别：
+Node * CombinationNode(Node* head1, Node* head2)
+{
+    Node *head,*tail,*p = head1,*q = head2,*s;
+    
+    if( NULL == p )
+        return q;
+    if( NULL == q )
+        return p;
+    
+    tail = p;
+    if( p->num > q->num)        
+        tail = q;
+    head = tail;
+    
+    while( NULL != p && NULL != q )
+    {
+        if(p->num <= q->num )         
+        {
+        s = p;           //3.4
+            p = p->next;     //
+        }
+        else
+        {
+            s = q;
+            q = q->next;
+        }
+        tail->next = s;
+        tail = s;
+    }
+    
+    if( NULL == p )
+    p = q;
+    s = p;
+    tail->next = s;
+    
+    return head;
+}
+ 
+和这段：
+linklist mergelist(void)//两个链表合并
+{
+    int e,n;
+    linklist pa,pb,pc,head;
+    printf("请输入第一个链表的长度：");
+    scanf("%d",&e);
+    pa=creatlist(e);
+    printf("请输入第二个链表的长度：");
+    scanf("%d",&n); 
+    pb=creatlist(n);
+    head=pc=(linklist)malloc(sizeof(lnode));   //1.这
+    pc->next=NULL;      //2.这
+    while(pa&&pb)
+    {
+        if(pa->data<=pb->data) 
+        {
+            pc->next=pa;    //3.这
+            pc=pa;
+            pa=pa->next;      
+        }
+        else
+        {
+            pc->next=pb;    //4.这
+            pc=pb;
+            pb=pb->next;
+        }
+    }
+    pc->next=pa?pa:pb;
+    return head; 
+}
+ 
+
+再比较下，这俩段：
+linklist mergelist(void)//两个链表合并
+{
+    int e,n;
+    linklist pa,pb,pc,head;
+    printf("请输入第一个链表的长度：");
+    scanf("%d",&e);
+    pa=creatlist(e);
+    printf("请输入第二个链表的长度：");
+    scanf("%d",&n); 
+    pb=creatlist(n);
+    head=pc=(linklist)malloc(sizeof(lnode));
+    pc->next=NULL;
+    while(pa&&pb)
+    {
+        if(pa->data<=pb->data) 
+        { 
+            pc->next=pa;  //3
+            pc=pa;        //1
+            pa=pa->next;  //2
+        }
+        else
+        {
+            pc->next=pb;
+            pc=pb;
+            pb=pb->next;
+        }
+    }
+    pc->next=pa?pa:pb;
+    return head; 
+}
+ 
+和
+//递归实现，
+Node * MergeRecursive(Node *head1 , Node *head2)
+{
+  if ( head1 == NULL )
+    return head2 ;
+  if ( head2 == NULL)
+    return head1 ;
+  Node *head = NULL ;
+  if ( head1->data < head2->data )
+  {
+    head = head1 ;
+    head->next = MergeRecursive(head1->next,head2);
+  }
+  else
+  {
+    head = head2 ;
+    head->next = MergeRecursive(head1,head2->next);
+  }
+  return head ;
+}
+ 
+相当于，
+if ( head1->data < head2->data )
+  {
+    head = head1 ;                                      //1.head=head1;
+    head->next = MergeRecursive(head1->next,head2);     //2.head1=head1->next;
+                                                        //3.head->next=head1
+  }
+  else
+  {
+    head = head2 ;
+    head->next = MergeRecursive(head1,head2->next);
+  }
+  return head ;
+聪明的你，相信，不要我过多解释。:)。
+ 
+ 
+ 
+ 
+ 
+第43题：
+43.递归和非递归俩种方法实现二叉树的前序遍历。
+ 
+咱们先来复习下，基础知识。
+因为关于树的遍历，在此100题中已出现过太多次了。
+ 
+二叉树结点存储的数据结构：
+typedef char datatype;
+typedef struct node
+ {
+   datatype data;
+   struct node* lchild,*rchild;
+ } bintnode;
+ 
+typedef bintnode* bintree;
+bintree root;
+ 
+ 
+ 
+1.树的前序遍历即：
+按根 左 右 的顺序，依次
+前序遍历根结点->前序遍历左子树->前序遍历右子树
+ 
+前序遍历，递归算法
+void preorder(bintree t)    
+ //注，bintree为一指向二叉树根结点的指针
+{
+   if(t)
+    {
+      printf("%c",t->data);
+      preorder(t->lchild);
+      preorder(t->rchild);
+    }
+}
+ 
+
+然后，依葫芦画瓢，得到....
+ 
+
+2.中序遍历，递归算法
+void preorder(bintree t)
+{
+   if(t)
+    {
+ 
+      inorder(t->lchild);
+      printf("%c",t->data);
+      inorder(t->rchild);
+    }
+}
+ 
+ 
+ 
+3.后序遍历，递归算法
+void preorder(bintree t)
+{
+   if(t)
+    {
+ 
+      postorder(t->lchild);
+      postorder(t->rchild);
+      printf("%c",t->data);
+    }
+}
+ 
+ 
+ 
+二叉树的创建方法，
+void createbintree(bintree* t)
+{
+  char ch;
+  if( (ch=getchar())==' ')
+    *t=NULL;
+  else
+   {
+     *t=(bintnode*) malloc(sizeof(bintnode));
+     (*t)->data=ch;
+     createbintree(&(*t)->lchild);
+     createbintree(&(*t)->rchild);
+   }
+}
+ 
+
+接下来，
+咱们在讨论二叉树遍历算法的非递归实现之前，
+先看一个顺序栈的定义及其部分操作的实现
+typedef struct stack
+{
+  bintree data[100];
+  int tag[100];
+  int top;
+}seqstack;
+ 
+void push(seqstack* s,bintree t)
+{
+  s->data[s->top]=t;
+  s->top++;
+}
+ 
+bintree pop(seqstack* s)   //出栈
+{
+  if(s->top!=0)
+   {
+     s->top--;
+     return (s->data[s->top]);
+   }
+  else
+     return NULL;
+}
+ 
+
+好了，现在，我们可以看二叉树前序遍历的非递归实现了。
+按照二叉树前序遍历的定义，无论是访问整棵树还是其子树，均应该遵循先访问根结点，
+然后访问根结点的左子树，最后访问根结点的右子树的。
+ 
+ 
+ 
+因为对于一棵树（子树）t,如果t非空，访问完t的根结点值后，就应该进入t的左子树，
+但此时必须将t保存起来，以便访问完其左子树后，进入其右子树的访问。
+yeah，就是这个意思。:）...
+ 
+即在t处设置一个回溯点，并将该回溯点进栈保存。
+ 
+ 
+ 
+在整个二叉树前序遍历的过程中，程序始终要做的工作分成俩个部分：
+1.当前正在处理的树（子树）
+2.保存在栈中等待处理的部分。
+ 
+//注：当栈中元素位于栈顶即将出栈时，意味着其根结点和左子树已访问完成，
+//出栈后，进入其右子树进行访问，
+//前序遍历，非递归实现
+void preorderT(bintree t)
+{
+  seqstack s;
+  s.top=0;
+  while( (t)||(s.top!=0) )  //当前处理的子树不为空或栈不为空
+  {
+    while(t)         //子树不为空
+    {
+      printf("%c",t->data);   //1.先访问根结点
+      push(&s,t);             //2.访问左子树之前，记得先把根结点进栈保存 
+      t=t->lchild;            //3.然后才访问左子树，
+    }
+    if(s.top>0)      //栈不为空
+    {
+      t.pop(&s);               //4.pop根结点
+      t=t->rchild;             //5.访问右子树
+    }
+  }
+}
+ 
+
+//中序遍历，非递归实现，
+void inorderT(bintree t)
+{
+  seqstack s;
+  s.top=0;
+  while( (t)||(s.top!=0) )  //当前处理的子树不为空或栈不为空
+  {
+    while(t)     //子树不为空
+    {
+      push(&s,t);             //1.访问左子树之前，记得先把根结点push进栈
+      t=t->lchild;            //2.访问左子树
+    }
+    if(s.top!=0)    //栈不为空
+    {
+      t.pop(&s);             //3.pop根结点(访问完左子树后)
+      printf("%c",t->data);  //4.访问根结点 (把先前保存的t给拿出来，要用了..)
+      t=t->rchild;           //5.访问右子树
+    }
+  }
+}
+ 
+ 
+ 
+//后序遍历，非递归实现
+后序遍历的非递归算法，稍微复杂点。请看，
+ 
+按照二叉树后序遍历的定义，无论是访问整棵树还是起子树，
+均应该遵循先访问根结点左子树，然后访问根结点的右子树，最后访问根结点。
+ 
+值得注意的是，当一个元素位于栈顶即将处理的是，其左子树的访问一定完成，
+如果其右子树不为空，接下来应该进入其右子树尽情访问。
+//注意了，
+但此时该栈顶元素时不能出栈的，因为它作为根结点，其本身的值还未被访问。
+只有等到其右子树也访问完成后，该栈顶元素才能出栈，并输出它的值。
+ 
+因此，在二叉树后序遍历的算法中，必须使用seqstack类型的数组tag，
+其每个元素取值为0或1，用于标识栈中每个元素的状态。
+ 
+
+1.当一个元素刚进栈时，其对应的tag值置为0；
+2.当它位于栈顶即将被处理时，其tag值为0.意味着应该访问其右子树。
+于是将右子树作为当前处理的对象，此时该栈顶元素仍应该保留在栈中。
+并将其对应的tag值改为1.
+3.当其右子树访问完成后，该元素又一次位于栈顶，而此时其tag值为1，
+意味着其右子树已访问完成，接下来，应该直接访问的就是它，将其出栈。
+ 
+ 
+ 
+void postorderT(bintree t)
+{
+  seqstack s;
+  s.top=0;
+  while( (t)||(s.top!=0) )
+  {
+    while(t)
+    {
+      s.data[s.top]=t;
+      s.tag[s.top]=0;   //tag置为0
+      s.top++;
+      t=t->lchild;      //访问左子树
+    }
+    while( (s.top>0)&&(s.tag[s.top-1]==1) )        
+    {
+      s.top--;
+      t=s.data[s.top];
+      printf("%c",t->data);
+    }
+    if(s.top>0)
+    {
+      t=s.data[s.top-1];
+      s.tag[s.top-1]=1;
+      t=t->rchild;
+    }
+    else
+      t=NULL;
+  }
+}
+至此，完。
+ 
+ 
+ 
+44.腾讯面试题：
+1.设计一个魔方（六面）的程序。
+2.有一千万条短信，有重复，以文本文件的形式保存，一行一条，有重复。
+请用5分钟时间，找出重复出现最多的前10条。
+3.收藏了1万条url，现在给你一条url，如何找出相似的url。（面试官不解释何为相似）。
+ 
+ 
+ 
+关于这题，请看众网友们给的思路或解答：
+beingstudio
+1、设计一个魔方（六面）的程序。  
+自我感觉用三维坐标描述每一个小块,对面提供旋转方法,然后每做一个变更就检测是不是成功了
+ 
+2、有一千万条短信，有重复，以文本文件的形式保存，一行一条，
+有重复。请用5分钟时间，找出重复出现最多的前10条。 
+如果是有序的
+读进来就能出结果；
+如果是无序的
+建议采用hash或者双hash归类，如果想一次完成，还可以维护一个文件排列表
+ 
+3、收藏了1万条url，现在给你一条url，如何找出相似的url。（面试官不解释何为相似）
+例如 http://topic.csdn.net/u/20081029/22/c8fe34c1-25ab-4b94-986e-4c2fd4caa664.html
+可以认为http://topic.csdn.net/u/20081029/22/是相似的
+也就是说，我们可以认为url / 为相似的，因为一般对内容归类也会产生url前面的不同，所以 如果采用二
+题的hash算法，可以稍作修改就可
+ 
+ 
+ 
+jia_xiaoxin
+1、设计一个魔方（六面）的程序。  
+可以用一个二维数组存储魔方的面，以及每一个面上的方块。
+ 
+2、有一千万条短信，有重复，以文本文件的形式保存，一行一条，有重复。
+请用5分钟时间，找出重复出现最多的前10条。  
+首先我们将文本导入数据库，使用Having子句来实现这样的功能,我们利用如下语句 
+select count(*) ccount from table1 
+group by a1 having count(*)>1 
+order by ccount desc
+这样得到的第一个记录就是出现重复次数最多的那组数字。
+ 
+ 
+ 
+yangzhongwei1031
+个人觉得第二题其实完全可以导入到数据库中，然后用sql就很容易把结果查出来了。至于说一千万条查询
+速度很慢的问题，这个完全是可以优化的，这也正好考察了你数据库的知识。关键是看思路，不应该把问题想死了。
+ 
+第三题找相似的url，什么是相似的既然没有讲，我觉得也可以用sql来实现，把数据导入到数据库中，我们
+只要按这个字排序就可以了，字符串的排序大家都知道，相同的肯定是在一起的。这样可以从首字母开始
+保证最大限度的相似。
+ 
+我也刚入行不久，个人想法，也许我的方法不正确，只是觉得程序员这行编码能力固然重要，
+但是想法思维也要活跃些，要懂得用不同的方法去解决问题，不然真的是除了coding还是coding了。
+ 
+ 
+ 
+ck4918
+1,把魔方展开，得到六个正方形，定义六个结构体，内容为一个9个点和一个编号，每个点包括一个颜色标示；
+在魔方展开图中根据正方形的相邻关系编号，每个正方形都有四个函数：左翻、右翻、上翻、下翻。
+根据相邻关系，每个操作会引起相邻面的相关操作；比如一个面的左翻会调用右边相邻面的左翻；也就
+意味着左相邻面的0、1、2三个元素与当前面互换；递归下去，直到所有面都交换完毕；
+ 
+2，建立一个红黑树a;
+遍历短信,对每条短信取MD5值，对每个MD5值在a中做操作：如果有值，这个key对应的值就+1，否则就=1；
+遍历完后对红黑树取值最大的10个数，复杂度为10lg n
+ 
+3.正则表达式，呵
+ 
+
+zhenming_liu
+1、设计一个魔方（六面）的程序。  
+这个就是一点简单的线性代数了。
+2、有一千万条短信，有重复，以文本文件的形式保存，一行一条，有重复。
+请用5分钟时间，找出重复出现最多的前10条。 
+ 
+同学最近写了一篇论文，好像是解这个的  
+http://www.cse.ust.hk/~qinzhang/papers/fp337-zhang.pdf
+他的模型好像比问题复杂，但是即便是最简单的streamming模型也是这十年才有人做的。
+ 
+3、收藏了1万条url，现在给你一条url，如何找出相似的url。（面试官不解释何为相似）
+这些问题来来去去就是Hashing啦。如果是Hamming distance, 应该是能建造Locality sensitive hashing的(http://en.wikipedia.org/wiki/Locality_sensitive_hashing),
+ 如果是edit distance的话，应该还是没有人建构的出来对应的Hash Function
+(其实这也是把edit distance的测度空间嵌入到L_1的测度空间，我印象中好像是做不来的).
+ 
+ 
+ 
+elovenana
+1、设计一个魔方（六面）的程序。
+typedef struct color
+{
+  int r,g,b;
+} color;
+typedef struct omf
+{
+  int 面[6]，
+  color cl;  
+}mf;
+2、有一千万条短信，有重复，以文本文件的形式保存，一行一条，有重复。
+请用5分钟时间，找出重复出现最多的前10条。
+ 
+这个可以，先取出第一条，然后，存入变量并将此条删除，与下面的比较，遇到相同的删除，
+并且，计数器加一，然后，写入到另一个文件，标题和次数；重复之；直到清空文件；
+然后，去比较另一个文件的次数，即可；
+ 
+3、收藏了1万条url，现在给你一条url，如何找出相似的url。（面试官不解释何为相似）
+现在有许多的库文件都支持，正则表达式，只要用正则去匹配就可以了；
+ 
+ 
+ 
+yinghan2005
+2、有一千万条短信，有重复，以文本文件的形式保存，一行一条，有重复。
+请用5分钟时间，找出重复出现最多的前10条。 
+
+首先我们将文本导入数据库，使用Having子句来实现这样的功能,我们利用如下语句 select count(*) 
+ccount from table1 group by a1 having count(*)>1 order by ccount desc
+这样得到的第一个记录就是
+出现重复…
+ 
+导入数据库很费时间的呀，5分钟绝对不够。
+ 
+第二个问题，shell解决，不知道效率如何， 
+sort messages.txt |uniq -c |sort -k1 |tail -10
+ 
+----------------------------------
+更多，请参考：
+http://topic.csdn.net/u/20081029/22/c8fe34c1-25ab-4b94-986e-4c2fd4caa664.html?11622
+http://blog.csdn.net/lijiaz5033/archive/2008/11/05/3226574.aspx
+
+还是第44题：
+下文作者，lijiaz5033
+第一题魔方 
+其实也很简单！ 
+先说面，每面有四边，因此要建立4个句柄对应：上下左右，四个去面，就像双向链表节点有上下两面一样，
+然后面里有方块矩阵，2级的数组，加完数组写个方法函数，叫旋转,参数是行列号/旋向 ，
+旋向上下时行列号为行号，旋向左右时行列号为列号，意思是把某行某列往某方向旋转。 
+
+矩阵里有方块，方块有 创建六个面，按照魔方的样子，将第一面为正面，往下是底面（把第二面拿过来），
+底面往下是背面，背面往下联就是上面，上面往下是正面，现在回到正面，正面往左联就是左面，
+左面往左联就是后面，后面往左就是右面，右面往左是正面。。。。。。（这里不用罗索了，自己看明白了就知道怎么做了） 
+
+六个面创建完并上下左右连通后，这个程序就完成了
+ 
+ 
+ 
+第2小题：
+首先,一千万条短信按现在的短信长度将不会超过700M(平均情况下应该是350M),
+使用内存映射文件比较合适.可以一次映射(当然如果更大的数据量的话,可以采用分段映射),
+由于不需要频繁使用文件I/O和频繁分配小内存,这将大大提高了数据的加载速度. 
+其次,对每条短信的第i(i从0到70)个字母按ASCII码进行分组,
+其实也就是创建树.i是树的深度,也是短信第i个字母.
+//树结点定义 
+struct TNode 
+{ 
+  BYTE* pText;//直接指向文件映射的内存地址,使用BYTE而不用char是为符号问题 
+  DWORD dwCount;//计算器,记录此结点的相同短信数 
+  TNode* ChildNodes[256]; //子结点数据,由于一个字母的ASCII值不可能超过256,所以子结点也不可能超过256 
+
+  TNode() 
+  { 
+    //初始化成员 
+  } 
+  ~TNode() 
+  { 
+    //释放资源 
+  } 
+}; 
+
+//BYTE* pText直接指向文件映射的内存地址,使用BYTE而不用char是为符号问题 
+//int nIndex是字母下标 
+void CreateChildNode(TNode* pNode, const BYTE* pText, int nIndex) 
+{ 
+    if(pNode->ChildNodes[pText[nIndex]] == NULL) 
+    {//如果不存在此子结点,就创建.TNode构造函数应该有初始化代码 
+      //为了处理方便,这里也可以在创建的同时把此结点加到一个数组中. 
+      pNode->ChildNodes[pText[nIndex]] = new TNode; 
+    } 
+
+    if(pText[nIndex+1] == '/0') 
+    {//此短信已完成,记数器加1,并保存此短信内容 
+      pNode->ChildNodes[pText[nIndex]]->dwCount++; 
+      pNode->ChildNodes[pText[nIndex]]->pText = pText; 
+    } 
+    else //if(pText[nIndex] != '/0') 
+    {//如果还未结束,就创建下一级结点 
+        CreateNode(pNode->ChildNodes[pText[nIndex]], pText, nIndex+1); 
+    } 
+} 
+
+//创建根结点,pTexts是短信数组,dwCount是短信数量(这里是一千万) 
+void CreateRootNode(const BYTE** pTexts, DWORD dwCount) 
+{ 
+    TNode RootNode; 
+    for(DWORD dwIndex=0;dwIndex <dwCount;dwIndex++) 
+    { 
+        CreateNode(&RootNode, pTexts[dwIndex], 0); 
+    } 
+    //所有结点按dwCount的值进行排序 
+    //代码略... 
+  
+    //取前10个结点,显示结果 
+    //代码略... 
+}
+这样处理看起来很复杂,其实就是为了减少比较次数.我认为大家看了这小段代码应该可以明白我的意思了,
+其它的不多说了. 
+最后,就是对这些结点按dwCount的值进行排序,取前面的前10个结点就可以了. 
+
+我认为这问题只要是解决两方面的内容,一是内容加载,二是短信内容比较.
+采用文件内存映射技术可以解决内容加载的性能问题(不仅仅不需要调用文件I/O函数,
+而且也不需要每读出一条短信都要分配一小块内存),而使用树技术可以有效减少比较的次数.
+当然基本思路是这样,如果有心情还可以在这基础上做一些优化处理,效果一定不会差的。
+第3小题，略。
+ 
+
+再看，第2小题：
+2、有一千万条短信，有重复，以文本文件的形式保存，一行一条，有重复。
+请用5分钟时间，找出重复出现最多的前10条。
+ 
+iwillalwaysloveyou
+1.短信长度是有限的，例如在中国短信长度范围为0-140字节，
+2.题目中没有提到内存限制，假设内存是足够的(本题按下面算法最坏情况下需要1个多G)
+2.建立140个元素的multimap数组（空短信可另行特殊处理），
+下标为i的multimap与长度为i的字符串相对应。键为字符串的hash，值为字符串及其出现次数.
+3.遍历短信，将短信根据长度进行处理，怎么处理我就不细说了
+4.对每一个multimap，按字符串的出现次数，找出前10个字符串（也可能不足10个），
+（可以用堆排序，复杂度为O(n*logn)）
+5.在4找出的所有字符串组成的集合中，按字符串的出现次数，找出出现最多的前10个
+ 
+
+此题题目好像有点儿问题，次数最多的有可能不是刚好10个，例如有9个字符串各出现10次，有2个字符串出现9次，其他均小于9次。
+ 
+
+July个人认为，建立R-B树，挺好的，如ck4918所说,
+2，建立一个红黑树a;遍历短信,对每条短信取MD5值，对每个MD5值在a中做操作：
+如果有值，这个key对应的值就+1，否则就=1；遍历完后对红黑树取值最大的10个数，复杂度为10*lgn。
+---------------------------------------------------------------------------------------
+ 
+ 
+ 
+接下来，请一次性，看第45-48题：
+  //注，此第45-48题的答案，仅仅只作为你思路的参考。
+为了表示简明，以下我引用网友答案时，1、2、3、4、5即与以下的第45-48题，一一对应：.
+ 
+雅虎：
+1、对于一个整数矩阵，存在一种运算，对矩阵中任意元素加一时，需要其相邻（上下左右）
+某一个元素也加一，现给出一正数矩阵，判断其是否能够由一个全零矩阵经过上述运算得到。
+2、.一个整数数组，长度为n，将其分为m份，使各份的和相等，求m的最大值
+  比如{3，2，4，3，6} 可以分成{3，2，4，3，6} m=1; 
+  {3,6}{2,4,3} m=2
+  {3,3}{2,4}{6} m=3 所以m的最大值为3
+ 
+3、.搜狐：
+4对括号可以有多少种匹配排列方式？比如两对括号可以有两种：（）（）和（（））
+ 
+4、创新工场：
+求一个数组的最长递减子序列 比如{9，4，3，2，5，4，3，2}的
+最长递减子序列为{9，5，4，3，2}
+ 
+5、微软：
+一个数组是由一个递减数列左移若干位形成的，比如{4，3，2，1，6，5}
+是由{6，5，4，3，2，1}左移两位形成的，在这种数组中查找某一个数。
+ 
+在此，只重点给出第4题，最长递减子序列的答案：
+4、创新工场：最长递减子序列
+求一个数组的最长递减子序列 比如{9，4，3，2，5，4，3，2}的
+最长递减子序列为{9，5，4，3，2}
+ 
+ 
+ 
+======================================================================
+关于这5道题，看网友们给的回复[仅供参考]：
+fire_woods
+1. 有2个弱判断准则,不过不知道3个加起来是不是和题目等价
+  1) 讲矩阵分成黑白棋盘格, 所有黑色格子的数字和等于白色格子的.
+  2)对任意一个位置, 他的值不大于周围(上下左右)4个临格的数值的和.
+2. 背包问题, 当然有些条件可以预先判断,比如(所有元素的和%m)!=0, 那么就不需要处理了.
+3.1*1+3*3+2*2=14
+4.直接遍历, O(n)
+5.二分法查找分界点, 再二分法查找O(ln(n))。
+ 
+ 
+ 
+duguyue200
+1.第一反应是广搜，因为以前遇过一个这样类似的问题，应该是变式之类的。。
+2.第一反应有数学方法，结合爆搜吧。一定是可以解的不过搜索量不小，可能用深搜好点。
+3.第一反应是排列组合。因为规则给的很多。
+4.第一反应就是动归，没说的，经典问题。
+5.第一反应是因为有局部的递减性质，那就找到断点，不要恢复（因为恐怕有阴人的地方，不是一次能够恢复得了的）。局部用二分查找。
+ 
+ 
+ 
+wds530405973
+第2题 算法 原理的思想是将大问题转换成小问题。
+就{3，2，4，3，6}的操作步骤：
+  第一步：想将数组递减排序得{6，4，3，3，2}，求出数组中所有数的和m=18,第一个最大的数b=6， m/b=3余数为0，当除数为1，余数为0时终止。当余数不为0时，转到第三步。当余数为0时将数组划分为{6}，{4，3，3，2}两个。把{4，3，3，2}看成一个新的数组。
+  第二步：先用{4，3，3，2}中的最大数与b=6比较，即4<b，所以再将4与最右边的数即2相加与b比较，结果相等，则将这两个数从该数组中除去生成新的数组，转到第一步，现在的结果是{6},{4,2},{3,3},把{3,3}看成一个新的数组继续重复第二步。
+  第三步，将数组中最大的数与最小的数取出构成一个新数组Z，剩余的构成一个数组，然后，判断m/Z中数字之和看是否余数为0，若为0，把b替换为Z中数字之和转第二步，若不为0，继续从剩余的数字中取出最小值加入到Z中，再判断m/Z中数字之和看是否余数为0，直到为0，转第二步为止。
+最后得到的结果是{6},{4,2},{3,3} 这时可以计算出m为3，也可以在程序中作记载。
+在第二步工程过，若出现两个数相加大于上一次的b，则将程序转到第三步。
+ 
+ 
+ 
+Beiyouyu
+5. 二分解决。注意到a[0] <= a[n-1]，设要查找的是key、那么a[mid]、key、a[0]、a[n-1]可以确定一个顺序，将原数组切分成两部分：1部分是纯递减数组、另一部分是原问题的子问题。
+具体如下：
+如果a[mid] <= a[0] ：那么a[0...mid]是纯递减数组；可以简单比较出key是否在a[0..mid]中，如果在那么问题就是标准的二分查找了；否则，a[mid+1...n-1]就是原问题的子问题了。
+如果a[mid] >= a[n-1]: 那么a[mid...n-1]也是纯递减数组；与上类似。
+ 
+ 
+ 
+Zhifeidie
+第1题思路：动态规划，递归
+1、先判断矩阵中的每一个值，是否可以以其为中心减1，也就是这个值和它的上下左右都大于1，如果成立，则以此值为中心包括上下左右减1，对生成的新的矩阵递归计算。退出条件：全0表示成功，如果不是全0但是所有的值都不满足前面的条件，返回失败。
+ 
+第2题思路：动态规划，递归
+ 
+将整个数组作为一个集合，最大的可能值就是集合的大小了，最小肯定是1，那么从2开始一次判断。如果集合可被k等分，那么首先集合的和能够被k整除，如果这个条件满足，则重复k-1次从这个集合中取出和为sum/k的子集合。
+取子集合的算法是一个递归的思想，详见153楼
+其他几个题目都是比较经典的问题，不赘述。
+ 
+
+============================
+以下，直到出现下一条杠杠"==========="之前，写的都是第4题。
+pmars
+说一下第四题：
+一道做过的ACM题：
+想法是弄一个数组存放已经找到的最长子序列，当然里面的元素都是找到的在各个位置上的最大的值（记得以前我发过一个这个题目的帖子）
+http://topic.csdn.net/u/20100424/22/7a7b4a50-9110-4cf8-96ec-7fa728593b15.html
+能做到NlogN吧！
+ 
+
+litaoye
+二部图是什么？二分图？
+ 
+这个问题就是一个最大递增序列问题，最普通的想法就是用DP，n^2肯定可以（类似于LCS问题）。当然还可以优化到n*log(n)，那是另一回事儿了。
+ 
+ 
+ 
+litaoye
+代码网上一大堆，说说思路吧，以4 2 6 3 1 5为例
+ 
+逐个读入数字，
+ 
+4 | 此时可能的队列长度为1，最大值为4
+4 2 | 由于2 < 4，此时队列长度为1，最大值为2
+4 2 6 | 6 > 2，队列有2个，一个长度为1，最大为2，一个长度为2，最大为6
+4 2 6 3 | 3 < 6, 3 > 2,队列有2个，一个长度为1，最大为2，一个长度为2，最大为3
+4 2 6 3 1 | 1 < 2, 1 < 3，队列有2个，一个长度为1，最大为1，一个长度为2，最大为3
+4 2 6 3 1 5 | 5 > 1,5 > 3,队列有3个，一个长度为1，最大为1，一个长度为2，最大为3，一个长度为3，最大为5（分别是1 | 2,3 | 2,3,5)
+ 
+走到头了，所以输出3，此时是一个最坏情况下n^2的算法，但如果每读入一个新的数时，不是逐个比较，而是利用二分法，查到小于该数的最长序列，那么就是n*log(n)的方法了。
+ 
+ 
+ 
+litaoye
+还是贴一段简单的代码吧，给自己留个备份，临时写的，希望没有错，C#的。
+using System;
+namespace csdnTest
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            int[] items = new int[] { 4, 2, 6, 3, 1, 2, 5 };
+ 
+            //用来记录序列长队最大值的数组，index + 1就是序列的长度
+            int[] maxValues = new int[items.Length];
+            int maxLength = 1;
+            maxValues[0] = items[0];
+ 
+            for (int i = 1; i < items.Length; i++)
+            {
+                //二分查找对应的最长序列
+                int lengthIndex = Array.BinarySearch<int>(maxValues, 0, maxLength, items[i]);
+                
+                //针对于.Net里面的BinarySearch的特殊处理，不用理会
+                if (lengthIndex < 0) 
+                    lengthIndex = -lengthIndex - 1;
+ 
+                if (lengthIndex + 1 > maxLength)
+                    maxLength = lengthIndex + 1;
+ 
+                maxValues[lengthIndex] = items[i];
+            }
+ 
+            Console.WriteLine(maxLength);
+        }
+    }
+}
+第4题完。
+======================================================
+ 
+ 
+ 
+ 
+ 
+thegodofwar
+大公司都爱考些“动态规划”的题，因为“动态规划”解法不定，
+可能用到多种其它经典的算法（比如递归、回溯、二分、修枝......）
+ 
+ 
+ 
+higherone
+第一题很多人都没理解对。题目中说的是元素加一的时候，相邻的四个元素的某一个必须加一（四个中的任一个都可以），而不是四个相邻元素都加一。
+ 
+  感觉2楼提出的2个弱判断准则还挺有道理的。给出代码的解答我都没看，还是愿意看解题思路，动不动给代码的，多半都没搞清楚问题。
+--------------------
+ //这里说的2楼给的2个弱判断准则，是这：-------
+ 
+
+  fire_woods
+  有2个弱判断准则,不过不知道3个加起来是不是和题目等价
+  1) 讲矩阵分成黑白棋盘格, 所有黑色格子的数字和等于白色格子的.
+  2)对任意一个位置, 他的值不大于周围(上下左右)4个临格的数值的和.
+----------------------------------------------------------
+  如果这两个准则不是充要条件，那么我只想到一个回溯的方法。从某个元素开始，尝试找一个他的邻居与他成为一组，共同减一。这算一步操作。如果这样减下去，最终能达到0矩阵，则有解；否则回溯到上一步，找其它邻居成为一组，共同减一。
+  但是这个回溯的方法在这里有很大的弊病：回溯次数不仅跟矩阵阶数有关，还跟矩阵元素值有关，元素值越大，就越多回溯次数。所以这个算法肯定是不靠谱的。
+ 
+ 
+ 
+higherone
+二分最大匹配,不是求匹配的最大数目么？怎么在这个题目中应用？
+另外，本题中的匹配，还不能是任意两个黑白子的匹配，而是相邻的黑白子才能匹配。是不是用起来会有问题？
+ 
+接上：
+litaoye
+每个黑点只跟周围相邻的白点联通，白点也只跟周围相邻的黑点联通，有一个共同的源S连到黑点，每条边的容量就是黑点上面的数字，黑点同白点之间的连线，容量都看作无穷大，所有白点都连到一个共同的汇点T，权值就是白点上面的数字，如果从源S到T之间的最大流=所有黑点上面的数字和 同时=所有白点上面的数字和，那么该矩阵就是可以被还原的，以上是最大流的解法，肯定可以得出正确的结果，但至于是否为最优方法，就不一定了，这题看起来用类似贪心的思路兴许也成，不过没证明过，也没仔细想过反例，最近针对于这类黑白染色的问题，我总犯错误，只好老老实实的用最大流了。
+ 
+ 
+ 
+higherone
+牛！
+刚看了下最大流算法的资料，理解了一下，真的是可以解决问题的。
+说下我的理解，大家指正：
+  用黑点连线，指向相邻的白点，模拟了黑点和白点组合在一起加一的情况，并设该连线容量无穷大，是说流量在这里不是瓶颈。
+  源点S的流量，通过黑点，再通过白点，最后到达汇点。“最大流量=黑点之和=白点之和”，实际上是说源点到黑点的流量，最终都流到白点到汇点的连线上了，也就是黑点的每个1都找到了一个白点与之组合。
+因此这个条件就等价与原题目。
+  那么，刚才那个最大匹配的做法不靠谱了？
+=======================
+ 
+ 
+ 
+lanhaibin
+微软：
+5.一个数组是由一个递减数列左移若干位形成的，比如{4，3，2，1，6，5}是由{6，5，4，3，2，1}左移两位形成的，在这种数组中查找某一个数。
+先将数组右移恢复为原来的递减数列，然后运用二分查找即可。
+ 
+ 
+ 
+jinwen0915
+第三题：12种
+1 () () () ()
+2 (()) () ()
+3 () (()) ()
+4 () () (())
+5 () (() ())
+6 (() () ())
+7 ((()) ())
+8 ((()) ())
+9 (() ()) ()
+10((())) ()
+11(()) (())
+12() ((()))
+ 
+ 
+ 
+lmgsdu
+关于第一题，感觉类似七桥问题。个人有个解法不知道对不对。
+假设正数矩阵每一个元素都是大于0的。
+求矩阵每一行与列的和，满足以下两个条件即可由全零矩阵得到：
+1、如果行与列的和有为奇数的，那么必须分别为偶数个。
+2、在所有和为奇数的行与列中，相邻的奇数和不能为偶数对（顶角处的奇数行与奇数列不算做相邻）
+还原假设条件，如果矩阵中存在0，且能够将矩阵分割成几个由正整数组成的小矩阵，则对小矩阵套用以上两个条件即可。
+个人想法。
+ 
+第45题至第48题完。
+由于这些题的思路，都是整理各个网友的，很乱，见谅。
+至于是否正确，请自己辨明。
+也希望，看到此份资源的答案，如果有更好的思路、解答，请务必与我联系。
+ 
+=====================================================================
+ 
+ 
+ 
+
+49.一道看上去很吓人的算法面试题：
+如何对n个数进行排序，要求时间复杂度O(n)，空间复杂度O(1)
+此题请看下文，作者张羿：
+看上去似乎任何已知的算法都无法做到，如果谁做到了，那么所有的排序方法：QuickSort，ShellSort，HeapSort，BubbleSort等等等等，都可以扔掉了，还要这些算法干吗阿，呵呵。不过实际上，在数字范围有限制的情况下，是有一个这样的算法的，只需要用一个数组记录每个数字出现次数就可以了。
+假定你的数字范围在0到65535范围之内，定义一个数组count[65536]（这个空间是常量，和n无关，所以是O(1) )，初值全部为0。
+那么假设有下面这些数字：
+100
+200
+300
+119
+0
+6
+...
+那么对于每个这个数字，都做在count中记录一下：
+100 => count[100]++
+200 => count[200]++
+300 => count[300]++
+119 => count[119]++
+0 => count[0]++
+6 => count[6]++
+...
+最后，遍历一边所有这些数字就可得到0~65535每个数字的个数（在count数组中），然后再顺序遍历count数组，count[n] = m，则输出m个n，（比如说有count[3] = 2, 那么说明有2个数字3），依次输出，最后可得结果。第一次遍历是O(n)，第二次遍历是O(1)，为常量，所以最后的时间复杂度为O(n)，而空间复杂度为O(1)
+这个算法很简单，相信大家都会，只是这个题太过于变态了，一般会把面试者吓住（我原来面试也出过这个题，只不过题目的表述形式要“友善”的多，呵呵）
+ 
+ 
+ 
+ 
+ 
+50.网易有道笔试：
+1.求一个二叉树中任意两个节点间的最大距离，两个节点的距离的定义是 这两个节点间边的个数，比如某个孩子节点和父节点间的距离是1，和相邻兄弟节点间的距离是2，优化时间空间复杂度。
+2.求一个有向连通图的割点，割点的定义是，如果除去此节点和与其相关的边，有向图不再连通，描述算法。
+第1小题，就是本微软等面试100题系列，第11题。
+//请参考答案V0.3版。上有我给的详细思路阐述。
+ 
+I am very，sorry，此刻在整理答案时，我才发现，原来这第50题与本微软等100题系列第39题重复了。
+非常抱歉。望众位见谅。
+此题，请参考答案V0.3版（第20-40题的答案）。
+ 
+
+----------------------------------------------------------------
+以下的10题，第51题-60题答案参考，皆整理自网友何海涛博客。
+何海涛CSDN主页：http://hi.csdn.net/cadcisdhht
+51.和为n连续正数序列。
+题目：输入一个正数n，输出所有和为n连续正数序列。
+例如输入15，由于1+2+3+4+5=4+5+6=7+8=15，所以输出3个连续序列1-5、4-6和7-8。
+ 
+
+分析：这是网易的一道面试题。
+这道题和本微软面试100题系列V0.1版的第14题有些类似。
+ 
+我们可用两个数small和big分别表示序列的最小值和最大值。首先把small初始化为1，big初始化为2。
+如果从small到big的序列的和大于n的话，我们向右移动small，相当于从序列中去掉较小的数字。
+如果从small到big的序列的和小于n的话，我们向右移动big，相当于向序列中添加big的下一个数字。
+一直到small等于(1+n)/2，因为序列至少要有两个数字。
+ 
+ 
+ 
+基于这个思路，我们可以写出如下代码:
+void PrintContinuousSequence(int small, int big);
+ 
+// Find continuous sequence, whose sum is n
+void FindContinuousSequence(int n)
+{
+      if(n < 3)
+            return;
+ 
+      int small = 1; 
+      int big = 2;
+      int middle = (1 + n) / 2;
+      int sum = small + big;
+ 
+      while(small < middle)
+      {
+            // we are lucky and find the sequence
+            if(sum == n)
+                  PrintContinuousSequence(small, big);
+ 
+            // if the current sum is greater than n, 
+            // move small forward
+            while(sum > n)
+            {
+                  sum -= small;
+                  small ++;
+ 
+                  // we are lucky and find the sequence
+                  if(sum == n)
+                        PrintContinuousSequence(small, big);
+            }
+ 
+            // move big forward
+            big ++;
+            sum += big;
+      }
+}
+ 
+// Print continuous sequence between small and big
+void PrintContinuousSequence(int small, int big)
+{
+      for(int i = small; i <= big; ++ i)
+            printf("%d ", i);
+ 
+      printf("/n");
+}
+ 
+ 
+ 
+
+52.二元树的深度。
+题目：输入一棵二元树的根结点，求该树的深度。
+从根结点到叶结点依次经过的结点（含根、叶结点）形成树的一条路径，
+最长路径的长度为树的深度。
+例如：输入二元树：
+                                            10
+                                          /     /
+                                        6        14
+                                      /         /   /
+                                    4         12     16
+ 
+输出该树的深度3。
+ 
+二元树的结点定义如下：
+struct SBinaryTreeNode // a node of the binary tree
+{
+      int               m_nValue; // value of node
+      SBinaryTreeNode  *m_pLeft;  // left child of node
+      SBinaryTreeNode  *m_pRight; // right child of node
+};
+分析：这道题本质上还是考查二元树的遍历。
+ 
+题目给出了一种树的深度的定义。当然，我们可以按照这种定义去得到树的所有路径，也就能得到最长路径以及它的长度。只是这种思路用来写程序有点麻烦。
+ 
+ 
+ 
+我们还可以从另外一个角度来理解树的深度。如果一棵树只有一个结点，它的深度为1。
+如果根结点只有左子树而没有右子树，那么树的深度应该是其左子树的深度加1；
+同样如果根结点只有右子树而没有左子树，那么树的深度应该是其右子树的深度加1。
+如果既有右子树又有左子树呢？那该树的深度就是其左、右子树深度的较大值再加1。
+ 
+ 
+ 
+上面的这个思路用递归的方法很容易实现，只需要对遍历的代码稍作修改即可。
+ 
+参考代码如下:
+// Get depth of a binary tree
+// Input: pTreeNode - the head of a binary tree
+// Output: the depth of a binary tree
+int TreeDepth(SBinaryTreeNode *pTreeNode)
+{
+      // the depth of a empty tree is 0
+      if(!pTreeNode)
+            return 0;
+ 
+      // the depth of left sub-tree
+      int nLeft = TreeDepth(pTreeNode->m_pLeft);
+      // the depth of right sub-tree
+      int nRight = TreeDepth(pTreeNode->m_pRight);
+ 
+      // depth is the binary tree
+      return (nLeft > nRight) ? (nLeft + 1) : (nRight + 1);
+}
+ 
+ 
+ 
+ 
+ 
+53.字符串的全排列。
+题目：输入一个字符串，打印出该字符串中字符的所有排列。
+例如输入字符串abc，则输出由字符a、b、c所能排列出来的所有字符串
+abc、acb、bac、bca、cab和cba。
+ 
+分析：这是一道很好的考查对递归理解的编程题，
+因此在过去一年中频繁出现在各大公司的面试、笔试题中。
+ 
+ 
+ 
+我们以三个字符abc为例来分析一下求字符串排列的过程。
+首先我们固定第一个字符a，求后面两个字符bc的排列。
+当两个字符bc的排列求好之后，我们把第一个字符a和后面的b交换，得到bac，
+接着我们固定第一个字符b，求后面两个字符ac的排列。
+ 
+现在是把c放到第一位置的时候了。记住前面我们已经把原先的第一个字符a和后面的b做了交换，
+为了保证这次c仍然是和原先处在第一位置的a交换，我们在拿c和第一个字符交换之前，先要把b和a交换回来。
+在交换b和a之后，再拿c和处在第一位置的a进行交换，得到cba。
+ 
+我们再次固定第一个字符c，求后面两个字符b、a的排列。
+既然我们已经知道怎么求三个字符的排列，那么固定第一个字符之后求后面两个字符的排列，就是典型的递归思路了。
+ 
+ 
+ 
+即，
+固定a，=>a bc，a cb
+固定b，=>b ac，b ca
+固定c，=>c ab，c ba。
+ 
+ 
+ 
+基于以上分析，我们可以得到如下的参考代码：
+void Permutation(char* pStr, char* pBegin);
+ 
+// Get the permutation of a string, 
+// for example, input string abc, its permutation is 
+// abc acb bac bca cba cab
+void Permutation(char* pStr)
+{
+      Permutation(pStr, pStr);
+}
+ 
+// Print the permutation of a string, 
+// Input: pStr   - input string
+//        pBegin - points to the begin char of string 
+//                 which we want to permutate in this recursion
+void Permutation(char* pStr, char* pBegin)
+{
+      if(!pStr || !pBegin)
+            return;
+ 
+      // if pBegin points to the end of string,
+      // this round of permutation is finished, 
+      // print the permuted string
+      if(*pBegin == '/0')
+      {
+            printf("%s/n", pStr);
+      }
+      // otherwise, permute string
+      else
+      {
+            for(char* pCh = pBegin; *pCh != '/0'; ++ pCh)
+            {+
+                  // swap pCh and pBegin
+                  char temp = *pCh;
+                  *pCh = *pBegin;
+                  *pBegin = temp;
+ 
+                  Permutation(pStr, pBegin + 1);
+ 
+                  // restore pCh and pBegin
+                  temp = *pCh;
+                  *pCh = *pBegin;
+                  *pBegin = temp;
+            }
+      }
+}
+ 
+扩展1：如果不是求字符的所有排列，而是求字符的所有组合，应该怎么办呢？
+当输入的字符串中含有相同的字符串时，相同的字符交换位置是不同的排列，但是同一个组合。
+举个例子，如果输入aaa，那么它的排列是6个aaa，但对应的组合只有一个。
+ 
+扩展2：输入一个含有8个数字的数组，判断有没有可能把这8个数字分别放到正方体的8个顶点上，
+使得正方体上三组相对的面上的4个顶点的和相等。
+ 
+--------------------------------------------
+后续补充：再补充说明一个全排列的程序例子:
+ 
+#include<stdio.h>
+#include<stdlib.h>
+#define SWAP(x,y,t) ((t)=(x),(x)=(y),(y)=(t))
+ 
+int score=0;
+void perm(int *list,int i,int n)
+{
+ int j,temp;
+ 
+ if(i==n)
+ {
+  for(j=0;j<=n;j++)
+  {
+   printf("%d",list[j]);
+  }
+  printf("/n");
+  score++;
+ }
+ else
+ {
+  for(j=i;j<=n;j++)
+  {
+   SWAP(list[i],list[j],temp);
+   perm(list,i+1,n);
+   SWAP(list[i],list[j],temp);
+  }
+ }
+}
+void main()
+{
+ int list[]={1,2,3};
+ perm(list,0,2);
+ printf("The total number is %d/n",score);
+ system("pause"); 
+}
+ 
+/*
+123
+132
+213
+231
+321
+312
+The total number is 6
+请按任意键继续. . .
+*/
+ 
+ 
+ 
+
+54.调整数组顺序使奇数位于偶数前面。
+题目：输入一个整数数组，调整数组中数字的顺序，使得所有奇数位于数组的前半部分，
+所有偶数位于数组的后半部分。要求时间复杂度为O(n)。
+ 
+分析：如果不考虑时间复杂度，最简单的思路应该是从头扫描这个数组，每碰到一个偶数时，拿出这个数字，并把位于这个数字后面的所有数字往前挪动一位。挪完之后在数组的末尾有一个空位，这时把该偶数放入这个空位。由于碰到一个偶数，需要移动O(n)个数字，因此总的时间复杂度是O(n２)。
+ 
+ 
+ 
+要求的是把奇数放在数组的前半部分，偶数放在数组的后半部分，因此所有的奇数应该位于偶数的前面。也就是说我们在扫描这个数组的时候，如果发现有偶数出现在奇数的前面，我们可以交换他们的顺序，交换之后就符合要求了。
+ 
+因此我们可以维护两个指针，第一个指针初始化为数组的第一个数字，它只向后移动；第二个指针初始化为数组的最后一个数字，它只向前移动。在两个指针相遇之前，第一个指针总是位于第二个指针的前面。如果第一个指针指向的数字是偶数而第二个指针指向的数字是奇数，我们就交换这两个数字。
+ 
+ 
+ 
+基于这个思路，我们可以写出如下的代码：
+ 
+void Reorder(int *pData, unsigned int length, bool (*func)(int));
+bool isEven(int n);
+ 
+// Devide an array of integers into two parts, odd in the first part,
+// and even in the second part
+// Input: pData  - an array of integers
+//        length - the length of array
+ 
+void ReorderOddEven(int *pData, unsigned int length)
+{
+      if(pData == NULL || length == 0)
+            return;
+ 
+      Reorder(pData, length, isEven);
+}
+ 
+// Devide an array of integers into two parts, the intergers which 
+// satisfy func in the first part, otherwise in the second part
+// Input: pData  - an array of integers
+//        length - the length of array
+//        func   - a function
+void Reorder(int *pData, unsigned int length, bool (*func)(int))
+{
+      if(pData == NULL || length == 0)
+            return;
+ 
+      int *pBegin = pData;
+      int *pEnd = pData + length - 1;
+ 
+      while(pBegin < pEnd)
+      {
+            // if *pBegin does not satisfy func, move forward
+            if(!func(*pBegin))
+            {
+                  pBegin ++;
+                  continue;
+            }
+ 
+            // if *pEnd does not satisfy func, move backward
+            if(func(*pEnd))
+            {
+                  pEnd --;
+                  continue;
+            }
+ 
+            // if *pBegin satisfy func while *pEnd does not,
+            // swap these integers
+            int temp = *pBegin;
+            *pBegin = *pEnd;
+            *pEnd = temp;
+      }
+}
+ 
+// Determine whether an integer is even or not
+// Input: an integer
+// otherwise return false
+bool isEven(int n)
+{
+      return (n & 1) == 0;
+}
+ 
+讨论：
+上面的代码有三点值得提出来和大家讨论：
+１．函数isEven判断一个数字是不是偶数并没有用%运算符而是用&。理由是通常情况下位运算符比%要快一些；
+２．这道题有很多变种。
+这里要求是把奇数放在偶数的前面，如果把要求改成：把负数放在非负数的前面等，思路都是都一样的。
+３．在函数Reorder中，用函数指针func指向的函数来判断一个数字是不是符合给定的条件，而不是用在代码直接判断（hard code）。这样的好处是把调整顺序的算法和调整的标准分开了（即解耦，decouple）。当调整的标准改变时，Reorder的代码不需要修改，只需要提供一个新的确定调整标准的函数即可，提高了代码的可维护性。
+ 
+例如要求把负数放在非负数的前面，我们不需要修改Reorder的代码，只需添加一个函数来判断整数是不是非负数。
+这样的思路在很多库中都有广泛的应用，比如在ＳＴＬ的很多算法函数中都有一个仿函数（functor）的参数（当然仿函数不是函数指针，但其思想是一样的）。
+如果在面试中能够想到这一层，无疑能给面试官留下很好的印象。
+ 
+ 
+ 
+ 
+55.
+题目：类CMyString的声明如下：
+class CMyString
+{
+public:
+      CMyString(char* pData = NULL);
+      CMyString(const CMyString& str);
+      ~CMyString(void);
+      CMyString& operator = (const CMyString& str);
+ 
+private:
+      char* m_pData;
+};
+请实现其赋值运算符的重载函数，要求异常安全，即当对一个对象进行赋值时发生异常，对象的状态不能改变。
+ 
+分析：首先我们来看一般C++教科书上给出的赋值运算符的重载函数：
+CMyString& CMyString::operator =(const CMyString &str)
+{
+      if(this == &str)
+            return *this;
+ 
+      delete []m_pData;
+      m_pData = NULL;
+ 
+      m_pData = new char[strlen(str.m_pData) + 1];
+      strcpy(m_pData, str.m_pData);
+ 
+      return *this;
+}
+ 
+我们知道，在分配内存时有可能发生异常。当执行语句new char[strlen(str.m_pData) + 1]发生异常时，程序将从该赋值运算符的重载函数退出不再执行。注意到这个时候语句delete []m_pData已经执行了。也就是说赋值操作没有完成，但原来对象的状态已经改变。也就是说不满足题目的异常安全的要求。
+ 
+为了满足异常安全这个要求，一个简单的办法是掉换new、delete的顺序。先把内存new出来用一个临时指针保存起来，只有这个语句正常执行完成之后再执行delete。这样就能够保证异常安全了。
+ 
+下面给出的是一个更加优雅的实现方案：
+CMyString& CMyString::operator =(const CMyString &str)
+{
+      if(this != &str)
+      {
+            CMyString strTemp(str);
+ 
+            char* pTemp = strTemp.m_pData;
+            strTemp.m_pData = m_pData;
+            m_pData = pTemp;
+      }
+      return *this;
+}
+ 
+该方案通过调用构造拷贝函数创建一个临时对象来分配内存。此时即使发生异常，对原来对象的状态没有影响。交换临时对象和需要赋值的对象的字符串指针之后，由于临时对象的生命周期结束，自动调用其析构函数释放需赋值对象的原来的字符串空间。整个函数不需要显式用到new、delete，内存的分配和释放都自动完成，因此代码显得比较优雅。
+ 
+ 
+ 
+
+56.最长公共子序列。
+题目：如果字符串一的所有字符按其在字符串中的顺序出现在另外一个字符串二中，
+则字符串一称之为字符串二的子串。
+ 
+注意，并不要求子串（字符串一）的字符必须连续出现在字符串二中。
+请编写一个函数，输入两个字符串，求它们的最长公共子串，并打印出最长公共子串。
+例如：输入两个字符串BDCABA和ABCBDAB，字符串BCBA和BDAB都是是它们的最长公共子串，
+则输出它们的长度4，并打印任意一个子串。
+ 
+ 
+ 
+分析：求最长公共子串（Longest Common Subsequence, LCS）是一道非常经典的动态规划题，
+因此一些重视算法的公司像MicroStrategy都把它当作面试题。
+ 
+完整介绍动态规划将需要很长的篇幅，因此我不打算在此全面讨论动态规划相关的概念，只集中对LCS直接相关内容作讨论。如果对动态规划不是很熟悉，请参考相关算法书比如算法讨论。
+ 
+ 
+ 
+先介绍LCS问题的性质：记Xm={x0, x1,…xm-1}和Yn={y0,y1,…,yn-1}为两个字符串，而Zk={z0,z1,…zk-1}是它们的LCS，则：
+ 
+1.       如果xm-1=yn-1，那么zk-1=xm-1=yn-1，并且Zk-1是Xm-1和Yn-1的LCS；
+2.       如果xm-1≠yn-1，那么当zk-1≠xm-1时Z是Xm-1和Y的LCS；
+3.       如果xm-1≠yn-1，那么当zk-1≠yn-1时Z是Yn-1和X的LCS；
+ 
+ 
+ 
+下面简单证明一下这些性质：
+1.       如果zk-1≠xm-1，那么我们可以把xm-1（yn-1）加到Z中得到Z’，这样就得到X和Y的一个长度为k+1的公共子串Z’。这就与长度为k的Z是X和Y的LCS相矛盾了。因此一定有zk-1=xm-1=yn-1。
+既然zk-1=xm-1=yn-1，那如果我们删除zk-1（xm-1、yn-1）得到的Zk-1，Xm-1和Yn-1，显然Zk-1是Xm-1和Yn-1的一个公共子串，现在我们证明Zk-1是Xm-1和Yn-1的LCS。用反证法不难证明。假设有Xm-1和Yn-1有一个长度超过k-1的公共子串W，那么我们把加到W中得到W’，那W’就是X和Y的公共子串，并且长度超过k，这就和已知条件相矛盾了。
+2.       还是用反证法证明。假设Z不是Xm-1和Y的LCS，则存在一个长度超过k的W是Xm-1和Y的LCS，那W肯定也X和Y的公共子串，而已知条件中X和Y的公共子串的最大长度为k。矛盾。
+3.       证明同2。
+ 
+ 
+ 
+有了上面的性质，我们可以得出如下的思路：
+ 
+求两字符串Xm={x0, x1,…xm-1}和Yn={y0,y1,…,yn-1}的LCS，如果xm-1=yn-1，那么只需求得Xm-1和Yn-1的LCS，并在其后添加xm-1（yn-1）即可；如果xm-1≠yn-1，我们分别求得Xm-1和Y的LCS和Yn-1和X的LCS，并且这两个LCS中较长的一个为X和Y的LCS。
+ 
+ 
+ 
+如果我们记字符串Xi和Yj的LCS的长度为c[i,j]，我们可以递归地求c[i,j]：
+ 
+          /      0                               if i<0 or j<0
+c[i,j]=          c[i-1,j-1]+1                    if i,j>=0 and xi=xj
+         /       max(c[i,j-1],c[i-1,j]           if i,j>=0 and xi≠xj
+ 
+ 
+ 
+上面的公式用递归函数不难求得。但从前面求Fibonacci第n项(本微软等100题系列第19题）的分析中我们知道直接递归会有很多重复计算，我们用从底向上循环求解的思路效率更高。
+ 
+ 
+ 
+为了能够采用循环求解的思路，我们用一个矩阵（参考代码中的LCS_length）保存下来当前已经计算好了的c[i,j]，当后面的计算需要这些数据时就可以直接从矩阵读取。另外，求取c[i,j]可以从c[i-1,j-1] 、c[i,j-1]或者c[i-1,j]三个方向计算得到，相当于在矩阵LCS_length中是从c[i-1,j-1]，c[i,j-1]或者c[i-1,j]的某一个各自移动到c[i,j]，因此在矩阵中有三种不同的移动方向：向左、向上和向左上方，其中只有向左上方移动时才表明找到LCS中的一个字符。于是我们需要用另外一个矩阵（参考代码中的LCS_direction）保存移动的方向。
+ 
+ 
+ 
+参考代码如下：
+#include "string.h"
+ 
+// directions of LCS generation
+enum decreaseDir {kInit = 0, kLeft, kUp, kLeftUp};
+ 
+/////////////////////////////////////////////////////////////////////////////
+// Get the length of two strings' LCSs, and print one of the LCSs
+// Input: pStr1         - the first string
+//        pStr2         - the second string
+// Output: the length of two strings' LCSs
+/////////////////////////////////////////////////////////////////////////////
+int LCS(char* pStr1, char* pStr2)
+{
+      if(!pStr1 || !pStr2)
+            return 0;
+ 
+      size_t length1 = strlen(pStr1);
+      size_t length2 = strlen(pStr2);
+      if(!length1 || !length2)
+            return 0;
+ 
+      size_t i, j;
+ 
+      // initiate the length matrix
+      int **LCS_length;
+      LCS_length = (int**)(new int[length1]);
+      for(i = 0; i < length1; ++ i)
+            LCS_length[i] = (int*)new int[length2];
+ 
+      for(i = 0; i < length1; ++ i)
+            for(j = 0; j < length2; ++ j)
+                  LCS_length[i][j] = 0;
+ 
+ 
+ 
+      // initiate the direction matrix
+      int **LCS_direction;
+      LCS_direction = (int**)(new int[length1]);
+      for( i = 0; i < length1; ++ i)
+            LCS_direction[i] = (int*)new int[length2];
+ 
+      for(i = 0; i < length1; ++ i)
+            for(j = 0; j < length2; ++ j)
+                  LCS_direction[i][j] = kInit;
+ 
+      for(i = 0; i < length1; ++ i)
+      {
+            for(j = 0; j < length2; ++ j)
+            {
+                  if(i == 0 || j == 0)
+                  {
+                        if(pStr1[i] == pStr2[j])
+                        {
+                              LCS_length[i][j] = 1;
+                              LCS_direction[i][j] = kLeftUp;
+                        }
+                        else
+                              LCS_length[i][j] = 0;
+                  }
+                  // a char of LCS is found, 
+                  // it comes from the left up entry in the direction matrix
+                  else if(pStr1[i] == pStr2[j])
+                  {
+                        LCS_length[i][j] = LCS_length[i - 1][j - 1] + 1;
+                        LCS_direction[i][j] = kLeftUp;
+                  }
+                  // it comes from the up entry in the direction matrix
+                  else if(LCS_length[i - 1][j] > LCS_length[i][j - 1])
+                  {
+                        LCS_length[i][j] = LCS_length[i - 1][j];
+                        LCS_direction[i][j] = kUp;
+                  }
+                  // it comes from the left entry in the direction matrix
+                  else
+                  {
+                        LCS_length[i][j] = LCS_length[i][j - 1];
+                        LCS_direction[i][j] = kLeft;
+                  }
+            }
+      }
+      LCS_Print(LCS_direction, pStr1, pStr2, length1 - 1, length2 - 1);
+ 
+      return LCS_length[length1 - 1][length2 - 1];
+}
+ 
+ 
+ 
+/////////////////////////////////////////////////////////////////////////////
+// Print a LCS for two strings
+// Input: LCS_direction - a 2d matrix which records the direction of 
+//                        LCS generation
+//        pStr1         - the first string
+//        pStr2         - the second string
+//        row           - the row index in the matrix LCS_direction
+//        col           - the column index in the matrix LCS_direction
+/////////////////////////////////////////////////////////////////////////////
+void LCS_Print(int **LCS_direction, 
+                    char* pStr1, char* pStr2, 
+                    size_t row, size_t col)
+{
+      if(pStr1 == NULL || pStr2 == NULL)
+            return;
+ 
+      size_t length1 = strlen(pStr1);
+      size_t length2 = strlen(pStr2);
+ 
+      if(length1 == 0 || length2 == 0 || !(row < length1 && col < length2))
+            return;
+ 
+      // kLeftUp implies a char in the LCS is found
+      if(LCS_direction[row][col] == kLeftUp)
+      {
+            if(row > 0 && col > 0)
+                  LCS_Print(LCS_direction, pStr1, pStr2, row - 1, col - 1);
+ 
+            // print the char
+            printf("%c", pStr1[row]);
+      }
+      else if(LCS_direction[row][col] == kLeft)
+      {
+            // move to the left entry in the direction matrix
+            if(col > 0)
+                  LCS_Print(LCS_direction, pStr1, pStr2, row, col - 1);
+      }
+      else if(LCS_direction[row][col] == kUp)
+      {
+            // move to the up entry in the direction matrix
+            if(row > 0)
+                  LCS_Print(LCS_direction, pStr1, pStr2, row - 1, col);
+      }
+}
+扩展：如果题目改成求两个字符串的最长公共子字符串，应该怎么求？子字符串的定义和子串的定义类似，但要求是连续分布在其他字符串中。比如输入两个字符串BDCABA和ABCBDAB的最长公共字符串有BD和AB，它们的长度都是2。
+ 
+ //July注，更多可参考 算法导论一书第15章 动态规划问题。
+ //及我针对此题写的一篇博文：24个经典算法系列：3、动态规划算法解一道面试题
+ //http://blog.csdn.net/v_JULY_v/archive/2010/12/31/6110269.aspx
+ //关于动态规划算法，我日后还会在博客里清晰阐述。:D。
+ 
+ 
+
+57.用俩个栈实现队列。 
+题目：某队列的声明如下：
+template<typename T> class CQueue
+{
+public:
+      CQueue() {}
+      ~CQueue() {}
+ 
+      void appendTail(const T& node);  // append a element to tail
+      void deleteHead();               // remove a element from head 
+
+private:
+     T> m_stack1;
+     T> m_stack2;
+};
+ 
+分析：从上面的类的声明中，我们发现在队列中有两个栈。
+因此这道题实质上是要求我们用两个栈来实现一个队列。
+相信大家对栈和队列的基本性质都非常了解了：栈是一种后入先出的数据容器，
+因此对队列进行的插入和删除操作都是在栈顶上进行；队列是一种先入先出的数据容器，
+我们总是把新元素插入到队列的尾部，而从队列的头部删除元素。
+参考代码如下：
+// Append a element at the tail of the queue
+template<typename T> void CQueue<T>::appendTail(const T& element)
+{
+      // push the new element into m_stack1
+      m_stack1.push(element);
+} 
+
+// Delete the head from the queue
+template<typename T> void CQueue<T>::deleteHead()
+{
+      // if m_stack2 is empty, and there are some
+      // elements in m_stack1, push them in m_stack2
+      if(m_stack2.size() <= 0)
+      {
+            while(m_stack1.size() > 0)
+            {
+                  T& data = m_stack1.top();
+                  m_stack1.pop();
+                  m_stack2.push(data);
+            }
+      }
+ 
+      // push the element into m_stack2
+      assert(m_stack2.size() > 0);
+      m_stack2.pop();
+}
+ 
+扩展：这道题是用两个栈实现一个队列。反过来能不能用两个队列实现一个栈？如果可以，该如何实现？
+ 
+ 
+ 
+
+58.从尾到头输出链表。
+题目：输入一个链表的头结点，从尾到头反过来输出每个结点的值。链表结点定义如下：
+struct ListNode
+{
+ 
+      int       m_nKey;
+      ListNode* m_pNext;
+};
+分析：这是一道很有意思的面试题。
+该题以及它的变体经常出现在各大公司的面试、笔试题中。
+ 
+ 
+ 
+看到这道题后，第一反应是从头到尾输出比较简单。于是很自然地想到把链表中链接结点的指针反转过来，改变链表的方向。然后就可以从头到尾输出了。反转链表的算法详见此微软100题系列第24题，在此不再细述。但该方法需要额外的操作，应该还有更好的方法。
+ 
+ 
+ 
+接下来的想法是从头到尾遍历链表，每经过一个结点的时候，把该结点放到一个栈中。当遍历完整个链表后，再从栈顶开始输出结点的值，此时输出的结点的顺序已经反转过来了。该方法需要维护一个额外的栈，实现起来比较麻烦。
+ 
+既然想到了栈来实现这个函数，而递归本质上就是一个栈结构。于是很自然的又想到了用递归来实现。要实现反过来输出链表，我们每访问到一个结点的时候，先递归输出它后面的结点，再输出该结点自身，这样链表的输出结果就反过来了。
+ 
+ 
+ 
+基于这样的思路，不难写出如下代码：
+// Print a list from end to beginning
+// Input: pListHead - the head of list
+void PrintListReversely(ListNode* pListHead)
+{
+      if(pListHead != NULL)
+      {
+            // Print the next node first
+            if (pListHead->m_pNext != NULL)
+            {
+                  PrintListReversely(pListHead->m_pNext);
+            }
+ 
+            // Print this node
+            printf("%d", pListHead->m_nKey);
+      }
+}
+扩展：该题还有两个常见的变体：
+1.       从尾到头输出一个字符串；
+2.       定义一个函数求字符串的长度，要求该函数体内不能声明任何变量。
+ 
+ 
+ 
+
+59.不能被继承的类。
+题目：用C++设计一个不能被继承的类。
+ 
+分析：这是Adobe公司2007年校园招聘的最新笔试题。
+ 
+
+这道题除了考察应聘者的C++基本功底外，还能考察反应能力，是一道很好的题目。
+在Java中定义了关键字final，被final修饰的类不能被继承。但在C++中没有final这个关键字，要实现这个要求还是需要花费一些精力。
+ 
+ 
+ 
+首先想到的是在C++ 中，子类的构造函数会自动调用父类的构造函数。同样，子类的析构函数也会自动调用父类的析构函数。要想一个类不能被继承，我们只要把它的构造函数和析构函数都定义为私有函数。那么当一个类试图从它那继承的时候，必然会由于试图调用构造函数、析构函数而导致编译错误。
+ 
+ 
+ 
+可是这个类的构造函数和析构函数都是私有函数了，我们怎样才能得到该类的实例呢？
+ 
+这难不倒我们，我们可以通过定义静态来创建和释放类的实例。
+ 
+ 
+ 
+基于这个思路，我们可以写出如下的代码：
+// Define a class which can't be derived from
+class FinalClass1
+{
+public:
+      static FinalClass1* GetInstance() 
+      {
+            return new FinalClass1;
+      }
+      static void DeleteInstance( FinalClass1* pInstance)
+      {
+            delete pInstance;
+            pInstance = 0;
+      }
+private:
+      FinalClass1() {}
+      ~FinalClass1() {}
+};
+ 
+ 
+ 
+这个类是不能被继承，但在总觉得它和一般的类有些不一样，使用起来也有点不方便。比如，我们只能得到位于堆上的实例，而得不到位于栈上实例。
+ 
+ 
+ 
+能不能实现一个和一般类除了不能被继承之外其他用法都一样的类呢？办法总是有的，不过需要一些技巧。请看如下代码：
+ 
+// Define a class which can't be derived from
+template <typename T> class MakeFinal
+{
+      friend T;
+private:
+      MakeFinal() {}
+      ~MakeFinal() {}
+};
+ 
+class FinalClass2 : virtual public MakeFinal<FinalClass2>
+{
+public:
+ 
+      FinalClass2() {}
+      ~FinalClass2() {}
+};
+ 
+这个类使用起来和一般的类没有区别，可以在栈上、也可以在堆上创建实例。尽管类MakeFinal<FinalClass2>的构造函数和析构函数都是私有的，但由于类FinalClass2是它的友元函数，因此在FinalClass2中调用MakeFinal<FinalClass2>的构造函数和析构函数都不会造成编译错误。
+ 
+ 
+ 
+但当我们试图从FinalClass2继承一个类并创建它的实例时，却不同通过编译。
+class Try : public FinalClass2
+{
+public:
+      Try() {}
+      ~Try() {}
+};
+ 
+Try temp; 
+由于类FinalClass2是从类MakeFinal<FinalClass2>虚继承过来的，在调用Try的构造函数的时候，会直接跳过FinalClass2而直接调用MakeFinal<FinalClass2>的构造函数。非常遗憾的是，Try不是MakeFinal<FinalClass2>的友元，因此不能调用其私有的构造函数。
+ 
+基于上面的分析，试图从FinalClass2继承的类，一旦实例化，都会导致编译错误，因此是FinalClass2不能被继承。这就满足了我们设计要求。
+ 
+ 
+ 
+ 
+60.在O（1）时间内删除链表结点。
+题目：给定链表的头指针和一个结点指针，在O(1)时间删除该结点。链表结点的定义如下：
+struct ListNode
+ 
+{
+ 
+      int        m_nKey;
+ 
+      ListNode*  m_pNext;
+ 
+};
+ 
+
+函数的声明如下：
+void DeleteNode(ListNode* pListHead, ListNode* pToBeDeleted);
+ 
+分析：这是一道广为流传的Google面试题，能有效考察我们的编程基本功，还能考察我们的反应速度，
+更重要的是，还能考察我们对时间复杂度的理解。
+在链表中删除一个结点，最常规的做法是从链表的头结点开始，顺序查找要删除的结点，找到之后再删除。由于需要顺序查找，时间复杂度自然就是O(n) 了。
+ 
+ 
+ 
+我们之所以需要从头结点开始查找要删除的结点，是因为我们需要得到要删除的结点的前面一个结点。我们试着换一种思路。我们可以从给定的结点得到它的下一个结点。这个时候我们实际删除的是它的下一个结点，由于我们已经得到实际删除的结点的前面一个结点，因此完全是可以实现的。当然，在删除之前，我们需要需要把给定的结点的下一个结点的数据拷贝到给定的结点中。此时，时间复杂度为O(1)。
+ 
+ 
+ 
+上面的思路还有一个问题：如果删除的结点位于链表的尾部，没有下一个结点，怎么办？我们仍然从链表的头结点开始，顺便遍历得到给定结点的前序结点，并完成删除操作。这个时候时间复杂度是O(n)。
+ 
+那题目要求我们需要在O(1)时间完成删除操作，我们的算法是不是不符合要求？实际上，假设链表总共有n个结点，我们的算法在n-1总情况下时间复杂度是O(1)，只有当给定的结点处于链表末尾的时候，时间复杂度为O(n)。那么平均时间复杂度[(n-1)*O(1)+O(n)]/n，仍然为O(1)。
+ 
+ 
+ 
+以下，咱们分析下：
+a->b->c->d..   //现在，给定了结点b，即要删除b
+a->c->d..
+ 
+void DeleteNode(ListNode* pListHead, ListNode* pToBeDeleted)
+{
+ 
+  if(pToBeDeleted->m_pNext != NULL)   //要删除的结点b不是尾结点
+  {
+     //把b的下一个结点c先保存起来
+     ListNode* pNext = pToBeDeleted->m_pNext;   //pNext指着c
+  
+     pToBeDeleted->m_nKey = pNext->m_nKey;   //保存起来的c的值赋给b的值
+     pToBeDeleted->m_pNext = pNext->m_pNext;   //d的值赋给c
+ 
+     //最后，删除c。
+     delete pNext;
+     pNext = NULL;
+  }
+  else
+  {
+     //如果b是尾结点，找头结点，只能依次遍历 找b结点了
+     ListNode* pNode = pListHead;
+     while(pNode->m_pNext != pToBeDeleted)
+     {
+        pNode = pNode->m_pNext;             
+     }
+     //删除c。
+     pNode->m_pNext = NULL;
+     delete pToBeDeleted;
+     pToBeDeleted = NULL;
+  }
+ 
+ }
+ 
+ 
+ 
+何海涛：值得注意的是，为了让代码看起来简洁一些，上面的代码基于两个假设：
+ 
+（1）给定的结点的确在链表中；（2）给定的要删除的结点不是链表的头结点。
+ 
+不考虑第一个假设对代码的鲁棒性是有影响的。至于第二个假设，当整个列表只有一个结点时，代码会有问题。但这个假设不算很过分，因为在有些链表的实现中，会创建一个虚拟的链表头，并不是一个实际的链表结点。这样要删除的结点就不可能是链表的头结点了。 
+ 
+July：其实这道题非常简单，就是利用链表 只向前不向后的特性，通过元素的移动达到 删除元素的目的。类似插入排序算法中元素插入后，后续元素全部向后移动。
+ 
+ 
+ 
+作者声明：
+本人Juy和何海涛等网友对以上所有答案享有版权，转载请注明出处。
+向您的厚道致敬。谢谢。July、二零一一年一月三十日晚，于家中。
+ 
+
+•上一篇：大刀阔斧，抽丝剥茧：评红黑树系列文章
+•下一篇：经典算法研究系列：八、再谈启发式搜索算法
+ 
+
+
+查看评论
+ 
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+个人资料 
+
+v_JULY_v 
+
+
+
+
+◦访问：4771677次
+◦积分：27387分
+◦排名：第46名
+ ◦原创：138篇
+◦转载：0篇
+◦译文：5篇
+◦评论：10756条
+ 
+
+博客公告 ①.本blog开通于2010年10月11日，高级C++/算法交流群：128691433；北京程序员联盟：172727781。②.狂热算法，热爱数据挖掘，关注机器学习、统计分析，爱好文学数学。③.微博：研究者July，邮箱：zhoulei97@aliyun.com，或zhoulei0907@yahoo.cn，July，二零一三年八月七日。 
+我的微博 
+文章分类 • 03.Algorithms（实现）(9) 
+• 01.Algorithms（研究）(27) 
+• 02.Algorithms（后续）(22) 
+• 04.Algorithms（讨论）(1) 
+• 05.MS 100' original(7) 
+• 06.MS 100' answers(13) 
+• 07.MS 100' classify(4) 
+• 08.MS 100' one Keys(6) 
+• 09.MS 100' follow-up(3) 
+• 10.MS 100' comments(4) 
+• 11.TAOPP（编程艺术）(29) 
+• 12.TAOPP string(8) 
+• 13.TAOPP array(12) 
+• 14.TAOPP list(2) 
+• 15.stack/heap/queue(0) 
+• 16.TAOPP tree(1) 
+• 17.TAOPP c/c++(2) 
+• 18.TAOPP function(2) 
+• 19.TAOPP algorithms(7) 
+• 20.number operations(1) 
+• 21.Essays(8) 
+• 22.Big Data Processing(5) 
+• 23.Redis/MongoDB(0) 
+• 24.data structures(12) 
+• 25.Red-black tree(7) 
+• 26.Image Processing(3) 
+• 27.Architecture design(4) 
+• 28.Source analysis(3) 
+• 29.Recommend&Search(4) 
+• 30.Machine L&Data Mining(5) 
+
+博客专栏
+
+
+
+
+数据挖掘十大算法系列
+文章：5篇
+阅读：277416 
+
+
+
+
+
+微软面试100题系列
+文章：17篇
+阅读：1412267 
+
+
+
+
+
+程序员编程艺术
+文章：27篇
+阅读：1022218 
+
+
+
+
+
+经典算法研究
+文章：32篇
+阅读：1254721 
+
+阅读排行 • 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(217908) 
+• 教你如何迅速秒杀掉：99%的海量数据处理面试题(170893) 
+• 九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(166897) 
+• 从B树、B+树、B*树谈到R 树(142708) 
+• 横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(137238) 
+• 十道海量数据处理面试题与十个方法大总结(113474) 
+• 支持向量机通俗导论（理解SVM的三层境界）(102790) 
+• 九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(94309) 
+• 十一、从头到尾彻底解析Hash表算法(89258) 
+• 微软公司等数据结构+算法面试100题(第1-100题)全部出炉(84427) 
+
+评论排行 • 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(409) 
+• 九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(368) 
+• 九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(339) 
+• 当今世界最为经典的十大算法--投票进行时(322) 
+• 从B树、B+树、B*树谈到R 树(279) 
+• 横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(267) 
+• 我的大学生涯(236) 
+• 程序员编程艺术第一章、左旋转字符串(223) 
+• 十三个经典算法研究与总结、目录+索引(218) 
+• 支持向量机通俗导论（理解SVM的三层境界）(215) 
+
+最新评论 •程序员编程艺术第三十二~三十三章：最小操作数，木块砌墙问题
+u011916787: 问一个关于C++的问题，使用vector的时候为什么有时候初始化了之后需要resize(),而有时候... 
+
+•程序员编程艺术第三十二~三十三章：最小操作数，木块砌墙问题
+u011916787: 问一下，这一个算法你大约想多久啊，我看现成的解答都要看半天，哎~~~ 
+
+•从Hadoop框架与MapReduce模式中谈海量数据处理（含淘宝技术架构）
+yutianzuijin: @RunZhi1989:惊现俊哥！ 
+
+•程序员编程艺术：第二章、字符串是否包含及匹配/查找/转换/拷贝问题
+ken_lover: @likefxy:这个方法有问题 
+
+•程序员编程艺术第一章、左旋转字符串
+ken_lover: 将问题提高到数学方法实现，思考问题层次立马advanced了 
+
+•从Trie树（字典树）谈到后缀树（10.28修订）
+hanchengxi: “还要提到一个节约时间的方法. 当我们遍历所有后缀时, 如果某个后缀的某个儿子跟待加字符(新前缀最后... 
+
+•全新整理：微软、Google等公司的面试题及解答、第161-170题
+ilogo1: 放鸡蛋那个题，应该DP一下，在条件限制下的完全背包问题。 
+
+•微软面试100题2010年版全部答案集锦（含下载地址）
+hasayake0302: 看了博主的帖子受益匪浅感觉Q48和Q51解法欠妥Q48：仅靠“a >= k && k > a”还不足... 
+
+•程序员编程艺术：第十章、如何给10^7个数据量的磁盘文件排序
+yankai0219: 关于这个题目中K路归并时所采用的算法。在您的原文中，K路归并时就是采用数组比较获得最小值，复杂度为O... 
+
+•程序员编程艺术第三十四~三十五章：格子取数问题，完美洗牌算法
+v_JULY_v: @k578522915:没记录最大值？ 
+
+
+01、本blog索引 ◦3、微软100题维护地址
+◦1、微软100题横空出世
+◦5、经典算法研究系列
+◦7、红黑树系列集锦
+◦6、程序员编程艺术系列
+◦2、微软面试全部100题
+◦0、经典5大原创系列集锦
+◦4、微软100题下载地址
+ 
+02、Google or baidu? ◦Google搜--"结构之法"（My BLOG）
+◦baidu 搜--"结构之法"（My BLOG）
+ 
+03、我的驻点 ◦01. 为学论坛-万物皆数 终生为学
+ ◦02、Harry
+ ◦03、NoSQLFan
+ ◦04、酷勤网
+ ◦05、52nlp
+ ◦06、北大朋友的挖掘乐园
+ ◦07、跟Sophia_qing一起读硕士
+ ◦08、caopengcs
+ ◦08、面试问答社区51nod
+ ◦09、韩寒
+ ◦11、曾经的叛逆与年少
+ ◦12、老D之MongoDB源码分析
+ ◦14、code4app:iOS代码示例
+ ◦17、斯坦福机器学习公开课
+ ◦18、TheItHome算法版块版主
+ ◦19、36氪--关注互联网创业
+ ◦20、德问--编程是一种艺术创作
+ ◦21、善科网
+ ◦22、百度搜索研发部
+ ◦23、淘宝搜索技术博客
+ ◦24、interviewstreet
+ ◦25、LeetCode
+ ◦26、Team_Algorithms人人小组
+ 
+文章存档 
+•2013年08月(2)
+•2013年06月(1)
+•2013年03月(1)
+•2012年12月(1)
+•2012年11月(1)
+•2012年09月(1)
+•2012年06月(1)
+•2012年05月(2)
+•2012年04月(1)
+•2012年03月(2)
+•2012年02月(2)
+•2012年01月(2)
+•2011年12月(5)
+•2011年11月(1)
+•2011年10月(7)
+•2011年09月(3)
+•2011年08月(11)
+•2011年07月(4)
+•2011年06月(7)
+•2011年05月(10)
+•2011年04月(7)
+•2011年03月(17)
+•2011年02月(11)
+•2011年01月(18)
+•2010年12月(14)
+•2010年11月(6)
+•2010年10月(5)
+ 
+
+
+

@@ -1,0 +1,488 @@
+
+首页资讯精华论坛问答博客专栏群组更多 ▼
+
+ 
+您还未登录 !登录注册
+
+
+
+
+su1216
+
+
+博客
+微博
+相册
+收藏
+留言
+关于我
+
+
+
+
+.
+
+
+
+
+android安全问题（六） 抢先接收广播 - 内因篇之广播接收器注册流程
+博客分类： android
+ 
+动态广播静态广播注册顺序PackageManagerServiceActivityManagerService .
+
+
+ 
+导读：本文说明系统是如何注册动态广播以及静态广播，这里主要注意其注册的顺序
+ 
+ 
+ 
+这篇文章主要是针对我前两篇文章
+ 
+android安全问题（四） 抢先开机启动 - 结果篇
+ 
+android安全问题（五） 抢先拦截短信 - 结果篇
+ 
+之前只给出了结果，并没有给出代码分析，现在给出第一步分的分析
+ 
+ 
+ 
+大家都知道，广播接收器分为动态注册和静态注册两种
+ 
+静态接收，就是配置到manifest.xml文件中，PackageManagerService扫描后记录其信息……
+ 
+动态接收，就是从代码中注册，通过调用下面的方法实现
+ 
+Intent android.content.Context.registerReceiver(BroadcastReceiver receiver, IntentFilter filter)
+ 
+ 
+ 
+ （下面的流程图估计画的比较水，将就看一下吧，得补习一下UML了）
+ 
+首先分析静态注册Receiver的流程
+ 
+静态receiver的注册是由PackageManagerService开机的时候负责初始化
+ 
+（PackageManagerService之后简称为PMS）
+ 
+PMS在开机的时候会对系统一些目录逐个扫描，解析apk文件。静态广播接收器就是在PMS做这件事情的时候顺便处理的。
+ 
+PMS会解析apk的manifest文件，查找这里注册的receiver，然后加载到内存中
+ 
+下面看一下PMS是如何工作的
+ 
+这部分内容没有什么难度，只要有耐心就行，我画了一个很简单流程图，从调用PMS的构造函数开始
+
+ 
+注意，这里有几个同名函数，大家需要分清。并不是同一个函数调用了两次
+ 
+这里只看几处
+ 
+1.PMS初始化的时候干了些什么
+ 
+当然，PMS会做很多很多事情，这里我们只看我们关注的，和这篇文章相关的部分
+ 
+扫描目录的顺序
+ 
+system/framework
+ 
+system/app
+ 
+vendor/app
+ 
+data/app
+ 
+drm/app-private
+ 
+这里以system/app目录为例
+ 
+ 
+ 
+2.下一个要关注的地方是
+ 
+void com.android.server.pm.PackageManagerService.scanDirLI(File dir, int flags, int scanMode, long currentTime)
+ private void scanDirLI(File dir, int flags, int scanMode, long currentTime {
+    String[] files = dir.list();
+    ……
+    int i;
+    for (i=0; i<files.length; i++) {
+        File file = new File(dir, files[i]);
+	……
+        PackageParser.Package pkg = scanPackageLI(file, flags|PackageParser.PARSE_MUST_BE_APK, scanMode, currentTime);
+	……
+    }
+}
+ 
+注意
+ String[] files = dir.list(); 
+以及之后的for循环
+ 
+ 
+ 
+3.之后的部分比较无聊，我们直接跳到parseApplication函数部分
+ else if (tagName.equals("receiver")) {
+    Activity a = parseActivity(owner, res, parser, attrs, flags, outError, true, false);
+    if (a == null) {
+        mParseError = PackageManager.INSTALL_PARSE_FAILED_MANIFEST_MALFORMED;
+        return false;
+    }
+
+    owner.receivers.add(a);
+} 
+这部分就是解析manifest中的receiver部分，大家会很奇怪，receiver为什么会变成一个Activity
+ 
+此Activity非彼Activity，这个Activity是PackageParser的一个内部类，结构也非常简单
+ public final static class Activity extends Component<ActivityIntentInfo> {
+    public final ActivityInfo info;
+
+    public Activity(final ParseComponentArgs args, final ActivityInfo _info) {
+        super(args, _info);
+        info = _info;
+        info.applicationInfo = args.owner.applicationInfo;
+    }
+    
+    public void setPackageName(String packageName) {
+        super.setPackageName(packageName);
+        info.packageName = packageName;
+    }
+    ……
+} 
+我们看到了PMS如何在初始化的时候如何解析manifest并把其中的element存放到内存中的
+ 
+其中receiver保存到了owner的成员变量receivers中，owner的类型是android.content.pm.PackageParser.Package
+ 
+也就是说，在上面的#2步中，scanPackageLI返回结果就是已经包含了manifest信息的Package对象
+ 
+ 
+ 
+4.现在还没有结束，返回的结果最终交给了谁，我们还没有看到，在下面的这个函数中，我们终于发现了端倪
+ 
+Package com.android.server.pm.PackageManagerService.scanPackageLI(Package pkg, int parseFlags, int scanMode, long currentTime)
+ N = pkg.receivers.size();
+r = null;
+for (i=0; i<N; i++) {
+    PackageParser.Activity a = pkg.receivers.get(i);
+    a.info.processName = fixProcessName(pkg.applicationInfo.processName,
+            a.info.processName, pkg.applicationInfo.uid);
+    mReceivers.addActivity(a, "receiver");
+    ……
+} 
+原来，最终是添加到了PMS中的成员变量mReceivers中
+ // All available receivers, for your resolving pleasure.
+final ActivityIntentResolver mReceivers = new ActivityIntentResolver();、 
+下面我们看看它是如何add的
+ 
+void com.android.server.pm.PackageManagerService.ActivityIntentResolver.addActivity(Activity a, String type)
+ 
+void com.android.server.IntentResolver.addFilter(ActivityIntentInfo f)
+     public void addFilter(F f) {
+        ......
+        mFilters.add(f);
+        int numS = register_intent_filter(f, f.schemesIterator(),
+                mSchemeToFilter, "      Scheme: ");
+        int numT = register_mime_types(f, "      Type: ");
+        //根据我下面红色文字的假设，这里numS和numT应该都为0
+        if (numS == 0 && numT == 0) {
+            register_intent_filter(f, f.actionsIterator(),
+                    mActionToFilter, "      Action: ");
+        }
+        if (numT != 0) {
+            register_intent_filter(f, f.actionsIterator(),
+                    mTypedActionToFilter, "      TypedAction: ");
+        }
+    } 
+由于开机启动和接收短信并不涉及MIME Type、Scheme等因素。所有我们只考虑Intent中的Action，MIME Type、Scheme等均不考虑
+ 
+最后看一下register_intent_filter函数，里面没有任何关于排序的代码，只是按顺序add到list中
+ private final int register_intent_filter(F filter, Iterator<String> i,
+        HashMap<String, ArrayList<F>> dest, String prefix) {
+    if (i == null) {
+        return 0;
+    }
+
+    int num = 0;
+    while (i.hasNext()) {
+        String name = i.next();
+        num++;
+        if (localLOGV) Slog.v(TAG, prefix + name);
+        ArrayList<F> array = dest.get(name);
+        if (array == null) {
+            //Slog.v(TAG, "Creating new array for " + name);
+            array = new ArrayList<F>();
+            dest.put(name, array);
+        }
+        array.add(filter);
+    }
+    return num;
+} 
+Action保存在mActionToFilter中记录，之后发送广播的时候，查找接收器还要靠mActionToFilter这个成员变量
+ 
+每个action对应一个List，含有此action的filter将被保存到同一个List中
+ 
+ 
+ 
+我们要注意一个事情，那就是mReceivers保存这些receiver的顺序
+ 
+那就是一直与#2步的顺序保持一致，没有遭到破坏
+ 
+甚至并没有根据优先级排序，只是一味的add
+ 
+ 
+ 
+---------------------------------------------------------------
+ 
+静态广播接收器的注册分析完了，之后就是系统发出广播，然后如何去分发给他们了
+ 
+我们下篇文章再来分析
+ 
+ 
+ 
+下面看看动态接收器的注册流程
+ 
+我们也是画个简单的流程图，只看关键代码
+
+ 
+最终会调用到AMS中的registerReceiver函数
+ 
+其中关键部分如下
+ ReceiverList rl = (ReceiverList)mRegisteredReceivers.get(receiver.asBinder());
+if (rl == null) {
+    rl = new ReceiverList(this, callerApp,
+            Binder.getCallingPid(),
+            Binder.getCallingUid(), receiver);
+    if (rl.app != null) {
+        rl.app.receivers.add(rl);
+    } else {
+        try {
+            receiver.asBinder().linkToDeath(rl, 0);
+        } catch (RemoteException e) {
+            return sticky;
+        }
+        rl.linkedToDeath = true;
+    }
+    mRegisteredReceivers.put(receiver.asBinder(), rl);
+}
+BroadcastFilter bf = new BroadcastFilter(filter, rl, callerPackage, permission);
+rl.add(bf);
+if (!bf.debugCheck()) {
+    Slog.w(TAG, "==> For Dynamic broadast");
+}
+mReceiverResolver.addFilter(bf);  
+mReceiverResolver的类型为IntentResolver<BroadcastFilter, BroadcastFilter>
+ 
+ 
+ mReceiverResolver.addFilter(bf); 
+在上面已经简述过了
+ 
+ 
+ 
+ 
+ 
+最终所有动态注册的receiver都保存到AMS的成员变量mReceiverResolver中
+ /**
+ * Resolver for broadcast intents to registered receivers.
+ * Holds BroadcastFilter (subclass of IntentFilter).
+ */
+final IntentResolver<BroadcastFilter, BroadcastFilter> mReceiverResolver = new IntentResolver<BroadcastFilter, BroadcastFilter>() {
+    @Override
+    protected boolean allowFilterResult(BroadcastFilter filter, List<BroadcastFilter> dest) {
+        IBinder target = filter.receiverList.receiver.asBinder();
+        for (int i=dest.size()-1; i>=0; i--) {
+            if (dest.get(i).receiverList.receiver.asBinder() == target) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    protected String packageForFilter(BroadcastFilter filter) {
+        return filter.packageName;
+    }
+}; 
+ 
+ 
+总结：
+ 
+静态广播和动态广播如何注册的，我们已经全部分析完了
+ 
+静态广播是PackageManagerService负责，保存到其成员变量mReceivers中
+ 
+动态广播是ActivityManagerService负责，保存到其成员变量mReceiverResolver中
+ 
+注册的顺序：
+ 
+动态广播与应用中调用的顺序一致
+ 
+静态广播参考函数
+ 
+void com.android.server.pm.PackageManagerService.scanDirLI(File dir, int flags, int scanMode, long currentTime)
+ 
+
+
+注意
+ 
+
+String[] files = dir.list(); 
+
+
+以及之后的for循环
+ 
+
+
+ 
+ 
+由于开机启动和接收短信并不涉及MIME Type、Scheme等因素。所有我们这里只考虑Intent中的Action，MIME Type、Scheme等均不考虑
+ 
+保存的顺序参考函数
+ 
+void com.android.server.IntentResolver.addFilter(ActivityIntentInfo f)
+ 
+int com.android.server.IntentResolver.register_intent_filter(F filter, Iterator<String> i, HashMap<String, ArrayList<F>> dest, String prefix)
+ 
+注意：其中没有任何关于排序的代码
+ 
+ 
+ 
+ 
+ 
+下篇文章将讲述发送广播之后，系统如何查找对应的receiver。在这个过程中，系统才开始考虑优先级。
+ 
+下篇文章顺便看看隐式Intent是如何查找到目标组件的
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+转贴请保留以下链接
+ 
+本人blog地址
+ 
+http://su1216.iteye.com/
+ 
+http://blog.csdn.net/su1216/
+ 
+
+
+1 
+顶
+
+0 
+踩.
+
+分享到： 
+.
+
+android安全问题（七） 抢先接收广播 - ... | 《Linux命令行与shell脚本编程大全》 第 ...
+
+2013-01-26 17:31
+浏览 194
+评论(0)
+分类:移动开发
+相关推荐
+
+
+评论
+
+
+发表评论
+
+ 您还没有登录,请您登录后再发表评论 
+
+
+
+
+
+
+su1216
+ 
+浏览: 65615 次
+性别: 
+来自: 北京
+
+
+
+最近访客 更多访客>>
+
+
+
+
+rimoer
+
+
+
+
+zht19880706
+
+
+
+
+heavensay
+
+
+
+
+woyaowenzi
+.
+
+博客专栏
+深入入门正则表达式（jav...
+浏览量：6019.android手机的安全问...
+浏览量：18362.
+
+文章分类
+■全部博客 (93)
+■android (37)
+■Unix & Linux 大学教程 (22)
+■Linux命令行与shell脚本编程大全 (10)
+■java (5)
+■java多线程 (3)
+■虚拟机 (7)
+■设计模式 (1)
+■正则表达式 (6)
+■数据库 (1)
+■其他 (1)
+■转贴 (1)
+
+
+社区版块
+■我的资讯 (0)
+■我的论坛 (70) 
+■我的问答 (19)
+
+
+存档分类
+■2013-02 (1)
+■2013-01 (5)
+■2012-12 (7)
+■更多存档...
+
+
+评论排行榜
+■android手机root后的安全问题 （二）
+■android安全问题（二） 程序锁
+■android安全问题（四） 抢先开机启动 - ...
+■android安全问题（三） 钓鱼程序
+■android手机root后的安全问题 （一）
+
+
+最新评论
+N_HH： su1216 写道N_HH 写道那个，请问，pm是什么。。不懂 ...
+android手机root后的安全问题 （四）
+su1216： N_HH 写道那个，请问，pm是什么。。不懂。shell@an ...
+android手机root后的安全问题 （四）
+N_HH： 那个，请问，pm是什么。。不懂。
+android手机root后的安全问题 （四）
+su1216： tjwink 写道既然已经知道su的数据库地址，可以直接用DB ...
+android手机root后的安全问题 （三）
+tjwink： 既然已经知道su的数据库地址，可以直接用DBOpenHelpe ...
+android手机root后的安全问题 （三）
+
+.
+
+
+--------------------------------------------------------------------------------
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ] 
+.

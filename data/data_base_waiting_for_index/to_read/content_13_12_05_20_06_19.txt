@@ -1,0 +1,356 @@
+jxc0我的：收件箱资源博客空间设置|帮助|退出首页业界移动云计算研发论坛博客下载
+更多
+eros的linux平台技术资料库Q：77564267，多交流技术
+目录视图摘要视图订阅
+文思海辉第一届在线编程大赛      消灭0回答，赢下载分      订阅CSDN社区周刊，及时了解社区精华内容      办公大师系列经典丛书 诚聘译者
+ __init的用法
+2008-04-23 13:52 8388人阅读 评论(10) 收藏 举报
+descriptorlinkervariablesfilecompilerexception
+在kernel中有很多__init，这个东东到底是何方神圣捏？且听小生我一一道来。
+下面是其定义：
+file:/include/linux/init.h
+ 43 #define __init      __attribute__ ((__section__ (".init.text"))) __cold
+ 44 #define __initdata  __attribute__ ((__section__ (".init.data")))
+ 45 #define __exitdata  __attribute__ ((__section__(".exit.data")))
+ 46 #define __exit_call __attribute_used__ __attribute__ ((__section__ (".exitcall.exit")))
+也许你会问那 __attribute__ ((__section__ (".init.text"))) __cold是什么东东阿?
+且看 info gcc C Extensions Attribute Syntax
+section ("SECTION-NAME")'
+     Normally, the compiler places the objects it generates in sections
+     like `data' and `bss'.  Sometimes, however, you need additional
+     sections, or you need certain particular variables to appear in
+     special sections, for example to map to special hardware.  The
+     `section' attribute specifies that a variable (or function) lives
+     in a particular section.  For example, this small program uses
+     several specific section names:
+          struct duart a __attribute__ ((section ("DUART_A"))) = { 0 };
+          struct duart b __attribute__ ((section ("DUART_B"))) = { 0 };
+          char stack[10000] __attribute__ ((section ("STACK"))) = { 0 };
+          int init_data __attribute__ ((section ("INITDATA"))) = 0;
+
+          main()
+          {
+            /* Initialize stack pointer */
+            init_sp (stack + sizeof (stack));
+
+            /* Initialize initialized data */
+            memcpy (&init_data, &data, &edata - &data);
+
+            /* Turn on the serial ports */
+            init_duart (&a);
+            init_duart (&b);
+          }
+
+     Use the `section' attribute with an _initialized_ definition of a
+     _global_ variable, as shown in the example.  GCC issues a warning
+     and otherwise ignores the `section' attribute in uninitialized
+     variable declarations.
+
+     You may only use the `section' attribute with a fully initialized
+     global definition because of the way linkers work.  The linker
+     requires each object be defined once, with the exception that
+     uninitialized variables tentatively go in the `common' (or `bss')
+     section and can be multiply "defined".  You can force a variable
+     to be initialized with the `-fno-common' flag or the `nocommon'
+     attribute.
+
+     Some file formats do not support arbitrary sections so the
+     `section' attribute is not available on all platforms.  If you
+     need to map the entire contents of a module to a particular
+     section, consider using the facilities of the linker instead.
+简单来说是指示gcc把标记的数据或者函数放到指定sector。
+linux中把一些启动及初始化时候用的数据用__init标识，然后在适当的时候把它们释放，回收内存。
+说到这个__init，就不能不说module_init，subsys_initcall。
+在init.h中我们能够找到 #define subsys_initcall(fn)     __define_initcall("4",fn,4)
+又是一个宏定义，简直是无极中的圆环套圆环之城阿。
+file:/include/linux/init.h
+100 /* initcalls are now grouped by functionality into separate 
+101  * subsections. Ordering inside the subsections is determined
+102  * by link order. 
+103  * For backwards compatibility, initcall() puts the call in 
+104  * the device init subsection.
+105  *
+106  * The `id' arg to __define_initcall() is needed so that multiple initcalls
+107  * can point at the same handler without causing duplicate-symbol build errors.
+108  */
+109 
+110 #define __define_initcall(level,fn,id) /
+111     static initcall_t __initcall_##fn##id __attribute_used__ /
+112     __attribute__((__section__(".initcall" level ".init"))) = fn
+
+subsys_initcall(usb_init)转换后就变成了 static initcall_t  __initcall_usbinit4   __attribute_used__ /
+__attribute__((__section__(".initcall 4.init"))) = usb_init
+就是把usb_init的函数入口指针存放在.initcall4.init中。
+file:/include/asm-generic/vmlinux.lds.h
+239 #define INITCALLS                           /
+240     *(.initcall0.init)                      /
+241     *(.initcall0s.init)                     /
+242     *(.initcall1.init)                      /
+243     *(.initcall1s.init)                     /
+244     *(.initcall2.init)                      /
+245     *(.initcall2s.init)                     /
+246     *(.initcall3.init)                      /
+247     *(.initcall3s.init)                     /
+248     *(.initcall4.init)                      /
+249     *(.initcall4s.init)                     /
+250     *(.initcall5.init)                      /
+251     *(.initcall5s.init)                     /
+252     *(.initcallrootfs.init)                     /
+253     *(.initcall6.init)                      /
+254     *(.initcall6s.init)                     /
+255     *(.initcall7.init)                      /
+256     *(.initcall7s.init)
+
+file:/arch/kernel/vmlinux_32.lds.S
+144   .initcall.init : AT(ADDR(.initcall.init) - LOAD_OFFSET) {
+145     __initcall_start = .;
+146     INITCALLS
+147     __initcall_end = .;
+148   }
+
+展开
+   .initcall.init : AT(ADDR(.initcall.init) - LOAD_OFFSET) {
+     __initcall_start = .;
+     *(.initcall0.init)                      /
+     *(.initcall0s.init)                     /
+     *(.initcall1.init)                      /
+     *(.initcall1s.init)                     /
+     *(.initcall2.init)                      /
+     *(.initcall2s.init)                     /
+     *(.initcall3.init)                      /
+     *(.initcall3s.init)                     /
+     *(.initcall4.init)                      /
+     *(.initcall4s.init)                     /
+     *(.initcall5.init)                      /
+     *(.initcall5s.init)                     /
+     *(.initcallrootfs.init)                     /
+     *(.initcall6.init)                      /
+     *(.initcall6s.init)                     /
+     *(.initcall7.init)                      /
+     *(.initcall7s.init)
+     __initcall_end = .;
+   }
+
+那么系统是如何执行这些函数呢？
+此话就长了阿～ 话说盘古开天芙蓉姐姐补天后我们来到了main.c这个linux中举足轻重的文件
+进入start_kernel
+start_kernel  -->rest_init() -->kernel_init()  --> do_basic_setup()  -->do_initcalls()
+
+这个do_initcalls()就是调用这些函数的地方。
+file:/init/main.c
+662 static void __init do_initcalls(void)
+663 {
+664     initcall_t *call;
+665     int count = preempt_count();
+666 
+667     for (call = __initcall_start; call < __initcall_end; call++) {
+668         ktime_t t0, t1, delta;
+669         char *msg = NULL;
+670         char msgbuf[40];
+671         int result;
+672 
+673         if (initcall_debug) {
+674             printk("Calling initcall 0x%p", *call);
+675             print_fn_descriptor_symbol(": %s()",
+676                     (unsigned long) *call);
+677             printk("/n");
+678             t0 = ktime_get();
+679         }
+680 
+681         result = (*call)();
+682 
+683         if (initcall_debug) {
+684             t1 = ktime_get();
+685             delta = ktime_sub(t1, t0);
+686 
+687             printk("initcall 0x%p", *call);
+688             print_fn_descriptor_symbol(": %s()",
+689                     (unsigned long) *call);
+690             printk(" returned %d./n", result);
+691 
+692             printk("initcall 0x%p ran for %Ld msecs: ",
+693                 *call, (unsigned long long)delta.tv64 >> 20);
+694             print_fn_descriptor_symbol("%s()/n",
+695                 (unsigned long) *call);
+696         }
+697 
+698         if (result && result != -ENODEV && initcall_debug) {
+699             sprintf(msgbuf, "error code %d", result);
+700             msg = msgbuf;
+701         }
+702         if (preempt_count() != count) {
+703             msg = "preemption imbalance";
+704             preempt_count() = count;
+705         }
+706         if (irqs_disabled()) {
+707             msg = "disabled interrupts";
+708             local_irq_enable();
+709         }
+710         if (msg) {
+711             printk(KERN_WARNING "initcall at 0x%p", *call);
+712             print_fn_descriptor_symbol(": %s()",
+713                     (unsigned long) *call);
+714             printk(": returned with %s/n", msg);
+715         }
+716     }
+717 
+718     /* Make sure there is no pending stuff from the initcall sequence */
+719     flush_scheduled_work();
+720 }
+
+更多 0
+上一篇：如何阅读源代码
+下一篇：系统调用
+
+查看评论
+10楼 lglgaigogo 2013-02-25 10:59发表 [回复]
+
+mark，楼主果然厉害。
+9楼 kelcy_zhai 2011-10-24 16:40发表 [回复]
+
+请问：
+对于__init标识的函数，如果有入参，入参从何而来？
+谢谢～
+8楼 jidebingfeng 2011-08-11 10:03发表 [回复]
+
+while(true){顶;}
+7楼 flxue 2011-07-21 22:28发表 [回复]
+
+mark
+6楼 driverSir 2011-06-17 10:30发表 [回复]
+
+[e01]
+5楼 b06050319 2011-03-31 09:55发表 [回复]
+
+楼主厉害
+4楼 zhupan6 2010-12-08 15:38发表 [回复]
+
+真不错
+3楼 xjfox 2009-06-24 18:59发表 [回复]
+
+多谢lz分享
+2楼 lishuai_girl 2008-12-11 10:36发表 [回复]
+
+特别好！谢谢。
+1楼 lilin0209 2008-12-04 15:56发表 [回复]
+
+学习中，谢谢分享。
+发表评论
+用 户 名：
+qqjxc
+评论内容：
+插入代码
+
+  
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+核心技术类目
+全部主题 Java VPN Android iOS ERP IE10 Eclipse CRM JavaScript Ubuntu NFC WAP jQuery 数据库 BI HTML5 Spring Apache Hadoop .NET API HTML SDK IIS Fedora XML LBS Unity Splashtop UML components Windows Mobile Rails QEMU KDE Cassandra CloudStack FTC coremail OPhone CouchBase 云计算 iOS6 Rackspace Web App SpringSide Maemo Compuware 大数据 aptech Perl Tornado Ruby Hibernate ThinkPHP Spark HBase Pure Solr Angular Cloud Foundry Redis Scala Django Bootstrap
+个人资料
+ 访问我的空间 
+eros
+ 
+访问：897205次
+积分：12042分
+排名：第218名
+原创：196篇转载：533篇译文：0篇评论：280条
+文章分类
+Hadoop/Redis/MongoDB/Lucene(14)
+web(apache&amp;mysql)(74)
+管理相关(12)
+算法相关(10)
+网上购物(2)
+JAVA相关(1)
+Exploit(6)
+linux/unix服务器(122)
+kernel 新手(70)
+Linux开发c/c++(203)
+Nginx(2)
+others(76)
+php/perl/shell(96)
+STL&amp;ACE(19)
+web(apache&mysql)(1)
+各种手册
+Hadoop手册
+MySQL 5.1参考手册
+php手册
+apache2.2手册
+超越php
+javascript手册
+DBA NOTES (RSS)
+STL china (RSS)
+技术链接
+新浪架构师的blog
+同事macky的blog
+同事still的blog
+李先静的blog
+无名小卒大师的blog
+同事linkboy2004的blog
+一位内核研究者的blog
+内核讲解的比较好的blog
+新浪开发者博客
+国外内核达人的blog
+同事牛人sailzeng的blog
+oreilly的关于网站高性能的分享会
+文章搜索
+
+文章存档
+2013年08月(1)
+2013年03月(2)
+2013年02月(1)
+2013年01月(1)
+2012年12月(3)
+展开
+阅读排行
+JSON数据格式介绍(14251)
+类的成员函数指针(比较深入)(13486)
+python中正则表达式与re 模块(12934)
+Copy_from_user函数详细分析(12076)
+Perl函数pack/unpack解释(11829)
+linux可执行文件的内容分析工具nm objdump readelf ar ldd(11737)
+关于socket阻塞与非阻塞情况下的recv、send、read、write返回值 (9365)
+Linux 高精確的時序（sleep， usleep，nanosleep）(8947)
+__init的用法(8388)
+mysql的“Got error 28 from storage engine”错误(7777)
+评论排行
+JSON数据格式介绍(20)
+一个前辈写的网络协议学习方法(11)
+__init的用法(10)
+类的成员函数指针(比较深入)(9)
+[转载]UDP和TCP协议包大小的计算(9)
+用技术模型来指导公司的“长线运营”(9)
+如何阅读源代码 (8)
+大小端、网络字节序问题(6)
+【C/C++】error: jump to case label(5)
+linux进程状态D和Z的处理(5)
+推荐文章
+
+最新评论
+一个前辈写的网络协议学习方法
+roroyangivan: 顶~
+浏览器缓存详解:expires,cache-control,last-modified,etag详细说明
+dinglang_2009: 讲的很仔细
+tar命令的详细解释
+zhangcancai: 讲解的很详细，-C好像没有讲，这个也是经常用的，辛苦了！
+最近的一些感悟
+shjgiser0: 总结的挺好
+网卡中断负载均衡
+ErbZuoNian: 学习了！但是，图片怎么挂了？？
+TCP状态图
+codergeek: 您好，我有时候写博客也需要画这样的流程图，不知道你使用的是什么画图软件？谢谢 我用亿图画不了
+用技术模型来指导公司的“长线运营”
+i_like_cpp: 写得不错，挺有道理。
+linux下proc里关于磁盘性能的参数
+JuanA1: 很不错，Linux下性能调优很有用！
+做到这六点，你就是公司的宝！
+jupiter_one: @u010479715:是韦小宝，哈哈
+识别常见Web漏洞
+xiazaidea: 请问楼主用什么工具扫描的啊？
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved GongshangLogo
+  

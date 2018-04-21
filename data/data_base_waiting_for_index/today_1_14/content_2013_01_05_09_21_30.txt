@@ -1,0 +1,135 @@
+ Here is a slightly edited mail exchange with someone who asked about principles of ESC operation. I'm putting this ASCII file up because several others asked me the same question. I hope I didn't take too many liberties with the truth. Please send corrections and complaints to behr@math.niu.edu.
+
+>We desperately need information on how ESC works.  We would greatly
+>appreciate any information you can send us.  The E-mail address is:
+
+Well, I'm no expert, but here's some info:
+
+The modern remote control transmitters/receivers for model aircraft,
+cars etc. use what's called pulse width modulation. The radio sends out
+signals which look like pulses in which the strength of the signal
+goes up, stays up for a while, then goes down. On a diagram it looks
+like this:
+  +---+       +-----+
+  |   |       |     |      Notice that I made the second pulse wider
+  |   |       |     |      than the first one; this is the crucial
+--+   +-------+     +---   data - it tells the receiver what information
+                          the transmitter is sending, and that's why
+the method is called "pulse width modulation". It's actually a little
+more complicated than this, because the pulses are not transmitted
+as they are by the radio but they are encoded in one more level of
+complexity (how the sine wave sent by the radio actually represents
+the signal level -- AM or FM), but don't worry about it right now.
+
+When you move the joystick or a wheel on the transmitter back and forth,
+the pulses grow narrower or wider. So to detect what you are doing at
+your controls, the receiver (in a car, boat or plane) has to measure
+how wide the pulse is and compare it with the "normal" width; if it
+sees the pulse 10% narrower than normal, it tells a "servo" (a little
+special motor) to move the rudder a bit to the left; if the pulse is
+20% wider than normal, the servo turns quite a bit to the right, and
+so on. This lets the receiver see not only that you moved the stick or
+a knob, but how far and in what direction. It's called "proportional"
+control. This method is also quite resistant to radio interference and
+noise, e.g. from power lines and such.
+
+But it's also quite difficult to make such equipment: the radio wave
+which carries the signal swings back and forth about 70 million times
+each second, and the pulses last (depending on their width) only about
+1/1000 to 1/500th of a second. That's like a very fast camera shutter.
+
+One more problem is that you want to send information about several
+things at once: rudder (or steering wheels) position, engine speed,
+maybe ailerons. In radio control equipment there are usually two or more
+channels -- in one cycle two or more pulses are transmitted: channel 1
+pulse, channel 2 pulse, channel 3, etc., then it gets repeated. The
+information about the state of each channel is sent in "frames":
+repeating patterns of pulses, usually 50 frames per second or so.
+Channel 1, then channel 2, etc., then a brief pause, and then another
+frame. The receiver must untangle all this and send the right signals
+to its output connectors 
+
+With an ESC, there is no servo which moves things: you move the
+throttle stick or press a trigger on the transmitter, and you want an
+electric motor that drives the car or a plane's propeller to go faster
+or to slow down. The ESC must look at the pulses, decide how their width
+compares with the normal width, and depending on that send more or less
+power to the motor.
+
+These days the first part (comparing the widths) is done quite easily
+with simple chips called operational amplifiers or comparators, and a
+few resistors and capacitors. These parts cost maybe $2 at Radio Shack,
+and will put out a voltage that depends on the width of the pulse -- say
+0V if the received pulse has "normal" width, -0.5V if it's a bit shorter,
+and +2V if it is quite longer than standard. This part is not a very big
+deal.
+
+Trouble is that most modern solid state circuits can't handle high
+currents (and even small motors in cars or airplanes can require several
+amps when they start up or go at full power, more than a garage opener!)
+To make this low-power signal control a power-guzzler like a motor,
+you'd need a power amplifier, like the one in your stereo only larger.
+
+So people invented wonderful gadgets, "solid state switches", which
+are relatively small but can handle high currents. One of them is a
+"power MOSFET", which is really a special type of a transistor.
+You apply a small voltage to one pin, and the other two pins start
+conducting (like a wall switch), and can carry a very large current
+with little resistance; you take the voltage away, and the two power
+pins stop conducting.
+
+When choosing MOSFETs, pay attention to the highest "source to drain"
+voltage (normal R/C equipment uses up to 20V, but because of inductive
+spikes and such you want at least 60V); maximal continuous current (as
+much as you can get! 10A is the least for a rather small motor); gate
+"on" voltage (only "logic level" FETs will turn fully on at the 5V or
+so at which a typical ESC operates - with other types you must play
+various voltage doubling tricks); and the "on" resistance: the lower
+the better, and you can decrease it by wiring several FETs in
+parallel.
+
+But this is still "on and off", not proportional. You want the motor
+to run slower or faster, not to hiccup on and off. So most ESC's take
+this small voltage (remember, the one that comes from the comparator),
+and chop it up into pieces -- they apply the control voltage to the
+MOSFET on and off but very fast: a thousand times a second or more.
+Depending on how high the control voltage is, they keep the MOSFET
+turned on for a shorter or longer period of time. The motor keeps
+turning (no motor can stop and start 1000 times a second), but it
+gets less or more power, so it turns more slowly or faster. This is
+exactly the way the dimmer in your living room works -- it sends
+power in short spurts to the bulb, but you don't see it blink, only
+get dimmer or brighter:
+
+  +-+       +-+       +-+        +-----+   +-----+   +-----+
+  | |       | |       | |        |     |   |     |   |     |
+  | |       | |       | |        |     |   |     |   |     |
+--+ +-------+ +-------+ +--    --+     +---+     +---+     +--
+ not much power coming in      lots of power, motor turns fast
+
+For various rather obscure reasons this method of pulse driving
+power equipment is very good and efficient compared with the old
+fashioned "huge variable resistor which sinks loads of energy"; it
+makes motors and friends start with higher torque and eat up less
+power than they normally would.
+
+There are a few complications (making the motor run backwards and
+forward, or making it _brake_ the car, etc.) These involve arrangements
+such as a braking FET which swallows (shorts) energy generated by the
+motor which is being turned by airflow or inertia - and can charge the
+battery while it's doing so!; and an H-bridge which uses several FETs
+to send current flowing _backwards or forward_ to the motor, making it
+go forward or backwards.
+
+But the main idea is simple: a) measure the width of a pulse from the
+receiver, b) translate this into a small "analog" voltage signal,
+c) turn the power on and off so fast that the motor will run steadily
+but slower or faster depending on the pulse width.
+
+In newer digital speed controls the second analog step is not needed --
+a microcomputer measures the input pulse and figures out what signals
+to send to the FETs.
+
+OK, good luck with the project; class dismissed!
+
+

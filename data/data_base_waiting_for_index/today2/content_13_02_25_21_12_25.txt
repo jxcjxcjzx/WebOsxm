@@ -1,0 +1,149 @@
+Semantic Relation Matching in Webclopedia
+USC Information Sciences Institute 
+Back to main Webclopedia demo page 
+
+In question answering, matching words and groups of words is often insufficient to accurately score an answer. As the following examples demonstrate, scoring can benefit from the additional matching of semantic relations: 
+
+Question 110: Who killed Lee Harvey Oswald?
+Qtargets: I-EN-PROPER-PERSON&S-PROPER-NAME, I-EN-PROPER-ORGANIZATION (0.5)
+
+
+Belli's clients have included Jack Ruby, who killed John F. Kennedy assassin Lee Harvey Oswald, and Jim and Tammy Bakker.
+[Score: 666.72577; 07/25/90; LA072590-0163] 
+``On Nov. 22, 1963, the building gained national notoriety when Lee Harvey Oswald allegedly shot and killed President John F. Kennedy from a sixth floor window as the presidential motorcade passed the site.''
+[Score: 484.50128; 10/31/88; AP881031-0271] 
+Note: Answer candidates are marked in red, constituents with corresponding words in the question are marked in blue. 
+Both of the answer candidates above receive credit for matching ``Lee Harvey Oswald'' and ``kill'', as well as for finding an answer (marked red) of the proper type, as determined by the qtarget. There is, however, a difference when it comes to the matching of semantic relations, for which Webclopedia uses the question and answer parse trees again. 
+
+
+[1] Who killed Lee Harvey Oswald?  [S-SNT]
+    (SUBJ) [2] Who  [S-INTERR-NP]
+        (PRED) [3] Who  [S-INTERR-PRON]
+    (PRED) [4] killed  [S-TR-VERB]
+    (OBJ) [5] Lee Harvey Oswald  [S-NP]
+        (PRED) [6] Lee Harvey Oswald  [S-PROPER-NAME]
+            (MOD) [7] Lee  [S-PROPER-NAME]
+            (MOD) [8] Harvey  [S-PROPER-NAME]
+            (PRED) [9] Oswald  [S-PROPER-NAME]
+    (DUMMY) [10] ?  [D-QUESTION-MARK]
+
+[1] Jack Ruby, who killed John F. Kennedy assassin Lee Harvey Oswald  [S-NP]
+    (PRED) [2] <Jack Ruby>1  [S-NP]
+    (DUMMY) [6] ,  [D-COMMA]
+    (MOD) [7] who killed John F. Kennedy assassin Lee Harvey Oswald  [S-REL-CLAUSE]
+        (SUBJ) [8] who<1>  [S-INTERR-NP]
+        (PRED) [10] killed  [S-TR-VERB]
+        (OBJ) [11] John F. Kennedy assassin Lee Harvey Oswald  [S-NP]
+            (PRED) [12] John F. Kennedy assassin Lee Harvey Oswald  [S-PROPER-NAME]
+                (MOD) [13] John F. Kennedy  [S-PROPER-NAME]
+                (MOD) [19] assassin  [S-NOUN]
+                (PRED) [20] Lee Harvey Oswald  [S-PROPER-NAME]
+
+Figure: Simplified parse trees for the question and the relevant part of the first answer sentence, as provided by the CONTEX parser. 
+For the first candidate, based on these parse trees, the matcher awards additional credit to the Jack Ruby, node [2], for being the logical subject of the killing (using anaphora resolution) as well as to Lee Harvey Oswald, node [20], for being the head of the logical object of the killing. Note that - superficially - John F. Kennedy appears to be closer to ``killed'', but the parse tree correctly finds that node [13] is actually not the object of the killing. The candidate in the second sentence (``On Nov. 22, 1963, ...'') receives no extra credit for semantic relation matching. 
+
+
+Robustness 
+
+It is important to note that the Webclopedia matcher awards extra credit for each matching semantic relationship between two constituents, and not only if ``everything matches''. This results in robustness that comes in handy in cases such as the following example: 
+
+Question 268: Who killed Caesar?
+Qtargets: I-EN-PROPER-PERSON&S-PROPER-NAME, I-EN-PROPER-ORGANIZATION (0.5)
+
+
+This version of the plot to kill Julius Caesar is told through the eyes of Decimus Brutus, the protege whom Caesar most trusted and who became one of his assassins.
+[Score: 284.945; 93/05/15; FT932-8961] 
+Having failed to prevent Cleopatra's henchwoman Ftatateeta from killing Pothinus, Caesar lets Rufius - the new governor of Egypt - murder her, before turning his back on the lot of them in a devastating display of political indifference.
+[Score: 264.30093; 92/02/06; FT921-10331] 
+In the first case, the matcher gives points to Caesar for being the object of the killing, but (at least as of now) still fails to establish the chain of links that would establish Brutus as his assassin. The predicate-object credit however is enough to make the first answer score higher than the second one, which, while having all ``players'' right next to each other at the surface level, receives no extra credit for semantic relation matching. 
+
+Good Generalization 
+Semantic relation matching does not only apply to logical subjects and objects, but also to all other roles such as location, time, reason, etc. It also does not only apply at a sentential level, but at all levels, as the following example illustrates: 
+
+Question 248: What is the largest snake in the world?
+Qtargets: I-EN-ANIMAL
+
+
+Reticulated pythons are the world's largest snakes, reaching lengths of up to 36 feet.
+[Score: 384.42365; 12/08/88; AP881208-0148] 
+The amazing Amazon, the widest, wettest and, so National Geographic now affirms, the longest river in the world (4,007 miles, 51 longer than the Nile), boasts the longest snake, the most venomous viper, the biggest rat, beetle and ant, along with razor-toothed piranhas that can reduce a Brahman steer to raw bones in minutes and electric eels delivering 640 volts, enough to drive a Metro-North commuter train.
+[Score: 291.98352; 02/29/88; AP880229-0246] 
+In the first example above, world receives credit for modifying snake, even though it is the (semantic) head of a post-modifying prepositional phrase in the question and the head of a pre-modifying determiner phrase in the answer sentence. While the system still of course prefers "in the world" over "the world's" on the constituent matching level, its proper relationship to snake (and the proper relationship between ``largest'' and ``snakes'', as well as ``pythons'' and ``snakes'' by far outweigh the more literal match of ``in the world''. 
+
+
+[1] When was Mozart's Magic Flute last performed in Tokyo?  [S-SNT]
+    (TIME) [2] When  [S-INTERR-ADV]
+    (SUBJ LOG-OBJ) [3] Mozart's Magic Flute  [S-NP]
+        (DET) [4] Mozart's  [S-DETP]
+            (PRED) [5] Mozart  [S-NP]
+            (P) [7] 's  [S-GEN-PARTICLE]
+        (PRED) [8] Magic Flute  [S-NOUN]
+            (MOD) [9] Magic  [S-NOUN]
+            (PRED) [10] Flute  [S-NOUN]
+    (MOD) [11] last  [S-ADV]
+    (PRED) [12] was performed  [S-VERB]
+    (LOCATION) [13] in Tokyo  [S-PP]
+        (P) [14] in  [S-PREP]
+        (PRED) [15] Tokyo  [S-NP]
+            (PRED) [16] Tokyo  [S-PROPER-NAME]
+    (DUMMY) [17] ?  [D-QUESTION-MARK]
+
+[1] As a grand finale of the opera season, the ensemble will perform the Magic Flute 
+    by Wolfgang Amadeus Mozart on June 21 in Tokio.  [S-SNT]
+    (MOD) [2] As a grand finale of the opera season  [S-PP]
+        (P) [3] As  [S-PREP]
+        (PRED) [4] a grand finale of the opera season  [S-NP]
+            (PRED) [5] a grand finale  [S-NP]
+            (MOD) [10] of the opera season  [S-PP]
+    (DUMMY) [17] ,  [D-COMMA]
+    (SUBJ) [18] the ensemble  [S-NP]
+        (DET) [19] the  [S-DEF-ART]
+        (PRED) [20] ensemble  [S-NOUN]
+    (PRED) [21] will perform  [S-VERB]
+    (OBJ) [22] the Magic Flute by Wolfgang Amadeus Mozart  [S-NP]
+        (PRED) [23] the Magic Flute  [S-NP]
+            (DET) [24] the  [S-DEF-ART]
+            (PRED) [25] Magic Flute  [S-NOUN]
+        (MOD) [28] by Wolfgang Amadeus Mozart  [S-PP]
+            (P) [29] by  [S-PREP]
+            (PRED) [30] Wolfgang Amadeus Mozart  [S-NP]
+    (TIME) [35] on June 21  [S-PP]
+        (P) [36] on  [S-PREP]
+        (PRED) [37] June 21  [S-NP]
+            (PRED) [38] June 21  [S-NP-NOUN]
+    (LOCATION) [41] in Tokio  [S-PP]
+        (P) [42] in  [S-PREP]
+        (PRED) [43] Tokio  [S-NP]
+            (PRED) [44] Tokio  [S-PROPER-NAME]
+    (DUMMY) [45] .  [D-PERIOD]
+
+For the question and answer tree above, the matcher gives credit for matching PRED-OBJ/LOG·OBJ, PRED-TIME and PRED-LOCATION relations at the sentence level, PRED-DET/MOD under the logical object nodes, [3q] and [22a], as well as PRED-P under the location nodes, [13q] and [41a], necessary due to the spelling variation for Tokyo/Tokio. Note also that the answer constituent (``on June 21'') participates in semantic relation matches just like any other constituent, except that it corresponds to the ``interrogative node'' in the question parse tree as opposed to something with a lexical/semantic match. 
+Some Q&A systems explicitely boost the weight of a matching main verb. The Webclopedia matcher doesn't do that, but from the above example it becomes clear that the main verb often serves as the principal hub for matching semantic relations, so that, indirectly, it is very valuable as an enabler of often numerous semantic relation matches. If the verb in the answer sentence had been ``cancelled'' instead of ``performed'', none of the sentence level semantic relation would have matched and the total score would have been much lower. 
+
+
+Using a Little Additional Knowledge 
+
+Additionally, Webclopedia uses its knowledge of the semantic relationships between concepts like ``to invent'', ``invention'' and ``inventor'', so that in example 209, ``Johan Vaaler'' gets extra credit for being a likely logical subject of ``invention'' -- while ``David'' actually loses points for being outside of the the clausal scope of the inventing process in the second case. 
+
+Question 209: Who invented the paper clip?
+Qtargets: I-EN-PROPER-PERSON&S-PROPER-NAME, I-EN-PROPER-ORGANIZATION (0.5)
+
+
+The paper clip, weighing a desk-crushing 1,320 pounds, is a faithful copy of Norwegian Johan Vaaler's 1899 invention, said Per Langaker of the Norwegian School of Management.
+[Score: 381.0031; 10/09/89; AP891009-0048] 
+"Like the guy who invented the safety pin, or the guy who invented the paper clip," David added.
+[Score: 236.47534; 07/20/89; LA072089-0033] 
+
+Question 3: What does the Peugeot company manufacture?
+Qtargets: S-NP, S-NOUN
+
+Peugeot intends to manufacture 10,000 cars there each year.
+[Score: 360.49545; 10/09/89; AP891009-0048] 
+These include Coca Cola and Pepsico, the US soft drinks giants, Peugeot, the French car manufacturer, finance companies GE Capital and Morgan Stanley, Nippon Denro, the Japanese steel manufacturer, and the Scotch whisky maker Seagram and United Distillers, the spirits arm of Guinness.
+[Score: 323.76758; 93/06/25; FT932-902] 
+In the last sentence, ``car'' gets credit as a likely logical object of the manufacturing process, and ``Peugeot'', being recognized as a ``manufacturer'', is boosted for playing the proper logical subject role. This last example shows that particularly when the qtarget doesn't help much in narrowing down the answer candidate space, semantic relation matching can often make the crucial difference in finding the right answer. 
+
+Back to main Webclopedia demo page 
+Written by Ulf Hermjakob
+Last updated: June 27, 2001 
+

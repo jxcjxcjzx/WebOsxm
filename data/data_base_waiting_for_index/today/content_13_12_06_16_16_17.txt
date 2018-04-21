@@ -1,0 +1,18 @@
+ windows xp/7命令提示符强制结束指定进程
+分类： windows 2010-08-08 22:46 653人阅读 评论(0) 收藏 举报
+windowssessionimagecmd
+开始----“运行 ”输入cmd ，然后在命令提示符下输入tasklist，出现如下列表：
+Image Name                     PID Session Name        Mem Usage 
+========================= ======== ================ 
+saayaa.exe                  26356 Console              39,352 K 
+regedit.exe                  24244 Console               9,768 K 
+cmd.exe                      18664 Console               2,380 K 
+conhost.exe                   2528 Console               7,852 K 
+notepad.exe                  17364 Console               7,892 K 
+notepad.exe                  24696 Console              22,028 K 
+notepad.exe                  25304 Console               5,852 K 
+explorer.exe                  2864 Console              72,232 K
+接下来，如果我们想要结束某个程序的所有进程的话，比如，notepad.exe，可以输入 
+Taskkill /IM notepad.exe /F 
+如果只想结束某程序的某个进程的话，可以输入该进程的PID来实现，比如： 
+Taskkill /PID 17364 /F 这里的F表示强制结束。

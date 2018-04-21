@@ -1,0 +1,15 @@
+def文件是什么?做dll时,不用def文件可以吗？2008-04-22 22:34:25
+
+
+
+分类： WINDOWS
+
+
+
+回答:在VC++中，如果生成DLL可以不使用.def文件。你只需要在VC++的函数定义前要加__declspec(dllexport)修饰 就可以了。但是使用__declspec(dllexport)和使用.def文件是有区别的。如果你的DLL是提供给VC++用户使用的，你只需要把编 译DLL时产生的.lib提供给用户，它可以很轻松地调用你的DLL。但是如果你的DLL是供VB、PB、Delphi用户使用的，那么会产生一个小麻 烦。因为VC+ +对于__declspec(dllexport)声明的函数会进行名称转换，
+
+如下面的函数：
+ __declspec(dllexport) int __stdcall IsWinNT()
+会转换为IsWinNT@0，这样你在VB中必须这样声明：
+ Declare Function IsWinNT Lib "my.dll" Alias "IsWinNT@0" () As Long @的后面的数由于参数类型不同而可能不同。这显然不太方便。所以如果要想避免这种转换，就要使用.def文件方式。
+EXPORTS后面的数可以不给，系统会自动分配一个数。对于VB、PB、Delphi用户，通常使用按名称进行调用的方式，这个数关系不大，但是对于使用.lib链接的VC程序来说，不是按名称进行调用，而是按照这个数进行调用的，所以最好给出。 
