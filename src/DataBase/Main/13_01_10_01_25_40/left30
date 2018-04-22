@@ -1,0 +1,571 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3c.org/TR/1999/REC-html401-19991224/loose.dtd">
+<HTML xmlns="http://www.w3.org/1999/xhtml"><HEAD><TITLE>Java开源大全</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=GBK">
+<meta name="verify-v1" content="SRmZkUbOJRZGOIqlPiP5n9XHVguQUlyp4WCGAXJPGwA=" />
+<meta name="Keywords" content="开源,开源网站,开源社区,java开源,ajax开源,开发文档,IT资讯"/>
+<meta name="Description" content="Java开源大全(www.open-open.com)收录最全，最新的Java开源软件，发布最新IT资讯，提供开发文档、技术经验在线分享平台。"/>
+<LINK href="http://static.open-open.com/wwwres/opencs.css" type=text/css rel=stylesheet>
+<LINK href="favicon.ico" type=/image/x-icon rel=icon>
+<LINK href="favicon.ico" type=/image/x-icon rel="shortcut icon">
+<script type="text/javascript" src="http://static.open-open.com/wwwres/jquery.min.js"></script>
+<script type="text/javascript" src="http://static.open-open.com/wwwres/jquery.slideshow.lite.js"></script>
+<link rel="stylesheet" type="text/css" href="http://static.open-open.com/wwwres/slideshow.css" media="screen" />
+<STYLE>
+#kw {
+	PADDING-BOTTOM: 3px; MARGIN: 0px 6px 0px 20px; PADDING-LEFT: 1px; WIDTH: 391px; VERTICAL-ALIGN: middle;PADDING-RIGHT: 1px; FONT: 16px arial; PADDING-TOP: 3px
+}
+
+#su {
+	LINE-HEIGHT: 24px; WIDTH: 100px; HEIGHT: 28px;VERTICAL-ALIGN: middle
+}
+
+#nv {
+	MARGIN: 0px 0px 4px 50px; FONT-SIZE: 15px
+}
+/*file icons*/
+.filetype{background:url(/images/icons.gif) no-repeat; padding:3px 8px;cursor:default;}
+.xls{background-position: -105px 1px;}
+.ppt{background-position:-139px 1px;}
+.pptx{background-position:-139px 1px;}
+.doc{background-position:-72px 1px;}
+.docx{background-position:-72px 1px;}
+.chm{background-position:-36px 1px ;}
+.pdf{background-position:0 1px;}
+.navico{background:url(resource/icon_1.gif) no-repeat;padding:0px 6px;}
+.hot{background:url(resource/hot.gif) no-repeat; cursor:default;padding:0px 6px;}
+.tabico{background:url(ajax/resource/tag_blue.jpg) no-repeat; cursor:default;padding:3px 8px;}
+.book{background:url(home/image/icon/book.gif) no-repeat; cursor:default;padding:0px 8px 12px 8px;}
+.lib{background:url(home/image/icon/lib.gif) no-repeat; cursor:default;padding:0px 8px 12px 8px;}
+.news{background:url(home/image/icon/news.gif) no-repeat; cursor:default;padding:0px 8px 12px 8px;}
+.doing{background:url(home/image/icon/doing.gif) no-repeat; cursor:default;padding:0px 8px 12px 8px;}
+.blog{background:url(home/image/icon/blog.gif) no-repeat; cursor:default;padding:0px 8px 12px 8px;}
+.comment{background:url(home/image/icon/comment.gif) no-repeat; cursor:default;padding:0px 8px 12px 8px;}
+.poll{background:url(home/image/icon/poll.gif) no-repeat; cursor:default;padding:0px 8px 12px 8px;}
+.click{background:url(home/image/icon/click.gif) no-repeat; cursor:default;padding:0px 8px 12px 8px;}
+.post{background:url(home/image/icon/post.gif) no-repeat; cursor:default;padding:0px 8px 12px 8px;}
+.newsimg{
+  padding: 3px;
+  border: 1px solid #E7E8E6;
+  border-radius: 4px;
+  -moz-border-radius: 4px;
+}
+.title_gray{
+	margin:0px auto 5px auto;
+	color: #413A0C;
+	font-size: 14px;
+	font-weight: bold;
+	background:url(image/bt_title_gray.gif) no-repeat;
+	border:solid 0px gray;
+	height:25px;
+	line-height:25px;
+	padding-left:10px;
+}
+.rss{
+  background: transparent url(image/rss.png) no-repeat left 50%;
+  padding-left: 18px;
+}
+.cdate{
+font-size:11px;color:#666666
+}
+</STYLE>
+
+<script type="text/javascript">
+
+function SideBarToggle() {
+		if ('block' == $('#sidebar')[0].style.display || ''==$('#sidebar')[0].style.display) {
+			$('#sidebar')[0].style.display = 'none';$('#dicts')[0].style.width = '730px';$('#sidebarToggleImg')[0].src = 'resource/left_onck2.gif';
+			$('#sidebarToggleImg')[0].alt = '显示导航栏';
+		} else {
+			$('#sidebar')[0].style.display = 'block';$('#dicts')[0].style.width = '730px';$('#sidebarToggleImg')[0].src = 'resource/left_onck.gif';
+			$('#sidebarToggleImg')[0].alt = '关闭导航栏';
+		}
+};
+
+function DictFold(id){
+if($('#dictc_'+id)[0].style.display=='none'){
+ $('#dictc_'+id)[0].style.display=''
+ $('#dicttoggle_'+id)[0].src='resource/von.gif';
+}else{
+ $('#dictc_'+id)[0].style.display='none';
+ $('#dicttoggle_'+id)[0].src='resource/von2.gif'
+}
+};
+
+
+var dictLangList = ['ec', 'lovedict','bbs','lib','ajax'];
+
+function DictLangSwitch(dictLang) {
+	if (0 == dictLangList.length) {
+		return;
+	}
+
+	var dictLangConfig = '';
+	if (!dictLang) {
+		var dictLangFound = false;
+		for(var ldli=0; ldli<dictLangList.length; ldli++) {
+			if (dictLangConfig == dictLangList[ldli]) {
+				dictLangFound = true;
+				break;
+			}
+		}
+		if (!dictLangFound) dictLangConfig = dictLangList[0];
+	} else {
+		dictLangConfig = dictLang;
+		if (!dictLangConfig) dictLangConfig = dictLangList[0];
+	}
+	
+	$("#"+dictLangConfig)[0].className = 'v_';
+	
+	$('#dictlangc_'+dictLangConfig)[0].style.display = 'block';
+	for(var ldi=0; ldi<dictLangList.length; ldi++) {
+		if (dictLangConfig != dictLangList[ldi]) {
+			$("#"+dictLangList[ldi])[0].className = '';
+			$('#dictlangc_'+dictLangList[ldi])[0].style.display = 'none';
+		}
+	}
+};
+
+
+</script>
+
+</HEAD>
+<BODY>
+<DIV id=top style="WIDTH: 99%">
+
+<DIV id=seah_list style="WIDTH: 99%">
+<DIV class=logo>
+<IMG  alt='Java开源大全' src="http://www.open-open.com/resource/logo.gif" class = "corner iradius8 ishade75 ishadow33" border=0>
+
+</DIV>
+<DIV class=seah>
+<DIV class=input_div>
+<FORM name=sf style="MARGIN: 0px;" action="http://www.open-open.com/doc/results.jsp">
+    <INPUT id=kw maxLength=40 type=text name=key title='全文搜索本站收录的所有开源项目' x-webkit-speech><INPUT id=su value=搜&nbsp;&nbsp;索 type="image" src="image/opensearchs.gif">
+    <div style="MARGIN: 0px 0px 4px 30px; FONT-SIZE: 15px">
+        <input type="radio" name="site" value="all" checked=checked>所有开源项目
+        <input type="radio" name="site" value="java">Java开源
+	<input type="radio" name="site" value="php">PHP开源
+	<input type="radio" name="site" value="ajax">Ajax
+   </div>
+</FORM>
+</DIV>
+</DIV>
+</DIV>
+<DIV class=line style="WIDTH: 99%"></DIV>
+<div style='margin-bottom:10px;margin-top:3px'>
+<div id="googlead4"></div>
+</div>
+<DIV id=Contents style="WIDTH: 99%">
+<TABLE cellSpacing=0 cellPadding=0 width="1100px" border=0>
+  <TBODY>
+  <TR>
+    <TD class=left id=sidebar vAlign=top align=left WIDTH: 200px>
+      <DL>
+	    <DT><strong>栏目导航</strong></DT>
+	    <DD><b><a href='http://www.open-open.com/ajax/'>JS脚本大全</a></b></DD>	    
+            <DD><b><a href='http://www.open-open.com/doc/'>OPEN文档</a></b></DD>
+ 	    <DD><b><a href='http://www.open-open.com/doc/open.html'>OPEN搜索</a></b></DD>
+	    <DD><b><a href='http://www.open-open.com/home/'>OPEN家园</a></b></DD>
+	    <DD><b><a href='http://www.open-open.com/news/' title='OPEN资讯'>OPEN资讯</a></b></DD>
+ 	    <DD><b><a href='http://www.open-open.com/bbs/' title='OPEN论坛'>OPEN论坛</a></b></DD>
+	    <DD><b><a href='http://www.open-open.com/lib/' title='OPEN经验库'><strong>OPEN经验库</strong></a></b></DD>
+        <DT>Web开发</DT>
+        <DD><a href='07.htm'>Web开发框架</a></DD><DD><a href='15.htm'>JSP标签库</a></DD><DD><a href='67.htm'>AJAX框架</a></DD>
+		<DT>服务器</DT>
+        <DD><a href='05.htm'>应用服务器</a></DD><DD><a href='23.htm'>Web服务器</a></DD>
+		
+		<DT>开发工具</DT>
+        <DD><a href='04.htm'>Eclipse插件</a></DD><DD><a href='12.htm'>集成开发工具</a></DD><DD><a href='22.htm'>项目管理</a></DD><DD><a href='26.htm'>Web测试工具</a></DD><DD><a href='28.htm'>UML建模</a></DD><DD><a href='33.htm'>源码控制</a></DD><DD><a href='38.htm'>团队协作</a></DD><DD><a href='43.htm'>测试工具</a></DD><DD><a href='44.htm'>项目构建</a></DD><DD><a href='47.htm'>打包工具</a></DD>
+		<DT>其它</DT>
+        <DD><a href='25.htm'>其它开源项目</a></DD><DD><a href='56.htm'>Apache项目</a></DD><DD><a href='57.htm'>ObjectWeb项目</a></DD>
+		<DT>数据库相关</DT>
+        <DD><a href='10.htm'>开源数据库</a></DD><DD><a href='50.htm'>数据库管理工具</a></DD><DD><a href='65.htm'>JDBC驱动器</a></DD><DD><a href='76.htm'>NoSQL数据库</a></DD>
+		<DT>应用系统</DT>
+        <DD><a href='02.htm'>Blog与SNS系统</a></DD><DD><a href='03.htm'>ERP与CRM系统</a></DD><DD><a href='06.htm'>WebMail系统</a></DD><DD><a href='09.htm'>论坛系统</a></DD><DD><a href='17.htm'>门户系统</a></DD><DD><a href='39.htm'>CMS系统</a></DD><DD><a href='51.htm'>百科系统</a></DD><DD><a href='63.htm'>Bug跟踪系统</a></DD><DD><a href='64.htm'>学习管理系统(LMS)</a></DD><DD><a href='69.htm'>GIS系统</a></DD>
+		<DT>组件类库</DT>
+        <DD><a href='01.htm'>AOP面向方面编程</a></DD><DD><a href='08.htm'>工作流引擎</a></DD><DD><a href='11.htm'>依赖注入框架</a></DD><DD><a href='13.htm'>缓存框架</a></DD><DD><a href='14.htm'>调度框架</a></DD><DD><a href='16.htm'>JEE框架</a></DD><DD><a href='18.htm'>持久层框架</a></DD><DD><a href='19.htm'>报表制作</a></DD><DD><a href='20.htm'>数据连接池</a></DD><DD><a href='21.htm'>模板引擎</a></DD><DD><a href='24.htm'>XML UI工具包</a></DD><DD><a href='27.htm'>Web Service</a></DD><DD><a href='29.htm'>日志组件</a></DD><DD><a href='30.htm'>Html解析类库</a></DD><DD><a href='31.htm'>XML操作类库</a></DD><DD><a href='32.htm'>搜索引擎</a></DD><DD><a href='34.htm'>PDF类库</a></DD><DD><a href='35.htm'>网络客户端组件</a></DD><DD><a href='36.htm'>网络服务器端组件</a></DD><DD><a href='37.htm'>JMX框架</a></DD><DD><a href='40.htm'>动态语言</a></DD><DD><a href='41.htm'>规则引擎</a></DD><DD><a href='42.htm'>加密与混淆</a></DD><DD><a href='45.htm'>代码优化</a></DD><DD><a href='46.htm'>Email客户端</a></DD><DD><a href='48.htm'>RSS聚合类库</a></DD><DD><a href='49.htm'>开源集合类库</a></DD><DD><a href='52.htm'>聊天工具</a></DD><DD><a href='53.htm'>JMS消息中间件</a></DD><DD><a href='54.htm'>字节码操作</a></DD><DD><a href='55.htm'>语法分析生成器</a></DD><DD><a href='58.htm'>Java游戏</a></DD><DD><a href='59.htm'>运行分析工具</a></DD><DD><a href='60.htm'>多媒体组件</a></DD><DD><a href='61.htm'>Swing外观</a></DD><DD><a href='62.htm'>身份验证</a></DD><DD><a href='66.htm'>EAI/ESB组件</a></DD><DD><a href='68.htm'>Web爬虫</a></DD><DD><a href='70.htm'>模型转换器</a></DD><DD><a href='71.htm'>OSGi框架</a></DD><DD><a href='72.htm'>BI商业智能工具</a></DD><DD><a href='73.htm'>J2ME开源项目</a></DD><DD><a href='74.htm'>中文分词类库</a></DD><DD><a href='75.htm'>Android开源项目</a></DD>
+	  </DL>
+     </TD>
+    <TD id=sidebarToggleC style="WIDTH: 21px; CURSOR: pointer; PADDING-TOP: 5px" 
+    onclick="SideBarToggle();"; vAlign=top align=left width=21><IMG id=sidebarToggleImg src="http://www.open-open.com/resource/left_onck.gif" border=0 Alt='关闭导航'> </TD>
+    <TD class=center id=dicts  style="OVERFLOW: hidden; BORDER-LEFT: #d7d7d7 1px solid; WIDTH: 730px"  vAlign=top align=left >
+      <UL class=menu>
+        <LI class=tabspace></LI>
+        <LI class=v_ id=ec onclick="DictLangSwitch('ec')">OPEN文档</LI>
+        <LI class=tabspace></LI>
+        <LI id=lovedict onclick="DictLangSwitch('lovedict')">OPEN资讯</LI>
+        <LI class=tabspace></LI>
+	<LI id=bbs onclick="DictLangSwitch('bbs')">OPEN论坛</LI>
+	<LI class=tabspace></LI>
+	<LI id=lib onclick="DictLangSwitch('lib')">OPEN经验库<img src="image/new.gif" alt='最新上线'/></LI>
+	<LI class=tabspace></LI>
+ 	<LI id=ajax onclick="DictLangSwitch('ajax')">JS脚本大全</LI>
+      </UL>
+      <DIV id=dictlangc_ec style="MARGIN-TOP: 5px;MARGIN-BOTTOM: 10px; MARGIN-LEFT: 25px;WIDTH: 730px">
+	
+	<table width='100%'>
+	<tr><td valign="top">
+		  <div id="slideshow" style="margin-bottom: 10px;">
+   			<a href='http://www.open-open.com/doc/view/046eddee7d46413d89fd820d2a2e0854' target='_blank'><img src='http://www.open-open.com/doc/hotimage/046eddee7d46413d89fd820d2a2e0854.png' width='360' height='280' alt='Java 数据连接池示例(线程同步处理并发).doc'/></a><a href='http://www.open-open.com/doc/view/7458aab1e8894a0abe03c3efb8919480' target='_blank'><img src='http://www.open-open.com/doc/hotimage/7458aab1e8894a0abe03c3efb8919480.png' width='360' height='280' alt='java加密解密方法大全(chinasei)pdf'/></a><a href='http://www.open-open.com/doc/view/55a56beeda4b43dfb0f00934968818b5' target='_blank'><img src='http://www.open-open.com/doc/hotimage/55a56beeda4b43dfb0f00934968818b5.png' width='360' height='280' alt='Java 线程编程方面面试题.pdf'/></a><a href='http://www.open-open.com/doc/view/c2b36965daea448889cd5988586f7b2f' target='_blank'><img src='http://www.open-open.com/doc/hotimage/c2b36965daea448889cd5988586f7b2f.png' width='360' height='280' alt='MongoDB 数据库安装配置文档.pdf'/></a><a href='http://www.open-open.com/doc/view/300e7996c69246a98999217bae284a11' target='_blank'><img src='http://www.open-open.com/doc/hotimage/300e7996c69246a98999217bae284a11.png' width='360' height='280' alt='Jenkins+Maven+Tomcat 构建项目.doc'/></a>
+  		  </div>
+	<script type="text/javascript">
+      		$("#slideshow").slideshow({
+        	pauseSeconds: 4,
+        	height: 280,
+		anchorTarget: '_blank',
+		width:360
+      		});
+	</script>
+
+	</td>
+	<td valign="top">
+	<script type="text/javascript"><!--
+google_ad_client = "pub-7963911354665843";
+/* 336x280, 创建于 11-7-25 */
+google_ad_slot = "3621122553";
+google_ad_width = 336;
+google_ad_height = 280;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+	</td>
+	</tr>
+	<tr><td colspan="2" style="PADDING-bottom:5px;PADDING-top:0px">→&nbsp;&nbsp;<a style='CURSOR: pointer;' href="http://www.open-open.com/doc/hot/week"><strong>周热门文档</strong></a>&nbsp;&nbsp;|&nbsp;&nbsp;<a style='CURSOR: pointer;' href="http://www.open-open.com/doc/hot/month"><strong>月热门文档</strong></a>&nbsp;&nbsp;|&nbsp;&nbsp;<a style='CURSOR: pointer;' href="http://www.open-open.com/doc/hot/year"><strong>年热门文档</strong></a></td></tr>
+    	</table>
+	
+	<H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Itext，PDF工具学习.docx【<a href='http://www.open-open.com/doc/list/17' target='_blank'>PDF工具包</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> 初学，建helloworld创建步骤分为五步：创建一个Document获取一个DocWriter实例打开该Document添加内容到Document中关闭文档代码创建一个Document对象不加参数，Document对象创建将使用默认值。默认使用A4纸大小，Pagesize.A4com.itext pdf.text.Rectangle代表纸张，可以用来设置大小，上下左右边距等等。 &nbsp;<p><span class='docx filetype' title=docx>&nbsp;</span><a href='http://www.open-open.com/doc/view/66ec9eaddbdb49adbcdd6c9022f9f4e2' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;FreeMind 思维导图学习笔记.docx【<a href='http://www.open-open.com/doc/list/36' target='_blank'>开发语言与工具</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> 简介FreeMind是一套容易上手的简单绘图软件，由Java语言编写并以一个高效率的树形图软件为出发点。FreeMind安装FreeMind在安装时必须有Java1.4或更新的版本来支持。在CMD窗口输入java-version可以用来查看是否已经安装和配置好。未安装可以到甲骨文（oracle）网站下载jdk.安装过程很简单，基本是傻瓜式安装，可以改变安装目录，选择语言。安装后桌面出现快捷方式运行后界面如下图：FreeMind功能栏介绍快捷键为了更好、更快的使用软件，了解相应的快捷键是很有必要的。 &nbsp;<p><span class='docx filetype' title=docx>&nbsp;</span><a href='http://www.open-open.com/doc/view/b6608ed258fd4e2d8330cfeb53f467af' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Ruby on Rails Tutorial.pdf【<a href='http://www.open-open.com/doc/list/42' target='_blank'>Ruby开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> Ruby on Rails 指南。Ruby on Rails是一个 Web 应用程序框架,是一个相对较新的 Web 应用程序框架，构建在 Ruby 语言之上。它被宣传为现有企业框架的一个替代，而它的目标，简而言之，就是让生活，至少是 Web 开发方面的生活，变得更轻松。 &nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/4ae9841b1c7d42c498c5de9bbaf8ab7b' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><div style='margin-bottom:5px;margin-top:5px'><script type="text/javascript"><!--
+google_ad_client = "pub-7963911354665843";
+/* 728x90, 创建于 08-7-23 */
+google_ad_slot = "4923244917";
+google_ad_width = 728;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script></div><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;DATABASE MANAGEMENT: A SYSTEMS APPROACH USING JAVA .pdf【<a href='http://www.open-open.com/doc/list/90' target='_blank'>数据库相关</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> DATABASE MANAGEMENT: A SYSTEMS APPROACH USING JAVA &nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/4d5ebc3d772b4239a7572a1f8bb41510' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;OGRE 入门教程.pdf【<a href='http://www.open-open.com/doc/list/313' target='_blank'>游戏开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> 本教程的目的是从使用者的角度将 OGRE 引擎最基本的概念和使用方法做一个较全面
+的介绍。本教程隐藏了 OGRE 引擎内部的底层内容，力求做到简单、易懂，是 OGRE 引擎
+的入门教程。
+Mage 小组的另一篇教程＜＜ OGRE 设计笔记＞＞正在整理中，它的目的是剖析 3D 图
+形引擎的源码，分析其架构，并在此过程中深入讲解设计模式与 OOA/D 在游戏开发中的 应
+用。&nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/143801a303d84006a24425257289050c' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;《Doxygen 中文手册》之安装.doc【<a href='http://www.open-open.com/doc/list/36' target='_blank'>开发语言与工具</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> 如果你还没有doxygen，首先去下载页面获取最新的版本。这一节分为了以下几小节：通过编译源码在Unix上安装doxygen在Unix上安装以二进制发布的doxygen在Unix上已知的编译问题通过编译源码在Windows上安装doxygen在Windows上安装以二进制发布的doxygen开发doxygen时使用的工具通过编译源码在Unix上安装doxygen?如果你下的是源码包，那么你至少还需要先安装好以下工具。&nbsp;<p><span class='doc filetype' title=doc>&nbsp;</span><a href='http://www.open-open.com/doc/view/9392fa6b48f1463e834f42535cfe3bd5' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Getting Real 中文版.pdf【<a href='http://www.open-open.com/doc/list/159' target='_blank'>软件开发管理</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> 想构建一个成功的Web应用么? 那么正是时候Getting Real. Getting Real 是一种更小规模，更快速，更高质量的软件构建方法。<br>
+? Getting Real是关于省略所有表达现实（图表，曲线，矩形，箭头，统计图），而构建现实。 <br>
+
+? Getting real 是追求精炼。更少的代码量，更少的软件，更少的功能，更少的文档工作，更少无所谓的东西（而且大部分你认为必要的，其实不是）。<br>
+ 
+? Getting Real 是保持精益，变得敏捷。 &nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/1566bf7ea9fa43ee98cb0ea803b640d8' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;iOS Threading Programming Guide.pdf【<a href='http://www.open-open.com/doc/list/312' target='_blank'>iOS 开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> 多线程编程在开发应用的时候非常有帮助。比如你可以在后台加载图片，等图片加载完成后再在主线程更新等，或者在后台处理一些需要占用CPU很长时间的事件（比如请求服务器，加载数据等）。要体会多线程编程的好处，还得多实战，结合使用多种多线程技术。特别要注意Run Loop的使用，很多开发者在编写多线程应用的时候很少关注过Run Loop。如果你仔细阅读并掌握Run Loop的细节，将会帮助你写出更优美的代码。同步是多线程编程的老生常谈，估计大学时候大家都基本熟悉了同步的重要性。
+
+&nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/054c0cdbef694facba797fdfa0052e4b' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;从C++到Objective-C (英文版).pdf【<a href='http://www.open-open.com/doc/list/301' target='_blank'>Objective-C开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> Objective-C 是一门语言，而  Cocoa 是这门语言用于  MacOS X 开发的一个类库。它们的关系类似于  C++ 和  Qt，Java 
+和  Spring 一样。所以，我们完全可以不使用  Cocoa，只去用  Objective-C。例如  gcc 就是一个不使用  Cocoa 的编译器。
+不过在  MacOS X 平台，几乎所有的功能都要依赖  Cocoa 完成。我们这里只是做一个区别，应该分清  Objective-C 和 
+Cocoa 的关系。 &nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/401e41da32304ef49ecd50eea19f96d6' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Core Data Programming Guide.pdf【<a href='http://www.open-open.com/doc/list/312' target='_blank'>iOS 开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> Core Data Programming Guide&nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/c0dee39160d744c5b088f866f8db048d' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;从C++到Objective-C(中文版).pdf【<a href='http://www.open-open.com/doc/list/301' target='_blank'>Objective-C开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> Objective-C 可以算作  Apple 平台上“唯一的”开发语言。很多  Objective-C 的教程往往直接从  Objective-C 开始讲起。
+不过，在我看来，这样做有时候是不合适的。很多程序员往往已经掌握了另外一种开发语言，如果对一门新语言的理解
+建立在他们已有的知识之上，更能 起到事半功倍的效果。既然名为  Objective-C，它与  C 语言的联系更加密切，然而它
+又是  Objective 的。与  C 语言联系密切，并且是  Objective 的，我们能够想到的另外一门语言就是  C++。C++ 的开
+发人员也更普遍，受众也会更多。于是就有了本系列，从  C++ 的角度来讲述  Objective-C 的相关知识。不过，相比  C++，
+C# 似乎更近一些。不过，我们还是还用  C++ 作为对比。这个系列不会作为一个完整的手册，仅仅是入门。本系列文
+章不会告诉你  Objective-C 里面的循环怎么写，而是通过与  C++ 的对比来学习  Objective-C 一些更为高级的内容，例
+如类的实现等等。如果要更好的使用  Objective-C，你需要阅读更多资料。但是，相信在本系列基础之上，你在阅读其他
+资料时应该会理解的更加透彻一些。 &nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/fefd703772fa468fac2666f5a474442d' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Overview of the New C++ (C++0x).pdf【<a href='http://www.open-open.com/doc/list/40' target='_blank'>C/C++开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> C++0X是新一代C++标准的非官方名称。它将代替C++03成为C++最新的标准。C++0X对C++的核心语言以及标准库经进行了部分更新。C++0X完全兼容目前的C++标准。
+
+在C++0X之中，语言本身添加了对于多线程的支持。一些细节得到了改进，例如支持统一初始化方式。对泛型编程的支持方面有了更边界的，同时对功能进行了改进。
+
+C++0x增加了不少新特性，比如Static assertions，auto，Initializer list，Lambda，Variadic templates等&nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/d25dda8266f642d3909c48f0d7952a68' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;View Controller Programming Guide for iOS.pdf【<a href='http://www.open-open.com/doc/list/312' target='_blank'>iOS 开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> 1 ViewController分两种：Content View Controller 和 Container View Controller。
+<br>
+
+2 View Controller的职责：对内管理Views，对外跟其他ViewController通信和协调，Storyboards可以降低对外部分的复杂度。
+<br>
+
+3 ViewControllers are brains of you app, which keep most of you app logic
+<br>
+
+4 ViewControllers 总是在需要的时候才加载视图，并在不需要的时候卸载视图，所以ViewController也同时担当了管理应用资源的责任。
+<br>
+
+5 ViewController以及其关联的Views组成了应用中的一部分业务，对于应用数据，ViewController只需要知道跟这部分业务相关的部分数据。
+<br>
+
+6 UIView和UIViewController都是UIResponder的子类，即都可以接收触碰和手势的事件。
+&nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/2f0e593b561f4f619bb4c825a5211447' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Graphics and Animation on iOS.pdf【<a href='http://www.open-open.com/doc/list/312' target='_blank'>iOS 开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> 在cocoa touch 中一个应用程序是由多个窗口和视图构成。一个带有用户界面的应用程序至少包含一个窗口，同时可以包含一个或者多个视图。在cocoa Touch中，一个窗口是UIWindow的一个实例，通常，一个应用程序会打开主窗口，然后开发人员向窗口中添加各种视图：如按钮，标签，图像，或者自定义的控件。所有这些与UI相关的组件都由UIKit处理。
+
+图形与动画：在IOS开发中 苹果公司向开发者提供了强大的框架来处理图形和动画，这些框架和技术有：
+
+
+UIKit：cocoa touch 框架，高层次的框架，允许开发人员创建视图、窗口、按钮和其他UI组件。同时将一些低级别的api引入到易于使用的高级别API中。
+
+&nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/31b6845cc0944faabccd896fd5be1a56' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;LINQ 概述.doc【<a href='http://www.open-open.com/doc/list/25' target='_blank'>持久层框架</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> 一、LINQ---语言集成查询 在实际应用中，开发者需要处理各种各样的数据，这些数据可以是数据库，也可以时候XML文档，甚至是内存中的集合数据等。根据不同的数据源和不同的数据类型，开发者需要选择不同的API来分析和处理这些数据。例如，对于关系数据库来说，需要使用SQL语句来查询以及操作数据，而对于XML文档，需要使用Xquery等。因此，开发人员不得不针对不同的数据源学习不同的查询语言。 &nbsp;<p><span class='doc filetype' title=doc>&nbsp;</span><a href='http://www.open-open.com/doc/view/551f5229f4424b9e8afe72b7ae1c99c0' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Front End Drupal.pdf【<a href='http://www.open-open.com/doc/list/163' target='_blank'>Drupal</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> Front End Drupal is 100% focused on issues of site design, behavior, usability, and management. The authors show how to style Drupal sites, make the most of Drupal’s powerful templating system, build sophisticated community sites, streamline site management, and build more portable, flexible themes. You’ll also gain hands-on experience through several case studies that walk you through the customization of everything from page templates to Web site forums.&nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/ade84c8485084088ba186a8bc3af0402' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;javaweb之七(javabean与jsp与mvc共24章).doc【<a href='http://www.open-open.com/doc/list/166' target='_blank'>JSP</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'>  会话跟踪技术之URL重写JSP/JSP语法/指令/声明/scriptlets/输出/隐含对象JavaBean/与JSP今天的主要内容：１、JSP以后补：重写URL。2、JSP什么是JSP？JSP主要解决什么问题？JSP与Servlet的关系是什么？JSP的编译过程分析。JSP与HttpServlet的继承关系。3、JSP的语法JSP指令。JSP声明。JSP-scriptless?java代码块。JSP注释.&nbsp;<p><span class='doc filetype' title=doc>&nbsp;</span><a href='http://www.open-open.com/doc/view/36afd8ad07174d3a85656e333228b1b3' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;javaweb之六(jspjsp语法指令声明scriptlets输出隐含对象共24章).doc【<a href='http://www.open-open.com/doc/list/166' target='_blank'>JSP</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> 会话跟踪技术/Cookie/SessionJSP/JSP语法/指令/声明/scriptlets/输出/隐含对象试题.&nbsp;<p><span class='doc filetype' title=doc>&nbsp;</span><a href='http://www.open-open.com/doc/view/d51f8d148cf84f97b463391067d8065b' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;javaweb之五(域对象会话跟踪技术cookiesession共24章).doc【<a href='http://www.open-open.com/doc/list/166' target='_blank'>JSP</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> ServletContext对象介绍三个域对象/会话跟踪技术/Cookie/Session&nbsp;<p><span class='doc filetype' title=doc>&nbsp;</span><a href='http://www.open-open.com/doc/view/28b5e616d3374baa904d63c8e715f7ac' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Flex 中文帮助.pdf【<a href='http://www.open-open.com/doc/list/18' target='_blank'>Flex开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> 该部分文档的内容是为用户提供关于 Adobe?Flex 工作机制的一个快速综述。通过本章
+节的学习，你可以创建你的第一个 Flex 应用程序，并将它与你以前所熟悉的Web开发技术
+进行比较，以领会 Flex的内涵和精髓。  Flex 是一个提供开发设计和运行支持的架构，它可以使开发人员创建利用 Adobe? 
+Flash? Player 9作为前台的“富客户端互联网应用程序/rich Internet applications/RIA” ，以满
+足用户更为直观和极具交互性的在线体验。 &nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/d3da2b751f12487bad4241993179cacb' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;精通MVC3框架.pdf【<a href='http://www.open-open.com/doc/list/38' target='_blank'>.NET开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> 本章中，我们介绍了MVC架构模式，并将其与你可能见过或听说过的其它模式进行了比较。我们讨论了
+域模型的重要性，并生成了一个简单的例子。我们也介绍了DI，它允许我们建立松耦合组件，以强迫应用
+程序各部分的严格独立。 
+ 
+我们演示了一些简单的单元测试，你也看到了松耦合组件以及DI使单元测试简易。沿着这种方式，我们示
+范了对TDD的热爱，并演示了如何在编写代码之前编写单元测试。最后，我们接触了集成测试，并将其与
+单元测试作了比较。 &nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/21bbf0cc72644e36b6197e9b927e1ffe' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;ASP.NET MVC3 中文版教程.doc【<a href='http://www.open-open.com/doc/list/38' target='_blank'>.NET开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> ASP.NET?MVC3?快速入门。第一节?概述1.1本教程的学习内容在本教程中，你将学会如下内容：如何创建一个ASP.NETMVC的工程。如何创建ASP.NETMVC的控制器（controller）与视图(view)。如何使用Entity Framework code-first范例来创建一个新的数据库。如何获取和显示数据。如何编辑数据并且进行数据的有效性验证。 &nbsp;<p><span class='doc filetype' title=doc>&nbsp;</span><a href='http://www.open-open.com/doc/view/4fa912cf63814ac79c1a23656c539fec' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;数据库托管平台.pdf【<a href='http://www.open-open.com/doc/list/75' target='_blank'>服务器软件</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'>  
+?高可用，可扩性：对故障机器，延迟超过阀值的从库进行自动摘除，?通
+过建立南北多IDC数据中心实现可扩展性，实现99.999%高可用。 
+?高性能：针对各种丌同业务项目，提供自动化告警及优化建议，从而应对
+更大的高?发访问。 
+?高效性：采用托管平台，提供了简单的域名访问数据库模式，提高了开发
+速度。 
+?打造业内一流托管平台，实现高可用，可扩性，高性能，高效性 &nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/3b7a8727f2724fe7ade1c2b16f74bc48' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;更多角度看性能优化.pdf【<a href='http://www.open-open.com/doc/list/90' target='_blank'>数据库相关</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> 同样的案例，不同的角度●由一个AWR报告开始执行次数多逻辑读大性能影响大。从应用的角度看：●SQL如何产生●何以执行如此多次通过设置应用系统的参数，减少SQL执行甚至丌自劢执行也可避免该性能问题●通过分析应用需求，也可以确定逻辑读高显然也是存在问题的&nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/e54263a9e8cb4c418c45794246bd6e02' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;数据库架构设计与面向DB2的工程实践.pdf【<a href='http://www.open-open.com/doc/list/215' target='_blank'>DB2</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> DB2数据库服务，是一个整体服务的系统工程<br>
+? 操作系统构架和服务 <br>
+? 存储系统部署和服务 <br>
+? 网络系统信息的传输 <br>
+? 应用系统的数据访问 <br>
+系统构架中要恰当定义结构、优化资源使用<br> 
+<br>? 计算资源的使用方面 
+<br>? I/O资源的使用方面 
+<br>? 网络通信的使用方面 &nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/852e1e5255cc44e88d4a9c75a5e9f9ed' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;基于ORACLE的SQL与PL/SQL开发实践.pdf【<a href='http://www.open-open.com/doc/list/154' target='_blank'>SQL</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> SQL编程的一点经验和案例     
+从分析函数学习谈如何学SQL     
+认识SQL的逻辑和物理执行顺序     
+全面的SQL知识体系     &nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/7d585c50ee744aa3a4b34799cb9606d6' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Oceanbase 千亿级海量数据库.pdf【<a href='http://www.open-open.com/doc/list/90' target='_blank'>数据库相关</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'>  存储需求与现有方案?Oceanbase技术方案?收藏夹应用案例?系统展望 &nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/ad1f03fd551a49118d50d0f7ea7151e8' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;MYSQL 数据库世界五百强应用一例.pdf【<a href='http://www.open-open.com/doc/list/128' target='_blank'>MySQL</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> MYSQL 数据库世界五百强应用一例&nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/0160a6cee8074ca4ad9b5102ca947ac5' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Windows Phone 8 Development Internals.pdf【<a href='http://www.open-open.com/doc/list/249' target='_blank'>Windows Phone</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> Windows Phone 8 Development Internals，该书详细讲解Windows Phone 8应用开发原理，介绍Windows Phone 8新特性以及如何开发相关应用方法和技巧。 该书适合Windows Phone开发人员参考阅读。&nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/07ab5d179ba74a02aa3a78667291b884' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Learning OpenGL ES for IOS.pdf【<a href='http://www.open-open.com/doc/list/312' target='_blank'>iOS 开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC2 style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'> OpenGL ES (OpenGL for Embedded Systems) 是 OpenGL三维图形 API 的子集，针对手机、PDA和游戏主机等嵌入式设备而设计。该API由Khronos集团定义推广，Khronos是一个图形软硬件行业协会，该协会主要关注图形和多媒体方面的开放标准。 OpenGL- ES 是免授权费的，跨平台的，功能完善的2D和3D图形应用程序接口API，主要针对多种嵌入式系统专门设计 - 包括控制台、移动电话、手持设备、家电设备和汽车。它由精心定义的桌面OpenGL子集组成，创造了软件与图形加速间灵活强大的底层交互接口。 OpenGL ES 包含浮点运算和定点运算系统描述以及 EGL针对便携设备的本地视窗系统规范。OpenGL ES 1.X 面向功能固定的硬件所设计并提供加速支持、图形质量及性能标准。OpenGL ES 2.X 则提供包括遮盖器技术在内的全可编程3D图形算法。OpenGL ES-SC 专为有高安全性需求的特殊市场精心打造。
+
+&nbsp;<p><span class='pdf filetype' title=pdf>&nbsp;</span><a href='http://www.open-open.com/doc/view/9047128748ca489195c138a8eaf55040' target='_blank'><strong><U>在 线 阅 读</U></strong></a></DIV>
+	<p><strong>更多更全的文档请访问→[<a href='http://www.open-open.com/doc'>OPEN文档</a>]</strong></p>  
+    </DIV>
+      <DIV id=dictlangc_lovedict style="MARGIN-LEFT: 25px; WIDTH: auto; PADDING-TOP: 15px;DISPLAY: none">
+	<div style='float:right'><spance><span class="rss"></span><a href="http://www.open-open.com/news/category/rss/0" ><strong>订阅最新的资讯</strong></a>&nbsp;&nbsp;&nbsp;&nbsp;<a href='/news/submit/add' title='分享资讯，分享开源项目' style='MARGIN-bottom:13px;font-size:15px;color:red'><strong>分享资讯</strong></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+	<H4> <DIV class=d_left><span class='hot'>&nbsp;</span>&nbsp;12 个开发人员的实用代码编辑器&nbsp;【<a href='http://www.open-open.com/news/category/11' target='_blank'>软件编程</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>Compilr 是一个在线的集成开发怀集（IDE），目前支持9种编程语言：C、C++、C#、Java、JavaScript、PHP、Python、Ruby 和 Visual Basic。 Compilr 由坐落于加拿大新斯科舍省的 Ninja Otter Inc 公司开发。
+
+&nbsp;<span class='cdate'>1周前</span><p>→<a href='http://www.open-open.com/news/view/e8523a' target='_blank'>详细信息</a></p></div></DIV><H4> <DIV class=d_left><span class='hot'>&nbsp;</span>&nbsp;2012年11月的18个最流行的jQuery插件&nbsp;【<a href='http://www.open-open.com/news/category/5' target='_blank'>前端技术</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>一个jQuery插件用于将普通的select控件转成一个带有一些简单扩展效果的下拉列表。
+
+X-editable 
+这个插件能够让你在页面上创建可编辑的元素。它能够使用任何引擎 (bootstrap, jquery-ui, jquery only)并且包含弹出式和内联模式。
+
+&nbsp;<span class='cdate'>1周前</span><p>→<a href='http://www.open-open.com/news/view/26fa8e' target='_blank'>详细信息</a></p></div></DIV><div style='margin-bottom:5px;margin-top:5px'><script type="text/javascript"><!--
+google_ad_client = "pub-7963911354665843";
+/* 728x90, 创建于 08-7-23 */
+google_ad_slot = "4923244917";
+google_ad_width = 728;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script></div><H4> <DIV class=d_left><span class='hot'>&nbsp;</span>&nbsp;扩展 Twitter Bootstrap 的JavaScript插件&nbsp;【<a href='http://www.open-open.com/news/category/5' target='_blank'>前端技术</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> <img src='http://static.open-open.com/news/uploadImg/20121106/1.jpg' class='newsimg'  align='left'  width='80' height='57' alt='扩展 Twitter Bootstrap 的JavaScript插件'/>Bootstrap是著名的社交网站、微博的先驱Twitter在2011年8月推出的开源WEB前端框架，集合CSS和HTML，使用了最新的浏览器技术，为快速WEB开发提供了一套前端工具包，包括布局、网格、表格、按钮、表单、导航、提示等等。使用Bootstrap可以构建出非常优雅的前端界面，而且占用资源非常小。
+&nbsp;<span class='cdate'>2012-11-6 23:09:54</span><br>→<a href='http://www.open-open.com/news/view/15ed3ee' target='_blank'><strong>详细信息</strong></a><p style='margin-bottom:10px'>&nbsp;</p></div></DIV><H4> <DIV class=d_left><span class='hot'>&nbsp;</span>&nbsp;创建 Windows 8 Metro UI 风格网站所需要的资源集合&nbsp;【<a href='http://www.open-open.com/news/category/5' target='_blank'>前端技术</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> <img src='http://static.open-open.com/news/uploadImg/20121029/20121029170210_766.gif' class='newsimg'  align='left'  width='80' height='57' alt='创建 Windows 8 Metro UI 风格网站所需要的资源集合'/>这些资源包含：模板，框架，jQuery插件，图标集等。帮助你快速开发Windows 8 Metro UI风格的网站。&nbsp;<span class='cdate'>2012-10-29 17:30:33</span><br>→<a href='http://www.open-open.com/news/view/8238ac' target='_blank'><strong>详细信息</strong></a><p style='margin-bottom:10px'>&nbsp;</p></div></DIV><H4> <DIV class=d_left><span class='hot'>&nbsp;</span>&nbsp;推荐12个非常不错而且免费的后台管理HTML模板&nbsp;【<a href='http://www.open-open.com/news/category/5' target='_blank'>前端技术</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> <img src='http://static.open-open.com/news/uploadImg/20121011/20121011113953_523.jpg' class='newsimg'  align='left'  width='80' height='57' alt='推荐12个非常不错而且免费的后台管理HTML模板'/>Charisma是一个响应式管理模板，基于Twitter Bootstrap构建。
+
+这拥有9种外观主题，包括几乎所有的东西包括：表单, 图表, 按纽, 表格, 文件管理器, 相册等。
+
+&nbsp;<span class='cdate'>2012-10-11 12:36:46</span><br>→<a href='http://www.open-open.com/news/view/15d57ab' target='_blank'><strong>详细信息</strong></a><p style='margin-bottom:10px'>&nbsp;</p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;OS4 13.2 "OpenDesktop" 发布，基于Xubuntu的桌面和服务器Linux发行&nbsp;【<a href='http://www.open-open.com/news/category/11' target='_blank'>软件编程</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> <img src='http://static.open-open.com/news/uploadImg/20130109/20130109192817_836.png' class='newsimg'  align='left'  width='80' height='57' alt='OS4 13.2 "OpenDesktop" 发布，基于Xubuntu的桌面和服务器Linux发行'/>OS4是一份用户用好的基于Xubuntu的桌面和服务器Linux发行。它的一些最有趣特性包括即刻可用的对流行多媒体格式的支持，Flash和Java，增加了一些软件包以用于多媒体创作、内容制作和软件开发，以及像BeOS的桌面主题。 
+&nbsp;<span class='cdate'>5小时前</span><br>→<a href='http://www.open-open.com/news/view/3e8e0b' target='_blank'><strong>详细信息</strong></a><p style='margin-bottom:10px'>&nbsp;</p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp; 25个实用的JavaScript库和工具&nbsp;【<a href='http://www.open-open.com/news/category/11' target='_blank'>软件编程</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> 25个实用的JavaScript库和工具&nbsp;<span class='cdate'>10小时前</span><p>→<a href='http://www.open-open.com/news/view/64df8d' target='_blank'>详细信息</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;CKEditor 4.0.1 发布&nbsp;【<a href='http://www.open-open.com/news/category/5' target='_blank'>前端技术</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>CKEditor是一个所见即所得的编辑器的HTML文本编辑器，用来简化Web内容的创建。拥有常见的文字处理软件功能。&nbsp;<span class='cdate'>13小时前</span><p>→<a href='http://www.open-open.com/news/view/83e139' target='_blank'>详细信息</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;应该知道的Linux技巧&nbsp;【<a href='http://www.open-open.com/news/category/7' target='_blank'>IT业界</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>　这篇文章来源于 Quroa 的一个问答《What are some time-saving tips that every Linux user should know?》 -  Linux 用户有哪些应该知道的提高效率的技巧。我觉得挺好的，总结得比较好，把其转过来，并加了一些自己的理解。
+&nbsp;<span class='cdate'>13小时前</span><p>→<a href='http://www.open-open.com/news/view/1edd1bd' target='_blank'>详细信息</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;雷蛇发布史上最彪悍Windows 8游戏平板&nbsp;【<a href='http://www.open-open.com/news/category/7' target='_blank'>IT业界</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>雷蛇曾在去年的 CES 展会上推出了一款代号为“Project Fiona”的 Windows 8 游戏平板电脑原型产品。据最新消息显示，雷蛇在本次 CES 2013 展会上正式发布了这款产品，其正式名字为“Razer Edge”。
+&nbsp;<span class='cdate'>13小时前</span><p>→<a href='http://www.open-open.com/news/view/1cbd7f8' target='_blank'>详细信息</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;百度在泰国推出类似360安全卫士软件Baidu PC Faster&nbsp;【<a href='http://www.open-open.com/news/category/7' target='_blank'>IT业界</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>今天有网友在知乎上提问，“百度的 Baidu PC Faster 软件为什么不面向国内市场？”随后知乎发微博邀请大家猜测这款软件是否会杀回国内。众多网友才了解到原来百度在泰国不是做搜索，做的居然是安全，笑称这才是真正的“泰?”。据该网友称，Baidu PC Faster 是百度面向国外市场推出的一款系统清理 / 加速类的工具软件，目前还没见到中文版。
+&nbsp;<span class='cdate'>13小时前</span><p>→<a href='http://www.open-open.com/news/view/73a259' target='_blank'>详细信息</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;25 个基于HTML5+CSS3技术实现的下拉菜单&nbsp;【<a href='http://www.open-open.com/news/category/5' target='_blank'>前端技术</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>在这篇文章中，我们将分享一些非常棒的CSS3菜单教程集合，帮助您使用CSS3和HTML5技术快速创建漂亮的下拉菜单。&nbsp;<span class='cdate'>15小时前</span><p>→<a href='http://www.open-open.com/news/view/f4987e' target='_blank'>详细信息</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;2012 年 JS 库份额：jQuery +11.7% Mootools -0.3% Prototype -0.6%&nbsp;【<a href='http://www.open-open.com/news/category/5' target='_blank'>前端技术</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>2012 年刚过去，来自 w3techs 网站对目前市面上流行的 JavaScript 开发库的份额做了份统计表。该统计表表明在 2012 年整年中，jQuery 的份额增加了 11.7%，Mootools 下降 0.3%，Prototype 下降 0.6%。
+
+&nbsp;<span class='cdate'>15小时前</span><p>→<a href='http://www.open-open.com/news/view/1b42c8a' target='_blank'>详细信息</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;JavaCL 1.0.0-RC3 发布，巨大的性能改进&nbsp;【<a href='http://www.open-open.com/news/category/4' target='_blank'>开源软件</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>JavaCL 是一个基于BSD协议的Java类库，能够让你在Java中使用OpenCL。能够在显卡/CPU上运行大规模并行计算。
+
+&nbsp;<span class='cdate'>16小时前</span><p>→<a href='http://www.open-open.com/news/view/2c6208' target='_blank'>详细信息</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;BridJ 0.6.2 发布：修复许多Bug，支持OSGi&nbsp;【<a href='http://www.open-open.com/news/category/4' target='_blank'>开源软件</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>BridJ (BSD-licensed)是一个创新的本地绑定库，可以让Java程序员以一种非常自然的方式使用本地库 (采用C, C++, ObjectiveC等语言开发的库) 。
+
+&nbsp;<span class='cdate'>16小时前</span><p>→<a href='http://www.open-open.com/news/view/ca1bba' target='_blank'>详细信息</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;JNAerator 0.11 发布，透明的访问系统原生库&nbsp;【<a href='http://www.open-open.com/news/category/4' target='_blank'>开源软件</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>JNAerator (licensed under LGPL 3.0) 让Java程序员透明访问系统原生库，使用一个Runtime比如 BridJ (C / C++, BSD-license), JNA (C only, LGPL) 或 Rococoa (Objective-C)。
+
+&nbsp;<span class='cdate'>17小时前</span><p>→<a href='http://www.open-open.com/news/view/16f14b9' target='_blank'>详细信息</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;面向对象不是计算机编程的基本原子&nbsp;【<a href='http://www.open-open.com/news/category/11' target='_blank'>软件编程</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>在过去的 25 年里，编程世界发生了巨大的变化，如今，我们有大量的有用的、灵活的数据类型可以使用，但在 25 年前，你需要花大量的额外时间自己去构造这些类型。
+&nbsp;<span class='cdate'>17小时前</span><p>→<a href='http://www.open-open.com/news/view/183cd88' target='_blank'>详细信息</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Red Hat Enterprise Linux 5.9 发布&nbsp;【<a href='http://www.open-open.com/news/category/10' target='_blank'>操作系统</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> <img src='http://static.open-open.com/news/uploadImg/20130109/20130109080615_150.png' class='newsimg'  align='left'  width='80' height='57' alt='Red Hat Enterprise Linux 5.9 发布'/>Red Hat领导着Linux的开发、部署和经营，从嵌入式设备到安全网页服务器，它都是用开源软件作为Internet基础设施解决方案的领头羊。Red Hat由有远见的企业家Bob Young和Marc Ewing创建于1994年，它以源码开发作为营业模型的基础。&nbsp;<span class='cdate'>17小时前</span><br>→<a href='http://www.open-open.com/news/view/734c83' target='_blank'><strong>详细信息</strong></a><p style='margin-bottom:10px'>&nbsp;</p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp; EasyUI入门教程视频+高级用法&nbsp;【<a href='http://www.open-open.com/news/category/4' target='_blank'>开源软件</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> EasyUI入门教程视频+高级用法。由于我也是上班族，也是个程序猿，所以我打算一周左右出一集，大家不要催我，毕竟我业余时间也不是很多。
+还有本人英文也不咋的，讲解的时候有什么错误欢迎指出，共同学习。
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/news/view/757da6' target='_blank'>详细信息</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;福特汽车向 iOS/Android 开发者开放 Applink API&nbsp;【<a href='http://www.open-open.com/news/category/8' target='_blank'>移动开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>福特今天在 CES 大展上向 iOS 和 Android 开发者开放 Applink API，未来开发者可以为汽车开发应用。 
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/news/view/6255b6' target='_blank'>详细信息</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Facebook：孩子你长大了，就成了腾讯&nbsp;【<a href='http://www.open-open.com/news/category/7' target='_blank'>IT业界</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>   即使有扎克伯克的公开道歉，Facebook 抄袭 Snapchat 的事件仍在发酵。以 Facebook 今日在江湖中的地位，干出如此不光彩之事，实在是可悲可叹??美金美金，引无数英雄竞折腰。想到抄遍天下无敌手的腾讯，小小年纪的扎克伯克倒与这句话很应 景：孩子你长大了，就成了腾讯。
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/news/view/673b9d' target='_blank'>详细信息</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;3D 游戏引擎 Cube 2 新版源码发布&nbsp;【<a href='http://www.open-open.com/news/category/4' target='_blank'>开源软件</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> <img src='http://static.open-open.com/news/uploadImg/20130108/20130108193723_488.png' class='newsimg'  align='left'  width='80' height='57' alt='3D 游戏引擎 Cube 2 新版源码发布'/>   开源的第一人称多人射击游戏 Cube 2: Sauerbraten 近日发布了新的版本。新版本的代码名称为“集合版（Collect Edition）”，包括 45 个新的地图，以及 3 个新的游戏模式：collect、insta collect 和 efficiency collect。 
+&nbsp;<span class='cdate'>1天前</span><br>→<a href='http://www.open-open.com/news/view/127c56a' target='_blank'><strong>详细信息</strong></a><p style='margin-bottom:10px'>&nbsp;</p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Mozilla宣布App Days活动，开放Firefox OS代码和API&nbsp;【<a href='http://www.open-open.com/news/category/7' target='_blank'>IT业界</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>  Firefox OS 已经确定将会在今年正式推出。在这个“应用才是王道”的情况下 Mozilla 为了在正式推出之后有非常完善的生态系统，今天官方正式宣布将启动“App Days”活动，并表示会在未来几天内推出让开发者激动的相关活动，活动时间为 1 月 19 日~26 日。 
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/news/view/edcb13' target='_blank'>详细信息</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;最全的 Web 开发项目检查清单&nbsp;【<a href='http://www.open-open.com/news/category/5' target='_blank'>前端技术</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> 在完成 Web 应用的功能性开发工作后，你还需要对其进行各种测试、调优。由于需要测试的方面较多，有可能会遗漏一些重要的测试项。 
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/news/view/1676929' target='_blank'>详细信息</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;全球首款Firefox OS手机图赏&nbsp;【<a href='http://www.open-open.com/news/category/7' target='_blank'>IT业界</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>CES 2013 已经拉开大幕，在 Android 和 Windows 产品云集的展台中，一款“另类”的、基于 Firefox OS 平台的手机也低调地亮相了。
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/news/view/162e839' target='_blank'>详细信息</a></p></div></DIV>
+	<p><strong>更多更新鲜的资讯请访问→[<a href='http://www.open-open.com/news/'>OPEN资讯</a>]</strong></p>
+      </DIV>
+
+      <DIV id=dictlangc_bbs style="MARGIN-TOP: 25px; MARGIN-LEFT: 25px;DISPLAY: none">
+	 <div style='float:right'><a href='/bbs/submit/add' title='OPEN开源论坛，开发乐园' style='MARGIN-bottom:13px;font-size:15px;color:red'><strong>我要提问</strong></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+	  <H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;open文档为什么总是在加载中 而没有内容显示呢？&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>急需解答？？？？？？？<p>→<a href='http://www.open-open.com/bbs/view/1357731704965' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;龙泉寺信息技术组 禅道使用经验分享&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>关于禅道使用经验分享
+禅道项目管理软件（www.zentao.net）使用经验分享，欢迎大家一起来探讨关于禅道项目管理软件使用方面的问题。我们广泛的收集对禅道的看法..<p>→<a href='http://www.open-open.com/bbs/view/1357364080355' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;禅道API机制介绍&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>禅道项目管理通过底层的框架实现了灵活的API调用机制。通过禅道的API机制，大家就可以实现很多非常有意思的功能。下面我们以一个实际的例子来向大家展示禅道的AP..<p>→<a href='http://www.open-open.com/bbs/view/1356415570495' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;ZenTaoPHP框架中的数据验证机制&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>
+
+数据验证在web应用中尤其显得重要。下面来给大家介绍下禅道（www.zentao.net/）框架的数据验证机制。
+一、首先来确定一个问题，即验证的规则放在什么地方？..<p>→<a href='http://www.open-open.com/bbs/view/1355276232992' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;PHP热门教程+经典源码汇总，数量超多，总有你喜欢的&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>小弟辛苦整理，全是网上热门资料和源码，大家可以根据自己需要，选择性下载
+内容部分索引??
+PHP完全自学手册 保证3天学会
+PHP-MySQL教程电子书【chm格式】
+p..<p>→<a href='http://www.open-open.com/bbs/view/1353396751638' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;敏捷之旅2012年12月1日北京站即将拉开帷幕！&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>很多人在“谈”敏捷，而我们在“做”敏捷。很多人在说已经“实现了”敏捷，而我们认为我们一直都还“在路上”。在过去的两届敏捷之旅北京站的活动中，我们都注重..<p>→<a href='http://www.open-open.com/bbs/view/1353390773138' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;安装MongoDB 在Windows&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>
+MongoDB GUI图形化管理工具 JMongoBrowser
+Synopsis
+This tutorial provides a method for installing and running the MongoDB server (i.e. “mongod.exe”..<p>→<a href='http://www.open-open.com/bbs/view/1353373937951' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;jsp基本引用&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>
+
+http://blog.csdn.net/luju5<p>→<a href='http://www.open-open.com/bbs/view/1353054694909' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;115个JAVA工程师必备资料集合&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>从招聘会回来，我总结了一下。Java工程师的需求真的好大，几乎每一个科技公司都需要java工程师。所以说争吵哪种语言最有市场还得看社会需求，这次蹭招聘会的经历..<p>→<a href='http://www.open-open.com/bbs/view/1353053055297' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;110个热门的Android开发优质资料&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>虽然现在Win phone 8吵得很火，搞的很不得了，但是小弟我仍然看好android，相信咱android开发的永远是最活跃最强大的群体，希望androider的明天更好！
+最近晚上..<p>→<a href='http://www.open-open.com/bbs/view/1352966930574' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;FlashSwing最新推出Windows8UIStyle 皮肤样式&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>FlashSwing 新发布了 Windows8UIStyle 皮肤样式，
+与 win8 的组件样式可以说一模一样。
+喜欢 win8 的朋友可以看看， 
+预览地址： http://www.shinater.com/Fl..<p>→<a href='http://www.open-open.com/bbs/view/1352692184496' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;关于java从数据库中取图片&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>请教各位大侠,用java怎么能直接把以二进制数据保存在sql server 2005数据库中的图片直接保存到word文档中，请各位大侠附上代码吧，谢谢<p>→<a href='http://www.open-open.com/bbs/view/1352443270929' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;freemarker中遍历一个list&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>我想在freemarker中遍历一个list，在得到指定的值，然后以逗号隔开，最后一个不用逗号。代码如下：
+&lt; #list nameList as list&gt;&lt;#if '${list.seachvo}'..<p>→<a href='http://www.open-open.com/bbs/view/1352190236953' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;泛域名ssl证书搭建全攻略！&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>无忧在线项目管理(www.5upm.com)是禅道开发团队给大家提供的一款在线的项目管理服务，它提供了禅道软件专业版本的功能，同时内置了subversion和git的源码托管服务..<p>→<a href='http://www.open-open.com/bbs/view/1351577786567' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;flash Tree组件使用经验分享&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>Tree 组件允许用户查看分层数据。
+树中的每一项称为节点，并且可以是叶或分支。当展开分支时，将显示其子节点。分支的子项可以是叶或分支。
+当树实例从单击或 ..<p>→<a href='http://www.open-open.com/bbs/view/1351568953098' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;IE10和HTML5 你该了解的那些 &nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>你一定听说过HTML5，因为大家都在谈论它；也一定听说过Internet Explorer 10 和 Windows 
+8，可能你已经体验过了，那么它究竟好在哪儿？究竟能带来什么？Intern..<p>→<a href='http://www.open-open.com/bbs/view/1351049607633' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;IT人，请爱惜你的身体&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>　　昨夜的八九点，也就是差不多在我今夜写文章的时候，我遇见了一位几年前的同事，当时我离开天津的时候去的第一家公司，我就和他同事，当时我大学毕业毕业离开..<p>→<a href='http://www.open-open.com/bbs/view/1350733720696' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;编程离软件工程有多远？&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>
+				
+					　　语言只是工具
+　　我曾经是非常执著的开发人员。我有连续几天几夜&nbsp;Coding&nbsp;的经历，也曾经为了一个技术问题耗上三四个星期而导致项目..<p>→<a href='http://www.open-open.com/bbs/view/1350733650836' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;开源WebSocket服务器项目CshBBrain第一版发布 &nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>
+转自http://cshbbrain.iteye.com/blog/1685217&nbsp;
+通过1年多的努力，今天终于发布了开源WebSocket服务器项目CshBBrain.由于本人比较懒，就使用了我的网名作..<p>→<a href='http://www.open-open.com/bbs/view/1348821287244' target='_blank'>参与讨论</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;MyBatis .Net 数据持久层的建立&nbsp;</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>MyBatis .Net 数据持久层如何建立<p>→<a href='http://www.open-open.com/bbs/view/1348622176338' target='_blank'>参与讨论</a></p></div></DIV>
+	 <p><strong>更多讨论→[<a href='/bbs'>Open论坛</a>]</strong></p>  
+      </DIV>
+
+      <DIV id=dictlangc_lib style="MARGIN-TOP: 25px; MARGIN-LEFT: 25px;DISPLAY: none">
+	 <div style='float:right'><span class="rss"></span><a href="http://www.open-open.com/lib/rss.xml" ><strong>订阅最新的经验</strong></a>&nbsp;&nbsp;&nbsp;&nbsp;<a href='/lib/submit/add' title='Open经验库' style='MARGIN-bottom:13px;font-size:15px;color:red'><strong>分享经验</strong></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+	  <H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;la4j - Java的线性代数&nbsp;【<a href='http://www.open-open.com/lib/list/37' target='_blank'>Java开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'><img src='http://static.open-open.com/lib/uploadImg/20130109/20130109222358_117.png' class='newsimg'  align='left'  width='80' height='57' alt='la4j - Java的线性代数'/>la4j - 是一个单线程，开源的，纯Java类库，提供了线性代数的原语和算法。
+&nbsp;<span class='cdate'>2小时前</span><p>→<a href='http://www.open-open.com/lib/view/open1357741577590.html' target='_blank'>详细内容</a></p><p style='margin-bottom:10px'>&nbsp;</p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;sBubble: jQuery/CSS3 Tooltip 插件&nbsp;【<a href='http://www.open-open.com/lib/list/340' target='_blank'>jQuery Tooltips</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>sBubble是一个jQuery插件完全基于CSS3实现形状和动画。没有使用图片和jQuery代码实现动画。此外还提供一些颜色主题。
+&nbsp;<span class='cdate'>15小时前</span><p>→<a href='http://www.open-open.com/lib/view/open1357694693246.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Android之GPS定位详解&nbsp;【<a href='http://www.open-open.com/lib/list/177' target='_blank'>Android开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>LocationMangager，位置管理器。要想操作定位相关设备，必须先定义个LocationManager。我们可以通过如下代码创建LocationManger对象。
+
+&nbsp;<span class='cdate'>15小时前</span><p>→<a href='http://www.open-open.com/lib/view/open1357693840793.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;轻量级的Java ORM框架：Just ORM&nbsp;【<a href='http://www.open-open.com/lib/list/25' target='_blank'>持久层框架</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>jorm (Just ORM) 是一个超轻量级的 Java 的对象映射框架。
+
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357657658418.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;C++的ORM框架：ODB&nbsp;【<a href='http://www.open-open.com/lib/list/25' target='_blank'>持久层框架</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>ODB 是一个开源的，支持多平台，支持多数据库的 C++ 的 ORM 框架，可将 C++ 对象数据库表映射，进行轻松的数据库查询和操作。
+
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357657155074.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;C++封装的数据库访问库：SOCI&nbsp;【<a href='http://www.open-open.com/lib/list/40' target='_blank'>C/C++开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>soci是一个用C++封装的数据库访问库，目前通过 “前端（应用程序）/核心/后端（数据库适配）”模式支持firebird,mysql,sqlite3,oracle,postgresql,odbc 多种数据库；作为扩展，您也可以自己针对具体不同库或应用编写自定义后端代码。貌似另外一个poco开源库的数据库封装系参考soci；
+
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357657072137.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;HTTP 文件服务器：http-watcher&nbsp;【<a href='http://www.open-open.com/lib/list/77' target='_blank'>Web服务器</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>一个用GO开发的 HTTP 文件服务器，特殊之处在于它同时会监控文件系统改动，当发现文件变化后，自动刷新浏览器。可帮助前端开发。
+
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357657024996.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Felix - 编程语言&nbsp;【<a href='http://www.open-open.com/lib/list/36' target='_blank'>开发语言与工具</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>Felix 是目前最快的脚本编程语言。
+
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357656977855.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;开源CDN加速管理工具：OpenCDN&nbsp;【<a href='http://www.open-open.com/lib/list/75' target='_blank'>服务器软件</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>OpenCDN是一套快速部署CDN加速的工具，针对专门提供CDN加速服务的企业或对多节点CDN加速有需求的企业，提供一套便捷的CDN加速管理平台，可对每一个节点的状态、系统负载进行实时监测与统一管理，同时我们预制了多套常用缓存规则，支持多种复杂的CDN缓存场景。 
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357656565027.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;开源云服务抽象层：Dasein Cloud&nbsp;【<a href='http://www.open-open.com/lib/list/220' target='_blank'>分布式/云计算</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>Dasein Cloud是一个用Java开发的开源云服务抽象层，遵循Apache v2.0协议。它帮助开发者构建能在不同云上运行的通用应用。它提供了针对大多数IaaS和部分PaaS的抽象模型，基于此模型开发，应用在运行时就能转换为相应的云服务商模型。
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357656460215.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;LevelDB 的服务器：SSDB&nbsp;【<a href='http://www.open-open.com/lib/list/307' target='_blank'>NoSQL数据库</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>众所周知, LevelDB 只是一个 C/C++ 的编程语言库, 所以, PHP, Python 等编程语言无法直接使用 LevelDB, 必须 将 LevelDB 封装成一个网络服务器.
+
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357656306105.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Cpy - 提供一种用C语法来编写Python代码&nbsp;【<a href='http://www.open-open.com/lib/list/43' target='_blank'>Python开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>对于想利用 Python 执行引擎以及丰富的类库资源, 同时又不喜欢 Python 语法的程序员, cpy 提供了一个解决方案. Cpy 是一种类 C 语法的脚本语言, 拥有 Python 的所有类库.
+
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357656250980.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;数据库建模和管理：CMDBuild&nbsp;【<a href='http://www.open-open.com/lib/list/94' target='_blank'>数据库建模</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>CMDBuild 是一个可配置的 Web 应用，用来对数据库进行建模和管理 (CMDB 表示 "Configuration and Management Data Base") 并且处理相关的工作流操作。
+
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357656103449.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;25个必须记住的SSH命令&nbsp;【<a href='http://www.open-open.com/lib/list/237' target='_blank'>网络技术</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>OpenSSH是SSH连接工具的免费版本。telnet，rlogin和ftp用户可能还没意识到他们在互联网上传输的密码是未加密的，但SSH是加密的，OpenSSH加密所有通信（包括密码），有效消除了窃听，连接劫持和其它攻击。此外，OpenSSH提供了安全隧道功能和多种身份验证方法，支持 SSH协议的所有版本。 
+
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357655816512.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;jQuery日期选择插件：glDatePicker&nbsp;【<a href='http://www.open-open.com/lib/list/358' target='_blank'>jQuery日期插件</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'><img src='http://static.open-open.com/lib/uploadImg/20130108/20130108214601_623.png' class='newsimg'  align='left'  width='80' height='57' alt='jQuery日期选择插件：glDatePicker'/>glDatePicker是一个简单，可以定义，轻量级jQuery日期选择插件。压缩后只有4KB左右。它提供的一些功能包括：向前和向后导航， 默认当天日期高亮选中，显示当前选中的日期，限制日期选择范围（如：将日期限制在开始日期后的N天内），设置每一个日期选择器的样式。
+
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357652815715.html' target='_blank'>详细内容</a></p><p style='margin-bottom:10px'>&nbsp;</p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;仿淘宝天猫左侧分类导航Jquery插件&nbsp;【<a href='http://www.open-open.com/lib/list/335' target='_blank'>jQuery页面导航插件</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>此Jquery插件又是一款给力、实用的作品，是电子商务网站不可缺少的神兵利器之一。使用非常简单，网页代码结构非常清晰。 &nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357621440090.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;WEB UI框架的成熟引领新的开发模式 JEECG(J2EE Code Generation)&nbsp;【<a href='http://www.open-open.com/lib/list/2' target='_blank'>Web框架</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>随着WEB UI框架(EasyUi/Jquery UI/Ext)等的逐渐成熟,系统界面逐渐实现统一化，代码生成器也可以生成统一规范的界面！代码生成+手工MERGE半智能开发将是新的趋势，单表数据模型和一对多数据模型的增删改查功能直接生成使用,可节省50%工作量，快速提高开发效率！！！
+
+
+
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357621370496.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp; PHP缓存之redis中文文档&nbsp;【<a href='http://www.open-open.com/lib/list/354' target='_blank'>Redis</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>phpredis是php的一个扩展，效率是相当高有链表排序功能，对创建内存级的模块业务关系
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357608875340.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Java开源数据挖掘平台：SPMF&nbsp;【<a href='http://www.open-open.com/lib/list/72' target='_blank'>BI商业智能</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>SPMF是一个采用Java开发的开源数据挖掘平台。
+
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357608764980.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Java远程方法调用：Hessian &nbsp;【<a href='http://www.open-open.com/lib/list/37' target='_blank'>Java开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>公司不同pool之间提供service都是通过hessian来开放接口的，个人觉得hessian的使用非常简单。做个demo如下：
+
+0.首先创建web工程，并加载hessian.jar。
+
+&nbsp;<span class='cdate'>1天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357604667793.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;基于Java的Play2模板引擎：Japid42&nbsp;【<a href='http://www.open-open.com/lib/list/6' target='_blank'>模板引擎</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>Play!框架是一个先进的现代化Java web框架，极大的提升了Java开发人员开发web应用的效率。然而Play的view层（即html模板）的性能却差强人意。Play1使用 groovy模板作为渲染引擎，而Play2使用Scala模板。&nbsp;<span class='cdate'>2天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357541733293.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Java个人博客程序：jfinal blog&nbsp;【<a href='http://www.open-open.com/lib/list/37' target='_blank'>Java开发</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>使用 jFinal 框架， Mysql数据库，ehcache缓存，freemarker模板引擎的博客系统。 
+
+&nbsp;<span class='cdate'>2天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357534036308.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;jTransfo - 实现Java数据对象与传输对象之间的转换器&nbsp;【<a href='http://www.open-open.com/lib/list/15' target='_blank'>常用工具包</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>jTransfo 是一个用于实现传输对象和数据对象之间进行转换的 Java 类库。使用注解来标记需要转换的对象，支持集成 Spring 框架和 Joda-Time 。
+&nbsp;<span class='cdate'>2天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357541637246.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;图片服务器架构&nbsp;【<a href='http://www.open-open.com/lib/list/196' target='_blank'>软件架构</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>  现在很多中小网站都允许用户上传图片，如果前期没有很好的规划，那么随着图片文件的增多，无论是管理还是性能上都带来很多问题。就自己的一点理解纯属理论,没经验证,谨慎参考。 &nbsp;<span class='cdate'>3天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357482922433.html' target='_blank'>详细内容</a></p></div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;SQLExecutor: 一个简单的JDBC框架&nbsp;【<a href='http://www.open-open.com/lib/list/25' target='_blank'>持久层框架</a>】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'>SQLExecutor 是一个简单的 JDBC 框架，只需要一个jar包足以。支持 Oracle, mySQL, HSQL, 和 PostgreSQL 等数据库，可轻易扩展支持新的数据库。
+
+&nbsp;<span class='cdate'>3天前</span><p>→<a href='http://www.open-open.com/lib/view/open1357483283121.html' target='_blank'>详细内容</a></p></div></DIV>
+	 <p><strong>更多经验→[<a href='http://www.open-open.com/lib/'>Open经验库</a>]</strong></p>  
+      </DIV>
+      <DIV id=dictlangc_ajax style="MARGIN-TOP: 25px; MARGIN-LEFT: 25px;DISPLAY: none">
+	  <H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;jQuery TextEx&nbsp;【<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC30m style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> jQuery TextExt ， 这个插件能够有效的帮助你快速添加标签，并且提供相关的强大的辅助功能，帮助你有效的输入，自动补齐提示及其提供AJAX支持。<BR><IMG border=0 alt=jQueryTextEx.jpg src="http://www.open-open.com/ajax/pimage/jQueryTextEx.jpg" alignment=""><p><a href='ajax/ajax20120524100143.htm' >jQuery TextEx</a><p><span class='tabico'></span>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;</div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;keyboard.js&nbsp;【<a href='http://www.open-open.com/ajax/Framework.htm'><u>Framework</u></a>&nbsp;】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC30m style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> &nbsp;keyboard.js，使用这个类库你可以很方便的捕捉输入键的组合，可以帮助你很好的添加相关快捷键的操作.<BR><IMG border=0 alt=keyboard.jpg src="http://www.open-open.com/ajax/pimage/keyboard.jpg" alignment=""><p><a href='ajax/ajax20120524095933.htm' >keyboard.js</a><p><span class='tabico'></span>&nbsp;<a href='http://www.open-open.com/ajax/Framework.htm'><u>Framework</u></a>&nbsp;</div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Adipoli&nbsp;【<a href='http://www.open-open.com/ajax/Image.htm'><u>Image</u></a>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/.htm'><u></u></a>&nbsp;】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC30m style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> <DIV class=Content>
+<P>Adipoli是一个使用html5实现了鼠标移到图片上对图片的显示效果进行切换的 jQuery 插件。<BR><IMG border=0 alt=Adipoli.jpg src="http://www.open-open.com/ajax/pimage/Adipoli.jpg" alignment=""></P></DIV><p><a href='ajax/ajax20120426150026.htm' >Adipoli</a><p><span class='tabico'></span>&nbsp;<a href='http://www.open-open.com/ajax/Image.htm'><u>Image</u></a>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/.htm'><u></u></a>&nbsp;</div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;jQuery Collapse&nbsp;【<a href='http://www.open-open.com/ajax/Accordion.htm'><u>Accordion</u></a>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/.htm'><u></u></a>&nbsp;】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC30m style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> jQuery Collapse 是一个轻量级的 jQuery 插件用以对元素进行展开和收起的功能，支持 Cookie 进行状态保存。<BR><IMG border=0 alt=jQueryCollapse.jpg src="http://www.open-open.com/ajax/pimage/jQueryCollapse.jpg" alignment=""><p><a href='ajax/ajax20120426143624.htm' >jQuery Collapse</a><p><span class='tabico'></span>&nbsp;<a href='http://www.open-open.com/ajax/Accordion.htm'><u>Accordion</u></a>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/.htm'><u></u></a>&nbsp;</div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;jQuery OrgChart &nbsp;【<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC30m style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> <P>jQuery OrgChart 是一个jQuery插件能够让帮你将一组嵌套的元素渲染成一个易于阅读的树形结构。易于使用。 你可以一个特定的树节来展示和隐藏一个树分支。可以采用CSS进行风格修改。还可以拖拉的方式来改变树节点的位置。</P>
+<P><IMG border=0 alt=jQueryOrgChart.jpg src="http://www.open-open.com/ajax/pimage/jQueryOrgChart.jpg" alignment=""></P><p><a href='ajax/ajax20120426143434.htm' >jQuery OrgChart </a><p><span class='tabico'></span>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;</div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;jqFloat.js&nbsp;【<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC30m style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> <DIV class=Img><IMG border=0 alt=jqFloat.jpg src="\ajax\pimage\jqFloat.jpg" alignment=""><BR>jqFloat.js 是一个 jQuery 的插件用于实现页面元素的浮动效果。</DIV><p><a href='ajax/ajax20120425230813.htm' >jqFloat.js</a><p><span class='tabico'></span>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;</div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Sweet Tooltip&nbsp;【<a href='http://www.open-open.com/ajax/Tooltips.htm'><u>Tooltips</u></a>&nbsp;】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC30m style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> <DIV class=Img><IMG border=0 alt=Sweet.jpg src="http://www.open-open.com/ajax/pimage/Sweet.jpg" alignment=""><BR>这是一个基于 CSS3 的工具提示插件，提供多种提示风格选择。</DIV><p><a href='ajax/ajax20120425230657.htm' >Sweet Tooltip</a><p><span class='tabico'></span>&nbsp;<a href='http://www.open-open.com/ajax/Tooltips.htm'><u>Tooltips</u></a>&nbsp;</div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Blueberry&nbsp;【<a href='http://www.open-open.com/ajax/Gallery.htm'><u>Gallery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/Image.htm'><u>Image</u></a>&nbsp;<a href='http://www.open-open.com/ajax/.htm'><u></u></a>&nbsp;】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC30m style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> <DIV class=Img><IMG border=0 alt=Blueberry.jpg src="http://www.open-open.com/ajax/pimage/Blueberry.jpg" alignment=""></DIV>
+<DIV class=Content>
+<P>Blueberry 是一个试验的 jQuery 图片滑动插件，特别适合支持流体和响应式的网页布局设计。</P></DIV><p><a href='ajax/ajax20120425225527.htm' >Blueberry</a><p><span class='tabico'></span>&nbsp;<a href='http://www.open-open.com/ajax/Gallery.htm'><u>Gallery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/Image.htm'><u>Image</u></a>&nbsp;<a href='http://www.open-open.com/ajax/.htm'><u></u></a>&nbsp;</div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Kalendae&nbsp;【<a href='http://www.open-open.com/ajax/DatePicker.htm'><u>DatePicker</u></a>&nbsp;】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC30m style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> <DIV class=Img><IMG border=0 alt=Kalendae.jpg src="\ajax\pimage\Kalendae.jpg" alignment=""></DIV>
+<DIV class=Content>
+<P>Kalendae 是一个 JavaScript 实现的日期选择工具，无需依赖其他 JS 库。</P></DIV><p><a href='ajax/ajax20120425225401.htm' >Kalendae</a><p><span class='tabico'></span>&nbsp;<a href='http://www.open-open.com/ajax/DatePicker.htm'><u>DatePicker</u></a>&nbsp;</div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;BxCarousel&nbsp;【<a href='http://www.open-open.com/ajax/Gallery.htm'><u>Gallery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/.htm'><u></u></a>&nbsp;】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC30m style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> <DIV class=Img><IMG border=0 alt=BxCarousel.jpg src="http://www.open-open.com/ajax/pimage/BxCarousel.jpg" alignment=""></DIV>
+<DIV class=Content>
+<P>BxCarousel是一个具有众多配置且易用的Jquery图片滚动插件，特征主要有：</P>
+<P>&Oslash;&nbsp; 可以指定显示的元素数<BR>&Oslash;&nbsp; 可以指定每次滚动元素数<BR>&Oslash;&nbsp; 自动播放模式<BR>&Oslash;&nbsp; 前一张/后一张按钮控制图片流动</P></DIV><p><a href='ajax/ajax20120425225219.htm' >BxCarousel</a><p><span class='tabico'></span>&nbsp;<a href='http://www.open-open.com/ajax/Gallery.htm'><u>Gallery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/.htm'><u></u></a>&nbsp;</div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;jQuery UI MultiSelect Widget&nbsp;【<a href='http://www.open-open.com/ajax/Forms.htm'><u>Forms</u></a>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/.htm'><u></u></a>&nbsp;】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC30m style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> jQuery UI MultiSelect Widget 是 jQuery MultiSelect Plugin 的改进版本。<IMG border=0 alt="jQuery_UI MultiSelect_Widget.jpg" src="\ajax\pimage\jQuery_UI MultiSelect_Widget.jpg" alignment=""><p><a href='ajax/ajax20120425225021.htm' >jQuery UI MultiSelect Widget</a><p><span class='tabico'></span>&nbsp;<a href='http://www.open-open.com/ajax/Forms.htm'><u>Forms</u></a>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/.htm'><u></u></a>&nbsp;</div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;NailThumb&nbsp;【<a href='http://www.open-open.com/ajax/Image.htm'><u>Image</u></a>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/.htm'><u></u></a>&nbsp;】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC30m style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> jQuery NailThumb 可让你轻松创建高分辨率图像的无损缩略图，只需一行代码搞定。你可以通过 CSS 来设定缩略图的尺寸。你也可以用它来处理用户头像上传后的处理。<BR><IMG border=0 alt=NailThumb.jpg src="http://www.open-open.com/ajax/pimage/NailThumb.jpg" alignment=""><p><a href='ajax/ajax20120425224853.htm' >NailThumb</a><p><span class='tabico'></span>&nbsp;<a href='http://www.open-open.com/ajax/Image.htm'><u>Image</u></a>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/.htm'><u></u></a>&nbsp;</div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Slidorion&nbsp;【<a href='http://www.open-open.com/ajax/Gallery.htm'><u>Gallery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/.htm'><u></u></a>&nbsp;】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC30m style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> <DIV class=Content>
+<P>&nbsp;Slidorion是一个简单易用且轻量级的jQuery图片幻灯插件，它是以幻灯片的形式展示图片，同时以手风琴效果展示与图片相关联的文字内容。此插件内置了多种图片切换效果，如淡入淡出、左右切换、上下切换等。</P>
+<DIV>Slidorion的定制性也相当高，通过参数的设置可以控制初始显示的幻灯、自动播放、鼠标悬停等。除此之外，还可以自定义设置幻灯片的切换速度和停留时间。<BR><IMG border=0 alt=Slidorion.jpg src="http://www.open-open.com/images//Slidorion.jpg" alignment=""></DIV></DIV><p><a href='ajax/ajax20111204214200.htm' >Slidorion</a><p><span class='tabico'></span>&nbsp;<a href='http://www.open-open.com/ajax/Gallery.htm'><u>Gallery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/.htm'><u></u></a>&nbsp;</div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;Sausage&nbsp;【<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC30m style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> <P>Sausage 是一款 jQuery 内容分页插件，用于补充页面内容很长情况下产生的滚动不友好问题。</P>Sausage 需要 jQuery UI 库支持。<p><a href='ajax/ajax20111204213931.htm' >Sausage</a><p><span class='tabico'></span>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;</div></DIV><H4> <DIV class=d_left><span class='navico'>&nbsp;</span>&nbsp;jQuery phZoom Plugin&nbsp;【<a href='http://www.open-open.com/ajax/Image.htm'><u>Image</u></a>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/.htm'><u></u></a>&nbsp;】</DIV><DIV class=d_right></DIV></H4><DIV id=dictc_PWDECMEC30m style='PADDING-RIGHT: 15px; PADDING-LEFT: 15px; PADDING-BOTTOM: 5px; PADDING-TOP: 1px'><div class='feature'> phZoom 是一个轻量级看图插件, 基于jQuery 1.4+,拥有苗条的身材(未精简变量不到4kb), 以及与众不同的动画特效。<BR><IMG border=0 alt=jQuery-phZoom-Plugin.jpg src="http://www.open-open.com/ajax/pimage/jQuery-phZoom-Plugin.jpg" alignment=""><p><a href='ajax/ajax20111127193242.htm' >jQuery phZoom Plugin</a><p><span class='tabico'></span>&nbsp;<a href='http://www.open-open.com/ajax/Image.htm'><u>Image</u></a>&nbsp;<a href='http://www.open-open.com/ajax/jQuery.htm'><u>jQuery</u></a>&nbsp;<a href='http://www.open-open.com/ajax/.htm'><u></u></a>&nbsp;</div></DIV>
+	 <p><strong>更多更全的JS脚本→[<a href='http://www.open-open.com/ajax'>JS脚本大全</a>]</strong></p>  
+      </DIV>
+</DIV><BR>
+      <DIV class=line_bm></DIV>
+      <BR>
+      <DIV style="MARGIN-LEFT: 8px">
+	<div id="googlead2"></div>
+	  </DIV></TD>
+    <TD width=2>&nbsp;</TD>
+    <TD class=Right id=adRight vAlign=top align=right>
+ <div  style='WIDTH: 200px'>
+<h4 style="margin-top: 8px"  class="title_gray">OPEN家园动态：- <a href="http://www.open-open.com/home/space.php?do=home">冒个泡</a></h4>
+<div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/75478'>ever.g</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/66ec9eaddbdb49adbcdd6c9022f9f4e2' target='_blank'>《Itext，PDF工具学习.docx》</a>评为：不错&nbsp;<span class='cdate'>5分钟前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='lib'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/142787'>xin891120</a>&nbsp;将经验<a rel=nofollow' href='http://www.open-open.com/lib/view/open1328023783718.html' target='_blank'>《Common Lisp实现的一个JSON解析器和生成器 - CL-JSON》</a>评为：不错&nbsp;<span class='cdate'>1小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/142787'>xin891120</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/82790528bdd94d64823a6671676ab254' target='_blank'>《介绍一个PDF的生成方案.doc》</a>评为：不错&nbsp;<span class='cdate'>1小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/142787'>xin891120</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/cfb4547430184760932594458574e2c6' target='_blank'>《iText 中文教程(含代码).pdf》</a>评为：不错&nbsp;<span class='cdate'>1小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/142787'>xin891120</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/66ec9eaddbdb49adbcdd6c9022f9f4e2' target='_blank'>《Itext，PDF工具学习.docx》</a>评为：不错&nbsp;<span class='cdate'>1小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/58504'>wutai79</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/e3ee8b99edcb41bba6ead308fcb20063' target='_blank'>《第四章 Java字符串类与正则表达式.ppt》</a>评为：还行&nbsp;<span class='cdate'>2小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/58504'>wutai79</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/32864e02378a4f0ba2df847938b9c2db' target='_blank'>《Java AIO(异步网络IO)初探.doc》</a>评为：不错&nbsp;<span class='cdate'>2小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/58504'>wutai79</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/28b5e616d3374baa904d63c8e715f7ac' target='_blank'>《javaweb之五(域对象会话跟踪技术cookiesession共24章).doc》</a>评为：力荐&nbsp;<span class='cdate'>2小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/58504'>wutai79</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/d51f8d148cf84f97b463391067d8065b' target='_blank'>《javaweb之六(jspjsp语法指令声明scriptlets输出隐含对象共24章).doc》</a>评为：不错&nbsp;<span class='cdate'>2小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/58504'>wutai79</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/36afd8ad07174d3a85656e333228b1b3' target='_blank'>《javaweb之七(javabean与jsp与mvc共24章).doc》</a>评为：还行&nbsp;<span class='cdate'>2小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/131110'>sidneyzsc</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/c97ed12c5fd14fd9a0837aa19f8f0289' target='_blank'>《Spring声明式事务管理祥述 .doc》</a>评为：不错&nbsp;<span class='cdate'>2小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='lib'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/131110'>sidneyzsc</a>&nbsp;将经验<a rel=nofollow' href='http://www.open-open.com/lib/view/open1350865116821.html' target='_blank'>《Spring 事务机制详解》</a>评为：力荐&nbsp;<span class='cdate'>2小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/131110'>sidneyzsc</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/d19397a6a50f4ed5bd24b4074a571e35' target='_blank'>《Jakarta Commons 学习.pdf》</a>评为：不错&nbsp;<span class='cdate'>2小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/131110'>sidneyzsc</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/cc0bbb9e02874d99abec91e4012f582e' target='_blank'>《Jakarta Commons Cookbook.pdf》</a>评为：力荐&nbsp;<span class='cdate'>2小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/131110'>sidneyzsc</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/ad3b3d43c7154e9da01a3c350ba65b6d' target='_blank'>《Jakarta Commons中文版.pdf》</a>评为：力荐&nbsp;<span class='cdate'>2小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/70394'>river99</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/4ae9841b1c7d42c498c5de9bbaf8ab7b' target='_blank'>《Ruby on Rails Tutorial.pdf》</a>评为：不错&nbsp;<span class='cdate'>2小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='lib'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/131110'>sidneyzsc</a>&nbsp;将经验<a rel=nofollow' href='http://www.open-open.com/lib/view/open1325412514812.html' target='_blank'>《java集合架构详解》</a>评为：不错&nbsp;<span class='cdate'>2小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='lib'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/131110'>sidneyzsc</a>&nbsp;将经验<a rel=nofollow' href='http://www.open-open.com/lib/view/open1345863758117.html' target='_blank'>《Java 正则表达式入门》</a>评为：不错&nbsp;<span class='cdate'>2小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/8235'>dongbayou</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/7d585c50ee744aa3a4b34799cb9606d6' target='_blank'>《基于ORACLE的SQL与PL/SQL开发实践.pdf》</a>评为：力荐&nbsp;<span class='cdate'>3小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/139447'>sdxrh2005</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/1566bf7ea9fa43ee98cb0ea803b640d8' target='_blank'>《Getting Real 中文版.pdf》</a>评为：力荐&nbsp;<span class='cdate'>4小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/139447'>sdxrh2005</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/143801a303d84006a24425257289050c' target='_blank'>《OGRE 入门教程.pdf》</a>评为：力荐&nbsp;<span class='cdate'>4小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/139447'>sdxrh2005</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/4ae9841b1c7d42c498c5de9bbaf8ab7b' target='_blank'>《Ruby on Rails Tutorial.pdf》</a>评为：力荐&nbsp;<span class='cdate'>4小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/139447'>sdxrh2005</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/b6608ed258fd4e2d8330cfeb53f467af' target='_blank'>《FreeMind 思维导图学习笔记.docx》</a>评为：力荐&nbsp;<span class='cdate'>4小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/139447'>sdxrh2005</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/66ec9eaddbdb49adbcdd6c9022f9f4e2' target='_blank'>《Itext，PDF工具学习.docx》</a>评为：力荐&nbsp;<span class='cdate'>4小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/166088'>liuchangzm</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/72d29aa1838c458ab0ab001df63114b1' target='_blank'>《Java并发程序设计教程.pdf》</a>评为：不错&nbsp;<span class='cdate'>5小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/166088'>liuchangzm</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/c706abbe4e14437d83647cab254b05c3' target='_blank'>《j2ee集群.pdf》</a>评为：还行&nbsp;<span class='cdate'>5小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/166088'>liuchangzm</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/50f99847d6e24ab183b67ca97e4d5171' target='_blank'>《Java精华.doc》</a>评为：还行&nbsp;<span class='cdate'>5小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/166088'>liuchangzm</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/f85fe9670f404777a8e117ca90c40e18' target='_blank'>《JVM调优总结.pdf》</a>评为：不错&nbsp;<span class='cdate'>5小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/166088'>liuchangzm</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/6f03db51184c4d779499b836ecd215a3' target='_blank'>《Java编程思想第四版.pdf》</a>评为：还行&nbsp;<span class='cdate'>5小时前</span></div><div style='font-size:12px;padding-top: 8px;padding-bottom: 3px;margin-top:5px;margin-bottom:5px;border-bottom: 1px solid #d9d9d9;'><span class='book'>&nbsp;</span>&nbsp;<a rel=nofollow' href='http://www.open-open.com/home/166874'>39263653</a>&nbsp;将文档<a rel=nofollow' href='http://www.open-open.com/doc/view/72d29aa1838c458ab0ab001df63114b1' target='_blank'>《Java并发程序设计教程.pdf》</a>评为：不错&nbsp;<span class='cdate'>6小时前</span></div>
+<div style='float:right'><a href="http://www.open-open.com/home/space.php?do=home">更多动态</a></div>
+</div>
+<br>
+<div id="googlead1"></div>
+<br>
+<div id="baiduad">
+<script type="text/javascript">/*160*600，创建于2011-6-29*/ var cpro_id = 'u523677';</script><script src="http://cpro.baidu.com/cpro/ui/c.js" type="text/javascript"></script>
+<script type="text/javascript">/*160*600，创建于2011-6-29*/ var cpro_id = 'u523677';</script><script src="http://cpro.baidu.com/cpro/ui/c.js" type="text/javascript"></script>
+</div>
+	</TD>
+	</TR></TBODY>
+	</TABLE>
+
+	</DIV>
+<DIV style="CLEAR: both"></DIV>
+<DIV class=line style="WIDTH: 99%"></DIV>
+
+<center>
+<P style="WIDTH: 99%"> 
+<center>
+友情链接：
+ <a href='http://www.iteye.com' title='Java编程 Spring框架 AJAX技术 Agile敏捷软件开发 ruby on rails实践 - ITeye做最棒的软件开发交流社区'>ITeye</a>
+ | <a href='http://www.cn-java.com/'>中文java技术网</a>
+ | <a href='http://www.php-open.com' title='收录各种PHP开源项目'>PHP开源大全</a> 
+ | <a href='http://www.mbalib.com'>MBA智库</a> 
+ | <a href='http://www.easyjf.com/'>EasyJWeb开源</a>
+ | <a href='http://bbs.weblogicfans.net/'>Weblogic中文爱好者</a>
+<BR>
+</center>
+<center>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ <a href='http://www.fuchaoqun.com/' title='付超群的博客'>超群.com的博客</a>
+ | <a href='http://www.simpleframework.net/'>SimpleFramework</a>
+ | <a href='http://www.ibeifeng.com/'>北风网</a>
+ | <a href='http://www.ecshop.name/'>ECSHOP模板网</a>
+ | <a href='http://www.html5cn.org/'>HTML5中国</a>
+ | <a href='http://www.ruanman.net/'>软曼网</a>
+ | <a href='http://java.itcast.cn/'>传智播客java培训</a>
+ | <a href='http://edu.csdn.net/'>Android培训</a>
+
+</center>
+<BR><BR>
+ MSN：jforeverg@hotmail.com &nbsp;|&nbsp;<a href='http://home.open-open.com/1'>申请友情链接</a>&nbsp;|&nbsp;<a href="http://www.miibeian.gov.cn/">闽ICP备10022058号</a>
+</P>
+
+
+<div id="googleadcode1" style="display:none"> 
+
+</div>  
+
+<div id="googleadcode2" style="display:none"> 
+<script type="text/javascript"><!--
+google_ad_client = "pub-7963911354665843";
+/* 728x15, 创建于 11-5-30 */
+google_ad_slot = "5341898719";
+google_ad_width = 728;
+google_ad_height = 15;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</div> 
+
+ 
+
+<div id="googleadcode4" style="display:none"> 
+
+</div>   
+
+<script language="javascript">  
+
+//document.getElementById("googlead3").innerHTML = document.getElementById("googleadcode3").innerHTML;  
+//document.getElementById("googlead1").innerHTML = document.getElementById("googleadcode1").innerHTML; 
+//document.getElementById("googlead4").innerHTML = document.getElementById("googleadcode4").innerHTML; 
+document.getElementById("googlead2").innerHTML = document.getElementById("googleadcode2").innerHTML; 
+
+//document.getElementById("baiduad").innerHTML = document.getElementById("baiduadcode").innerHTML;  
+
+</script>
+<div style="display:none"> 
+<script type="text/javascript">
+var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F4b19e5cc155fe555484434d8338ee0af' type='text/javascript'%3E%3C/script%3E"));
+</script>
+</div>  
+</BODY></HTML>
