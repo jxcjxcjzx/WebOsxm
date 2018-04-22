@@ -1,0 +1,690 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+MoreWindows谁愿长躲在避风的港口，宁有波涛汹涌的自由。 欢迎关注微博-http://weibo.com/MoreWindows
+目录视图摘要视图订阅
+有奖征集活动系列——【HTML5游戏编程之旅】        专访邱俊涛：高级JavaScript程序员的代码规范      低价抢购开源中国论坛门票      CSDN博客第一期云计算最佳博主评选      CSDN博客第二期最佳移动开发博主评选
+ 秒杀多线程第二篇 多线程第一次亲密接触 CreateThread与_beginthreadex本质区别
+分类： Windows多线程 Windows编程 2012-04-05 09:36 32122人阅读 评论(76) 收藏 举报
+多线程threadnullstructureattributessecurity
+    本文将带领你与多线程作第一次亲密接触，并深入分析CreateThread与_beginthreadex的本质区别，相信阅读本文后你能轻松的使用多线程并能流畅准确的回答CreateThread与_beginthreadex到底有什么区别，在实际的编程中到底应该使用CreateThread还是_beginthreadex？
+
+ 
+
+   使用多线程其实是非常容易的，下面这个程序的主线程会创建了一个子线程并等待其运行完毕，子线程就输出它的线程ID号然后输出一句经典名言——Hello World。整个程序的代码非常简短，只有区区几行。
+
+[cpp] view plaincopy
+//最简单的创建多线程实例  
+#include <stdio.h>  
+#include <windows.h>  
+//子线程函数  
+DWORD WINAPI ThreadFun(LPVOID pM)  
+{  
+    printf("子线程的线程ID号为：%d\n子线程输出Hello World\n", GetCurrentThreadId());  
+    return 0;  
+}  
+//主函数，所谓主函数其实就是主线程执行的函数。  
+int main()  
+{  
+    printf("     最简单的创建多线程实例\n");  
+    printf(" -- by MoreWindows( http://blog.csdn.net/MoreWindows ) --\n\n");  
+  
+    HANDLE handle = CreateThread(NULL, 0, ThreadFun, NULL, 0, NULL);  
+    WaitForSingleObject(handle, INFINITE);  
+    return 0;  
+}  
+运行结果如下所示：
+
+
+
+
+下面来细讲下代码中的一些函数
+
+第一个 CreateThread
+
+函数功能：创建线程
+
+函数原型：
+
+HANDLEWINAPICreateThread(
+
+  LPSECURITY_ATTRIBUTESlpThreadAttributes,
+
+  SIZE_TdwStackSize,
+
+  LPTHREAD_START_ROUTINElpStartAddress,
+
+  LPVOIDlpParameter,
+
+  DWORDdwCreationFlags,
+
+  LPDWORDlpThreadId
+
+);
+
+函数说明：
+
+第一个参数表示线程内核对象的安全属性，一般传入NULL表示使用默认设置。
+
+第二个参数表示线程栈空间大小。传入0表示使用默认大小（1MB）。
+
+第三个参数表示新线程所执行的线程函数地址，多个线程可以使用同一个函数地址。
+
+第四个参数是传给线程函数的参数。
+
+第五个参数指定额外的标志来控制线程的创建，为0表示线程创建之后立即就可以进行调度，如果为CREATE_SUSPENDED则表示线程创建后暂停运行，这样它就无法调度，直到调用ResumeThread()。
+
+第六个参数将返回线程的ID号，传入NULL表示不需要返回该线程ID号。
+
+函数返回值：
+
+成功返回新线程的句柄，失败返回NULL。 
+
+ 
+
+第二个 WaitForSingleObject
+
+函数功能：等待函数 – 使线程进入等待状态，直到指定的内核对象被触发。
+
+函数原形：
+
+DWORDWINAPIWaitForSingleObject(
+
+  HANDLEhHandle,
+
+  DWORDdwMilliseconds
+
+);
+
+函数说明：
+
+第一个参数为要等待的内核对象。
+
+第二个参数为最长等待的时间，以毫秒为单位，如传入5000就表示5秒，传入0就立即返回，传入INFINITE表示无限等待。
+
+因为线程的句柄在线程运行时是未触发的，线程结束运行，句柄处于触发状态。所以可以用WaitForSingleObject()来等待一个线程结束运行。
+
+函数返回值：
+
+在指定的时间内对象被触发，函数返回WAIT_OBJECT_0。超过最长等待时间对象仍未被触发返回WAIT_TIMEOUT。传入参数有错误将返回WAIT_FAILED
+
+ 
+
+CreateThread()函数是Windows提供的API接口，在C/C++语言另有一个创建线程的函数_beginthreadex()，在很多书上（包括《Windows核心编程》）提到过尽量使用_beginthreadex()来代替使用CreateThread()，这是为什么了？下面就来探索与发现它们的区别吧。
+
+ 
+
+       首先要从标准C运行库与多线程的矛盾说起，标准C运行库在1970年被实现了，由于当时没任何一个操作系统提供对多线程的支持。因此编写标准C运行库的程序员根本没考虑多线程程序使用标准C运行库的情况。比如标准C运行库的全局变量errno。很多运行库中的函数在出错时会将错误代号赋值给这个全局变量，这样可以方便调试。但如果有这样的一个代码片段：
+
+[cpp] view plaincopy
+if (system("notepad.exe readme.txt") == -1)  
+{  
+    switch(errno)  
+    {  
+        ...//错误处理代码  
+    }  
+}  
+假设某个线程A在执行上面的代码，该线程在调用system()之后且尚未调用switch()语句时另外一个线程B启动了，这个线程B也调用了标准C运行库的函数，不幸的是这个函数执行出错了并将错误代号写入全局变量errno中。这样线程A一旦开始执行switch()语句时，它将访问一个被B线程改动了的errno。这种情况必须要加以避免！因为不单单是这一个变量会出问题，其它像strerror()、strtok()、tmpnam()、gmtime()、asctime()等函数也会遇到这种由多个线程访问修改导致的数据覆盖问题。
+
+ 
+
+为了解决这个问题，Windows操作系统提供了这样的一种解决方案——每个线程都将拥有自己专用的一块内存区域来供标准C运行库中所有有需要的函数使用。而且这块内存区域的创建就是由C/C++运行库函数_beginthreadex()来负责的。下面列出_beginthreadex()函数的源代码（我在这份代码中增加了一些注释）以便读者更好的理解_beginthreadex()函数与CreateThread()函数的区别。
+
+[cpp] view plaincopy
+//_beginthreadex源码整理By MoreWindows( http://blog.csdn.net/MoreWindows )  
+_MCRTIMP uintptr_t __cdecl _beginthreadex(  
+    void *security,  
+    unsigned stacksize,  
+    unsigned (__CLR_OR_STD_CALL * initialcode) (void *),  
+    void * argument,  
+    unsigned createflag,  
+    unsigned *thrdaddr  
+)  
+{  
+    _ptiddata ptd;          //pointer to per-thread data 见注1  
+    uintptr_t thdl;         //thread handle 线程句柄  
+    unsigned long err = 0L; //Return from GetLastError()  
+    unsigned dummyid;    //dummy returned thread ID 线程ID号  
+      
+    // validation section 检查initialcode是否为NULL  
+    _VALIDATE_RETURN(initialcode != NULL, EINVAL, 0);  
+  
+    //Initialize FlsGetValue function pointer  
+    __set_flsgetvalue();  
+      
+    //Allocate and initialize a per-thread data structure for the to-be-created thread.  
+    //相当于new一个_tiddata结构，并赋给_ptiddata指针。  
+    if ( (ptd = (_ptiddata)_calloc_crt(1, sizeof(struct _tiddata))) == NULL )  
+        goto error_return;  
+  
+    // Initialize the per-thread data  
+    //初始化线程的_tiddata块即CRT数据区域 见注2  
+    _initptd(ptd, _getptd()->ptlocinfo);  
+      
+    //设置_tiddata结构中的其它数据，这样这块_tiddata块就与线程联系在一起了。  
+    ptd->_initaddr = (void *) initialcode; //线程函数地址  
+    ptd->_initarg = argument;              //传入的线程参数  
+    ptd->_thandle = (uintptr_t)(-1);  
+      
+#if defined (_M_CEE) || defined (MRTDLL)  
+    if(!_getdomain(&(ptd->__initDomain))) //见注3  
+    {  
+        goto error_return;  
+    }  
+#endif  // defined (_M_CEE) || defined (MRTDLL)  
+      
+    // Make sure non-NULL thrdaddr is passed to CreateThread  
+    if ( thrdaddr == NULL )//判断是否需要返回线程ID号  
+        thrdaddr = &dummyid;  
+  
+    // Create the new thread using the parameters supplied by the caller.  
+    //_beginthreadex()最终还是会调用CreateThread()来向系统申请创建线程  
+    if ( (thdl = (uintptr_t)CreateThread(  
+                    (LPSECURITY_ATTRIBUTES)security,  
+                    stacksize,  
+                    _threadstartex,  
+                    (LPVOID)ptd,  
+                    createflag,  
+                    (LPDWORD)thrdaddr))  
+        == (uintptr_t)0 )  
+    {  
+        err = GetLastError();  
+        goto error_return;  
+    }  
+  
+    //Good return  
+    return(thdl); //线程创建成功,返回新线程的句柄.  
+      
+    //Error return  
+error_return:  
+    //Either ptd is NULL, or it points to the no-longer-necessary block  
+    //calloc-ed for the _tiddata struct which should now be freed up.  
+    //回收由_calloc_crt()申请的_tiddata块  
+    _free_crt(ptd);  
+    // Map the error, if necessary.  
+    // Note: this routine returns 0 for failure, just like the Win32  
+    // API CreateThread, but _beginthread() returns -1 for failure.  
+    //校正错误代号(可以调用GetLastError()得到错误代号)  
+    if ( err != 0L )  
+        _dosmaperr(err);  
+    return( (uintptr_t)0 ); //返回值为NULL的效句柄  
+}  
+讲解下部分代码：
+
+注1．_ptiddataptd;中的_ptiddata是个结构体指针。在mtdll.h文件被定义：
+
+      typedefstruct_tiddata * _ptiddata
+
+微软对它的注释为Structure for each thread's data。这是一个非常大的结构体，有很多成员。本文由于篇幅所限就不列出来了。
+
+ 
+
+注2．_initptd(ptd, _getptd()->ptlocinfo);微软对这一句代码中的getptd()的说明为：
+
+      /* return address of per-thread CRT data */
+
+      _ptiddata __cdecl_getptd(void);
+
+对_initptd()说明如下：
+
+      /* initialize a per-thread CRT data block */
+
+      void__cdecl_initptd(_Inout_ _ptiddata _Ptd,_In_opt_ pthreadlocinfo _Locale);
+
+注释中的CRT （C Runtime Library）即标准C运行库。
+
+ 
+
+注3．if(!_getdomain(&(ptd->__initDomain)))中的_getdomain()函数代码可以在thread.c文件中找到，其主要功能是初始化COM环境。
+
+ 
+
+由上面的源代码可知，_beginthreadex()函数在创建新线程时会分配并初始化一个_tiddata块。这个_tiddata块自然是用来存放一些需要线程独享的数据。事实上新线程运行时会首先将_tiddata块与自己进一步关联起来。然后新线程调用标准C运行库函数如strtok()时就会先取得_tiddata块的地址再将需要保护的数据存入_tiddata块中。这样每个线程就只会访问和修改自己的数据而不会去篡改其它线程的数据了。因此，如果在代码中有使用标准C运行库中的函数时，尽量使用_beginthreadex()来代替CreateThread()。相信阅读到这里时，你会对这句简短的话有个非常深刻的印象，如果有面试官问起，你也可以流畅准确的回答了^_^。
+
+ 
+
+接下来，类似于上面的程序用CreateThread()创建输出“Hello World”的子线程，下面使用_beginthreadex()来创建多个子线程：
+
+[cpp] view plaincopy
+//创建多子个线程实例  
+#include <stdio.h>  
+#include <process.h>  
+#include <windows.h>  
+//子线程函数  
+unsigned int __stdcall ThreadFun(PVOID pM)  
+{  
+    printf("线程ID号为%4d的子线程说：Hello World\n", GetCurrentThreadId());  
+    return 0;  
+}  
+//主函数，所谓主函数其实就是主线程执行的函数。  
+int main()  
+{  
+    printf("     创建多个子线程实例 \n");  
+    printf(" -- by MoreWindows( http://blog.csdn.net/MoreWindows ) --\n\n");  
+      
+    const int THREAD_NUM = 5;  
+    HANDLE handle[THREAD_NUM];  
+    for (int i = 0; i < THREAD_NUM; i++)  
+        handle[i] = (HANDLE)_beginthreadex(NULL, 0, ThreadFun, NULL, 0, NULL);  
+    WaitForMultipleObjects(THREAD_NUM, handle, TRUE, INFINITE);  
+    return 0;  
+}  
+运行结果如下：
+
+
+
+图中每个子线程说的都是同一句话，不太好看。能不能来一个线程报数功能，即第一个子线程输出1，第二个子线程输出2，第三个子线程输出3，……。要实现这个功能似乎非常简单——每个子线程对一个全局变量进行递增并输出就可以了。代码如下：
+
+[cpp] view plaincopy
+//子线程报数  
+#include <stdio.h>  
+#include <process.h>  
+#include <windows.h>  
+int g_nCount;  
+//子线程函数  
+unsigned int __stdcall ThreadFun(PVOID pM)  
+{  
+    g_nCount++;  
+    printf("线程ID号为%4d的子线程报数%d\n", GetCurrentThreadId(), g_nCount);  
+    return 0;  
+}  
+//主函数，所谓主函数其实就是主线程执行的函数。  
+int main()  
+{  
+    printf("     子线程报数 \n");  
+    printf(" -- by MoreWindows( http://blog.csdn.net/MoreWindows ) --\n\n");  
+      
+    const int THREAD_NUM = 10;  
+    HANDLE handle[THREAD_NUM];  
+  
+    g_nCount = 0;  
+    for (int i = 0; i < THREAD_NUM; i++)  
+        handle[i] = (HANDLE)_beginthreadex(NULL, 0, ThreadFun, NULL, 0, NULL);  
+    WaitForMultipleObjects(THREAD_NUM, handle, TRUE, INFINITE);  
+    return 0;  
+}  
+对一次运行结果截图如下：
+
+
+
+
+显示结果从1数到10，看起来好象没有问题。
+
+       答案是不对的，虽然这种做法在逻辑上是正确的，但在多线程环境下这样做是会产生严重的问题，下一篇《秒杀多线程第三篇 原子操作 Interlocked系列函数》将为你演示错误的结果（可能非常出人意料）并解释产生这个结果的详细原因。
+
+ 
+
+转载请标明出处，原文地址：http://blog.csdn.net/morewindows/article/details/7421759
+
+如果觉得本文对您有帮助，请点击‘顶’支持一下，您的支持是我写作最大的动力，谢谢。
+
+分享到： 
+上一篇：秒杀多线程第一篇 多线程笔试面试题汇总
+下一篇：秒杀多线程第三篇 原子操作 Interlocked系列函数
+顶
+168
+踩
+8
+
+ 
+查看评论
+39楼 野水无涯 2013-05-14 21:15发表 [回复]
+
+大神，膜拜中....
+38楼 jianxianbai 2013-04-14 17:51发表 [回复]
+
+楼主赞一个！！！！
+37楼 wasx1 2013-04-14 16:59发表 [回复]
+
+刚把楼主的这一篇代码全部实践了一遍，很有收获，谢谢楼主！
+36楼 不觉 2013-03-27 13:04发表 [回复]
+
+1>f:\vs2010\goodluck\thread2\test.cpp(8): error C3861: “GetCurrentTheadId”: 找不到标识符
+1>f:\vs2010\goodluck\thread2\test.cpp(16): error C3861: “WaitforSingleObject”: 找不到标识符
+新手一个，请问一下这两个函数的定义在哪，需要什么头文件
+Re: MoreWindows 2013-03-30 11:03发表 [回复]
+
+回复L_inYi：Declared in Winbase.h; include Windows.h.
+35楼 kaikaiscf2 2013-03-26 15:44发表 [回复]
+
+请问_beginthreadex函数的源码是从哪里拷贝过来的？是vs2008 vc下的么？
+Re: MoreWindows 2013-03-30 11:03发表 [回复]
+
+回复kaikaiscf2：对的。
+34楼 dai_yangjiao 2013-03-23 17:19发表 [回复]
+
+特意登陆来支持博主。。。给力
+Re: MoreWindows 2013-03-23 19:47发表 [回复]
+
+回复dai_yangjiao：多谢支持，欢迎关注微博http://weibo.com/MoreWindows
+33楼 sszgg2006 2013-01-15 09:19发表 [回复]
+
+语言通俗、简单易懂，楼主我顶你，谢谢。
+Re: MoreWindows 2013-03-23 19:47发表 [回复]
+
+回复sszgg2006：多谢支持，欢迎关注微博http://weibo.com/MoreWindows
+32楼 CheckMate 2012-12-12 18:57发表 [回复]
+
+CRT是什么意思，求扫盲...没百度谷歌到
+Re: zhou921803 2012-12-27 17:19发表 [回复]
+
+回复ggfaith：C RUNTIME LIBERAY
+Re: MoreWindows 2012-12-27 19:09发表 [回复]
+
+回复zhou921803：正解，就是C运行库，很多C语言函数都要依赖这个C运行库。
+31楼 yzm365487848 2012-12-11 11:41发表 [回复]
+
+微软的c库是自己写的么， 比如在strtok()时就会先取得_tiddata块的地址再将需要保护的数据存入_tiddata块中， 那么微软的每个c库函数是不是都要加上这些特殊代码啊？ 各操作系统对c标准库的实现是有差异的？？
+Re: MoreWindows 2012-12-11 15:32发表 [回复]
+
+回复yzm365487848：是的，strtok函数已经作了修改：
+char * __cdecl strtok (
+char * string,
+const char * control
+)
+#endif /* _SECURE_VERSION */
+{
+unsigned char *str;
+const unsigned char *ctrl = control;
+
+unsigned char map[32];
+int count;
+
+#ifdef _SECURE_VERSION
+
+/* validation section */
+_VALIDATE_RETURN(context != NULL, EINVAL, NULL);
+_VALIDATE_RETURN(string != NULL || *context != NULL, EINVAL, NULL);
+_VALIDATE_RETURN(control != NULL, EINVAL, NULL);
+
+/* no static storage is needed for the secure version */
+
+#else /* _SECURE_VERSION */
+
+_ptiddata ptd = _getptd();
+。。。。。。
+}
+30楼 xiaolomg 2012-12-04 22:03发表 [回复]
+
+写的不错，顶
+29楼 ithzhang 2012-10-08 09:12发表 [回复]
+
+楼主说尽量使用_beginthreadex，但是并没有提_endthreadex。以及使用CreateThread和ExitThread导致的后果。其实当使用CreateThread后，线程调用一个需要_tiddata结构的C/C++运行库函数时会发生下面的情况：首先C/C++运行库尝试取得线程数据块的地址，如果NULL被当做_tiddata数据块的地址返回，表明主调线程没有与之关联的_tiddata数据块。此时，C/C++运行库函数会为主调线程分配并初始化一个_tiddata块，然后将此块与线程关联。而且只要线程还在这个块就一直与线程进行关联。此后的任何C/C++运行库函数也可以使用。也就是说即使你使用CreateThread，C/C++运行库检测到NULL时，也会分配并初始化一个_tiddata块，只是在调用ExitThread时此内存块不会被调用，导致内存泄露。另一个问题是结构化异常没有就绪，当使用C/C++运行库的signal函数时将会导致进程终止。
+不知楼主如何认为！！鲁莽指出，如有错误请多包涵！！
+http://blog.csdn.net/ithzhang/article/details/8046721
+Re: MoreWindows 2012-11-30 13:35发表 [回复]
+
+回复ithzhang：本方主要是介绍为什么推荐使用_beginthreadex来代替CreateThread。不过“_tiddata数据块如果为NULL，系统会自己为其分配空间的”这个也是正确的。系统肯定要考虑到兼容问题，因此对CreateThread也要采取个些措施，不然旧程序没法运行了。至于 _endthreadex 如果不显式调用，它会在线程结束时自动调用。请见MSDN的解释。
+You can call _endthread or _endthreadex explicitly to terminate a thread; however, _endthread or _endthreadex is called automatically when the thread returns from the routine passed as a parameter. 
+当然显式调用会使代码更加规范一些。
+28楼 avcery 2012-10-04 21:17发表 [回复]
+
+先顶再看~mark
+27楼 cbzjzsb123 2012-09-17 10:48发表 [回复]
+
+我照着你的博客学多线程，用vc6.0，代码我是复制过来的，结果提示error C2065: '_beginthreadex' : undeclared identifier
+是不是VC6.0里面没有包含_beginthreadex？
+Re: lovebabyjing520 2012-11-27 21:47发表 [回复]
+
+回复cbzjzsb123：我也出现过这情况，至少要用VS2005以上的版本才行
+Re: MoreWindows 2012-11-28 15:15发表 [回复]
+
+回复lovebabyjing520：VC6支持_beginthreadex，我也是用VC6的，你设置下项目的配置吧。
+26楼 wojiushiwo987 2012-08-26 23:10发表 [回复]
+
+能不能总结成如下：CreateThread()可能出现多个线程访问修改导致的数据覆盖问题，而_beginThread()创建的每个线程都将拥有自己专用的一块内存区域，于是就有效避免产生数据覆盖问题？
+楼主博文很给力，我准备花大块时间逐个学习！
+25楼 飞翔的井蛙 2012-06-01 11:02发表 [回复]
+
+你好，请问VS2005编译器运行库选项应该选哪一个呢？Multi-threaded还是Multi-threaded DLL?
+Re: MoreWindows 2012-08-15 16:04发表 [回复]
+
+回复colorfulchg：查了下这二个编译参数的说明，Multi-threaded(/MT)会将dll编译到程序中，程序再发布时就不用再附加dll文件了。Multi-threaded DLL(/MD)则不将dll编译到程序中，程序发布时要再附加dll文件。
+Re: ww419793476 2013-01-17 01:19发表 [回复]
+
+回复MoreWindows："程序发布时要再附加dll文件" 是指的哪个dll？是不是所用的API从对应的dll中导出的这些？例如Kernel32.dll 等？
+24楼 cargod 2012-05-30 17:36发表 [回复]
+
+CreateThread与_beginthreadex
+以前脑海中也闪过两者有什么差别，只是闪过而已，没有去深究，这就是大神和菜鸟的区别啊
+Re: MoreWindows 2012-08-19 19:31发表 [回复]
+
+回复cargod：呵呵，真要深入，那就要去看看LINUX中的相关源代码了。
+23楼 wwwhongxia 2012-05-16 12:11发表 [回复]
+
+不能用Java讲解多线程吗。
+Re: MoreWindows 2012-05-17 18:44发表 [回复]
+
+回复wwwhongxia：JAVA不太会。
+22楼 bird57521 2012-05-15 17:31发表 [回复]
+
+学习了！ 谢谢楼主分享！
+21楼 dyingfair 2012-05-12 22:02发表 [回复]
+
+谢谢，讲的很好。
+20楼 xiaomi163 2012-05-12 13:47发表 [回复]
+
+楼主能否搞一份linux环境下的。。。。。
+Re: MoreWindows 2012-05-12 19:33发表 [回复]
+
+回复xiaomi163：不太熟悉linux。。。
+19楼 xaobaobao 2012-05-05 18:26发表 [回复]
+
+好复杂啊 不懂
+18楼 xuanyoumeng 2012-04-19 17:17发表 [回复]
+
+很好
+17楼 mayl88221 2012-04-18 15:13发表 [回复]
+
+百度下找到了在threadex.c文件里, 不知道我的VC为什么没有找到它 郁闷
+Re: MoreWindows 2012-04-18 18:40发表 [回复]
+
+回复mayl88221：要VS2008，比如我的这个文件就在c:\program files\microsoft visual studio 9.0\vc\crt\src\threadex.c
+16楼 mayl88221 2012-04-18 14:06发表 [回复]
+
+_beginthreadex这个函数的源码在哪里呢, 是在sdk里么, 我没有找到
+15楼 beyondliyang 2012-04-17 16:49发表 [回复]
+
+请教一下：DWORD WINAPI ThreadFun(LPVOID pM)中的参数pM在整个函数定义内没有调用，于是我就将其申明为DWORD WINAPI ThreadFun()，但这样编译通不过，改为DWORD WINAPI ThreadFun(LPVOID pM) ，却能通过，网上查不到相关资料，报错不能将参数 3 从“DWORD (__stdcall *)(void)”转换为“LPTHREAD_START_ROUTINE”
+Re: MoreWindows 2012-04-17 19:21发表 [回复]
+
+回复beyondliyang：CreateThread()对第三个参数有要求的呀，类型不匹配当然会提示出错，如果你确实不想写LPOVID pM。那你就强制转换下：
+//子线程函数
+DWORD WINAPI ThreadFun()
+{
+子线程代码
+}
+然后创建子线程时强制转换下：
+HANDLE handle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadFun, NULL, 0, NULL);
+这样才可以编译通过。
+14楼 packel 2012-04-12 13:14发表 [回复]
+
+_beginthreadex要用_endthreadex释放线程
+Re: MoreWindows 2012-04-12 19:43发表 [回复]
+
+回复packel：根据MSDN上说，你可以显式的调用_endthread()或者_endthreadex()。如果没有，线程返回时系统会自动调用。
+在《Windows核心编程》一书中推荐通过线程函数返回来使线程终止运行。
+13楼 xiaoazhao 2012-04-11 14:08发表 [回复]
+
+学习了~
+12楼 lzhlzhlzhl 2012-04-08 09:40发表 [回复]
+
+顶
+11楼 qs_coding 2012-04-07 11:03发表 [回复]
+
+我写代码测试过，其实就算你不用_beginthreadex，而是用CreateThread，每个线程的c变量，或者是对象，如errno对象都是独立的，各个线程相互不关联。如gmtime这些函数返回的缓冲区地址，每个线程都是不同的，如：http://www.cnblogs.com/0x07/archive/2011/12/31/2307808.html，我用都是用cl /MD选项编译的。这让我觉得_beginthreadex是不是有些多余。
+Re: qweewqpkn 2012-04-24 11:38发表 [回复]
+
+回复qs_coding：当调用CreateThread()的时候，你使用C运行库，这时操作系统会主动为你分配一个_tiddate，这时你使用时是没有问题的！但是，这个_tiddate时得不到释放的，因为CreateThread()调用的不是endthread（）这个函数！ 所以资源会泄露，切记！
+Re: qs_coding 2012-05-15 09:43发表 [回复]
+
+回复qweewqpkn：看了核心编程，如果在线程中要使用C库，那么_beginthreadex更安全些。谢谢提醒。
+Re: packel 2012-04-12 13:18发表 [回复]
+
+回复qs_coding：gmtime在线程执行函数中，它是在线程栈上分配的内存；每个线程有它自己的线程栈
+Re: qs_coding 2012-05-15 09:44发表 [回复]
+
+回复packel：应该是在堆上分配内存。
+Re: MoreWindows 2012-04-08 15:02发表 [回复]
+
+回复qs_coding：老兄呀。。。你那测试方法明显有误呀。就像我这子线程报数程序现在不也是显示了一个正确的结果了吗？
+Re: qs_coding 2012-05-15 09:49发表 [回复]
+
+回复MoreWindows：嘿嘿。以前看资料说是C库的一些函数错误运行，会设置相应的ERRNO变量，如果在每个线程中故意调用C库来设置errno不通的值，看这些线程的errno变量地址，和相应的值。如果值不同，则说明C库在现在的win32 环境下已经被微软真的实现为多线程的C库了。
+10楼 xsjm206 2012-04-06 20:34发表 [回复]
+
+但是没具体用过
+9楼 cwq0421 2012-04-06 16:20发表 [回复]
+
+CreateThread 函数说明里面， 好像没有给出 函数返回值 的含义？
+Re: packel 2012-04-12 13:15发表 [回复]
+
+回复cwq0421：CreateThread返回的是线程内核对象句柄
+Re: MoreWindows 2012-04-06 17:02发表 [回复]
+
+回复cwq0421：喔，呵呵，确实漏了，等会补上。谢谢你。
+8楼 yzzw117772313 2012-04-06 15:33发表 [回复]
+
+关注楼主这个系列的博文
+Re: MoreWindows 2012-04-06 17:02发表 [回复]
+
+回复yzzw117772313：谢谢支持
+7楼 风吹雪散 2012-04-06 14:28发表 [回复]
+
+今天能出线程报数的文章吗？ 我最近正在思考一个问题， 多线程服务问题， 需要给每个连接客户端分配一个线程独立操作，同时将客户端信息存储， 储存的索引就是 线程数。 
+虽然暂时没发现索引对应的socket错误的情况， 但是我觉得肯定不对， 原因跟你最后的例子一样。 正在思考是否用互斥解决 线程数+1 -1的情况。
+Re: MoreWindows 2012-04-06 15:11发表 [回复]
+
+回复newstudent_never：现在还在整理草稿，下周一发布第三篇《秒杀多线程第三篇 原子操作 Interlocked系列函数》。你说的+1-1可以用InterlockedIncrement()和InterlockedDecrement()。
+6楼 xinlongli 2012-04-06 14:22发表 [回复]
+
+好像最后没有释放句柄资源哦。
+Re: MoreWindows 2012-04-06 15:13发表 [回复]
+
+回复xinlongli：呵呵，对，你比较细心，程序最后应该要调用CloseHandle()。后面文章中程序会加上这个。
+Re: xiaoyanilw 2012-05-23 23:17发表 [回复]
+
+回复MoreWindows：泄露了吗？应该怎么避免啊，初学者，望多指教。还有就是看楼主后来的文章貌似也没有进行相应的处理啊，第四篇中就没有吧。
+Re: MoreWindows 2012-05-24 09:43发表 [回复]
+
+回复xiaoyanilw：这个不会泄露，因为整个进程结束后，所有资源都会得到回收。不过显式的加上CloseHandle()会使得代码更加规范。
+Re: xiaoyanilw 2012-05-24 20:57发表 [回复]
+
+回复MoreWindows：哦，知道了，多谢楼主啊。
+5楼 曹胜欢 2012-04-05 22:20发表 [回复]
+
+你能用java或者c或者c#写吗？c++不会总么办。。。
+Re: lanzhengpeng2 2012-04-06 13:02发表 [回复]
+
+回复csh624366188：java/C#不存在这种问题,没法写
+Re: MoreWindows 2012-04-06 11:24发表 [回复]
+
+回复csh624366188：用C#可以，近二天有点忙，周天写给你吧。
+4楼 jianshiku 2012-04-05 21:45发表 [回复]
+
+写的真好，问兄：下一篇什么时候出来啊？正等待呢。
+Re: MoreWindows 2012-04-06 11:22发表 [回复]
+
+回复jianshiku：下周一发布第三篇《秒杀多线程第三篇 原子操作 Interlocked系列函数》。
+3楼 一刀倾城 2012-04-05 21:33发表 [回复]
+
+AfxBeginThread会讲么？
+工作者线程还有界面线程....？
+Re: MoreWindows 2012-04-06 12:24发表 [回复]
+
+回复scorpiuseol：AfxBeginThread是MFC中启动线程函数，非MFC程序没必要用。Windows任何启动线程的函数其实都是对底层接口CreateThread()的封装。你说的工作者线程还有界面线程只是线程在功能上的名称。
+2楼 love_rong 2012-04-05 17:21发表 [回复]
+
+全局变量惹得祸
+Re: MoreWindows 2012-04-05 18:36发表 [回复]
+
+回复love_rong：下一篇会给出解决方法，欢迎继续参阅。
+1楼 goodboy99199 2012-04-05 10:28发表 [回复]
+
+看来，_beginthreadex()与CreateThread()是真包含的关系呀。
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+个人资料
+  
+MoreWindows
+ 
+
+访问：997637次
+积分：12477分
+排名：第174名
+原创：129篇转载：0篇译文：0篇评论：2571条
+博客专栏
+	白话经典算法
+文章：14篇
+阅读：167456
+	秒杀多线程面试题系列
+文章：15篇
+阅读：282587
+	Windows C/C++/C# 编程
+文章：113篇
+阅读：892264
+	C++ STL
+文章：11篇
+阅读：122377
+阅读排行
+秒杀多线程第一篇 多线程笔试面试题汇总(41867)
+白话经典算法系列之七 堆与堆排序(32962)
+秒杀多线程第二篇 多线程第一次亲密接触 CreateThread与_beginthreadex本质区别(32122)
+STL系列之十 全排列(百度迅雷笔试题)(30034)
+微软实习生日记 第一篇 初识微软(28658)
+秒杀多线程第七篇 经典线程同步 互斥量Mutex(24633)
+秒杀多线程第四篇 一个经典的多线程同步问题(24103)
+白话经典算法系列之五 归并排序的实现(22699)
+C/C++变量在内存中的分布(20953)
+秒杀多线程第三篇 原子操作 Interlocked系列函数(20617)
+MoreWindows微博
+
+文章分类
+白话经典算法系列(13)
+Windows编程(74)
+Windows多线程(15)
+STL 他山之石(11)
+OpenCV入门指南(13)
+C/C++/C#基础(14)
+VC6.0及VS2008使用技巧(7)
+HTML/javascript/PHP(12)
+评论排行
+微软实习生日记 第一篇 初识微软(101)
+【白话经典算法系列之十四】腾讯2012年实习生笔试加分题(96)
+秒杀多线程第六篇 经典线程同步 事件Event(92)
+位操作基础篇之位操作全面总结(92)
+秒杀多线程第五篇 经典线程同步 关键段CS(88)
+热门智力题 过桥问题和倒水问题(87)
+C/C++变量在内存中的分布(85)
+秒杀多线程第一篇 多线程笔试面试题汇总(82)
+秒杀多线程第三篇 原子操作 Interlocked系列函数(80)
+STL系列之十 全排列(百度迅雷笔试题)(78)
+最新评论
+秒杀多线程第十篇 生产者消费者问题
+zyz913614263: 第二个问题消费者结束的原理是什么？
+秒杀多线程第七篇 经典线程同步 互斥量Mutex
+jiayan1990: 最近在看楼主的这一系列文章，受益匪浅啊。我有一个问题：楼主后面讲的进程一和进程二这个测试程序我运行了...
+Windows界面编程第四篇 异形窗体 高富帅版
+shandongmachao: 毛边怎么去？
+【OpenCV入门指南】第六篇 轮廓检测 下
+mokey9180: 请问博主呢，我用vc贴底图，贴透明图元素，但如何实现元素的选取呢，不想简单的选矩形框，是不是得算图像...
+白话经典算法系列之五 归并排序的实现
+pfkmldf: 楼主：如果mergesort中的first<last改成first + 1 < last，会不会比较...
+秒杀多线程第十二篇 多线程同步内功心法——PV操作上
+ramblersun: 有点疑问，安全岛的第一种解法是不是有点问题？从N到T的车的开始应该是P(TN)吧，最后V(NT)，同...
+秒杀多线程第十一篇 读者写者问题
+wodownload2: 读14楼帖子的一些体会：当写者线程设置g_hEventWriter以标记写者结束时，如果此时线程被读...
+秒杀多线程第十篇 生产者消费者问题
+naxiaoli2012: 提个问题啊，本人新学者，一直感觉第一个简单的生产者消费者程序中的关键区不必要啊，因为关键区内的变量的...
+秒杀多线程第五篇 经典线程同步 关键段CS
+亚细亚: 线程编号显示为什么会有重复值?例如博主给出的运行结果图显示有三个编号为"5",这是怎么回事?
+秒杀多线程第五篇 经典线程同步 关键段CS
+亚细亚: 我在测试这段代码时发现一个问题(我的操作系统是window 2003),就是子线程中LONG Loc...
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+ 

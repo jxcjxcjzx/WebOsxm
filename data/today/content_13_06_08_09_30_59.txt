@@ -1,0 +1,122 @@
+百度首页|登录注册
+
+新闻网页贴吧知道音乐图片视频地图百科文库
+帮助
+首页自然文化地理历史生活社会艺术人物经济科技体育图片数字博物馆核心用户百科商城来百科畅想太空梦
+ISUP
+
+目录
+
+ISUP简介
+协议结构
+参考标准
+
+  
+编辑本段
+ISUP简介
+
+ISDN用户部分 （ISUP：ISDN User Part）
+ISDN 用户部分（ISUP），是 SS7/C7 信令系统的一种主要协议，定义了协议和程序用于建立、管理和释放中继电路，该中继电路在公共交换电话网络（PSTN）上传输语音和数据呼叫。ISUP 适用于 ISDN 呼叫和非 ISDN 呼叫。下面是使用 ISUP 实现的一个简单呼叫流：
+呼叫建立（Call set up）：要在交换机外号码上建立一个呼叫，源 SSP 发送一个 ISUP 起始地址信息 （IAM：initial address message），以保留一条从源交换机到目标交换机的空闲的中继电路（idle trunk circuit）。如果线路空闲，目标交换机拨通被叫用户（called party）线路，并向源交换机传输一个 ISUP 地址完成信息（ACM：address complete message），表示中继电路的远程终端已经预留好。STP 将 ACM 路由到源交换机，源交换机拨通主叫用户（calling party）线路并使之与中继电路相连，从而完成从主叫用户到被叫用户的完整语音电路。
+呼叫连接（Call connection）：一旦被叫用户接听电话，目标交换机终止振铃音，同时经过本地 STP 向源交换机传输一个 ISUP 应答信息 （ANM：answer message）。STP 将 ANM 路由到源交换机，源交换机确认主叫用户线路已连接并开始计费。
+呼叫终止（Call tear down）：如果主叫用户首先挂断电话，源交换机会发送一个 ISUP 释放信息 （REL：release message）以解除交换机间的中继电路。STP 传送该 REL 到目标交换机。如果被叫用户首先挂断电话，或线路忙，目标交换机向源交换机发送一个 REL，表示电路释放的原因（如正常释放或忙）。一旦接收到 REL，目标交换机中断来自被叫用户线路的中继连接，同时将中继电路状态设置为空闲（idle），并向源交换机发送一个 ISUP 释放完成信息（RLC：release complete message），表示中继电路远端已释放。当源交换机接收到该 RLC，便终止计费，并将中继电路状态设置为 idle，准备下一次呼叫。
+编辑本段
+协议结构
+
+ANSI 和 ITU-T 中关于 ISUP 格式有少许不同。ITU-T ISUP 信息格式如下：
+Routing lable（5bytes）
+Circuit identification code（2bytes）
+Message type code（1byte）
+Parameters－varies according to message type values
+Routing label － 相关用户部分通过 routing label 字段识别信息涉及的特定部分。此外信息传输部分（MTP）使用该字段向其目的地传送信息。
+Circuit identification code － 对于单个电路的 circuit identification codes 字段的分配根据预先确定的规则由双方共同决定。
+Message type code － 该字段唯一规定了每个 ISDN 用户信息的功能和格式。每个信息包含大量参数。信息类型可能为：
+Address complete 　
+Answer
+Blocking
+Blocking acknowledgement
+Call progress
+Circuit group blocking
+Circuit group blocking acknowledgement
+Circuit group query
+Circuit group query response
+Circuit group reset
+Circuit group reset acknowledgement
+Circuit group unblocking
+Circuit group unblocking acknowledgement
+Charge information
+Confusion
+Connect
+Continuity
+Continuity check request
+Facility
+Facility accepted
+Facility reject
+Forward transfer
+Identification request
+Identification response
+Information
+Information request
+Initial address
+Loop back acknowledgement
+Network resource management
+Overload
+Pass-along
+Release
+Release complete
+Reset circuit
+Resume
+Segmentation
+Subsequent address
+Suspend
+Unblocking
+Unblocking acknowledgement
+Unequipped CIC
+User Part available
+User Part test
+User-to-user information
+Parameters － 每个参数都有一个名字，被编码为单个八位字节（octet）。参数大小可以是固定的也可以是可变值。每个参数还可能包括长度指示器。
+编辑本段
+参考标准
+
+信息产业部发布《800MHz CDMA数字蜂窝移动通信网No.7 ISUP信令测试方法》等11项通信行业标准
+开放分类：
+通讯 GSM 技术 通信技术 电讯 ， 电话网络 ， 讯息技术
+我来完善 “ISUP”相关词条：
+百度百科中的词条正文与判断内容均由用户提供，不代表百度百科立场。如果您需要解决具体问题（如法律、医学等领域），建议您咨询相关领域专业人士。
+本词条对我有帮助
+添加到收藏
+分享到:
+ 更多
+合作编辑者
+ppslee ， w_ou ， hdperseus ， zxlangjszx ， 察合台汗国 ， 景观美 ， 童心使者 ， Whenjj
+如果您认为本词条还需进一步完善，百科欢迎您也来参与 编辑词条 在开始编辑前，您还可以先学习如何编辑词条
+如想投诉，请到百度百科投诉中心；如想提出意见、建议，请到百度百科吧。
+
+百度百科内容方针
+提倡有可靠依据、权威可信的内容
+鼓励客观、中立、严谨的表达观点
+不欢迎恶意破坏、自我或商业宣传
+在这里你可以
+编辑
+质疑
+投诉
+全方位的质量监督
+学术委员会：为亿万网友提供权威意见
+编修院：把控质量，做更好的知识
+词条统计
+浏览次数：约 26683次
+编辑次数：10次 历史版本
+最近更新：2013-02-04
+创建者：Whenjj
+最新动态
+百科校园夏令营开营啦：
+
+百科消息：
+参与百科用户问卷调查赢奖品
+百科编辑器草稿箱功能升级
+百科2.0版客户端上线 首页改版
+数字博物馆新馆：徐州民俗博物馆
+高考加油！一起冲刺高考
+© 2013 Baidu 使用百度前必读 | 百科协议 | 百度百科合作平台
+
