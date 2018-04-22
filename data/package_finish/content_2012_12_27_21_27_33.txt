@@ -1,0 +1,315 @@
+下载2频道
+下载2频道我的主页帐号设置贴吧设置退出|个人中心个人中心我的i贴吧我的相册我的网盘|消息(3)消息(3)私信(1)通知(2)|手机贴吧|百度首页分享到一键分享QQ空间新浪微博百度搜藏人人网腾讯微博百度相册开心网腾讯朋友百度贴吧豆瓣网搜狐微博百度新首页QQ收藏和讯微博更多...百度分享
+
+新闻　网页　贴吧　知道　音乐　图片　视频　地图　百科　文库　相册 
+吧内搜索|全吧搜索|把贴吧装进口袋 吧内搜索 搜贴 搜人 进吧 
+ 
+百度之星吧
+ 看贴
+ 看图
+
+
+精品
+ 投票
+ 共有1页 回复贴:4 贴子管理
+ <<返回百度之星吧2006百度之星程序设计大赛试题-变态比赛规则（我也来解一下）只看楼主 收藏
+楼主更新提醒我只收藏 回复 
+ 
+堕落无门 
+前几天听说有百度之星编程大赛这回事，于是搜了几道题做了一下。虽然我本来是个菜鸟，但是做变态比赛规则这道题的时候，看到网上最流行的居然是那么笨的一个算法，我突然变得很有自信，现在就来把我的的想法和解法写出来给大家评评。编程方面我是菜鸟，但我觉得这个想法比他那个还是好一点的。 
+
+我的想法： 
+一、N个人之间最多可能的比赛场数是N * (N - 1) / 2，即每人为一组时的情况，不妨记为maxGames[N] 
+二、当K = 0，或K = maxGames[N]，显然可以满足，输出YES 
+三、当K > maxGames[N]，肯定无法满足，输出NO 
+四、对于N个人的任意一种分组情况，其中每包含一个M人的组，相应的比赛场数就要相应比maxGames[N]少maxGames[M]次 
+五、因此当0 < K < maxGames[N]，问题就转化为求得p个整数G1, G2, G3, ..., Gp使得maxGames[G1] + maxGames[G2] + maxGames[G3] + ... + maxGames[Gp] = maxGames[N] - K, 约束条件为Gq > 1(q = 1, 2, 3, ..., p)且G1 + G2 + G3 + ... + Gp <= N 
+六、上述问题可以用搜索回溯算法来实现，并且为了保证不重复搜索，搜索过程中要求满足Gi+1 <= Gi 
+
+算法如下： 
+  
+
+#include <fstream> 
+#include <iostream> 
+#include <vector> 
+#include <algorithm> 
+
+using namespace std; 
+
+int main() 
+{ 
+ vector<int> maxGames;   //用来缓存相应人数的最大比赛次数 
+ //ifstream cin("in.txt");  //去掉注释改为从文件输入 
+ while(true) 
+ { 
+  unsigned int N, K;   //N为人数，K为比赛次数 
+  cin >> N >> K; 
+  if(cin.fail()) break; 
+  if(N > 65536)    //由于整数范围限制，只处理65536以内的数 
+  { 
+   cerr << "This program can only deal with N <= 65536" << endl; 
+   continue; 
+  } 
+  if(K == 0) 
+  { 
+   cout << "YES" << endl; 
+   continue; 
+  } 
+  maxGames.assign(2, 0);  //人数为0和1时比赛次数为0 
+  if(N >= maxGames.size()) //超出缓存数目 
+  { 
+   maxGames.reserve(N + 1); 
+   for(unsigned int i = maxGames.size(); i <= N; ++i) 
+   { 
+    maxGames.push_back(maxGames.back() + i - 1); 
+   } 
+  } 
+  int savedTimes = maxGames[N] - K; //K相对于最大比赛次数省掉的比赛次数 
+  if(savedTimes == 0)     //这一段可以提到扩充缓存之前，不过没多大意义 
+  { 
+   cout << "YES" << endl; 
+   continue; 
+  }else if(savedTimes < 0) 
+  { 
+   cout << "NO" << endl; 
+   continue; 
+  } 
+  int timesToFit = savedTimes; //循环用到的变量，还剩多少次数没有匹配 
+  int remainders = N;    //记录尚未被分组的人数 
+  int nextGroup = N - 1;   //下一次尝试使用的group的大小 
+  bool found = false; 
+  vector<int> groups;    //搜索回溯算法使用的堆栈 
+  while(true) 
+  { 
+   if(timesToFit > maxGames[remainders] || nextGroup <= 1) //剩余人数组成的最大组也无法匹配 
+   { 
+    if(groups.empty())    //栈空，未找到 
+    { 
+     break; 
+    }else       //栈未空，回溯 
+    { 
+     nextGroup = groups.back(); 
+     remainders += nextGroup; 
+     timesToFit += maxGames[nextGroup]; 
+     --nextGroup; 
+     groups.pop_back(); 
+    } 
+   }else 
+   { 
+    if(maxGames[nextGroup] < timesToFit)   //尝试组可以入栈 
+    { 
+     groups.push_back(nextGroup); 
+     timesToFit -= maxGames[nextGroup]; 
+     remainders -= nextGroup; 
+     if(remainders < nextGroup) 
+     { 
+      nextGroup = remainders; 
+     } 
+    }else if(maxGames[nextGroup] == timesToFit)  //尝试组恰好匹配，找到满足条件的分组方式 
+    { 
+     found = true; 
+     break; 
+    }else           //尝试组太大 
+    { 
+     --nextGroup; 
+    } 
+   } 
+  } 
+  if(found) 
+   cout << "YES"; 
+  else 
+   cout << "NO"; 
+  cout << endl; 
+  groups.clear(); 
+ } 
+ return EXIT_SUCCESS; 
+} 
+
+0
+回复 
+1楼2007-05-28 17:29举报 |
+
+我也说一句
+ 
+ 
+ 
+dreams1 
+你的这个想法跟我是一样的， 
+只是我还没有写代码，
+
+回复 收起回复 2楼2007-05-31 23:16举报 |
+
+我也说一句
+ 
+ 
+吧友59.37.49.*找到另外一个算法 
+
+/* 
+3.变态比赛规则 
+为了促进各部门员工的交流，百度举办了一场全公司范围内的“拳皇”（百度内部最流行的格斗游戏）友谊赛， 
+负责组织这场比赛的是百度的超级“拳皇”迷W.Z。W.Z不想用传统的淘汰赛或者循环赛的方式，而是自己制定了一个比赛规则。 
+由于一些员工（比如同部门或者相邻部门员工）平时接触的机会比较多，为了促进不同部门之间的交流，W.Z希望员工自由分组。 
+不同组之间的每两个人都会进行一场友谊赛而同一组内的人之间不会打任何比赛。 
+
+比如4个人，编号为1~4,如果分为两个组并且1，2一个组，3，4一个组， 
+那么一共需要打四场比赛：1 vs 3，1 vs 4，2 vs 3，2 vs 4。  
+而如果是1，2，3一组，4单独一组，那么一共需要打三场比赛: 1 vs 4，2 vs 4，3 vs 4。 
+
+很快 W.Z意识到，这样的比赛规则可能会让比赛的场数非常多。 
+W.Z想知道如果有N个人，通过上面这种比赛规则，总比赛场数有可能为K场吗？ 
+比如3个人，如果只分到一组则不需要比赛，如果分到两组则需要2场比赛，如果分为三组则需要3场比赛。 
+但是无论怎么分都不可能恰需要1场比赛。 
+*/ 
+  
+
+#include <stdio.h> 
+
+int main(int argc, char *argv[]) 
+{ 
+ int n, k; 
+  
+ if( argc!=3 ) 
+ { 
+ printf("use: %s n k", argv[0]); 
+ return -1; 
+ } 
+  
+ n = atoi(argv[1]); 
+ k = atoi(argv[2]); 
+  
+ if(foo(n, k)>0) 
+ printf("YES\n"); 
+ else 
+ printf("NO\n"); 
+  
+ return 0; 
+} 
+
+int maxT(int n, int m) 
+{ 
+ if( n<=0 || n>500 || m<=0 ) 
+ return -1; 
+ if( m==1 ) 
+ return n*(n-1)/2; 
+ if( m>=n || n==1 ) 
+ return 0; 
+ return m*(n-m)+(n-m)*(n-m-1)/2; 
+} 
+
+int minT(int n, int m) 
+{ 
+ if( n<=0 || n>500 || m<=0 ) 
+ return -1; 
+ if( m==1 ) 
+ return n*(n-1)/2; 
+ if( m>=n || n==1 ) 
+ return 0; 
+ return m*(n-m)+minT(n-m, m); 
+} 
+
+int foo(int n, int k) 
+{ 
+ int max, min; 
+ int m; 
+
+ if( n<=0 || n>500 || k<0 || k>n*(n-1)/2 ) 
+ return -1; 
+
+ if( k==0 || k==n-1) 
+ return 1; 
+
+ if( n==1 || k<n-1 ) 
+ return -1; 
+
+ for( m=n; m>0; m-- ) 
+ { 
+ max = maxT(n, m); 
+ min = minT(n, m); 
+ if( k<=max && k>=min ) 
+ { 
+ if( foo(n-m, k-m*(n-m))>0 ) 
+ return 1; 
+ } 
+ } 
+ return -1; 
+}
+
+
+回复 收起回复 3楼2007-06-29 08:26举报 |
+
+我也说一句
+ 
+ 
+吧友121.250.215.*用递归多好，这种方法也够笨的
+
+
+回复 收起回复 4楼2008-05-18 09:16举报 |
+
+我也说一句
+ 
+ 
+ 
+lucyFBI 
+看到一楼的..我突然发现我在看天文数字 
+
+
+看到三楼的,我懂了.. 
+总结了五个字:优胜劣汰!
+
+回复 收起回复 5楼2008-05-19 11:42举报 |
+
+我也说一句
+ 
+ 
+
+共有1页 回复贴:4 签到成功！
+今日本吧第 0 个签到，
+本吧因你更精彩，明天继续来努力！
+签到日记    日 一 二 三 四 五 六 
+              
+              
+              
+              
+              
+              
+已经连续签到：天  累计签到：天 
+目录排名
+ 
+47
+ 今日已签到68人
+
+今日已有68人签到，
+
+目前在其他计算机相关下排名47，
+
+位列百强，都来签到巩固排名吧！
+
+◆◆
+我的本吧头衔
+我喜欢 喜欢本吧 马上获得头衔
+尚观顶级Linux集群架构师课..
+全国首家签订长期保50000年薪协议就业课程 互联网安全对抗案例及..
+www.uplinux.com
+雅思2-4个月封闭培训突破8..
+雅思全封闭班，保分强化冲刺 雅思梦之队名师授课,胡敏雅思第6代..
+www..Newchannel.org
+昆山助尔发自动售货机有限..
+现有营运自动售货机200多台,18994470765 货真价实的商品,完善的..
+www.kszef.com
+
+贴吧垃圾信息处理公示 
+贴吧打击收费删贴警示 
+分享到: <<返回百度之星吧发表回复标　题:   
+内　容: 
+想用@提到谁？你上次未发表的内容已自动恢复
+  
+ 下载2频道 匿名发表  
+验证码: 看不清? 收听验证码
+请点击后输入验证码 
+   Ctrl+Enter快捷发表  
+
+ 
+©2012 Baidu 贴吧协议 | 吧主协议 | 意见反馈 | 收费删贴警示 
+使用云相册收藏工具，批量收藏精美图片！立即安装系统繁忙，请稍后再试！设置用手机贴吧，随时随地掌握消息
+立即下载贴吧手机客户端>>
+◆◆

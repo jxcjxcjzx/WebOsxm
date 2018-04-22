@@ -1,0 +1,85 @@
+  
+--------------------------------------------------------------------------------
+
+Static Source Code Analysis Tools for C
+--------------------------------------------------------------------------------
+  
+ The Leading Commercial Tools
+Semmle/ (Odasa) 
+A relatively new tool, based on the research of Oege de Moor at Oxford University's Computing Laboratory. The tool takes a different approach that can be quite effective. It first constructs a database that captures all essential information about a (potentially large) application, and then allows the user to perform queries on this database to verify the properties of interest. Standard static analysis queries are handled efficiently. With some practice, the queries are not that hard to write, and a large selection of predefined queries comes with the tool that can fairly easily be adapted to local requirements. Rule checkers for the Power of Ten coding rules are provided, which makes it attractive for checking and maintaining high integrity applications. The tool gives accurate results and, once the database is built for a new application, queries are resolved very fast. Highly recommended. 
+Coverity 
+A popular tool based on Dawson Engler's methodology for source code analysis of large code bases. An extended version of the tool (Coverity Extend) supports user-defined properties written in a successor to Dawson's Metal language. The tool is reasonably fast and returns few false positives. The latest versions supports an option to choose between three levels of aggressiveness, with the number of reports increasing (and the number of possible false positives going up) at the higher levels. Recommended. 
+CodeSonar (by Grammatech) 
+An effective tool for spotting code defects and suspicious code fragments. The tool also provides rules checkers for the Power of Ten coding rules. Especially good at inter-procedural analysis. It can be slow on large code bases, but is quite accurate. Recommended. 
+KlocWork 
+Support for static error detection, with added project management and project visualization capabilities. Fast, almost as thorough as Coverity, and not quite as expensive. Especially good at finding array bound violations. A capability for user-defined checks is available, but no rules checkers for the P10 rules. 
+PolySpace 
+Originally marketed by a French company co-founded by students of Patrick Cousot (pioneer in the area of abstract interpretation). The company later became part of MathWorks and is now part of Matlab. Polyspace claims it can intercept 100% of the runtime errors in C programs. (See cverifier.htm.) Customers are in the airline industry and the European space program. Can be thorough, but also very slow, and does not scale beyond a few thousand lines of code. Does not support full ANSI-C language (e.g., it places restrictions on the use of gotos). 
+Purify (by Rational) 
+This tool is focused primarily on the detection of memory leaks, and not on general source code analysis. It is used fairly broadly. 
+The Lint family, e.g. PC-Lint/FlexeLint (by Gimpel), Lint Plus (by Cleanscape) 
+Generic source code analysis, value tracking, some types of array indexing errors. Suffers from high, sometimes very high, false positive rates, but the output can be customized with flags and code annotations. 
+PREfix and PREfast (Microsoft) 
+PREfix was developed by Jon Pincus; MicroSoft acquired the tool when it bought Pincus' company. PREfast is a lighter weight tool, developed within Microsoft as a faster alternative to PREfix (though it is said not to be directly based on PREfix). Both tools are reported to be effective in intercepting defects early, and come with filtering methods for the output to reduce false positives. PREfast allows for new defect patterns to be defined via plugins. Less than 10% of the code of PREfix is said to be concerned with analysis per se, most applies to the filtering and presentation of output, to reduce the number of false positives. 
+QAC (by Programming Research) 
+Includes checkers for compliance with the MISRA-2004 guidelines for the development of C code. It does a thorough job. 
+Safer C (by Oakwood Computing) 
+Based on L. Hatton's 1995 book on Safer C, out of print in the U.S., covering code analysis and enforcement of coding guidelines. Not found to be too useful in our tests. 
+GoAnna (by Red Lizard) (new) 
+A new entry, based on model checking of the control flow graph of C programs. The technology is similar to Bell Labs' early FeaVer and Modex tools (which used Spin as the model checker in the verification of C code). Not evaluated. 
+PVS-Studio (not related to the well-known PVS theorem prover), a static analyzer for C and C++. Not evaluated, but it is discussed here. (thanks to Hubert Garavel for the reference). 
+
+Academic and Research tools
+Calysto (new) a tool by Domagoj Babic 
+Saturn (new) by Alex Aiken and others at Stanford. 
+mygcc (new) 
+An extension of the gcc compiler supporting user-defined checks written in a simple formalism, that can be checked efficiently. Path queries can be run on the control-flow graph of functions, specifying a start node, a stop node, and constraints on the path in between. Sample queries are provided that match many of the ones used in Engler's early study using the Metal language (now supported by the Coverity tool). A very interesting project that will hopefully find its way into the main gcc distribution soon. 
+ESC (Compaq/HP) 
+Extended static checker for Java and for Modula3. developed by Greg Nelson and colleagues, which is based on a mix of theorem proving and static analysis. It's thorough and effective, but also slow, and needs considerable knowledge to run. This tool does not target C, and therefore does not properly belong in this listing, but we include it as one of the landmark research tools in this domain. 
+LC-Lint 
+The descendent of the early research Unix version of lint, which was written by Steve Johnson in 1979. This tool needs lots of annotations to work well, and often produces overwhelming amounts of output. 
+Vault (MicroSoft) 
+An experimental system, in development at MicroSoft by Rob DeLine and Manuel Fahndrich. It is based on formal annotations placed in the code. 
+Astree (CNRS, France) 
+Astree is a static program analyzer for structured C programs, but without support for dynamic memory allocation and recursion (as used, for instance for embedded systems and in safety critical systems). The tool name is an acronym for Analyseur statique de logiciels temps-reel embarques (static analyzer for real-time embedded software). Among those working on this tool are Patrick and Radhia Cousot. 
+CGS (C Global Surveyor, NASA ARC) 
+An experimental tool at NASA Ames Research Center from Guillaume Brat and Arnaud Venet, based on abstract interpretation techniques, inspired by Patrick Cousot. Work in progress. 
+C-Kit (Bell Labs). 
+A research toolkit developed at Bell Labs, with algorithms for pointer alias analysis, program slicing, etc. for ANSI C. Written in SML. Can produce parsetree and symbol table information, but, as yet, not call flow graphs or function call graphs. The principal researchers involved in this work (Nevin Heintze, Jon Riecke, Dave MacQueen) are no longer at Bell Labs and development has stopped. 
+Uno (Bell Labs) 
+Lightweight tool for static analysis. The tool is targeted at a small set of common programming defects (Uninitialized data, Nil-pointer dereferencing, and Out-of-bound array indexing, with the three initial letters giving the tool its name). It also handles a range of simple, user-defined properties. 
+Orion (Bell Labs) 
+Work in progress on an extension of Uno for C++, based on gcc. 
+
+Other tools (Code Browsers; Development Environments)
+Programming Style or Guidelines Checkers 
+Parasoft CodeWizard 
+Plum Hall SQS 
+CheckMate 
+CodeSurfer 
+Supports data dependence analysis, program slicing for C, interprocedural flow analysis. The company was co-founded by Tom Reps. Very well done GUI. Mostly research applications. See also CodeSonar above. 
+Semantic Designs 
+Offers front-ends for many different languages, Supports some flow analysis. Geared towards code transformations or re-engineering. Targets large code bases. 
+
+Links
+http://testingfaqs.org/t-static.html 
+Short white paper on the construction of static analyzers 
+Another overview of static analyzers 
+Up-to-date overview of source code checkers 
+Wikipedia entry (new) 
+  
+
+--------------------------------------------------------------------------------
+
+Recommended Textbooks
+F. Nielson, H. R. Nielson and C. Hankin,
+Principles of Program Analysis,
+ISBN 3-540-65410-0, Springer-Verlag.
+
+
+--------------------------------------------------------------------------------
+ 
+
+--------------------------------------------------------------------------------
+last update 11 December 2012  back to spinroot.com  
+

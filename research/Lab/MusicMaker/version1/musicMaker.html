@@ -1,0 +1,96 @@
+<!--
+
+html for make music stop
+
+-->
+<!doctype html>
+<head>
+  <head>
+	Music Maker
+  </head>
+  
+      <title> Music Maker!</title>
+	 <script type="text/javascript" src="buzz.js"></script>
+ <body>
+
+	<!--
+		the music part
+			
+	-->
+	
+
+ 
+	<p><button class="btn" id="makeEdit" onclick="httpGet();"> One Switch </button></p>
+	<text id="timer"> </text>
+	
+	
+	<script type="text/javascript">
+
+	
+	function httpGet(theUrl){
+		
+		// get the time 
+		timeToAdd = document.getElementById( "timer" ).innerHTML;
+		theUrldefault="http:127.0.0.1:1777/?recordit+"+timeToAdd;
+
+		
+		var xmlHttp = null;
+ 
+		xmlHttp = new XMLHttpRequest();
+		xmlHttp.open( "GET", theUrldefault, true );
+		
+		xmlHttp.onreadystatechange = function () {
+            if (xmlHttp.readyState == 4) {
+                try {
+                    if (xmlHttp.status == 200 ) {
+                       // ok then
+					   alert("success");
+                    }
+                    else if ((xmlHttp.status / 100 == 4 || xmlHttp.status / 100 == 5) ) {
+                       // error something
+                    }
+                    else if (xmlHttp.status / 100 == 200) {
+                        
+                    }
+                   
+                }
+                catch (e) {
+                }
+            }
+        }
+		
+		
+		xmlHttp.send( null );
+		xmlHttp.close();
+		// return xmlHttp.responseText;
+	}
+	
+	/*
+	var button = document.getElementById('makeEdit');
+	var httpGetUrl = "http:127.0.0.1:1777/?recordit!";
+	button.addEventListener('click', function(e){
+		
+		httpGet(httpGetUrl);
+
+	});
+	*/
+  
+  </script> 
+  
+  
+  
+  
+  <script>
+	
+		var mySound = new buzz.sound( "1.mp3");
+		mySound.play()
+	    .fadeIn()
+	    .bind( "timeupdate", function() {
+	       var timer = buzz.toTimer( this.getTime() );
+	       document.getElementById( "timer" ).innerHTML = timer;
+	    });
+	mySound.setVolume(59);
+  </script>
+	
+ </body>
+ </html>

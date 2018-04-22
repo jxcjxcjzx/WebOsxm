@@ -1,0 +1,196 @@
+技术无止境，天天学吧Junit学习笔记(转载)- -| 回首页 | 2005年索引 | - -Applet访问本地资源时安全配置JUnit总结- -
+                                       
+
+      研习了一会儿，写了几个例子，算是明白JUnit的用法了。很奇怪网上的很多文章总是喜欢把简单的问题复杂化……我总结一个简单的，呵呵从代码开始
+
+第一个例子：最简单的HelloWorld的测试例子
+
+待测类：HelloWorld类（最简单的，省去了注释）
+
+package com.shan.testJUnit; 
+
+public class HelloWorld {
+ public String say(){
+  return("Hello World");
+ }
+
+}
+
+测试类：TestHelloWorld类：
+
+package com.shan.testJUnit;
+
+import junit.framework.TestCase; 
+
+public class TestHelloWorld extends TestCase {
+
+ public static void main(String[] args) {
+  junit.textui.TestRunner.run(TestHelloWorld.class);
+ }
+ 
+ public void testSay(){
+  HelloWorld hello = new HelloWorld();
+  assertEquals("Hello World",hello.say());
+ }
+}
+
+对该例子的说明：
+
+   处理步骤：创建继承TestCase的类
+
+                在该类中为待测类定义测试方法，使用Assert类中的断言方法判断（自己看看 JUnit的javadoc）
+
+                在main方法中运行该类
+
+第二个例子：使用suite的例子
+
+待测类：
+
+package com.shan.test;
+
+public class ForTest {
+ public ForTest(){
+ }
+
+ public int add(int i,int j){
+  return i+j;
+ }
+
+}
+
+测试用例：
+
+package com.shan.test;
+
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+import junit.framework.Test;
+
+public class TestForTest extends TestCase {
+ 
+ public TestForTest(){
+  
+ }
+ 
+ public static void main(String[] args) {
+  junit.textui.TestRunner.run(suite());
+ }
+
+ public void testAdd() {
+  ForTest forTest=new ForTest();
+  assertEquals(6,forTest.add(2,4));
+ }
+ 
+ public static Test suite() {
+
+  TestSuite testSuite = new TestSuite();
+  testSuite.addTestSuite(TestForTest.class);
+
+  return testSuite;
+    }
+
+}
+
+对该例子说明：
+
+suite是做什么用的？：用最通俗的语言，Suite让你能够将多个测试放在一块进行（使用addTestSuite可以将多个测试用例类放在一起）
+
+使用办法：实现public static Test suite() 方法，并在main中使用junit.textui.TestRunner.run(suite());来运行测试
+ 
+
+第三个例子：使用Fixture的例子
+
+待测类1：
+
+package com.shan.test;
+
+public class ForTest {
+ 
+ public ForTest(){  
+ }
+
+ public int add(int i,int j){
+  return i+j;
+ }
+}
+
+待测类2：
+
+package com.shan.test;
+
+public class ForTest2 {
+ public ForTest2(){
+   }
+ 
+ public int subtract(int i ,int j){
+  return (i-j);
+ }
+
+}
+
+测试用例类：
+
+public class TestForTest extends TestCase {
+ 
+ private ForTest test1;
+ private ForTest2 test2;
+ protected void setUp() throws Exception {
+  super.setUp();
+  test1 = new ForTest();
+  test2 = new ForTest2(); 
+ }
+
+ protected void tearDown() throws Exception {
+  super.tearDown();
+
+  //此处添加“善后”处理的代码
+ }
+ 
+ public void testAdd() { 
+  assertEquals(6,test1.add(2,4));
+ }
+ public void testSubtract(){
+  assertEquals(3,test2.subtract(7,4));
+ }
+ 
+ public static void main(String[] args) {
+  junit.textui.TestRunner.run(suite());
+ }
+ 
+ public static Test suite(){
+  TestSuite suite = new TestSuite();
+  suite.addTestSuite(TestForTest.class);
+  return suite;
+ }
+
+}
+
+对该例子的说明：
+
+Fixture是什么？：Fixture就是用来对被测试类进行处理，在setUp中初始化，在tearDown中“善后”处理。
+
+执行顺序：
+
+setUp()
+testAdd()
+tearDown()
+setUp()
+testSubtract()
+tearDown()
+
+
+- 作者： 山里没鱼 访问统计：822　2005年07月6日, 星期三 14:50 加入博采 
+Trackback
+你可以使用这个链接引用该篇文章 http://publishblog.blogchina.com/blog/tb.b?diaryID=2183366 
+博客手拉手回复
+  - 评论人：风帆   2005-10-09 11:39:23   　  
+恩，不错
+
+ 
+    发布人：  邮箱：  
+主　页：  
+评论内容：
+            
+　　　　　　 　　　　　　  　   
+2003-2004 BlogChina.COM All rights reserved
+Powered by BlogDriver 2.1 

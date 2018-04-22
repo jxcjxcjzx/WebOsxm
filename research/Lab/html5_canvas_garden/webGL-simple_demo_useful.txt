@@ -1,0 +1,126 @@
+<!--
+	html5  canvas test
+-->
+<!DOCTYPE html>
+  <head>
+	<meta charset="utf-8">
+	<title>html5 canvas simple test 2015-02-09</title>
+  </head>
+  
+  
+  
+  <body>
+	<!--
+		one simple canvas area for pan painting
+	-->
+	<canvas id="Ocanvas" height="600px" width="1300px">
+	</canvas>
+	
+	<!--
+		some head files
+		pack them to a uniform js file or lib we call it sometimes
+	-->
+	
+	<script>
+			
+			var canvas;
+			var gl;
+			
+			function getWebGLContext(canvas){
+				var ctx;
+				try{
+					ctx = canvas.getContext("webgl")
+					|| canvas.getContext("experimental-webgl")
+				} catch (e) {}
+				
+				if(ctx)
+					return ctx;
+				throw "Could not initialize webGL";
+			
+			}
+			
+			
+			
+			
+			function drawScene()
+			{
+				gl.viewport(0,0,canvas.width,canvas.height);
+				gl.clear(gl.COLOR_BUFFER_BIT| gl.DEPTH_BUFFER_BIT);
+				
+				// add up the render codes here
+			}
+	
+	
+			function resizeCanvas(canvas)
+			{
+			// resize the canvas 
+			//	canvas.width=document.width;
+			//	canvas.height=document.height;
+			}
+			
+		 
+	
+			function initFullScreenCanvas(canvasId){
+				var canvas = document.getElementById(canvasId);
+				resizeCanvas(canvas);
+				
+				// here the dynamic adjust of the canvas size
+				window.addEventListener("resize",function(){
+					resizeCanvas(canvas);
+				});
+				return canvas;
+			}			
+				
+			function init()
+			{
+				canvas = initFullScreenCanvas("Ocanvas");
+				
+				gl = getWebGLContext(canvas);
+				gl.clearColor(0.0,0.0,0.0,1.0);
+				gl.enable(gl.DEPTH_TEST);
+				drawScene();
+				
+			}	
+				
+				
+				
+			function animate(t){
+				// the animate function 
+					
+			}
+			
+		//   var canvas = initFullScreenCanvas("Ocanvas");
+		  
+		  
+		
+		/*  
+			gl thing 
+		*/
+		
+		
+		
+		
+		
+		/*
+		var ctx = canvas.getContext("2d");
+		ctx.fillStyle = "fffbb3";
+		ctx.strokeStyle="#989681";
+		
+		ctx.lineWidth = 2;
+		ctx.fillRect(0,0,canvas.width,canvas.height);
+  
+		*/
+		
+		
+		init();
+			
+	
+  
+	</script>
+	
+	
+	
+  </body>
+ </html>
+
+  

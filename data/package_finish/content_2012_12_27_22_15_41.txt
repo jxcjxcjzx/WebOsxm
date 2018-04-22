@@ -1,0 +1,89 @@
+分享到QQ空间新浪微博百度搜藏人人网腾讯微博开心网腾讯朋友百度空间豆瓣网搜狐微博百度新首页QQ收藏和讯微博我的淘宝百度贴吧更多...百度分享
+首页我的主页相册广场消息 私信(1) 模板 设置 退出 关注此空间阳光 。 水。空气。我。
+我思 故我在
+2011-03-16 18:42 【转】JUnit的使用总结　JUnit中的assert方法全部放在Assert类中，现在总结一下经常用到的junit类中assert方法。
+
+　　1.assertTrue/False([String message]，boolean condition) 判断一个条件是true还是false。
+
+　　2.fail([String message，])； 失败，可以有消息，也可以没有消息。
+
+　　3.assertEquals([String message]，Object expected，Object actual)； 判断是否相等，可以指定输出错误信息。
+
+　　4.assertNotNull/Null([String message]，Object obj)； 判读一个对象是否非空(非空)。
+
+　　5.assertSame/NotSame([String message]，Object expected，Object actual)； 判断两个对象是否指向同一个对象。看内存地址。
+
+　　JUnit4是较历史版本有了很大的改进，我以前自己用的是JUnit3。JUnit4的主要方便是利用Java5的Annotation特性简化测试用例的编写。
+
+　　记得以前在JUnit 3中我是这样写一个单元测试的：
+
+public class AddOperation {
+public int add(int x,int y){
+return x+y;
+}
+}
+　　要测试add这个方法，写单元测试得这么写，一定要注意的是以下两点
+
+　　1.单元测试类必须继承自TestCase。
+
+　　2.要测试的方法必须以test开头。
+
+public class AddOperationTest extends TestCase{
+public void testAdd() {
+System.out.println(”add”);
+int x = 0;
+int y = 0;
+AddOperation instance = new AddOperation();
+int expResult = 0;
+int result = instance.add(x, y);
+assertEquals(expResult, result);
+}
+}　　如果上面那个单元测试在JUnit 4中写就不会这么复杂。代码如下：
+public class AddOperationTest extends TestCase{
+
+@Test
+public void add() {
+System.out.println(”add”);
+int x = 0;
+int y = 0;
+AddOperation instance = new AddOperation();
+int expResult = 0;
+int result = instance.add(x, y);
+assertEquals(expResult, result);
+}
+
+}
+
+　　采用Annotation的JUnit已经不会要求必须继承自TestCase了，而且测试方法也不必以test开头了，只要以@Test元数据来描述即可。
+
+　　另外还有其他的几个Annotation：
+
+　　@Before：
+
+　　使用了该元数据的方法在每个测试方法执行之前都要执行一次。
+
+　　@After：
+
+　　使用了该元数据的方法在每个测试方法执行之后要执行一次。
+
+　　注意：@Before和@After标示的方法只能各有一个。这个相当于取代了JUnit以前版本中的setUp和tearDown方法。
+
+　　@Test(expected=*.class)
+
+　　在JUnit4.0之前，对错误的测试，我们只能通过fail来产生一个错误，并在try块里面assertTrue（true）来测试。现在，通过@Test元数据中的expected属性。expected属性的值是一个异常的类型
+
+　　@Test(timeout=xxx)：
+
+　　该元数据传入了一个时间（毫秒）给测试方法，如果测试方法在制定的时间之内没有运行完，则测试也失败。
+
+　　@ignore：
+
+　　该元数据标记的测试方法在测试中会被忽略。当测试的方法还没有实现，或者测试的方法已经过时，或者在某种条件下才能测试该方法（比如需要一个数据库联接，而在本地测试的时候，数据库并没有连接），那么使用该标签来标示这个方法。同时，你可以为该标签传递一个String的参数，来表明为什么会忽略这个测试方法。比如：@lgnore(“该方法还没有实现”)，在执行的时候，仅会报告该方法没有实现，而不会运行测试方法。
+分享到： 举报 浏览(72) 评论 转载 
+你可能也喜欢
+ 剪纸-你信吗？  今天的作业-------紫玉鸳鸯  神奇的动画光线艺术  FEI发布的图片  徐明芝 笔名 雨泉【圣诞清闲笔】  妖娆之美  【转】一步一步android(15)：关于socket编程【以聊天为例】 评论
+
+ 同时评论给  
+ 同时评论给原文作者   发布 500/0
+收起|查看更多
+帮助中心 | 空间客服 | 投诉中心 | 空间协议©2012 Baiduabcdef

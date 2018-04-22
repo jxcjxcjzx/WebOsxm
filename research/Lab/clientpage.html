@@ -1,0 +1,38 @@
+<!--
+the client page, responsible for playing media resources
+-->
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
+<title>Test Web Worker</title>
+<script type="text/javascript">
+
+	if(!window.WebSocket){
+		alert("WebSocket not supported! Sorry. ");
+	}
+
+		var ws;
+
+		fucntion sample(){
+			var location = "ws://localhost:8000/";
+			ws = new WebSocket(location);
+			ws.onmessage = function(event){
+				if(event.data){
+					alert("something");
+				}
+			};
+			
+			ws.onopen = function(event){
+				ws.send("Hello, Server! ");
+			
+			}
+		}
+</script>
+</head>
+
+<body onload = "sample();">
+
+<div id="result"></div>
+</body>
+</html>

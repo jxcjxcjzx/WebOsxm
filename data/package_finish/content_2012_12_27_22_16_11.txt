@@ -1,0 +1,247 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+gukesdo的专栏
+
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年4月微软MVP申请开始啦！    写给13岁的CSDN论坛    CSDN博客频道年终送好礼！
+ 2012CSDN博客之星评选正式上线      2000元大奖征异构开发博文      Q14年互联网产品进化史 
+
+
+
+Junit使用基础总结 
+.
+ 分类： 一点小结java2012-03-30 09:4792人阅读评论(0)收藏举报
+
+
+
+
+[html] view plaincopy
+01.典型的使用JUnit的方法就是继承TestCase类，然后重载它的一些重要方法：setUp()、teardown()、runTest()(这些都是可选的)，TestCase通过setUp和tearDown来自动创建和销毁fixture。它会在运行每个测试之前调用setUp，并且在每个测试完成之后调用tearDown。TestCase类还实现了Assert类，该类中定义了8个核心方法。另外还有两个重要的接口：Test和TestListener。 1.Test, 包含两个方法：run() 和countTestCases()，它是对测试动作特征的提取。 2.TestListener， 包含四个方法：addError()、addFailure()、startTest()和endTest()，它是对测试结果的处理以及测试驱动过程的动作特征的提取。   
+02.所有的TestCase类都需要定义一个TestSuite，如果没有为TestCase定义一个TestSuite，TestRunner将主动为TestCase类定义一个TestSuite。如果没有，junit.swingui.TestRunner 将为TestCalculator创建一个缺省的TestSuite。该缺省的TestSuite将根据反射机制将TestCalculator中的所有以test***命名的测试都加入到该TestSuite中，随后TestRunner将调用run来执行该TestSuite中的所有TestCase。也可以自己定义TestSuite，在自定义的TestSuite中写入要测试的TestCase或者TestSuite。最后将这些客户对象组装到一个TestSuite对象中，交由 junit.textui.TestRunner.run (案例集) 驱动。  
+
+ 
+
+
+[html] view plaincopy
+01.public class MathToolTest extends TestCase {//包含测试用例的类从TestCase类中继承  
+02.public MathToolTest(String testMethod) {//类的构造函数  
+03.        super(testMethod);  
+04.    }  
+05.    public void testGcd() {                 //设计的一个测试用例  
+06.        assertEquals(5, MathTool.gcd(10, 5));  
+07.    }  
+08.    public static void main(String[] args) {//类的主函数  
+09.        junit.textui.TestRunner.run(MathToolTest.class);  
+10.    }  
+11.}  
+12.如果自己没有提供任何的testsuite，则TestRunner会自己建立一个，然后这个 TestSuite会使用反射（reflection），从run中的.class文件中自动找出testXXX()方法然后运行。  
+13.public static void main(String[] args) {  
+14.        junit.textui.TestRunner.run(MathToolTest.class);  
+15.    }  
+16.如果您要自行生成TestSuite，  
+17.可以在继承TestCase类之后使用静态suite方法，在为这个类添加测试用例，这样的话就不是使用TestRunner自己建立的默认suite了，从而测试用例也就不必必须使用test开头了，因为这是不是使用反射机制去这个.class中去找testXXX测试用例来执行。（但是这种方法是不被推荐使用的）具体使用如下  
+18.public class MathToolTest extends TestCase {   
+19.public MathToolTest(String testMethod) {   
+20.        super(testMethod);  
+21.    }  
+22.    public void testGcd() {                   
+23.        assertEquals(5, MathTool.gcd(10, 5));  
+24.}  
+25.public static Test suite() {//继承TestCase后使用suite方法构造自己的suite  
+26.TestSuite suite = new TestSuite(MathTool.class);//这个suite中只有一个.class  
+27.suite.addTest(new MathToolTest("testGcd"));     //向这个suite中添加MathToolTest类中的                        //testGcd测试用例  
+28.return suite;               //返回这个suite  
+29.}  
+30.    public static void main(String[] args) {   
+31.        junit.textui.TestRunner.run(MathToolTest.class);//这是执行上面生成的suite  
+32.    }  
+33.}  
+34.  
+35.还可以则在继承TestSuite之後，使用静态的（static）的suite()方法来整合多个.class文件为一个suite，因为每个.class都包含多个测试用例，因此被认为是一个suite（这种suite可以是自动映射，这个是推荐的方式；还可以是通过继承TestCase类之后使用suite方法在这个.class中手动添加生成的suite，如上面所示）  
+36.public class TestAll extends TestSuite { //自己构造的suite类从TestSuite类中继承  
+37.public static Test suite() {         //使用静态方法suite来构造自己的suite  
+38.TestSuite suite = new TestSuite("TestSuite Test"); //命名自己的suite名称  
+39.    suite.addTestSuite(TestCalcuator.class);   
+40.    suite.addTestSuite(TestCalcuator2.class);   
+41.    return suite;   
+42.}   
+43.public static void main(String args[]){   
+44.    //junit.textui.TestRunner.run (suite());   
+45.junit.textui.TestRunner.run(TestAll.suite());  
+46.}   
+47.}  
+48.TestCase与TestSuite都实作了Test介面，其运行方式为 Command 模式 的一个实例，而TestSuite可以组合数个TestSuite或TestCase，这是 Composite 模式 的一个实例。  
+
+ 
+分享到： 
+
+上一篇：typedef和define的主要区别
+下一篇：Java的pacakge机制，java程序的编译运行过程
+ . 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+gukesdo
+ 
+
+
+
+
+访问：101994次
+积分：3279分
+排名：第1509名
+.原创：226篇
+转载：99篇
+译文：0篇
+评论：26条
+. 
+文章搜索
+
+. 
+文章分类一点小结(260)
+杂谈(5)
+Python(30)
+Linux(7)
+word排版(1)
+面试宝典(54)
+趣味题(14)
+java(6)
+ 
+文章存档
+2012年10月(1).
+2012年08月(2).
+2012年05月(59).
+2012年04月(40).
+2012年03月(21).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+阅读排行win7下怎么配置ODBC数据源(5057)
+C++读取以空格作为数据区分标记，以回车为行标记的txt文件到一个整数数组（字符串妙用）(2883)
+sqlserver所用端口、端口设置(2598)
+ssh连接linux服务器中断后，如何让命令继续在服务器运行(2483)
+vs2008添加连接静态库和动态库(2343)
+win7配置数据源和ODBC数据源部署类型和访问权限（windows 服务无法访问数据源的问题）(2264)
+使用C++获取文件路径，已获取当前路径为基础(2236)
+在socket编程中，如何获取连接另一端（客户端）的ip地址，使用accept或者getpeername(1870)
+VC 2008问题: 应用程序无法启动，因为应用程序的并行配置不正确(1846)
+将136.23.12.64/26划分成四个相同的子网，每个子网内有多少可用IP？(1694)
+ 
+评论排行在socket编程中，如何获取连接另一端（客户端）的ip地址，使用accept或者getpeername(4)
+MFC Application无法启动程序,因为计算机中丢失mfc90ud.dll的解决方案(4)
+在MFC中从一个线程工作函数中向窗口发送消息（this指针的妙用）(3)
+使用C++获取文件路径，已获取当前路径为基础(2)
+c语言实现删除一个txt文件中含有xxx内容的一行，并把删除之后的文件写成另一份txt文件(2)
+LR9系列安装报错解决（Setup has determined that a previous installation has not completed.）解决方案(1)
+一个不错的讲解基础数据结构和算法的博客(1)
+C++类对象创建过程（分配空间、赋值和初始化、对象初始化顺序、虚函数表指针）(1)
+Socket编程中如何发送结构体，拼接多次接收消息及获取通信双方地址(1)
+虚函数表指针、虚基类表指针(1)
+ 
+推荐文章 
+最新评论 Python实现在不同Linux主机之间拷贝文件
+xiaoyao3857: 哇，期待博主能将完整过程和完整代码及截图贴上来，初学，真心不容易！ 
+
+一个不错的讲解基础数据结构和算法的博客
+a9291172061: 十分感谢收藏 
+
+在socket编程中，如何获取连接另一端（客户端）的ip地址，使用accept或者getpeername
+JCIphone: 谢谢 
+
+小明一家过河
+lxmzlxmzlxmz: 呵呵 好玩 
+
+在socket编程中，如何获取连接另一端（客户端）的ip地址，使用accept或者getpeername
+nishuihanxing6466: 非常感谢这篇文章，让我修改了一个bug 
+
+类型强制转换，数据内存存储形式
+HQ_Yuan: 你好！能请教下吗，一般像我们的PC系统都是小端模式，按照上面测试程序、当一个字节的内存放到两个字节的... 
+
+MFC Application无法启动程序,因为计算机中丢失mfc90ud.dll的解决方案
+zhoushaofeijjz: 可以，谢谢！ 
+
+Socket编程中如何发送结构体，拼接多次接收消息及获取通信双方地址
+laiyongcai: 多谢楼主啦，发送结构体，我试了好多次没成功，在你这里找到了答案！灰常感谢！ 
+
+在MFC中从一个线程工作函数中向窗口发送消息（this指针的妙用）
+zssureqh: 的确，方法很实用 
+
+C++类对象创建过程（分配空间、赋值和初始化、对象初始化顺序、虚函数表指针）
+happyjw: 写的不错啊~~ 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  
+
+
+
+
+
+
+
+
+程序员杂志ipad1.2版发布送半年杂志
+ 

@@ -1,0 +1,1649 @@
+ Linux字符设备驱动
+2010-04-16 12:56 1921人阅读 评论(0) 收藏 举报
+这篇文章描述了在Linux 2.4下，如何建立一个虚拟的设备，对初学者来说很有帮助。原文地址：http://dev.yesky.com/186/2623186.shtml
+ 
+Linux下的设备驱动程序被组织为一组完成不同任务的函数的集合，通过这些函数使得Windows的设备操作犹如文件一般。在应用程序看来，硬件设备只是一个设备文件，应用程序可以象操作普通文件一样对硬件设备进行操作，如open ()、close ()、read ()、write () 等。
+Linux主要将设备分为二类：字符设备和块设备。字符设备是指设备发送和接收数据以字符的形式进行；而块设备则以整个数据缓冲区的形式进行。字符设备的驱动相对比较简单。
+
+　　下面我们来假设一个非常简单的虚拟字符设备：这个设备中只有一个4个字节的全局变量int global_var，而这个设备的名字叫做"gobalvar"。对"gobalvar"设备的读写等操作即是对其中全局变量global_var的操作。
+
+　　驱动程序是内核的一部分，因此我们需要给其添加模块初始化函数，该函数用来完成对所控设备的初始化工作，并调用register_chrdev() 函数注册字符设备：
+
+static int __init gobalvar_init(void)
+{
+　if (register_chrdev(MAJOR_NUM, " gobalvar ", &gobalvar_fops))
+　{
+　　//…注册失败
+　}
+　else
+　{
+　　//…注册成功
+　}
+}
+
+　　其中，register_chrdev函数中的参数MAJOR_NUM为主设备号,"gobalvar"为设备名，gobalvar_fops为包含基本函数入口点的结构体，类型为file_operations。当gobalvar模块被加载时，gobalvar_init被执行，它将调用内核函数register_chrdev，把驱动程序的基本入口点指针存放在内核的字符设备地址表中，在用户进程对该设备执行系统调用时提供入口地址。
+
+　　与模块初始化函数对应的就是模块卸载函数，需要调用register_chrdev()的"反函数" unregister_chrdev()：
+
+static void __exit gobalvar_exit(void)
+{
+　if (unregister_chrdev(MAJOR_NUM, " gobalvar "))
+　{
+　　//…卸载失败
+　}
+　else
+　{
+　　//…卸载成功
+　}
+}
+
+　　随着内核不断增加新的功能，file_operations结构体已逐渐变得越来越大，但是大多数的驱动程序只是利用了其中的一部分。对于字符设备来说，要提供的主要入口有：open ()、release ()、read ()、write ()、ioctl ()、llseek()、poll()等。
+
+　　open()函数　对设备特殊文件进行open()系统调用时，将调用驱动程序的open () 函数：
+
+int (*open)(struct inode * ,struct file *);
+
+　　其中参数inode为设备特殊文件的inode (索引结点) 结构的指针，参数file是指向这一设备的文件结构的指针。open()的主要任务是确定硬件处在就绪状态、验证次设备号的合法性(次设备号可以用MINOR(inode-> i - rdev) 取得)、控制使用设备的进程数、根据执行情况返回状态码(0表示成功，负数表示存在错误) 等；
+
+　　release()函数　当最后一个打开设备的用户进程执行close ()系统调用时，内核将调用驱动程序的release () 函数：
+
+void (*release) (struct inode * ,struct file *) ;
+
+　　release 函数的主要任务是清理未结束的输入/输出操作、释放资源、用户自定义排他标志的复位等。
+
+　　read()函数　当对设备特殊文件进行read() 系统调用时，将调用驱动程序read() 函数：
+
+ssize_t (*read) (struct file *, char *, size_t, loff_t *);
+
+　　用来从设备中读取数据。当该函数指针被赋为NULL 值时，将导致read 系统调用出错并返回-EINVAL（"Invalid argument，非法参数"）。函数返回非负值表示成功读取的字节数（返回值为"signed size"数据类型，通常就是目标平台上的固有整数类型）。
+
+　　globalvar_read函数中内核空间与用户空间的内存交互需要借助第2节所介绍的函数：
+
+static ssize_t globalvar_read(struct file *filp, char *buf, size_t len, loff_t *off)
+{
+　…
+　copy_to_user(buf, &global_var, sizeof(int));
+　…
+}
+
+　　write( ) 函数　当设备特殊文件进行write () 系统调用时，将调用驱动程序的write () 函数：
+
+ssize_t (*write) (struct file *, const char *, size_t, loff_t *);
+
+　　向设备发送数据。如果没有这个函数，write 系统调用会向调用程序返回一个-EINVAL。如果返回值非负，则表示成功写入的字节数。
+globalvar_write函数中内核空间与用户空间的内存交互需要借助第2节所介绍的函数：
+
+static ssize_t globalvar_write(struct file *filp, const char *buf, size_t len, loff_t　*off)
+{
+…
+copy_from_user(&global_var, buf, sizeof(int));
+…
+}
+
+　　ioctl() 函数　该函数是特殊的控制函数，可以通过它向设备传递控制信息或从设备取得状态信息，函数原型为：
+
+int (*ioctl) (struct inode * ,struct file * ,unsigned int ,unsigned long);
+
+　　unsigned int参数为设备驱动程序要执行的命令的代码，由用户自定义，unsigned long参数为相应的命令提供参数，类型可以是整型、指针等。如果设备不提供ioctl 入口点，则对于任何内核未预先定义的请求，ioctl 系统调用将返回错误（-ENOTTY，"No such ioctl fordevice，该设备无此ioctl 命令"）。如果该设备方法返回一个非负值，那么该值会被返回给调用程序以表示调用成功。
+
+　　llseek()函数 该函数用来修改文件的当前读写位置，并将新位置作为（正的）返回值返回，原型为：
+
+loff_t (*llseek) (struct file *, loff_t, int);
+
+　　poll()函数 poll 方法是poll 和select 这两个系统调用的后端实现，用来查询设备是否可读或可写，或是否处于某种特殊状态，原型为：
+
+unsigned int (*poll) (struct file *, struct poll_table_struct *);
+ 
+设备"gobalvar"的驱动程序的这些函数应分别命名为gobalvar_open、gobalvar_ release、gobalvar_read、gobalvar_write、gobalvar_ioctl，因此设备"gobalvar"的基本入口点结构变量gobalvar_fops 赋值如下：
+
+struct file_operations gobalvar_fops = {
+　read: gobalvar_read,
+　write: gobalvar_write,
+};
+
+　　上述代码中对gobalvar_fops的初始化方法并不是标准C所支持的，属于GNU扩展语法。
+
+　　完整的globalvar.c文件源代码如下：
+
+#include <linux/module.h>
+#include <linux/init.h>
+#include <linux/fs.h>
+#include <asm/uaccess.h>
+MODULE_LICENSE("GPL");
+
+#define MAJOR_NUM 254 //主设备号
+
+static ssize_t globalvar_read(struct file *, char *, size_t, loff_t*);
+static ssize_t globalvar_write(struct file *, const char *, size_t, loff_t*);
+
+//初始化字符设备驱动的file_operations结构体
+struct file_operations globalvar_fops =
+{
+　read: globalvar_read, write: globalvar_write,
+};
+static int global_var = 0; //"globalvar"设备的全局变量
+
+static int __init globalvar_init(void)
+{
+　int ret;
+
+　//注册设备驱动
+　ret = register_chrdev(MAJOR_NUM, "globalvar", &globalvar_fops);
+　if (ret)
+　{
+　　printk("globalvar register failure");
+　}
+　else
+　{
+　　printk("globalvar register success");
+　}
+　return ret;
+}
+
+static void __exit globalvar_exit(void)
+{
+　int ret;
+
+　//注销设备驱动
+　ret = unregister_chrdev(MAJOR_NUM, "globalvar");
+　if (ret)
+　{
+　　printk("globalvar unregister failure");
+　}
+　else
+　{
+　　printk("globalvar unregister success");
+　}
+}
+
+static ssize_t globalvar_read(struct file *filp, char *buf, size_t len, loff_t *off)
+{
+　//将global_var从内核空间复制到用户空间
+　if (copy_to_user(buf, &global_var, sizeof(int)))
+　{
+　　return - EFAULT;
+　}
+　return sizeof(int);
+}
+
+static ssize_t globalvar_write(struct file *filp, const char *buf, size_t len, loff_t　*off)
+{
+　//将用户空间的数据复制到内核空间的global_var
+　if (copy_from_user(&global_var, buf, sizeof(int)))
+　{
+　　return - EFAULT;
+　}
+　return sizeof(int);
+}
+
+module_init(globalvar_init);
+module_exit(globalvar_exit);
+
+　　运行：
+
+gcc -D__KERNEL__ -DMODULE -DLINUX -I /usr/local/src/linux2.4/include -c -o globalvar.o globalvar.c
+
+　　编译代码，运行：
+
+inmod globalvar.o
+
+　　加载globalvar模块，再运行：
+
+cat /proc/devices
+
+　　发现其中多出了"254 globalvar"一行，如下图：
+ 
+
+       
+ 
+接着我们可以运行：
+
+mknod /dev/globalvar c 254 0
+
+　　创建设备节点，用户进程通过/dev/globalvar这个路径就可以访问到这个全局变量虚拟设备了。我们写一个用户态的程序globalvartest.c来验证上述设备：
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <fcntl.h>
+main()
+{
+　int fd, num;
+　//打开"/dev/globalvar"
+　fd = open("/dev/globalvar", O_RDWR, S_IRUSR | S_IWUSR);
+　if (fd != -1 )
+　{
+　　//初次读globalvar
+　　read(fd, &num, sizeof(int));
+　　printf("The globalvar is %d/n", num);
+
+　　//写globalvar
+　　printf("Please input the num written to globalvar/n");
+　　scanf("%d", &num);
+　　write(fd, &num, sizeof(int));
+
+　　//再次读globalvar
+　　read(fd, &num, sizeof(int));
+　　printf("The globalvar is %d/n", num);
+
+　　//关闭"/dev/globalvar"
+　　close(fd);
+　}
+　else
+　{
+　　printf("Device open failure/n");
+　}
+}
+
+　　编译上述文件：
+
+gcc -o globalvartest.o globalvartest.c
+
+　　运行
+
+./globalvartest.o
+
+　　可以发现"globalvar"设备可以正确的读写。
+ 
+在驱动程序中，当多个线程同时访问相同的资源时（驱动程序中的全局变量是一种典型的共享资源），可能会引发"竞态"，因此我们必须对共享资源进行并发控制。Linux内核中解决并发控制的最常用方法是自旋锁与信号量（绝大多数时候作为互斥锁使用）。
+
+　　自旋锁与信号量"类似而不类"，类似说的是它们功能上的相似性，"不类"指代它们在本质和实现机理上完全不一样，不属于一类。
+
+　　自旋锁不会引起调用者睡眠，如果自旋锁已经被别的执行单元保持，调用者就一直循环查看是否该自旋锁的保持者已经释放了锁，"自旋"就是"在原地打转"。而信号量则引起调用者睡眠，它把进程从运行队列上拖出去，除非获得锁。这就是它们的"不类"。
+
+　　但是，无论是互斥信号量，还是自旋锁，在任何时刻，最多只能有一个保持者，即在任何时刻最多只能有一个执行单元获得锁。这就是它们的"类似"。
+
+　　鉴于自旋锁与信号量的上述特点，一般而言，自旋锁适合于保持时间非常短的情况，它可以在任何上下文使用；信号量适合于保持时间较长的情况，只能在进程上下文使用。如果被保护的共享资源只在进程上下文访问，则可以以信号量来保护该共享资源，如果对共享资源的访问时间非常短，自旋锁也是好的选择。但是，如果被保护的共享资源需要在中断上下文访问（包括底半部即中断处理句柄和顶半部即软中断），就必须使用自旋锁。
+
+　　与信号量相关的API主要有：
+
+　　定义信号量
+
+struct semaphore sem;
+
+　　初始化信号量
+
+void sema_init (struct semaphore *sem, int val);
+
+　　该函数初始化信号量，并设置信号量sem的值为val
+
+void init_MUTEX (struct semaphore *sem);
+
+　　该函数用于初始化一个互斥锁，即它把信号量sem的值设置为1，等同于sema_init (struct semaphore *sem, 1)；
+
+void init_MUTEX_LOCKED (struct semaphore *sem);
+
+　　该函数也用于初始化一个互斥锁，但它把信号量sem的值设置为0，等同于sema_init (struct semaphore *sem, 0)；
+
+　　获得信号量
+
+void down(struct semaphore * sem);
+
+　　该函数用于获得信号量sem，它会导致睡眠，因此不能在中断上下文使用；
+
+int down_interruptible(struct semaphore * sem);
+
+　　该函数功能与down类似，不同之处为，down不能被信号打断，但down_interruptible能被信号打断；
+
+int down_trylock(struct semaphore * sem);
+
+　　该函数尝试获得信号量sem，如果能够立刻获得，它就获得该信号量并返回0，否则，返回非0值。它不会导致调用者睡眠，可以在中断上下文使用。
+
+　　释放信号量
+
+void up(struct semaphore * sem);
+
+　　该函数释放信号量sem，唤醒等待者。
+
+　　与自旋锁相关的API主要有：
+
+　　定义自旋锁
+
+spinlock_t spin;
+
+　　初始化自旋锁
+
+spin_lock_init(lock)
+
+　　该宏用于动态初始化自旋锁lock
+
+　　获得自旋锁
+
+spin_lock(lock)
+
+　　该宏用于获得自旋锁lock，如果能够立即获得锁，它就马上返回，否则，它将自旋在那里，直到该自旋锁的保持者释放；
+
+spin_trylock(lock)
+
+　　该宏尝试获得自旋锁lock，如果能立即获得锁，它获得锁并返回真，否则立即返回假，实际上不再"在原地打转"；
+
+　　释放自旋锁
+
+spin_unlock(lock)
+
+　　该宏释放自旋锁lock，它与spin_trylock或spin_lock配对使用；
+
+    除此之外，还有一组自旋锁使用于中断情况下的API。
+
+ 
+   下面进入对并发控制的实战。首先，在globalvar的驱动程序中，我们可以通过信号量来控制对int global_var的并发访问，下面给出源代码：
+
+#include <linux/module.h>
+#include <linux/init.h>
+#include <linux/fs.h>
+#include <asm/uaccess.h>
+#include <asm/semaphore.h>
+
+MODULE_LICENSE("GPL");
+
+#define MAJOR_NUM 254
+
+static ssize_t globalvar_read(struct file *, char *, size_t, loff_t*);
+static ssize_t globalvar_write(struct file *, const char *, size_t, loff_t*);
+
+struct file_operations globalvar_fops =
+{
+　   read: globalvar_read,
+
+    write: globalvar_write,
+};
+static int global_var = 0;
+static struct semaphore sem;
+
+static int __init globalvar_init(void)
+{
+　int ret;
+　ret = register_chrdev(MAJOR_NUM, "globalvar", &globalvar_fops);
+　if (ret)
+　{
+　　printk("globalvar register failure");
+　}
+　else
+　{
+　　printk("globalvar register success");
+　　init_MUTEX(&sem);
+　}
+　return ret;
+}
+
+static void __exit globalvar_exit(void)
+{
+　int ret;
+　ret = unregister_chrdev(MAJOR_NUM, "globalvar");
+　if (ret)
+　{
+　　printk("globalvar unregister failure");
+　}
+　else
+　{
+　　printk("globalvar unregister success");
+　}
+}
+
+static ssize_t globalvar_read(struct file *filp, char *buf, size_t len, loff_t *off)
+{
+　//获得信号量
+　if (down_interruptible(&sem))
+　{
+　　return - ERESTARTSYS;
+　}
+
+　//将global_var从内核空间复制到用户空间
+　if (copy_to_user(buf, &global_var, sizeof(int)))
+　{
+　　up(&sem);
+　　return - EFAULT;
+　}
+
+　//释放信号量
+　up(&sem);
+
+　return sizeof(int);
+}
+
+ssize_t globalvar_write(struct file *filp, const char *buf, size_t len, loff_t *off)
+{
+　//获得信号量
+　if (down_interruptible(&sem))
+　{
+　　return - ERESTARTSYS;
+　}
+
+　//将用户空间的数据复制到内核空间的global_var
+　if (copy_from_user(&global_var, buf, sizeof(int)))
+　{
+　　up(&sem);
+　　return - EFAULT;
+　}
+
+　//释放信号量
+　up(&sem);
+　return sizeof(int);
+}
+
+module_init(globalvar_init);
+module_exit(globalvar_exit);
+
+　　接下来，我们给globalvar的驱动程序增加open()和release()函数，并在其中借助自旋锁来保护对全局变量int globalvar_count（记录打开设备的进程数）的访问来实现设备只能被一个进程打开（必须确保globalvar_count最多只能为1）：
+
+#include <linux/module.h>
+#include <linux/init.h>
+#include <linux/fs.h>
+#include <asm/uaccess.h>
+#include <asm/semaphore.h>
+
+MODULE_LICENSE("GPL");
+
+#define MAJOR_NUM 254
+
+static ssize_t globalvar_read(struct file *, char *, size_t, loff_t*);
+static ssize_t globalvar_write(struct file *, const char *, size_t, loff_t*);
+static int globalvar_open(struct inode *inode, struct file *filp);
+static int globalvar_release(struct inode *inode, struct file *filp);
+
+struct file_operations globalvar_fops =
+{
+　read    : globalvar_read,
+  write  : globalvar_write,
+  open   : globalvar_open,
+  release: globalvar_release,
+};
+
+static int global_var = 0;
+static int globalvar_count = 0;
+static struct semaphore sem;
+static spinlock_t spin = SPIN_LOCK_UNLOCKED;
+
+static int __init globalvar_init(void)
+{
+　int ret;
+ ret = register_chrdev(MAJOR_NUM, "globalvar",   &globalvar_fops);
+　if (ret)
+　{
+　　printk("globalvar register failure");
+　}
+　else
+　{
+　　printk("globalvar register success");
+　　init_MUTEX(&sem);
+　}
+　return ret;
+}
+
+static void __exit globalvar_exit(void)
+{
+　int ret;
+　ret = unregister_chrdev(MAJOR_NUM, "globalvar");
+　if (ret)
+　{
+　　printk("globalvar unregister failure");
+　}
+　else
+　{
+　　printk("globalvar unregister success");
+　}
+}
+
+static int globalvar_open(struct inode *inode, struct file *filp)
+{
+　//获得自选锁
+　spin_lock(&spin);
+
+　//临界资源访问
+　if (globalvar_count)
+　{
+　　spin_unlock(&spin);
+　　return - EBUSY;
+　}
+　globalvar_count++;
+
+　//释放自选锁
+　spin_unlock(&spin);
+　return 0;
+}
+
+static int globalvar_release(struct inode *inode, struct file *filp)
+{
+　globalvar_count--;
+　return 0;
+}
+
+static ssize_t globalvar_read(struct file *filp, char *buf, size_t len, loff_t
+*off)
+{
+　if (down_interruptible(&sem))
+　{
+　　return - ERESTARTSYS;
+　}
+　if (copy_to_user(buf, &global_var, sizeof(int)))
+　{
+　　up(&sem);
+　　return - EFAULT;
+　}
+　up(&sem);
+　return sizeof(int);
+}
+
+static ssize_t globalvar_write(struct file *filp, const char *buf, size_t len,
+loff_t *off)
+{
+　if (down_interruptible(&sem))
+　{
+　　return - ERESTARTSYS;
+　}
+　if (copy_from_user(&global_var, buf, sizeof(int)))
+　{
+　　up(&sem);
+　　return - EFAULT;
+　}
+　up(&sem);
+　return sizeof(int);
+}
+
+module_init(globalvar_init);
+module_exit(globalvar_exit);
+
+　　为了上述驱动程序的效果，我们启动两个进程分别打开/dev/globalvar。当一个进程打开/dev/globalvar后，另外一个进程将打开失败，输出"device open failure"。
+
+   使用上一节我附的Makefile进行编译，在开发板上跑没问题，只是没法试验多终端。俺的板子不支持，没办法。今天重读此章，看到两个进程，想到可不可以利用fork函数进行测试。我们试试。
+测试程序如下：
+#include <sys/types.h>
+
+#include <sys/stat.h>
+
+#include <stdio.h>
+
+#include <fcntl.h>
+
+#include <unistd.h>
+
+int main(void)
+{
+
+    int fd, num;
+    pid_t pid;
+
+    pid=fork();
+
+    if(pid < 0)printf("error in fork!");
+    else if (pid == 0)
+    {
+
+        printf("I am child/n");
+
+        fd = open("/dev/globalvar", O_RDWR, S_IRUSR | S_IWUSR);
+
+        if (fd != -1 )
+
+        {read(fd, &num, sizeof(int));
+
+            printf("The globalvar is %d/n", num);
+
+            printf("Please input the num /n");
+
+            scanf("%d", &num);
+
+            write(fd, &num, sizeof(int));
+
+            read(fd, &num, sizeof(int));
+
+            printf("The globalvar is %d/n", num);
+
+            close(fd);
+        }
+
+        else
+
+        {printf("Device open failure/n");
+        }
+
+    }
+
+    else
+
+    {printf( "I am parent/n");
+
+        fd = open("/dev/globalvar", O_RDWR, S_IRUSR | S_IWUSR);
+
+        if (fd != -1 )
+
+        {read(fd, &num, sizeof(int));
+
+            printf("The globalvar is %d/n", num);
+
+            printf("Please input the num /n");
+
+            scanf("%d", &num);
+
+            write(fd, &num, sizeof(int));
+
+            read(fd, &num, sizeof(int));
+
+            printf("The globalvar is %d/n", num);
+
+            close(fd);
+        }
+
+        else
+
+        {printf("Device open failure/n");
+
+        }
+
+    }
+       return 0;
+}
+
+运行结果如下： 
+
+[root@(none)study]$./gtest                                                    
+
+I am parent                                                                    
+
+The globalvar is 12                                                            
+
+Please input the num                                                           
+
+I am child                                                                     
+
+Device open failure
+
+[root@(none) study]$
+
+[root@(none)study]$./gtest                                                    
+
+I am child                                                                     
+
+The globalvar is 12                                                            
+
+Please input the num                                                           
+
+I am parent                                                                    
+
+Device open failure  
+
+[root@(none)study]$./gtest                                                    
+
+I am child                                                                     
+
+The globalvar is 12                                                            
+
+Please input the num                                                           
+
+I am parent                                                                    
+
+Device open failure
+
+ 呵呵，结果得到了验证。
+
+ 
+
+ 
+
+阻塞与非阻塞
+
+文章来源：http://blog.chinaunix.net/u2/62910/showart_492763.html
+
+阻塞操作是指，在执行设备操作时，若不能获得资源，则进程挂起直到满足可操作的条件再进行操作。非阻塞操作的进程在不能进行设备操作时，并不挂起。被挂起的进程进入sleep状态，被从调度器的运行队列移走，直到等待的条件被满足。
+
+在Linux驱动程序中，我们可以使用等待队列（wait queue）来实现阻塞操作。wait queue很早就作为一个基本的功能单位出现在Linux内核里了，它以队列为基础数据结构，与进程调度机制紧密结合，能够用于实现核心的异步事件通知机制。等待队列可以用来同步对系统资源的访问，上节中所讲述Linux信号量在内核中也是由等待队列来实现的。
+
+wait的API：
+
+wait_event(queue, condition)
+
+wait_event_interruptible(queue, condition)
+
+wait_event_timeout(queue, condition, timeout)
+
+wait_event_interruptible_timeout(queue, condition, timeout)
+
+等待condition变为true，否则一直睡眠
+
+condition可以在任何地方被改变，但改变时须wake_up 等待队列wq里面的process。
+
+唤醒函数：
+
+void wake_up(wait_queue_head_t *queue);   //唤醒所有
+
+void wake_up_interruptible(wait_queue_head_t *queue); //唤醒interruptible
+
+下面我们重新定义设备"globalvar"，它可以被多个进程打开，但是每次只有当一个进程写入了一个数据之后本进程或其它进程才可以读取该数据，否则一直阻塞。
+
+#include <linux/module.h>
+#include <linux/init.h>
+#include <linux/fs.h>
+#include <asm/uaccess.h>
+#include <linux/wait.h>
+#include <asm/semaphore.h>
+
+
+MODULE_LICENSE("GPL");
+#define MAJOR_NUM 254
+
+
+static ssize_t globalvar_read(struct file *, char *, size_t, loff_t*);
+
+
+static ssize_t globalvar_write(struct file *, const char *, size_t, loff_t*);
+
+struct file_operations globalvar_fops =
+{
+      read: globalvar_read,
+      write: globalvar_write,
+};
+
+
+static int global_var = 0;
+static struct semaphore sem;
+static wait_queue_head_t outq;
+static int flag = 0;
+
+
+static int __init globalvar_init(void)
+{
+    int ret;
+    ret = register_chrdev(MAJOR_NUM, "globalvar", &globalvar_fops);
+    if (ret)
+    {
+        printk("globalvar register failure");
+    }
+    else
+    {
+        printk("globalvar register success");
+        init_MUTEX(&sem);
+        init_waitqueue_head(&outq);
+    }
+    return ret;
+}
+
+static void __exit globalvar_exit(void)
+{
+    int ret;
+    ret = unregister_chrdev(MAJOR_NUM, "globalvar");
+    if (ret)
+    {
+        printk("globalvar unregister failure");
+    }
+    else
+    {
+        printk("globalvar unregister success");
+    }
+}
+
+static ssize_t globalvar_read(struct file *filp, char *buf, size_t len, loff_t *off)
+{
+
+    if (wait_event_interruptible(outq, flag != 0))
+    {
+        return - ERESTARTSYS;
+    }
+
+    if (down_interruptible(&sem))
+    {
+        return - ERESTARTSYS;
+    }
+
+    flag = 0;
+    if (copy_to_user(buf, &global_var, sizeof(int)))
+    {
+        up(&sem);
+        return - EFAULT;
+    }
+    up(&sem);
+    return sizeof(int);
+}
+
+static ssize_t globalvar_write(struct file *filp, const char *buf, size_t len,loff_t *off)
+{
+    if (down_interruptible(&sem))
+    {
+        return - ERESTARTSYS;
+    }
+    if (copy_from_user(&global_var, buf, sizeof(int)))
+    {
+        up(&sem);
+        return - EFAULT;
+    }
+    up(&sem);
+    flag = 1;
+
+    wake_up_interruptible(&outq);
+    return sizeof(int);
+}
+
+module_init(globalvar_init);
+module_exit(globalvar_exit);
+
+　　编写两个用户态的程序来测试，第一个用于阻塞地读/dev/globalvar，另一个用于写/dev/globalvar。只有当后一个对/dev/globalvar进行了输入之后，前者的read才能返回。
+
+
+读的程序为：
+
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <fcntl.h>
+
+
+main()
+{
+　int fd, num;
+
+　fd = open("/dev/globalvar", O_RDWR, S_IRUSR | S_IWUSR);
+　if (fd != - 1)
+　{
+　　while (1)
+　　{
+read(fd, &num, sizeof(int));//程序将阻塞在此语句，除非有针对globalvar的输入
+　　　printf("The globalvar is %d/n", num);
+
+　　　//如果输入是0，则退出
+　　　if (num == 0)
+　　　{
+　　　　close(fd);
+　　　　break;
+　　　}
+　　}
+　}
+　else
+　{
+　　printf("device open failure/n");
+　}
+}
+
+　
+写的程序为：
+
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <fcntl.h>
+main()
+{
+　int fd, num;
+
+　fd = open("/dev/globalvar", O_RDWR, S_IRUSR | S_IWUSR);
+　if (fd != - 1)
+　{
+　　while (1)
+　　{
+　　　printf("Please input the globalvar:/n");
+　　　scanf("%d", &num);
+　　　write(fd, &num, sizeof(int));
+
+　　　//如果输入0，退出
+　　　if (num == 0)
+　　　{
+　　　　close(fd);
+　　　　break;
+　　　}
+　　}
+　}
+　else
+　{
+　　printf("device open failure/n");
+　}
+}
+
+　　
+
+打开两个终端，分别运行上述两个应用程序，发现当在第二个终端中没有输入数据时，第一个终端没有输出（阻塞），每当我们在第二个终端中给globalvar输入一个值，第一个终端就会输出这个值。
+
+没有办法，我们还是要借助fork函数，完成验证，呵呵，fork大练兵了。
+程序如下：
+#include <sys/types.h>
+
+#include <sys/stat.h>
+
+#include <stdio.h>
+
+#include <fcntl.h>
+
+#include <unistd.h>
+
+int main(void)
+{
+
+    pid_t pid;
+
+    pid=fork();
+
+    if(pid < 0)printf("error in fork!");
+    else if (pid == 0)
+    {    int fd, num;
+        printf("I am parent/n");
+
+        fd = open("/dev/globalvar", O_RDWR, S_IRUSR | S_IWUSR);
+        if (fd != - 1)
+        {
+            while (1)
+            {
+                read(fd, &num, sizeof(int));
+                printf("The globalvar is %d/n", num);
+
+
+                if (num == 0)
+                {
+                    close(fd);
+                    break;
+                }
+            }
+        }
+        else
+        {
+            printf("device open failure/n");
+        }
+    }
+
+    else
+    {int fd, num;
+        printf( "I am child/n");
+
+        fd = open("/dev/globalvar", O_RDWR, S_IRUSR | S_IWUSR);
+        if (fd != - 1)
+        {
+            while (1)
+            {
+                printf("Please input the globalvar:/n");
+                scanf("%d", &num);
+                write(fd, &num, sizeof(int));
+
+                if (num == 0)
+                {
+                    close(fd);
+                    break;
+                }
+
+            }
+        }    
+        else
+        {
+            printf("device open failure/n");
+        }
+
+
+
+
+    }
+    return 0;
+}
+运行结果如下：
+[root@(none) study]$./gtest1                                                    
+I am child                                                                      
+Please input the globalvar:                                                     
+I am parent                                                                     
+1                                                                               
+Please input the globalvar:                                                     
+The globalvar is 1                                                              
+2                                                                               
+Please input the globalvar:                                                     
+The globalvar is 2                                                              
+0                                                                               
+The globalvar is 0                                          
+
+[root@(none) study]$./gtest1                                                    
+I am child                                                                      
+Please input the globalvar:                                                     
+I am parent                                                                     
+0                                                                               
+The globalvar is 0                                          
+
+[root@(none) study]$./gtest1                                                    
+I am child                                                                      
+Please input the globalvar:                                                     
+I am parent                                                                     
+0                                                                               
+The globalvar is 0                                          
+[root@(none) study]$./gtest1                                                    
+I am parent                                                                     
+I am child                                                                      
+Please input the globalvar:                                                     
+0                                                                               
+The globalvar is 0                                          
+[root@(none) study]$./gtest1                                                    
+I am child                                                                      
+Please input the globalvar:                                                     
+I am parent                                                                     
+1                                                                               
+Please input the globalvar:                                                     
+The globalvar is 1                                                              
+2                                                                               
+Please input the globalvar:                                                     
+The globalvar is 2                                                              
+3                                                                               
+Please input the globalvar:                                                     
+The globalvar is 3                                                              
+0                                                                               
+The globalvar is 0                                          
+[root@(none) study]$./gtest1                                                    
+I am child                                                                      
+I am parent                                                                     
+Please input the globalvar:                                                     
+1                                                                               
+Please input the globalvar:                                                     
+The globalvar is 1                                                              
+2                                                                               
+Please input the globalvar:                                                     
+The globalvar is 2                                                              
+0                                                                               
+The globalvar is 0
+
+分析一下不难得出结论，我们的阻塞得到了验证。
+
+关于上述例程，我们补充说一点，如果将驱动程序中的read函数改为：
+
+static ssize_t globalvar_read(struct file *filp, char *buf, size_t len, loff_t *off)
+{
+　//获取信号量：可能阻塞
+　if (down_interruptible(&sem))
+　{
+　　return - ERESTARTSYS;
+　}
+
+　//等待数据可获得：可能阻塞
+　if (wait_event_interruptible(outq, flag != 0))
+　{
+　　return - ERESTARTSYS;
+　}
+　flag = 0;
+
+　//临界资源访问
+　if (copy_to_user(buf, &global_var, sizeof(int)))
+　{
+　　up(&sem);
+　　return - EFAULT;
+　}
+
+　//释放信号量
+　up(&sem);
+
+　return sizeof(int);
+}
+
+　　即交换wait_event_interruptible(outq, flag != 0)和down_interruptible(&sem)的顺序，这个驱动程序将变得不可运行。实际上，当两个可能要阻塞的事件同时出现时，即两个wait_event或down摆在一起的时候，将变得非常危险，死锁的可能性很大，这个时候我们要特别留意它们的出现顺序。当然，我们应该尽可能地避免这种情况的发生！
+
+ 还有一个与设备阻塞与非阻塞访问息息相关的论题，即select和poll，select和 poll的本质一样，前者在BSD Unix中引入，后者在System V中引入。poll和select用于查询设备的状态，以便用户程序获知是否能对设备进行非阻塞的访问，它们都需要设备驱动程序中的poll函数支持。
+
+　驱动程序中poll函数中最主要用到的一个API是poll_wait，其原型如下：
+
+void poll_wait(struct file *filp, wait_queue_heat_t *queue, poll_table * wait);
+
+poll_wait函数所做的工作是把当前进程添加到wait参数指定的等待列表（poll_table）中。下面我们给globalvar的驱动添加一个poll函数：
+
+static unsigned int globalvar_poll(struct file *filp, poll_table *wait)
+{
+　unsigned int mask = 0;
+
+　poll_wait(filp, &outq, wait);
+
+　//数据是否可获得？
+　if (flag != 0)
+　{
+　　mask |= POLLIN | POLLRDNORM; //标示数据可获得
+　}
+　return mask;
+}
+
+需要说明的是，poll_wait函数并不阻塞，程序中poll_wait(filp, &outq, wait)这句话的意思并不是说一直等待outq信号量可获得，真正的阻塞动作是上层的select/poll函数中完成的。select/poll会在一个循环中对每个需要监听的设备调用它们自己的poll支持函数以使得当前进程被加入各个设备的等待列表。若当前没有任何被监听的设备就绪，则内核进行调度（调用schedule）让出cpu进入阻塞状态，schedule返回时将再次循环检测是否有操作可以进行，如此反复；否则，若有任意一个设备就绪， select/poll都立即返回。
+
+我们编写一个用户态应用程序来测试改写后的驱动。程序中要用到BSD Unix中引入的select函数，其原型为：
+
+int select(int numfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
+
+其中readfds、writefds、exceptfds分别是被select()监视的读、写和异常处理的文件描述符集合，numfds的值是需要检查的号码最高的文件描述符加1。timeout参数是一个指向struct timeval类型的指针，它可以使select()在等待timeout时间后若没有文件描述符准备好则返回。struct timeval数据结构为：
+
+struct timeval
+{
+　　int tv_sec; /* seconds */
+　　int tv_usec; /* microseconds */
+};
+
+
+除此之外，我们还将使用下列API：
+FD_ZERO(fd_set *set)――清除一个文件描述符集；
+FD_SET(int fd,fd_set *set)――将一个文件描述符加入文件描述符集中FD_CLR(int fd,fd_set *set)――将文件描述符从文件描述符集中清除；
+FD_ISSET(int fd,fd_set *set)――判断文件描述符是否被置位。
+
+下面的用户态测试程序等待/dev/globalvar可读，但是设置了5秒的等待超时，若超过5秒仍然没有数据可读，则输出"No data within 5 seconds"：
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+int main(void)
+{
+　int fd, num;
+　fd_set rfds;
+　struct timeval tv;
+
+　fd = open("/dev/globalvar", O_RDWR, S_IRUSR | S_IWUSR);
+　if (fd != - 1)
+　{
+　　while (1)
+　　{
+　　　//查看globalvar是否有输入
+　　　FD_ZERO(&rfds);
+　　　FD_SET(fd, &rfds);
+　　　//设置超时时间为5s
+　　　tv.tv_sec = 5;
+　　　tv.tv_usec = 0;
+　　　select(fd + 1, &rfds, NULL, NULL, &tv);
+
+　　　//数据是否可获得？
+　　　if (FD_ISSET(fd, &rfds))
+　　　{
+　　　　read(fd, &num, sizeof(int));
+　　　　printf("The globalvar is %d/n", num);
+
+　　　　//输入为0，退出
+　　　　if (num == 0)
+　　　　{
+　　　　　close(fd);
+　　　　　break;
+　　　　}
+　　　}
+　　　else
+　　　　printf("No data within 5 seconds./n");
+　　}
+　}
+　else
+　{
+　　printf("device open failure/n");
+　}
+}
+
+　　开两个终端，分别运行程序：一个对globalvar进行写，一个用上述程序对 globalvar进行读。当我们在写终端给globalvar输入一个值后，读终端立即就能输出该值，当我们连续5秒没有输入时，"No data within 5 seconds"在读终端被输出。
+
+异步通知
+
+ 
+
+文章来源：http://blog.chinaunix.net/u2/62910/showart_492764.html
+
+ 
+
+结合阻塞与非阻塞访问、poll函数可以较好地解决设备的读写，但是如果有了异步通知就更方便了。异步通知的意思是：一旦设备就绪，则主动通知应用程序，这样应用程序根本就不需要查询设备状态，这一点非常类似于硬件上"中断"地概念，比较准确的称谓是"信号驱动(SIGIO)的异步I/O"。
+
+我们先来看一个使用信号驱动的例子，它通过signal(SIGIO, input_handler)对STDIN_FILENO启动信号机制，输入可获得时input_handler被调用，其源代码如下：
+
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <unistd.h>
+#define MAX_LEN 100
+void input_handler(int num)
+{
+　char data[MAX_LEN];
+　int len;
+　//读取并输出STDIN_FILENO上的输入
+　len = read(STDIN_FILENO, &data, MAX_LEN);
+　data[len] = 0;
+　printf("input available:%s/n", data);
+}
+
+
+int main(void)
+{
+　int oflags;
+
+　//启动信号驱动机制
+　signal(SIGIO, input_handler);
+　fcntl(STDIN_FILENO, F_SETOWN, getpid());
+　oflags = fcntl(STDIN_FILENO, F_GETFL);
+　fcntl(STDIN_FILENO, F_SETFL, oflags | FASYNC);
+
+　//最后进入一个死循环，程序什么都不干了，只有信号能激发input_handler的运行
+　//如果程序中没有这个死循环，会立即执行完毕
+　while (1);
+}
+
+　　程序的运行效果如下图：（图后补）
+
+ 
+
+　　为了使设备支持该机制，我们需要在驱动程序中实现fasync()函数，并在write()函数中当数据被写入时，调用kill_fasync()函数激发一个信号，此部分工作留给读者来完成。
+
+ 
+
+中断处理
+
+ 
+
+文章来源:http://blog.chinaunix.net/u2/62910/showart_492765.html
+
+ 
+
+与Linux设备驱动中中断处理相关的首先是申请与释放IRQ的API： request_irq()和free_irq()。
+
+request_irq()的原型为：
+
+
+int request_irq(unsigned int irq,
+void (*handler)(int irq, void *dev_id, struct pt_regs *regs),
+unsigned long irqflags,
+const char * devname,
+void *dev_id);
+
+　　irq是要申请的硬件中断号；
+
+　　handler是向系统登记的中断处理函数，是一个回调函数，中断发生时，系统调用这个函数，dev_id参数将被传递；
+
+　　irqflags是中断处理的属性，若设置SA_INTERRUPT，标明中断处理程序是快速处理程序，快速处理程序被调用时屏蔽所有中断，慢速处理程序不屏蔽；若设置SA_SHIRQ，则多个设备共享中断，dev_id在中断共享时会用到，一般设置为这个设备的device结构本身或者NULL。
+
+　　free_irq()的原型为：
+
+void free_irq(unsigned int irq,void *dev_id);
+
+另外，与Linux中断息息相关的一个重要概念是Linux中断分为两个半部：上半部（tophalf）和下半部(bottom half)。上半部的功能是"登记中断"，当一个中断发生时，它进行相应地硬件读写后就把中断例程的下半部挂到该设备的下半部执行队列中去。因此，上半部执行的速度就会很快，可以服务更多的中断请求。但是，仅有"登记中断"是远远不够的，因为中断的事件可能很复杂。因此，Linux引入了一个下半部，来完成中断事件的绝大多数使命。下半部和上半部最大的不同是下半部是可中断的，而上半部是不可中断的，下半部几乎做了中断处理程序所有的事情，而且可以被新的中断打断！下半部则相对来说并不是非常紧急的，通常还是比较耗时的，因此由系统自行安排运行时机，不在中断服务上下文中执行。
+
+Linux实现下半部的机制主要有tasklet和工作队列。
+
+tasklet基于Linux softirq，其使用相当简单，我们只需要定义tasklet及其处理函数并将二者关联：
+
+void my_tasklet_func(unsigned long); //定义一个处理函数：
+DECLARE_TASKLET(my_tasklet,my_tasklet_func,data); //定义一个tasklet结构my_tasklet，与my_tasklet_func(data)函数相关联
+
+然后，在需要调度tasklet的时候引用一个简单的API就能使系统在适当的时候进行调度运行：
+
+tasklet_schedule(&my_tasklet);
+
+此外，Linux还提供了另外一些其它的控制tasklet调度与运行的API：
+DECLARE_TASKLET_DISABLED(name,function,data); //与DECLARE_TASKLET类似，但等待tasklet被使能
+tasklet_enable(struct tasklet_struct *); //使能tasklet
+tasklet_disble(struct tasklet_struct *); //禁用tasklet
+tasklet_init(struct tasklet_struct *,void (*func)(unsigned long),unsigned long); //类似DECLARE_TASKLET()
+tasklet_kill(struct tasklet_struct *); // 清除指定tasklet的可调度位，即不允许调度该tasklet
+
+我们先来看一个tasklet的运行实例，这个实例没有任何实际意义，仅仅为了演示。我修改了一下，便于验证。
+#include <linux/module.h>
+#include <linux/init.h>
+#include <linux/timer.h>
+#include <linux/interrupt.h>
+MODULE_LICENSE("GPL");
+void test_tasklet_action(unsigned long t)
+{
+    printk("tasklet is executing/n");
+}
+DECLARE_TASKLET(test_tasklet, test_tasklet_action, 0);
+static int __init hello_init (void)
+
+{
+
+    printk("Hello module init/n");
+    tasklet_schedule(&test_tasklet);
+    return 0;
+
+}
+
+static void __exit hello_exit (void)
+
+{
+    printk("Hello module exit/n");
+
+}
+
+module_init(hello_init);
+
+module_exit(hello_exit);
+
+运行如下：                                                      
+                                                                                                     [root@(none) nfs]$insmod ./tasklet.o                                           
+Using ./tasklet.o                                                              
+Hello module init                                                              
+tasklet is executing                                                           
+[root@(none) nfs]$rmmod tasklet                                                
+Hello module exit 
+
+由于中断与真实的硬件息息相关，脱离硬件而空谈中断是毫无意义的，我们还是来举一个简单的例子。这个例子来源于SAMSUNG S3C2410嵌入式系统实例，看看其中实时钟的驱动中与中断相关的部分：
+
+static struct fasync_struct *rtc_async_queue;
+static int __init rtc_init(void)
+{
+　misc_register(&rtc_dev);
+　create_proc_read_entry("driver/rtc", 0, 0, rtc_read_proc, NULL);
+
+　#if RTC_IRQ
+　　if (rtc_has_irq == 0)
+　　　goto no_irq2;
+
+　　init_timer(&rtc_irq_timer);
+　　rtc_irq_timer.function = rtc_dropped_irq;
+　　spin_lock_irq(&rtc_lock);
+　　/* Initialize periodic freq. to CMOS reset default, which is 1024Hz */
+　　CMOS_WRITE(((CMOS_READ(RTC_FREQ_SELECT) &0xF0) | 0x06), RTC_FREQ_SELECT);
+　　spin_unlock_irq(&rtc_lock);
+　　rtc_freq = 1024;
+　　no_irq2:
+　#endif
+
+　printk(KERN_INFO "Real Time Clock Driver v" RTC_VERSION "/n");
+　return 0;
+}
+
+static void __exit rtc_exit(void)
+{
+　remove_proc_entry("driver/rtc", NULL);
+　misc_deregister(&rtc_dev);
+
+　release_region(RTC_PORT(0), RTC_IO_EXTENT);
+　if (rtc_has_irq)
+　　free_irq(RTC_IRQ, NULL);
+}
+static void rtc_interrupt(int irq, void *dev_id, struct pt_regs *regs)
+{
+　/*
+　* Can be an alarm interrupt, update complete interrupt,
+　* or a periodic interrupt. We store the status in the
+　* low byte and the number of interrupts received since
+　* the last read in the remainder of rtc_irq_data.
+　*/
+
+　spin_lock(&rtc_lock);
+　rtc_irq_data += 0x100;
+　rtc_irq_data &= ~0xff;
+　rtc_irq_data |= (CMOS_READ(RTC_INTR_FLAGS) &0xF0);
+
+　if (rtc_status &RTC_TIMER_ON)
+　　mod_timer(&rtc_irq_timer, jiffies + HZ / rtc_freq + 2 * HZ / 100);
+
+　spin_unlock(&rtc_lock);
+
+　/* Now do the rest of the actions */
+　wake_up_interruptible(&rtc_wait);
+
+　kill_fasync(&rtc_async_queue, SIGIO, POLL_IN);
+}
+
+static int rtc_fasync (int fd, struct file *filp, int on)
+{
+　return fasync_helper (fd, filp, on, &rtc_async_queue);
+}
+
+static void rtc_dropped_irq(unsigned long data)
+{
+　unsigned long freq;
+
+　spin_lock_irq(&rtc_lock);
+
+　/* Just in case someone disabled the timer from behind our back... */
+　if (rtc_status &RTC_TIMER_ON)
+　　mod_timer(&rtc_irq_timer, jiffies + HZ / rtc_freq + 2 * HZ / 100);
+
+　rtc_irq_data += ((rtc_freq / HZ) << 8);
+　rtc_irq_data &= ~0xff;
+　rtc_irq_data |= (CMOS_READ(RTC_INTR_FLAGS) &0xF0); /* restart */
+
+　freq = rtc_freq;
+
+　spin_unlock_irq(&rtc_lock);
+　printk(KERN_WARNING "rtc: lost some interrupts at %ldHz./n", freq);
+
+　/* Now we have new data */
+　wake_up_interruptible(&rtc_wait);
+
+　kill_fasync(&rtc_async_queue, SIGIO, POLL_IN);
+}
+
+　　RTC中断发生后，激发了一个异步信号，因此本驱动程序提供了对第6节异步信号的支持。并不是每个中断都需要一个下半部，如果本身要处理的事情并不复杂，可能只有一个上半部，本例中的RTC驱动就是如此。
+
+ 
+
+一个简单的演示用的Linux字符设备驱动程序
+文章来源：http://techlife.blog.51cto.com/212583/39225
+版权声明：原创作品，允许转载，转载时请务必以超链接形式标明文章 原始出处 、作者信息和本声明。否则将追究法律责任。http://techlife.blog.51cto.com/212583/39225
+实现如下的功能:
+--字符设备驱动程序的结构及驱动程序需要实现的系统调用
+--可以使用cat命令或者自编的readtest命令读出"设备"里的内容
+--以8139网卡为例，演示了I/O端口和I/O内存的使用
+本文中的大部分内容在Linux Device Driver这本书中都可以找到，
+这本书是Linux驱动开发者的唯一圣经。
+=======================================================
+先来看看整个驱动程序的入口，是char8139_init()这个函数
+如果不指定MODULE_LICENSE("GPL"), 在模块插入内核的
+时候会出错，因为将非"GPL"的模块插入内核就沾污了内核的
+"GPL"属性。
+module_init(char8139_init);
+module_exit(char8139_exit);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("ypixunil");
+MODULE_DESCRIPTION("Wierd char device driver for Realtek 8139 NIC");
+
+接着往下看char8139_init()
+
+static int __init char8139_init(void)
+{
+int result;
+
+PDBG("hello. init./n");
+
+/* register our char device */
+result=register_chrdev(char8139_major, "char8139", &char8139_fops);
+if(result<0)
+{
+PDBG("Cannot allocate major device number!/n");
+return result;
+}
+/* register_chrdev() will assign a major device number and return if it called
+* with "major" parameter set to 0 */
+if(char8139_major == 0)
+char8139_major=result;
+
+/* allocate some kernel memory we need */
+buffer=(unsigned char*)(kmalloc(CHAR8139_BUFFER_SIZE, GFP_KERNEL));
+if(!buffer)
+{
+PDBG("Cannot allocate memory!/n");
+result= -ENOMEM;
+goto init_fail;
+}
+memset(buffer, 0, CHAR8139_BUFFER_SIZE);
+p_buf=buffer;
+
+return 0; /* everything's ok */
+
+init_fail:
+char8139_exit();
+return result;
+}
+
+这个函数首先的工作就是使用register_chrdev()注册我们的设备的主设备号和系统调用。
+系统调用对于字符设备驱动程序来说就是file_operations接口。
+
+我们先来看看char8139_major的定义，
+#define DEFAULT_MAJOR 145
+/* data structure used by our driver */
+int char8139_major=DEFAULT_MAJOR; /* major device number. if initial value is 0,
+the kernel will dynamically assign a major device
+number in register_chrdev() */
+这里我们指定我们的设备的主设备号是145,你必须找到一个系统中没有用的主设备号，
+可以通过"cat /proc/devices"命令来查看系统中已经使用的主设备号。
+
+[michael@char8139]$ cat /proc/devices
+Character devices:
+1 mem
+2 pty
+3 ttyp
+4 ttyS
+5 cua
+7 vcs
+10 misc
+14 sound
+116 alsa
+128 ptm
+136 pts
+162 raw
+180 usb
+195 nvidia
+226 drm
+
+Block devices:
+2 fd
+3 ide0
+22 ide1
+[michael@char8139]$
+
+可见在我的系统中，145还没有被使用。
+
+指定主设备号值得考虑。像上面这样指定一个主设备号显然缺乏灵活性，而且不能保证
+一个驱动程序在所有的机器上都能用。可以在调用register_chrdev()时将第一个
+参数，即主设备号指定为0,这样register_chrdev()会分配一个空闲的主设备号
+作为返回值。 但是这样也有问题，我们只有在将模块插入内核之后才能得到我们设备
+的主设备号(使用 "cat /proc/devices")，但是要操作设备需要在系统/dev目录
+下建立设备结点，而建立结点时要指定主设备号。当然，你可以写一个脚本来自动完成
+这些事情。
+
+总之，作为一个演示，我们还是指定主设备号为145
+这样我们可以在/dev/目录下建立几个设备节点。
+
+[root@char8139]$ mknod /dev/char8139_0 c 145 0
+[root@char8139]$ mknod /dev/char8139_0 c 145 17
+[root@char8139]$ mknod /dev/char8139_0 c 145 36
+[root@char8139]$ mknod /dev/char8139_0 c 145 145
+
+看一下我们建立的节点
+
+[michael@char8139]$ ll /dev/char8139*
+crw-r--r-- 1 root root 145, 0 2004-12-26 20:33 /dev/char8139_0
+crw-r--r-- 1 root root 145, 17 2004-12-26 20:34 /dev/char8139_1
+crw-r--r-- 1 root root 145, 36 2004-12-26 20:34 /dev/char8139_2
+crw-r--r-- 1 root root 145, 145 2004-12-26 20:34 /dev/char8139_3
+[michael@char8139]$
+
+我们建立了四个节点，使用了四个次设备号，后面我们会说明次设备号的作用。
+
+
+再来看看我们的file_operations的定义。这里其实只实现了read()，open()，release()三个
+系统调用，ioctl()只是简单返回。更有write()等函数甚至根本没有声明，没有声明的
+函数系统可能会调用默认的操作。
+struct file_operations char8139_fops =
+{
+owner: THIS_MODULE,
+read: char8139_read,
+ioctl: char8139_ioctl,
+open: char8139_open,
+release: char8139_release,
+};
+
+file_operations是每个字符设备驱动程序必须实现的系统调用，当用户对/dev中我们的设备对应
+结点进行操作时，linux就会调用我们驱动程序中提供的系统调用。比如用户敲入
+"cat /dev/char8139_0"命令，想想cat这个应用程序的实现，首先它肯定调用C语言库里的open()
+函数去打开/dev/char8139_0这个文件，到了系统这一层，系统会看到/dev/char8139_0不是普通
+磁盘文件，而是一个代表字符设备的节点，所以系统会根据/dev/char8139_0的主设备号来查找是不是
+已经有驱动程序使用这个相同的主设备号进行了注册，如果有，就调用驱动程序的open()实现。
+
+为什么要这样干？因为要提供抽象，提供统一的接口，别忘了操作系统的作用之一就是这个。因为
+我们的设备提供的统一的接口，所以cat这个应用程序使用一般的文件操作就能从我们的设备中读出数据，
+而且more, less这些应用程序都能从我们的设备中读出数据。
+
+现在来看看我们的设备
+#define CHAR8139_BUFFER_SIZE 2000
+unsigned char *buffer=NULL; /* driver data buffer */
+unsigned char *p_buf;
+unsigned int data_size=0;
+我们的设备很简单，一个2000字节的缓冲区， data_size指定缓冲区中有效数据的字节数。我们的设备
+只支持读不支持写。我们在char8139_init()中为缓冲区分配空间。
+
+char8139_exit()里面的操作就是char8139_init()里面操作的反向操作。
+
+
+现在我们来看看，假如用户调用了"cat /dev/char8139_3"这个命令会发生什么事情。
+根据前面的介绍，我们驱动程序中的open()函数会被调用。
+
+int char8139_open(struct inode *node, struct file *flip)
+{
+int type = MINOR(node->i_rdev)>>4;
+int num = MINOR(node->i_rdev) & 0x0F;
+
+/* put some char in buffer to reflect the minor device number */
+*buffer=(unsigned char)('0');
+*(buffer+1)=(unsigned char)('x');
+*(buffer+2)=(unsigned char)('0'+type);
+*(buffer+3)=(unsigned char)('0'+num);
+*(buffer+4)=(unsigned char)('/n');
+data_size+=5;
+
+PDBG("Ok. Find treasure! 8139 I/O port base: %x/n", detect_8139_io_port());
+PDBG("OK. Find treasure! 8139 I/O memory base address: %lx/n",
+detect_8139_io_mem());
+
+MOD_INC_USE_COUNT;
+
+return 0;
+}
+这里演示了次设备号的作用，它让我们知道用户操作的是哪一个"次设备"，是/dev/char8139_0还是/dev/char8139_3，因为对不同的"次设备"，具体的操作方法可能是不一样的，这样就为一个驱动程序控制多个类似的设备提供了可能。
+
+我们根据次设备号的不同，在buffer中填入不同的字符(次设备号的16进制表示)。
+
+接着驱动程序中的read()函数会被调用，因为cat程序的实现就是读取文件中的内容。
+
+ssize_t char8139_read (struct file *filp, char *buf, size_t count, loff_t *f_pos)
+{
+ssize_t ret=0;
+
+PDBG("copy to user. count=%d, f_pos=%ld/n", (int)count, (long)*f_pos);
+if(*f_pos>= data_size)
+return ret;
+if(*f_pos + count > data_size)
+count = data_size-*f_pos;
+if(copy_to_user(buf, p_buf, count))
+{
+PDBG("OOps, copy to user error./n");
+return -EFAULT;
+}
+
+p_buf += count;
+*f_pos += count;
+ret=count;
+
+return ret;
+}
+
+要正确的实现一个read()调用，你得想一想一个应用程序是如何调用read()从文件中读取数据的。
+如果你想明白了就很简单，驱动程序所要做的就是把恰当的数据传递给应用程序，这是使用
+copy_to_user()函数完成的。
+
+另外，我们必须得意识到，这里只是一个很简单的演示。还有很多复杂的问题有待考虑，比如两个
+应用程序可能同时打开我们设备，我们的设备应该怎样反应(这取决于具体的设备应有的行为)，还有
+互斥的问题。
+
+然后我们看看I/O端口和I/O内存的操作。这里使用8139网卡作为一个硬件实例来演示I/O端口和
+I/O内存的操作。没有什么特别的，都是标准的步骤。在使用时需要注意，如果你的系统中已经有
+8139网卡的驱动程序，必须先关掉网络设备，卸载驱动，然后再使用本驱动程序。
+
+使用程序包的步骤：(在我的Debian系统上如此，你的可能不同)
+1. 解压
+2. 编译(/usr/src/linux处必须要有内核源代码)
+3. ifconfig eth0 down 关掉网络设备
+rmmod 8139too 卸载原来的8139网卡驱动
+insmod char8139.o 插入我们的模块
+(insmod会出错， 如果你现在运行的linux版本不是你编译本驱动程序时使用的内
+核源代码的版本，insmod时会报告模块版本与内核版本不一致。这时，你得看看
+内核源代码中/include/linux/version.h文件，这个文件中的UTS_RELEASE
+定义了内核的版本号，你可以在驱动程序中预先定义这个宏为当前运行的内核的
+版本号，这样就能避免上述错误。)
+
+4. mknode(见本文前述)
+5. 试试我们的设备
+./readtest
+或者
+cat /dev/char8139_0或
+cat /dev/char8139_1或
+cat /dev/char8139_2或
+cat /dev/char8139_3
+6. 恢复系统
+rmmod char8139
+modprobe 8139too
+ifconfig eth0 up
+如果你使用dhcp可能还需要运行dhclient =======================================================================
+国外接私活网站(编程，linux系统管理员)：
+ 
+Outsource

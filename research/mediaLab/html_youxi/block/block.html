@@ -1,0 +1,150 @@
+
+
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<title>乌克兰方块-html5游戏</title>
+<meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="game-id" content="colorsquare" />
+<meta name="full-screen" content="true"/>
+<meta name="screen-orientation" content="portrait"/>
+<meta name="x5-fullscreen" content="true"/>
+<meta name="360-fullscreen" content="true"/>
+<style>
+        body {
+            text-align: center;
+            background: #000000;
+            padding: 0;
+            border: 0;
+            margin: 0;
+            height: 100%;
+        }
+
+        html {
+            -ms-touch-action: none; /* Direct all pointer events to JavaScript code. */
+        }
+        .aliForPc {display:none;position:fixed;top:5px;right:5px;width:200px;height:230px;overflow:hidden;z-index:99999;}
+    </style>
+<!--<script src='http://libs.baidu.com/jquery/1.9.0/jquery.js' type='text/javascript'></script>
+<script src='http://www.77l.com/bin/ajax/wyxPlugin/jquery.qql-wyx.min.js' type='text/javascript'></script>-->
+</head>
+<body>
+<div class="aliForPc"><img src="forpc.png" /></div>
+<div style="display:inline-block;width:100%; height:100%;margin: 0 auto; background: black; position:relative;" id="gameDiv">
+<canvas id="gameCanvas" width="480" height="640" style="background-color: #000000"></canvas>
+</div>
+<script language=javascript>
+
+ //   var mebtnopenurl = 'http://www.77l.com/wyx/';
+    
+    function getParentage(nub,random){
+        random = random || true;
+        var data1 = [0,30,60,100,120,140,200,1000];
+        var data2 = [0,60,86,90,94,96,98,100];
+        if(nub <= 0) return 0;
+        for(var i =0;i<data1.length;i++){
+            if(nub<=data1[i]){
+                var per;
+                var detaX = data1[i] - data1[i-1];
+                var detaY = data2[i] - data2[i-1];
+                var diffX = nub - data1[i-1];
+                per =  diffX * (detaY / detaX) + data2[i-1];
+                random && (per = per + Math.random());
+                per = Math.min(99.99,per);
+                return per;
+            }
+        }
+        return 99.9;
+    }
+    function dp_share(score){
+        window.shareData.tContent = window.shareData.tContent2 = 
+            "我在乌克兰方块中得到了" + score + "分，超过了" + getParentage(score,false).toFixed(2) +  "%的玩家，来挑战我吧！";
+        //console.log("score" + score);
+        //$.qqlwyx.apiShare();
+    };
+    
+    
+    window.shareData = {
+        "imgUrl": "http://game.html5youxi.com/20141018/cubeclash/icon.png",
+        "timeLineLink":  "http://game.html5youxi.com/20141018/cubeclash/",
+        "tTitle": "传说是乌克兰为了对抗俄罗斯而推出的游戏^-^，与俄罗斯方块玩法相反的是，方块会一直从下方增加，如果不及时消除的话,很快顶到上方红线就gameover了！！来吧，为捍卫乌克兰而战吧！",
+        "tContent": "传说是乌克兰为了对抗俄罗斯而推出的游戏^-^，与俄罗斯方块玩法相反的是，方块会一直从下方增加，如果不及时消除的话,很快顶到上方红线就gameover了！！来吧，为捍卫乌克兰而战吧！",
+        "tContent2": "传说是乌克兰为了对抗俄罗斯而推出的游戏^-^，与俄罗斯方块玩法相反的是，方块会一直从下方增加，如果不及时消除的话,很快顶到上方红线就gameover了！！来吧，为捍卫乌克兰而战吧！",
+        "callback": function () {
+            home();
+        }
+    };
+
+
+    document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+
+        WeixinJSBridge.on('menu:share:appmessage', function (argv) {
+            WeixinJSBridge.invoke('sendAppMessage', {
+                "img_url": window.shareData.imgUrl,
+                "link": window.shareData.timeLineLink,
+                "desc": window.shareData.tContent,
+                "title": window.shareData.tTitle
+            }, function (res) {
+                window.shareData.callback();
+            })
+        });
+
+        WeixinJSBridge.on('menu:share:timeline', function (argv) {
+            WeixinJSBridge.invoke('shareTimeline', {
+                "img_url": window.shareData.imgUrl,
+                "link": window.shareData.timeLineLink,
+                "desc": window.shareData.tContent2,
+                "title": window.shareData.tContent2
+            }, function (res) {
+                window.shareData.callback();
+            });
+        });
+
+        WeixinJSBridge.on('menu:share:weibo', function (argv) {
+            WeixinJSBridge.invoke('shareWeibo', {
+                "content": window.shareData.tContent,
+                "url": window.shareData.timeLineLink
+            }, function (res) {
+                window.shareData.callback();
+            });
+        });
+    }, false);
+    
+ 
+
+
+    function showshare(score){
+        document.getElementById("share").style.display = "block";
+        //alert("ccc");
+        //$.qqlwyx.apiShare();
+        /*document.getElementById('share').style.display='';*/
+    }
+
+
+</script>
+<div id=share style="display: none">
+    <img width="100%" src="share.png" style="position: fixed; z-index: 9999; top: 0; left: 0; display: " ontouchstart="document.getElementById('share').style.display='none';" onclick="document.getElementById('share').style.display='none';" />
+</div>
+<script>var document_class = "GameApp";</script>
+<script src="js/game.min.js"></script>
+<script src="js/egret_require.js"></script>
+<script src="js/egret_loader.js"></script>
+<script>
+    egret_h5.startGame();
+</script>
+<script type="text/javascript">
+    
+  
+</script>
+<div class="" style="display:none;">
+	<script type="text/javascript">
+		var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+		document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3F94c393e91adc6ef59fa06c3f34ce2c0d' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+</div>
+</div>
+</body>
+</html>
+</html>

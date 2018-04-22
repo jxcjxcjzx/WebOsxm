@@ -1,0 +1,386 @@
+
+
+
+
+
+
+
+首页|
+今日文章|
+网管论坛|
+网管有家|
+网管下载|
+网管群组|
+小游戏|
+世界素材|
+网管宽频|
+求职招聘|
+图库|
+网管天下|
+认证|
+专题
+
+新闻观察-
+OS-
+Windows
+7-
+网吧技术-
+网络管理-
+Cisco-
+设备路由器-
+DB-
+Mysql-
+PHP-
+学堂-
+网页-
+平面-
+多媒体-
+工具-
+站长-
+地图
+ 
+
+
+
+
+
+投稿说明 bitsCN.com > 编程/数据库 > JAVA > 
+
+
+Junit 的使用经验总结(2)
+
+时间:2007-01-11 00:00 来源:JavaResearch 字体:[大 中 小]
+
+ 
+
+
+
+经验五、不要硬性规定数据文件的路径
+我们经常需要从文件系统中读取测试数据，看下面的代码：
+public void setup () {
+fileinputstream inp ("c:\\testdata\\dataset1.dat");
+...
+}
+这段代码需要把测试数据文件dataset1.dat 放在c:\testdata，这是有问题的。
+第一，c 盘可能没有磁盘空间了测试人员不得不把数据文件放到其他路径；
+第二，可能需要在其他操作系统比如linux 上执行这一测试。
+所以，一个较好的替代方案是
+public void setup () {
+fileinputstream inp ("dataset1.dat");
+...
+}
+但事实上这样仍不是很好，因为这要求数据文件的路径和测试执行的路径必须是同一个，如果几个不同
+的测试都这样的话，那要把这些测试集合起来执行就有些困难，我们不得不频繁的改变当前路径。
+为了解决这个问题，我们可以使用class.getresource()或者class.getresourceasstream()，这样我
+们可以把数据文件放在这个class 的某个相对路径上。
+数据文件应该尽可能和源代码一起都放在配置管理系统上，但这样一来如果我们采用上面的resource 机
+制，我们就需要做一件工作，就是把数据文件从原来的位置－就是源代码的某个相对路径，拷贝到编译后
+的位置，也就是class 文件的相应的相对路径。这其实并不复杂，因为从class 的package 就可以映射到
+java文件的所在路径对于linux或者windows我们所要做的就是把package中的. 用file.separatorchar 替代。
+
+经验六、把测试的代码和被测的代码放在同样的目录下
+当我们把测试代码和被测的代码放在同一目录下时，我们就可以在编译被测代码的同时编译测试代码，从
+而确保两者是同步更新的。事实上当前的普遍做法，就是把单元测试视为build 的一个环节。
+
+经验七、正确命名测试
+把测试用例命名为testclassundertest，比如如果被测的class 是messagelog，那么测试用例就叫
+testmessagelog，这样做使得测试用例和被测的class一一对应，而在测试用例中每个测试的method 就
+可以命名为
+testloggingemptymessage()
+testloggingnullmessage()
+testloggingwarningmessage()
+testloggingerrormessage()
+同样是为了说清楚测试的是什么。正确的命名可以帮助测试代码的阅读者了解每个测试的目的。
+经验八、书写测试时要考虑地区和国家设置
+比如某个测试要使用日期，下面的代码就是创建日期对象的一种方法
+Date date = DateFormat.getInstance ().parse ("dd/mm/yyyy");
+但是如果运行上面测试代码的机器采用不同的地区国家设置，那么就会有问题。因此我们最好用下面的另
+一种方法：
+Calendar cal = Calendar.getInstance ();
+Cal.set (yyyy, mm-1, dd);
+Date date = Calendar.getTime ();
+显然，第二种方法能够适应地区国家设置的变化。
+
+经验九、利用Junit 的自动异常处理书写简洁的测试代码
+很多Junit 的初学者经常会写出类似下面的这些代码
+public void exampleTest () {
+try {
+// do some test
+} catch (SomeApplicationException e) {
+fail ("Caught SomeApplicationException exception");
+}
+}
+事实上在Junit 中使用try-catch 来捕获异常是没有必要的，Junit 会自动捕获异常。那些没有被捕获的异常就
+被当成错误处理。所以上面的代码很冗余，完全可以写成下面等效却简洁得多的代码：
+public void exampleTest () throws SomeApplicationException {
+// do some test
+}
+更少的测试代码也更容易读懂更容易维护。如果需要测试异常是否能被抛出则不能简化。
+
+经验十、充分利用Junit 的assert/fail 方法
+Junit 有丰富而灵活的assert/fail 方法，如何用好这些方法也是大有讲究的。比如下面的写法就不大好
+assert (creds == 3);
+不如写成
+assertEquals ("The number of credentials should be 3", 3, creds);
+第二种写法不仅易于阅读，而且在执行时如果fail 也可以向测试人员提供更多的信息。
+Junit 也有支持浮点数的assert方法，干净利索如下例
+assertEquals ("some message", result, expected, delta);
+另外要一提的是：
+assertSame()用来测试两个引用是否指向同一个对象
+assertEquals()用来测试两个对象是否相等
+
+经验十一、确保测试代码与时间无关
+尽量避免可能过期的测试数据，这种数据应该可以手工或者自动的刷新。另外还有一个技巧就是在使用这些
+数据前更改系统的当前日期，数据操作结束后再恢复日期。当然，使用这一技巧要注意可能的副作用。
+
+经验十二、使用文档生成器做测试文档
+我们当然可以使用文本编辑器来书写单元测试的文档，但是更好的方法是使用文档生成器比如JavaDoc自
+动生成，这样我们就不需担心实现和文档之间的同步问题。自动生成的文档格式统一错误也少。
+
+ 
+
+
+
+
+
+
+
+共2页: 
+上一页
+1
+2
+下一页
+
+
+顶一下(2)踩一下(0)
+
+上一篇：Java规则引擎-Drools 下一篇：用maven制作Java项目发行包 
+
+收藏
+挑错
+推荐
+打印
+ 
+
+最新图文12345
+
+
+
+通过五个Ajax最佳实践编写更强壮的
+
+ 
+透过Java中的HashMap了解Map接口
+
+ 
+Java框架超越Adobe成为新科漏洞王
+
+ 
+深入Java核心 探秘Java垃圾回收机
+
+ 
+5个你不知道的Java性能监控小技巧
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+查看所有评论最新评论 
+
+
+
+
+查看所有评论发表评论 
+
+
+
+
+请自觉遵守互联网相关的政策法规，严禁发布色情、暴力、反动的言论。
+
+评价:中立好评差评
+
+
+
+表情:
+
+
+
+
+
+
+
+
+验证码: 匿名? 
+
+发表评论
+
+
+
+
+ 
+
+
+
+推荐文章
+通过五个Ajax最佳实践编写更强壮的代码
+ 透过Java中的HashMap了解Map接口
+ Scala编程指南：面向对象编程
+ Java框架超越Adobe成为新科漏洞王
+ 深入Java核心 探秘Java垃圾回收机制
+ Web服务器Tomcat集群与负载均衡技术
+ Java 7新特性：自动化资源管理
+ 5个你不知道的Java性能监控小技巧
+
+
+相关文章
+多图详解 Java EE 6的EJB模型案例
+ 使用设计模式改善程序结构（三）
+ 使用设计模式改善程序结构（二）
+ 使用设计模式改善程序结构（一）
+ Java 7 I/O新功能探秘：同步操作,多播
+ 怎样使用AJAX进行WEB应用程序开发
+ 使用jQuery简化Ajax开发
+ Ajax改造：使用Ajax和jQuery改进现有站
+
+ 
+
+
+
+热门文章
+
+
+热评文章
+Groovy探索之Delegate模式
+ 新手必读 Java中流的概念
+ 从任意数据结构生成XML解析器产生SAX事
+ 用JAVA实现Undo、Redo,Copy、Paste、Cu
+ iBatis框架batch处理优化
+ Java中的assert关键字
+ 线程中断（interrupt)使用方法
+ 审查Java代码的十一种常见错误
+
+ 
+
+
+
+Copyright ©2010 网管之家 版权所有 沪ICP证08026629号 联系我们 - 网站地图 - RSS地图 - TAGS | 热门文章 - 推荐文章 - 焦点文章 - 文章排行 - 今日更新
+ 
+
+文章转载自网管之家：http://www.bitscn.com/pdb/java/200701/89021_2.html

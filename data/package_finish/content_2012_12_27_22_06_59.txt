@@ -1,0 +1,221 @@
+分享到QQ空间新浪微博百度搜藏人人网腾讯微博开心网腾讯朋友百度空间豆瓣网搜狐微博百度新首页QQ收藏和讯微博我的淘宝百度贴吧更多...百度分享
+首页我的主页相册广场消息 私信(1) 模板 设置 退出 关注此空间宇宙的奇点
+吾心乃宇宙之奇点，一切缘由心起，又因心而灭。过去和将来，只世界轮回罢了。。。。
+2010-09-03 10:05 adaboost算法小结Adaboost算法小结2009-07-05 10:38引言：
+古语言：三个臭皮匠，顶个诸葛亮。很早就想过通过组合弱分类器来实现一个强分类器的问题。当学习到线性分类器以及著名的决策树之类分类器后，很容易联想到高中时代线性规划里面对不少区域的划分。要是能够找到一种方法，组合这些简单的直线方程，不就可以实现“山寨诸葛亮”的理想？
+
+实际上，在Kearns和Valiant在1989年大作中指出了这种算法的可行性。而后，Freund在1990年以及他和Schapire在 1994-1996年提出了boosting整个算法思路，似乎这种算法走到了实际应用的开端。然而直到AdaBoost被viola在其人脸识别系统中运用(2001Viola和Jones)，这种方法才彻底开始暴火。在NIPS会议tutorial中，也可以看到Schapire神采奕奕的样子了。
+
+Adaboost实际具体解决了两个问题：
+怎么处理训练样本？
+在AdaBoost中，每个样本都被赋予一个权重。如果 某个样本没有被正确分类，它的权重就会被提高， 反之则降低。这样， AdaBoost方法将注意力更多 地放在“难分”的样本上。
+怎么合并若分类器成为一个强分类器？
+强分类器表示为若干弱分类器的线性加权和形式， 准确率越高的弱学习机权重越高。
+
+算法介绍：
+通过研究在Schapire的大作中提到了一个Toy Game的例子，这里给出了一个类似的Matlab代码。终于感到了这个算法强大。
+首先是程序需要产生一些随机的样本数据，然后分别调用其他的matlab函数实现分类结果输出。代码如下：
+clear all
+clc
+tr_n=200; %the population of the train set
+te_n=200; %the population of the test set
+weak_learner_n=20; %the population of the weak_learner
+tr_set=[1,5;2,3;3,2;4,6;4,7;5,9;6,5;6,7;8,5;8,8];
+te_se=[1,5;2,3;3,2;4,6;4,7;5,9;6,5;6,7;8,5;8,8];
+tr_labels=[2,2,1,1,2,2,1,2,1,1];
+te_labels=[2,2,1,1,2,2,1,2,1,1];
+figure;
+subplot(2,2,1);
+hold on;axis square;
+indices=tr_labels==1;
+plot(tr_set(indices,1),tr_set(indices,2),'b*');
+indices=~indices;
+plot(tr_set(indices,1),tr_set(indices,2),'r*');
+title('Training set');
+subplot(2,2,2);
+hold on;axis square;
+indices=te_labels==1;
+plot(te_set(indices,1),te_set(indices,2),'b*')3
+;
+indices=~indices;
+plot(te_set(indices,1),te_set(indices,2),'r*');
+title('Training set');
+% Training and testing error rates
+tr_error=zeros(1,weak_learner_n);
+te_error=zeros(1,weak_learner_n);
+for i=1:weak_learner_n
+adaboost_model=adaboost_tr(@threshold_tr,@threshold_te,tr_set,tr_labels,i);
+[L_tr,hits_tr]=adaboost_te(adaboost_model,@threshold_te,te_set,te_labels);
+tr_error(i)=(tr_n-hits_tr)/tr_n;
+[L_te,hits_te]=adaboost_te(adaboost_model,@threshold_te,te_set,te_labels);
+te_error(i)=(te_n-hits_te)/te_n;
+end
+
+subplot(2,2,3);
+plot(1:weak_learner_n,tr_error);
+axis([1,weak_learner_n,0,1]);
+title('Training Error');
+xlabel('weak classifier number');
+ylabel('error rate');
+grid on;
+
+subplot(2,2,4);axis square;
+plot(1:weak_learner_n,te_error);
+axis([1,weak_learner_n,0,1]);
+title('Testing Error');
+xlabel('weak classifier number');
+ylabel('error rate');
+grid on;
+这里需要另外分别撰写两个函数，其中一个为生成adaboost模型的训练函数，另外为测试测试样本的测试函数。代码如下：
+function adaboost_model=adaboost_tr(tr_func_handle,te_func_handle,train_set,labels,no_of_hypothesis)
+% 训练函数
+
+adaboost_model = struct('weights',zeros(1,no_of_hypothesis),...
+'parameters',[]); %cell(1,no_of_hypothesis));
+
+sample_n = size(train_set,1);
+samples_weight = ones(sample_n,1)/sample_n;
+
+for turn=1:no_of_hypothesis
+adaboost_model.parameters{turn} = tr_func_handle(train_set,samples_weight,labels);
+[L,hits,error_rate] = te_func_handle(adaboost_model.parameters{turn},...
+train_set,samples_weight,labels);
+if(error_rate==1)
+error_rate=1-eps;
+elseif(error_rate==0)
+error_rate=eps;
+end
+
+% The weight of the turn-th weak classifier
+adaboost_model.weights(turn) = log10((1-error_rate)/error_rate);
+C=likelihood2class(L);
+t_labeled=(C==labels); % true labeled samples
+
+% Importance of the true classified samples is decreased for the next weak classifier
+samples_weight(t_labeled) = samples_weight(t_labeled)*...
+((error_rate)/(1-error_rate)); 
+
+% Normalization
+samples_weight = samples_weight/sum(samples_weight);
+end
+
+% Normalization
+adaboost_model.weights=adaboost_model.weights/sum(adaboost_model.weights);
+-------------
+
+function [L,hits]=adaboost_te(adaboost_model,te_func_handle,test_set,...
+true_labels)
+%测试函数
+hypothesis_n=length(adaboost_model.weights);
+sample_n=size(test_set,1);
+class_n=length(unique(true_labels));
+temp_L=zeros(sample_n,class_n,hypothesis_n);
+
+for i=1:hypothesis_n
+[temp_L(:,:,i),hits,error_rate]=te_func_handle(adaboost_model.parameters{i},...
+test_set,ones(sample_n,1),true_labels);
+temp_L(:,:,i)=temp_L(:,:,i)*adaboost_model.weights(i);
+end
+L=sum(temp_L,3);
+hits=sum(likelihood2class(L)==true_labels);
+
+-------
+其中上面函数由于体积太大，另外还需要分别撰写两个阈值函数和一个隶属分配函数。
+
+function model=threshold_tr(train_set,sample_weights,labels)
+% 训练阈值函数
+
+model=struct('min_error',[],'min_error_thr',[],'pos_neg',[],'dim',[]);
+
+sample_n=size(train_set,1);
+min_error=sum(sample_weights);
+min_error_thr=0;
+pos_neg='pos';
+
+% for each dimension
+for dim=1:size(train_set,2)
+sorted=sort(train_set(:,dim),1,'ascend');
+
+% for each interval in the specified dimension
+for i=1:(sample_n+1)
+if(i==1)
+thr=sorted(1)-0.5;
+elseif(i==sample_n+1)
+thr=sorted(sample_n)+0.5;
+else
+thr=(sorted(i-1)+sorted(i))/2;
+end
+
+ind1=train_set(:,dim)<thr;
+ind2=~ind1;
+tmp_err=sum(sample_weights((labels.*ind1)==2))+sum(sample_weights((labels.*ind2)==1));
+
+if(tmp_err<min_error)
+min_error=tmp_err;
+min_error_thr=thr;
+pos_neg='pos';
+model.dim=dim;
+end
+
+ind1=train_set(:,dim)<thr;
+ind2=~ind1;
+tmp_err=sum(sample_weights((labels.*ind1)==1))+sum(sample_weights((labels.*ind2)==2));
+
+if(tmp_err<min_error)
+min_error=tmp_err;
+min_error_thr=thr;
+pos_neg='neg';
+model.dim=dim;
+end
+end
+end
+model.min_error=min_error;
+model.min_error_thr=min_error_thr;
+model.pos_neg=pos_neg;
+
+function [L,hits,error_rate]=threshold_te(model,test_set,sample_weights,true_labels)
+% 测试阈值函数
+feat=test_set(:,model.dim);
+if(strcmp(model.pos_neg,'pos'))
+ind=(feat>model.min_error_thr)+1;
+else
+ind=(feat<model.min_error_thr)+1;
+end
+
+hits=sum(ind==true_labels);
+error_rate=sum(sample_weights(ind~=true_labels));
+
+L=zeros(length(feat),2);
+
+L(ind==1,1)=1;
+L(ind==2,2)=1;
+
+
+function classes=likelihood2class(likelihoods)
+% 隶属分配函数
+[sample_n,class_n] = size(likelihoods);
+maxs = (likelihoods==repmat(max(likelihoods,[],2),[1,class_n]));
+
+classes=zeros(sample_n,1);
+for i=1:sample_n
+classes(i) = find(maxs(i,:),1);
+end
+算法其他资源：
+在OpenCV.org.cn论坛上，还有这个算法关于人脸识别运用的代码讲解，这里广告一下。
+
+总结：
+Adaboost的思想主要是将一系列粗略的规则加权组合起来得到高度精确的规则。其中，
+算法优点在于1）易于执行；2）分类精度较高。其缺点在于：1）容易受到噪声干扰，
+这也是大部分算法的缺点；2）执行效果依赖于弱分类器的选择。
+参考资料：
+[1] Cuneyt Mertayak的Matlab代码。
+[2] R. Schapire, A Short Introduction to BoostingIn Proceedings of the Sixteenth International Joint Conference on Artificial Intelligence, pp. 1401- 1405 1999.
+[3] P. Viola, M. Jones, Robust Real-Time Face Detection. International Journal of Computer Vision 57(2): 137-154, 2004. #图像处理 分享到： 举报 浏览(195) 评论 转载 
+你可能也喜欢
+ 美腿模特YaYa  大器晚成的加拿大优秀女演员凯莉·安妮·莫斯Carrie-Anne Moss风采大片  邓家佳贵族写真  超模姬莉-哈泽尔奢华写真  星潮涌动，出彩的混搭-----欧美明星最新街拍LOOK  罗伯特·帕丁森：吸血鬼也可以帅得这样彻底  通过短信猫发送短信 本文最近访客
+ yuzhounh 12月21日 北斗之首_魁 12月6日评论
+
+ 同时评论给  
+ 同时评论给原文作者   发布 500/0
+收起|查看更多
+帮助中心 | 空间客服 | 投诉中心 | 空间协议©2012 Baiduabcdef

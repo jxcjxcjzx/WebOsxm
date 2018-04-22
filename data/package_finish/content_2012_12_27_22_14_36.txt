@@ -1,0 +1,385 @@
+
+
+
+
+
+
+
+首页|
+今日文章|
+网管论坛|
+网管有家|
+网管下载|
+网管群组|
+小游戏|
+世界素材|
+网管宽频|
+求职招聘|
+图库|
+网管天下|
+认证|
+专题
+
+新闻观察-
+OS-
+Windows
+7-
+网吧技术-
+网络管理-
+Cisco-
+设备路由器-
+DB-
+Mysql-
+PHP-
+学堂-
+网页-
+平面-
+多媒体-
+工具-
+站长-
+地图
+ 
+
+
+
+
+
+投稿说明 bitsCN.com > 编程/数据库 > JAVA > 
+
+
+Junit 的使用经验总结
+
+时间:2007-01-11 00:00 来源:JavaResearch 字体:[大 中 小]
+
+ 
+
+
+经验一、不要在测试用例的构造函数中做初始化
+当我们需要增加一个测试时，我们要书写一个自己的测试用例，比如sometest。如果你喜欢在sometest的
+构造函数中做有关的初始化工作，这可不是个好习惯。如下例：
+public class sometest extends testcase{
+public sometest(string testname){
+super(testname);
+//初始化代码
+}
+}
+一旦初始化代码产生异常，比如illegalstateexception，junit随之将产生一个assertionfailederror，
+并显示类似下面的出错信息：
+junit . framework . assertionfailederror : cannotinstantiatetestcase : test1at
+junit . framework . assert . fail ( assert . java : 143 ) at
+junit . framework . testsuite$1 . runtest ( testsuite . java : 178 ) at
+junit . framework . testcase . runbare ( testcase . java : 129 ) at
+junit . framework . testresult$1 . protect ( testresult .java : 100 ) at
+junit . framework . testresult . runprotected ( testresult. java: 117 ) at
+junit . framework . testresult . run ( testresult. java : 103 ) at
+junit . framework . testcase . run( testcase . java: 120 ) at
+junit . framework . testsuite . run( testsuite . java , compiledcode ) at
+junit . ui . testrunner$12 . run (testrunner. java : 429 )
+这一大堆出错信息只会让人一头雾水，我们只知道junit无法实例化某个测试用例，到底出了什么问题，在
+哪儿出错了呢？不知道！
+那么好的做法是怎样呢？
+答案是重载测试用例的setup()方法进行初始化。当setup()中的初始化代码产生异常时我们得到的
+是类似下面的出错信息：
+java . lang . illegalstateexception : oopsatbp . dtc . setup ( dtc .java: 34 ) at
+junit . framework  . testcase . runbare ( testcase .java: 127 ) at
+junit . framework  . testresult$ 1 . protect(testresult . java : 100 ) at
+junit . framework  . testresult . runprotected ( testresult . java: 117 ) at
+junit . framework  . testresult . run ( testresult .java : 103 )
+...
+显然这要清楚得多我们一下子就可以知道是在dtc.java 的第34 行产生了illegalstateexception
+
+经验二、不要假定测试用例中测试的执行次序
+我们知道在一个junit 的测试用例类中可以包含多个测试，每个测试其实就是一个method。在下面的例子
+中有两个不同的测试，尽管testdothisfirst()在位置上先于testdothissecond()，但我们不能就此假定
+testdothisfirst()会先执行。
+public class sometestcase extends testcase{
+public sometestcase(string testname){
+super(testname);
+}
+public void testdothisfirst(){
+...
+}
+public void testdothissecond(){
+}
+}
+由于junit 内部使用一个vector 来存储所有的test，因此在不同的操作系统和java 虚拟机上，test 的执行
+次序是不可预测的。
+好的习惯是保持测试之间的独立性，使得它们在任何次序下执行的结果都是相同的。如果真得需要某些测试
+按照特定的次序执行，我们可以借助addtest 来实现。如下例：
+public static testsuite(){
+suite.addtest(new sometestcase(“testdothisfirst”;));
+suite.addtest(new sometestcase(“testdothissecond”;));
+return suite;
+}
+这样我们可以确保junit先执行testdothisfirst()，然后执行testdothissecond()。
+
+经验三、测试要避免人工干预
+如果某段测试代码需要人工干预，那至少有两个不良后果：一则不能被包括在自动测试中，比如夜间的回
+归测试；二则不能被重复执行，例如数据删除的测试不能做完删除就万事大吉，比较好的做法是自动补上
+删除掉的数据。经验二讲的是不同的测试要避免相关性，而经验三讲的其实就是测试要避免自相关。
+经验四、在子类中调用父类的setup() 和teardown()让我们看一看下面的代码
+public class sometestcase extends anothertestcase {
+// a connection to a database
+private database thedatabase;
+public sometestcase (string testname) {
+super (testname);
+}
+public void testfeaturex () {
+...
+}
+public void setup () {
+// clear out the database
+thedatabase.clear ();
+}
+}
+你发现其中的错误了吗？setup()应该调用super.setup() 以确保anothertestcase 中定义的父类的环境被初
+始化了。当然这也有例外，就是基类可以处理任意的测试数据。
+
+
+ 
+
+
+
+
+
+
+
+共2页: 
+上一页
+1
+2
+下一页
+
+
+顶一下(2)踩一下(0)
+
+上一篇：Java规则引擎-Drools 下一篇：用maven制作Java项目发行包 
+
+收藏
+挑错
+推荐
+打印
+ 
+
+最新图文12345
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+性能大提速 MyEclipse终极优化四要
+
+ 
+JavaScript中的鼠标滚轮事件详解
+
+ 
+深度探讨JRuby 你会选择吗？
+
+ 
+深入Java虚拟机：JVM中的Stack和He
+
+ 
+2010年3月Tiobe编程语言榜单出炉
+
+ 
+有关 JavaScript 的 10 件让人费解
+
+ 
+Java ME没有死 它只是退居二线了
+
+ 
+使用设计模式改善程序结构（一）
+
+ 
+使用JFram创建一个简单的窗口
+
+ 
+Java网络编程从入门到精通（7）：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+查看所有评论最新评论 
+
+
+
+
+查看所有评论发表评论 
+
+
+
+
+请自觉遵守互联网相关的政策法规，严禁发布色情、暴力、反动的言论。
+
+评价:中立好评差评
+
+
+
+表情:
+
+
+
+
+
+
+
+
+验证码: 匿名? 
+
+发表评论
+
+
+
+
+ 
+
+
+
+推荐文章
+通过五个Ajax最佳实践编写更强壮的代码
+ 透过Java中的HashMap了解Map接口
+ Scala编程指南：面向对象编程
+ Java框架超越Adobe成为新科漏洞王
+ 深入Java核心 探秘Java垃圾回收机制
+ Web服务器Tomcat集群与负载均衡技术
+ Java 7新特性：自动化资源管理
+ 5个你不知道的Java性能监控小技巧
+
+
+相关文章
+多图详解 Java EE 6的EJB模型案例
+ 使用设计模式改善程序结构（三）
+ 使用设计模式改善程序结构（二）
+ 使用设计模式改善程序结构（一）
+ Java 7 I/O新功能探秘：同步操作,多播
+ 怎样使用AJAX进行WEB应用程序开发
+ 使用jQuery简化Ajax开发
+ Ajax改造：使用Ajax和jQuery改进现有站
+
+ 
+
+
+
+热门文章
+
+
+热评文章
+Groovy探索之Delegate模式
+ 新手必读 Java中流的概念
+ 从任意数据结构生成XML解析器产生SAX事
+ 用JAVA实现Undo、Redo,Copy、Paste、Cu
+ iBatis框架batch处理优化
+ Java中的assert关键字
+ 线程中断（interrupt)使用方法
+ 审查Java代码的十一种常见错误
+
+ 
+
+
+
+Copyright ©2010 网管之家 版权所有 沪ICP证08026629号 联系我们 - 网站地图 - RSS地图 - TAGS | 热门文章 - 推荐文章 - 焦点文章 - 文章排行 - 今日更新
+ 
+
+文章转载自网管之家：http://www.bitscn.com/pdb/java/200701/89021.html

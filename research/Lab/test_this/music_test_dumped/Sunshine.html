@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+  <title>SunShine MusicPlayer!</title>
+  <script type="text/javascript" src="buzz.js"></script>
+</head>
+<body>
+<script>
+//var time1 = setTimeout(silent,9000);
+
+var timepoint1 =20*1000;  // one
+var timepoint2 =35*1000;  // two
+var timepoint3 =43*1000;  // three
+var timepoint4 =50*1000;  // one
+var timepoint5 =57*1000;  // two
+var timepoint6 =63*1000;  // three
+var timepoint7 =67*1000;  // one
+
+//voice control chain
+setTimeout(chain1,timepoint2);
+
+var mySound = new buzz.sound( "192.168.0.102:1337/?testit");
+	mySound.play()
+	    .fadeIn()
+	    .bind( "timeupdate", function() {
+	       var timer = buzz.toTimer( this.getTime() );
+	       document.getElementById( "timer" ).innerHTML = timer;
+	    });
+	mySound.setVolume(59);
+
+function silent(){
+	mySound.setVolume(10);
+}
+
+function loud(){
+	mySound.setVolume(90);
+}
+
+
+function chain1(){
+	mySound.setVolume(10);
+	setTimeout(chain2,timepoint4-timepoint2);
+}
+
+function chain2(){
+	mySound.setVolume(90);
+	setTimeout(chain3,timepoint5-timepoint4);
+}
+
+function chain3(){
+	mySound.setVolume(10);
+	setTimeout(chain4,timepoint7-timepoint5);
+}
+
+function chain4(){
+	mySound.setVolume(90);
+	
+}
+
+</script>
+<p><button class="btn" id="makeEdit">show trigger time</button></p>
+<script>
+// button testing codes
+var button = document.getElementById('makeEdit');
+button.addEventListener('click', function(e){
+	alert(mySound.getTime());
+});
+</script>
+</body>
+</html>

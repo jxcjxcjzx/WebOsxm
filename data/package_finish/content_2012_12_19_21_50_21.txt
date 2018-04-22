@@ -1,0 +1,748 @@
+
+felix
+一点一滴地积累。
+博客园  ::  首页  ::  新随笔  ::  联系  ::  订阅 订阅  ::  管理
+posts - 9,  comments - 3,  trackbacks - 0
+公告
+跟小D每日学口语
+昵称：Felix_VIP
+园龄：2年3个月
+粉丝：4
+关注：0
+<	2010年9月	>
+日	一	二	三	四	五	六
+29	30	31	1	2	3	4
+5	6	7	8	9	10	11
+12	13	14	15	16	17	18
+19	20	21	22	23	24	25
+26	27	28	29	30	1	2
+3	4	5	6	7	8	9
+搜索
+ 
+ 
+常用链接
+
+    我的随笔
+    我的评论
+    我的参与
+    最新评论
+    我的标签
+
+我的标签
+
+    错误吗(1)
+    进程 指针 Linux(1)
+
+随笔分类
+
+    C\C++(2)
+    Linux编程(4)
+    web(1)
+    设计模式(1)
+    算法(1)
+
+随笔档案
+
+    2011年3月 (1)
+    2011年1月 (1)
+    2010年10月 (3)
+    2010年9月 (4)
+
+最新评论
+
+阅读排行榜
+
+    1. (转)HTTP协议与HTML表单（再谈GET与POST的区别）(2402)
+    2. Linux字符设备驱动程序的一个简单示例(1181)
+    3. fscanf从文本文件读取数据(981)
+    4. Linux错误码及解释(691)
+    5. 进程间能否传递指针？(385)
+
+评论排行榜
+
+    1. 进程间能否传递指针？(2)
+    2. (转)HTTP协议与HTML表单（再谈GET与POST的区别）(1)
+    3. 低耦合与高内聚(转)(0)
+    4. Linux字符设备驱动程序的一个简单示例(0)
+    5. (转载)从 2.4 到 2.6：Linux 内核可装载模块机制的改变对设备驱动的影响(0)
+
+推荐排行榜
+
+    1. (转)HTTP协议与HTML表单（再谈GET与POST的区别）(1)
+    2. 进程间能否传递指针？(1)
+
+Linux字符设备驱动程序的一个简单示例
+
+一.开发环境：
+
+主  机：VMWare--Fedora 9
+
+开发板：友善之臂mini2440--256MB Nandflash 
+
+编译器：arm-linux-gcc-4.3.2
+
+ 
+
+二.驱动源码：
+
+该源码很浅显易懂，非常适合初学者。
+
+memdev.h
+
+?
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+	
+#ifndef _MEMDEV_H_
+#define _MEMDEV_H_
+ 
+#ifndef MEMDEV_MAJOR
+#define MEMDEV_MAJOR 254   /*预设的mem的主设备号*/
+#endif
+ 
+#ifndef MEMDEV_NR_DEVS
+#define MEMDEV_NR_DEVS 2    /*设备数*/
+#endif
+ 
+#ifndef MEMDEV_SIZE
+#define MEMDEV_SIZE 4096
+#endif
+ 
+/*mem设备描述结构体*/
+struct mem_dev                                    
+{                                                       
+  char *data;                     
+  unsigned long size;      
+};
+ 
+#endif /* _MEMDEV_H_ */
+
+memdev.c
+
+?
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+	
+#include <linux/module.h>
+#include <linux/types.h>
+#include <linux/fs.h>
+#include <linux/errno.h>
+#include <linux/mm.h>
+#include <linux/sched.h>
+#include <linux/init.h>
+#include <linux/cdev.h>
+#include <asm/io.h>
+#include <asm/system.h>
+#include <asm/uaccess.h>
+ 
+#include "memdev.h"
+ 
+static mem_major = MEMDEV_MAJOR;
+ 
+module_param(mem_major, int, S_IRUGO);
+ 
+struct mem_dev *mem_devp; /*设备结构体指针*/
+ 
+struct cdev cdev;
+ 
+/*文件打开函数*/
+int mem_open(struct inode *inode, struct file *filp)
+{
+    struct mem_dev *dev;
+     
+    /*获取次设备号*/
+    int num = MINOR(inode->i_rdev);
+ 
+    if (num >= MEMDEV_NR_DEVS)
+            return -ENODEV;
+    dev = &mem_devp[num];
+     
+    /*将设备描述结构指针赋值给文件私有数据指针*/
+    filp->private_data = dev; //方便以后对该指针的使用
+     
+    return 0;
+}
+ 
+/*文件释放函数*/
+int mem_release(struct inode *inode, struct file *filp)
+{
+  return 0;
+}
+ 
+/*读函数*/
+static ssize_t mem_read(struct file *filp, char __user *buf, size_t size, loff_t *ppos)
+{
+  unsigned long p =  *ppos;
+  unsigned int count = size;
+  int ret = 0;
+  struct mem_dev *dev = filp->private_data; /*获得设备结构体指针*/
+ 
+  /*判断读位置是否有效*/
+  if (p >= MEMDEV_SIZE) //超出读取范围，返回0表示读取不到数据
+    return 0;
+  if (count > MEMDEV_SIZE - p)
+    count = MEMDEV_SIZE - p;
+ 
+  /*读数据到用户空间*/
+  if (copy_to_user(buf, (void*)(dev->data + p), count))
+  {
+    ret =  - EFAULT;
+  }
+  else
+  {
+    *ppos += count;
+    ret = count;
+     
+    printk(KERN_INFO "read %d bytes(s) from %d\n", count, p);
+  }
+ 
+  return ret;
+}
+ 
+/*写函数*/
+static ssize_t mem_write(struct file *filp, const char __user *buf, size_t size, loff_t *ppos)
+{
+  unsigned long p =  *ppos;
+  unsigned int count = size;
+  int ret = 0;
+  struct mem_dev *dev = filp->private_data; /*获得设备结构体指针*/
+   
+  /*分析和获取有效的写长度*/
+  if (p >= MEMDEV_SIZE)
+    return 0;
+  if (count > MEMDEV_SIZE - p)
+    count = MEMDEV_SIZE - p;
+     
+  /*从用户空间写入数据*/
+  if (copy_from_user(dev->data + p, buf, count))
+    ret =  - EFAULT;
+  else
+  {
+    *ppos += count;
+    ret = count;
+     
+    printk(KERN_INFO "written %d bytes(s) from %d\n", count, p);
+  }
+ 
+  return ret;
+}
+ 
+/* seek文件定位函数 */
+static loff_t mem_llseek(struct file *filp, loff_t offset, int whence)
+{
+    loff_t newpos;
+ 
+    switch(whence) {
+      case 0: /* SEEK_SET */
+        newpos = offset;
+        break;
+ 
+      case 1: /* SEEK_CUR */
+        newpos = filp->f_pos + offset;
+        break;
+ 
+      case 2: /* SEEK_END */
+        newpos = MEMDEV_SIZE -1 + offset;
+        break;
+ 
+      default: /* can't happen */
+        return -EINVAL;
+    }
+    if ((newpos<0) || (newpos>MEMDEV_SIZE))
+        return -EINVAL;
+         
+    filp->f_pos = newpos;
+    return newpos;
+ 
+}
+ 
+/*文件操作结构体*/
+static const struct file_operations mem_fops =
+{
+  .owner = THIS_MODULE,
+  .llseek = mem_llseek,
+  .read = mem_read,
+  .write = mem_write,
+  .open = mem_open,
+  .release = mem_release,
+};
+ 
+/*设备驱动模块加载函数*/
+static int memdev_init(void)
+{
+  int result;
+  int i;
+ 
+  dev_t devno = MKDEV(mem_major, 0);
+ 
+  /* 静态申请设备号*/
+  if (mem_major)
+    result = register_chrdev_region(devno, 2, "memdev");
+  else  /* 动态分配设备号 */
+  {
+    result = alloc_chrdev_region(&devno, 0, 2, "memdev");
+    mem_major = MAJOR(devno);
+  } 
+   
+  if (result < 0)
+    return result;
+ 
+  /*初始化cdev结构*/
+  cdev_init(&cdev, &mem_fops);//使cdev与mem_fops联系起来
+  cdev.owner = THIS_MODULE;//owner成员表示谁拥有这个驱动程序，使“内核引用模块计数”加1；THIS_MODULE表示现在这个模块被内核使用，这是内核定义的一个宏
+  cdev.ops = &mem_fops;
+   
+  /* 注册字符设备 */
+  cdev_add(&cdev, MKDEV(mem_major, 0), MEMDEV_NR_DEVS);
+    
+  /* 为设备描述结构分配内存*/
+  mem_devp = kmalloc(MEMDEV_NR_DEVS * sizeof(struct mem_dev), GFP_KERNEL);//目前为止我们始终用GFP_KERNEL
+  if (!mem_devp)    /*申请失败*/
+  {
+    result =  - ENOMEM;
+    goto fail_malloc;
+  }
+  memset(mem_devp, 0, sizeof(struct mem_dev));
+   
+  /*为设备分配内存*/
+  for (i=0; i < MEMDEV_NR_DEVS; i++)
+  {
+        mem_devp[i].size = MEMDEV_SIZE;
+        mem_devp[i].data = kmalloc(MEMDEV_SIZE, GFP_KERNEL);//分配出来的地址存在此
+        memset(mem_devp[i].data, 0, MEMDEV_SIZE);
+  }
+     
+  return 0;
+ 
+  fail_malloc:
+  unregister_chrdev_region(devno, 1);
+   
+  return result;
+}
+ 
+/*模块卸载函数*/
+static void memdev_exit(void)
+{
+  cdev_del(&cdev);   /*注销设备*/
+  kfree(mem_devp);     /*释放设备结构体内存*/
+  unregister_chrdev_region(MKDEV(mem_major, 0), 2); /*释放设备号*/
+}
+ 
+MODULE_LICENSE("GPL");
+ 
+module_init(memdev_init);
+module_exit(memdev_exit);
+三.编译源码
+
+　　1.把这两个驱动源文件复制进内核linux-2.6.32.2/drivers/char目录下
+
+　　2.修改该目录下的Kconfig文件添加
+?
+1
+2
+	
+config MEMDEV_DRIVER
+        tristate "memdev driver"
+
+　　3.修改该目录下的Makefile文件,依葫芦画瓢，添加
+
+　　　　obj-$(CONFIG_HELLO_DRIVER)   +=  memdev.o
+
+　　　　至此，文件以添加进内核。
+
+　　4.到Linux-2.6.32.2源代码根目录下执行
+
+　　　　make menuconfig
+
+　　　　在字符设备中找到菜单项“memdev driver“，就是我们刚才添加的驱动模块，选为M
+
+　　5.在Linux-2.6.32.2源代码根目录下执行
+
+　　　　make modules
+
+　　　　就能生成内核模块文件memdev.ko
+
+　　至此，我们已经完成驱动模块的编译。
+
+四.把驱动下载到开发版并安装
+
+　　1.把memdev.ko 下载到开发板，并移到/lib/modules/2.6.29.4-FriendlyARM目录下，然后在开发板中执行　
+
+　　#modprobe memdev
+
+　　(注意用modprobe命令不需要.ko后缀，rmmod也是如此，这个经常会忘记)
+
+　　当然你也可以用insmod命令：insmod memdev.ko
+
+　　2.创建设备文件节的
+
+　　　　#mknod  /dev/memdev0  c  254  0
+
+五.测试
+
+测试代码如下：
+
+app_mem.c
+?
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+	
+#include <stdio.h>
+ 
+int main()
+{
+    FILE *fp0 = NULL;
+    char Buf[4096];
+     
+    /*初始化Buf*/
+    strcpy(Buf,"Mem is char dev!");
+    printf("BUF: %s\n",Buf);
+     
+    /*打开设备文件*/
+    fp0 = fopen("/dev/memdev0","r+");
+    if (fp0 == NULL)
+    {
+        printf("Open Memdev0 Error!\n");
+        return -1;
+    }
+     
+    /*写入设备*/
+    fwrite(Buf, sizeof(Buf), 1, fp0);
+     
+    /*重新定位文件位置（思考没有该指令，会有何后果)*/
+    fseek(fp0,0,SEEK_SET);
+     
+    /*清除Buf*/
+    strcpy(Buf,"Buf is NULL!");
+    printf("BUF: %s\n",Buf);
+     
+     
+    /*读出设备*/
+    fread(Buf, sizeof(Buf), 1, fp0);
+     
+    /*检测结果*/
+    printf("BUF: %s\n",Buf);
+     
+    return 0;  
+ 
+}
+
+把程序交叉编译后传到板子上执行
+
+程序输出结果如下：
+
+　　
+
+结果和预想的一样。
+
+ 
+
+ 
+
+六.总结
+
+　　我原本并没打算把他下载到开发板上运行，以为在虚拟机上就可以运行了，但是insmod的时候老是出现一个错误
+
+insmod error inserting 'memdev.ko': -1 Invalid module format
+
+　　后来在网上查了一些资料，这个错误可能是因为内核代码树与内核不一样，我用uname -a 查看了一下，发现我的内核版本是2.6.25-14。另外我用file命令查看了一下生成的memdev.ko 文件，发现是编译成了ARM平台上的文件。我的开发板的内核是和内核代码树一样的，于是还是下载到了板子上实验，在板子上没有出现刚才的错误。
+分类: Linux编程
+绿色通道： 好文要顶 关注我 收藏该文与我联系
+Felix_VIP
+关注 - 0
+粉丝 - 4
++加关注
+0
+0
+(请您对文章做出评价)
+« 博主上一篇：(转载)从 2.4 到 2.6：Linux 内核可装载模块机制的改变对设备驱动的影响
+» 博主下一篇：低耦合与高内聚(转)
+posted on 2010-09-10 22:34 Felix_VIP 阅读(1181) 评论(0) 编辑 收藏
+刷新评论刷新页面返回顶部
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+沪江网诚聘中级/高级.NET程序员（社区方向）
+园豆兑换阿里云代金券，1元体验阿里云Linux主机
+博客园首页博问新闻闪存程序员招聘知识库
+最新IT新闻:
+· 谷歌或明年1月向欧盟提交反垄断和解方案
+· 巴西公司发布运行Android的iphone手机
+· 亚马逊蜘蛛被发现会制造诱饵
+· 无所不有！Youtube已转变为全球“新闻编辑部”
+· Instagram用户被忽悠！旧条款已默认卖广告
+» 更多新闻...
+最新知识库文章:
+· 图解HTTPS
+· 走进JVM，浅水也能捉鱼
+· 程序员对内存的理解
+· 防止代码变质的思考与方法
+· 程序员疫苗：代码注入
+» 更多知识库文章...
+Powered by:
+博客园
+Copyright ©2012 Felix_VIP
+

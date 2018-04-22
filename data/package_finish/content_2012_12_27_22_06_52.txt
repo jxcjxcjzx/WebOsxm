@@ -1,0 +1,230 @@
+Adaboost 算法的C实现(2011-06-22 15:42:35)转载▼标签： 杂谈 分类： AdaBoost  
+#include<iostream>
+#include<algorithm>
+#include<functional>
+#include<cmath>
+#include<vector>
+
+using std::vector;
+
+using 
+namespace std;#define
+FCOUNT
+100//特征数
+
+#define CCOUNT
+30//弱分类器个数
+
+#define PCOUNT
+200//正样本数
+
+#define NCOUNT
+300//负样本数struct
+sample
+{ 
+int features[FCOUNT];//特征
+
+int pos_neg;//正0，负1
+
+float weight;//权值
+
+int result;//分类器的识别结果
+};struct
+weakClassifier  
+{
+
+int indexF;
+
+float threshold;
+};   
+struct MySortFunction 
+{
+
+int m_n;
+MySortFunction(int
+n):m_n(n)
+{ } 
+bool 
+operator()(sample&s1,sample&s2)const
+{
+
+return s1.features[m_n]<s2.features[m_n];
+} 
+}; //创建正样本voidCreatePos(vector<sample>&a)
+{ 
+int i,j;
+
+for(i=0;i<PCOUNT;i++)
+{ sample temp; temp.pos_neg=0;
+temp.weight=(float)1/(2*PCOUNT);
+temp.result =0;
+
+for(j=0;j<FCOUNT;j++)
+temp.features[j]=rand()%10;
+a.push_back(temp); } } 
+floatmin(floata,floatb)
+{return(a<=b?a:b);
+} 
+
+//创建负样本
+
+void CreateNeg(vector<sample>&a)
+{ 
+int
+i,j;
+
+for(i=0;i<NCOUNT;i++)
+{ 
+sample
+temp; temp.pos_neg=1;
+temp.weight=(float)1/(2*NCOUNT);
+temp.result =1;
+
+for(j=0;j<FCOUNT;j++)
+temp.features[j]=rand()%10;
+a.push_back(temp); 
+}
+} 
+//Training
+classifier
+
+void Training(vector<sample>&a,vector<weakClassifier>&b,float*factors)
+{ 
+int i,j;
+vector<sample>::size_type
+id=0,tcount=a.size();
+
+for(i=0;i<CCOUNT;i++)
+{ 
+weakClassifier
+temp; 
+float totalWeights=0.0,totalPos=0.0,totalNeg=0.0,bPos=0,bNeg=0;//（当前样本之前的）正负样本权值和
+
+float e,thr,besterr=1.0;//训练单个分类器时用到的错误率，阈值，最小错误率
+
+float FThr[FCOUNT];//特征阈值
+
+float minErr=1.0;//所有特征的最小错误率
+
+float beta;//更新权值所需系数
+
+for(id=0;id<tcount;id++)
+{
+
+totalWeights+=a[id].weight
+; 
+ if(a[id].pos_neg
+) totalNeg+=a[id].weight
+; 
+ else totalPos+=a[id].weight; 
+} 
+for(id=0;id<tcount;id++)
+a[id].weight /=totalWeights;
+
+for(j=0;j<FCOUNT;j++)
+{
+ //按特征j排序
+
+sort(a.begin(),a.end (),MySortFunction(j));
+besterr=1.0;
+
+ //求单个弱分类器的阈值
+
+ for(id=0;id<tcount;id++)
+{
+
+if(a[id].pos_neg
+) bNeg+=a[id].weight
+; 
+ else 
+bPos+=a[id].weight
+; e=min((bPos+totalNeg-bNeg),(bNeg+totalPos-bPos));
+
+ if(id==0) 
+thr=a[id].features[j]-0.5;
+
+ else 
+{ 
+ if(id==tcount-1) 
+
+thr=a[a.size()-1].features[j]+0.5;
+
+else 
+thr=(a[id].features[j]+a[id-1].features[j])/2; 
+
+}
+
+if(e<besterr)
+{
+
+besterr=e;
+FThr[j]=thr; 
+
+//cout<<FThr[j]<<""<<j<<endl;
+
+}
+
+}
+} 
+ 
+
+for(j=0;j<FCOUNT;j++)
+{
+
+float serror=0.0;
+
+ for(id=0;id<tcount;id++)
+{
+
+if(a[id].features[j]<=FThr[j])
+a[id].result =0;//positive
+sample 
+ else a[id].result=1;
+serror+=a[id].weight*abs(a[id].result-a[id].pos_neg
+);
+
+} 
+ if(serror<minErr)
+{
+minErr=serror;
+temp.indexF=j;
+temp.threshold=FThr[j];
+ 
+
+}  
+} 
+
+b.push_back(temp);//选出一个弱分类器
+beta=minErr/(1-minErr);
+factors[i]=log(1/beta);
+
+for(id=0;id<tcount;id++)
+{
+if(a[id].pos_neg==a[id].result
+)
+ a[id].weight
+*=beta;
+ 
+}
+}//强分类器训练完毕}void
+main()
+{
+vector<sample>a;
+vector<weakClassifier>b;
+
+float factors[CCOUNT];//at
+CreatePos(a);//创建正样本
+CreateNeg(a);//创建负样本
+Training(a,b,factors);//训练分类器
+
+//查看训练出的分类器的参数
+
+int i=0;
+
+for(i=0;i<CCOUNT;i++)
+{
+
+cout<<"系数"<<factors[i]<<"特征"<<b[i].indexF<<"阈值"<<b[i].threshold<<endl;
+}
+}
+

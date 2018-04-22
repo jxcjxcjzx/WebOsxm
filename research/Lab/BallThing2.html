@@ -1,0 +1,290 @@
+<!--
+	another way to arranging the pictures
+-->
+
+<!--
+	the ball displaying thing
+-->
+
+<!--
+	html5  canvas test
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta charset="utf-8">
+	<title> Ball running  test 2015-02-11 2 </title>
+  </head>
+  
+  
+  
+  <body>
+	<!--
+		one simple canvas area for pan painting
+	-->
+	<canvas id="Ocanvas" height="600px" width="1300px">
+	</canvas>
+	
+	<!--
+		some head files
+		pack them to a uniform js file or lib we call it sometimes
+	-->
+	
+	<script>
+	
+	// the whole canvas full-fill the computer screen is 1300*600
+	
+	
+	   
+	
+	
+	   var screenWidth = 2300;
+	   var screenHeight = 900;
+	   
+	   // one simple timer
+	   var timer;
+	   
+	
+	   var Pos = function(x,y){
+		this.x = x;
+		this.y = y;
+	   }
+		 
+	   var Speed = function(spdx,spdy){
+		this.spdx = spdx;
+		this.spdy = spdy;
+	   }
+		 
+
+		 
+		var Biasspdx = 14;
+		var Biasspdy = 8;
+	
+	// set the limit of the array first
+		var circleList =new Array(10);  // defines a new array for storing 
+		var spdList = new Array(10);
+		var theFillStyle = new Array(10);
+		// set the random speed first
+		for (var i=0;i<10;i++)
+			spdList[i] =new  Speed(Math.random()*Biasspdx,Biasspdy*Math.random());
+		
+		
+		var colorList = new Array(10);
+		
+		// set the colors
+		colorList[0] = '#2d434e';
+		colorList[1] = '#89919e';
+		colorList[3] = '#d7bfbb';
+		colorList[4] = '#b29077';
+		colorList[5] = '#c6894a';
+		colorList[6] = '#b49143';
+		colorList[7] = '#a43873';
+		colorList[8] = '#dde900';
+		colorList[9] = '#83ef70';
+		
+		var Biasx = 600;
+		var Biasy = 370;
+		
+		var circleSize =95;
+		
+		// when it is set to true, stop the animation
+		var timeToStop = false;
+		
+		// random position given
+		for (var i=0;i<10;i++)
+			circleList[i] =new  Pos(circleSize*2*(i+1),circleSize+300+Math.random()*100);
+		
+	
+		
+		var cvs = document.getElementById('Ocanvas');
+		width = cvs.width;
+		height = cvs.height;
+		ctx = cvs.getContext('2d');
+		
+		qi=0,t=600,num=1800;
+		ctx.fillStyle="#f00";
+		
+		// get the color 
+		for (var i=0;i<10;i++){
+			
+			// random color get
+			theFillStyle[i]= colorList[Math.floor((Math.random()*14)%10)];
+		
+		}
+		
+		
+		// the key animate function
+		~function animate(){
+			
+			// the animate thing
+			updatePos();
+			
+			// flush color is white
+			ctx.fillStyle= '#ffffff';
+			ctx.fillRect(0,0,width,height);
+			drawEllipse();
+			
+			timer = window.setTimeout(animate,20);
+		}()
+		
+		// handle the circle moving and position updating
+		function updatePos(){
+			
+			var judge = false;
+			
+			 
+			if(screenWidth>800)
+			{
+				
+				screenWidth-=2;
+				for(var i=0;i<10;i++)
+					if(circleList[i].x>screenWidth-circleSize){
+						circleList[i].x-=circleList[i].x-(screenWidth-circleSize);
+						spdList[i].spdx *= -1;
+					}
+			}
+			else{
+				timeToStop = true;
+				window.clearTimeout(timer);
+				
+				alert("time out cleared!")
+				
+			}
+			 
+			
+			if(timeToStop==false){
+			// then do the update
+			
+				for (var i=0;i<10;i++){
+				
+					judge = false;
+				
+					circleList[i].x += spdList[i].spdx;
+					circleList[i].y += spdList[i].spdy;
+					if(circleList[i].x>screenWidth-circleSize||circleList[i].x<circleSize){
+						spdList[i].spdx *= -1;
+					}
+						
+					if(circleList[i].y>screenHeight-circleSize||circleList[i].y<circleSize){				
+						spdList[i].spdy *= -1;
+					}
+						
+					
+					
+						
+					for(var j=0;j<10;j++){
+						if(i==j)
+							continue;  // skip it
+						else{
+							if(judgeAndAdjustDistance(circleList[i],circleList[j],spdList[i],spdList[j],2*(circleSize)))
+							{
+								spdList[i].spdx *= -1;
+								spdList[i].spdy *= -1;
+								
+								judge = true;
+							}
+							if(judge)
+								break;
+						}
+						
+
+					}
+					
+					
+					
+				}
+			
+			}
+		
+		}
+		
+		
+		function drawImage(){
+			var image = new Image();
+			image.onload = function(){
+				ctx.drawImage(image,0,0);
+			}
+			image.src = 'O1.jpg';		
+		}
+		
+	
+		function judgeAndAdjustDistance(Posa,Posb,Spda,Spdb,limit){
+			if((((Posa.x-Posb.x)*(Posa.x-Posb.x))+((Posa.y-Posb.y)*(Posa.y-Posb.y)))<limit*limit){
+				// do some tuning here to the position of balls
+				// we choose balla away from ballb, two situations in total
+				// the first one 
+				var bias = limit-Math.sqrt(((Posa.x-Posb.x)*(Posa.x-Posb.x))+((Posa.y-Posb.y)*(Posa.y-Posb.y)));
+				var ratio = bias/Math.sqrt(Spda.spdx*Spda.spdx+Spda.spdy*Spda.spdy);
+
+				Posa.x-=  ratio*Spda.spdx;
+				Posa.y-=  ratio*Spda.spdy;
+					
+				return true; // balls qway
+			}
+			else
+				return false;
+		}
+		
+		
+		
+		// the functions only for debugging
+		function printSomething()
+		{
+			
+		
+		}
+		
+		
+		/*
+		 the key part meets the end
+		*/
+		
+		function drawImage(posx,posy){
+			var image = new Image();
+			image.onload = function(){
+				ctx.drawImage(image,posx,posy);
+			}
+			image.src = 'O5.jpg';		
+		}
+		
+		
+		function drawEllipse(){
+			
+			//画圆		
+			
+			for (var i=0;i<10;i++){
+			
+			// random color get
+			
+			ctx.fillStyle= theFillStyle[i];
+			
+			ctx.beginPath();
+			
+			
+				ctx.arc(circleList[i].x,circleList[i].y,circleSize,0,Math.PI*2,true);
+				// we draw the pictures
+				
+			
+			ctx.closePath();
+			ctx.fill();
+			
+			
+			//drawImage(circleList[i].x,circleList[i].y);
+			
+			}
+							
+		}
+		
+		
+		
+		
+	
+  
+	</script>
+	
+	
+	
+  </body>
+ </html>
+
+  
