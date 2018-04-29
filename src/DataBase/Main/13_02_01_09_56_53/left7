@@ -1,0 +1,318 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="baidu-tc-verification" content="e6cfa16f8b7e50e0d04d7ce42e1bc382" />
+<meta http-equiv="Content-Language" content="zh-CN" /> 
+<meta name="author" content="Csdn" /> 
+<meta name="Copyright" content="Csdn" /> 
+<meta name="description" content="" />
+<meta content="" name="keywords" />
+<meta name="baidu-site-verification" content="x3VW2O466RaB8EGY" />
+<meta property="wb:webmaster" content="62039a02e58102eb" />
+<meta property="qc:admins" content="1647543777633466654" />
+<!--  <link rel="stylesheet" href="http://csdnimg.cn/www/css/main.css" type="text/css" media="all" />-->
+<link rel="stylesheet" href="http://csdnimg.cn/www/css/main_new.css?20121229" type="text/css" media="all" />
+<link href="http://csdnimg.cn/www/css/css.css" rel="stylesheet" type="text/css">
+<!-- <base target="_blank" /> -->
+<link href="http://static.blog.csdn.net/favicon.ico" rel="SHORTCUT ICON" />
+<!--[if gte IE 9]>
+<LINK rel="SHORTCUT ICON" href="favicon.ico">
+<![endif]-->
+<title>CSDN.NET - 全球最大中文IT社区，为IT专业技术人员提供最全面的信息传播和服务平台</title>
+<script language='JavaScript' type='text/javascript' src='http://www.csdn.net/1341df/csdn_ggmm.js'></script>
+<script type="text/javascript" src="http://counter.csdn.net/a/js/AreaCounter.js"></script>
+<script type="text/javascript">
+function setTab(m,n){
+var tli=document.getElementById("menu"+m).getElementsByTagName("a");
+var mli=document.getElementById("main"+m).getElementsByTagName("div");
+for(i=0;i<tli.length;i++){
+tli[i].className=i==n?"current1 current2":"";
+mli[i].style.display=i==n?"block":"none";
+}
+}
+function startmarquee(lh,speed,delay,index){
+      var t;
+      var p=false;
+      var o=document.getElementById("marqueebox"+index);
+      o.innerHTML+=o.innerHTML;
+      o.onmouseover=function(){p=true}
+      o.onmouseout=function(){p=false}
+      o.scrollTop = 0;
+      function start(){
+      t=setInterval(scrolling,speed);
+      if(!p) o.scrollTop += 2;
+      }
+      function scrolling(){
+      if(o.scrollTop%lh!=0){
+      o.scrollTop += 2;
+      if(o.scrollTop>=o.scrollHeight/2) o.scrollTop = 0;
+      }else{
+      clearInterval(t);
+      setTimeout(start,delay);
+      }
+      }
+      setTimeout(start,delay);
+      }
+function addEventHandler(target, type, func) {
+        if (target.addEventListener)
+          target.addEventListener(type, func, false);
+        else if (target.attachEvent)
+          target.attachEvent("on" + type, func);
+        else target["on" + type] = func;
+      }
+addEventHandler(window, "load", function() {
+  startmarquee(40,50,3000,0);
+});
+</script>
+<script src="http://my.csdn.net/js/jquery-1.4.2.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-535605-6']);
+  _gaq.push(['_setDomainName', 'csdn.net']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+<style>
+/* 间歇滚动CSS */
+.scroll_imglist{width:719px !important; height:70px !important; overflow:hidden; padding:7px !important; border:solid 1px #ccc !important;}
+.scroll_imglist ul{display:block; *display:inline-block;}
+.scroll_imglist ul:after{content:"."; display:block; height:0; clear:both; visibility:hidden;}
+.scroll_imglist li{float:left !important; width:96px !important; margin:0 12px 10px !important;}
+.scroll_imglist li img{width:96px; height:70px; border-radius:5px; -webkit-border-radius:5px; -moz-border-radius:5px; -khtml-border-radius:5px; box-shadow:3px 3px 3px #efefef; -moz-box-shadow: 3px 3px 3px #efefef; -webkit-box-shadow: 3px 3px 3px #efefef; filter: progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#efefef'); -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#efefef')";}
+</style>
+<!-- 间歇滚动 -->
+<script type="text/javascript">
+//滚动插件
+(function($){
+$.fn.extend({
+  Scroll:function(opt,callback){
+    //参数初始化
+    if(!opt) var opt = {};
+    var _this = this.eq(0).find("ul:first");
+    var lineULH = _this.height(), 
+      lineH = _this.eq(0).find("li:first").height(), //获取行高
+      line = opt.line?parseInt(opt.line,10):parseInt(this.height()/lineH,10), //每次滚动的行数，默认为一屏，即父容器高度
+      speed = opt.speed?parseInt(opt.speed,10):500, //卷动速度，数值越大，速度越慢（毫秒）
+      timer = opt.timer?parseInt(opt.timer,10):4000; //滚动的时间间隔（毫秒）
+    //
+    if(line==0) line=1;
+    var upHeight = 0-line*lineH;
+    //滚动函数
+    var scrollUp = function(){
+      //如果容器高度小于2倍行高，证明不需要换行(by zhaoxin@csdn.net)
+      if(_this.height()<lineH*2){
+        return false;
+      }
+      _this.animate({
+        marginTop:upHeight
+      },speed,function(){
+        for(var i=1;i<=line;i++){
+          _this.find("li:first").appendTo(_this);
+        }
+        _this.css({marginTop:0});
+      });
+    };
+    //鼠标事件绑定
+    _this.hover(function(){
+      clearInterval(_this.timerID);
+    },function(){
+      _this.timerID = setInterval(scrollUp,timer);
+    }).mouseout();
+  }
+});
+})(jQuery);
+$(document).ready(function(){
+  $("#scrollad").Scroll({line:1,speed:500,timer:5000});
+  $("#scrollDiv").Scroll({line:1,speed:500,timer:4000});
+});
+</script>
+<!-- //间歇滚动 -->
+</head>
+<body>
+<!-- 头部弹出广告 -->
+<!-- <div style="margin:0 auto; width:960px;">
+  <div id=home_tx style="margin:0 auto; width:960px; overflow hidden; position: relative; cursor:pointer;" >
+   <div class=home_tx id=home_tx_top style="position: absolute; top: 4px; left:0; width:960px; display:none;  overflow:hidden; background:url('http://csdnimg.cn/www/images/VS2010_960-450.jpg') no-repeat;" onclick="javascript:window.open('http://clk.atdmt.com/MCH/go/219167501/direct/01/','_blank') " align=center>
+  </div>
+    <div class=home_tx id=home_tx_in style="position: absolute; top: -31px; left:0;  overflow:hidden; display:none" align=center>
+    <A style="CURSOR: pointer" onfocus=this.blur() onClick="home_tx_hide();return false;"><IMG src="http://csdnimg.cn/www/images/close.gif"></A> 
+   </div>
+  </div>
+  <SCRIPT src="http://csdnhomepage.csdn.net/js/abaonet.js" type=text/javascript></SCRIPT>
+</div> -->
+<!-- 头部弹出广告结束 -->
+<h1 class="WebsiteNotice">CSDN.NET - 中国领先的IT技术社区，为IT专业技术人员提供最全面的信息传播和服务平台</h1>  
+<div class="mainwrap">
+        <div class="wrapper">
+        <div class="pagetop_notice txt_gray"><cite id="login"><span class="login">您还未登录！</span>|<a href="https://passport.csdn.net/account/login">登录</a>|<a href="https://passport.csdn.net/account/register">注册</a>|<a href="https://passport.csdn.net/help/faq">帮助</a><input type="text" name="passwordtwo" class="search" value="搜索"  onfocus="if(this.value=='搜索') this.value='';this.style.color='#333'; return true;" onblur="if(this.value=='') this.value='搜索'; this.style.color='#999'; return true;" id="srch1" /></cite><span id="showinfo"></span></div> 
+
+<!-- <div class="pagetop_notice txt_gray"><cite id="login"><span class="login">您还未登录！</span>|<a href="http://passport.csdn.net/UserLogin.aspx" target="_blank">登录</a>|<a href="http://passport.csdn.net/CSDNUserRegister.aspx" target="_blank">注册</a>|<a href="http://passport.csdn.net/help/faq" target="_blank">帮助</a><input type="text" name="passwordtwo" class="search" value="搜索" onkeydown="if(event.keyCode==13){return DoSearch()}" onfocus="if(this.value=='搜索') this.value='';this.style.color='#333'; return true;" onblur="if(this.value=='') this.value='搜索'; this.style.color='#999'; return true;" id="srch1" /><span id="showinfo"></span></cite>
+	</div> -->
+<script type="text/javascript">
+
+$(function(){
+	$("#srch1").keydown(function(event)
+	{
+		 if(event.keyCode==13){
+		var val=$(this).val();
+		 if(val)
+		 {
+			 window.open('http://so.csdn.net/Default.aspx?q='+encodeURIComponent(val));
+		 }
+		 else
+		 {
+			 alert('请输入搜索内容');
+		 }
+		 }
+	});
+	
+});
+
+function getCookie(name){var arr=document.cookie.match(new RegExp("(^| )"+name+"=([^;]*)(;|$)"));
+	if(arr!=null)return unescape(arr[2]);return null;}
+function getCookie1(parameter)
+{
+	return document.cookie.match(new RegExp("(^| )"+parameter+"=([^;]*)(;|$)"));
+
+	var reg,allCookie,allCookie2,iLen,iStart,iEnd;
+	allCookie = document.cookie;
+	reg = new RegExp(parameter);
+	if((allCookie.search(reg) == -1)||(allCookie.indexOf(parameter+"=")<0))
+	{
+		return "";
+	}
+	else
+	{
+		iLen = parameter.length;
+		iStart = allCookie.search(reg) + iLen +1;
+		allCookie2 = allCookie.substr(iStart);
+		iEnd = iStart + allCookie2.search(/;/i);  
+		if((iStart - 1) == iEnd){
+			return allCookie.substr(iStart);
+  }
+  else{
+   return allCookie.substr(iStart,iEnd - iStart);
+  }
+ }
+}
+var userName = getCookie("UserName");
+if (userName && userName != "Guest")
+{
+	document.getElementById("login").innerHTML = "";
+	document.getElementById("showinfo").innerHTML = "<em>"+ userName + "</em><a href=\"http://my.csdn.net/my/notifications\" class=\"notice_num\" id=\"header_notice_num\"></a>我的：<a href=\"http://my.csdn.net/my/letter\">收件箱<span id=\"header_letter_num\"></span></a><a href='http://download.csdn.net/my' class='red'>资源</a> <a href='http://write.blog.csdn.net/' class='red'>博客</a> <a href='http://my.csdn.net/'>空间</a> <a href='https://passport.csdn.net/account/profile'>设置</a>|&nbsp;<a href='https://passport.csdn.net/help/faq'>帮助</a>|&nbsp;<a href='http://passport.csdn.net/account/logout'>退出</a><input type='text' name='passwordtwo' class='search' value='搜索' onfocus=\"if(this.value=='搜索') this.value='';this.style.color='#333'; return true;\" onblur=\"if(this.value=='') this.value='搜索'; this.style.color='#999'; return true;\" id='srch1' />";
+
+
+}
+
+function csdnShowSpaceNotify(data){
+if(parseInt(data.n)>0){
+  document.getElementById("header_notice_num").innerHTML = data.n; 
+}else
+{
+  document.getElementById("header_notice_num").innerHTML = 0; 
+}
+if(parseInt(data.l)>0){
+  document.getElementById("header_letter_num").innerHTML = "（"+data.l+"）"; 
+}
+}
+if (userName && userName != "Guest") {
+(function() {
+var ca = document.createElement('script'); ca.type = 'text/javascript'; ca.async = true;
+ca.src = 'http://my.csdn.net/index.php/service/notifications/getnl?jsonpcallback=csdnShowSpaceNotify';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ca, s);
+})();
+}
+
+</script>
+
+<script type="text/javascript">
+var ua = navigator.userAgent.toLowerCase(); 
+if(ua.match(/iPad/i)=="ipad") { 
+document.write('<div id="ipad_adverting" style="position:fixed; z-index:1; left:0px; bottom:0px; width:100%; opacity:.8;"><a onclick=document.getElementById("ipad_adverting").style.display="none" style="position:absolute; top:0px; right:0px; width:4%; height:29%;display:inline-block;cursor:hand;"></a><a href="http://dingyue.programmer.com.cn/ipad.html" target="_blank"><img src="http://articles.csdn.net/uploads/allimg/120904/ipad_ad.jpg" width="100%" style="border-radius:1em 0;"/></a></div>');
+}
+</script>    <div class="banner_top1"><ul><li class="leftad"><script type='text/javascript'>show_ads_zone(402);</script></li><li class="rightad"><script type='text/javascript'>show_ads_zone(403);</script></li></ul></div> 
+        <div class="csdn_pubheader09">
+        <div class="csdn_pubheader09_logo">
+    <a href="http://www.csdn.net"><img src="http://csdnimg.cn/www/images/csdnindex_logo.gif?20121229" alt="CSDN Logo" title="CSDN Logo" /></a>
+</div>
+<div class="csdn_pubheader09_banner">
+	<!-- <a href="http://subject.csdn.net/2010heding/" target="_blank"><img src="http://csdnimg.cn/www/images/csdnindex_banner02.gif" alt="" title="" /></a> -->
+	<script language='JavaScript' type='text/javascript'>show_ads_zone(423);</script>
+</div>
+<!-- <div class="csdn_pubheader09_nav">
+    <ul class="row_1">
+        <li><a href="http://www.csdn.net" target="_blank">首页</a></li>
+        <li><a href="http://news.csdn.net" target="_blank">资讯</a></li>
+        <li><a href="http://hi.csdn.net" target="_blank">空间</a></li>
+        <li><a href="http://bbs.csdn.net" target="_blank">论坛</a></li>
+        <li><a href="http://blog.csdn.net" target="_blank">博客</a></li>
+        <li><a href="http://download.csdn.net" target="_blank">下载</a></li>
+		<li><a href="http://so.csdn.net" target="_blank">搜索</a></li>
+        <li><a href="http://wz.csdn.net" target="_blank">网摘</a></li>
+        <li><a href="http://www.programmer.com.cn" target="_blank">程序员</a></li>
+        <li><a href="http://prj.csdn.net" target="_blank">项目交易</a></li>
+        <li><a href="http://www.dearbook.com.cn" target="_blank">书店</a></li>
+        <li><a href="http://club.csdn.net/cto" target="_blank">CTO俱乐部</a></li>
+        <li><a href="http://tup.csdn.net" target="_blank" class="red">TUP</a></li>
+        <li><a href="http://edu.csdn.net/" target="_blank">培训充电</a></li>
+        <li class="last"><a href="http://student.csdn.net/space.php?do=mtag&id=5" target="_blank">高校club</a></li>
+    </ul>
+    <ul class="row_2">
+        <li><a href="http://sd.csdn.net" target="_blank" class="red">研发</a></li>
+        <li><a href="http://mobile.csdn.net/" target="_blank">移动</a></li>
+        <li><a href="http://c9.csdn.hudong.com/" target="_blank">Channel9</a></li>
+        <li><a href="http://java.csdn.net" target="_blank">Java</a></li>
+        <li><a href="http://security.csdn.net/" target="_blank">安全</a></li>
+        <li><a href="http://database.csdn.net" target="_blank">数据库</a></li>
+        <li><a href="http://dotnet.csdn.net" target="_blank">.NET</a></li>
+        <li><a href="http://webdev.csdn.net" target="_blank">Web开发</a></li>
+        <li><a href="http://cloud.csdn.net" target="_blank">云计算</a></li>
+        <li><a href="http://server.csdn.net" target="_blank">服务器</a></li>
+        <li><a href="http://telecom-it.csdn.net" target="_blank">电信IT</a></li>
+        <li><a href="http://student.csdn.net" target="_blank">学生大本营</a></li>
+        <li><a href="http://hunter.csdn.net" target="_blank">猎头</a></li>
+    </ul>
+</div> -->
+ 
+         </div>
+  <div class="csdn_pub_nav">﻿<div class="csdn_pub_nav_bg">
+    <div class="row_1">
+      <a onclick="LogClickCount(this,285);" href="http://www.csdn.net" target="_blank" class="left">首页</a>
+      <a onclick="LogClickCount(this,286);" href="http://bbs.csdn.net" target="_blank">论坛</a>
+      <a onclick="LogClickCount(this,287);" href="http://blog.csdn.net" target="_blank">博客</a>
+      <a onclick="LogClickCount(this,288);" href="http://blog.csdn.net/column.html" target="_blank">专栏</a>
+      <a onclick="LogClickCount(this,289);" href="http://ask.csdn.net/" target="_blank">问答</a>
+      <a onclick="LogClickCount(this,290);" href="http://download.csdn.net" target="_blank">下载</a>
+      <a onclick="LogClickCount(this,291);" href="http://so.csdn.net" target="_blank">搜索</a>
+      <a onclick="LogClickCount(this,292);" href="http://my.csdn.net" target="_blank">空间</a>
+      <a onclick="LogClickCount(this,293);" href="http://www.iteye.com" target="_blank">ITeye</a>
+      <span><img src="http://csdnimg.cn/www/images/csdnindex_pic62.gif" /></span>
+      <a onclick="LogClickCount(this,294);" href="http://www.programmer.com.cn" target="_blank">程序员</a>
+      <a onclick="LogClickCount(this,295);" href="http://huiyi.csdn.net/" class="red" target="_blank">会议</a>
+      <a onclick="LogClickCount(this,296);" href="http://www.pongo.cn" class="red" target="_blank">Pongo</a>
+      <a onclick="LogClickCount(this,297);" href="http://club.csdn.net/cto" target="_blank">CTO俱乐部</a>
+      <a onclick="LogClickCount(this,298);" href="http://www.csto.com/" target="_blank">CSTO</a>
+      <a onclick="LogClickCount(this,299);" href="http://tup.csdn.net" target="_blank">TUP</a>
+      <a onclick="LogClickCount(this,300);" href="http://edu.csdn.net/heima" target="_blank">培训充电</a>
+      <a onclick="LogClickCount(this,301);" href="http://student.csdn.net" target="_blank">高校俱乐部</a>
+      <a onclick="LogClickCount(this,302);" href="http://job.csdn.net" target="_blank" class="right">招聘</a>
+    </div>
+    <div class="row_2">
+      <a onclick="LogClickCount(this,303);" href="http://news.csdn.net" target="_blank" class="left"><strong>业界</strong></a>
+      <a onclick="LogClickCount(this,304);" href="http://mobile.csdn.net/" target="_blank"><strong>移动开发</strong></a>
+      <a onclick="LogClickCount(this,305);" href="http://cloud.csdn.net" target="_blank"><strong>云计算</strong></a>
+      <a onclick="LogClickCount(this,306);" href="http://sd.csdn.net" target="_blank"><strong>软件研发</strong></a>
+      <span>|</span>
+      <a onclick="LogClickCount(this,307);" href="http://win8.csdn.net" class="red" target="_blank">Windows8</a>
+      <a onclick="LogClickCount(this,308);" href="http://site.csdn.net/IE10" target="_blank">IE10</a>
+      <a onclick="LogClickCount(this,309);" href="http://java.csdn.net" target="_blank">Java</a>
+      <a onclick="LogClickCount(this,310);" href="http://security.csdn.net/" target="_blank">安全</a>
+      <a onclick="LogClickCount(this,311);" href="http://database.csdn.net" target="_blank">数据库</a>
+      <a onclick="LogClickCount(this,312);" href="http://dotnet.csdn.net" target="_blank">.NET</a>
+      <a onclick="LogClickCount(this,313);" href="http://server.csdn.net" target="_blank">服务器</a>
+      <a onclick="LogClickCount(this,314);" href="http://open189.csdn.net/" target="_blank">天翼开放</a>

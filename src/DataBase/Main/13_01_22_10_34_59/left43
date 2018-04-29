@@ -1,0 +1,712 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="siteHeader">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
+	<title>麦可思数据有限公司 - 高等教育.人力资源</title>
+	<link href="../../App_Themes/basic.css" type="text/css" rel="stylesheet" />
+	<link href="../../App_Themes/Layout.css" type="text/css" rel="stylesheet" />
+    
+    <link href="../../App_Themes/MyCosResearch/Pagestyle.css" type="text/css" rel="stylesheet" />
+
+       <script type="text/javascript" src="../../Scripts/jquery-1.4.1.min.js"></script>
+       <script type="text/javascript" src="../../Scripts/Common.js"></script>
+</head>
+
+
+<body>	
+  <script type="text/javascript">
+      $(document).ready(function () {
+          //$("#main").html(htmlDecode($("#main").html()));
+          if ($("#display"))
+          {
+            $("#display").html($("#tag div").eq(0).html());
+            window.setInterval("scrollNews()", 3500);
+          }
+          if(document.getElementById("globo")){
+            //var height = $(this).contents().find("#globo").height();
+            var height = $("#globo").height();
+            //alert(height);
+            height = height < 610 ? 610 : height;
+            $(this).contents().find("#side").height(height);
+          }
+      });
+
+    var count = 0;
+    function scrollNews() {
+        var obj = $("#tag div").eq(count);
+        $("#display").html(obj.html());
+        if (count == 10) {
+            count = 0;
+        }
+        else {
+            count++;
+        }
+    }
+
+    //以下代码是解决首页图片切换。
+    var _c = _h = 0;
+    $(function () {
+        $('.num > li').click(function () {
+            var i = $(this).attr('code') - 1;
+            clearInterval(_h);
+            _c = i;
+            play();
+            change(i);
+        })
+        $(".slider img").hover(function () { clearInterval(_h) }, function () { play() });
+        play();
+    })
+    function play() {
+        _h = setInterval("auto()", 3000);
+    }
+    function change(i) {
+        $('.num > li').css('background-color', '#E8FCEB').eq(i).css('background-color', '#C6FF5E').blur();
+        $(".slider img").hide().eq(i).fadeIn('slow');
+    }
+    function auto() {
+        _c = _c > 1 ? 0 : _c + 1;
+        change(_c);
+    }
+    //设为首页
+    function setHome(){
+        if (document.all)
+        {
+            document.body.style.behavior='url(#default#homepage)';
+            document.body.setHomePage(location.href);
+        }
+        else if (window.sidebar)
+        {
+            if(window.netscape)
+            {
+                try
+                {
+                    netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+                }
+                catch(e)
+                {
+                    alert("this action was aviod by your browser，if you want to enable，please enter about:config in your address line,and change the value of signed.applets.codebase_principal_support to true");
+                }
+             }
+             var prefs = Components.classes['@mozilla.org/preferences-service;1'].getService(Components. interfaces.nsIPrefBranch);
+             prefs.setCharPref('browser.startup.homepage',location.href);
+         }
+    }
+    //收藏网站
+    function addfavorite() 
+    { 
+       if (document.all) 
+       { 
+          window.external.addFavorite(location.href,"麦可思网站"); 
+       } 
+       else if (window.sidebar) 
+       { 
+          window.sidebar.addPanel("麦可思网站", location.href,  ""); 
+       } 
+    } 
+
+</script>
+<!-- begin头部logo框架 -->
+<div class="header-top">
+					<div class="header mauto">
+					  <div class="logo"><img src="../../App_Themes/images/logo.gif" alt="MyCOS Logo" width="234" height="43" /> </div>
+					  <div class="right_header"><div class="g_t_r links">
+						<a href="javascript:" onclick="setHome()"><span id="ctl00_Label3">设为首页</span></a>&nbsp;|&nbsp;<a href="javascript:"
+						 onclick="addfavorite()">
+                                <span id="ctl00_Label1">加入收藏</span>
+                            </a>
+                            &nbsp;|&nbsp;<a href="../MyCosEvent/ShowCS">
+                                <span id="ctl00_Label2">联系我们</span>
+                            </a>
+                            &nbsp;|&nbsp;<a href="../Detail/SiteMap">
+                                <span id="ctl00_Label4">网站地图</span>
+                            </a>
+                            &nbsp;|&nbsp;<a href="http://en.mycos.com">English</a></div>
+							
+					  </div>
+					  <!-- begin导航-->
+					  <div class="clear"></div>
+					  <!-- end导航-->
+					  <!-- begin广告-->
+					  <!-- end广告-->
+					  <div class="clear"></div>
+					</div>
+	<div class="clear"></div>
+				</div>
+<div class="clear"></div>
+<div class="menuzone">
+	 <div class="mainmenu">
+     
+		<ul class="main-nav">
+		
+
+		   <li class="top">
+		   
+			 <a href="../Home/index" class="top_link"><span class="down">首页</span></a>
+			 
+		   </li>
+
+		
+
+		   <li class="top">
+		   
+			 <a href="../AboutMyCos/AIndex" class="top_link"><span class="down">关于麦可思</span></a>
+			 
+			  <ul class="sub" style="width:500px;">
+		   
+					           <li><a href="../AboutMyCos/MyCosSurvey">麦可思概况</a></li> 
+				         
+					           <li><a href="../AboutMyCos/ShowMyCosTeam">麦可思团队</a></li> 
+				         
+					           <li><a href="../AboutMyCos/ShowMSI">麦可思社会影响</a></li> 
+				         
+					           <li><a href="../MyCosEvent/ShowCOE">麦可思大事记</a></li> 
+				         
+					           <li><a href="../MyCosEvent/ShowCS">联系我们</a></li> 
+				         
+		  </ul>
+          
+		   </li>
+
+		
+
+		   <li class="top">
+		   
+			 <a href="../Services/ServicesIndex" class="top_link"><span class="down">产品与服务</span></a>
+			 
+			  <ul class="sub" style="width:500px;">
+		   
+					           <li><a href="../Services/CollegeService">高校咨询服务</a></li> 
+				         
+					           <li><a href="../Services/ShowRC">研究合作</a></li> 
+				         
+		  </ul>
+          
+		   </li>
+
+		
+
+		   <li class="top">
+		   <a href="../McResearch/ResearchIndex" class="current"><span class="down">麦可思研究</span></a>
+			  <ul class="sub" style="width:500px;">
+		   
+					           <li><a href="../McResearch/ShowRI">麦可思研究院</a></li> 
+				         
+					           <li><a href="../Research/ShowMV">麦可思视角</a></li> 
+				         
+					           <li><a href="../McResearch/PublicationsIndex">出版物</a></li> 
+				         
+					           <li><a href="../Research/ShowMagazine">麦可思期刊</a></li> 
+				         
+		  </ul>
+          
+		   </li>
+
+		
+
+		   <li class="top">
+		   
+			 <a href="../Dynamic/DynamicIndex" class="top_link"><span class="down">麦可思动态</span></a>
+			 
+			  <ul class="sub" style="width:500px;">
+		   
+					           <li><a href="../Dynamic/CompanyNews">公司快讯</a></li> 
+				         
+					           <li><a href="../Dynamic/SocialReper">社会反响</a></li> 
+				         
+					           <li><a href="../Dynamic/EducationEmployment">教育与就业关注</a></li> 
+				         
+		  </ul>
+          
+		   </li>
+
+		
+
+		   <li class="top">
+		   
+			 <a href="../JoinUs/JoinIndex" class="top_link"><span class="down">加入麦可思</span></a>
+			 
+			  <ul class="sub" style="width:500px;">
+		   
+					           <li><a href="../JoinUs/Conditions">工作地点</a></li> 
+				         
+					           <li><a href="../JoinUs/Job">工作机会</a></li> 
+				         
+					           <li><a href="../JoinUs/Career">职业生涯</a></li> 
+				         
+		  </ul>
+          
+		   </li>
+
+		
+	  </ul>
+	  <div class="clear"></div>
+		</div>
+	</div>
+   <!-- end头部logo栏框架 -->        
+			  
+		  
+		
+	  
+
+		<div id="main">
+			
+    
+    <div class="wrapper" id="globo"> 
+      <div class="fl w210">
+            <div id="side">
+				<div id="menu">
+                
+     <script type="text/javascript" src="../../Scripts/jquery-1.4.1.min.js"></script>
+          <script type="text/javascript" src="../../Scripts/Common.js"></script>
+  <script type="text/javascript">
+      $(document).ready(function () {
+          if ($("#ulpro").html() != null) {
+              $("#ulpro").html(htmlDecode($("#ulpro").html()));
+              for (var i = 0; i < $("#ulpro").find('li').length; i++) {
+                  $("#ulpro").find('a')[i].innerHTML = $("#ulpro").find('li')[i].innerText;
+              }
+          }
+      })
+  </script>
+  <div style="">
+   <div class="title"><a  id="../McResearch/ResearchIndex" href="../McResearch/ResearchIndex">麦可思研究</a></div>
+      
+    <ul>
+		<li>
+            <a  id="../McResearch/ShowRI" href="../McResearch/ShowRI">麦可思研究院</a>
+        
+            </li>
+            </ul>
+      
+    <ul>
+		<li>
+            <a  id="../Research/ShowMV" href="../Research/ShowMV">麦可思视角</a>
+        
+    <ul>
+    
+                     <li> <a  id="../Research/ShowRR" href="../Research/ShowRR">调查研究报告</a> 
+                 
+            </li>
+
+        
+                     <li> <a  id="../Research/ShowWR" href="../Research/ShowWR">年度专题</a> 
+                 
+            </li>
+
+        
+                     <li> <a  id="../Research/ShowBO" href="../Research/ShowBO">伯客观察</a> 
+                 
+            </li>
+
+        
+                     <li> <a  id="../Research/ShowES" href="../Research/ShowES">专家视点</a> 
+                 
+            </li>
+
+        
+            </ul>
+            
+            </li>
+            </ul>
+      
+    <ul>
+		<li>
+            <a  id="../McResearch/PublicationsIndex" href="../McResearch/PublicationsIndex">出版物</a>
+        
+    <ul>
+    
+                     <li> <a  id="../McResearch/ShowBBFJ" href="../McResearch/ShowBBFJ">就业蓝皮书</a> 
+                 
+            </li>
+
+        
+                     <li> <a  id="../McResearch/ShowCSJB" href="../McResearch/ShowCSJB">大学生求职决胜宝典</a> 
+                 
+            </li>
+
+        
+                     <li> <a  id="../McResearch/ShowCPBJ" href="../McResearch/ShowCPBJ">看就业选专业</a> 
+                 
+            </li>
+
+        
+            </ul>
+            
+            </li>
+            </ul>
+      
+    <ul>
+		<li>
+            <a  id="../Research/ShowMagazine" href="../Research/ShowMagazine">麦可思期刊</a>
+        
+    <ul>
+    
+                     <li> <a  id="../Research/ShowMMR" href="../Research/ShowMMR">麦可思研究</a> 
+                 
+            </li>
+
+        
+                     <li> <a  id="../Research/ShowMMO" href="../Research/ShowMMO">订阅期刊</a> 
+                 
+            </li>
+
+        
+            </ul>
+            
+            </li>
+            </ul>
+    
+<div class="titletxt mar_t30"><span class="mar_l10"><span id="2_lblNewResearchText">麦可思博客</span></span></div>
+                <div class="mar_t10 mar_l20">
+                
+                    <p class="mar_t5"><a href="http://blog.sina.com.cn/mycosblog" target="_blank"><img src="../../App_Themes/images/ico-sina.gif" alt="麦可思新浪博客" align="absmiddle" />&nbsp;&nbsp;麦可思新浪博客</a></p>
+                
+                    <p class="mar_t5"><a href="http://user.qzone.qq.com/622007726/main" target="_blank"><img src="../../App_Themes/images/ico-qzone.gif" alt="麦可思腾讯博客" align="absmiddle" />&nbsp;&nbsp;麦可思腾讯博客</a></p>
+                
+                
+        </div>
+</div>
+
+
+
+<script type="text/javascript">
+    document.getElementById("../Services/AdvisoryTeam").style.display = "none";
+
+</script>
+
+
+ 
+			  </div>
+        </div>
+      </div>
+      <div class="w770 fr">
+        <div class="part01">
+            
+<div class="fl w582">
+  <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,19,0" width="582" height="159" title="mycosbaner">
+      <param name="movie" value="../../Files/banner.swf" />
+      <param name="quality" value="high" />
+      <embed src="../../Files/banner.swf" quality="high" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash" width="582" height="159"></embed>
+  </object>  
+        
+</div>
+
+<div id="display" class="newspaper">
+    
+</div>
+
+<!-- 媒体评论 -->
+<div id="tag" style="display:none;">
+
+<div>
+    <p class="white" style="word-break:normal;">
+    就业蓝皮书的作者——麦可思是具有第三方公正性的教育数据咨询公司。
+    </p>
+    <p class="mar_t10 g_t_r blue-ef">
+    《中国教育报》<br />
+    2009.06.11 
+    </p>
+</div>
+
+<div>
+    <p class="white" style="word-break:normal;">
+    麦可思所取得的成就得到社会和高等教育研究界的广泛认可。
+    </p>
+    <p class="mar_t10 g_t_r blue-ef">
+    中国高等教育学科的奠基人、开拓者<br />
+    潘懋元 
+    </p>
+</div>
+
+<div>
+    <p class="white" style="word-break:normal;">
+    中国高等教育发展的历史将会记住麦可思的成就。
+    </p>
+    <p class="mar_t10 g_t_r blue-ef">
+    上海市教育科学研究院副院长<br />
+    马树超 
+    </p>
+</div>
+
+<div>
+    <p class="white" style="word-break:normal;">
+    实证性的、数据性的基础是稀缺的，所以麦可思就业报告很可贵。
+    </p>
+    <p class="mar_t10 g_t_r blue-ef">
+    教育部职业技术教育中心　　研究所副所长<br />
+    余祖光 
+    </p>
+</div>
+
+<div>
+    <p class="white" style="word-break:normal;">
+    麦可思公司……建立在大样本的基础上，从需求出发来改进我们的教育政策和教育培养，这是非常有价值的开拓性的事业。
+    </p>
+    <p class="mar_t10 g_t_r blue-ef">
+    21世纪教育研究院院长<br />
+    杨东平 
+    </p>
+</div>
+
+<div>
+    <p class="white" style="word-break:normal;">
+    麦可思的调查反映了职场的需要，涉及职场中的各种人才，这就是实证。
+    </p>
+    <p class="mar_t10 g_t_r blue-ef">
+    联合国教科文组织产学合作　　教席主持人<br />
+    查建中 
+    </p>
+</div>
+
+<div>
+    <p class="white" style="word-break:normal;">
+    麦可思的报告是中国教育界应对现实问题的第一次革命性的数据突破。
+    </p>
+    <p class="mar_t10 g_t_r blue-ef">
+    新东方研究院执行院长<br />
+    张亚哲 
+    </p>
+</div>
+
+<div>
+    <p class="white" style="word-break:normal;">
+    麦可思公司……填补了中国高等教育调查中的一项空白，在就业市场和大学教育之间架起了一座桥梁，意义重大。
+    </p>
+    <p class="mar_t10 g_t_r blue-ef">
+    中国院校研究会副会长<br />
+    赵炬明 
+    </p>
+</div>
+
+<div>
+    <p class="white" style="word-break:normal;">
+    翔实有效的数据，专业超前的分析，问题矛头的直接指向，麦可思及其报告的出现，无疑给业界注入了一剂强心针。
+    </p>
+    <p class="mar_t10 g_t_r blue-ef">
+    《人民政协报》<br />
+    2009.02.11 
+    </p>
+</div>
+
+<div>
+    <p class="white" style="word-break:normal;">
+    麦可思公司调查编著的《2009年中国大学生就业报告》是国内首次出版全国大学生就业年度报告。
+    </p>
+    <p class="mar_t10 g_t_r blue-ef">
+    《光明日报》<br />
+    2009.06.11 
+    </p>
+</div>
+
+<div>
+    <p class="white" style="word-break:normal;">
+    MyCOS,China's leading labor consulting firm.
+    </p>
+    <p class="mar_t10 g_t_r blue-ef">
+    Global Times<br />
+    2009.05.14 
+    </p>
+</div>
+
+</div> 
+        </div>
+        
+        <div class="part02 mar_t6">
+        <div class="fl w542" style="padding:10px 20px 0 20px;">
+        <div class=''>
+                         <div class='title07'>调查研究报告</div><img style='margin-top:5px;' alt='' src='../Img/2013/01/21/18/46/201301211846415890.png' width='540' height='200' /><div class='mar_t10'><div class='bloglist mar_t10'><dl>
+                                      <dt><a href='../Detail/ArticleDetail?articleID=10717' target='_blank'><img src='../Img/2013/01/21/18/46/201301211846415890.png' width='60' height='60' alt='' /></a></dt>
+                                      <dd>
+                                      <b><a href='../Detail/ArticleDetail?articleID=10717' class='blue fb' target='_blank'><p>&nbsp;2013届毕业生签约率分析</p></a></b>
+                                      <p style='word-break:normal;'>&nbsp;&ldquo;腾讯-麦可思2013届应届大学生毕业流向月度跟踪调查&rdquo;以2013届大学毕业生为调查对象，从2012年9月开始，直至毕业前夕&hellip;&hellip;</p> 
+                                      </dd>
+                                      </dl><dl>
+                                      <dt><a href='../Detail/ArticleDetail?articleID=10702' target='_blank'><img src='../Img/2013/01/11/10/17/201301111017501488.jpg' width='60' height='60' alt='' /></a></dt>
+                                      <dd>
+                                      <b><a href='../Detail/ArticleDetail?articleID=10702' class='blue fb' target='_blank'><p>职场新人多&ldquo;负翁&rdquo;？&mdash;&mdash;2012届大学毕业生生存跟踪</p></a></b>
+                                      <p style='word-break:normal;'>&ldquo;腾讯-麦可思2012届大学毕业生&lsquo;职场新人&rsquo;月度跟踪调查&rdquo;从2012年9月开始，对2012届已工作的大学毕业生的就业状况&hellip;&hellip;</p> 
+                                      </dd>
+                                      </dl><dl>
+                                      <dt><a href='../Detail/ArticleDetail?articleID=10575' target='_blank'><img src='../Img/2012/08/10/19/03/201208101903535970.jpg' width='60' height='60' alt='' /></a></dt>
+                                      <dd>
+                                      <b><a href='../Detail/ArticleDetail?articleID=10575' class='blue fb' target='_blank'><p>不要轻易就&ldquo;分手&rdquo;&mdash;&mdash;大学毕业生离职分析</p></a></b>
+                                      <p style='word-break:normal;'>大学生与雇主之间的关系更像&ldquo;谈恋爱&rdquo;，而不是&ldquo;结婚&rdquo;。在大学生可选的职业行业中，既不包括高校的终身教职&hellip;&hellip;</p> 
+                                      </dd>
+                                      </dl><dl>
+                                      <dt><a href='../Detail/ArticleDetail?articleID=10513' target='_blank'><img src='../Img/2012/04/22/09/29/201204220929257070.jpg' width='60' height='60' alt='' /></a></dt>
+                                      <dd>
+                                      <b><a href='../Detail/ArticleDetail?articleID=10513' class='blue fb' target='_blank'><p>2012届不同专业大学生签约质量分析</p></a></b>
+                                      <p style='word-break:normal;'>&ldquo;腾讯-麦可思2012届大学毕业生流向月度跟踪调查&rdquo;以2012届大学毕业生为调查对象，从2011年9月开始直至毕业前夕，对其进行&hellip;&hellip;</p> 
+                                      </dd>
+                                      </dl><dl>
+                                      <dt><a href='../Detail/ArticleDetail?articleID=10665' target='_blank'><img src='../Img/2012/12/31/01/44/201212310144095552.jpg' width='60' height='60' alt='' /></a></dt>
+                                      <dd>
+                                      <b><a href='../Detail/ArticleDetail?articleID=10665' class='blue fb' target='_blank'><p>猜猜谁会来考研？&mdash;&mdash;2013届本科毕业生国内读研意向分析</p></a></b>
+                                      <p style='word-break:normal;'>对应届大学毕业生求职和求学进行跟踪调查，实时了解应届本科、高职高专毕业生及研究生求职与进一步发展计划。</p> 
+                                      </dd>
+                                      </dl><dl>
+                                      <dt><a href='../Detail/ArticleDetail?articleID=10651' target='_blank'><img src='../Img/2012/12/21/15/10/201212211510013150.jpg' width='60' height='60' alt='' /></a></dt>
+                                      <dd>
+                                      <b><a href='../Detail/ArticleDetail?articleID=10651' class='blue fb' target='_blank'><p>&ldquo;农二代&rdquo;新生遭遇学习难<br />&mdash;&mdash;2012级农民与农民工家庭新生学习适应性分析</p></a></b>
+                                      <p style='word-break:normal;'>本文将从数据的角度，对2012级农民和农民工家庭新生遇到的学习问题进行分析。</p> 
+                                      </dd>
+                                      </dl><dl>
+                                      <dt><a href='../Detail/ArticleDetail?articleID=10637' target='_blank'><img src='../Img/2012/12/10/11/30/201212101130052456.jpg' width='60' height='60' alt='' /></a></dt>
+                                      <dd>
+                                      <b><a href='../Detail/ArticleDetail?articleID=10637' class='blue fb' target='_blank'><p>你在他乡还好吗？</p><p>&mdash;&mdash;大学毕业生异地就业质量分析</p></a></b>
+                                      <p style='word-break:normal;'>2012年中国大学毕业生就业调查显示，2011届已就业的大学毕业生中，46%的本科毕业生和35%的高职高专毕业生远离家乡，在外打拼&hellip;&hellip;</p> 
+                                      </dd>
+                                      </dl><dl>
+                                      <dt><a href='../Detail/ArticleDetail?articleID=10632' target='_blank'><img src='../Img/2012/11/30/09/29/201211300929375210.jpg' width='60' height='60' alt='' /></a></dt>
+                                      <dd>
+                                      <b><a href='../Detail/ArticleDetail?articleID=10632' class='blue fb' target='_blank'><p>读研了，他们为何抛弃旧爱&mdash;&mdash;2011届本科毕业生读研分析</p></a></b>
+                                      <p style='word-break:normal;'>读研毕业生中近三成转换了专业；&ldquo;个人兴趣&rdquo;让他们放弃本科专业；读研毕业生认为本科母校最需改进&ldquo;学术批判性思维能力&rdquo;培养。</p> 
+                                      </dd>
+                                      </dl><dl>
+                                      <dt><a href='../Detail/ArticleDetail?articleID=10626' target='_blank'><img src='../Img/2012/11/20/15/52/201211201552191400.jpg' width='60' height='60' alt='' /></a></dt>
+                                      <dd>
+                                      <b><a href='../Detail/ArticleDetail?articleID=10626' class='blue fb' target='_blank'><p>求职压力来袭 硕士不淡定</p><p>&mdash;&mdash;2013届大学毕业生11月份求职压力分析</p></a></b>
+                                      <p style='word-break:normal;'>正值招聘旺季，部分2013届大学毕业生已拿到心仪的offer。依旧未签约的大学毕业生，他们面临怎样的求职压力？</p> 
+                                      </dd>
+                                      </dl><dl>
+                                      <dt><a href='../Detail/ArticleDetail?articleID=10621' target='_blank'><img src='../Img/2012/11/11/00/51/201211110051357740.jpg' width='60' height='60' alt='' /></a></dt>
+                                      <dd>
+                                      <b><a href='../Detail/ArticleDetail?articleID=10621' class='blue fb' target='_blank'><p>&ldquo;脱光&rdquo;可能有点儿难&mdash;&mdash;2012级大学新生异性交往问题分析</p></a></b>
+                                      <p style='word-break:normal;'>不少人将11月11日以&ldquo;光棍节&rdquo;名义组织的各种活动视作摆脱单身的良机。可对于部分刚入校的新生来说，在与异性轻松相处方面&hellip;&hellip;</p> 
+                                      </dd>
+                                      </dl><div class='clear'></div></div></div></div>
+        
+ <div class="pages fr" style="margin:20px 10px 10px 15px;">
+ 
+       <span class="nextprev">第一页</span>
+      <span class="nextprev">上一页</span>
+        
+                            <span class="current">1</span>
+                  
+                                     <a href="../Research/ShowRR?page=2" title="跳转到第2页">2</a> 
+                                
+                                     <a href="../Research/ShowRR?page=3" title="跳转到第3页">3</a> 
+                                
+                                     <a href="../Research/ShowRR?page=4" title="跳转到第4页">4</a> 
+                                
+                                     <a href="../Research/ShowRR?page=5" title="跳转到第5页">5</a> 
+                                
+                                     <a href="../Research/ShowRR?page=6" title="跳转到第6页">6</a> 
+                                
+      <a href="../Research/ShowRR?page=2" class="nextprev" title="跳转到下一页"> 下一页</a>
+      <a href="../Research/ShowRR?page=6" class="nextprev" title="跳转到最后一页">最后一页</a>
+       
+   <span class="gray">&nbsp;共 6 页&nbsp;</span>
+   <span class="gray">跳转到&nbsp;第</span>
+   <span>
+   <select id="pages" onchange="GoPage()">
+    
+        <option value="1" selected="selected">1</option>
+      
+    <option value="2">2</option>
+
+    
+    <option value="3">3</option>
+
+    
+    <option value="4">4</option>
+
+    
+    <option value="5">5</option>
+
+    
+    <option value="6">6</option>
+
+    
+   </select>
+   </span>
+   <span class="gray">页</span>
+    <div class="clear"></div>
+   </div>
+   <script type="text/javascript">
+       function GoPage() {
+           var page = document.getElementById("pages").value;
+           document.location.href = "../Research/ShowRR?page=" + page;
+       }
+   </script>
+        </div>
+        <div class="fl w188">
+        
+        
+<script src="../../Scripts/Common.js" type="text/javascript"></script>
+
+
+<!-- 右边栏 -->
+<div class="part02 mar_t6">
+<div class="fl w188">
+        
+        <div class="section mar_t5">
+        <div class="ptitle"><span id="8_Label10">洽谈研究合作</span></div>
+        <div class=" pad_10">
+            
+            <p><p>&nbsp;&nbsp;&nbsp; 如果贵单位有意向在高等教育培养与就业方面与麦可思合作研究项目，请联系：</p><p><strong>门垚</strong></p><p>电话：010-58819650</p><p>电子邮件：</p><p><a href="mailto:yao.men@mycos.com.cn">yao.men@mycos.com.cn</a></p><p>&nbsp;&nbsp;&nbsp; 如果您希望使用麦可思公益数据，点击<a href="../../Services/ShowDCI">此处</a>申请</p></p>
+  
+            
+            <div class="clear"></div>
+        </div>
+        </div>
+
+        <div class="section mar_t6">
+        <div class="ptitle"><span id="8_Label9">合作机构</span></div>
+        <div class=" pad_10">
+             <ul><li><a href="file:///D:/work/MyCos/Coding/MyCos.Site/MyCos.Site/Views/MyCosResearch/Research-institution.htm#"><font color="#3f8ab6">21世纪教育研究院</font></a></li><li><a href="file:///D:/work/MyCos/Coding/MyCos.Site/MyCos.Site/Views/MyCosResearch/Research-institution.htm#"><font color="#3f8ab6">北京大学教育学院</font></a></li><li><a href="file:///D:/work/MyCos/Coding/MyCos.Site/MyCos.Site/Views/MyCosResearch/Research-institution.htm#"><font color="#3f8ab6">北京大学中国职业研究所</font></a></li><li><a href="file:///D:/work/MyCos/Coding/MyCos.Site/MyCos.Site/Views/MyCosResearch/Research-institution.htm#"><font color="#3f8ab6">北京大学中国教育财政科学研究所</font></a></li><li><a href="file:///D:/work/MyCos/Coding/MyCos.Site/MyCos.Site/Views/MyCosResearch/Research-institution.htm#"><font color="#3f8ab6">中国社会科学院社会学研究所</font></a></li></ul>
+                
+            <div class="clear"></div>
+        </div>
+        </div>
+        
+        <div class="section mar_t6">
+            <div class="ptitle"><span id="8_Label2">相关内容</span></div>
+            <div class=" pad_10">
+              <ul class="dotli01">
+              
+                <li><a target="_blank" href="../AboutMyCos/ShowTF">技术力量</a></li>
+			   
+                <li><a target="_blank" href="../Services/CollegeService">高校咨询服务</a></li>
+			   
+                <li><a target="_blank" href="../Services/ShowRC">研究合作</a></li>
+			   
+                <li><a target="_blank" href="../JoinUs/JoinIndex">加入麦可思</a></li>
+			   
+              </ul>
+              <div class="clear"></div>
+            </div>
+          </div>
+</div>
+</div>
+<script type="text/javascript">
+    function SetSupport() {
+        if (document.getElementById("supportUs") != null) {
+            document.getElementById("supportUs").innerHTML = htmlDecode('');
+        }
+    }
+    window.onload = SetSupport;
+</script>
+        </div>
+          </div>
+        <div class="clear"></div>
+        </div>
+    <div class="clear"></div>
+    </div>
+
+			</div>
+
+  <div class="footer_bg">
+	<div class="footer">
+	  <div class="fl w100 mar_l20"><img src="../../App_Themes/images/logo-footer.gif" alt="MyCOS" /></div>
+	  <div class="fr w739 links"><a href="../MyCosEvent/ShowCS">联系我们</a>&nbsp;|&nbsp;<a href="../Services/ShowFAQList">常见问题</a>&nbsp;|&nbsp;<a href="../JoinUs/JoinIndex">招聘启事</a><span class="entxt mar_l150">Copyright &copy; </span>麦可思，版权所有&nbsp;&nbsp;&nbsp;&nbsp;京ICP备11047450号   
+	  </div>
+	  <div class="clear"></div>
+</div>
+	<div class="clear"></div>
+	</div>
+	<!-- begin脚步框架 -->
+</body>
+</html>
