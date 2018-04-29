@@ -1,0 +1,354 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<link rel="icon" type="image/x-icon" href="http://cdn.yeeyan.com/images/favicon.ico" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>译言网 | 首页</title>
+<meta name="description" content="译言网 | 首页"/>
+<meta name="keywords" content="译言 翻译 译言网 www.yeeyan.org"/>
+<meta name="author" content="译言" />
+<meta property="qc:admins" content="13002727051166727" />
+<meta name="wumiiVerification" content="5f1eb70e-f70c-4a30-a887-dae826908636" />
+
+<link type="text/css" rel="stylesheet" rev="stylesheet" href="http://cdn.yeeyan.com/css/yeeyan2012.css?2007" />
+<link type="text/css" rel="stylesheet" rev="stylesheet" href="http://cdn.yeeyan.com/css/font-awesome.min.css?2005" />
+<link type="text/css" rel="stylesheet" rev="stylesheet" href="http://cdn.yeeyan.com/css/fontdiao.css?2005" />
+
+<!--[if IE 7]>
+  <link rel="stylesheet" href="http://cdn.yeeyan.com/css/font-awesome-ie7.min.css">
+<![endif]-->
+<script type="text/javascript" src="http://cdn.yeeyan.com/js/jquery-1.3.2.min.js"></script>
+</head>
+<body>
+
+<style>.bottom{display:none;height:0;} .info{display:none;height:0;}</style>
+	<div class="y_header">
+		<div class="width">
+			<div class="content clearfix">
+				<div class="y_logo"><a href="http://www.yeeyan.org"><img  src="http://cdn.yeeyan.com/images/g_t_logo.png"></a></div>
+				<ul class="menu">
+					<li><a href="http://www.yeeyan.org">译言</a></li>
+					<li><a target="_blank" href="http://select.yeeyan.org">精选</a></li>
+					<li><a target="_blank"  href="http://g.yeeyan.org">图书</a></li>
+				</ul> 
+				<ul class="info"> 
+									<li><a href="http://member.yeeyan.org/login">登录</a></li>
+					<li style="padding-right:5px;"><a href="http://member.yeeyan.org/register">注册</a></li>
+								</ul> 
+			</div>
+		</div>
+		<div class="bottom">
+			<div class="content clearfix">
+				<ul class="menu clearfix">
+					<li id="ysite"><a href="http://www.yeeyan.org">首页</a></li>
+					<li id="ygroup"><a href="http://group.yeeyan.org">小组</a></li>
+					<li id="yarticle"><a href="http://article.yeeyan.org">译文库</a></li>
+					<li id="ysource"><a href="http://source.yeeyan.org">原文库</a></li>
+				</ul>
+<script>
+function setting_show(){
+	if(document.getElementById('setting_show_list').style.display!='none'){
+		document.getElementById('setting_show_list').style.display='none';
+	}else{
+		document.getElementById('setting_show_list').style.display='block';
+	}
+}
+document.onmouseup = function(event){
+	event =  window.event || event;
+	var click_obj = document.elementFromPoint(event.clientX, event.clientY); 
+	if(check_parent(click_obj,document.getElementById("setting_show_list")) == false && check_parent(click_obj,document.getElementById("setting_show_btn")) == false ){ 
+		document.getElementById('setting_show_list').style.display='none'; 
+	}
+}
+function check_parent(obj,pobj){
+	while (obj != undefined && obj != null && obj.tagName.toUpperCase() != 'BODY' && obj.tagName.toUpperCase() != 'HTML' ){       
+		if (obj == pobj){
+			return true;
+		}else{
+			obj = obj.parentNode;
+		}
+	}
+	return false;
+}
+var locationhref=window.location.href;
+var hashparam=locationhref.split('/');
+var args=new Array();
+if(hashparam.length>1){
+	var args=hashparam[2].split('.');
+}
+if( args[0]  == "group"){
+	document.getElementById("ygroup").className="active";
+}else if( args[0]  == "article"){
+	document.getElementById("yarticle").className="active";
+}else if( args[0]  == "source"){
+	document.getElementById("ysource").className="active";
+}else{
+	document.getElementById("ysite").className="active";
+}
+
+function yeeyan_search(){
+	var url='http://www.yeeyan.org/index/search/';
+	var keys = document.getElementById('keys').value;
+	if(keys!=''){
+		window.location.href=url+encodeURI(keys);
+	}
+}
+function bindEnter(event) {
+	if (event.keyCode == 13) {
+		yeeyan_search();
+		event.returnValue = false;
+	}
+}
+</script>
+				<div class="y_search">
+					<input class="l" type="text" value="" placeholder="文章、用户、小组"  id="keys"  onkeydown="bindEnter(event)"  />
+					<input class="r" type="button" value="" title="搜索" onclick="yeeyan_search();"   />
+				</div>
+			</div>
+		</div>
+	</div>
+<div class="y_main clearfix">
+		<div class="y_index_big_ad" style="height:303px;">
+			<a target="_blank" href="http://www.yeeyan.org/joinus"><img src="http://cdn.yeeyan.org/upload/image/2013/02/20104002_38203.jpg" /></a>
+		</div>
+		<div class="y_index_login y_emptybg_bg">
+			<p class="y_slogan y_blue_txt">发现、翻译、分享 <br>中文之外的互联网精华。</p>
+			<div class="btn blue_btn y_s_starttra"><a href="http://member.yeeyan.org/register" ><div class="hl"></div>立即注册</a></div>
+			<p><input class="email"   id="email"  type="txt" placeholder="邮箱" /> </p>
+			<p><input class="password" id="password" type="password" placeholder="密码" /> </p>
+			<p><input class="btn btn_slide" type="button" value="登录"  onclick="jsonp_submit()"/> </p>
+			<p class="y_grey"><input type="checkbox" /> 记住我 <span><a href="http://member.yeeyan.org/forget_email">忘记密码?</a></span><span id="error_txt" style="color:#0088CC;margin-right:10px;"></span> <!-- <br><span class="y_grey">用其他账户登录：<a href="#"><i class="icon-weibo"></i></a>&nbsp;&nbsp;<a href="#"><i class="icon-tengxunweibo"></i></a></span>--></p>
+		</div>
+	</div>
+	<script>
+	function jsonp_submit(){
+			var email=document.getElementById('email').value.replace(/(^\s+)|(\s+$)/g, "");
+			var password=document.getElementById('password').value.replace(/(^\s+)|(\s+$)/g, "");
+			if(email!='' && password!=''){
+				var url='http://www.yeeyan.org/';
+				url+='synlogin?email='+encodeURIComponent(email)+'&password='+encodeURIComponent(password);
+				var newscript = document.createElement('script');
+			        newscript.src = url;
+			        newscript.onload = newscript.onreadystatechange = function(){
+			            if (!this.readyState || 'loaded' === this.readyState || 'complete' === this.readyState){
+			                this.onload = this.onreadystatechange = null;
+			                this.parentNode.removeChild(this);
+			            }
+			        }
+			        document.getElementsByTagName('head')[0].appendChild(newscript);
+			}else{
+					document.getElementById('error_txt').innerHTML='邮箱和密码不能为空';
+			}
+	}
+	
+	function login_call_back(back_str){
+			var back_json = eval('('+back_str+')');
+			if(back_json.result=='success'){
+				window.location.href='/';
+			}else{
+				document.getElementById('error_txt').innerHTML='邮箱或密码错误';
+			}
+	}
+	</script> 
+	<div class="y_main y_index fbg clearfix" style="margin-bottom:20px;">
+		<div class="y_l_n">
+			<div class="y_p_name"><span><a href="http://article.yeeyan.org">更多 <i class="icon-chevron-right"></i><i class="icon-chevron-right"></i></a></span>发现</div>
+			<ul class="y_index_discovery clearfix">
+							<li>
+					<p><a  target="_blank" href="http://select.yeeyan.org/view/230713/347634"><img  title="纽约公园之春"  src="http://cdn.yeeyan.com/upload/image/2013/02/1610305850403.jpg" /></a></p>
+					<p><h3><a  title="纽约公园之春" target="_blank" href="http://select.yeeyan.org/view/230713/347634">纽约公园之春</a></h3></p>
+					<p class="author y_grey">译：<a href="http://user.yeeyan.org/u/230713">Agnes77</a> </p>
+					<p style="height:60px;overflow:hidden;">公园是纽约的“后花园”，为市民提供了亲近绿色的自由空间，但它也有过“最坏的时代”。</p>
+				</li>
+			 				<li>
+					<p><a  target="_blank" href="http://select.yeeyan.org/view/375394/347405"><img  title="知识分子的十九个特征"  src="http://cdn.yeeyan.com/upload/image/2013/02/1610460833386.jpg" /></a></p>
+					<p><h3><a  title="知识分子的十九个特征" target="_blank" href="http://select.yeeyan.org/view/375394/347405">知识分子的十九个特征</a></h3></p>
+					<p class="author y_grey">译：<a href="http://user.yeeyan.org/u/375394">弗里德里王</a> </p>
+					<p style="height:60px;overflow:hidden;">知识分子抽烟喝咖啡，哲学人物抚摸他的猫。欢迎对号入座~</p>
+				</li>
+			 				<li>
+					<p><a  target="_blank" href="http://select.yeeyan.org/view/341130/345547"><img  title="远离学术界？"  src="http://cdn.yeeyan.com/upload/image/2013/02/0410350090199.jpg" /></a></p>
+					<p><h3><a  title="远离学术界？" target="_blank" href="http://select.yeeyan.org/view/341130/345547">远离学术界？</a></h3></p>
+					<p class="author y_grey">译：<a href="http://user.yeeyan.org/u/341130">北大西洋的龙猫</a> </p>
+					<p style="height:60px;overflow:hidden;">学术还是不学术？美国一位大学终身教授跳槽到了谷歌，他给出了自己的答案。</p>
+				</li>
+			 				<li>
+					<p><a  target="_blank" href="http://select.yeeyan.org/view/343232/346291"><img  title="追求幸福并非生命的全部意义"  src="http://cdn.yeeyan.com/upload/image/2013/02/1610543854864.jpg" /></a></p>
+					<p><h3><a  title="追求幸福并非生命的全部意义" target="_blank" href="http://select.yeeyan.org/view/343232/346291">追求幸福并非生命的全部意义</a></h3></p>
+					<p class="author y_grey">译：<a href="http://user.yeeyan.org/u/343232">年糕神</a> </p>
+					<p style="height:60px;overflow:hidden;">生命的意义何在？很多时候，我们对幸福的过度追求，却使幸福从我们的指缝中溜走。</p>
+				</li>
+			 				<li>
+					<p><a  target="_blank" href="http://select.yeeyan.org/view/302450/346729"><img  title="西方未做好应对中国崛起准备"  src="http://cdn.yeeyan.com/upload/image/2013/02/1610403112022.jpg" /></a></p>
+					<p><h3><a  title="西方未做好应对中国崛起准备" target="_blank" href="http://select.yeeyan.org/view/302450/346729">西方未做好应对中国崛起准备</a></h3></p>
+					<p class="author y_grey">译：<a href="http://user.yeeyan.org/u/302450">chenxiaoxin</a> </p>
+					<p style="height:60px;overflow:hidden;">中国已经成为东亚伟大转型的体现，而不幸的是，西方国家集体对此完全没有做好准备。</p>
+				</li>
+			 				<li>
+					<p><a  target="_blank" href="http://select.yeeyan.org/view/377102/345830"><img  title="2012年中国十大独立电影"  src="http://cdn.yeeyan.com/upload/image/2013/02/0410433126786.jpg" /></a></p>
+					<p><h3><a  title="2012年中国十大独立电影" target="_blank" href="http://select.yeeyan.org/view/377102/345830">2012年中国十大独立电影</a></h3></p>
+					<p class="author y_grey">译：<a href="http://user.yeeyan.org/u/377102">Reha_</a> </p>
+					<p style="height:60px;overflow:hidden;">中国电影的未来包含了种种可能，独立电影更是为中国电影人在国内外开辟了新的道路。</p>
+				</li>
+			 			</ul>
+			<div class="y_index_discovery_b clearfix">
+				<div class="img">
+					<a target="_blank" href="http://article.yeeyan.org/view/134911/348593"><img src="http://cdn.yeeyan.com/upload/image/2013/02/1713252766882.jpg" /></a>
+					<div class="name"><a  target="_blank" href="http://article.yeeyan.org/view/134911/348593">《卫报》图说24小时（2月15日）</a></div>
+				</div>
+				<ul>
+			 					<li><h3 style="height:24px;overflow:hidden;"><a  target="_blank" href="http://article.yeeyan.org/view/208397/349278">直击领土争端下菲律宾渔民的生活</a></h3></li>
+			 					<li><h3 style="height:24px;overflow:hidden;"><a  target="_blank" href="http://article.yeeyan.org/view/212981/349260">【老顽童】毛绒萌宠（2）废物利用</a></h3></li>
+			 					<li><h3 style="height:24px;overflow:hidden;"><a  target="_blank" href="http://article.yeeyan.org/view/339265/349199">译言古登堡计划第十七期：女人不宜搞哲学？</a></h3></li>
+			 					<li><h3 style="height:24px;overflow:hidden;"><a  target="_blank" href="http://article.yeeyan.org/view/381667/349198">如果朝韩实现统一 ……</a></h3></li>
+			 					<li><h3 style="height:24px;overflow:hidden;"><a  target="_blank" href="http://article.yeeyan.org/view/339752/348961">吴男：美国男人 | 纽约客</a></h3></li>
+			 				</ul>
+			</div>
+			<div class="y_p_name n"><span><a href="http://source.yeeyan.org">更多 <i class="icon-chevron-right"></i><i class="icon-chevron-right"></i></a></span>推荐翻译</div>
+			<div class="y_g_h_articles">
+				 					<div class="y_g_h_source clearfix" style="padding-top:11px;">
+						<h3 style="height:22px; overflow:hidden;"><a target="_blank" href="http://source.yeeyan.org/view/474776_523">martinez provided by within the champs category, all of the assure ealy will keep to wear fantastic gloves</a></h3>
+						<p><a href="http://user.yeeyan.org/u/354452">markzhang2012 </a>  推荐于 2013-02-19 14:46&nbsp;&nbsp;&nbsp;<span><i class="icon-bullhorn"></i> 2</span></p>
+					</div>
+									<div class="y_g_h_source clearfix" style="padding-top:11px;">
+						<h3 style="height:22px; overflow:hidden;"><a target="_blank" href="http://source.yeeyan.org/view/475017_98d">BBC News - Could a new phonetic alphabet promote world peace?</a></h3>
+						<p><a href="http://user.yeeyan.org/u/39879">chunfengqiushui </a>  推荐于 2013-02-21 13:13&nbsp;&nbsp;&nbsp;<span><i class="icon-bullhorn"></i> 2</span></p>
+					</div>
+									<div class="y_g_h_source clearfix" style="padding-top:11px;">
+						<h3 style="height:22px; overflow:hidden;"><a target="_blank" href="http://source.yeeyan.org/view/474870_8f1"> Emile Durkheim: religion – the very idea, part 2: new forms of the sacred | Gordon Lynch | Comment is free | guardian.co.uk </a></h3>
+						<p><a href="http://user.yeeyan.org/u/wizky">wizky </a>  推荐于 2013-02-20 11:42&nbsp;&nbsp;&nbsp;<span><i class="icon-bullhorn"></i> 1</span></p>
+					</div>
+									<div class="y_g_h_source clearfix" style="padding-top:11px;">
+						<h3 style="height:22px; overflow:hidden;"><a target="_blank" href="http://source.yeeyan.org/view/474736_4f4">《卫报》图说24小时（2013年2月18日）</a></h3>
+						<p><a href="http://user.yeeyan.org/u/jiangyh">jiangyh </a>  推荐于 2013-02-18 23:56&nbsp;&nbsp;&nbsp;<span><i class="icon-bullhorn"></i> 1</span></p>
+					</div>
+								</div>
+		</div>
+		<div class="y_r_n">
+			<div class="y_index_ad"><a target="_blank" href="http://g.yeeyan.org/view/2448"><img src="http://cdn.yeeyan.com/upload/image/2013/01/2311492573779.jpg" /></a></div>
+			<div class="title"><span><a href="http://group.yeeyan.org">更多 <i class="icon-chevron-right"></i><i class="icon-chevron-right"></i></a></span>热门小组</div>
+			<div class="y_s_box">
+
+				 						<div class="l_s_box clearfix">
+						<div class="img"><a href="http://group.yeeyan.org/discovery"><img style="width:50px;height:50px;" src="http://cdn.yeeyan.com/upload/image/2012/12/1917154850541.jpg" /></a></div>
+						<div class="r">
+							<div class="t"><a href="http://group.yeeyan.org/discovery">探索新知</a></div>
+							<div class="i">成员：2390</div>
+							<div class="i">成员：45</div>
+						</div>
+					</div>
+					 					<div class="l_s_box clearfix">
+						<div class="img"><a href="http://group.yeeyan.org/mags_in_one"><img style="width:50px;height:50px;" src="http://cdn.yeeyan.com/upload/pro-thumb/380.jpg" /></a></div>
+						<div class="r">
+							<div class="t"><a href="http://group.yeeyan.org/mags_in_one">名刊精选</a></div>
+							<div class="i">成员：1432</div>
+							<div class="i">成员：105</div>
+						</div>
+					</div>
+					 					<div class="l_s_box clearfix">
+						<div class="img"><a href="http://group.yeeyan.org/guardian"><img style="width:50px;height:50px;" src="http://cdn.yeeyan.com/upload/pro/11.jpg" /></a></div>
+						<div class="r">
+							<div class="t"><a href="http://group.yeeyan.org/guardian">卫报</a></div>
+							<div class="i">成员：2547</div>
+							<div class="i">成员：53</div>
+						</div>
+					</div>
+					 					<div class="l_s_box clearfix">
+						<div class="img"><a href="http://group.yeeyan.org/sexofus"><img style="width:50px;height:50px;" src="http://cdn.yeeyan.com/upload/pro/698.jpg" /></a></div>
+						<div class="r">
+							<div class="t"><a href="http://group.yeeyan.org/sexofus">sex</a></div>
+							<div class="i">成员：1870</div>
+							<div class="i">成员：12</div>
+						</div>
+					</div>
+					 					<div class="l_s_box clearfix">
+						<div class="img"><a href="http://group.yeeyan.org/Economist"><img style="width:50px;height:50px;" src="http://cdn.yeeyan.com/upload/pro/89.jpg" /></a></div>
+						<div class="r">
+							<div class="t"><a href="http://group.yeeyan.org/Economist">经济学人</a></div>
+							<div class="i">成员：4474</div>
+							<div class="i">成员：54</div>
+						</div>
+					</div>
+					  
+			</div>
+			<div class="title">译言达人</div>
+			<div class="y_s_box float clearfix">
+					<div class="l_s_box clearfix">
+					<div class="img"><a href="http://user.yeeyan.org/u/98599"><img title="Raymond" style="width:50px;height:50px;" src="http://cdn.yeeyan.com/icon/98599.jpg" /></a></div>
+					<div class="r">
+						<div class="t"><a href="http://user.yeeyan.org/u/98599">Raymond</a></div>
+						<div class="i">粉丝：495</div>
+					</div>
+				</div>
+	 				<div class="l_s_box clearfix">
+					<div class="img"><a href="http://user.yeeyan.org/u/357674"><img title="红鼻子cj" style="width:50px;height:50px;" src="http://cdn.yeeyan.com/upload/image/2013/02/1215225185524.jpg" /></a></div>
+					<div class="r">
+						<div class="t"><a href="http://user.yeeyan.org/u/357674">红鼻子cj</a></div>
+						<div class="i">粉丝：9</div>
+					</div>
+				</div>
+	 				<div class="l_s_box clearfix">
+					<div class="img"><a href="http://user.yeeyan.org/u/192521"><img title="介末花花" style="width:50px;height:50px;" src="http://cdn.yeeyan.com/icon/192521.jpg" /></a></div>
+					<div class="r">
+						<div class="t"><a href="http://user.yeeyan.org/u/192521">介末花花</a></div>
+						<div class="i">粉丝：44</div>
+					</div>
+				</div>
+	 				<div class="l_s_box clearfix">
+					<div class="img"><a href="http://user.yeeyan.org/u/282200"><img title="ff4415" style="width:50px;height:50px;" src="http://cdn.yeeyan.com/icon/282200.jpg" /></a></div>
+					<div class="r">
+						<div class="t"><a href="http://user.yeeyan.org/u/282200">ff4415</a></div>
+						<div class="i">粉丝：16</div>
+					</div>
+				</div>
+	 				<div class="l_s_box clearfix">
+					<div class="img"><a href="http://user.yeeyan.org/u/257407"><img title="konglingyi755" style="width:50px;height:50px;" src="http://cdn.yeeyan.com/icon/257407.jpg" /></a></div>
+					<div class="r">
+						<div class="t"><a href="http://user.yeeyan.org/u/257407">konglingyi755</a></div>
+						<div class="i">粉丝：34</div>
+					</div>
+				</div>
+	 				<div class="l_s_box clearfix">
+					<div class="img"><a href="http://user.yeeyan.org/u/381667"><img title="开花" style="width:50px;height:50px;" src="http://cdn.yeeyan.com/upload/image/2013/02/1718292922143.jpg" /></a></div>
+					<div class="r">
+						<div class="t"><a href="http://user.yeeyan.org/u/381667">开花</a></div>
+						<div class="i">粉丝：1</div>
+					</div>
+				</div>
+	 			</div>
+		</div>
+	</div>
+
+	<div class="y_footer y_grey clearfix">
+		<div class="y_footer_line"></div>
+		<ul class="l">
+			<li>Copyright &copy; 2012 yeeyan.org&nbsp;&nbsp;|&nbsp;&nbsp;<a href="http://www.yeeyan.org/terms">服务条款</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="http://www.yeeyan.org/privacy">隐私政策</a></li>
+			<li>北京译言协力传媒科技有限公司</li>
+			<li><a href="http://test.yeeyan.org/login">京ICP证10000013号&nbsp;&nbsp;京公网安备11010802009636号</a></li>
+		</ul>
+		<ul class="r">
+			<li><a target="_blank"  href="http://www.yeeyan.org/main/index">旧版回顾</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a target="_blank"  href="http://e.weibo.com/yeeyan">官方微博</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="http://www.yeeyan.org/rss">RSS 订阅</a></li>
+			<li><a href="http://www.yeeyan.org/aboutus">关于我们</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="http://www.yeeyan.org/joinus">加入我们</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="http://www.yeeyan.org/contactus">联系我们</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="http://www.yeeyan.org/suggest">意见反馈</a></li>
+		</ul>
+	</div>
+
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-15813666-1']);
+_gaq.push(['_addOrganic', 'baidu', 'word']);
+_gaq.push(['_addOrganic', 'soso', 'w']);
+_gaq.push(['_addOrganic', 'youdao', 'q']);
+_gaq.push(['_addOrganic', 'vnet', 'kw']);
+_gaq.push(['_addOrganic', 'sogou', 'query']);
+_gaq.push(['_setDomainName', '.yeeyan.org']);
+_gaq.push(['_trackPageview', '/']);
+
+(function() {
+    var ga = document.createElement('script');
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    ga.setAttribute('async', 'true');
+    document.documentElement.firstChild.appendChild(ga);
+})();
+</script>
+</body>
+</html>

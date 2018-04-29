@@ -1,0 +1,610 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+  
+<html>
+  <head>
+    <title>Aluminium rims - the BBS showroom</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+
+    <meta name="keywords" content="BBS, aluminium rims, showroom, light alloy wheels, light alloy rims, aluminium wheels, 3-D view, hollow moulding, two pieces, multi-piece, multiple pieces, rim protector, forging technology, forged rims, cross spoke design, one-piece rims, hollow moulded" />
+    <meta name="description" content="The BBS showroom. All the premium aluminium rims at a glance: detailed information on production, aluminium rim technology, facts and innovations. " />
+    <meta name="date" content="Tue Sep 18 08:58:48 CEST 2012" />
+    <meta http-equiv="content-language" content="en" />
+    <link type="text/css" rel="stylesheet" href="/_common/css/general.css" />
+
+    <link type="text/css" rel="stylesheet" href="/en/_common/main_navigation.css" />
+
+    <script type="text/javascript" src="/_common/js/dojo-release-1.0.2/dojo/dojo.js"></script>
+    <script type="text/javascript" src="/_common/js/sifr.js"></script>
+    <script type="text/javascript" src="/_common/js/sifr-addons.js"></script>
+    <script type="text/javascript" src="/_common/js/navigation.js"></script>
+    <script type="text/javascript" src="/_common/js/utils.js"></script>
+  
+    <script type="text/javascript" src="/_common/js/request_now.js"></script>
+    <script type="text/javascript">
+      //<![CDATA[
+      	locatorPage = '/en/showroom/dealer_locator_popup.html';
+      	sifrFont = '/_common/swf/univers.swf';
+      	
+      	
+        function startFlash(){
+               
+	        var movie =  '/_common/swf/showroom_main.swf';
+	        var so = new SWFObject(movie, "showroom", "1020", "632", "9.0.28", "#000000");
+	        so.addParam("quality","high");
+	        so.addParam("allowScriptAccess","sameDomain");
+	        so.addParam("wmode", "transparent");
+	        
+            so.addVariable("xml_content", "/en/showroom/showroom.xml");
+                
+                // get last view and wheel from cookie or parameters
+	        var cookieValue = getCookieValue('BBS_SHOWROOM');
+	        var splittedCookie = false;
+	        if(cookieValue){
+	          splittedCookie = cookieValue.split('|');
+	        }
+	        if(getQueryParamValue("action")){
+	           so.addVariable("action", getQueryParamValue("action"));
+	        } else if(splittedCookie && splittedCookie.length > 0){
+	          if(splittedCookie[0]=='configure'||splittedCookie[0]=='request_now'){
+	            so.addVariable("action","basic");
+	          }else{
+	           so.addVariable("action", splittedCookie[0]);
+	          } 
+	        }
+	        
+	        if(getQueryParamValue("wheelId")){
+	          so.addVariable("wheelId", getQueryParamValue("wheelId"));
+	        } else if(splittedCookie && splittedCookie.length > 1){
+	            so.addVariable("wheelId", splittedCookie[1]);
+	        }
+
+             
+	       if(!so.write("showroomContainer")){
+     
+              var noFlashFound ="";
+             
+              noFlashFound+="<b>Too old for the job?</b>";
+             
+               noFlashFound+="<p>Welcome to the website of BBS, your premium manufacturer of sports aluminium rims and light alloy wheels for all roads and racing circuits the world over. To view content on this website, you need the latest Adobe Flash player. Either your current Flash player is out of date or you do not have a Flash player installed.</p>";
+             
+              noFlashFound+="<a href=\"http://www.adobe.com/shockwave/download/download.cgi?P1_Prod_Version=ShockwaveFlash\" class=\"arrow\" target=\"_blank\"><img src=\"/_common/img/1x1_trans.gif\" alt=\"\" />Download the latest Flash player for free</a>";
+             
+             document.getElementById("noFlashMessage").innerHTML=noFlashFound;
+                }
+	      
+	        return true;
+	    }
+
+        function trackShowroomAction(action, wheelId){ 
+             // actions: basic, 360_visualiser, technical_view, show_all
+             var virtualUrl =  self.location.pathname;
+             virtualUrl = virtualUrl.substring(0,virtualUrl.lastIndexOf('/'));
+             virtualUrl += "/showroom_event/"+action+"/"+wheelId;
+             virtualUrl = virtualUrl.replace(/\s+/g, "_");
+             var title = "Showroom "+action+" - "+wheelId;
+             trackAbsolute(virtualUrl, title);   
+             if(action=='configure'|| action=='request_now'){
+              document.getElementById("topic_0").getElementsByTagName('a')[0].className="";
+              document.getElementById("topic_3").getElementsByTagName('a')[0].className="highlight";
+             }else if(action=='basic'|| action=='360_visualiser'|| action=='technical_view'){
+              document.getElementById("topic_0").getElementsByTagName('a')[0].className="highlight";
+              document.getElementById("topic_3").getElementsByTagName('a')[0].className="";
+             }
+             return true;
+        }
+
+	function trackConfiguratorAction(action, actionValue){ 
+             // actions: basic, 360_visualiser, technical_view, show_all
+             var virtualUrl =  self.location.pathname;
+             virtualUrl = virtualUrl.substring(0,virtualUrl.lastIndexOf('/'));
+             virtualUrl += "/configurator_event/"+action+"/"+actionValue;
+             virtualUrl = virtualUrl.replace(/\s+/g, "_");
+             var title = "Configurator "+action+" - "+actionValue;
+             trackAbsolute(virtualUrl, title);  
+             return true;
+        }
+        
+        function saveShowroomSelection(action, wheelId){ 
+             var serialized = action+"|"+wheelId;
+             //setCookie('BBS_SHOWROOM',serialized);
+setCookie('BBS_SHOWROOM',serialized, -1, '/');
+             return true;
+        }
+        
+        function saveConfiguratorData(configuratorData){
+
+        	var config = new ConfiguratorData();
+        	config.setData(configuratorData);
+
+        	//setCookie('BBS_CONFIGURATOR',config.serialize());
+setCookie('BBS_CONFIGURATOR',config.serialize(), -1, '/');
+        	return true;
+        }
+        
+        function requestConfiguratorData(){
+        	var showUpload = false;
+        	var config = null;
+        	if(getQueryParamValue("subaction") && getQueryParamValue("subaction") == 'upload'){
+        	  showUpload = true;	
+        	}
+        	
+        	config = new ConfiguratorData();
+        	var gotAllRequestParams = config.getDataFromRequestParams();
+        	
+        	if(!gotAllRequestParams){
+        		config=null;
+        		var cookieValue = getCookieValue('BBS_CONFIGURATOR');
+        		if(cookieValue){
+
+        			config = new ConfiguratorData();
+        			config.deserialize(cookieValue);	
+        		}
+        	}
+        	
+        	document.getElementById("showroom").setConfiguratorData(config, showUpload);
+        	return true;
+        }
+        
+        
+      //]]>
+    </script>
+    <style type="text/css">
+    	
+    	div#cover{
+            overflow:visible;
+     	}
+     	div#page{
+            min-height:1000px;
+     	}
+    	
+     	div#showroomContainer {
+            padding-top:36px;
+     		width:1020px;
+     		/*height:632px;*/
+     	}
+     	div#requestNowContainer {
+            padding-top:0px;
+     		width:600px;
+     		height:1000px;
+     		z-index:100;
+     		position:absolute;
+     		top:94px;
+     		left:16px;
+     		display:none;
+     	}
+     	div#requestNowResultContainer {
+            padding-top:0px;
+     		width:600px;
+     		height:1000px;
+     		z-index:105;
+     		position:absolute;
+     		top:94px;
+     		left:16px;
+     		display:none;
+     		background:none;
+     		background-color:transparent;
+     	}
+     	div#requestNowResultContent {
+     		position:relative;
+     		top:32px;
+     		left:61px;
+     	}
+     	div#fullLayerContainer {
+            padding-top:0px;
+     		width:1020px;
+     		height:1000px;
+     		z-index:120;
+     		position:absolute;
+     		top:70px;
+     		left:16px;
+     		display:none;
+     		background-color: transparent;
+  			background-image: url('/_common/img/1x1_trans_90.png');
+  			background-repeat: repeat;
+  			background-position: left top;
+     	}
+     	div#fullLayerContent {
+     		position:relative;
+     		top:24px;
+     		left:10px;
+     	}
+     	
+     	div#locatorContainer {
+            padding-top:0px;
+     		width:1020px;
+     		height:1000px;
+     		z-index:110;
+     		position:absolute;
+     		top:70px;
+     		left:0px;
+     		display:none;
+     		
+     	}
+     	
+        div#noFlashMessage{
+         padding-top:120px;
+         padding-left:76px;
+         width:420px;
+        }
+       #noScriptMessage{
+         padding-top:120px;
+         padding-left:76px;
+         width:420px;
+        }
+        
+        h1.small {
+         padding-left: 0px;
+       }
+
+    </style>
+  </head>
+<body onload="startFlash()">
+
+
+<div id="cover">
+  <div id="page">
+    <div id="head">
+      <div id="headBg">
+        
+  <div id="topNavigation">
+    <ul>
+    <li><a href="/en/general/country_language.html" title="Country & language selection">Country & language selection</a></li><li><a href="/en/general/imprint.html" title="Imprint">Imprint</a></li><li><a href="/en/general/sitemap.html" title="Sitemap">Sitemap</a></li><li><a href="/en/general/dealer_locator.html" title="BBS near you">BBS near you</a></li><li><a href="/en/company/news/2010_news_en.html" title="Products">Products</a></li><li><a href="/en/company/news/2010_presse_00.html" title="News">News</a></li>
+    </ul>
+  </div>
+  
+  
+  <div id="mainNavigation">
+    <ul>
+      <!--highlightTopic: /en/showroom/-->
+      <li id="topic_0"><a href="/en/showroom/showroom.html" hassub="false" title="Showroom" class="highlight"><img src="/_common/img/1x1_trans.gif" alt="Showroom" /></a>
+      
+      </li>
+      <!--highlightTopic: /en/technology/-->
+      <li id="topic_1"><a href="/en/technology/overview.html" hassub="true" title="Technology"><img src="/_common/img/1x1_trans.gif" alt="Technology" /></a>
+      
+        <div class="dropdown">
+          <ul>
+              <li><a href="/en/technology/overview.html" title="Overview">Overview</a></li>
+              <li><a href="/en/technology/expertise.html" title="BBS expertise">BBS expertise</a></li>
+              <li><a href="/en/technology/development/fem_analysis.html" title="Development gallery">Development gallery</a></li>
+              <li><a href="/en/technology/production/alloying_preparation.html" title="Production gallery">Production gallery</a></li>
+	  </ul>
+           
+          <div class="dropdownShadow"><img src="/_common/img/1x1_trans.gif" height="8" width="204" alt="" /></div>
+        </div>
+      
+      </li>
+      <!--highlightTopic: /en/motorsports/-->
+      <li id="topic_2"><a href="/en/motorsports/overview.html" hassub="true" title="Motorsport"><img src="/_common/img/1x1_trans.gif" alt="Motorsport" /></a>
+      
+        <div class="dropdown">
+          <ul>
+              <li><a href="/en/motorsports/overview.html" title="Overview">Overview</a></li>
+              <li><a href="/en/motorsports/racing_calendar.html" title="Racing calendar">Racing calendar</a></li>
+              <li><a href="/en/motorsports/racing_series.html" title="Motorsport series">Motorsport series</a></li>
+              <li><a href="/en/motorsports/history.html" title="History">History</a></li>
+              <li><a href="/en/motorsports/motorsport-wheels.html" title="Motorsport wheels">Motorsport wheels</a></li>
+	  </ul>
+           
+          <div class="dropdownShadow"><img src="/_common/img/1x1_trans.gif" height="8" width="204" alt="" /></div>
+        </div>
+      
+      </li>
+      <!--highlightTopic: /en/service/-->
+      <li id="topic_3"><a href="/en/service/how-to.html" hassub="true" title="Service"><img src="/_common/img/1x1_trans.gif" alt="Service" /></a>
+      
+        <div class="dropdown">
+          <ul>
+              <li><a href="/en/service/how-to.html" title="BBS how tos">BBS how tos</a></li>
+              <li><a href="/en/service/downloads.html" title="BBS downloads">BBS downloads</a></li>
+	  </ul>
+           
+          <div class="dropdownShadow"><img src="/_common/img/1x1_trans.gif" height="8" width="204" alt="" /></div>
+        </div>
+      
+      </li>
+      <!--highlightTopic: /en/company/-->
+      <li id="topic_4"><a href="/en/company/news/2010_presse_00.html" hassub="true" title="Company"><img src="/_common/img/1x1_trans.gif" alt="Company" /></a>
+      
+        <div class="dropdown">
+          <ul>
+              <li><a href="/en/company/news/2010_presse_00.html" title="News">News</a></li>
+              <li><a href="/en/company/awards.html" title="Awards">Awards</a></li>
+              <li><a href="/en/company/news/2010_news_en.html" title="Products 2012">Products 2012</a></li>
+              <li><a href="/en/company/values.html" title="Values">Values</a></li>
+              <li><a href="/en/company/history.html" title="History">History</a></li>
+              <li><a href="/en/company/locations.html" title="Locations">Locations</a></li>
+              <li><a href="/en/company/locations.html" title="Locations">Locations</a></li>
+	  </ul>
+           
+          <ul>
+              <li><a href="/cms/system/modules/de.interone.bbs.website.base/templates/includes/mainNavigation.jsp" title=""></a></li>
+	  </ul>
+           
+          <div class="dropdownShadow"><img src="/_common/img/1x1_trans.gif" height="8" width="204" alt="" /></div>
+        </div>
+      
+      </li></ul>
+  </div>
+
+<div id="searchboxContainer">
+  <form name="searchform" method="post" action="/cms/en/general/searchresult.jsp">
+    <input id="searchbox" type="text" name="query" value="Search" onfocus="if(this.value=='Search'){this.value='';}" onblur="if(this.value == ''){ this.value='Search';}" />
+  </form>
+</div>
+
+<div id="logo">
+<a href="http://www.bbs.com"><img src="/en/_images/bbs_claim_en.png" height="78" width="130" alt="" /></a>
+</div>
+      </div>
+    </div><!-- end head-->
+    <div id="body">
+    	<div id="main">
+          	<div id="showroomContainer">
+            	<div id="noScriptMessage"><noscript><div class="flashcontent" id="flashcontent"><div><h1 class="small">BBS aluminium rims. Technology through motorsport.</h1><p>Welcome to the BBS showroom where you can discover all you need to know about our aluminium rims and light alloy wheels. Find out which hole circles, wheel dimensions and offsets fit our one- and two-piece aluminium rims and light alloy wheels for your vehicle.</p><br /><br /><div flashid="navigation"><div flashid="0"><h3>All round advice</h3><p>You've completed your wish list? Now all you have to do is contact your local BBS dealer to ask about your wheels of choice. Completely without any obligation of course. Please check your request form entries and send it on its way by clicking "Submit request". Your local dealer will then be in contact with you shortly.</p></div><div flashid="1"><h3>BBS your car</h3><p>Our passion stems from a field in which things are measured to one hundredth of a second – motorsport, which has been our main source of inspiration since 1972. But while we love motor racing, what we love more than anything is the open road, wherever it is in the world. But a picture is worth a thousand words – so welcome to our showroom.</p></div><div flashid="2"><h3>Wonderful wheels</h3><p>Our light alloy wheels leave a great impression whichever way you look at them. Use your mouse to control how you view your favourite wheel.</p></div><div flashid="3"><h3>Pretty clever</h3><p>Want to know more about the details? Take a look at the objects of your desire in our technology lab and use the hotspots to read up on the innovations and technologies that make BBS so unique.</p></div></div><div flashid="rims"><div flashid="0">
+
+<h3>AIR I AI</h3>
+
+<p>10 x 20" to 10.5 x 22" – one-piece – Air Inside Technology</p>
+
+</div>
+
+<div flashid="8">
+
+<h3>CX-R</h3>
+
+<p>8.5 x 19" to 9.5 x 19" – one-piece – flow formed – diamond cut</p>
+
+</div>
+
+<div flashid="9">
+
+<h3>CH</h3>
+
+<p>7.5 x 17" to 10 x 19" – one-piece – flow formed</p>
+
+</div>
+
+<div flashid="10">
+
+<h3>CH Black Edition</h3>
+
+<p>8 x 18" to 10 x 19" – Black Edition – flow formed – rim protector</p>
+
+</div>
+
+<div flashid="11">
+
+<h3>CH-R</h3>
+
+<p>8 x 18" to 10,5 x 20" – Satin black</p>
+
+</div>
+
+<div flashid="12">
+
+<h3>CF</h3>
+
+<p>7,5 x 17" - 8,5 x19" black - diamond cut</p>
+
+</div>
+
+<div flashid="13">
+
+<h3>CK</h3>
+
+<p>8 x 18" to 8.5 x 19" – one-piece – brilliant silver</p>
+
+</div>
+
+</div>
+
+<div flashid="hotspots">
+
+<div flashid="hohlformen">
+
+<h3>Hollow moulding</h3>
+
+<p flashid="copy">This technology involves hollow moulding the wheel rim's inner and outer shoulders using the flow forming method. The aluminium lips that are prepared at the casting stage are moulded into a hollow shape during flow forming before being laser-welded together in order to increase their rigidity and reduce the weight.</p>
+
+</div>
+
+<div flashid="hochglanzpolieren">
+
+<h3>Mirror finish</h3>
+
+<p flashid="copy">For this special finish, which also improves the resilience of the BBS light alloy wheels, the wheels are <a href="/en/technology/expertise/production/mirror-finish.html">polished</a> with millions of tiny steel ball bearings. This not only densifies the wheel, but also hardens it and leaves it with an unbeatable shine.</p>
+
+</div>
+
+<div flashid="verborgene_gewichte">
+
+<h3>Concealed weights</h3>
+
+<p flashid="copy">To keep things running smoothly and to prevent you from having to compromise on design or on driving comfort, the balancing weights are concealed behind the rim protector. The result is perfect running smoothness thanks to concealed weights that do not detract from the <a href="/en/technology/expertise/production/finish.html">look</a> of the wheel.</p>
+
+</div>
+
+<div flashid="zweiteiligkeit">
+
+<h3>Two pieces</h3>
+
+<p flashid="copy">Two-piece BBS light alloy wheels consist of the rim and the wheel centre which are firmly attached to each other with titanium bolts. This is highly advantageous because, should one of the two components be damaged, it can nevertheless be detached and replaced by an expert at little expense.</p>
+
+</div>
+
+<div flashid="diamantgedreht">
+
+<h3>Diamond cutting</h3>
+
+<p flashid="copy">When a wheel is diamond cut, the surface is painted and then lathed using an incredibly sharp and precise diamond tool. This results in a very unusual <a href="/en/technology/expertise/production/finish.html">look</a> for the wheel, with a special, intensely iridescent sparkle.</p>
+
+</div>
+
+<div flashid="schmiedetechnik">
+
+<h3>Forging technology</h3>
+
+<p flashid="copy">To get maximum material density and weight reductions out of our highly rigid and durable aluminium alloys without forgoing top performance, they undergo an elaborate forging process. As a result, they are able to handle very high levels of mechanical strain on the road.</p>
+
+</div>
+
+<div flashid="lackierung">
+
+<h3>Paintwork</h3>
+
+<p flashid="copy">BBS wheels <a href="/en/technology/expertise/production/finish.html">look</a> the part wherever they are, be it on the race track or out on the open road. Amongst other things, this is due to the surface finish they are given in one of the world's most state-of-the-art paint shops, where the perfect finishing touch is meticulously added to the finished wheel.</p>
+
+</div>
+
+<div flashid="rotationswalzen">
+
+<h3>Flow forming</h3>
+
+<p flashid="copy">Less is more when flow forming is used to increase the density of the wheel's material structure. This is achieved by continuously rolling the rim well over a cylinder under high pressure and at a high temperature. The outcome is a wheel that needs less material to be more resilient and lighter.</p>
+
+</div>
+
+<div flashid="hinterschnitt">
+
+<h3>Undercut</h3>
+
+<p flashid="copy">Drawing on this technology allows us to manufacture more complex shapes that are more rigid but use less material. The technology involves turning individual wheel types in such a way that no superfluous material is left in the wheel, thus keeping the wheel weight and mass down to a minimum.</p>
+
+</div>
+
+<div flashid="laserbeschriftung">
+
+<h3>Laser marking</h3>
+
+<p flashid="copy">For a futuristic finishing flourish, the wheel type is marked on the wheel by a highly precise laser beam. The result is a permanent and innovative design feature that will keep putting a smile on your face for a long time to come.</p>
+
+</div>
+
+<div flashid="versetzte_kreuzspeiche">
+
+<h3>Offset cross spoke design</h3>
+
+<p flashid="copy">With this reinterpretation of the typical BBS cross spoke design, the car appears to have even more dynamic lines and effuses a sense of speed and sporty performance, even when stationary.</p>
+
+</div>
+
+<div flashid="gegossener_schriftzug">
+
+<h3>Cast lettering</h3>
+
+<p flashid="copy">Instead of applying decorative lettering or other design features to a finished wheel, it is far better to cast these things during one of the initial production stages. Some of the BBS wheel types are given their "Motorsport" lettering when they are first moulded in low-pressure casting, for example.</p>
+
+</div>
+
+<div flashid="pruefverfahren">
+
+<h3>Test procedure</h3>
+
+<p flashid="copy">Before a BBS light alloy wheel goes into serial production, it is subjected to extremely stringent testing. The European Wheel Directive encompasses all of the different test criteria that a modern-day wheel is expected to fulfil. These test criteria are still not enough for us, however, and some of our own standards outstrip the legal requirements in terms of long-term usage and rigidity tenfold.</p>
+
+</div>
+
+<div flashid="finish_black_edition">
+
+<h3>"Black Edition" finish</h3>
+
+<p flashid="copy">The perfect finishing touch for a very special wheel – the "Black Edition" CH is given its sporty <a href="/en/technology/expertise/production/finish.html">look</a> by a highly resilient, jet-black paint that is used exclusively for this type of rim. </p>
+
+</div>
+
+<div flashid="fem_analyse">
+
+<h3>FEM analysis</h3>
+
+<p flashid="copy">In developing all our wheels, regardless of whether they are destined for motorsport environments or for use on the road, we weigh up the necessity of every single gram in order to maintain top stability. We use complex "finite-element method" computer simulations to identify any potential weight savings in the early development stages and to iron out possible weak points.</p>
+
+</div>
+
+<div flashid="niederdruckguss">
+
+<h3>Low-pressure casting</h3>
+
+<p flashid="copy">Low-pressure aluminium casting is a highly sophisticated technology and is our premise for the best possible quality of the finished product. Because it takes top-quality casting blanks to form the basis for BBS's sophisticated processing and to deliver BBS's unique level of driving comfort.</p>
+
+</div>
+
+<div flashid="anfahrschutz">
+
+<h3>Rim protector</h3>
+
+<p flashid="copy">The biggest threat to a light alloy wheel is the kerb. But with our patented rim protector made of <a href="/en/technology/expertise/production/mirror-finish.html">polished</a> stainless steel, you can permanently safeguard the high-quality <a href="/en/technology/expertise/production/finish.html">look</a> of your wheels. And should the rim protector nonetheless show signs of damage further down the line, it can be replaced very easily.</p>
+
+</div>
+
+<div flashid="hinterfraesen_der_speichen">
+
+<h3>Milled spokes</h3>
+
+<p flashid="copy">Driving dynamism that isn't heavy-going – milling the spokes allows us to hit just the right balance between wheel weight and stability. The parts of the wheel that do not contribute to its stability – in other words, all the unnecessary "ballast" – are removed using a special technique.</p>
+
+</div>
+
+<div flashid="einteiligkeit">
+
+<h3>One piece</h3>
+
+<p flashid="copy">A one-piece BBS light alloy wheel combines the lightness of our special alloys and exceptional stability with no weak points. In order to guarantee that the materials and how they are processed live up to our expectations, the solid-cast wheels undergo a whole host of production checks that start straight after the wheels are cast.</p>
+
+</div>
+
+<div flashid="speichen_hohlformen">
+
+<h3>Spokes moulding</h3>
+
+<p flashid="copy">Exclusive to the <a href="/en/technology/expertise/technology/air-inside-technology.html">AIR I AI</a>: in addition to the hollow moulding of the wheel rim's inner and outer shoulders, the spokes are also moulded. This not only helps to reduce weight but also increases driving dynamics.</p>
+
+</div>
+
+</div>
+
+<a href="/cms/en/showroom/modelviewer.jsp">Model finder</a>
+
+</div>
+
+</div>
+
+</noscript></div>
+            	<div id="noFlashMessage"></div>
+          	</div>
+         	<div id="requestNowContainer"><iframe src="/en/showroom/request_now.html" name="requestNow" width="600" height="1000" scrolling="no" marginheight="0" marginwidth="0" frameborder="0" allowtransparency="true"></iframe></div>
+         	<div id="locatorContainer"><iframe src="" name="locator" id="locatorIframe" width="1020" height="1000" scrolling="no" marginheight="0" marginwidth="0" frameborder="0" allowtransparency="true"></iframe></div>
+        	<div id="requestNowResultContainer"></div>
+        	
+        	<div id="fullLayerContainer">
+        		<div id="fullLayerContent">
+	        		<b></b><br />
+	        		
+	        		<br /><br />
+	        		<a href="javascript:void(0);" onclick="closeFullLayer();" onfocus="blur();"><span class="link"><img src="/_common/img/1x1_trans.gif" class="arrow" alt="" /></a>
+        		</div>
+        	</div>
+        	
+        </div>
+    </div><!-- end body-->
+  </div>
+</div>
+
+<!-- tracking start -->  
+<script type="text/javascript">gVersion="1.0";</script>
+<script type="text/javascript" language="Javascript1.1">gVersion="1.1";</script>
+<script type="text/javascript" language="Javascript1.2">gVersion="1.2";var RE={"%09":/\t/g, "%20":/ /g, "%23":/\#/g,"%26":/\&/g,"%2B":/\+/g,"%3F":/\?/g,"%5C":/\\/g};</script>
+<script type="text/javascript" language="Javascript1.3">gVersion="1.3";</script>
+<script type="text/javascript" language="Javascript1.4">gVersion="1.4";</script>
+<script type="text/javascript" language="Javascript1.5">gVersion="1.5";</script>
+
+<script type="text/javascript" src="/_common/js/tracking_v8.js"></script>
+<script type="text/javascript" src="/_common/js/tracking_add_ons.js"></script>
+
+<NOSCRIPT>
+<IMG ALT="" BORDER="0" NAME="DCSIMG" WIDTH="1" HEIGHT="1" SRC="http://webtrends-sdc.rz.interone.de/dcsovpxveg1wncedtj3nski3c_5d3p/njs.gif?dcsuri=/nojavascript&amp;WT.js=No&amp;WT.tv=8.0.3" />
+</NOSCRIPT>
+<!-- tracking end -->
+  	
+</body>
+</html>

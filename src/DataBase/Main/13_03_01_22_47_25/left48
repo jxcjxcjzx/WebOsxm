@@ -1,0 +1,746 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>首页--建筑家园博客</title>
+    <link href="/stylesheets/home.css?1358497209" media="screen" rel="stylesheet" type="text/css" />
+<link href="/stylesheets/easydrag.css?1358497209" media="screen" rel="stylesheet" type="text/css" />
+<link href="/stylesheets/jquery/jquery.ui.all.css?1358497209" media="screen" rel="stylesheet" type="text/css" />
+    <script src="/javascripts/jquery.js?1358497209" type="text/javascript"></script>
+<script src="/javascripts/jquery-ui.min.js?1358497209" type="text/javascript"></script>
+<script src="/javascripts/article.js?1358497209" type="text/javascript"></script>
+<script src="/javascripts/jquery.form.js?1358497209" type="text/javascript"></script>
+<script src="/javascripts/tool.js?1358497209" type="text/javascript"></script>
+<script src="/javascripts/application.js?1358497209" type="text/javascript"></script>
+<script src="/javascripts/easydrag.js?1358497209" type="text/javascript"></script>
+      <script language="javascript" src="http://js.fwxgx.com/common.js"></script>
+
+    <script type="text/javascript">
+        SSO_IS_OPEN = true;
+        
+        IS_LOGIN = "false";
+        CUR_BLOG_USER_ID = "-1";
+        IS_OPEN_BLOG = "false"
+    </script>
+    <meta name="csrf-param" content="authenticity_token"/>
+<meta name="csrf-token" content="IotjZ4eNZTh+2PYJkrqo9tksDNIR7RciRVvBeymG+3g="/>
+  </head>
+  <body>
+    <div id="index_top_of_user_info"></div>
+<div class="logo-header">
+  <div class="logo"><img src="/images/new_logo.gif" width="250" height="70" /></div>
+  <div class="logo-banner">
+  </div>
+</div>
+
+<div class="nav">
+  <span class="more-one">
+    <form action="/articles/search_info" id="home_top_search" method="get">
+      <input  type="text" size="15"  id="searchkey" name="searchkey" />
+      <select  name="searchtype" id="searchtype">
+        <option value="0">博客全文</option>
+        <option value="1">博主</option>
+      </select>
+      <a href="#?" id ="searchhref" onclick ="return topsearch();"><img src="/images/hot-search.gif"  border="0" align="top"/></a>
+    </form>
+  </span>
+
+  
+  <ul>
+    <li><a href="/">博客首页</a></li>
+    <li><a href="/main/experts">博客专家</a></li>
+    <li><a href="/main/hot_articles">热门文章</a></li>
+    <li><a href="/main/ranks">排行榜</a></li>
+    <li><a href="/application/help"  target="_blank">帮助</a></li>
+    <li class="last_li"><a href="/main/activeblogs">随便看看</a></li>
+  </ul>
+</div>
+<script>
+  $(document).ready(function(){
+      $.ajax({
+          type: "GET",
+          url: "/users/info_of_index_top",
+          success:function(backmsg){
+              $("#index_top_of_user_info").html(backmsg);
+              CUR_BLOG_USER_ID = $("#current_blog_user_id").val();
+              IS_LOGIN = $("#current_blog_user_login").val();
+              IS_OPEN_BLOG = $("#current_is_open_blog").val();
+          },
+          error: function(){
+              IS_LOGIN = "false";
+              CUR_BLOG_USER_ID = "-1";
+              IS_OPEN_BLOG = "false";
+          }
+      })
+  })
+</script>
+    <div class="main">
+  <div class="left">
+  <div class="left-main">
+    <div class="left-main-header"><a href="/?plateid=0&amp;datatype=0">全部分类</a></div>
+    <div class="navcontainer">
+      <ul class="navlist">
+              <li><a href="/?plateid=1&amp;datatype=0" id="left_nav_1" class="navlist_a_off">施工技术</a></li>
+              <li><a href="/?plateid=2&amp;datatype=0" id="left_nav_2" class="navlist_a_off">施工管理</a></li>
+              <li><a href="/?plateid=4&amp;datatype=0" id="left_nav_4" class="navlist_a_off">施工图片</a></li>
+              <li><a href="/?plateid=5&amp;datatype=0" id="left_nav_5" class="navlist_a_off">建筑造价</a></li>
+              <li><a href="/?plateid=8&amp;datatype=0" id="left_nav_8" class="navlist_a_off">安装市政</a></li>
+              <li><a href="/?plateid=10&amp;datatype=0" id="left_nav_10" class="navlist_a_off">园林绿化</a></li>
+              <li><a href="/?plateid=11&amp;datatype=0" id="left_nav_11" class="navlist_a_off">项目招标</a></li>
+              <li><a href="/?plateid=12&amp;datatype=0" id="left_nav_12" class="navlist_a_off">设计心得</a></li>
+              <li><a href="/?plateid=13&amp;datatype=0" id="left_nav_13" class="navlist_a_off">软件交流</a></li>
+              <li><a href="/?plateid=14&amp;datatype=0" id="left_nav_14" class="navlist_a_off">专业考试</a></li>
+              <li><a href="/?plateid=17&amp;datatype=0" id="left_nav_17" class="navlist_a_off">博客征文活动</a></li>
+              <li class="last"><a href="/?plateid=3&amp;datatype=0" id="left_nav_3" class="navlist_a_off">建筑杂谈</a></li>
+      </ul>
+    </div>
+  </div>
+    <div class="left-main-con">
+      <div class="left-main-header-one">
+        <span class="more-one"><a href="/main/experts"><img src="/images/more.gif"  border="0"/></a></span>
+        <div class="hot"><img src="/images/hot-2.gif" /></div><div class="hot-one">专家博主</div>
+      </div>
+          <div class="menu-con">
+            <div class="con-msg"><a href='/u/10359122' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2013/2/26135815cPO8oPK2Sr.png' name="userhead"  width="50" height="50" border="0px"/></a></div>
+            <div class="left-main-font"><a class='nickname_url' href='http://blog.fwxgx.com//u/10359122' target='_blank' title='GCL2013'>GCL20...</a><br />
+              <a href="/u/10359122">最新博文（1）</a></div>
+          </div>
+          <div class="menu-con">
+            <div class="con-msg"><a href='/u/12014267' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2013/1/051030297KuDRA6Hld.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+            <div class="left-main-font"><a class='nickname_url' href='http://blog.fwxgx.com//u/12014267' target='_blank' title='中建政研'>中建政研</a><br />
+              <a href="/u/12014267">最新博文（6）</a></div>
+          </div>
+          <div class="menu-con">
+            <div class="con-msg"><a href='/u/11655369' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/4/10184551kdhHYVWHbk.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+            <div class="left-main-font"><a class='nickname_url' href='http://blog.fwxgx.com//u/11655369' target='_blank' title='tears'>tears</a><br />
+              <a href="/u/11655369">最新博文（104）</a></div>
+          </div>
+          <div class="menu-con">
+            <div class="con-msg"><a href='/u/11625907' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/4/03214248oXx1NUDfmg.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+            <div class="left-main-font"><a class='nickname_url' href='http://blog.fwxgx.com//u/11625907' target='_blank' title='黄山gc造价'>黄山gc造...</a><br />
+              <a href="/u/11625907">最新博文（82）</a></div>
+          </div>
+          <div class="menu-con">
+            <div class="con-msg"><a href='/u/12025047' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/11/26095113RdBqFGxPtc.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+            <div class="left-main-font"><a class='nickname_url' href='http://blog.fwxgx.com//u/12025047' target='_blank' title='GMM'>GMM</a><br />
+              <a href="/u/12025047">最新博文（29）</a></div>
+          </div>
+          <div class="menu-con">
+            <div class="con-msg"><a href='/u/12030082' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/11/22171934zvMtl3cuZN.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+            <div class="left-main-font"><a class='nickname_url' href='http://blog.fwxgx.com//u/12030082' target='_blank' title='算量就这么简单'>算量就这么...</a><br />
+              <a href="/u/12030082">最新博文（59）</a></div>
+          </div>
+          <div class="menu-con">
+            <div class="con-msg"><a href='/u/11562319' target='_blank'><img alt="" src="/images/usersImage.gif" name="userheadempty" width="50" height="50" border="0px"/></a></div>
+            <div class="left-main-font"><a class='nickname_url' href='http://blog.fwxgx.com//u/11562319' target='_blank' title='舟老大'>舟老大</a><br />
+              <a href="/u/11562319">最新博文（10）</a></div>
+          </div>
+          <div class="menu-con">
+            <div class="con-msg"><a href='/u/10298773' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/9/21141713XYnA15VYH0.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+            <div class="left-main-font"><a class='nickname_url' href='http://blog.fwxgx.com//u/10298773' target='_blank' title='阳光王子'>阳光王子</a><br />
+              <a href="/u/10298773">最新博文（105）</a></div>
+          </div>
+    </div>
+    <div class="left-main-con">
+      <div class="left-main-header-one">
+        <div class="hot"><img src="/images/hot-2.gif" /></div><div class="hot-one">活跃博主</div>
+      </div>
+                  <div class="menu-con">
+            <div class="con-msg"><a href='/u/10460183' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/7/24162422RvtGdUdGlx.gif' name="userhead"  width="50" height="50" border="0px"/></a></div>
+            <div class="left-main-font"><a class='nickname_url' href='http://blog.fwxgx.com//u/10460183' target='_blank' title='洪流'>洪流</a><br />
+              <a href="/u/10460183">最新博文（49）</a></div>
+          </div>
+                  <div class="menu-con">
+            <div class="con-msg"><a href='/u/11256528' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/5/251638328zdKxzhZia.gif' name="userhead"  width="50" height="50" border="0px"/></a></div>
+            <div class="left-main-font"><a class='nickname_url' href='http://blog.fwxgx.com//u/11256528' target='_blank' title='飞飞凌波'>飞飞凌波</a><br />
+              <a href="/u/11256528">最新博文（42）</a></div>
+          </div>
+                  <div class="menu-con">
+            <div class="con-msg"><a href='/u/10591212' target='_blank'><img alt="" src='http://img.fwxgx.cn//downfile/UserFace/10591212_Icon.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+            <div class="left-main-font"><a class='nickname_url' href='http://blog.fwxgx.com//u/10591212' target='_blank' title='景普'>景普</a><br />
+              <a href="/u/10591212">最新博文（20）</a></div>
+          </div>
+                  <div class="menu-con">
+            <div class="con-msg"><a href='/u/11426421' target='_blank'><img alt="" src='http://img.fwxgx.cn//downfile/UserFace/11426421_Icon.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+            <div class="left-main-font"><a class='nickname_url' href='http://blog.fwxgx.com//u/11426421' target='_blank' title='xjpgcs'>xjpgc...</a><br />
+              <a href="/u/11426421">最新博文（15）</a></div>
+          </div>
+                  <div class="menu-con">
+            <div class="con-msg"><a href='/u/10079700' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2013/1/301600217Q8IxbAK5P.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+            <div class="left-main-font"><a class='nickname_url' href='http://blog.fwxgx.com//u/10079700' target='_blank' title='可可'>可可</a><br />
+              <a href="/u/10079700">最新博文（14）</a></div>
+          </div>
+                  <div class="menu-con">
+            <div class="con-msg"><a href='/u/10519599' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2013/2/16075609IWILpPteRJ.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+            <div class="left-main-font"><a class='nickname_url' href='http://blog.fwxgx.com//u/10519599' target='_blank' title='什么'>什么</a><br />
+              <a href="/u/10519599">最新博文（12）</a></div>
+          </div>
+                  <div class="menu-con">
+            <div class="con-msg"><a href='/u/12030082' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/11/22171934zvMtl3cuZN.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+            <div class="left-main-font"><a class='nickname_url' href='http://blog.fwxgx.com//u/12030082' target='_blank' title='算量就这么简单'>算量就这么...</a><br />
+              <a href="/u/12030082">最新博文（12）</a></div>
+          </div>
+                  <div class="menu-con">
+            <div class="con-msg"><a href='/u/11884923' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2013/1/29160716K4LlOF6mPs.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+            <div class="left-main-font"><a class='nickname_url' href='http://blog.fwxgx.com//u/11884923' target='_blank' title='专业建筑'>专业建筑</a><br />
+              <a href="/u/11884923">最新博文（12）</a></div>
+          </div>
+    </div>
+    <div class="left-main-con">
+      <div class="left-main-header-one">
+        <div class="hot"><img src="/images/hot-2.gif" /></div><div class="hot-one">友情链接</div>
+      </div>
+      <div class="link-msg"><a href="http://gss.fwxgx.com/Experience/" target="_blank"><img src="/images/links/link-1.gif" border="0" /></a></div>
+      <div class="link-msg"><a href="http://t.gldjc.com/"  target="_blank"><img src="/images/links/link-2.jpg" border="0"/></a></div>
+      <div class="link-msg"><a href="http://elf.fwxgx.com/" target="_blank"><img src="/images/links/link-3.gif" border="0"/></a></div>
+      <div class="link-msg"><a href="http://gsh.fwxgx.com/" target="_blank"><img src="/images/links/link-4.gif" border="0"/></a></div>
+      <div class="link-msg"><a href="http://gmc.fwxgx.com/bim/bim_product" target="_blank"><img src="/images/links/link-5.gif" border="0"/></a></div>
+      <div class="link-msg"><a href="http://gmm.fwxgx.com" target="_blank"><img src="/images/links/link-6.jpg" border="0" width="170"/></a></div>
+      <div class="link-msg"><a href="http://gfy.fwxgx.com" target="_blank"><img src="/images/links/link-7.png" border="0" width="170"/></a></div>
+      <div class="link-msg"><a href="http://bj.gldjc.com/" target="_blank"><img src="/images/links/link-10.jpg" border="0" width="170"/></a></div>
+      <div class="link-msg"><a href="http://gfy-p.fwxgx.com/" target="_blank"><img src="/images/links/link-9.jpg" border="0" width="170"/></a></div>
+    </div>
+</div>
+
+  <div class="middle" id="middle_data">
+    <!------to do list: ajax 0 begin---->
+        <script src="/javascripts/ad_change.js?1358497209" type="text/javascript"></script>
+            <div class="subanner">
+        <div id="ifocus">
+          <div id="ifocus_pic">
+              <div id="ifocus_piclist" style="left:0; top:0;">
+                <ul>
+                        <li><a href="http://www.fwxgx.com/OpenAD.axml?__AdID=874" target="_blank"><img src="http://img.fwxgx.cn/downfile//ad/874_博客首页广告图片.jpg" alt="广告"  border="0" width="400px"/></a></li>
+                        <li><a href="http://www.fwxgx.com/OpenAD.axml?__AdID=763" target="_blank"><img src="http://img.fwxgx.cn/downfile//ad/763_banner-400x225.jpg" alt="广告"  border="0" width="400px"/></a></li>
+                        <li><a href="http://www.fwxgx.com/OpenAD.axml?__AdID=754" target="_blank"><img src="http://img.fwxgx.cn/downfile//ad/754_400-225.jpg" alt="广告"  border="0" width="400px"/></a></li>
+                        <li><a href="http://www.fwxgx.com/OpenAD.axml?__AdID=490" target="_blank"><img src="http://img.fwxgx.cn/downfile//ad/490_博客广告宣传.jpg" alt="广告"  border="0" width="400px"/></a></li>
+                </ul>
+              </div>
+              <div id="ifocus_opdiv"></div>
+              <div id="ifocus_tx">
+                <ul>
+                      <li class="current"><a href="http://www.fwxgx.com/OpenAD.axml?__AdID=874" target="_blank" style="color:white;font-weight: bold;">第八届算量应用大赛冠名征集</a></li>
+                      <li class="normal"><a href="http://www.fwxgx.com/OpenAD.axml?__AdID=763" target="_blank" style="color:white;font-weight: bold;">广材助手换装迎元旦</a></li>
+                      <li class="normal"><a href="http://www.fwxgx.com/OpenAD.axml?__AdID=754" target="_blank" style="color:white;font-weight: bold;">张向荣新书《算量就这么简单》博文连载</a></li>
+                      <li class="normal"><a href="http://www.fwxgx.com/OpenAD.axml?__AdID=490" target="_blank" style="color:white;font-weight: bold;">安装计量，'钱'途无量</a></li>
+                </ul>
+              </div>
+          </div>
+            <div id="ifocus_btn">
+              <ul>
+                      <li class="current"><a href="http://www.fwxgx.com/OpenAD.axml?__AdID=874" target="_blank"><img src="http://img.fwxgx.cn/downfile//ad/874_博客首页广告图片.jpg" alt="广告"  border="0" width="90px"/></a></li>
+                      <li class="current"><a href="http://www.fwxgx.com/OpenAD.axml?__AdID=763" target="_blank"><img src="http://img.fwxgx.cn/downfile//ad/763_banner-400x225.jpg" alt="广告"  border="0" width="90px"/></a></li>
+                      <li class="current"><a href="http://www.fwxgx.com/OpenAD.axml?__AdID=754" target="_blank"><img src="http://img.fwxgx.cn/downfile//ad/754_400-225.jpg" alt="广告"  border="0" width="90px"/></a></li>
+                      <li class="current"><a href="http://www.fwxgx.com/OpenAD.axml?__AdID=490" target="_blank"><img src="http://img.fwxgx.cn/downfile//ad/490_博客广告宣传.jpg" alt="广告"  border="0" width="90px"/></a></li>
+              </ul>
+            </div>
+        </div>
+      </div>
+            <div class="main-new">
+        <div class="mid-news"><span class="more"><a href="/main/experts"><img src="images/hot-1.gif" width="10" height="10"  border="0"/></a></span><img src="images/hot-zhuanjia.gif" width="83" height="21" /></div>
+            <div class="joinus">
+              <div class="joinus-con">
+                <div class="con-msg-sub"><a href='/u/10103020' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/2/27151627rGkKCHsJfr.jpg' name="userhead"  width="78" height="78" border="0px"/></a></div>
+                <div class="left-main-font-sub"><a class='nickname_url' href='http://blog.fwxgx.com//u/10103020' target='_blank' title='唐才均（一丁）'>唐才均（一丁）</a><br />
+                  
+                </div>
+              </div>
+              <div class="navcontainerjoinus">
+                <ul class="navlistjoinus">
+                      <li><a href='http://blog.fwxgx.com//articles/149322' target='_blank' title='工程管理日积月累'>工程管理日积月累</a></li>
+                      <li><a href='http://blog.fwxgx.com//articles/149293' target='_blank' title='怎样才算一个优秀的结构师'>怎样才算一个优秀的结构师</a></li>
+                      <li><a href='http://blog.fwxgx.com//articles/149284' target='_blank' title='浅谈高层建筑逆作法施工技术(转)'>浅谈高层建筑逆作法施工技术(转)</a></li>
+                      <li><a href='http://blog.fwxgx.com//articles/149282' target='_blank' title='房地产甲方要做哪些前期工作？'>房地产甲方要做哪些前期工作？</a></li>
+                      <li><a href='http://blog.fwxgx.com//articles/149277' target='_blank' title='箍筋验收之我见'>箍筋验收之我见</a></li>
+                </ul>
+              </div>
+            </div>
+            <div class="joinus">
+              <div class="joinus-con">
+                <div class="con-msg-sub"><a href='/u/10154387' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/2/10154387_manan126.jpg' name="userhead"  width="78" height="78" border="0px"/></a></div>
+                <div class="left-main-font-sub"><a class='nickname_url' href='http://blog.fwxgx.com//u/10154387' target='_blank' title='马楠专栏'>马楠专栏</a><br />
+                  
+                </div>
+              </div>
+              <div class="navcontainerjoinus">
+                <ul class="navlistjoinus">
+                      <li><a href='http://blog.fwxgx.com//articles/172084' target='_blank' title='工程价款调整（3）'>工程价款调整（3）</a></li>
+                      <li><a href='http://blog.fwxgx.com//articles/140769' target='_blank' title='1.6建设工程造价管理理论'>1.6建设工程造价管理理论</a></li>
+                      <li><a href='http://blog.fwxgx.com//articles/137233' target='_blank' title='全过程造价控制方法与实务—结束语'>全过程造价控制方法与实务—结束语</a></li>
+                      <li><a href='http://blog.fwxgx.com//articles/137228' target='_blank' title='3.1工程造价控制的四大工具'>3.1工程造价控制的四大工具</a></li>
+                      <li><a href='http://blog.fwxgx.com//articles/137221' target='_blank' title='2.6建设项目竣工阶段造价管理'>2.6建设项目竣工阶段造价管理</a></li>
+                </ul>
+              </div>
+            </div>
+      </div>
+        <div class="tab-list">
+      <div class="se-1" id="se-1" ><a href="/?plateid=0&datatype=0" >最新博文</a></div>
+      <div class="se-2" id="se-2" ><a href="/?plateid=0&datatype=1" >热门点击</a></div>
+      <div class="se-2" id="se-3" ><a href="#?" onclick="return go_to_url('/?plateid=0&datatype=2')">我的关注</a></div>
+    </div>
+    <!------to do list: ajax 0 end---->
+    <div id="content-se-1">
+      <div class="navcontainerstatus">
+        <ul class="navliststatus">
+
+              <li><a href="/?plateid=3&amp;datatype=0" class="navlistcolumn">[建筑杂谈] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/15559' target='_blank' title='商品房屋真实成本之分析'>商品房屋真实成本之分析</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/10045645' target='_blank'><img alt="" src='http://img.fwxgx.cn//downfile/UserFace/10045645_Icon.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo">以剪力墙结构体系来分析，我找了一些数据和大家分享，其商品房具体真实成本分析如下：          
+1、桩基工程（如有）：约60~150元/平方米，中位数约105元/平方米左右；
+2、钢筋：含量40~80公斤/平方...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/10045645' target='_blank' title='信心'>信心</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2012-03-01 22:01:39）| 阅读（4644）| 回复（41）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：商品房屋真实成本之分析</div>
+              </li>
+              <li><a href="/?plateid=5&amp;datatype=0" class="navlistcolumn">[建筑造价] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/16400' target='_blank' title='一套完整预算的公式 (网上下的，不知道准确性)'>一套完整预算的公式 (网上下的，不知道准确性)</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/11308659' target='_blank'><img alt="" src="/images/usersImage.gif" name="userheadempty" width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo">一套完整预算的公式  (网上下的，不知道准确性，不承担错误后果)
+平整场地: 建筑物场地厚度在±30cm以内的挖、填、运、找平.
+1、平整场地计算规则
+（1）清单规则：按设计图示尺寸以建筑物首层面积计算。
+（2）...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/11308659' target='_blank' title='sunqqh'>sunqqh</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2012-03-04 15:44:12）| 阅读（1240）| 回复（10）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：</div>
+              </li>
+              <li><a href="/?plateid=13&amp;datatype=0" class="navlistcolumn">[软件交流] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/15466' target='_blank' title='浅析软件中的自动识别功能-2'>浅析软件中的自动识别功能-2</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/10540455' target='_blank'><img alt="" src='http://img.fwxgx.cn//downfile/UserFace/10540455_Icon.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo">四：识别梁
+梁是一个比墙更复杂的线性构件，主要集中在其承载的钢筋信息太多。梁有：集中标注、原位标注、梁与梁交界处的附加箍筋、吊筋等信息。如此庞大的信息载体决定了它在钢筋软件建模中的重要地位。
+1：识别梁标注
+识别梁...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/10540455' target='_blank' title='quamay'>quamay</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2012-03-01 15:16:17）| 阅读（631）| 回复（3）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：梁、板钢筋、独立基础、自动识别</div>
+              </li>
+              <li><a href="/?plateid=3&amp;datatype=0" class="navlistcolumn">[建筑杂谈] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/16299' target='_blank' title='冬季施工方案'>冬季施工方案</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/11582045' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/3/03231246lbFZL4j5pw.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo"> 
+豪生国际大酒店项目
+ 
+ 
+冬
+季
+施
+工
+方
+案
+ 
+一、冬施时间、温度及施工部位
+1) 根据冬施有关规范规定，当室外日平均气温连续稳定低于50C度时，则此五天的第一天为进入冬季施工的初日。...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/11582045' target='_blank' title='我来了'>我来了</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2012-03-03 23:28:29）| 阅读（615）| 回复（2）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：</div>
+              </li>
+              <li><a href="/?plateid=3&amp;datatype=0" class="navlistcolumn">[建筑杂谈] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/15239' target='_blank' title='人的一生如建筑 '>人的一生如建筑 </a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/10401198' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/4/23215738Krj2o2P286.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo">出生：  ----------立项；
+征婚：----------公开招标；
+相亲：---------邀请招标；
+自由恋爱：--------议标；
+提亲：----------投标；
+介绍人：--------招标代...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/10401198' target='_blank' title='傾城之戀'>傾城之戀</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2012-02-29 18:23:55）| 阅读（992）| 回复（2）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：</div>
+              </li>
+              <li><a href="/?plateid=5&amp;datatype=0" class="navlistcolumn">[建筑造价] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/15324' target='_blank' title='工程中普遍发生的承包人需办理签证的一般事件'>工程中普遍发生的承包人需办理签证的一般事件</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/10540455' target='_blank'><img alt="" src='http://img.fwxgx.cn//downfile/UserFace/10540455_Icon.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo">工程中普遍发生的承包人需办理签证的一般事件
+  1、工程地形或地质资料变化。
+最常见的是土方开挖时的签证、地下障碍物的处理。开挖地基后，如发现古墓、管道、电缆、防空洞等障碍物时，一方应将会同甲方、监理工程师的处理结果...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/10540455' target='_blank' title='quamay'>quamay</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2012-03-01 08:13:25）| 阅读（1844）| 回复（22）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：工程签证 </div>
+              </li>
+              <li><a href="/?plateid=2&amp;datatype=0" class="navlistcolumn">[施工管理] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/15367' target='_blank' title='竣工日期的争议'>竣工日期的争议</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/10018418' target='_blank'><img alt="" src='http://img.fwxgx.cn//downfile/UserFace/10018418_Icon.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo">竣工日期的确定：     （1）合同约定竣工日期。     （2）实际竣工日期。     如实际竣工日期超过约定竣工日期，承包人应承担违约责任。     如实际竣工日期先于约定竣工日期，承包商可以根据约定获得奖励。   ...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/10018418' target='_blank' title='007'>007</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2012-03-01 09:58:32）| 阅读（1198）| 回复（14）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：</div>
+              </li>
+              <li><a href="/?plateid=13&amp;datatype=0" class="navlistcolumn">[软件交流] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/15374' target='_blank' title='浅析软件中的自动识别功能-1'>浅析软件中的自动识别功能-1</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/10540455' target='_blank'><img alt="" src='http://img.fwxgx.cn//downfile/UserFace/10540455_Icon.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo">软件的不断更新必然带来的是软件整体解决思路的便捷。自动识别功能是软件实现智能化的一个很好的标志。但是这种智能化却是一个低水平的智能化。要想达到软件理解人的思维，具有人的情感的人工智能境界还有一些距离。下面梳理软件中的常见...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/10540455' target='_blank' title='quamay'>quamay</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2012-03-01 10:22:45）| 阅读（2642）| 回复（19）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：钢筋、自动识别</div>
+              </li>
+              <li><a href="/?plateid=3&amp;datatype=0" class="navlistcolumn">[建筑杂谈] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/198559' target='_blank' title='第四十九 暗梁钢筋计算原理2'>第四十九 暗梁钢筋计算原理2</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/12030082' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/11/22171934zvMtl3cuZN.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo">二、暗梁遇到连梁情况
+我们仍然按楼层暗梁遇到连梁和顶层暗梁遇到连梁两种情况来讲解。
+( 一)  楼层暗梁遇到连梁情况
+因楼层连梁有跨层连梁和非跨层连梁之分,  楼层暗梁遇到连梁就分为跨层连梁和非跨层连梁两种情况,  我们...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/12030082' target='_blank' title='算量就这么简单'>算量就这么简...</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2013-02-27 16:08:24）| 阅读（313）| 回复（1）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：算量就这么简单</div>
+              </li>
+              <li><a href="/?plateid=3&amp;datatype=0" class="navlistcolumn">[建筑杂谈] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/198532' target='_blank' title='老预算员再次自学预算'>老预算员再次自学预算</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/10075417' target='_blank'><img alt="" src='http://img.fwxgx.cn//downfile/UserFace/10075417_Icon.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo">             http://blog.fwxgx.com/articles/196429一文中有人说在误人子弟，今天再学一回，不信吃不透这点安装预算。
+     看问题http://www.fwxgx.co...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/10075417' target='_blank' title='懂点装修'>懂点装修</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2013-02-27 14:53:13）| 阅读（2439）| 回复（7）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：</div>
+              </li>
+              <li><a href="/?plateid=3&amp;datatype=0" class="navlistcolumn">[建筑杂谈] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/198131' target='_blank' title='第四十八 暗梁钢筋计算原理1'>第四十八 暗梁钢筋计算原理1</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/12030082' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/11/22171934zvMtl3cuZN.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo">第十节 暗梁钢筋计算原理
+暗梁一般出现在剪力墙结构某层的顶部位置,  图2.
+10. 1 所示阴影部分为暗梁。
+
+图2. 10. 1   剪力墙内暗梁位置示意图
+        从图2. 10. 1 可以看出,  在无洞...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/12030082' target='_blank' title='算量就这么简单'>算量就这么简...</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2013-02-26 17:03:29）| 阅读（496）| 回复（1）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：算量就这么简单</div>
+              </li>
+              <li><a href="/?plateid=5&amp;datatype=0" class="navlistcolumn">[建筑造价] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/15019' target='_blank' title='如何做好清单模式下的工程变更签证的结算'>如何做好清单模式下的工程变更签证的结算</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/11561342' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/2/22085913DHP1GyB44G.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo"> 
+如何做好工程变更签证的结算？
+ 
+合同的不同直接影响工程的结算方式，清单结算模式下的常用合同的有综合单价及固定总价两种方式。而不论采用那种结算方式，工程变更和工程签证都是过程中比较麻烦且在结算中容易出现争议的环...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/11561342' target='_blank' title='广联达结算'>广联达结算</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2012-02-29 09:12:07）| 阅读（7466）| 回复（62）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：</div>
+              </li>
+              <li><a href="/?plateid=5&amp;datatype=0" class="navlistcolumn">[建筑造价] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/15098' target='_blank' title='工程预算心得'>工程预算心得</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/10091904' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/2/29142119l1G3qDsQ2P.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo">建筑工程预算，其实没什么高深的技术，能看懂图纸，会加减乘除、开方也就够了。如果你能把科学计算器用熟的话，那工作就更简单了。预算员很好做，特别是从技术口转到预算口，那就更容易了。做预算不难，做好了就不容易，难就难在经验积累...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/10091904' target='_blank' title='lzhw12345678'>lzhw12...</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2012-02-29 14:23:45）| 阅读（5153）| 回复（31）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：工程预算，心得</div>
+              </li>
+              <li><a href="/?plateid=13&amp;datatype=0" class="navlistcolumn">[软件交流] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/15124' target='_blank' title='复杂筏板基础之钢筋处理'>复杂筏板基础之钢筋处理</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/10371308' target='_blank'><img alt="" src='http://img.fwxgx.cn//downfile/UserFace/10371308_Icon.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo"> 
+　　
+　　复杂筏板基础钢筋设置（钢筋计算按照03G计算）,下面这个筏板基础是相当复杂的,下面讲讲其钢筋处理
+　　　　一、 筏板基础的如下图所示
+　　
+　　凹凸变化，不仅仅在筏板顶面而且在筏板底面也是
+
+...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/10371308' target='_blank' title='虚心'>虚心</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2012-02-29 15:05:48）| 阅读（2743）| 回复（14）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：复杂筏板基础之钢筋处理</div>
+              </li>
+              <li><a href="/?plateid=5&amp;datatype=0" class="navlistcolumn">[建筑造价] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/13750' target='_blank' title='钢筋平法表示方法'>钢筋平法表示方法</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/11158125' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/2/18141208mOfXIAEG7I.png' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo">平法施工图的表示方式:
+平面注写(集中和原位标注):梁,板,楼梯,基础
+列表注写:柱,剪力墙
+截面注写:梁,柱,剪力墙,基础(除筏形基础)
+柱-列表标注:
+
+  柱号
+  
+  
+  标高
+  
+  
+  b*h
+  
+...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/11158125' target='_blank' title='九度空间'>九度空间</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2012-02-26 09:18:51）| 阅读（3629）| 回复（13）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：钢筋平法 101图集 钢筋标注 结构图</div>
+              </li>
+              <li><a href="/?plateid=3&amp;datatype=0" class="navlistcolumn">[建筑杂谈] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/14637' target='_blank' title='三天学会做预算'>三天学会做预算</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/11561112' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/2/28121856RjkBxhcMYb.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo">三天学会做预算 造价人员的一些经验心得 
+建筑工程预算，其实没什么高深的技术，能看懂图纸，会加减乘除、开方也就够了。如果你能把科学计算器用熟的话，那工作就更简单了。预算员很好做，特别是从技术口转到预算口，那就更容易了。...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/11561112' target='_blank' title='左边右边'>左边右边</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2012-02-28 13:09:34）| 阅读（2083）| 回复（11）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：</div>
+              </li>
+              <li><a href="/?plateid=13&amp;datatype=0" class="navlistcolumn">[软件交流] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/198076' target='_blank' title='剪力墙结构互导建议'>剪力墙结构互导建议</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/10359122' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2013/2/26135815cPO8oPK2Sr.png' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo">剪力墙结构互导建议
+　
+使用背景
+暗柱、暗梁作为剪力墙结构中的局部加强构件，在土建算量软件中是否需要绘制？钢筋算量中绘制完后是否需要导入到土建中？导入之后的计算软件怎样处理？这些都是困扰很多用户的问题。
+
+一、什么是暗柱...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/10359122' target='_blank' title='GCL2013'>GCL201...</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2013-02-26 14:22:12）| 阅读（2224）| 回复（15）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：剪力墙  暗柱  导钢筋</div>
+              </li>
+              <li><a href="/?plateid=1&amp;datatype=0" class="navlistcolumn">[施工技术] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/198014' target='_blank' title='地板选购“潜规则”大揭秘'>地板选购“潜规则”大揭秘</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/10836252' target='_blank'><img alt="" src='http://img.fwxgx.cn//downfile/UserFace/10836252_Icon.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo">目前，市场上形形色色、价位不一的木地板让选购的消费者眼花缭乱，与其他销售行业类似的是木地板销售也存在“潜规则”，工商部门提醒广大消费者，购买时应避免掉进无良商家的陷阱中。
+潜规则一:
+色差纠纷不了了之
+色差是木地板...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/10836252' target='_blank' title='冰临城下'>冰临城下</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2013-02-26 10:36:41）| 阅读（604）| 回复（0）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：</div>
+              </li>
+              <li><a href="/?plateid=8&amp;datatype=0" class="navlistcolumn">[安装市政] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/198038' target='_blank' title='河南安装工程造价注意事项'>河南安装工程造价注意事项</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/11689410' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/5/24161615bilEZFb6QO.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo">
+﻿        河南安装工程造价注意事项
+计算部分
+1.       在计算工程量时需按专业分类, 并单独计算分部工程量, 
+如：1电气专业中将照明、动力、防雷接地、电话、电视、网络、安防、报警等分别按分部计...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/11689410' target='_blank' title='龙王'>龙王</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2013-02-26 11:04:43）| 阅读（290）| 回复（3）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：河南安装工程造价注意事项</div>
+              </li>
+              <li><a href="/?plateid=3&amp;datatype=0" class="navlistcolumn">[建筑杂谈] </a><span class="tab-list-font"><a href='http://blog.fwxgx.com//articles/13265' target='_blank' title='四棱台体积公式'>四棱台体积公式</a></span>
+                <div class="tab-list-con">
+                  <div class="con-msg"><a href='/u/218' target='_blank'><img alt="" src='http://img.fwxgx.cn/downfile//blog/userface/2012/2/14124515DHAnRLSS88.jpg' name="userhead"  width="50" height="50" border="0px"/></a></div>
+                  <div class="tab-list-fonttwo">四棱台体积计算公式 v=h*(a*b+(a+a1)*(b+b1)+a1*b1)/6
+ 
+四棱台体积公式：
+①、[S上+S下+√(S上×S下)]*h /3    （可以用于四棱锥）
+[上面面积+下面面积+根号(上面面积×下...</div>
+                </div>
+                <div>
+                  <div style="float:left;width:20%;"><a class='nickname_url' href='http://blog.fwxgx.com//u/218' target='_blank' title='鼻祖'>鼻祖</a></div>
+                  <div style="float:left;width:80%;color: #333333;">发布时间（2012-02-24 10:04:26）| 阅读（1207）| 回复（0）</div>
+                </div>
+                <div style="clear:both;"><img src="/images/hot-biaoq.gif" width="16" height="15" /> &nbsp;&nbsp;标签：</div>
+              </li>
+        </ul>
+      </div>
+      <div class="page_nav">
+        <div class="pagination"><span class="previous_page disabled"><<上一页</span> <em>1</em> <a href="/?page=2" rel="next">2</a> <a href="/?page=3">3</a> <a href="/?page=4">4</a> <a href="/?page=5">5</a> <span class="gap">&hellip;</span> <a href="/?page=116">116</a> <a href="/?page=117">117</a> <a href="/?page=2" rel="next" class="next_page">下一页>></a></div>
+      </div>
+    </div>
+  </div>
+  <div class="right">
+    <div style="padding-bottom: 10px;">
+      <a href="#?" onclick="return go_to_url('/articles/new');"><img src="/images/write_blog.png" border="0px" /></a>
+    </div> 
+    <div class="left-main-con">
+      <div class="left-main-header-one">
+        <span class="more-one">
+            <a href="/u/11483795" target="_blank"><img src="/images/more.gif"  border="0"/></a>
+        </span>
+        <div class="hot"><img src="/images/hot-2.gif" /></div><div class="hot-one">博客公告</div>
+      </div>
+      <div class="navcontainerzx">
+        <ul class="navlistzx">
+              <li><a href='http://blog.fwxgx.com//articles/182843' target='_blank' title='结算style征文大赛'>结算style征文大赛</a><img src="/images/new_3.gif" /></li>
+              <li><a href='http://blog.fwxgx.com//articles/168751' target='_blank' title='11月份优秀专家博主奖励'>11月份优秀专家博主奖励</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/149939' target='_blank' title='10月份优秀专家博主奖励'>10月份优秀专家博主奖励</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/149552' target='_blank' title='广联达知识分享达人赛本周进展情况'>广联达知识分享达人赛本周进展情况</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/147801' target='_blank' title='一路有你—服务新干线5周年活动'>一路有你—服务新干线5周年活动</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/145396' target='_blank' title='广联达知识分享达人赛本周进展情况'>广联达知识分享达人赛本周进展情况</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/142901' target='_blank' title='广联达知识分享达人赛本月进展情况'>广联达知识分享达人赛本月进展情况</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/139111' target='_blank' title='广联达知识分享达人赛本月进展情况'>广联达知识分享达人赛本月进展情况</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/132642' target='_blank' title='9月及三季度优秀专家博主奖励'>9月及三季度优秀专家博主奖励</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/131431' target='_blank' title='广联达知识分享达人赛本周进展情况'>广联达知识分享达人赛本周进展情况</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="left-main-con">
+      <div class="right-main-header-one">
+        <span class="more-one"><a href="/main/hot_articles"><img src="/images/more.gif"  border="0"/></a></span>
+        <div class="hot-two"><img src="/images/hot-5.gif" /></div><div class="hot-one">热门博文</div>
+      </div>
+      <div class="navcontainerzx">
+        <ul class="navlistzx">
+              <li><a href='http://blog.fwxgx.com//articles/56865' target='_blank' title='土建与水电全套计算规则 '>土建与水电全套计算规则 </a></li>
+              <li><a href='http://blog.fwxgx.com//articles/54135' target='_blank' title='老预算员的经典经验之谈'>老预算员的经典经验之谈</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/101679' target='_blank' title='从事预算的人员你想值多少钱'>从事预算的人员你想值多少钱</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/19743' target='_blank' title='工程造价大全'>工程造价大全</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/174056' target='_blank' title='快速学剪力墙抽筋—算量就这么简单'>快速学剪力墙抽筋—算量就这么简单</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/34860' target='_blank' title='土建工程师应该张口就来的数据 '>土建工程师应该张口就来的数据 </a></li>
+              <li><a href='http://blog.fwxgx.com//articles/57303' target='_blank' title=' 最精辟的建筑行业知识汇总（造价专业或建筑行业的，千万要收藏）'> 最精辟的建筑行业知识汇总（造价...</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/169' target='_blank' title='植筋工艺全过程图解'>植筋工艺全过程图解</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/57072' target='_blank' title='建筑行业所有计算公式大全（工程预算中公式汇总65个图片及计算公式）'>建筑行业所有计算公式大全（工程预...</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/78238' target='_blank' title='建筑工程预算员(土建)视频教程（全套完整版）'>建筑工程预算员(土建)视频教程（...</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/32712' target='_blank' title='工程算量秘籍大全'>工程算量秘籍大全</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/102055' target='_blank' title='从CAD图纸到钢筋算量、图形算量，定额计价全套资料再次无私奉献'>从CAD图纸到钢筋算量、图形算量...</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/44335' target='_blank' title='2012年国内证书挂靠情况汇总'>2012年国内证书挂靠情况汇总</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/64515' target='_blank' title='建筑平面图识读（一）'>建筑平面图识读（一）</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/44711' target='_blank' title='工程造价精髓集锦'>工程造价精髓集锦</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/94662' target='_blank' title='措施费取费计算及甲乙方处理'>措施费取费计算及甲乙方处理</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/30005' target='_blank' title='怎样学习水暖电安装预算 '>怎样学习水暖电安装预算 </a></li>
+              <li><a href='http://blog.fwxgx.com//articles/76604' target='_blank' title='特殊分部工程套定额方法总结'>特殊分部工程套定额方法总结</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/102760' target='_blank' title='高质量清单如何编制？'>高质量清单如何编制？</a></li>
+              <li><a href='http://blog.fwxgx.com//articles/116134' target='_blank' title='定额中需乘系数的汇总  '>定额中需乘系数的汇总  </a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="left-main-con">
+      <div class="right-main-header-one">
+        <div class="hot-two"><img src="/images/hot-5.gif" /></div><div class="hot-one">博客最新评论</div>
+      </div>
+      <div class="navcontainersub" id="con">
+        <ul class="navlistsub">
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<link href="http://bbs.fwxgx.com//stylesheets/link.css" type="text/css" rel="stylesheet" />
+<script   src="http://bbs.fwxgx.com//javascripts/link.js"></script>
+
+<div class="link_box">
+  <div class="link_l"><a href="http://bbs.fwxgx.com//links/link_more" target="_blank"><img src="http://bbs.fwxgx.com//images/link_l.jpg" border="0" /></a></div>
+  <div class="link_name">
+    <div  id="link_demo" style="height:85px; overflow: hidden;">
+        <ul style="padding:0px;">
+              <li style="clear:both;">
+              <div style="float:left;width:12.5%;"><span class="link_li"><a href="http://t.gldjc.com/" onclick="statlink(53,'http://bbs.fwxgx.com/');" target="_blank" title="建材销售">建材销售</a></span></div>
+              <div style="float:left;width:12.5%;"><span class="link_li"><a href="http://www.gldjc.com/" onclick="statlink(52,'http://bbs.fwxgx.com/');" target="_blank" title="建材网">建材网</a></span></div>
+              <div style="float:left;width:12.5%;"><span class="link_li"><a href="http://www.chinabim.com" onclick="statlink(50,'http://bbs.fwxgx.com/');" target="_blank" title="中国BIM门户">中国BIM门户</a></span></div>
+              <div style="float:left;width:12.5%;"><span class="link_li"><a href="http://baike.jc001.cn/" onclick="statlink(49,'http://bbs.fwxgx.com/');" target="_blank" title="九正建材百科">九正建材百科</a></span></div>
+              <div style="float:left;width:12.5%;"><span class="link_li"><a href="http://www.365exam.com/jzs2/" onclick="statlink(47,'http://bbs.fwxgx.com/');" target="_blank" title="二级建造师考试">二级建造师考试</a></span></div>
+              <div style="float:left;width:12.5%;"><span class="link_li"><a href="http://www.examw.com/shebei/" onclick="statlink(46,'http://bbs.fwxgx.com/');" target="_blank" title="设备监理师">设备监理师</a></span></div>
+              <div style="float:left;width:12.5%;"><span class="link_li"><a href="http://fwxgx.com" onclick="statlink(45,'http://bbs.fwxgx.com/');" target="_blank" title="服务新干线">服务新干线</a></span></div>
+              <div style="float:left;width:12.5%;"><span class="link_li"><a href="http://www.ybcin.com/" onclick="statlink(44,'http://bbs.fwxgx.com/');" target="_blank" title="宜宾工程建设网">宜宾工程建设网</a></span></div>
+              </li>
+              <li style="clear:both;">
+              <div style="float:left;width:12.5%;"><span class="link_li"><a href="http://www.jgzj.net/" onclick="statlink(43,'http://bbs.fwxgx.com/');" target="_blank" title="建工之家">建工之家</a></span></div>
+              <div style="float:left;width:12.5%;"><span class="link_li"><a href="http://www.sdtmrc.com/" onclick="statlink(42,'http://bbs.fwxgx.com/');" target="_blank" title="土木人才网">土木人才网</a></span></div>
+              <div style="float:left;width:12.5%;"><span class="link_li"><a href="http://blog.fwxgx.com/" onclick="statlink(40,'http://bbs.fwxgx.com/');" target="_blank" title="建筑家园博客">建筑家园博客</a></span></div>
+              <div style="float:left;width:12.5%;"><span class="link_li"><a href="http://www.jzshr.com/" onclick="statlink(39,'http://bbs.fwxgx.com/');" target="_blank" title="建造师挂靠">建造师挂靠</a></span></div>
+              <div style="float:left;width:12.5%;"><span class="link_li"><a href="http://bbs.jiajuol.com/" onclick="statlink(24,'http://bbs.fwxgx.com/');" target="_blank" title="家居在线">家居在线</a></span></div>
+        </ul>
+    </div>
+  </div>
+  <div class="link_r"><img src="http://bbs.fwxgx.com//images/link_r.jpg" /></div>
+</div>
+<script>
+  $(function() {
+    var scrtime;
+    $("#link_demo").hover(function() {
+      clearInterval(scrtime);
+
+    }, function() {
+      scrtime = setInterval(function() {
+        var $ul = $("#link_demo ul");
+        var liHeight = $ul.find("li:last").height();
+        $ul.animate({
+          marginTop: liHeight + 30 + "px"
+        }, 1000, function() {
+          $ul.find("li:last").prependTo($ul)
+          $ul.find("li:first").hide();
+          $ul.css({
+            marginTop: 0
+          });
+          $ul.find("li:first").fadeIn(1000);
+        });
+      }, 10000);
+    }).trigger("mouseleave");
+  });
+</script>
+<script>
+  $(document).ready(function(){
+      $.get(
+              "/users/get_new_reviews_of_homepage",
+              function(backmsg){
+                  $("#con ul.navlistsub").html(backmsg)
+              }
+      )
+  })
+  function backCallfirsttoattention(msg){
+    if(msg>0)
+    {
+        alert('关注成功');
+        window.location.reload();
+    }
+    else
+    {
+        alert('关注失败！！');
+    }
+}
+</script>
+    <div style="clear:both;"></div>
+    <div class="footer">
+  <img src="/images/footer.gif" />
+  <p class="footer-p"><div id="footer"><a href="http://www.fwxgx.com/question/sitemap.html">网站地图</a>　<a href="/application/help">帮助中心</a>　<a href="http://blog.fwxgx.com/articles/8594">意见反馈</a>　<a href="http://wpa.qq.com/msgrd?v=3&uin=55051552&site=qq&menu=yes">联系我们</a>　 <a onclick="Head.addFavorite();" href="javascript:">加入收藏</a> </p>
+  <p class="footer-p">Glodon © 1998-2009 　　　广联达软件股份有限公司</p>
+  <p class="footer-p">北京市海淀区东北旺西路8号院中关村软件园甲18号楼广联达大厦　　 邮编 ：100193</p>
+  <p class="footer-p">电话：86-10-62978993 　电子邮件：webmaster@fwxgx.com 　京ICP备10021606号-2</p>
+  <script src="http://s23.cnzz.com/stat.php?id=3687499&web_id=3687499&show=pic1" language="JavaScript"></script>
+  <script src="http://s14.cnzz.com/stat.php?id=2255133&web_id=2255133&show=pic1" language="JavaScript"></script>
+</div>
+
+<link rel="stylesheet" type="text/css" href="http://www.fwxgx.com/css/feedback.css"/>
+<a class="fb_link" href='http://wpa.qq.com/msgrd?v=3&uin=55051552&site=qq&menu=yes' target='_blank'><img alt="反馈建议" src="/images/fkjy.gif" border="0px"/></a>
+  </body>
+</html>

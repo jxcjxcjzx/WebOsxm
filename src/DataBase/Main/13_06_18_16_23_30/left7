@@ -1,0 +1,997 @@
+地址是??????(正则防御) ：www.sina.com，获取方法是 ：gbk
+(function(){var win=window,doc=document,nav=navigator,ua=nav.userAgent,scr=win.screen,loc=win.location.href;var prtl=loc.indexOf("https")>-1?"https://":"http://",domain="beacon.sina.com.cn";var a_gif=prtl+domain+"/a.gif?",g_gif=prtl+domain+"/g.gif?",d_gif=prtl+domain+"/d.gif?",e_gif=prtl+domain+"/e.gif?";var sudaRef=doc.referrer.toLowerCase();var cookie_SINAGLOBAL="SINAGLOBAL",cookie_For_Flash="FSINAGLOBAL",cookie_Apache="Apache",cookie_ULV="ULV",cookie_SUP="SUP",cookie_UOR="UOR",cookie__s_acc="_s_acc",cookie__s_tentry="_s_tentry";var count=0;var inFrame=false,isMetaFresh=false;var loginUserInfo="";var commonType=16777215,performance=0,filter,interval=0;var sudaPageid="",sudaExt1="",sudaExt2="";var sudaInfo=[],acTrackInfo=[],uaTrackInfo=[];var sudaGlobalCount=0;var fsudaGlobalCount=0;var storage=(function(){var objDS=window.localStorage,store,STORE_NAME;if(objDS){return{get:function(key){return unescape(objDS.getItem(key))},set:function(key,value){objDS.setItem(key,escape(value))}}}else{if(window.ActiveXObject){store=document.documentElement;STORE_NAME="localstorage";try{store.addBehavior("#default#userdata");store.save("localstorage")}catch(e){}return{set:function(key,value){try{store.setAttribute(key,value);store.save(STORE_NAME)}catch(e){}},get:function(key){try{store.load(STORE_NAME);return store.getAttribute(key)}catch(e){}}}}else{return{get:getCookie,set:setCookie}}}})();var flashData={flashObj:null,id:"sudaDataFrame",status:"loading",$:function(objName){if(document.getElementById){return eval('document.getElementById("'+objName+'")')}else{return eval("document.all."+objName)}},clear:function(){this.flashObj.write("")},read:function(name){if(this.status!="ok"){return""}var nameRule=/[=,;]+/i;if(nameRule.test(name)){return""}var dataScring=this.flashObj.read();if(dataScring==null){dataScring=""}var reg=new RegExp("(?:^|;)"+name+"=(.*?),expires=([^;]*)","i");var value=dataScring.match(reg);if(value==null){value=""}else{if(value.length>=3){var now=new Date();var dd=now.getTime();if(new Number(value[2])>dd){value=value[1];value=value.replace(/\[\$\=\]/g,"=");value=value.replace(/\[\$\;\]/g,";");value=value.replace(/\[\$\,\]/g,",")}else{value=""}}else{value=""}}return value},write:function(name,value,hours){if(this.status!="ok"){return}var nameRule=/[=,;]+/i;if(nameRule.test(name)){return}value=value.toString();value=value.replace(/\\/g,"\\\\");value=value.replace(/\&/g,"&amp;");value=value.replace(/\=/g,"[$$=]");value=value.replace(/\;/g,"[$$;]");value=value.replace(/\,/g,"[$$,]");if(typeof(hours)!="number"){hours=24*30*3}var now=new Date();var expire=new Date(now.getTime()+hours*3600000);expire=",expires="+expire.getTime();var list=this.flashObj.read();if(list==null){list=""}list=list.split(/;(?!\])/i);var newList=[],update=false;var data;for(var i=0;inow&&data[2]!=""){newList.push(list[i])}}}if(!update){newList.push(name+"="+value+expire)}var newStr="";for(var i=0;i0)?pidx:0;return(pMeta.length>idx)?pMeta[idx].content:""}function getSudaMeta(){var pMeta=doc.getElementsByName("sudameta");var meta=[];for(var idx=0;idxs){if(!reg.test(str.charAt(len-1))){break}len-=1}return str.slice(s,len)}function isArray(o){return Object.prototype.toString.call(o)==="[object Array]"}function queryToJson(QS,isDecode){var _Qlist=trim(QS).split("&");var _json={};var _fData=function(data){if(isDecode){return decodeURIComponent(data)}else{return data}};for(var i=0,len=_Qlist.length;i>4);chr2=((enc2&15)>2);chr3=((enc3&3)-1)?"MSIE":nav.appName):""},cpu:function(){return(commonType&524288==524288)?(nav.cpuClass||nav.oscpu):""},platform:function(){return(commonType&262144==262144)?(nav.platform):""},jsVer:function(){if(commonType&131072!=131072){return""}var p,appsign,appver,jsver=1,isN6=0,navigatorAppName=(nav.appName.indexOf("Microsoft Internet Explorer")>-1)?"MSIE":nav.appName,navigatorAppVersion=nav.appVersion;if("MSIE"==navigatorAppName){appsign="MSIE";p=navigatorAppVersion.indexOf(appsign);if(p>=0){appver=window.parseInt(navigatorAppVersion.substring(p+5));if(3=0){jsver=1.5}}}return jsver},network:function(){if(commonType&65536!=65536){return""}var ct="";ct=(nav.connection&&nav.connection.type)?nav.connection.type:ct;try{doc.body.addBehavior("#default#clientCaps");ct=doc.body.connectionType}catch(e){ct="unkown"}return ct},language:function(){return(commonType&32768==32768)?(nav.systemLanguage||nav.language):""},timezone:function(){return(commonType&16384==16384)?(new Date().getTimezoneOffset()/60):""},flashVer:function(){if(commonType&8192!=8192){return""}var pl=nav.plugins,flash,item,desc;if(pl&&pl.length){for(var key in pl){item=pl[key];if(item.description==null){continue}if(flash!=null){break}desc=item.description.toLowerCase();if(desc.indexOf("flash")!=-1){flash=item.version?parseInt(item.version):desc.match(/\d+/);continue}}}else{if(window.ActiveXObject){for(var i=10;i>=2;i--){try{var object=new ActiveXObject("ShockwaveFlash.ShockwaveFlash."+i);if(object){flash=i;break}}catch(e){}}}else{if(ua.indexOf("webtv/2.5")!=-1){flash=3}else{if(ua.indexOf("webtv")!=-1){flash=2}}}}return flash},javaEnabled:function(){if(commonType&4096!=4096){return""}var pl=nav.plugins,java=nav.javaEnabled(),item,desc;if(java==true){return 1}if(pl&&pl.length){for(var key in pl){item=pl[key];if(item.description==null){continue}if(java!=null){break}desc=item.description.toLowerCase();if(desc.indexOf("java plug-in")!=-1){java=parseInt(item.version);continue}}}else{if(window.ActiveXObject){java=(new ActiveXObject("JavaWebStart.IsInstalled")!=null)}}return java?1:0}};var PI={pageId:function(pageid){var pid=pageid||sudaPageid,defaultPageID="-9999-0-0-1";if((undefined==pid)||(""==pid)){try{var metaTxt=getMeta("publishid");if(""!=metaTxt){var pbidList=metaTxt.split(",");if(pbidList.length>0){if(pbidList.length>=3){defaultPageID="-9999-0-"+pbidList[1]+"-"+pbidList[2]}pid=pbidList[0]}}else{pid="0"}}catch(e){pid="0"}pid=pid+defaultPageID}return pid},sessionCount:function(){var count=getCookie("_s_upa");if(count==""){count=0}return count},excuteCount:function(){return SUDA.sudaCount},referrer:function(){if(commonType&2048!=2048){return""}var re=/^[^\?&#]*.swf([\?#])?/;if((sudaRef=="")||(sudaRef.match(re))){var ref=stringSplice(loc,"ref","&","");if(ref!=""){return escape(ref)}}return escape(sudaRef)},isHomepage:function(){if(commonType&1024!=1024){return""}var isHome="";try{doc.body.addBehavior("#default#homePage");isHome=doc.body.isHomePage(loc)?"Y":"N"}catch(e){isHome="unkown"}return isHome},PGLS:function(){return(commonType&512==512)?getMeta("stencil"):""},ZT:function(){if(commonType&256!=256){return""}var zt=getMeta("subjectid");zt.replace(",",".");zt.replace(";",",");return escape(zt)},mediaType:function(){return(commonType&128==128)?getMeta("mediaid"):""},domCount:function(){return(commonType&64==64)?doc.getElementsByTagName("*").length:""},iframeCount:function(){return(commonType&32==32)?doc.getElementsByTagName("iframe").length:""}};var UI={visitorId:function(gid){if(!gid){var gid=getCookie(cookie_SINAGLOBAL);return gid}else{}},fvisitorId:function(fid){if(!fid){var fid=getCookie(cookie_For_Flash);return fid}else{setCookie(cookie_For_Flash,fid,3650)}},sessionId:function(){var sid=getCookie(cookie_Apache);if(""==sid){var now=new Date();sid=Math.random()*10000000000000+"."+now.getTime()}return sid},flashCookie:function(gid){if(gid){flashData.write("local_unique",gid,24*360)}else{return local_unique}},lastVisit:function(){var sid=getCookie(cookie_Apache);var lvi=getCookie(cookie_ULV);var lva=lvi.split(":");var lvr="",lvn;if(lva.length>=6){if(sid!=lva[4]){lvn=new Date();var lvd=new Date(window.parseInt(lva[0]));lva[1]=window.parseInt(lva[1])+1;if(lvn.getMonth()!=lvd.getMonth()){lva[2]=1}else{lva[2]=window.parseInt(lva[2])+1}if(((lvn.getTime()-lvd.getTime())/86400000)>=7){lva[3]=1}else{if(lvn.getDay()=2){return upa[0]}else{return""}},advCount:function(){return(commonType&2==2)?getCookie(cookie__s_acc):""},setUOR:function(){var uoc=getCookie(cookie_UOR),uor="",uol="",up_t="",up="",currLoc=loc.toLowerCase(),ref=doc.referrer.toLowerCase();var re=/[&|?]c=spr(_[A-Za-z0-9]{1,}){3,}/;var ct=new Date();if(currLoc.match(re)){up_t=currLoc.match(re)[0]}else{if(ref.match(re)){up_t=ref.match(re)[0]}}if(up_t!=""){up_t=up_t.substr(3)+":"+ct.getTime()}if(uoc==""){if(getCookie(cookie_ULV)==""){uor=getHost(ref);uol=getHost(currLoc)}setCookie(cookie_UOR,uor+","+uol+","+up_t,365)}else{var ucg=0,uoa=uoc.split(",");if(uoa.length>=1){uor=uoa[0]}if(uoa.length>=2){uol=uoa[1]}if(uoa.length>=3){up=uoa[2]}if(up_t!=""){ucg=1}else{var upa=up.split(":");if(upa.length>=2){var upd=new Date(window.parseInt(upa[1]));if(upd.getTime()=minH)&&(doc.body.clientWidth>=minW))?false:true}catch(e){return true}}})(320,240);isMetaFresh=(function(){return false})();UI.setUOR();var sid=UI.sessionId();if(!UI.visitorId()){UI.visitorId(sid)}window.SUDA=window.SUDA||[];SUDA.sudaCount=SUDA.sudaCount||0;SUDA.log=function(){gatherCommon.apply(null,arguments)};SUDA.acTrack=function(){acTrack.apply(null,arguments)};SUDA.uaTrack=function(){uaTrack.apply(null,arguments)};addEvent(doc.body,"click",trackAgent);window.GB_SUDA=SUDA;GB_SUDA._S_pSt=function(){};GB_SUDA._S_acTrack=function(){acTrack.apply(null,arguments)};GB_SUDA._S_uaTrack=function(){uaTrack.apply(null,arguments)};window._S_pSt=function(){};window._S_acTrack=function(){acTrack.apply(null,arguments)};window._S_uaTrack=function(){uaTrack.apply(null,arguments)};window._S_PID_="";gatherCommon2()})();
+                                            新浪体育
+                                            新浪拍客
+                    高考
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://sina.allyes.com/main/adfclick?db=sina&bid=564184,631361,636631&cid=0,0,0&sid=640584&advid=18267&camid=99021&show=ignore&url=http://c.admaster.com.cn/c/a13922,b200199333,c2817,i0,m101,h?http://www.e100.cn/","pic":"http://d5.sina.com.cn/201306/18/497209.jpg","area":"0000000000000000000000100000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-6-18", "2013-6-21", ""]);}}catch(e){}
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://sina.allyes.com/main/adfclick?db=sina&bid=546948,613564,618833&cid=0,0,0&sid=622222&advid=18718&camid=94895&show=ignore&url=http://hlj.sina.com.cn/z/cu6sprise/index.shtml","pic":"http://d1.sina.com.cn/201306/09/496215.swf","area":"0000000000100000000000000000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-6-18", "2013-6-18", ""]);}}catch(e){}
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://sina.allyes.com/main/adfclick?db=sina&bid=546948,613564,618833&cid=0,0,0&sid=622222&advid=18718&camid=94895&show=ignore&url=http://hlj.sina.com.cn/z/cu6sprise/index.shtml","pic":"http://d1.sina.com.cn/201306/09/496215.swf","area":"0000000000100000000000000000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-6-17", "2013-6-17", ""]);}}catch(e){}
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://sina.allyes.com/main/adfclick?db=sina&bid=562099,629233,634503&cid=0,0,0&sid=638410&advid=20736&camid=98600&show=ignore&url=http://www.peihua.cn/","pic":"http://d1.sina.com.cn/201306/09/496266.gif","area":"0000000000000000000000100000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-6-10", "2013-6-17", ""]);}}catch(e){}
+rad.push(["http://d3.sina.com.cn/201306/18/497187_sn1000x90.swf", "", "2013-6-18", "2013-6-19", "3419051"]);
+rad.push(["http://d4.sina.com.cn/201306/17/496982_1000x90sn.swf", "", "2013-6-17", "2013-6-17", "3418822"]);
+rad.push(["http://d2.sina.com.cn/201306/15/496860_100090ls_dt_0617.swf", "", "2013-6-17", "2013-6-18", "3410762"]);
+rad.push(["http://d2.sina.com.cn/201306/15/496860_100090ls_dt_0617.swf", "", "2013-6-17", "2013-6-18", "3410760"]);
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://sina.allyes.com/main/adfclick?db=sina&bid=562228,629371,634641&cid=0,0,0&sid=638558&advid=20590&camid=98622&show=ignore&url=http://city.sina.com.cn/city/f/zsdinghai.html","pic":"http://d3.sina.com.cn/201306/12/496330.jpg","area":"0000000000000000000000000000001000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-6-16", "2013-6-16", ""]);}}catch(e){}
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://sina.allyes.com/main/adfclick?db=sina&bid=562228,629371,634641&cid=0,0,0&sid=638558&advid=20590&camid=98622&show=ignore&url=http://city.sina.com.cn/city/f/zsdinghai.html","pic":"http://d3.sina.com.cn/201306/12/496330.jpg","area":"0000000000000000000000000000001000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-6-15", "2013-6-15", ""]);}}catch(e){}
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://sina.allyes.com/main/adfclick?db=sina&bid=557217,624206,629474&cid=0,0,0&sid=633244&advid=20527&camid=97358&show=ignore&url=http://cq.sina.com.cn/zt/zyhcqr/","pic":"http://d1.sina.com.cn/201306/04/494997.jpg","area":"0010000000000000000000000000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-6-15", "2013-6-16", ""]);}}catch(e){}
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://sina.allyes.com/main/adfclick?db=sina&bid=562204,629346,634616&cid=0,0,0&sid=638531&advid=20569&camid=97617&show=ignore&url=http://sx.sina.com.cn/zt/city/jinghexincheng/index.shtml","pic":"http://d2.sina.com.cn/201306/14/496819.swf","area":"0000000000000000000000100000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-6-15", "2013-6-15", ""]);}}catch(e){}
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://sina.allyes.com/main/adfclick?db=sina&bid=544244,610695,615964&cid=0,0,0&sid=619206&advid=18718&camid=94895&show=ignore&url=http://hlj.sina.com.cn/z/cu6sprise/index.shtml","pic":"http://d2.sina.com.cn/201306/14/496765.swf","area":"0000000000100000000000000000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-6-15", "2013-6-16", ""]);}}catch(e){}
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://sina.allyes.com/main/adfclick?db=sina&bid=538018,604292,609563&cid=0,0,0&sid=612609&advid=18839&camid=93597&show=ignore&url=http://www.liyang360.com/zt/18jf/gy/","pic":"http://d1.sina.com.cn/201304/02/483207_240350.swf","area":"0000000001000000000000000000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-6-17", "2013-6-20", ""]);}}catch(e){}
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://sina.allyes.com/main/adfclick?db=sina&bid=538018,604292,609563&cid=0,0,0&sid=612609&advid=18839&camid=93597&show=ignore&url=http://www.liyang360.com/zt/18jf/gy/","pic":"http://d1.sina.com.cn/201304/02/483207_240350.swf","area":"0000000001000000000000000000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-6-15", "2013-6-16", ""]);}}catch(e){}
+rad.push(["http://d4.sina.com.cn/201306/17/496965_taobao240-350.swf", "", "2013-6-17", "2013-6-17", "3416813"]);
+rad.push(["http://d5.sina.com.cn/201306/06/495387_sina-5lbtn-240-350-0606-cunicom.swf", "", "2013-06-17", "2013-06-21", "3410863"]);
+rad.push(["http://d2.sina.com.cn/201306/14/496598_240350ls_yp_an_0617.jpg", "http://sina.allyes.com/main/adfclick?db=sina&bid=563032,630182,635452&cid=0,0,0&sid=639377&advid=20644&camid=98768&show=ignore&url=http://www.amazon.cn/b?ie=UTF8&node=304553071&tag=shunweisn03-23", "2013-6-19", "2013-6-19", ""]);
+rad.push(["http://d4.sina.com.cn/201306/03/494671.swf", "", "2013-6-17", "2013-6-17", "3410664"]);
+rad.push(["http://d5.sina.com.cn/201306/06/495490_240350ls_yp_an_0626-xiaji.gif", "http://sina.allyes.com/main/adfclick?db=sina&bid=560591,627667,632936&cid=0,0,0&sid=636788&advid=16551&camid=97628&show=ignore&url=http://a1112.oadz.com/link/C/1112/74165/ej3FtV51zUw1afarkHuHtHrwNIw_/p026/0/http://www.caissa.com.cn/z/summer2013/", "2013-6-26", "2013-6-26", ""]);
+rad.push(["http://d3.sina.com.cn/201306/18/497215.html", "", "2013-6-18", "2013-6-18", "3418981"]);
+rad.push(["http://d3.sina.com.cn/201306/18/497238.html", "", "2013-6-18", "2013-6-18", "3419356"]);
+rad.push(["http://d2.sina.com.cn/201305/24/493361.html", "", "2013-05-25", "2013-05-25", ""]);
+rad.push(["http://d4.sina.com.cn/201305/24/493363.html", "", "2013-05-25", "2013-05-26", ""]);
+                                新浪微博
+                                新浪新闻
+                                新浪体育
+                            天气通                         
+                            新浪财经
+                            新浪书城
+                            新浪拍客
+                                会中文就会说英语
+                                    target="_blank">秀域古方-周减10
+                                奇笔！让孩子远离
+                                首选教育网络平台
+                                智投助力企业营销
+                                教育热点知识百科
+                                给名字来创造奇迹
+                                把精彩告诉世界
+                                热点名博看世界
+                                您信赖的资讯信息
+                                寻找留学深造机会
+                                用心记录生活点滴
+                                助力营销广告算盘
+                                学生家长首选教育
+                                会中文就会说英语
+                                    target="_blank">秀域古方-周减10
+                                用心记录生活点滴
+                                首选教育网络平台
+                                智投助力企业营销
+                                专家热点知识百科
+                                用名字来创造奇迹
+                                草根名博精彩世界
+                                热点盘点世界名博
+                                您信赖的资讯信息
+                                寻找留学深造机会
+                                用心记录生活点滴
+                                学生家长首选教育
+                                用名字来创造奇迹
+                                    target="_blank">秀域古方-周减10
+                                会中文就会说英语
+                                用心记录生活点滴
+                                首选教育网络平台
+                                智投算盘助力企业
+                                教育专家知识百科
+                                用名字来创造奇迹
+                                把精彩告诉世界
+                                草根名博看世界
+                                您信赖的资讯信息
+                                寻找留学深造机会
+                                用心记录生活点滴
+                                首选教育网络平台
+                                给名字一个机会
+                                    target="_blank">秀域古方-周减10
+                                不出门，在家即可
+                                会中文就会说英语
+                                首选教育网络平台
+                                智投助力企业营销
+                                专家热点知识百科
+                                给名字来创造奇迹
+                                草根精彩告诉世界
+                                热点草根看世界
+                                您信赖的资讯信息
+                                金融危机留学深造
+                                用心记录生活点滴
+                                首选教育网络平台
+                                用名字来创造奇迹
+                                    " target="_blank">
+                                    " target="_blank">
+                                    " target="_blank">
+                                    " target="_blank">
+上传视频
+                                    斯诺登否认是中国间谍
+                                新闻|美特工混入成飞窃情报 
+城管晒练摊日记 公交险坠崖
+官二代晒豪车 女童眼中取虫
+男子公交露下体 官员开赌场
+游客抬海豚合影 城管砸商铺
+                                    绝杀时刻林书豪成名作
+ 体育|绿衫军夺冠5周年纪念
+最新声色NBA 麦蒂全景回顾
+乔丹首次40+集锦 KG将被交易
+范志毅点名：国足不要脸
+门将大脚开球破门 C罗PK梅西
+娱乐|丁当曝前男友劈腿玩3P 写真女王C字裤性感
+台外籍学生公园上演活春宫 范冰冰拥陌生男挖鼻孔
+实拍吴奇隆马苏亲密同行 张惠妹自嘲当导师暴瘦
+搞笑|美女裸奔用老公遮三点 比基尼辣妹内裤惨被扒微电影|开房走错房间后:谜途 4分钟神吐槽高考志愿深度策划：面对癌症 公开课|肢体语言如何塑造自信拍客|邵阳城管砖头打砸商铺 实拍两猴子大闹天津城
+                                    妖艳男子高跟鞋秀劲舞
+                                李玟小s大跳电臀舞辣翻全场
+                                    最强音：Hope险胜子怡遭围剿
+                                    梦想秀：追梦人只为艾滋病童杨澜：刘德华回应烂片不断非诚勿扰：最美空姐意外牵手
+                                    美厨娘沈星曝明星饮食
+                                大咖秀：真假雪姨逆天同台PK撒贝宁遭遇史上最严厉点评大本营：青春期的梦想是什么 
+                                    一站到底：波斯男情迷上海话
+                                    邓丽君纪念演唱会官方完整版
+策划：大尺度综艺美女走光集锦 日本变态综艺盘点
+新声代：不善言辞男孩献礼父亲  葱头至尾都是宝
+超级访问：硬汉徐锦江的童话爱情  拯救恐怖枕边人
+我为歌狂：郁可唯唱神曲  多国语美女与幕岩热舞
+欧美群星童年集锦  韩国好声音儿童版 女优全裸作画
+非诚勿扰  天下无双 中国星跳跃 中国梦之声 郭的秀
+星跳水立方  百变大咖秀   中国最强音 快乐大本营
+                                猜你喜欢
+                                上一帧下一帧
+北京时间:2013.6.18
+                        网络监督专区 欢迎监督 如实举报
+斯诺登接受访谈否认系中国间谍 美曾监听梅德韦杰夫
+李克强：政府俭朴了 用于民众的钱就能更多
+刘志军贪腐调查：卖官结成朋党 出事集体施救
+环保部:环境恶化趋势未改变 环境污染入罪门槛降低
+韩媒称朝鲜邀中国联合军演被拒 中方批其造谣
+国内 |湖南株洲档案局工会主席杀死女局长事件还原
+安徽落马副省长原下属副市长被查 当地官员蹊跷身亡
+文革红卫兵登广告道歉：个人作恶之责不可泯(图)
+中粮董事长:网友说“外国食品有毒也吃”我很受刺激
+广州花都区政协主席休病假后已失踪半月
+农业部官员:民众质疑转基因因不知情  食品安全
+赵白鸽回应红会热点话题:任何批判都应基于事实
+新浪前方:巴黎航展表演 独家实拍A380霸气飞行表演
+浙江街道干部称遭刑讯逼供：被打2000耳光鸡奸3次
+洛阳男子美国名校前卖肉夹馍 最多日赚800美元(图)
+专栏
+|根号玖：从杜蕾斯星巴克看微信公众账号的窘况
+国际 |普京奥巴马G8峰会争抢健身房 曾相持不下
+财经
+|<a href="http://finance.sina.com.cn/china/20130618/021815818293.shtml
+" target="_blank">铁路系统称刘志军好色贪权 对钱倒是真不太在乎
+<a href="http://finance.sina.com.cn/chanjing/sdbd/20130618/133815826930.shtml
+" target="_blank">农夫山泉创始人起底：与首富宗庆后恩怨情仇可拍电影
+<a href="http://finance.sina.com.cn/china/20130618/023015818573.shtml
+" target="_blank">谢国忠称房价5年内跌50% <a href="http://slide.finance.sina.com.cn/hy/slide_9_35787_135108.html
+" target="_blank">“空军一号”6大预测(图集)
+<a href="http://finance.sina.com.cn/chanjing/gsnews/20130618/145915827776.shtml
+" target="_blank">部委官员大范围换用红旗轿车 已有近1000辆交付
+5月房价同比涨幅广北深上排前四 多地首套房利率回9折
+科技 | 360将推便携路由器：在任何电脑周围建立WiFi
+探访云南麻风病康复村(图) 英国捕获70公斤巨型比目鱼
+印度珍稀亚洲狮(图) 水下发现千年古埃及失落城市(图)
+ 乐视超级电视如何颠覆
+ 凯迪拉克闪耀电影节
+北京园博会“满月”了
+大学生微公益大赛启动
+arrWeb1.push({"pos":"1" ,"title":"抵制过度包装签名行","url":"http://sina.allyes.com/main/adfclick?db=sina&bid=557035,624018,629286&cid=0,0,0&sid=633049&advid=20529&camid=97370&show=ignore&url=http://sh.sina.com.cn/z/2013gongyizj/index.shtml","area":"0000000000000000000000001000000000","startdate":"2013-5-30","enddate":"2013-5-31"});
+            jsLoader({name:"shm",callback:function(){SHM.register("io.jsonp2",function($){return function(url,params,callback,fix){var byId=$.dom.byId;var idStr=url+"&"+params;var fun="";if(byId(url)){document.body.removeChild(byId(url))}fix=fix||false;if(!fix){url=url+((url.indexOf("?")==-1)?"?":"&")+"_t="+Math.random();if(typeof callback=="function"){fun="fun_"+new Date().getUTCMilliseconds()+(""+Math.random()).substring(3);eval(fun+"=function(res){callback(res)}")}}else{if(typeof callback=="string"){fun=callback}}url=url+"&_cb="+fun;url=url+"&"+params;var head_dom=document.getElementsByTagName("head")[0];var old_script=byId(idStr);if(old_script){head_dom.removeChild(old_script)}var script_dom=$.C("script");script_dom.src=url;script_dom.id=idStr;script_dom.type="text/javascript";script_dom.language="javascript";head_dom.appendChild(script_dom)}});SHM.register("home.suggest",function($){var globalConfig={requestURL:"http://s.weibo.com/ajax/jsonp/suggestion?Refer=sina_sug",searchURL:"http://s.weibo.com/weibo/@@key@@",interTime:600000};var sugProFix="top-suggest-",sugWrapcn=sugProFix+"wrap",sugItemcn=sugProFix+"item",sugtype=sugProFix+"evt",w=window,document=w.document,isIOS=$globalInfo.ua.isIOS,trim=$.str.trim,addClass=$.dom.addClass,removeClass=$.dom.removeClass,byAttr=$.dom.byAttr,jsonp2=$.io.jsonp2,addEvent=$.evt.addEvent,dlt=$.evt.delegatedEvent;var cSuggest=function(options){this.input=options.input;this.maxLen=options.maxLen||10;this.onoff=options.onoff||"on";this.index=-1;this.cache=new Object();this.controlFunction=options.controlFunction||function(){};this.init.apply(this,arguments)};cSuggest.prototype={init:function(){var me=this,ipt=me.input;if(me.onoff==="off"){return false}me.wrap=ipt.parentNode;ipt.setAttribute("autocomplete","off");var sugdlt=dlt(me.wrap);me.setDefault();me.getRandomKey();sugdlt.add(sugtype,"mouseover",function(e){var ele=e.el;me.select(ele)});sugdlt.add(sugtype,"mouseout",function(e){var ele=e.el,sugitemovercn=sugProFix+"mover";ele.className.indexOf(sugitemovercn)&&removeClass(ele,sugitemovercn);!!me.cache.curitem&&removeClass(me.cache.curitem,sugitemovercn)});sugdlt.add(sugtype,"mousedown",function(e){me.evtclick(e.el)});addEvent(ipt,"focus",function(){!me.cache.listStatus&&me.getTimeOut(me.show,"show")});if(ipt.onpropertychange){ipt.onpropertychange=function(){me.sendRequest()}}else{addEvent(ipt,"input",function(){me.sendRequest()})}addEvent(ipt,"blur",function(e){me.getTimeOut(me.hidden,"hidden")});addEvent(ipt,"keydown",function(e){me.keydownEvt(e)});addEvent(ipt,"keyup",function(e){var e=e||w.event;if(e.keyCode==38||e.keyCode==40||e.keyCode==27){return false}me.sendRequest()})},getTimeOut:function(fun,type){var me=this,timelayer=me.cache["timeLayer_"+type];!!timelayer&&clearTimeout(timelayer);me.cache["timeLayer_"+type]=setTimeout(function(){fun.apply(me,arguments)},200)},sendRequest:function(){var me=this,val=me.getInputVal();me.setDefault();if(val!==""){me.getSugData(globalConfig.requestURL,"key="+encodeURIComponent(val));me.cache.listType='sug';}else{if(!!me.cache.hotList){me.sugWrap.innerHTML=me.cache.hotList;me.cache.curVal="";me.curMaxLen=me.sugWrap.getElementsByTagName("DIV").length-2;me.innerShowORHidden(true)}else{me.getHotData(globalConfig.requestURL,"",true)}me.cache.listStatus=false;me.cache.listType='hot';}},setDefault:function(){var me=this;me.cache.curitem=null;me.cache.curindex=-1},show:function(){var me=this;if(!me.sugWrap){me.sugWrap=me.createSugList()}else{me.innerShowORHidden(true)}},hidden:function(){this.innerShowORHidden(false);var val=this.getInputVal();if(val!==""&&val!=="请输入关键字"){this.cache.listStatus=true}},innerShowORHidden:function(flag){var me=this;if(this.controlFunction()){!!flag?(me.sugWrap.style.display="block",me.cache.keyDownOff=false):(me.sugWrap.style.display="none",me.cache.keyDownOff=true)}else{me.sugWrap.style.display="none";document.hform_10.Refer.value = 'sina_index';me.cache.keyDownOff=true}},getInputVal:function(){return trim(this.input.value)},evtclick:function(t){var tmpstr=t.innerHTML;var key=encodeURIComponent(encodeURIComponent(tmpstr));this.input.value=tmpstr;if(this.cache.curVal!=undefined&&tmpstr!=trim(this.cache.curVal)){if(this.cache.listType==='sug'){document.hform_10.Refer.value='sina_sug';}else{document.hform_10.Refer.value = 'sina_hot_sug';}}else{document.hform_10.Refer.value = 'sina_index';}document.hform_10.setAttribute("action",globalConfig.searchURL.replace("@@key@@",key));document.hform_10.submit()},keydownEvt:function(){var me=this;var e=arguments[0]||w.event;if(!!me.cache.keyDownOff){return false}switch(e.keyCode){case 38:var idx,curMaxLen=me.curMaxLen||me.maxLen;me.cache.curindex===-1?idx=curMaxLen-1:idx=me.cache.curindex-1;me.select(idx,true);break;case 40:var idx,curMaxLen=me.curMaxLen||me.maxLen;if(me.cache.curindex===-1){idx=0}else{if(me.cache.curindex===curMaxLen-1){idx=-1}else{idx=me.cache.curindex+1}}me.select(idx,true);break;case 13:break;default:break}},select:function(obj,valchange){var me=this,ele,index,sugitemovercn=sugProFix+"mover",curitem=me.cache.curitem;typeof(obj)==="object"?(function(){ele=obj;index=+ele.getAttribute("index")})():(function(){if(obj===-1){ele=null;index=-1}else{ele=byAttr(me.sugWrap,"index",obj+"")[0];index=+obj}})();!!curitem&&removeClass(curitem,sugitemovercn);if(!!ele){addClass(ele,sugitemovercn);me.cache.curitem=ele;me.cache.curindex=index;if(!!valchange){me.input.value=ele.innerHTML}}else{me.input.value=me.cache.curVal;me.cache.curitem=null;me.cache.curindex=-1}setTimeout(function(){me.setCursorPos(me.input.value.length)},-1)},setCursorPos:function(pos){var ipt=this.input;if(ipt.setSelectionRange){ipt.setSelectionRange(pos,pos);ipt.focus()}else{var range=ipt.createTextRange();range.collapse(true);range.moveEnd("character",pos);range.moveStart("character",pos);range.select()}},createSugList:function(){var me=this,ipt=me.input,uniqueKey=$.util.getUniqueKey();if(!ipt){throw"input is undefined!"}me.sugWrap=document.createElement("DIV");me.sugWrap.className=sugWrapcn;me.innerShowORHidden(false);ipt.value="";if(!!me.cache.hotList){me.sugWrap.innerHTML=me.cache.hotList}else{me.getHotData(globalConfig.requestURL,"",true)}me.wrap.appendChild(me.sugWrap);setInterval(function(){me.getHotData(globalConfig.requestURL,"",false)},globalConfig.interTime);return me.sugWrap},getHotData:function(url,param,first){var me=this;var onDataSuccess=function(msg){if(msg.code==100000&&!!msg.data.length){var data=msg.data;first?(me.cache.hotList=me.sugWrap.innerHTML=me.itemConsturctor(data,0),me.innerShowORHidden(true)):me.cache.hotList=me.itemConsturctor(data,0,true)}else{me.innerShowORHidden(false)}};jsonp2(url,param,onDataSuccess)},getSugData:function(url,param){var me=this;var onDataSuccess=function(msg){if(msg.code==100000&&!!msg.data.length){if(me.getInputVal()!==""){var data=msg.data;me.sugWrap.innerHTML=me.itemConsturctor(data,1);me.innerShowORHidden(true);me.cache.listStatus=false}}else{me.innerShowORHidden(false)}};jsonp2(url,param,onDataSuccess)},getRandomKey:function(){var me=this;var ipt=me.input;var getRangeRandom=function(min,max){return Math.floor(min+Math.random()*(max-min))};var onDataSuccess=function(msg){if(msg.code==100000&&!!msg.data.length){var data=msg.data,len=data.length,rdm=getRangeRandom(0,len-1);w.___homeSugVal___=ipt.value="\u5927\u5BB6\u6B63\u5728\u641C\uFF1A"+data[rdm];me.cache.keyDownOff=true}else{ipt.value="\u8BF7\u8F93\u5165\u5173\u952E\u5B57\u000D\u000A"}};jsonp2(globalConfig.requestURL,"",onDataSuccess)},itemConsturctor:function(data,type,mode){var me=this,data=data,tmpstr=[],proto="word",tip="",more="";l=data.length>me.maxLen?me.maxLen:data.length;if(!mode){me.curMaxLen=l;me.cache.curVal=me.input.value}type==0?(proto="word",tip='\u5927\u5BB6\u6B63\u5728\u641C\uFF1A\u000D\u000A',more='\u5B8C\u6574\u70ED\u641C\u699C&gt;&gt;\u8FDB\u5165\u641C\u7D22\u9996\u9875&gt;&gt;'):(proto="suggestion",tip="",more="");tmpstr.push(tip);for(var i=0;i');tmpstr.push(data[i]);tmpstr.push("")}tmpstr.push(more);return tmpstr.join("")}};return cSuggest});window.search_suggest=new SHM.home.suggest({input:document.SearchEcho.SerchKey,maxLen:10,onoff:"on",controlFunction:function(){if(document.SearchEcho.SerchType.value==="微博"){return true}else{return false}}})}});
+新浪体育客户端 随时随地想看就看
+清扬胜利足球 <a href="http://sports.sina.com.cn/video/k/nba/clear/buzzerbeaters
+" target="_blank">清扬绝杀时刻  声色NBA
+经典原创：新中超客栈 英超放大镜
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://sina.allyes.com/main/adfclick?db=sina&bid=557001,623983,629251&cid=0,0,0&sid=633013&advid=20527&camid=97358&show=ignore&url=http://cq.sina.com.cn/zt/zyhcqr/","pic":"http://d3.sina.com.cn/201306/07/495751.jpg","area":"0010000000000000000000000000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-6-8", "2013-6-9", ""]);}}catch(e){}
+rad.push(["http://d5.sina.com.cn/201306/16/496919_lsh-240x200-0617-20tiguan.swf", "", "2013-06-19", "2013-06-19", "3415698"]);
+rad.push(["http://d1.sina.com.cn/201305/23/493028_home-240200.swf", "", "2013-06-20", "2013-06-20", "3409247"]);
+rad.push(["http://d1.sina.com.cn/201306/07/495610_lsh-240x200-0618chery.swf", "", "2013-6-18", "2013-6-19", "3415407"]);
+rad.push(["http://d5.sina.com.cn/201306/16/496919_lsh-240x200-0617-20tiguan.swf", "", "2013-06-18", "2013-06-18", "3415698"]);
+rad.push(["http://d4.sina.com.cn/201306/16/496928_lsh-240200-0617lavida.swf", "", "2013-6-17", "2013-6-17", "3414573"]);
+rad.push(["http://d5.sina.com.cn/201306/16/496919_lsh-240x200-0617-20tiguan.swf", "", "2013-6-17", "2013-6-17", "3415698"]);
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://mn.sina.com.cn/zt/auto/xmkjt/index.shtml","pic":"http://d2.sina.com.cn/201305/16/491732.jpg","area":"0001000000000000000000000000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-05-15", "2013-05-30", ""]);}}catch(e){}
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://ln.sina.com.cn/z/wbyxdh/index.shtml","pic":"http://d4.sina.com.cn/201306/18/497249.jpg","area":"0000000000000000001000000000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-06-17", "2013-06-26", ""]);}}catch(e){}
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://hb.sina.com.cn/zt/2013dream/","pic":"http://d2.sina.com.cn/201306/17/497077.jpg","area":"0000000000001000000000000000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-06-17", "2013-07-10", ""]);}}catch(e){}
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://hunan.sina.com.cn/zt/news/2013ymq/index.shtml","pic":"http://d1.sina.com.cn/201306/18/497240.html","area":"0000000000000100000000000000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-06-17", "2013-06-30", ""]);}}catch(e){}
+                                                小贝中国行抵南京
+足协:国足换帅需要整体设计 视频
+范志毅怒批赵鹏称国足不要脸
+小贝:爱北京但不爱北京堵车(图)
+NBA-绿军送加内特至快船进倒计时
+科比欲拍售2000年总冠军戒 魔术师:总决赛要打7场 视频
+曼城砸1亿!获准购2500万锋霸 2200万!阿森纳将签伊瓜因
+尤文官方宣布今夏首签 C罗裸晒兽人化肌肉惊呆媒体(图)
+十强赛-17:30视频播澳大利亚VS伊拉克 20时播韩国-伊朗
+贝克汉姆捐珍贵球衣+超级跑车(图) 蔡振华感谢榜样小贝
+姚明怕女儿太高难找对象 全运网球队员不满判罚殴安保
+专栏-苏群:马刺奇谋制LBJ 赵震:卡马乔团队失败真相
+门将90码大脚破门 罗本生涯20佳 巴萨女足超级进球
+2.08亿得主临时改号中巨奖 鬼！奖号3个月前曾造1亿
+                                                曝绿军快船大交易
+魔术师：总决赛要打到第7场
+博彩公司仍看好热火完成卫冕
+专栏-最另类的过山车式总决赛
+雄鹿得分王今夏将跳出合同
+绿军交易KG至快船进倒计时 19日08:30视频播总决赛VI
+声色NBA总决赛特刊Ⅴ 麦蒂全景 2005马刺抢7称王
+天王山回放 周玲安探秘总决赛 邓肯陪孩子玩耍
+AI被指控诱拐亲生孩子 皮篷：罗斯能再成为MVP
+科比重启拍卖会部分做慈善 爱的故事!回顾邓肯师徒16年
+詹姆斯第6战承受压力令人窒息 热火命运十字路口 
+热火陷绝境因自以为是 热火生死战斯波可能再变阵
+波什:我们的防守不可接受 詹姆斯：现在顾不上想第7场
+投注篮彩：总决赛第五站马刺受让1.5分 WNBA太阳优势大
+                                                声色NBA总决赛特刊
+麦蒂全景回顾 唯美慢放Game5
+绿军夺冠5周年纪念 幸福邓呆
+乔丹首次40+集锦 KG将被交易
+绝杀时刻 脱口秀调戏伪球迷
+国足1-5泰国 范志毅点名怒喷国足：输1比5脸都不要
+听闻国足惨败泰国陈志钊苦笑 陈志钊祝福新浪网友
+西班牙名记力挺卡马乔 中国足球名宿问诊国足惨败
+联合会杯|意主帅盛赞新浪记者 马塞洛坐地神级颠球
+巴西少年海滩秀球技踢球胆 布拉特遭嘘女总统尴尬
+尴尬！苏克不知国足已出局 卡马乔解释国足排名低
+新中超客栈 中超爆笑短剧1-9集 中超好声音12首MV
+体坛花絮 奥胖评选赛季34囧！ 奥胖评选十大囧时刻
+双色球1000万 不中我买单 
+试驾新蒙迪欧 酷似阿斯顿&#8226;马丁 新卡罗拉官图解析
+                                                    网球女皇与豪车
+ 奥德赛别克GL8保养政策及成本PK
+深度试驾7座豪华SUV英菲尼迪JX35 
+&quot;缩小版途观&quot;2016上市 约1.5万欧新宝马X5 M谍照 配4.4升V8发动机
+                                                    新宝马4系官图解析
+                                                铃木S-CROSS明年推 曝新雨燕官图大众MQB平台推POLO奥迪Q1等6款车
+网球女皇莎拉波娃豪华车代言之路起亚新狮跑上市 售15.98-19.68万
+曝新奔驰S63 AMG今秋上市 宝马首推中型轿跑PK奔驰奥迪
+DS首款微车DS2曝光 与208共平台 奇瑞M16定名艾瑞泽7
+传祺推大型MPV采用全新命名 新一代宝马7系细节曝光
+新奥迪R8 GT路试极速320km/h 北汽C50E谍照内饰改动 
+                                                    奔驰SL猎装车组图
+长安明年推SUV CS55竞争途观IX35
+广丰或进口全尺寸SUV红杉等7款车新马自达6仅进口2.0L预售23.88万保时捷玛莎拉蒂推2款C级车竞争A6
+                                                    新款奥迪A3官图
+                                                纳智捷将产小型SUV 与昂克拉同级
+2015款途锐谍照曝光或明年秋上市
+深度评测新天籁 尺寸大配置提升
+风神将产首款紧凑SUV竞争奔腾X80
+新车：新途观19.98-31.58万 丰田威飒32.66-40.88万
+海马S7售10.68-14.68万元 红旗H7售29.98-47.98万元
+北汽绅宝售13.98-21.58万 奔腾X80售11.98-18.18万
+热门：大众CC 奔驰GLK 全新凯越 宝马X1 丰田86跑车
+用车保养丨MPV精英 奥德赛/GL8保养成本对比
+行情导购|各有侧重 同品牌不同定位小车行情
+行情导购丨数据会说话 5月车市最热销A级车行情
+行情导购丨车市板块说 索八K5各大区域行情PK
+奥迪Q5最高直降2.7万 迈腾最高降2万 锐志直降2.2万沃尔沃S60降11.98万 别克GL8最高降1.6万 ix35降2.5万雷克萨斯CT200h降4万 悦动最高降1.6万 瑞虎最高降5千标致508直降2.5万 卡罗拉最高直降2万 朗逸降6000元
+         雪铁龙C5现金直降2万元 奥迪Q5最高直降2.7万元
+         宝马全系优惠1.4-33万 天语SX4最高现金直降2万元
+         雅阁最高现金直降3.7万元 汉兰达最高直降2.2万元 
+           朗逸1.4T直降5000元赠礼包 乐驰最高现金直降4千
+车市板块说 索纳塔八VS起亚K5 2012汽车经销商百强榜
+rad.push(["http://d5.sina.com.cn/201306/14/496597_100090ls_tl01_0614.jpg", "http://sina.allyes.com/main/adfclick?db=sina&bid=563030,630180,635450&cid=0,0,0&sid=639375&advid=20644&camid=98768&show=ignore&url=http://www.amazon.cn/b?ie=UTF8&node=304553071&tag=shunweisn04-23", "2013-6-19", "2013-6-19", ""]);
+rad.push(["http://d3.sina.com.cn/201306/13/496486_sanyo1000-90.swf", "", "2013-6-16", "2013-6-18", "3340520"]);
+                                乐库
+老狼水木年华李健叶世荣《青春再见》
+尚雯婕-画出我世界 金志文-孝和中国
+陈小春首发《爱的相反》领悟爱情 
+音乐人|立刻入驻 陈珊妮张悬联手献唱
+                                        八卦
+姚晨大肚变S型辣妈
+汪小菲给大S造人施压:明年要当爹
+粉丝撞破陈冠希约会遭呛声bitch
+港姐一二轮选拔上妆前后对比明显
+博纳公布十新片计划 3片投资过亿
+好声音第二季拒最强音学员 章子怡谈失控:生活值得冒险 
+三级片男星不孕问诊(图) 林志玲早年爆炸头野性美(图)
+邱启明：重回央视是玩笑 丁当自曝旧爱系逃犯劈腿玩3P
+英达被问前妻宋丹丹黑脸斥挑事 吴宗宪否认老婆自杀
+《最韩流》2PM成长回归 杰克逊家族再内讧三兄妹不和
+贝克汉姆再访中国(图) 范冰冰搂陌生男子挖鼻孔(图)
+图:英超模半裸豪放 凯莉丰乳肥臀 幸田来未爆乳妩媚
+台学生公园演活春宫 日女星裸臀性感C字裤遮私处
+专栏|女星性感美臀 水嫩女星大PK <a href="http://sina.allyes.com/main/adfclick?db=sina&bid=553810,620674,625942&cid=0,0,0&sid=629561&advid=7603&camid=96750&show=ignore&url= http://tsingtao.sina.com.cn/xianhuorensheng/index.html
+">秀鲜活照片赢德国游
+                                                英国第一美女抛胸
+暮光女吃醋 被曝与凯蒂佩里断交
+安妮斯顿发质差戴发片 羡慕凯特
+娱乐圈20大当红明星人品大吐槽
+癌症女歌手斥茱莉切乳腺：不勇敢
+微博|吴莫愁自拍自嘲以乱取胜(图) 丁当捉奸男友玩3P
+韩娱|张根硕出演电视剧《漂亮男人》 韩歌坛脱风盛行
+日娱|曝AKB48选举前赴裸男夜店 中西里菜结婚隐退AV界
+美图|米兰达可儿微笑迷人秀美腿 泰勒紧身裙勾S曲线
+花边|超模芳塔娜比基尼大秀水蛇腰 黄宏女儿近照曝光
+爆料|娱乐圈常见的十大潜规则 笑起来特囧的十大明星
+吐槽|女星难以启齿的闺房隐私 罗大佑骂哭章子怡离席
+林志玲被曝已有男友  校花学士服开衩到大腿
+玉女扒奶扮欲求不满  港姐复试抛胸抢镜
+                                                《零炮楼》
+                                            大宅门1912 暗红1936 冷风暴
+温州一家人 飞虎神鹰 悬崖
+孤军英雄 新白发魔女 男人帮 
+公主的男人 心术 向炮火前进
+电影|桃姐 LOVE 午夜火车 凶间雪山 赛德克-巴莱剧集|知青 男人帮  士兵突击 请你原谅我 花环夫人
+韩剧|花样男子 甜蜜间谍 Big 阿娘使道传 最佳爱情
+综艺|中国星跳跃 非诚勿扰 星跳水立方 快乐大本营
+动画|猫和老鼠 倒霉熊 魁拔 番茄姐弟 藏獒多吉
+纪录|东方时空20年 深渊 不死之身  广岛 蛇发女妖
+策划|欧美大片 希区柯克 治愈片 花美男 勇闯天涯
+微电影|冰山 床上关系 拾荒少年 因情圆缺 彭浩翔
+BBC出品|地球无限 睡眠十式 希特勒 两性 埃及迷城
+上证
+<a href="http://finance.sina.com.cn/consume/puguangtai/20130618/014615817974.shtml
+" target="_blank">安利纽崔莱保健品批号过期仍在卖
+五粮液经销商卖瓶酒要亏200元
+<a href="http://finance.sina.com.cn/chanjing/gsnews/20130618/014615817978.shtml
+" target="_blank">绿地陕西别墅项目涉嫌未批先建
+碧生源绿瘦等减肥药疗效基本靠吹
+<a href="http://finance.sina.com.cn/consume/20130618/043915819856.shtml
+" target="_blank">转基因大豆将进入更多食品领域 官员称无需担心安全性
+报告称京津冀PM2.5污染致病近7万人 煤炭成元凶
+<a href="http://finance.sina.com.cn/china/jrxw/20130618/085515823325.shtml
+" target="_blank">投机资金流出银行钱荒 <a href="http://finance.sina.com.cn/stock/usstock/c/20130618/110115825729.shtml
+" target="_blank">传四大行呼吁央行周三前降存准
+<a href="http://finance.sina.com.cn/chanjing/gsnews/20130618/012615817794.shtml
+" target="_blank">万达砸900亿搞旅游 董事长王健林称赚钱还得靠卖房
+<a href="http://finance.sina.com.cn/china/20130618/013415817829.shtml
+" target="_blank">6月20日为纪委退卡大限 卖高尔夫会籍官员明显增多
+股票| 收评：沪指震荡涨0.14% 科技股活跃金融地产护盘
+汇金增持四大行 未来拟继续增持 盘中现诡异买盘暗号
+英国股神在英年收益19.5% 在中国奋战3年仍亏10%
+理财|  中国大妈被称只是热场的 抢金潮中银行赚得最多
+专栏| 人民币零钱逐渐成废纸 中国不应成没兄弟的强国
+[博客]密切关注股市两大抄底信号
+[公司]航空动力获注中航百亿资产
+[港股]蒙牛百亿收购雅士利将揭盅 
+[美股]奥巴马暗示寻找伯南克接班
+[大盘]现V字走势  科技股走强 金融地产护盘 煤炭走弱 
+ [分析]基金爱医疗器械（附股） 单针探底或为拐点
+[主力]资金流向 主力在磨合战机 周三或爆发性拉升 
+ [股吧]<a href="http://guba.sina.com.cn/?s=thread&bid=1895&tid=39366
+" target=_blank>海普瑞疯涨内幕 植物战僵尸股涨停 王亚伟新宠
+[博客]杀跌就是迷魂阵 下半周迎变盘点 准备迎接抄底    
+[期货]沪铜逼近前低 玻璃跳水大跌 铜价还有最后一跌 
+[研究]招商:看空下半年市场 私募:创业板将再涨一番 
+[推荐]机构看淡6月行情  股市和足球都不是钱的问题
+ target="_blank">专栏]官建益:汇金增持因长期价值 皮海洲:并非救市 
+                            品种
+                            价格
+                            黄金
+                            原油
+                            美元
+[基金] 偏股基金有望获超额收益
+ 收评：传统封基普遍飘红 
+新基金建仓谨慎均躲过调整
+[数据] 净值 业绩排名 自选基金
+[理财] 支付宝利息超银行八倍 网友:马云逆天了
+青年就业难已成全球通病 美大学文凭不再是高薪保证
+菲律宾民众理财观念淡薄 仅两成家庭有储蓄存款
+普洱新茶延续疯涨态势 银孔雀现已涨至6000元
+建行青田支行曝千万存款挪用案 已展开内部排查
+61家银行抢食假期理财 预期收益率多在4%以上
+[外汇]
+人民币连续升值带火出境游 
+高端消费拦不住
+[黄金] 中国大妈被称只是热场的 抢金潮银行赚得最多
+男工会主席杀女局长后跳楼 曾迷恋彩票欠债20万
+                           我爱看图
+                           猜你喜欢
+                                        2名男子抱充气娃娃北大校园裸奔
+                                        英国捕获70公斤巨型比目鱼
+                                        邓丽君罕见劳军照曝光 献吻兵哥
+                                        大师笔下的25大足坛传奇巨星
+                                        辣妈姚晨大肚照优雅迷人
+                                        改装盛宴 iAcro恐高聚会
+                                        人人都打乒乓球
+                                        中国青年艺术家优秀作品大展作品
+                                        组图：舞蹈系美女合拍毕业照
+                                        日本风情Google办公室
+周鸿祎：产品经理要先去做客服
+CCTV导演：关于街舞不得不说的话 
+胡曼荻：旅居费城中国女人的一声叹息 
+鲁先圣：陈寅恪一家在香港的六次搬家
+玉木：《斯托克》女版汉尼拔的崛起 
+张继合：日本天皇为何根本没有姓氏
+                                        精选
+                                                冬虫夏草交易现场
+奥巴马为何突然取消与安倍会谈？
+柴静：老无所依的农村打工者
+我没说“北京6000人有300套房”
+马未都：刘志军贪的是人民血汗钱
+日本教育让最穷孩子也有尊严 中国航母让美国感到威胁
+吴钩驳余偏统：元朝那么好吗 古代广东人为保命喝汤
+旧上海妓女如何“选美”？ 武侠片杀风景还是煞风景
+历史上用贪官反贪官的故事 邓文迪给国人长脸还是丢脸
+孟非：东京浅草寺里的女人 朱天衣：台湾山区脱衣舞娘
+一个企业需要什么样员工 伊丽莎白女王干儿子悲催生活
+揭秘日本电视圈肮脏潜规则 专访赵薇：身价亿万女楼王
+好声音第二季导师阵容存缺憾 《中国最强音》蝴蝶效应
+男青年迷恋老女人是病吗 什么样孩子会替出轨父母掩饰
+赤脚沙滩晚宴捷克：寻访神圣而恐怖的人骨教堂
+马达加斯加：倾国疯狂的斗鸡比赛
+意大利：在欧洲最美的客厅里做客挪威：童话般的北极圈仙岛罗弗敦
+短期上日本幼儿园做什么准备 捧红了红磨坊的法国画家
+从大学女教师到服装品牌总裁 在神农架徒步穿越无人区
+哪个品种的荔枝最具荔枝气质(图) 北京园博园游览攻略
+人体八大营养素你需要什么 茄子最鲜美下饭的吃法(图)
+营养专家建议荔枝蘸酱油不宜多吃 十个最该喝水的时刻
+使用味精的七大禁忌 给剩肉粽材料一个华丽的转身(图)
+唐伯虎的春宫画(图) 雷诺阿的《哺乳》超越了低级欲望
+西方绘画大师曾广泛使用透镜 访池田亮司：音乐即数学
+最懂成功男人的中国女人 历数那些“没落”的奢侈大牌
+                                        小说
+                                                彭总被少将打耳光
+                                            豪华公车私用祸牵民政高官：中堂
+草根男博弈女局长 错嫁花痴残君
+冷帝婚书换江山 贝子绮恋尚书女
+情迷护花特种兵 失婚少妇闷骚情
+书库| 
+弃妃绝爱铁血王 转世再续年妃缘 情系契约婚姻热榜| 军干浪子罪爱两世孽缘 海归男二次缠情落魄初恋
+原创| 
+草根男征服领导夫人平步青云 王牌特工都市藏娇
+上架| 
+和亲女忍辱献身残暴帝君 失忆职员错嫁高官之子
+言情| 
+闲妻虐倒冷酷王爷变宠妃
+ 妻子出轨引出惊天阴谋
+都市| 
+秘书弄权官场财色兼收
+ 阴阳师捉鬼驱魔之监狱篇
+畅销| 
+亿万老婆买一送一 
+漂亮警花老婆偷身又偷心
+全本| 
+超级兵王称霸黑白双道 
+男妇科医生职业香艳内幕
+城市| 官员个人微博调查 杭州微电影大赛 园博满月了
+                                                总裁的第七个新娘
+                                            赌王绝世大赌局 谍王殊死夺宝藏
+大领导的小妻子 将军情谋贵千金
+你若安好便是晴天 王爷金殿抢婚
+未婚妈妈入豪门 海归骗婚堕胎女
+精品| 落难郡主喋血江湖庙堂 一夜艳遇女秘书意外上位 
+ 腹黑总裁虐心夺爱 官路人生 女记者情陷官场 封疆大吏 
+言情| 
+丑颜弃妃复仇冷血王爷 总裁替身床伴有点萌
+都市| 
+失贞校花报复无良开发商 同传女与冷总裁的虐爱
+风流校长绯色升迁
+ 漂亮女公关
+ 二十四年虐恋终成眷属
+玄幻| 
+残酷修真界左右逢源
+修炼废材悍然踏上逆天路
+灵异| 
+黑道帮派职业收尸人
+ 湘西赶尸鬼事之迎喜神
+热门| 
+超级特种兵激战都市
+美女的风流贴身男秘
+强推| 
+狼性总裁小小妻
+王牌特工混都市
+老婆再爱我一次
+水下考古发现1500年前古埃及失落城市
+探访云南麻风病康复村：仅剩7名村民(图)
+一周太空图：宇航员全景窗口拍摄地球美景
+探访印度珍稀亚洲狮：非洲以外的唯一狮子
+人面兽心 衣冠禽兽：有趣的动物肖像(图)
+rad.push(["http://d2.sina.com.cn/201304/15/486019.swf", "", "2013-4-16", "2013-4-18", "3388029"]);
+rad.push(["http://d2.sina.com.cn/201304/15/486019.swf", "", "2013-4-16", "2013-4-18", "3388029"]);
+rad.push(["http://d2.sina.com.cn/201304/15/486019.swf", "", "2013-4-16", "2013-4-18", "3388029"]);
+rad.push(["http://d2.sina.com.cn/201305/16/491713.html", "", "2013-5-17", "2013-5-17", "3404783"]);
+IT博客
+互联网
+创事记
+投稿
+                                                英捕获巨型比目鱼
+“棱镜门”：商人们的危与机
+三星过度依赖安卓：应推动差异化
+ 支付宝大野心：中国金融搅局者
+特写：逃亡的棱镜泄密者斯诺登
+新果壳电子的极客梦：两位男主角 与盛大无关
+中国“天河二号”成为全球最快超级计算机 
+网络发票推进提速：江西7月1日起全省推广
+618电商大战背后：京东修模式 苏宁谋新局
+140城市角逐智慧城市：标准体系有望近日面世
+PC厂商进军小尺寸平板电脑：竞争激烈利润微薄
+专栏|非洲狮兄弟为抢镜互残(图) 寻踪神农架金丝猴(图)
+                                                印度珍稀亚洲狮
+中国天河二号成最快超级计算机
+飞机穿行悉尼上空绝美彩虹(高清)
+俄亿万富翁拟将大脑植入机器永生
+每日一图：黄昏下渔民撒网美景
+科学家绘制宇宙3D地图：涵盖30亿光年太空区域(图)
+水下考古发现1500年前古埃及城市失落宝藏(图)
+探访云南麻风病康复村：仅剩7名村民(组图)
+英国捕获70公斤巨型比目鱼：成300人美味佳肴(图)
+一周太空图：宇航员全景窗口拍摄地球美景(图)
+香港亿万富翁造超豪华游艇(图) 最后的挪威捕鲸人(图)
+专栏|三亚游客将搁浅海豚抬出水面合影(图) 巴黎航展
+                                        美女COS
+游戏美女全裸代言
+网吧暴力游戏色情电影吸引未成年
+Valve正式声明DOTA2今年暑期公测
+父亲摔儿游戏机反遭儿子纵火报复
+剑灵国服新职业灵剑下周更新登场
+       性感女团乱入网游
+复古街机风 魂之猎手二测视频
+梦幻之星OL2新版本视频首曝光
+公务员沉迷网游挪用公款264万
+极致诱惑 LOL九尾妖狐阿狸COS
+                                            圣斗士星矢公测卡
+《蜀门旗舰版》大礼包 资料站
+《东方故事》修仙特权卡 资料站
+《御龙在天》新区新手卡 资料站
+《仙侠世界》屌丝特权包 资料站
+                                            行星边际2新活动
+东方故事开新服 参与活动送iPad
+挑战梦之队 发微薄赢精美NBA周边
+《大决战》不删档测试送键鼠套装
+                                            LOL全明星赛COS图
+魔兽世界现野生留几手点评女玩家
+制服诱惑电眼女警玩手枪迷倒宅男 
+新浪游戏美女访谈第六十七期狐蝶 
+萌翻全场韩国美女COS剑灵火炮兰 
+                                                特色拍照手机盘点
+18日:金属机身四核手机报4199元
+特色UI手机盘点 老爸适用手机荐
+盘点手机杀手锏 时尚智能机搜罗
+学生手机推荐 特色拍照手机汇总
+[苹果] 
+  iPhone5S屏幕组件与主板吻合
+  极简iPhone底座
+[新品] 索尼旗舰One Sony现身 黑莓下半年将推新机
+[新品] ppi超500手机将至 WP8/BB10半年回顾与展望
+[评测]  诺基亚Lumia 925开箱 联通版S4对比电信版S4
+[评测] 手机DC拍照对比 诺基亚620/520对比评测
+[评测] 三星S4 Mini试玩  红色版OPPO Find 5图赏
+[图集] 
+   韩版Galaxy S4开箱图 
+   锤子ROM真机试玩
+                                                5000元超值本盘点
+[相机]
+18日：最小单反套机4717
+中高端相机购买攻略 
+最受关注DC
+拍大片前的准备 
+腾龙90mm镜实拍
+理光GR深度评测 
+卡西欧ZS30评测
+  拍性感少女技巧 
+  街头摄影技巧 
+  不同天气拍摄法
+  优雅人像摄影 
+  梦境般的风光作品 
+  惊险风暴摄影
+18日八大热门本:8寸四核可手写平板3188元
+5000元之内超值本盘点
+各品牌体验最佳平板
+疑似iPad 5原型机曝光
+新Air缘何未配视网膜屏
+Android 5.0效果图曝光
+小米笔记本配置泄露
+">18日三大件报价：AMD暴涨
+独特造型机箱盘点
+                                            快来一起PK大咖
+				和可爱英雄一起攻城：萌军赶死队
+				小容量赛车疯狂漂移：口袋拉力赛
+				超个性表情头像：Uface面部素描
+				正能量：井上雄彦Smile插画锦集
+                                            涂鸦世界五彩缤纷
+                [系统工具]
+                    超级WiFi信号增强器
+                    新颖：电子闹钟大师
+				[聊天通讯]
+                    即刻启动：语控精灵
+				[社交网络]
+                    让宠物做主：闻闻窝
+                                            战斗与跑酷结合体
+                 [角色扮演]
+                    语言艺术：谁是卧底
+				[策略塔防]
+                    消灭敌人：巫师行动	
+                [益智休闲]
+                    怪物大学：抓住阿奇
+                [体育竞速]
+                    坐骑狂飙：急速蜗牛
+                                            强大智能听调辨曲
+                [阅读漫画]
+                    全新巨献：新浪阅读
+                    高清流畅：风行电影			
+				[网购支付]
+                    尽享折扣：丁丁优惠	
+                [壁纸主题]
+                    品味感动：奇思壁纸	
+                                            奇异世界大冒险
+				将有趣生活变成漫画故事：漫画家						
+                贴身减肥指导养身顾问：越吃越美
+				严酷极端慢跑体验：悲剧的慢跑者
+                呆萌的治愈系：是公羊就上一百层
+                                    被妖魔化的韩复榘“父亲是被蒋介石诱杀的，御用文人编 详细&gt;&gt;雷锋：一个红色经典的异化
+rad.push(["http://d3.sina.com.cn/201306/09/496147_0610btn.swf", "", "2013-6-10", "2013-6-12", ""]);
+rad.push(["http://d5.sina.com.cn/201306/18/497258_0622btn.swf", "", "2013-6-22", "2013-12-16", ""]);
+rad.push(["http://d5.sina.com.cn/201306/18/497257_0619btn.swf", "", "2013-6-19", "2013-6-21", ""]);
+rad.push(["http://d2.sina.com.cn/201306/09/496149_0617btn.swf", "", "2013-6-17", "2013-6-18", ""]);
+                                                江青欣赏的女演员
+                                            毛泽东得知毛岸英牺牲后说了什么
+揭秘1963年谋杀刘少奇的计划(图)
+前苏联逃过审查的电影敏感镜头
+罕见：日本“禁发”的抗战照(图)
+“文革”红卫兵登广告道歉：不对的事就应道歉组图| 林彪罕见全家照(图) 对越反击战阵地上的女记者论坛| 曾被开除党籍的“女总书记” 邓小平不与谁来往博客| 台首个人体女模特直言无悔 邓小平与阿里罕见照文化| 文物骗倒德国博物馆长 日本天皇为何没有姓氏策划| 戊戌变法为何惨败 马勇：光绪与慈禧并无仇恨博客| 台湾表演的脱衣舞娘 北京当年有个&quot;国中之国&quot;好书| 《陈云全传》夺四月好书榜榜首 真实的北洋时代
+                                                真实的金陵十三钗
+战争中女俘虏们的命运(组图)
+被评审要挟的大学应回归其本义
+曾失传的毛主席“高考作文”
+安倍晋三为什么和老婆不再牵手？
+何中原：康有为真的死于“壮阳”手术吗
+周国平：谈论孤独是一件非常奢侈的事情
+方军：亲历二战的中国老兵最后的尊严(图)
+陈晓明：北大教授评点全国各地高考作文
+何中原：文革后期毛泽东下达的“秘密任务”
+蒋丰：日本皇室危机来自爱情冲击波吗(图)
+宁宁：揭秘徐志摩和陆小曼之间的小三(图)
+柯云路：女人到了30岁如何成功嫁出去(图)
+                                                苏35惊艳巴黎航展
+                                            中国扩大在南海军事存在俄不干涉
+国防部否认朝鲜邀中国联合军演 
+印媒称中国企业援助印度叛乱团体
+日称钓鱼岛海域再现神秘外籍船只 
+中国翼龙无人机畅销亚非 多国称作战指标超设计歼31喷绘现身巴黎航展：中航称参展产品皆可出口中国L-15教练机终获新型发动机 去年已出口非洲6架组图| 美曝光第六代战机真容 日本右翼份子滋事打人高清| 我超级计算机重夺第一 巴黎航展现歼31喷绘组图| 全程拍056新护离港出海 特战精英&quot;巅峰对决&quot;高清| 瑞典鹰狮战机火力展示 意大利先进概念旋翼机专栏| 中国军官新风格让美意外 中国军工让俄害怕原因
+rad.push(["http://d2.sina.com.cn/201303/29/482569_shouyetonglan03-jmb.gif", "http://sina.allyes.com/main/adfclick?db=sina&bid=536732,602988,608259&cid=0,0,0&sid=611285&advid=2618&camid=93267&show=ignore&url=http://d4.sina.com.cn/minisite/kouyu2012/index.html", "2013-4-1", "2013-11-30", ""]);
+rad.push(["http://d4.sina.com.cn/201306/17/496952_0618tl.swf", "", "2013-6-18", "2013-6-20", ""]);
+rad.push(["http://d5.sina.com.cn/201306/18/497259_0621tl.swf", "", "2013-6-21", "2013-12-17", ""]);
+rad.push(["http://d4.sina.com.cn/201305/13/491035_0517tl.swf", "", "2013-5-17", "2013-5-20", ""]);
+arrWeb1.push({"pos":"1" ,"title":"灵石县欢迎您！","url":"http://sina.allyes.com/main/adfclick?db=sina&bid=548652,615315,620584&cid=0,0,0&sid=624022&advid=15683&camid=95820&show=ignore&url=http://hmw198059.chinaw3.com","area":"0000000000000000000001000000000000","startdate":"2013-5-1","enddate":"2013-8-31"});
+arrWeb1.push({"pos":"1" ,"title":"不出国就能免费体验英国教育","url":"http://sina.allyes.com/main/adfclick?db=sina&bid=451115,513972,519248&cid=0,0,0&sid=519111&advid=16015&camid=78060&show=ignore&url=http://www.boogoole.com/gourl.php?url=HmUnd9u3iu!@2doBXlvlCcDHm9c6WojgaYEErtEZgjdX1a3RYLZiu!@2diu!@2d9XmAxhDKWvog2iu!@2d38ZLJKxjT7i1JHWGQ40lgu2dc/IT6Xr3ru96siIs3ce0SOAcTIVfyhyI2AzWDhlYQ/&backurl=http://www.qzgjb.com/news_detail.asp?id2=727&sina","area":"0000000000000000000000000100000000","startdate":"2012-7-1","enddate":"2013-6-30"});
+arrWeb1.push({"pos":"1" ,"title":"国际五星 商务首选酒店 百姓价格","url":"http://sina.allyes.com/main/adfclick?db=sina&bid=451053,513909,519185&cid=0,0,0&sid=519048&advid=17538&camid=82179&show=ignore&url=http://e.weibo.com/ihgcpordos","area":"0000000000000010000000000000000000","startdate":"2012-9-1","enddate":"2013-8-31"});
+arrWeb1.push({"pos":"1" ,"title":"建迅教育，建筑八大员考试全通过","url":"http://sina.allyes.com/main/adfclick?db=sina&bid=451113,513970,519246&cid=0,0,0&sid=519109&advid=16015&camid=78060&show=ignore&url=http://www.boogoole.com/gourl.php?url=HmUnd9u3iu!@2doBXlvlCcDHm9c6WojgaYEErtEZgjdX1a3RYLZiu!@2diu!@2d9XmAxhDKWvog2iu!@2d38ZLJKxjT7i1JHWGQ40lgu2f/p44ul3Mouiu!@2dsshN24ABMtC3gzNIaRXETrfzuvyF7JW&backurl=http://www.jianxun.cn/fx-cd/index.html?sinaindex","area":"0000000000000000000000000100000000","startdate":"2012-7-1","enddate":"2013-6-30"});
+arrWeb1.push({"pos":"1" ,"title":"省招办，四川招生考试网","url":"http://sina.allyes.com/main/adfclick?db=sina&bid=451111,513968,519244&cid=0,0,0&sid=519107&advid=16015&camid=78060&show=ignore&url=http://www.boogoole.com/gourl.php?url=HmUnd9u3iu!@2doBXlvlCcDHm9c6WojgaYEErtEZgjdX1a3RYLZiu!@2diu!@2d9XmAxhDKWvog2iu!@2d38ZLJKxjT7i1JHWGQ40lgu2dc/IT6Xr3ru/wPgbR8w8Q78yygj8vVvNwWow4TmUisT&backurl=http://www.zk789.net/?sina","area":"0000000000000000000000000100000000","startdate":"2012-7-1","enddate":"2013-6-30"});
+arrWeb1.push({"pos":"1" ,"title":"免费学习创业培训 还可免息贷款！","url":"http://sina.allyes.com/main/adfclick?db=sina&bid=451106,513963,519239&cid=0,0,0&sid=519102&advid=16015&camid=78060&show=ignore&url=http://www.boogoole.com/gourl.php?url=HmUnd9u3iu!@2doBXlvlCcDHm9c6WojgaYEErtEZgjdX1a3RYLZiu!@2diu!@2d9XmAxhDKWvog2iu!@2d38ZLJKxjT7i1JHWGQ40lgu2f/p44ul3Mou8QpnpoEEDHSY3t0sCKzaNDToBsJhTgFP&backurl=http://www.cdpx.cn/zhuanti/chuanye/index.html?sina","area":"0000000000000000000000000100000000","startdate":"2012-7-1","enddate":"2013-5-31"});
+arrWeb1.push({"pos":"1" ,"title":"布谷鸟传播，布谷鸟广告服务平台","url":"http://sina.allyes.com/main/adfclick?db=sina&bid=451099,513956,519232&cid=0,0,0&sid=519095&advid=16015&camid=78060&show=ignore&url=http://www.boogoole.com/gourl.php?url=HmUnd9u3iu!@2doBXlvlCcDHm9c6WojgaYEErtEZgjdX1a3RYLZiu!@2diu!@2d9XmAxhDKWvog2iu!@2d38ZLJKxjT7i1JHWGQ40lgu2dc/IT6Xr3ru5kmRDMwbXa0VO8CabIn6vWoIyOypGXciu!@2d&backurl=http://www.boogoole.com/?sina","area":"0000000000000000000000000100000000","startdate":"2012-7-1","enddate":"2013-6-30"});
+	rad.push([content.pic, content.url, "2013-5-1", "2013-12-31", ""]);}}catch(e){}
+	rad.push([content.pic, content.url, "2013-5-1", "2013-12-31", ""]);}}catch(e){}
+                                                高中生盛装开舞会
+副科长醉驾让母亲顶包
+高中生拿卫生纸未结账被劝退
+男生顶烈日跪半小时求女友原谅
+男子飞车拖狗致其死亡(图)
+男子不满前女友言论杀其一家 大叔美国名校前卖凉皮
+黑车数百米车程索要2千元 小伙举报父亲犯罪遭亲人责骂
+少年公交车上抽烟打劝阻者 称爷爷是保密局长
+女童在校门口被人带走杀害续:警方悬赏10万追凶
+非洲男子诈骗中国女子900万 逃犯怕被认出穿太多中暑
+公交司机被曝因开空调纠纷逼学生乘客自扇耳光
+67岁老母亲徒步11天探监 称怕活不到儿子出狱
+女子把歹徒打下车碾压 丈夫包养小三被妻子打断腿
+                                                雅安善款使用方案
+                                            赵白鸽称要建立新时期公信力
+顺风车试点首日 领券率不足30%
+严禁任何机构个人私收弃婴
+人社部：建议适时公布调查失业率
+红会应尽快脱去行政外衣 去行政化不意味和政府无关食品安全法年内修改 将加大对违法的惩处居民上网可看公益艺术展览 公益票房需要更多社会参与扬帆| 
+企业志愿者回访学校 参加为爱转发送书活动项目| 明星寄语芳菲绿色手绢计划活动| 2013年“李锦记希望厨师”项目火热报名中策划| 童梦行动：一起为太阳村100名孤儿圆梦微博|
+爱心企业助力扬帆 研究慈善传播公益
+                                                爆乳游戏声优自拍E3上次世代游戏美丽画面镜头集锦
+大一新生制作的虚拟现实色情游戏
+暗黑3访谈:未来将增加更多销金窟
+游龙戏凤悟空传蹴鞠大赛即将开幕
+美女将加盟《古墓丽影》电影 《怪物猎人OL》首测前瞻
+魔兽5.4新增超炫阵营坐骑一览 《激战2》国服八月二测
+细数游戏中的大胡子狠角色 《英雄联盟》海量福利大图
+圣斗士星矢公测卡
+蜀门大礼包 
+NBA2K OL独家卡
+单机| 外媒评2013年E3最佳游戏 凡人修仙传单机版截图
+评测| 《圣斗士星矢》横向对比 堪比富春山居图的游戏
+视频| 国外胖宅脏话狂喷国产游戏 E3主机版暗黑3发布会
+球迷福利大放送  热门页游
+                                                犀利妹子超神解说  
+                                            TGA2013大奖赛射击类游戏直播日
+SCNTV中国星际大师赛火热开赛
+国外都玩啥 老外的疯狂游戏世界
+《笑傲江湖》华山巅峰论剑直播
+问道四门绝阵五行试炼 桃花源记帮会联谊进阶赛画皮世界逐鹿之野帮会夺魁 远征剑仙翅膀灵力加星流程黄金十二宫危机活动挑战 斗破苍穹城市跑商线路明星主播| 
+战机世界国服首测中
+叮当解说2v2精彩对决  
+活动赛事|
+CCL英雄联盟高校大赛 外星人DOTA2赛事直播
+美女直播| 甜音御姐英雄联盟内战   女神讲述画皮世界 
+英雄联盟|
+北大荒车队职业选手直播   最强赛车手的对决  
+DotA2|
+LGD国际队的生死战役   CDEC战火重燃谁主沉浮  
+                                        商讯
+                                                    儿童乐园好赚钱
+                                                        target="_blank">减肥签约信得过
+                                                    荐!轻松提200分
+                                                    最主流博客频道
+rad.push(["http://d3.sina.com.cn/litong/zhitou/union/yihaodian.html?w=1000&h=90&pid=5q8lkf_1019060&type=html", "", "2013-6-1", "2013-12-31", "3411212"]);
+rad.push(["http://d2.sina.com.cn/rwei/mediav2013/1000x90ls_tl04_2013mediav.html?ref=http://www.sina.com.cn&type=.html", "", "2013-6-1", "2013-12-31", "3411212"]);
+                                                混血美人风情大片
+                                            排行| 百变章子怡无下限穿衣秀
+              情感|  暧昧成功计 男人15种吻法
+              花边|  李云迪传有女 
+黄晓明示爱
+              健康| 喷血胸模PK 屁股看床功夫
+黄奕长裙巧遮肉
+柳岩大秀美腿
+邓文迪传奇着装美容|  
+大战油脂痘痘肌
+90后冷艳女星
+染发后如何锁色
+时尚| 
+反明星时代
+范爷玩转带帽风格
+大牌款式也雷同美图| 
+童颜巨乳萝莉
+半裸诱惑 
+经典全裸大片
+足球宝贝特辑|
+ 男人无法抗拒的女星 
+                论坛：女人惹不起 当光棍吧专栏| 
+历任男友都说我是女流氓  
+大胸MM 
+姚晨性感大肚照口述| 
+老婆只上民工床 
+男友哥们勾引我 
+房事年终总结试用| 速抢50套妮维雅正品礼包 点击申请卡诗高端洗护
+                                                脱衣舞娘时尚大片
+波点回潮 六招逆袭密集恐惧症
+反明星时代：我们有权厌恶你
+黄奕长裙巧遮肉 明星的大牌情结
+造型师揭秘女星红毯最美造型
+百变章子怡无惧Cos昆虫大咖秀 白冰中国风简约小性感刘诗诗定制翡翠绿礼服 
+张梓琳陈乔恩简约廓形清爽宜人睡好美容觉的8条基本要领
+白天肌肤护理完美4步骤蟒蛇纹单品进阶夏日新宠 学女星珠宝潮搭比基尼亮眼黄色单品抢滩春夏
+T恤不是地摊货 超模显瘦搭配护肤无国界 延续美丽至首尔 小麻豆复古修身气质搭配社区长腿美女露大腿穿搭秀 
+张雨绮法国看赛马性感爆表详细步骤教你打造完美刘海 日本麻豆麻理惠的混搭风格
+                                                约会10大潜规则
+教师告别铁饭碗 饭碗男不靠谱
+女人玩暧昧 如何才能修成正果
+男人最讨厌女人的这10种行为
+47岁成功女找80后小老公
+男人15种接吻方式 暗藏真相 
+揭秘10个最流行的性爱场所
+陈冠希带90后女友见家长 
+女星支持日本队被骂慰安妇孙红雷美艳模特女友曝光 
+滕丽名斥旧爱背娇妻求复合
+全球性器官尺寸排行
+从屁股看男人床上战斗力
+老公闹离婚我找同事求慰藉 
+婚后4招 将诱惑进行到底
+老婆成民工床上客不让我碰 
+未婚夫派他铁哥们勾引我
+丈夫和90后同居我该怎么办 
+一月爱爱四次算不算逃公粮
+“结婚狂”遇上“恐婚男” 
+男人为何纠结“处女情结”
+买房养老
+新闻|5月65个城市房价环比上涨
+市场|端午后房山纯新盘3居将开
+新盘|园林景观设计成高端卖点
+淘房|高端之战各有优势谁可逆袭
+新闻| 北京上周10楼盘入市 京城房价调控陷入迷局
+图解| 官厅度假观景别墅 黄村板块1-2居刚需
+论坛| 网上买房八折有图有真相 聚焦亦庄崛起南城博客| 房地产调控不宜再加码 商业地产是楼市隐形炸弹
+要闻|  下半年极可能政策加码 北京预售证管理趋严
+深度| 专访堪俊宇：红星地产的美好时代 深度报道汇总二手房| 认证房诚信房源大联展 中国网络经纪人联盟家居| 林志玲重口味家居床照 6万打造幸福满满100平
+毕业淘房好季节
+地价三级跳 房地产投资仍具潜力
+北苑VS果园 刚需300万内通州购房
+高端置业选中央别墅区 680万起购
+学区房房价经久不降 配套是关键
+热点| 
+上周住宅成交量小滑 
+京住宅供应迎来一波放量
+政策| 
+京城房价调控陷越调越高迷局 价格机制失灵
+市场| 
+城市房价涨的不可理喻
+投资客转投商业地产
+专题| 
+安家置业看准中央别墅区
+淘京北低密度宜居房
+观察| 
+谢国忠：房价5年内将掉一半
+公积金缴存差距大
+综合| 
+首个组装公租房将交付
+银行取消房贷利率优惠
+评论| 
+吴学安：空置率应成为楼市调控重要指标
+导购| 
+海淀置业 
+地铁房 
+免税房 
+稀缺房 
+婚房 
+天通苑
+                                                林志玲重口味私照
+                                            3步看懂装修图纸 做精明装修人
+快乐天地 DIY不一样的儿童飘窗
+父亲节超温馨活动感动无数父亲
+气质女5万打造英式63平小清新
+休闲风客厅色彩搭配的讲究 小户型室内隔断创意设计明星|郭美美奢华炫富惹众怒 柳岩柠檬黄裙火辣性感支招| 小户型的空间增容魔法 小户型一分为二有妙招攻略| 10妙招装出高端国际化 小户型工作角落巧规划专题| 家装防水窍门曝光 聪明人装修费用清单大曝光高清| 13万阳光200㎡婚房 101平中式雅致韵味2居美图| 中年夫妻210平艳丽豪宅 160平现代美式3居风水| 六禁忌让贫贱风水找上你 家居风水镇宅十宝物
+                                 TED：脑电波操纵电脑
+                                        更多课程J.K.罗琳哈佛励志演讲 王强北大讲座
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://sina.allyes.com/main/adfclick?db=sina&bid=564092,631269,636539&cid=0,0,0&sid=640492&advid=20807&camid=99001&show=ignore&url=http://weibo.com/hxl1993","pic":"http://d3.sina.com.cn/201306/18/497176.jpg","area":"0000000000000000000000001000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-6-18", "2013-6-18", ""]);}}catch(e){}
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://sina.allyes.com/main/adfclick?db=sina&bid=562261,629405,634675&cid=0,0,0&sid=638593&advid=19060&camid=98328&show=ignore&url=http://hb.sina.com.cn/zt/zhyhigh/index.shtml","pic":"http://d5.sina.com.cn/201306/12/496378.swf","area":"0100000000000000000000000000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-6-17", "2013-6-21", ""]);}}catch(e){}
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://hunan.sina.com.cn/zt/city/lanjie/index.shtml","pic":"http://d2.sina.com.cn/201306/18/497246.html","area":"0000000000000100000000000000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-06-17", "2013-06-30", ""]);}}catch(e){}
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://travel.sina.com.cn/hb_enshi_692-xiangqing-gonglue/","pic":"http://d2.sina.com.cn/201306/17/497072.jpg","area":"0000000000001000000000000000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-06-17", "2013-07-10", ""]);}}catch(e){}
+var arrWeb1 = new Array(),fps = new Array();arrWeb1.push({"pos":"1" ,"url":"http://sina.allyes.com/main/adfclick?db=sina&bid=562261,629405,634675&cid=0,0,0&sid=638593&advid=19060&camid=98328&show=ignore&url=http://hb.sina.com.cn/zt/zhyhigh/index.shtml","pic":"http://d1.sina.com.cn/201306/12/496379.swf","area":"0000010000000000000000000000000000"});var fps = webShow({'resid':'PDPS000000000001','webs':arrWeb1,'area':local_index,'city':location2,'rearrange':false,'fixedinc':true,'type':'pic','action':'data'});try {var content = fps.fixed['1'];if(content.pic != '') {rad.push([content.pic, content.url, "2013-6-17", "2013-6-21", ""]);}}catch(e){}
+                                        出国
+公开课
+                                                舞蹈系美女毕业照
+中国大学50强榜单出炉 北大居首
+明星高考分数曝光 高产状元中学
+红黄牌专业 高中生疯狂毕业舞会
+估分选校 同分考生去向 历年分数
+公务员历程：35岁需升正处 硕士骑行走完交大西迁之路
+60%状元毕业后留学 美绝版漫画拍出17万刀 英奇葩试题
+富翁背后旺夫女 2.3亿元教训 法国高考作文题目引热议
+九教育毁孩子 小学拟请女星教性(图) 十大溺爱可怕后果
+CET|四六级真题答案 外教暴利令人咋舌 邓文迪传奇人生
+希望父母做的事 新西兰11岁父亲 专职遛狗年薪2万6美金
+百分百剩女私生活实录(图) 艺考女生当众大胆换衣(图)
+图集|最帅交警引考生围观  日本女生短裙有没有尺度(图)
+宝宝出生前学什么
+上海金牌留学顾问 金牌留学团队
+广州金牌留学顾问 金牌留学团队
+TED：用脑电波遥控电子设备
+专家点评2013年各地高考作文
+赴美留学热门专业解析 欧洲留学参考高考成绩吗？
+“洋高考”备战揭秘 加修改入籍考题9成中国移民及格
+北京个别高中四成毕业生弃考留学 曼哈顿“0”小费餐馆
+TED：快速记忆技巧 记录最快的动物 如何买到幸福
+可口可乐营销秘诀 谈判专家解读协商艺术 打印肾脏
+世界名校毕业演讲集 服装搭配指南 实用Excel教程
+复旦学生看不起学校而退学  6中国留学生在法遭袭
+郑州一小学开防性侵教育 两男抱充气娃娃北大裸奔
+                                                超梦幻性感孕照
+热点|-->磨牙饼干坑娃 不实用BB用品榜单
+专家微访：初夏孕产妇疾病防治-->
+崔玉涛答疑:奶粉喂养大小事-->
+图集|
+男童妓另类人生 海地童奴
+挑战眼球的自然分娩 郭可盈女儿
+中医与孕育 产后怎调整心理
+孕产| 
+阻好孕食物杀手 
+准爸爆笑胎教录
+啥致胎儿畸形
+早教| 
+早教12误区 
+好家长40建议 
+中式育儿10大致命伤
+女童模仿动画片跳楼 几岁学外语 
+止打嗝绝招
+婆婆比亲妈好 
+上环才能上户口？
+被LG一句话说哭博客| 
+毁娃一生教育法 婆婆挑事逼疯我 老公买套会小3
+产后阴道松咋办 
+为何同房后出血 
+8月宝能吃盐吗
+专题| 22日妇科病讲座报名 明星给娃的信 
+重罚未婚妈？
+热点| 为美籍塞班生子 林熙蕾爱女(图) 安检仪卡男童手
+                                    白葡萄酒的冰爽夏日
+                                        白葡萄酒是夏季最好的时令酒！详细&gt;&gt;
+                                    老板，来瓶啤酒！
+                                        喝啤酒，也可以选择国际范儿的！详细&gt;&gt;
+                                    表展趋势报告
+                                        它们会成为表迷交流的热门腕表。详细&gt;&gt;2012期酒投资解析
+南半球的葡萄酒香
+                                                夏日性感泳衣诱惑
+                                            米其林明星大厨私家餐厅榜单
+熟记六大准则挑出保值名表
+全球最奢华总汇三明治
+追随世界遗产住绝美酒店
+潮流|十款明亮绿色运动鞋 Gucci推出竹节镶嵌太阳镜珠宝|变幻莫测的蛋白石 那些超越地球引力的航天腕表美食|揭秘10种有毒水果易容术 食品调香师的舌尖魔法美酒|你属于哪种类型的酒客？ 婚宴葡萄酒甄选攻略玩乐|再见！“F1车王” 约克郡：英国最易闹鬼古城博客|世界最美五家葡萄酒旅店 大英博物馆典藏珠宝尚文|虎妻邓文迪：当爱已成往事  解析中国少女生态
+                                                高球美女素颜
+美国公开赛罗斯夺冠老米六次亚军
+林湘：伍兹问题在于太在乎大满贯
+老米第10洞74码一击入洞射鹰
+高清-罗斯 伍兹 花絮 决赛 老米
+罗斯：孩提时的梦想终实现 详解第18洞深呼吸缓解压力
+伍兹创美国公开赛最差表现 美浓球场缺点明显但仍迷人
+花絮-小麦两次下水怒折铁杆 斯蒂芬尼1杆进洞拒捐小球
+现场-曼城老爷爷组队观赛 球迷自发为老米唱生日歌
+花絮-沃恩称与伍兹一起像活在金鱼缸 王宝强痴迷打球
+老詹博客：挥杆稳定性的关键 高尔夫不是我希望的样子
+球技-新手如何打好沙坑球？ 果岭旁沙坑成功救球
+                                                德国经典之旅
+                                            吃货鉴定团 盘点最销魂夜市小吃
+炎炎夏日 蜜月旅行升温爱情
+寻找全球最令人羡慕好工作
+比飞机方便 高铁畅游欧罗巴攻略
+国内| 洛阳白马寺中国第一古刹 壮美三峡大坝1日游
+国内| 跟着徐霞客走进天台山 九江龙源峡避暑好地方
+出境| 墨西哥寻找消失的玛雅文明 纽约3日大片之旅
+出境| 苏格兰探秘生命之水 新西兰南岛4日激情自驾
+热门| 毕业季名校旅游受亲睐 飞美国客机遭遇投毒
+乐享| 开普敦飞车党 欧洲最美教堂 全球最大船舶墓地
+发现| 希腊爱之旅 意大利老城堡 马尔代夫浪漫时光
+                                                生活不需要浮躁
+高清美图鉴赏 向摄影大师学拍照
+洗涤灵魂之美图 萝莉可爱卖萌照
+屌丝达人专属玩转微博玩转微相册
+我们时刻走在美食领域的最前端
+永恒之爱的烙印 没有终点的旅行之路 屌丝摄影分享经
+快乐美图齐分享 一个人的旅行梦想 微博达人自拍技巧
+摄影达人晒美图 人生定位之旅行 美女萝莉清新美图
+家里的幸福港湾 清纯美女私房美图 天使宝宝萌翻照
+谈爱情的学问 星座小坏蛋排名 刘墉写给女儿旅行百忌
+9细节表示男生喜欢你 爱是种责任 让12星座抓狂的好友
+人脉关系定律 喝水的瘦身方法 不良习惯让大脑变迟钝
+                                                中海油工程毁文物
+2013版熊猫金币价格上涨2.11%
+英艺术家逼真油画为新娘画婚纱照
+巴塞尔艺术展上亚洲面孔有减无增
+艺术家用LED灯创作的光影涂鸦
+家具| 红木家具涨价推动行业 7红木树种成国际濒危植物
+趣闻| 慈禧与瓷器的岁月 艺术家用LED灯创作光影涂鸦
+投资| 抄底欧洲古董家具须谨慎 海外基金进葡萄酒漩涡
+业界| 广州启动强挖古墓问责 在香港破坏古迹判监禁1年
+拍卖| 巴黎拍卖师接受中国客户巨款被罚 科比将做义拍
+藏品| 游资将普洱炒成奢侈品 江城普洱茶价格涨三成
+男子盗走20余万元玉关公玉观音 房山唐墓内藏三大谜团
+                                                实拍悉尼性展览
+女性外阴结构 揭秘性兴奋因素
+  私处大小与性高潮 最佳性爱时辰
+ 私处分泌液秘密 连续性爱伤身
+性器官标准尺寸 男人最怕七种病
+保健|15个长寿征兆 如何把握房事频度 盘点有毒凉拌菜
+疾病|性爱后滴精正常吗 头发变稀警惕病 最易藏虫食物
+新闻|新食品安全法初稿将出炉 女子车祸后突有法国腔
+曝光|救命药也造假 皮革变食用明胶 性交易受害者实录
+博客|高潮必学12招 女性想要哪种性爱 性器官N个真相
+图集|男性生殖系统图 性博物馆露骨展示 实拍成人用品
+性福课堂|男人为何晨勃 完美性爱有神效 性养生古法
+2013暑期佛教夏令营
+舍利究竟是什么(组图)
+与数字有关的佛教名相
+法门寺佛学院《瑜伽师地论》研究班招生一位母亲看待女儿出家的心迹转化之旅开示|净慧长老泽山寺开示 如何对治妄想常识|香炉的种类及其意义 话说数珠(图)学佛|在串习中勇猛前进 佛法挽救了婚姻博客|提倡放生的历代祖师 如何应对虫害文化|金铜佛造像邮票发行(图) 心静茶至素食|鲜美荷塘小炒 夏日茶香毛豆(图)
+                                                香草手工冰淇淋
+让人垂涎欲滴的韩风鸡翅 鱼丸面
+靓丽诱人缤纷水果捞 小盆栽酸奶
+芒果奶酪慕斯蛋糕 翻糖悍马蛋糕
+新浪美食感恩季 小S谢娜闺蜜情
+美食|  MM最爱的微博餐厅 高清无码美食大图 搜馆子必备
+探店|  用炒肝解决早餐 每天都吃三样菜的男人 芝士青年
+专辑|  一大波吃货秀美食 不能错过的小馆子 北京好猪蹄
+话题|  #随手拍美食#吃货主题狂欢季  各路吃货"求被抽"
+博客| 混血少女亮瞎双眼(图) 大胆开放高中男女生(图)
+最热| 富翁背后旺夫女 2.3亿元教训 史玉柱自述赚钱路
+推荐| 揭秘北大校花袁佳怡背景 女生在韩国接客265次
+                                                4大血型猪窝探秘
+                                            本周运势 测你幸运值 还原双子座
+面相盘点：双面伊人的双子座明星
+运势：本周星象对12星座影响
+揭秘养小鬼的真相 生意人的命格
+测试|谁在偷偷想你 你有出名的命吗 你的爱情花长啥样
+运势| Alex周运 12星座每日运 12星座半月运 12生肖运
+教程|射手座的真面目 月亮入处女的定义 海王星的启迪
+论坛|金牛男的三不原则 处女男天生爱受虐 极品天蝎男
+心理|吵架的9个禁忌 让恋爱美好的8秘笈 骗人的10定律
+视频|血型把妹高手 血型工作狂 血型不靠谱
+金牛 双子 巨蟹 狮子 处女 天秤 天蝎 射手 魔羯 水瓶
+            上海 重庆 广东 河南 四川 福建 浙江 江苏 湖北 湖南 陕西 辽宁 黑龙江 安徽 河北 云南 江西 吉林 闽南 青岛 西安
+            石家庄 邯郸 苏州 泰兴 射阳 启东 六合 靖江 海安 海门 上虞 义乌 阳春 漠河 [公告声明]
+rad.push(["http://d4.sina.com.cn/201305/23/492889.swf", "", "2013-4-1", "2013-11-30", "3369034"]);
+rad.push(["http://d4.sina.com.cn/201305/23/492889.swf", "", "2013-4-1", "2013-11-30", "3369034"]);
+rad.push(["http://d4.sina.com.cn/201305/23/492889.swf", "", "2013-4-1", "2013-11-30", "3369034"]);
+rad.push(["http://d1.sina.com.cn/201302/17/477744_zhangzhongbao_underbanner.jpg", "http://sina.allyes.com/main/adfclick?db=sina&bid=524981,590754,596031&cid=0,0,0&sid=598652&advid=13729&camid=90966&show=ignore&url=http://www.0166.com/shop/zzb/?name=sndt333", "2013-4-1", "2013-11-30", ""]);
+rad.push(["http://d1.sina.com.cn/201302/17/477744_zhangzhongbao_underbanner.jpg", "http://sina.allyes.com/main/adfclick?db=sina&bid=524981,590754,596031&cid=0,0,0&sid=598652&advid=13729&camid=90966&show=ignore&url=http://www.0166.com/shop/zzb/?name=sndt333", "2013-4-1", "2013-11-30", ""]);
+rad.push(["http://d1.sina.com.cn/201302/17/477744_zhangzhongbao_underbanner.jpg", "http://sina.allyes.com/main/adfclick?db=sina&bid=524981,590754,596031&cid=0,0,0&sid=598652&advid=13729&camid=90966&show=ignore&url=http://www.0166.com/shop/zzb/?name=sndt333", "2013-4-1", "2013-11-30", ""]);
+rad.push(["http://d4.sina.com.cn/201305/23/492889.swf", "", "2013-4-1", "2013-11-30", "3369034"]);
+rad.push(["http://d4.sina.com.cn/201305/23/492889.swf", "", "2013-4-1", "2013-11-30", "3369034"]);
+rad.push(["http://d4.sina.com.cn/201305/23/492889.swf", "", "2013-4-1", "2013-11-30", "3369034"]);
+"2013-6-18-9",//投放开始时间2013-06-18
+"2013-6-19-9",//投放结束时间非单天要加12013-06-18
+"2013-6-19-9",//投放开始时间2013-6-19
+"2013-6-20-9",//投放结束时间非单天要加12013-6-19
+"2013-6-17-9",//投放开始时间2013-6-17
+"2013-6-18-9",//投放结束时间非单天要加12013-6-17
+"2013-6-17-9",//投放开始时间2013-6-17
+"2013-6-18-9",//投放结束时间非单天要加12013-6-17
+"2013-6-18-9",//投放开始时间2013-6-18
+"2013-6-19-9",//投放结束时间非单天要加12013-6-18
+"2013-4-19-9",//投放开始时间2013-4-19
+"2013-4-19-9",//投放结束时间非单天要加12013-4-19
+rpb.push(["http://d5.sina.com.cn/201306/18/497188_750x450_sn.swf", "http://sina.allyes.com/main/adfclick?db=sina&bid=543382,609813,615082&cid=0,0,0&sid=618297&advid=13829&camid=94740&show=ignore&url=", "2013-6-18", "2013-6-18", ""]);
+rpb.push(["http://d1.sina.com.cn/201305/31/494545_750450ls_bt_0531.swf", "http://sina.allyes.com/main/adfclick?db=sina&bid=558243,625265,630533&cid=0,0,0&sid=634331&advid=9144&camid=97619&show=ignore&url=", "2013-06-18", "2013-06-20", ""]);
+rpb.push(["http://d1.sina.com.cn/201305/31/494545_750450ls_bt_0531.swf", "http://sina.allyes.com/main/adfclick?db=sina&bid=558243,625265,630533&cid=0,0,0&sid=634331&advid=9144&camid=97619&show=ignore&url=", "2013-06-17", "2013-06-17", ""]);
+rpb.push(["http://d4.sina.com.cn/201305/31/494348_750450.jpg", "http://sina.allyes.com/main/adfclick?db=sina&bid=557704,624722,629990&cid=0,0,0&sid=633783&advid=20288&camid=96326&show=ignore&url=http://clk.pagechoice.net/clk/iv-1602/st-23/cr-2/oi-99693/or-1622/adv-1/pcon-0/http://e.weibo.com/2129365744/app_1793883551", "2013-06-17", "2013-06-17", ""]);

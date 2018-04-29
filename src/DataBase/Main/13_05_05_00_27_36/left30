@@ -1,0 +1,170 @@
+地址是??????(正则防御) ：yiivon.com/，获取方法是 ：utf-8
+Welcome to Yiivon&#039;s Home
+	.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}
+						__{}_
+						yiivon&#039;s blog
+				主菜单
+								跳转到主要内容
+				跳转到次要内容
+								首页IVSPIDER下载TT联系
+		搜索
+			Navegación por las entradas
+			&larr; Entradas más antiguas
+					一
+					22
+							纪念并致敬——Aaron Swartz
+				发表在 一月 22, 2013  为  yiivon			
+			Reddit联合创始人、RSS规格合作创造者、web.py创始人、著名计算机黑客Aaron Swartz于纽约当地时间1月11日自杀身亡，享年26岁。Aaron Swartz的叔叔已经向《The Tech》证实了这一消息。
+Swartz很早就参与了网络标准的建立，在14岁就参与创造RSS1.0规格，并因此在程序设计圈中声名鹊起，也从那时开始成为W3CRDF核心工作组成员。他还与John Gruber共同设计了排版语言Markdown。
+早在2000年，Swartz就用wiki技术开发了“theinfo”百科全书计划。他公司的后台也以wiki架设。
+Swartz曾在斯坦福大学读书，但很快辍学创建Infogami软件公司。Aaron Swartz还是社交新闻网站Reddit的三位创始人之一，2006年初，Infogami与Reddit合并，并在2006年底被出售给出版公司Condé Nast。Swartz在20周岁生日前出售了他所持有的股份。
+Swartz在2010年创立了反对互联网审查的Demand Progress。这个机构通过Email及其他媒体组织群众，针对特定议题向国会议员及其他意见领袖表达意见、施予压力。
+2011年7月19日，Swartz因数字偷窃被捕，被控从MIT和JSTOR下载了480万篇学术论文，他在支付10万美元保释金后被释放。Swartz是利用外置硬盘、通过物理接触的方式从MIT内网运行脚本下载JSTOR论文的。
+JSTOR是一个在线学术期刊系统，它的数据库包括了一千多家期刊，供获得许可的图书馆、大学和出版机构自由访问。Aaron Swartz居住在麻省剑桥，2010年9月他购买了一台电脑，在MIT网络中注册了一个用户名ghost，运行Python脚本从JSTOR数据库中下载论文。JSTOR探测到了脚本，屏蔽了他的IP地址。Swartz随后迅速改变IP和MAC地址，绕过MIT和JSTOR的封杀。他接着购买了第二台笔记本，加快论文下载。2010年10月，JSTOR放弃了追杀，屏蔽了整个MIT校园网络。几周之后，Swartz再次运行论文下载脚本，这次他进入了MIT的网络柜，给自己分配了两个IP地址，在网络柜中藏好笔记本和外置硬盘。根据起诉书(PDF)，他是戴着自行车头盔进出网络中心的。起诉书指控他有意在文件共享网络分享他下载的数百万论文。
+JSTOR表示它无意起诉Swartz，对Swartz的起诉是美国政府的决定由美国联邦检察官坚持提出。2012年9月24日，Swartz出席法庭听证会但拒绝认罪。
+Swartz还是web.py的创始人，web.py是一个Python的web框架。
+http://aaronsw.archiveteam.org/
+&nbsp;
+http://kat.ph/r-i-p-aaron-swartz-jstor-archive-35gb-t6983190.html
+				发表在 生活片段			
+									 | 
+						留言
+					十二
+					22
+							MakeSureDirectoryPathExists 易错点
+				发表在 十二月 22, 2012  为  yiivon			
+			在MSDN中有明确说明：
+MakeSureDirectoryPathExists Function
+Creates all the directories in the specified path, beginning with the root.
+BOOL WINAPI MakeSureDirectoryPathExists(
+__in PCSTR DirPath
+);
+Parameters
+DirPath
+A valid path name. If the final component of the path is a directory, not a file name, the string must end with a backslash (\) character. （* 必须以&#8221;\&#8221;结尾的才被当作目录）
+Remarks
+Each directory specified is created, if it does not already exist. If only some of the directories are created, the function will return FALSE. (* 在路径中任一目录没有被创建成功，则返回 false)
+This function does not support Unicode strings. To specify a Unicode path, use the SHCreateDirectoryEx function.(* 函数不支持 Unicode 的路径字符串)
+All DbgHelp functions, such as this one, are single threaded. Therefore, calls from more than one thread to this function will likely result in unexpected behavior or memory corruption. To avoid this, you must synchronize all concurrent calls from more than one thread to this function(* 所有DbgHelp中的API，包括此函数，都是非线程安全的函数。即同一时刻只能在单个线程中调用。否则有可能导致内存异常。
+在使用此函数的时候，很容易忽略路径中最后一个目录中结尾的“\”，导致没能成功创建最终需要的目录。
+				发表在 c/c++代码			
+									 | 
+						2 回复
+					十二
+					15
+							poco在windows 编译默认使用 POCO_WIN32_UTF8 UTF-8编码
+				发表在 十二月 15, 2012  为  yiivon			
+			在使用poco 的DirectoryIterator时候，发现返回的中文路径（std::string）都是乱码（在我的程序中，使用ASCII 编码）。后发现，poco使用带W结尾的WIN API，并将宽字符字符串结果（UNICODE编码）转换为UTF-8输出，即在我的程序中得到的中文路径编码为UTF-8 。
+查看poco头文件源码，发现
+#if defined(POCO_OS_FAMILY_WINDOWS) &amp;&amp; defined(POCO_WIN32_UTF8)
+#endif
+宏 POCO_WIN32_UTF8 指定了以U结尾的源码文件，而对应地有没带U的源码文件。于是，简单的解决方法：
+注释掉在Foundation\include\Poco\Config.h 的 #define POCO_WIN32_UTF8 一行，重新编译poco即可。修改后如下：
+#ifndef Foundation_Config_INCLUDED
+......
+				发表在 c/c++代码			
+									 | 
+						1 回复
+					十一
+					20
+							vmware 客户机网络故障
+				发表在 十一月 20, 2012  为  yiivon			
+			VMware 在某些情况下，客户端网络会出现以下故障或情形：
+与VirtualBox或别的虚拟机安装在同一台宿主机上。由于VirtualBox在安装时会同时安装虚拟网卡，VMware客户端在使用桥接方式配置网络时，桥接的虚拟网卡默认采用自动对接某块物理网卡（可能为VirtualBox虚拟出来的网卡），会导致桥接的VMware客户机无法上网。此时的配置方法是在VMware的网卡配置中，修改vmnet0虚拟网卡明确指向当前使用的物理网卡；
+宿主机上有多块网卡时，在网卡间切换使用时（如，从无线网卡切换到有线网卡），VMware客户机将可能无法正常上网。此时的解决方法是，在VMware网卡配置中增加一块网卡并指定当前使用的物理网卡。
+				发表在 软件使用			
+									 | 
+				已标记 virtualbox, vmware, 虚拟网卡			
+									 | 
+						2 回复
+					十一
+					01
+							wordpress 获取当前页面内容
+				发表在 十一月 1, 2012  为  yiivon			
+				// 以下代码可在页面模板中使用，常常用以获取当前页面内容并简单过滤，实现页面自定义标记调整功能
+	echo $cur_page-&gt;post_content;
+&nbsp;
+				发表在 wordpress			
+									 | 
+						留言
+					十
+					22
+							移除google搜索结果链接重定向
+				发表在 十月 22, 2012  为  yiivon			
+			在点击谷歌搜索结果时，会被重定向至谷歌服务器再转至实际链接页面。这是正常的。可是，被重定向的链接，会常常被某些强制性的东西切断，导致无法忍受、让人发疯的超时或页面重置错误。
+本来想写个插件，可是搜索一看，早有这样的插件了：DGSRR（chrome,谷歌浏览器插件） ，这插件的代码寥寥几行，却非常的优美。特此推荐。
+原作者文章及插件出处：
+《移除google搜索结果链接重定向》
+				发表在 软件使用			
+									 | 
+						留言
+					十
+					20
+							v8 javascript引擎中文乱码
+				发表在 十月 20, 2012  为  yiivon			
+			使用V8进行常规开发时，只需要注意以下几点即可正确输出中文字符：
+v8::String::AsciiValue  将把String中保存的字符串（宽字符）转换为多字节字符串（ASCII）；
+v8::String::Utf8Value 将把String中保存的字符串转换为UTF8编码格式的字符串，这是V8接收输入要求的编码格式；
+v8::String::Value 将把String中保存的字符串以宽字符输出，即输出为Unicode。
+根据以上简单的三点，在windows下使用v8编程时，可以使用v8::String::AsciiValue输出纯英文字符串，使用v8::String::Value 输出Unicode（正确的中文显示）字符串（使用wstring, wchar_t, wsprintf, printf(&#8220;%ls&#8221;,)）。
+				发表在 c/c++代码			
+									 | 
+				已标记 js, String, unicode, v8, 中文			
+									 | 
+						留言
+					十
+					18
+							http 提交POST请求及文件上传，使用POCO C++库
+				发表在 十月 18, 2012  为  yiivon			
+			服务端PHP脚本(upload.php)：
+&lt;?php
+?&gt;
+客户端C++代码：
+bool handle_response(Poco::Net::HTTPClientSession&amp; session, Poco::Net::HTTPRequest&amp; request, Poco::Net::HTTPResponse&amp; response)
+}
+客户端输出：
+ (如需相关源码文件，请留言索要。)
+				发表在 c/c++代码			
+									 | 
+				已标记 c++, http, poco, post, upload			
+									 | 
+						3 回复
+					八
+					31
+							stl::map.find 不区分大小写
+				发表在 八月 31, 2012  为  yiivon			
+			struct ci_less : std::binary_function {
+typedef map VEC_ELEM, *PVEC_ELEM;
+&nbsp;
+				发表在 c/c++代码			
+									 | 
+						1 回复
+					八
+					20
+							引导区重建
+				发表在 八月 20, 2012  为  yiivon			
+			&gt;grub
+(hdx, 0) =&gt; (hd0,0)
+&nbsp;
+				发表在 软件使用			
+									 | 
+						留言
+																Page 1 of 212
+			公告			
+			ivspiderII 即将发布！
+						近期文章		
+				纪念并致敬——Aaron Swartz
+				MakeSureDirectoryPathExists 易错点
+				poco在windows 编译默认使用 POCO_WIN32_UTF8 UTF-8编码
+				vmware 客户机网络故障
+				wordpress 获取当前页面内容
+		分类目录		
+	c/c++代码
+	wordpress
+	生活片段
+	软件使用
+近期评论三五笑话 发表在《MakeSureDirectoryPathExists 易错点》三无屌丝 发表在《MakeSureDirectoryPathExists 易错点》I did it! I lost 14 pounds in just 15 days! 发表在《poco在windows 编译默认使用 POCO_WIN32_UTF8 UTF-8编码》yiivon 发表在《TT》黄文峰 发表在《TT》		
+				翻译/Translator		
+								&copy; 2013					
+						__{}_					
+										Admired Theme
