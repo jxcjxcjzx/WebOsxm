@@ -1,6 +1,7 @@
 interface datahandle
 {
   void StoreData(String register,int index,ArrayList<String> content);
+  void GetData(String describe);
   void StoreData(String category,String content);
   ArrayList<String> LoadData(String register_key,int index);
 }
@@ -11,12 +12,9 @@ class Dator implements datahandle
     BookCaseManager datamanager = new BookCaseManager();
     String datafolder = "C:/Users/Administrator/Desktop/WebOsxm2.0/data";
     String databackfolder = "F:/DFJ/WebOsbase";
-    String FirstDataPlace = "F:/DFJ/WebOsbase/Main";
-    String SecondDataPlace = "C:/Users/Administrator/Desktop/WebOsxm2.0/DataBase/Main";
     int basecount = 0;
     int currentindex = 0;
     boolean Baseloaded = false;
-    ArrayList<String> filelist = new ArrayList<String>();
     
     void StoreData(String category,String content)
     {
@@ -29,8 +27,6 @@ class Dator implements datahandle
           BuildNewBase(this.basecount,this.datafolder);
           BuildNewBase(this.basecount,this.databackfolder);
           main.parsexml.SetIntValue("basecount",this.basecount);
-          main.parsexml.SetIntValue("currentindex",0);
-          this.currentindex = 0;
         }
         else{
           this.currentindex++;
@@ -39,16 +35,6 @@ class Dator implements datahandle
       }
       else{
       }
-    }
-    
-    void AddOneFile(String filename)
-    {
-      this.filelist.add(filename);
-    }
-    
-    ArrayList<String> GetFileList()
-    {
-      return this.filelist;
     }
     
     void BuildNewBase(int num,String addr)
@@ -66,7 +52,6 @@ class Dator implements datahandle
          datamanager.loadXML(this.databackfolder+"/DataBase"+String.valueOf(basecount)+".xml"); 
        }
        catch(Exception e){      
-         
        }       
        this.Baseloaded = true;    
     }
@@ -88,58 +73,7 @@ class Dator implements datahandle
       {
         a[i] = content.get(i);
       }
-      saveStrings(register_key+String.valueOf(index),a);
-      main.dataiseverything.AddOneFile(register_key+String.valueOf(index));
-    }
-    
-    void PackageAll()
-    {
-       SimpleDateFormat sdf_gettime = new SimpleDateFormat("yyy_MM_dd_HH_mm_ss");
-       String ss_gettime = sdf_gettime.format(new java.util.Date());   
-       try{
-         File myfile = new File(this.FirstDataPlace+"/"+ss_gettime);
-         File myfile2 = new File(this.SecondDataPlace+"/"+ss_gettime);
-         if(!myfile.exists()){
-           myfile.mkdir();
-         }
-         if(!myfile2.exists()){
-           myfile2.mkdir();
-         }         
-         for(int i=0;i<this.filelist.size();i++){
-           String a[] = loadStrings(this.filelist.get(i));
-           saveStrings(this.FirstDataPlace+"/"+ss_gettime+"/"+this.filelist.get(i),a); 
-           saveStrings(this.SecondDataPlace+"/"+ss_gettime+"/"+this.filelist.get(i),a); 
-         }
-       }
-       catch (Exception e){
-         
-       }
-    }
-    
-    void PackageResult()
-    {
-       SimpleDateFormat sdf_gettime = new SimpleDateFormat("yyy_MM_dd_HH_mm_ss");
-       String ss_gettime = sdf_gettime.format(new java.util.Date());   
-       try{
-         File myfile = new File(this.FirstDataPlace+"/"+ss_gettime);
-         File myfile2 = new File(this.SecondDataPlace+"/"+ss_gettime);
-         if(!myfile.exists()){
-           myfile.mkdir();
-         }
-         if(!myfile2.exists()){
-           myfile2.mkdir();
-         }         
-         for(int i=0;i<this.filelist.size();i++){
-           if(this.filelist.get(i).startsWith("right")){
-             String a[] = loadStrings(this.filelist.get(i));
-             saveStrings(this.FirstDataPlace+"/"+ss_gettime+"/"+this.filelist.get(i),a); 
-             saveStrings(this.SecondDataPlace+"/"+ss_gettime+"/"+this.filelist.get(i),a); 
-           }
-         }
-       }
-       catch (Exception e){
-         
-       }
+      saveStrings(register_key+"_"+String.valueOf(index),a);
     }
     
     ArrayList<String> LoadData(String register_key,int index)
@@ -151,6 +85,11 @@ class Dator implements datahandle
         forreturn.add(b[i]);
       }
       return forreturn;
+    }
+    
+    void GetData(String describe)
+    {
+    
     }
 
 }
@@ -185,15 +124,12 @@ class loadThread extends Thread {
     void downfile(){
        try {
            ArrayList<String> newone = main.access.TransferBuffer(main.access.gethtmltext(this.mytag+this.webaddr,this.getway));
-           String a[] = new String[newone.size()+1];
-           a[0]="地址是???<jxclzdy>???(正则防御) ："+this.webaddr+"，获取方法是 ："+this.getway;
-           
+           String a[] = new String[newone.size()];
            for(int i=0;i<newone.size();i++)
            {
-             a[i+1] = newone.get(i);
+             a[i] = newone.get(i);
            }
            saveStrings(this.name,a);
-           main.dataiseverything.AddOneFile(this.name);
            main.sys_signal.set_process(this.index,"true");
         } catch (Exception e) {
         }        

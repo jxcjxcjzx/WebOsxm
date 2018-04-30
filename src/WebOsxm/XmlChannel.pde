@@ -1,31 +1,3 @@
-import java.io.File;
-import java.io.FileWriter;
-import java.io.Writer;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
- 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
- 
-import org.dom4j.Element;
-import org.dom4j.io.OutputFormat;
-import org.dom4j.io.SAXReader;
-import org.dom4j.io.XMLWriter;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
-
 interface xmlinterface
 {
   int GetIntValue(String valuename);
@@ -74,20 +46,6 @@ class XmlChannel implements xmlinterface
       main.sys_signal.set_String_signal("handle_info",scriptmanage.getState());      
       return forreturn;
     }
-    
-    void DeleteBlock(String name)
-    {
-       scriptmanage.deleteOneBlock(name,fileaddr2);
-    }
-    
-     ArrayList<String> loadList()
-     {
-       ArrayList<String> forreturn = new ArrayList<String>();
-       forreturn = scriptmanage.LoadBlockList(fileaddr2);    
-       main.sys_signal.set_String_signal("handle_info",scriptmanage.getState());          
-       return forreturn;           
-     }    
-
   
   
 }
@@ -124,7 +82,33 @@ class XmlChannel implements xmlinterface
 </bookcase>
 */
 
-
+import java.io.File;
+import java.io.FileWriter;
+import java.io.Writer;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
+ 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+ 
+import org.dom4j.Element;
+import org.dom4j.io.OutputFormat;
+import org.dom4j.io.SAXReader;
+import org.dom4j.io.XMLWriter;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 
 class BookCaseManager
@@ -184,7 +168,7 @@ class BookCaseManager
   
   void changeOneNode(String name,String process,String fileaddr)
   {
-        
+        boolean biaoji = false;
         try{
                Document document = this.loadXML(fileaddr);
                NodeList nodeList = document.getElementsByTagName(name);
@@ -261,27 +245,18 @@ class ScriptManager extends BookCaseManager
         } 
      }
      
-      void deleteOneBlock(String name,String fileaddr)
-      {
-         try{
-             Document document = this.loadXML(fileaddr);        
-             NodeList nodeList = document.getElementsByTagName("Scripts").item(0).getChildNodes();
-             for(int i=0;i<nodeList.getLength();i++){
-              String value = nodeList.item(i).getNodeName();
-              if(name!=null && name.equalsIgnoreCase(value)){
-               //nodeList.item(i).removeChild(parentNode);
-               nodeList.item(i).getParentNode().removeChild(nodeList.item(i));
-               this.setState("已成功删除一条记录！");    
-               break;
-              }
-             }
-             this.saveXML(document,fileaddr);
-          }
-          catch(Exception e){
-             this.setState("删除记录失败.....");          
-          } 
-        
-      }     
+     ArrayList<String> getBlockName(String fileaddr)
+     {
+       ArrayList<String> forreturn = new ArrayList<String>();
+       try{
+          Document document = this.loadXML(fileaddr);      
+          
+       } 
+       catch(Exception e){
+            this.setState("查找模块失败.....");    
+         }
+       return forreturn;
+     }
      
      ArrayList<String> loadOneBlock(String name,String fileaddr)
      {
@@ -306,21 +281,6 @@ class ScriptManager extends BookCaseManager
        return forreturn;
      }
 
-     ArrayList<String> LoadBlockList(String fileaddr)
-     {
-       ArrayList<String> forreturn = new ArrayList<String>();
-      try{
-          Document document = this.loadXML(fileaddr);
-          NodeList nodeList = document.getElementsByTagName("Scripts");
-          for(int i=0;i<nodeList.item(0).getChildNodes().getLength();i++){
-            forreturn.add(nodeList.item(0).getChildNodes().item(i).getNodeName());  
-          }
-        }
-          catch(Exception e){
-            this.setState("查找记录失败.....");    
-         }       
-       return forreturn;           
-     }
-
   
 }
+

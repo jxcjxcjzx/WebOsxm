@@ -21,6 +21,7 @@ class LinkGet implements WebAccess
     BufferedReader gethtmltext(String addr,String theway)
     {
        BufferedReader forshow = null;
+       String forshowone = null;
       try{ 
        URL url = new URL(addr);   
        InputStreamReader isr = new InputStreamReader(url.openStream());
@@ -194,3 +195,5 @@ class parseurl
     this.link_count = j;
   }
 }
+
+

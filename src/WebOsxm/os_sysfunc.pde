@@ -35,7 +35,7 @@ class sys_func implements system_functions
      try { 
       String strUrl = "http://www.baidu.com";     
       URL url = new URL(strUrl);  
-      new InputStreamReader(url.openStream(),"utf-8");
+      InputStreamReader isr = new InputStreamReader(url.openStream(),"utf-8");
      }
      catch (IOException e) {           
           forreturn = false;  
@@ -69,15 +69,14 @@ class sys_func implements system_functions
 
 class sys_signal_manager implements sys_signals
 {
-  String program_table[] = {"%jxc%","%Jxc%","%jXc%","%jxC%","%JXc%","%jXC%","%JxC%","%JXC%"};
   ArrayList<String> boolean_table = new ArrayList<String>();
   ArrayList<String> int_table = new ArrayList<String>();
   ArrayList<String> String_table = new ArrayList<String>();  
   // this is for the multi task
   ArrayList<String> process_watcher = new ArrayList<String>();
   
-  boolean []boolean_signal = new boolean[7];
-  int []int_signal = new int[16];
+  boolean []boolean_signal = new boolean[4];
+  int []int_signal = new int[15];
   String []String_signal = new String[2];
   
   void set_process(int index,String a)
@@ -98,9 +97,6 @@ class sys_signal_manager implements sys_signals
      boolean_table.add("w_keyPressed");
      boolean_table.add("ChineseNow");
      boolean_table.add("draw_progress");
-     boolean_table.add("offline");
-     boolean_table.add("stepexecute");     
-     boolean_table.add("BoardUse");
      int_table.add("back_r");     
      int_table.add("back_g");     
      int_table.add("back_b"); 
@@ -116,7 +112,6 @@ class sys_signal_manager implements sys_signals
      int_table.add("right_down_brim");     
      int_table.add("cmd_up_brim"); 
      int_table.add("cmd_down_brim");     
-     int_table.add("step_index");
      String_table.add("remind_info");    // delete it in the release edition
      String_table.add("handle_info"); 
   }
@@ -174,3 +169,5 @@ class sys_signal_manager implements sys_signals
     return forreturn;
   }
 }
+
+

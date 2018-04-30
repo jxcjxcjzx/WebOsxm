@@ -1,9 +1,5 @@
 // system starts from here
 OS_main main = new OS_main();
-
-// one pic variable for special use
-PImage newyear;
-
 void setup()
 {
     // basic system showframe
@@ -12,10 +8,6 @@ void setup()
    size(1280,640);
    frameRate(60);
    main.setup();
-   
-   // special use in special days
-    newyear = loadImage("yaan.jpg");
-    
 }
 
 void draw()
@@ -55,15 +47,12 @@ class OS_main
       ListManager listor = new ListManager();
       Multi_exe multi = new Multi_exe(); // multi-handle class, the most valuable one
       DashBoard paper = new DashBoard();
-      PicShow pic = new PicShow();
-      SearchMan searchit = new SearchMan();
-      Baike find = new Baike();
-      BillBoard whiteboard = new BillBoard();
       ChineseIn zhong = new ChineseIn();
       Dator dataiseverything = new Dator();
       
       void setup()
-      {        
+      {
+        
         //testing point       
         // get set info through .xml file access
         // initial work
@@ -97,11 +86,11 @@ class OS_main
         // testing point
         left_pre.add("hello，I am WebOS_xm，now begin with your nice journey!");
 //        sys_remind.set_reminder(access.send_out_info());
+
       }
       
       void draw()
       {
-        
         // testing point
         // the background
         background(sys_signal.sendout_int_signal("back_r"),sys_signal.sendout_int_signal("back_g"),
@@ -112,7 +101,7 @@ class OS_main
           ,sys_signal.sendout_int_signal("left_list_y"));   
         }
         else{
-          sys_viewer.list_for_left(listor.get_current_list(),sys_signal.sendout_int_signal("left_list_x")
+          sys_viewer.list_for_left(listor.current_list,sys_signal.sendout_int_signal("left_list_x")
           ,sys_signal.sendout_int_signal("left_list_y")-sys_signal.sendout_int_signal("left_scroll"));             
         }
         if(listor.current_list.isEmpty()){
@@ -121,11 +110,11 @@ class OS_main
           ,sys_signal.sendout_int_signal("right_down_brim"));   
         }
         else{
-          sys_viewer.list_for_right(listor.get_current_right_list(),sys_signal.sendout_int_signal("right_list_x")
+          sys_viewer.list_for_right(listor.right_current_list,sys_signal.sendout_int_signal("right_list_x")
           ,sys_signal.sendout_int_signal("right_list_y")-sys_signal.sendout_int_signal("right_scroll")
           ,sys_signal.sendout_int_signal("right_up_brim"),sys_signal.sendout_int_signal("right_down_brim"));             
         }     
-        sys_commander.list_for_right(sys_commander.getcommands(),sys_signal.sendout_int_signal("command_list_x")
+        sys_commander.list_for_right(sys_commander.commands,sys_signal.sendout_int_signal("command_list_x")
         ,sys_signal.sendout_int_signal("command_list_y")+30,sys_signal.sendout_int_signal("cmd_up_brim")
         ,sys_signal.sendout_int_signal("cmd_down_brim"));              
         sys_remind.draw_bar();
@@ -143,9 +132,6 @@ class OS_main
         }
         
         multi.draw_hint();
-        paper.change_of_show();
-        whiteboard.change_of_show();
-        pic.change_of_show();
         //here is the main ordering handle process       
         
         if(sys_signal.sendout_boolean_signal("w_keyPressed")){
@@ -160,18 +146,11 @@ class OS_main
                        forshow.append(key);
                     }          
                     // set the Chinese In
-                    if(keyCode==17){         
+                    if(keyCode==18){         
                          sys_signal.set_boolean_signal("ChineseNow",true);             
                     }                    
                     if(key=='\n'){
                        sys_commander.add_command(forshow.toString());
-                       for(int program_count=0;program_count<sys_signal.program_table.length;program_count++){
-                         if(forshow.toString().contains(sys_signal.program_table[program_count])){
-                           String newone = forshow.toString().replaceAll(sys_signal.program_table[program_count],parsexml.GetStringValue(sys_signal.program_table[program_count].substring(1,4)));
-                           forshow.delete(0,forshow.length());
-                           forshow.append(newone);
-                         }
-                       }
                        sys_commander.handle(forshow.toString());
                        sys_remind.set_reminder(sys_signal.sendout_String_signal("handle_info"));
                        forshow.delete(0,forshow.length());
@@ -191,52 +170,37 @@ class OS_main
                     }
                     // up arrow key
                     if(keyCode==38){
-                      if(sys_signal.sendout_boolean_signal("BoardUse")){
-                         main.whiteboard.handle("up");
-                      }
-                      else{
-                        if(parsexml.GetStringValue("current_focus").equals("left")){
-                          sys_signal.set_int_signal("left_scroll",sys_signal.sendout_int_signal("left_scroll")-9);
-                        }          
-                        if(parsexml.GetStringValue("current_focus").equals("cmd")){
-                          forshow = new StringBuilder(sys_commander.pre_command());
-                        }         
-                        if(parsexml.GetStringValue("current_focus").equals("right")){
-                          sys_signal.set_int_signal("right_scroll",sys_signal.sendout_int_signal("right_scroll")-9);
-                        }    
-                      }
+                      if(parsexml.GetStringValue("current_focus").equals("left")){
+                        sys_signal.set_int_signal("left_scroll",sys_signal.sendout_int_signal("left_scroll")-9);
+                      }          
+                      if(parsexml.GetStringValue("current_focus").equals("cmd")){
+                        forshow = new StringBuilder(sys_commander.pre_command());
+                      }         
+                      if(parsexml.GetStringValue("current_focus").equals("right")){
+                        sys_signal.set_int_signal("right_scroll",sys_signal.sendout_int_signal("right_scroll")-9);
+                      }    
                     }
                     // right arrow key
                     if(keyCode==39){
                       // right key
-                      if(sys_signal.sendout_boolean_signal("stepexecute")){
-                        sys_commander.handle("executestep");
-                      }
-                      else{
-                        multi.handle("right_key");
-                      }   
+                      multi.handle("right_key");   
                     }
                     // down arrow key , get more view of it
-                    if(keyCode==40){       
-                      if(sys_signal.sendout_boolean_signal("BoardUse")){
-                          main.whiteboard.handle("down");
+                    if(keyCode==40){             
+                      if(parsexml.GetStringValue("current_focus").equals("left")){
+                        sys_signal.set_int_signal("left_scroll",sys_signal.sendout_int_signal("left_scroll")+9);
                       }
-                      else{      
-                          if(parsexml.GetStringValue("current_focus").equals("left")){
-                            sys_signal.set_int_signal("left_scroll",sys_signal.sendout_int_signal("left_scroll")+9);
-                          }
-                          if(parsexml.GetStringValue("current_focus").equals("cmd")){
-                            forshow = new StringBuilder(sys_commander.for_command());
-                          } 
-                          if(parsexml.GetStringValue("current_focus").equals("right")){
-                            sys_signal.set_int_signal("right_scroll",sys_signal.sendout_int_signal("right_scroll")+9);
-                          }   
-                      }           
+                      if(parsexml.GetStringValue("current_focus").equals("cmd")){
+                        forshow = new StringBuilder(sys_commander.for_command());
+                      } 
+                      if(parsexml.GetStringValue("current_focus").equals("right")){
+                        sys_signal.set_int_signal("right_scroll",sys_signal.sendout_int_signal("right_scroll")+9);
+                      }              
                     }          
           }
           else{ 
               // deal with Chinese Input case
-              if(keyCode==17){         
+              if(keyCode==18){         
                   sys_signal.set_boolean_signal("ChineseNow",false);             
               }                
               if(zhong.jiexi().equals("success")){
@@ -250,9 +214,6 @@ class OS_main
         if(sys_signal.sendout_boolean_signal("ChineseNow")){     
              zhong.paint();  
         }
-        
-        // special show of images
-         image(newyear,width/2-newyear.width/2,0);
 
       }
      

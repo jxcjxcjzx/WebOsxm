@@ -2,8 +2,6 @@
 // if(zhong.jiexi().equals("success")){
 //          show+=zhong.getvalue();
 //         }
-import java.net.*;
-import java.io.*;
 
 class ChineseIn{
 
@@ -42,7 +40,7 @@ String jiexi()
    String forreturn = "";
    readChar();
    if(!Ch_chushi){
-     loadmaterial();
+     int returnvalue = loadmaterial();
      Ch_chushi = true;
    } 
    if(Ch_chaxun!=""&&Ch_xianshi&&Ch_returnvalue==0){
@@ -90,7 +88,7 @@ int loadmaterial()
 {
        try{
             String readincontent = "";
-            URL url = new URL("file:///C:/Users/Administrator/Desktop/WebOsxm/data/ziku3.txt");         
+            URL url = new URL("file:///E:/SOFT HOME2/processing-2.0b3/OSxm_test/WebOsxm/data/ziku3.txt");         
             InputStreamReader isr = new InputStreamReader(url.openStream(),"gbk");
             BufferedReader br = new BufferedReader(isr); 
             while((readincontent = br.readLine())!=null){

@@ -76,16 +76,6 @@ class ListManager implements List_list
         this.right_current_list.add(foradd[i]);
       }
    }  
-   void remove_from_left(String Thingstovanish)
-   {
-       if(this.current_list.size()>0){
-         for(int i=0;i<this.current_list.size();i++){
-           if(this.current_list.get(i).contains(Thingstovanish)){
-             this.current_list.remove(i);
-           }
-         }
-       }
-   }
    void set_current_left_list(ArrayList<String> for_get){
       this.current_list = for_get;       
    }
@@ -95,7 +85,5 @@ class ListManager implements List_list
    ArrayList<String> get_current_list(){
       return this.current_list;
    }         
-   ArrayList<String> get_current_right_list(){
-      return this.right_current_list;
-   } 
+
 }

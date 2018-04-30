@@ -1,5 +1,3 @@
-import java.text.SimpleDateFormat;
-
 interface viewFrame
 {
   void arrange_right_frame(int beginx,int beginy,int right_width,int right_height);
@@ -133,7 +131,6 @@ class InfoView implements viewFrame
 
 class CommandView extends InfoView   // here this is the basic and the most useful thing for input
 {
-  String TagPath = "F:/WebOSIndex/WebOSTag/"; 
   ArrayList<String> commands = new ArrayList<String>();
   ArrayList<String> for_execute = new ArrayList<String>();
   String currentcommand = "";
@@ -153,7 +150,6 @@ class CommandView extends InfoView   // here this is the basic and the most usef
   "get the url links in the page","to repeat the process stored from a script \n  but before that you will need to type in loadscript xxx","provide the help information","use engine to find things you want \n for example : \n fine xxx(get xxx with the searchengine)"};
 
 //  first, we need to rewrite the showing text function
-
   void list_for_right(ArrayList<String> obj,int right_up_x,int right_up_y,int brimup,int brimdown){
     fill(236,253,144);
     rect(this.right_x,this.right_y,this.right_width,this.right_height);    
@@ -181,19 +177,14 @@ class CommandView extends InfoView   // here this is the basic and the most usef
 
 
 
-  ArrayList<String> getcommands()
+  ArrayList<String> getcommand()
   {
     return this.commands;
   }
   
-  void setcommands(ArrayList<String> for_set)
-  {
-    this.commands = for_set;
-  }  
-  
   String pre_command(){
     String forreturn = "";
-    if(command_count>0&&commands.size()>(command_count-1)){
+    if(command_count>0){
       forreturn = commands.get(command_count-1);
       command_count--;
     }
@@ -224,34 +215,13 @@ class CommandView extends InfoView   // here this is the basic and the most usef
   void handle(String command){
     // get function
     // testing point
-
-    // fast execute area
-    if(command.length()==1){
-      if(command.equals("l")){
-        command = "setfocus left";
-      }
-      if(command.equals("r")){
-        command = "setfocus right";
-      }    
-      if(command.equals("c")){
-        command = "setfocus cmd";
-      }   
-      if(command.equals("e")){
-        command  = "execute";
-      } 
-    }
-    // here we provide the test command
-    if(command.equals("test")){
-       // you can put your test code here, anything you like
-    }
-    // first we do some judgement for proper use of programming
+   // main.sys_signal.set_String_signal("remind_info","I am handleing get command");
     if(command.startsWith("geturl ")){
          if(main.parsexml.GetStringValue("mode").equals("single")){
                     if(command.contains(" ")){
-                      if(main.sysfunc.checklink()){          
+                      if(main.sysfunc.checklink()){
                         String theway = main.parsexml.GetStringValue("url_get_way");
                         String []fenge = command.split(" ");
-                        main.sys_signal.set_String_signal("handle_info","geturl: Getting the url address : "+"http://"+fenge[1]+" for you");
                         main.listor.set_current_url("http://"+fenge[1]);
                         loadThread begin_load = new loadThread("left"+main.multi.get_left_index(),fenge[1],theway,"left"+main.multi.get_left_index(),"http://",Integer.parseInt(main.multi.get_left_index())-1);
                         Thread t = new Thread(begin_load,"xiancheng");
@@ -261,6 +231,7 @@ class CommandView extends InfoView   // here this is the basic and the most usef
                         SimpleDateFormat sdf_geturl = new SimpleDateFormat("yyy_MM_dd_HH_mm_ss");
                         String ss_geturl = sdf_geturl.format(new java.util.Date());                    
                         main.dataiseverything.StoreData("url_"+ss_geturl,fenge[1]);
+                        main.sys_signal.set_String_signal("handle_info","geturl: Successful handled, thank you...");
                       }
                       else{          
                          main.sys_signal.set_String_signal("handle_info","Sorry,net connection unbuilt.....");
@@ -362,7 +333,7 @@ class CommandView extends InfoView   // here this is the basic and the most usef
                       main.sys_signal.set_String_signal("handle_info",main.parsexml.GetStringValue("current_focus"));
                       set_handle(true);                      
                     }
-                    if(command.equals("lsscript")){
+                    if(command.equals("lstask")){
                       main.multi.handle(command);
                       set_handle(true);     
                     }
@@ -374,83 +345,6 @@ class CommandView extends InfoView   // here this is the basic and the most usef
                    main.sys_signal.set_String_signal("handle_info","ls: Successful handled, thank you...");
                 }
       }   
-      if(command.startsWith("tag ")){
-         String []fenge = command.split(" ");
-         if(fenge.length == 2){
-            ArrayList<String> trans = main.listor.get_current_list();
-            String resul[] = new String[trans.size()];
-            for(int i=0;i<resul.length;i++){
-              resul[i] = trans.get(i);
-            }
-            saveStrings(TagPath+fenge[1],resul);
-            main.sys_signal.set_String_signal("handle_info","tag: Successful handled, thank you...");
-         }
-         else{
-           main.sys_signal.set_String_signal("handle_info","tag : Sorry, you type in wrong command.....");
-         }
-      }
-      if(command.startsWith("throw ")){
-        String []fenge = command.split(" ");
-        if(fenge.length == 2){
-           main.listor.remove_from_left(fenge[1]);  
-        }
-        else{
-        }
-      }
-      if(command.startsWith("differ ")){
-         String []fenge = command.split(" ");
-         if(fenge.length == 2){
-            File judge = new File(TagPath+fenge[1]);
-            if(judge.exists()){
-              String loadin[] = loadStrings(TagPath+fenge[1]);
-              ArrayList<String> bidui = new ArrayList<String>();
-              for(int j=0;j<loadin.length;j++){
-                bidui.add(loadin[j]);
-              }
-              ArrayList<String> bidui2 = main.listor.get_current_list();
-              ArrayList<String> resul = new ArrayList<String>();
-              for(int k=0;k<bidui2.size();k++){
-                if(!bidui.contains(bidui2.get(k))){
-                  resul.add(bidui2.get(k));
-                }
-              }              
-              main.listor.set_current_left_list(resul);
-            }
-            main.sys_signal.set_String_signal("handle_info","differ: Successful handled, thank you...");
-         }
-         else{
-           main.sys_signal.set_String_signal("handle_info","differ : Sorry, you type in wrong command.....");
-         }
-      }            
-      if(command.startsWith("variable ")){
-         String []fenge = command.split(" ");
-          if(fenge.length == 2&&fenge[1].length()==3){
-            if((fenge[1].charAt(0)=='j'||fenge[1].charAt(0)=='J')&&
-            (fenge[1].charAt(1)=='x'||fenge[1].charAt(1)=='X')&&
-            (fenge[1].charAt(2)=='c'||fenge[1].charAt(2)=='C')){
-               main.sys_signal.set_String_signal("handle_info","locate : the variable you want : "+main.parsexml.GetStringValue(fenge[1]));
-            }
-            else{
-              main.sys_signal.set_String_signal("handle_info","variable : Sorry, you type in wrong command.....");
-            }
-         }         
-         else{
-           if(fenge.length == 3&&fenge[1].length()==3){
-             if((fenge[1].charAt(0)=='j'||fenge[1].charAt(0)=='J')&&
-              (fenge[1].charAt(1)=='x'||fenge[1].charAt(1)=='X')&&
-              (fenge[1].charAt(2)=='c'||fenge[1].charAt(2)=='C')){
-                 main.parsexml.SetStringValue(fenge[1],fenge[2]);
-                 main.sys_signal.set_String_signal("handle_info","variable: Successful handled, thank you...");
-              }
-              else{
-                main.sys_signal.set_String_signal("handle_info","variable : Sorry, you type in wrong command.....");
-              }
-           }  
-           else{
-             main.sys_signal.set_String_signal("handle_info","variable : Sorry, you type in wrong command.....");
-           }
-         }
-      }      
       if(command.startsWith("backup")){
               if(command.contains(" ")){
                 
@@ -498,32 +392,16 @@ class CommandView extends InfoView   // here this is the basic and the most usef
                   }                          
               }
               if(command.contains(" ")){
-                String []fenge = command.split(" ");    
-                if(fenge.length==2&&fenge[0].equals("rmscript")){            
-                    main.script.DeleteScript(fenge[1]);
-                    main.sys_signal.set_String_signal("handle_info","rm: Successful deleted, thank you...");
-                }
-                else{
-                    main.sys_signal.set_String_signal("handle_info","rm: Well, something wrong happened.."); 
-                }
+                main.sys_signal.set_String_signal("handle_info","rm: Successful handled, thank you...");
               }  
       }   
       if(command.equals("clc")){
                 ArrayList<String> empty = new ArrayList<String>();
                 empty.add("Now I am empty, try fill me with fun..");
                 ArrayList<String> empty2 = new ArrayList<String>();
-                empty2.add("Now I am empty, try fill me with fun..");    
-                ArrayList<String> empty3 = new ArrayList<String>();
-                empty3.add("Now I am empty, try fill me with fun..");                   
-          if(main.parsexml.GetStringValue("current_focus").equals("left")){            
+                empty2.add("Now I am empty, try fill me with fun..");                
                 main.listor.set_current_left_list(empty);
-          }
-          if(main.parsexml.GetStringValue("current_focus").equals("right")){
                 main.listor.set_current_right_list(empty2);          
-          }
-          if(main.parsexml.GetStringValue("current_focus").equals("cmd")){
-                this.setcommands(empty3);        
-          }          
                 main.sys_signal.set_String_signal("handle_info","clear: Successful handled, thank you...");
       }  
       if(command.startsWith("loadscript")){    
@@ -534,7 +412,6 @@ class CommandView extends InfoView   // here this is the basic and the most usef
                    String []fenge = command.split(" ");  
                    this.for_execute = main.script.LoadScript(fenge[1]);
                    main.listor.add_to_right(this.for_execute);
-                   main.sys_signal.set_int_signal("step_index",0);
                    main.sys_signal.set_String_signal("handle_info","load: Now, content are in the excuting array for you..");
                }
       
@@ -559,28 +436,6 @@ class CommandView extends InfoView   // here this is the basic and the most usef
                 main.multi.handle(command);
          }
       }  
-      if(command.startsWith("open ")){
-        String []fenge = command.split(" ");      
-        if(fenge.length==2&&main.listor.get_current_right_list().size()>=Integer.parseInt(fenge[1])){
-            try{
-              URL url = new URL("file:///"+main.listor.get_current_right_list().get(Integer.parseInt(fenge[1])-1));         
-              InputStreamReader isr = new InputStreamReader(url.openStream(),main.parsexml.GetStringValue("url_get_way"));
-              BufferedReader br = new BufferedReader(isr); 
-              String readincontent = "";
-              ArrayList<String> forset = new ArrayList<String>();
-              while((readincontent = br.readLine())!=null){                   
-                      forset.add(readincontent);   
-              }
-              main.listor.set_current_left_list(forset);
-              isr.close();
-              br.close();
-            }
-            catch(Exception e){
-            }
-          }
-          else{            
-          }
-      }
       if(command.startsWith("find")){
           // the search engine function
               if(!command.contains(" ")){   
@@ -601,74 +456,19 @@ class CommandView extends InfoView   // here this is the basic and the most usef
                     }                 
               }
       }      
-      if(command.startsWith("baike ")){
-        String []fenge = command.split(" ");      
-        if(fenge.length==2){
-          String findaddr = main.find.handle(fenge[1]);  
-          if(findaddr!="对不起，你的要求太过分了"&&findaddr.length()>7){
-            main.sys_commander.handle("setway gbk");
-            main.sys_commander.handle("geturl "+findaddr.substring(7,findaddr.length()));
-          }
-          else{            
-          }
-        }
-      }
-      if(command.startsWith("wiki ")){
-        String []fenge = command.split(" ");     
-        if(fenge.length==2){
-           main.sys_commander.handle("setway utf-8");
-           main.sys_commander.handle("geturl "+"zh.wikipedia.org/wiki/"+fenge[1]);
-        }        
-      }
-      if(command.startsWith("locate ")){
-        try{
-            String []fenge = command.split(" ");     
-            if(fenge.length==2){
-               main.searchit.search(fenge[1]);
-               if(main.searchit.results.isEmpty()){
-                 main.searchit.results.add("Sorry, no matches found..");
-               }
-               main.listor.set_current_left_list(main.searchit.results);
-            }        
-        }
-        catch (Exception e){
-        }
-      }  
-                if(command.startsWith("s ")){
-                  // pay enough attention here
-                          String []fenge = command.split(" "); 
-                          if(!command.contains(" to")){
-                            if(main.sysfunc.check_length(main.listor.current_list,Integer.parseInt(fenge[1])-1)){
-                              main.listor.add_to_right(main.listor.current_list.get(Integer.parseInt(fenge[1])-1)); 
-                            }
-                          }  
-                         if(command.contains(" to")){
-                          if(fenge.length==4){   
-                              if(main.listor.current_list.size()>Integer.parseInt(fenge[3])+1){  
-                                  for(int j=Integer.parseInt(fenge[1]);j<Integer.parseInt(fenge[3])+1;j++){
-                                      main.listor.add_to_right(main.listor.current_list.get(j-1));                     
-                                  }
-                                 main.sys_signal.set_String_signal("handle_info","store : Successful handled, thank you...");
-                              }
-                              else{
-                                main.sys_signal.set_String_signal("handle_info","store : Sorry, try adjust you script, something happen with the length");   
-                              }
-                            }  
-                         }
-                }    
       if(command.startsWith("store")){
               if(!command.contains(" ")){     
                // this store the html text here for user, but the user has to provide a name  
                 if(command.equals("storeit")){
-                    main.dataiseverything.PackageResult();
+                    
                     set_handle(true);                       
                 }                  
                 if(command.equals("storeall")){
-                    main.dataiseverything.PackageAll();
+                    
                     set_handle(true);                       
                 }   
                 if(command.equals("storecmd")){
-                    ArrayList<String> toadd = main.sys_commander.getcommands();
+                    ArrayList<String> toadd = main.sys_commander.getcommand();
                     for(int j=0;j<toadd.size();j++){
                       main.listor.add_to_right(toadd.get(j));    
                     }                      
@@ -715,178 +515,15 @@ class CommandView extends InfoView   // here this is the basic and the most usef
                 }
                 if(command.startsWith("storelines ")){
                       if(command.contains(" to")){
-                          String []fenge = command.split(" "); 
-                          if(fenge.length==4){   
-                              if(main.listor.current_list.size()>Integer.parseInt(fenge[3])+1){  
-                                  for(int j=Integer.parseInt(fenge[1]);j<Integer.parseInt(fenge[3])+1;j++){
-                                      main.listor.add_to_right(main.listor.current_list.get(j-1));                     
-                                  }
-                                 main.sys_signal.set_String_signal("handle_info","store : Successful handled, thank you...");
-                              }
-                              else{
-                                main.sys_signal.set_String_signal("handle_info","store : Sorry, try adjust you script, something happen with the length");   
-                              }
-                          }
-                          else{
-                             main.sys_signal.set_String_signal("handle_info","store : Sorry, try adjust you script, something happen with the length");   
+                          String []fenge = command.split(" ");      
+                          for(int j=Integer.parseInt(fenge[1]);j<Integer.parseInt(fenge[3])+1;j++){
+                              main.listor.add_to_right(main.listor.current_list.get(j-1));                     
                           }
                       }
-                      
+                      main.sys_signal.set_String_signal("handle_info","store : Successful handled, thank you...");
                 }
               }     
       }        
-      if(command.startsWith("paper")){
-        if(command.equals("paper")){
-          main.paper.show_converse();
-        }
-        else{
-          if(command.contains(" ")){
-             String []fenge = command.split(" ");    
-             try{
-               if((Integer.parseInt(fenge[1])-1)<=main.listor.current_list.size()){
-                 main.paper.setcontent(main.listor.current_list.get(Integer.parseInt(fenge[1])-1));
-               }
-             }
-             catch (NumberFormatException e){
-                 main.paper.setcontent(fenge[1]);
-             } 
-          }
-          else{
-            if(command.contains("right")){
-              main.listor.add_to_right(main.paper.getcontent());
-            }
-          }
-        }
-      }    
-    
-      if(command.startsWith("blow")){
-        if(command.equals("blow")){
-          main.whiteboard.show_converse();
-        }
-        else{
-          if(command.contains(" ")){
-             String []fenge = command.split(" ");    
-             if(fenge.length==2&&main.listor.get_current_list().size()>=Integer.parseInt(fenge[1])){
-               try{
-                 ArrayList<String> newone = new ArrayList<String>();
-                 newone.add(main.listor.get_current_list().get(Integer.parseInt(fenge[1])-1));
-                 main.whiteboard.getin(newone);
-               }
-               catch (NumberFormatException e){
-               }
-             }
-          }
-          else{
-          }
-        }
-      }            
-      if(command.startsWith("pic ")){
-        main.pic.mini_bash(command);
-      }
-      // plugin in component
-      if(command.startsWith("addadd ")){
-                          // 这个可以做成插件加入的模式
-                          String []fenge = command.split(" "); 
-                          String tmpadd = "";
-                          if(fenge.length==2){  
-                              if(main.sys_commander.getcommands().size()-2>=0){
-                                tmpadd = main.sys_commander.getcommands().get(main.sys_commander.getcommands().size()-2);
-                              }
-                              String tmpway = "setway "+main.parsexml.GetStringValue("url_get_way");
-                              ArrayList<String> newadd = new ArrayList<String>();
-                              newadd.add(tmpway);
-                              main.listor.add_to_right(tmpway);
-                              newadd.add(tmpadd);
-                              main.listor.add_to_right(tmpadd);                              
-                              main.script.SaveScript(fenge[1],newadd);
-                          }
-      }
-      
-      if(command.startsWith("index ")){
-        try{ 
-          String []fenge = command.split(" ");     
-            if(fenge.length==2){
-                  SimpleDateFormat sdf_copy = new SimpleDateFormat("yyyyMMdd");
-                  String ss_copy = sdf_copy.format(new java.util.Date());
-                  int niceday = Integer.parseInt(ss_copy);
-                  main.searchit.index(niceday,Integer.parseInt(fenge[1]),true);
-            }
-            else{
-            }
-        }
-        catch (Exception e){
-        }            
-      }      
-      if(command.startsWith("indexcn ")){
-        try{ 
-          String []fenge = command.split(" ");     
-            if(fenge.length==2){
-                  SimpleDateFormat sdf_copy = new SimpleDateFormat("yyyyMMdd");
-                  String ss_copy = sdf_copy.format(new java.util.Date());
-                  int niceday = Integer.parseInt(ss_copy);
-                  main.searchit.index_smart_cn(niceday,Integer.parseInt(fenge[1]),true);
-            }
-            else{
-            }
-        }
-        catch (Exception e){
-        }            
-      }      
-      if(command.equals("indexcnnew")){
-        try{
-          SimpleDateFormat sdf_copy = new SimpleDateFormat("yyyyMMdd");
-          String ss_copy = sdf_copy.format(new java.util.Date());
-          int niceday = Integer.parseInt(ss_copy);
-          main.searchit.index_smart_cn(niceday,9,false);
-        }
-        catch (Exception e){
-        }
-      }      
-      if(command.equals("indexnew")){
-        try{
-          SimpleDateFormat sdf_copy = new SimpleDateFormat("yyyyMMdd");
-          String ss_copy = sdf_copy.format(new java.util.Date());
-          int niceday = Integer.parseInt(ss_copy);
-          main.searchit.index(niceday,9,false);
-        }
-        catch (Exception e){
-        }
-      }
-      if(command.equals("indexcnold")){
-        try{
-          SimpleDateFormat sdf_copy = new SimpleDateFormat("yyyyMMdd");
-          String ss_copy = sdf_copy.format(new java.util.Date());
-          int niceday = Integer.parseInt(ss_copy);
-          main.searchit.index_smart_cn(niceday,3,true);
-        }
-        catch (Exception e){
-        }
-      } 
-      if(command.equals("indexold")){
-        try{
-          SimpleDateFormat sdf_copy = new SimpleDateFormat("yyyyMMdd");
-          String ss_copy = sdf_copy.format(new java.util.Date());
-          int niceday = Integer.parseInt(ss_copy);
-          main.searchit.index(niceday,3,true);
-        }
-        catch (Exception e){
-        }
-      }      
-      if(command.equals("pic")){
-        main.pic.show_converse();
-      }
-      if(command.equals("forward")){
-        main.multi.handle("right_key");
-      }      
-      if(command.equals("back")){
-        main.multi.handle("left_key");
-      }      
-      if(command.equals("offline")){
-         main.sys_signal.set_boolean_signal("offline",true);
-      }
-      if(command.equals("online")){
-         main.sys_signal.set_boolean_signal("offline",false);
-      }      
       if(command.equals("geturls")){
          if(main.parsexml.GetStringValue("mode").equals("single")){
            main.access.getLinks();           
@@ -911,19 +548,13 @@ class CommandView extends InfoView   // here this is the basic and the most usef
            }
       }         
       if(command.equals("refresh")){
-         if(main.parsexml.GetStringValue("current_focus").equals("left")){
-          main.dataiseverything.StoreData("left",main.multi.left_register_index,main.listor.get_current_list());                                
-          main.sys_signal.set_String_signal("handle_info","refresh : Successful handled, thank you...");          
+        String a[] = new String[main.listor.get_left_list_count()];
+        ArrayList<String> temp = main.listor.get_current_list();
+        for(int i=0;i<a.length;i++)
+        {
+          a[i] = temp.get(i);
         }
-        if(main.parsexml.GetStringValue("current_focus").equals("cmd")){      
-          main.dataiseverything.StoreData("cmd",main.multi.cmd_register_index,main.sys_commander.getcommands());
-          main.sys_signal.set_String_signal("handle_info","refresh : Successful handled, thank you...");       
-        }  
-         if(main.parsexml.GetStringValue("current_focus").equals("right")){
-          main.dataiseverything.StoreData("right",main.multi.right_register_index,main.listor.get_current_right_list());                                
-          main.sys_signal.set_String_signal("handle_info","refresh : Successful handled, thank you...");          
-        }        
-        
+        saveStrings("left"+main.multi.get_left_index(),a);
       } 
       if(command.equals("execute")){
           if(!for_execute.isEmpty()){
@@ -932,21 +563,7 @@ class CommandView extends InfoView   // here this is the basic and the most usef
             }
              main.sys_signal.set_String_signal("handle_info","execute : Successful handled, thank you...");
           }    
-      }        
-      if(command.equals("step")){
-         main.sys_signal.set_boolean_signal("stepexecute",!main.sys_signal.sendout_boolean_signal("stepexecute"));
-      }
-      // this command will not execute actually by menually, but by other commands
-      if(command.equals("executestep")){
-          if(!for_execute.isEmpty()&&(main.sys_signal.sendout_int_signal("step_index")<for_execute.size()-1)){
-              main.sys_commander.handle(this.for_execute.get(main.sys_signal.sendout_int_signal("step_index")));
-              main.sys_signal.set_int_signal("step_index",main.sys_signal.sendout_int_signal("step_index")+1);
-              main.sys_signal.set_String_signal("handle_info","execute : Current order is "+this.for_execute.get(main.sys_signal.sendout_int_signal("step_index")));
-          }          
-          else{
-              main.sys_signal.set_boolean_signal("stepexecute",false);
-          }
-      }
+      }         
       if(command.equals("exit")){
           System.exit(0);
       }    
