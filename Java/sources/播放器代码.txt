@@ -1,0 +1,718 @@
+主窗口代码:(JMFMedia.class)
+
+ 
+
+import java.applet.*;
+import java.awt.datatransfer.*;
+import java.awt.dnd.*;
+import java.net.*;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.Timer;
+import javax.media.*;
+import javax.swing.filechooser.*;
+import java.io.*;
+import javax.swing.event.*;
+import java.util.*;
+
+public class JMFMedia
+{
+public static void main(String args[])
+{
+final JFrame frame=new JMFFrame();
+frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+frame.setVisible(true);
+frame.setLocation(100,50);
+
+if (SystemTray.isSupported())
+{
+SystemTray tray=SystemTray.getSystemTray();
+Image image=Toolkit.getDefaultToolkit().getImage("bg.jpg");
+PopupMenu popup=new PopupMenu();
+MenuItem item0=new MenuItem("设置");
+MenuItem item1=new MenuItem("弹出菜单");
+item1.addActionListener(new ActionListener()
+{
+public void actionPerformed(ActionEvent e)
+{
+frame.setVisible(true);
+}
+});
+
+MenuItem item2=new MenuItem("隐藏");
+item2.addActionListener(new ActionListener()
+{
+public void actionPerformed(ActionEvent e)
+{
+frame.setVisible(false);
+}
+});
+
+MenuItem item3=new MenuItem("退出");
+popup.add(item0);
+popup.add(item1);
+popup.add(item2);
+popup.add(item3);
+TrayIcon trayIcon=new TrayIcon(image,"dy个性播放器",popup);
+try
+{
+tray.add(trayIcon);
+}
+catch (Exception e)
+{
+System.err.println("无法向这个托盘添加新项:"+e);
+}
+}
+else
+{
+System.err.println("无法使用系统托盘!");
+}
+
+}
+}
+
+class JMFFrame extends JFrame implements ActionListener,ControllerListener,ItemListener,ListSelectionListener,ChangeListener,MouseListener,MouseMotionListener
+{
+
+private final Timer timer=new Timer(1000,this);
+private final Timer t=new Timer(1,this);
+private int index;
+private JButton button1;
+private JButton button2;
+private JButton button3;
+private JButton button4;
+private JButton button8;
+private JButton button9;
+private JButton button10;
+private JButton button11;
+private JTextField textField;
+private ListBox list;
+private JLabel label3;
+private JRadioButtonMenuItem button5;
+private JRadioButtonMenuItem button6;
+private JRadioButtonMenuItem button7;
+private JFileChooser chooser;
+private ButtonGroup group;
+private JSlider slider;
+private ChangeListener listener;
+Player player;
+boolean DoFlag=false;
+boolean Flag=false;
+private DefaultListModel m;
+private String name;
+private Music MuN;
+private Time te;
+Component vedioComponent;
+
+public JMFFrame()
+{
+setTitle("个性播放器");
+setSize(700,700);
+
+button1=new JButton("本地音乐");
+button1.addActionListener(this);
+chooser=new JFileChooser();
+
+button2=new JButton("播放");
+button2.addActionListener(this);
+
+button3=new JButton("暂停");
+button3.addActionListener(this);
+
+button4=new JButton("停止");
+button4.addActionListener(this);
+
+JLabel label4=new JLabel("网上搜索:");
+
+textField=new JTextField();
+
+button11=new JButton("在线听歌");
+button11.addActionListener(this);
+
+button5=new JRadioButtonMenuItem("循环播放列表",false);
+button5.addItemListener(this);
+
+button6=new JRadioButtonMenuItem("循环播放单曲",false);
+button6.addItemListener(this);
+
+button7=new JRadioButtonMenuItem("正常播放",true);
+button7.addItemListener(this);
+
+group=new ButtonGroup();
+
+group.add(button5);
+group.add(button6);
+group.add(button7);
+
+JMenu menu=new JMenu("播放方式");
+menu.add(button5);
+menu.add(button6);
+menu.add(button7);
+
+JMenuBar menuBar=new JMenuBar();
+menuBar.add(button1);
+menuBar.add(button2);
+menuBar.add(button3);
+menuBar.add(button4);
+menuBar.add(menu);
+menuBar.add(label4);
+menuBar.add(textField);
+menuBar.add(button11);
+
+add(menuBar,BorderLayout.NORTH);
+
+m=new DefaultListModel(); 
+
+list=new ListBox(m); 
+
+list.addListSelectionListener(this);
+
+JScrollPane scroll=new JScrollPane(list);
+list.setFixedCellHeight(10);
+list.setFixedCellWidth(120);
+
+JToolBar panel2=new JToolBar();
+
+panel2.add(scroll);
+
+add(panel2,BorderLayout.WEST);
+
+JPanel panel3=new JPanel();
+label3=new JLabel(new ImageIcon("bg.jpg"));
+panel3.add(label3);
+add(panel3,BorderLayout.CENTER);
+
+JPanel panel4=new JPanel();
+button10=new JButton("打开歌词面板");
+button10.addActionListener(this);
+
+panel4.add(button10);
+add(panel4,BorderLayout.EAST);
+
+slider=new JSlider(0,5000,0);
+
+slider.addChangeListener(this);
+
+slider.addMouseListener(this);
+slider.addMouseMotionListener(this);
+
+add(slider,BorderLayout.SOUTH);
+}
+
+public void mousePressed(MouseEvent e)
+{
+
+}
+
+public void mouseReleased(MouseEvent e)
+{
+player.setMediaTime(new Time((slider.getValue()*te.getSeconds())/5000));
+player.start();
+}
+
+public void mouseEntered(MouseEvent e)
+{
+
+}
+
+public void mouseExited(MouseEvent e)
+{
+
+}
+
+public void mouseClicked(MouseEvent e)
+{
+
+}
+
+public void mouseMoved(MouseEvent e)
+{
+
+}
+
+public void mouseDragged(MouseEvent e)
+{
+
+}
+
+public void actionPerformed(ActionEvent e)
+{
+if (e.getSource()==button1)
+{
+chooser.setCurrentDirectory(new File("."));
+
+int result=chooser.showOpenDialog(JMFFrame.this);
+
+if (result==JFileChooser.APPROVE_OPTION)
+{
+
+try
+{
+
+name=chooser.getSelectedFile().getPath();
+player=Manager.createPlayer(new MediaLocator("file:"+name));
+
+m.add(0,name);
+MuN.StartA();
+}
+catch (IOException e1)
+{
+}
+catch (NoPlayerException e2)
+{
+}
+
+}
+}
+
+else if (e.getSource()==button2)
+{
+player.start();
+
+timer.start();
+button2.setEnabled(false);
+player.addControllerListener(this);
+}
+
+else if (e.getSource()==button3)
+{
+timer.stop();
+button2.setEnabled(true);
+player.setStopTime(player.getMediaTime());
+}
+
+else if (e.getSource()==button4)
+{
+player.setMediaTime(new Time(0));
+timer.stop();
+button2.setEnabled(true);
+player.close();
+}
+
+else if (e.getSource()==button11)
+{
+}
+
+else if (e.getSource()==button10)
+{
+MuN=new Music();
+MuN.setVisible(true);
+MuN.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+MuN.setLocation(800,50);
+}
+
+else if (e.getSource()==t)
+{
+
+if (index+1==m.getSize())
+{
+index=0;
+}
+else
+{
+index=list.getSelectedIndex();
+
+index++;
+}
+
+list.setSelectedIndex(index);
+
+Stop();
+
+textField.setText(" "+m.getSize()+" "+index);
+
+}
+
+else if (e.getSource()==timer)
+{
+te=player.getDuration();
+
+int value=slider.getValue();
+
+if (value<=5000)
+{
+value+=(int)(5000/te.getSeconds());
+slider.setValue(value);
+}
+else if (value==5000)
+{
+timer.stop();
+}
+
+}
+
+}
+
+public void controllerUpdate(ControllerEvent e)
+{
+
+if (e instanceof EndOfMediaEvent)
+{
+button2.setEnabled(true);
+
+if (Flag==true)
+{
+slider.setValue(0);
+player.setMediaTime(new Time(0));
+player.start();
+}
+
+if (DoFlag==true)
+{
+
+try
+{
+player.close();
+
+slider.setValue(0);
+
+player=Manager.createPlayer(new MediaLocator("file:"+m.getElementAt(index)));
+
+System.out.println(m.getElementAt(index));
+
+player.start();
+
+controller();
+}
+catch (IOException e1)
+{
+}
+catch (NoPlayerException e2)
+{
+}
+
+t.start();
+
+}
+
+}
+
+if (e instanceof RealizeCompleteEvent)
+{
+timer.start();
+
+vedioComponent=player.getVisualComponent();
+if (vedioComponent!=null)
+{
+this.getContentPane().add(vedioComponent,BorderLayout.CENTER);
+}
+}
+
+}
+
+public void valueChanged(ListSelectionEvent event)
+{
+
+if (event.getSource()==list)
+{
+try
+{
+player.close();
+String v=(String) list.getSelectedValue();
+player=Manager.createPlayer(new MediaLocator("file:"+v));
+player.start();
+
+player.addControllerListener(this);
+}
+catch (IOException e)
+{
+}
+catch (NoPlayerException e)
+{
+}
+
+}
+
+}
+
+public void stateChanged(ChangeEvent e)
+{
+
+}
+
+public void itemStateChanged(ItemEvent e)
+{
+if (e.getSource()==button5)
+{
+DoFlag=true;
+
+}
+
+else if (e.getSource()==button6)
+{
+Flag=true;
+}
+
+else if (e.getSource()==button7)
+{
+DoFlag=false;
+Flag=false;
+}
+
+}
+
+public void Stop()
+{
+t.stop();
+}
+
+public void controller()
+{
+player.addControllerListener(this);
+}
+
+class ListBox extends JList implements DropTargetListener,DragSourceListener
+{
+DropTarget dropTarget=new DropTarget(this,this);
+DragSource dragSource=DragSource.getDefaultDragSource();
+private DefaultListModel model;
+File file;
+
+public ListBox(DefaultListModel m)
+{
+model=m;
+setModel(model);
+}
+
+public void dragDropEnd(DragSourceDropEvent dragSourceDropEvent)
+{
+}
+
+public void dragExit(DragSourceEvent dragSourceEvent)
+{
+}
+
+public void dragOver(DragSourceDragEvent dragSourceDragEvent)
+{
+}
+
+public void dragEnter(DragSourceDragEvent dragSourceDragEvent)
+{
+}
+
+public void dropActionChanged(DragSourceDragEvent dragSourceDragEvent)
+{
+}
+
+public void dragEnter(DropTargetDragEvent dropTargetDragEvent)
+{
+dropTargetDragEvent.acceptDrag(DnDConstants.ACTION_COPY_OR_MOVE);
+}
+
+public void dragOver(DropTargetDragEvent dropTargetDragEvent)
+{
+}
+
+public void dragExit(DropTargetEvent dropTargetEvent)
+{
+}
+
+public void dropActionChanged(DropTargetDragEvent dropTargetDragEvent)
+{
+}
+
+public synchronized void drop(DropTargetDropEvent dropTargetDropEvent)
+{
+
+try
+{
+Transferable tr=dropTargetDropEvent.getTransferable();
+
+if (tr.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
+{
+dropTargetDropEvent.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
+
+java.util.List fileList=(java.util.List) tr.getTransferData(DataFlavor.javaFileListFlavor);
+
+Iterator iterator=fileList.iterator();
+
+while (iterator.hasNext())
+{
+file=(File) iterator.next();
+
+try
+{
+player=Manager.createPlayer(new MediaLocator("file:"+file.getPath()));
+}
+catch (NoPlayerException e1)
+{
+}
+
+model.add(0,file.getPath());
+System.out.println(file.getPath());
+}
+
+}
+}
+catch (IOException io)
+{
+}
+catch (UnsupportedFlavorException ufe)
+{
+}
+
+}
+
+}
+
+}
+
+ 
+
+歌词同步窗口代码:(Muisc.class)
+
+ 
+
+import java.awt.*;
+import java.io.*;
+import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.Timer;
+import javax.swing.filechooser.*;
+import java.util.regex.*;
+
+class Music extends JFrame implements ActionListener
+{
+private Thread t;
+private JButton button;
+private JList list;
+private JFileChooser chooser;
+private DefaultListModel m;
+private String name;
+BufferedReader in;
+FileReader out;
+private int i=0;
+private Timer timer;
+private Pattern pattern;
+
+public Music()
+{
+
+setTitle("歌词面板");
+setSize(350,700);
+
+m=new DefaultListModel();
+
+list=new JList(m);
+
+list.setLayoutOrientation(JList.VERTICAL);
+
+JScrollPane scrollPane=new JScrollPane(list);
+
+button=new JButton("本地查找歌词");
+
+button.addActionListener(this);
+
+add(button,BorderLayout.NORTH);
+
+add(scrollPane,BorderLayout.CENTER);
+
+chooser=new JFileChooser();
+
+timer=new Timer(200000,this);
+timer.start();
+}
+
+public void StartA()
+{
+t=new Thread(new Selected());
+t.start();
+}
+
+public void StopB()
+{
+timer.stop();
+}
+
+public void StopA()
+{
+t=new Thread(new Selected());
+t.stop();
+}
+
+public void actionPerformed(ActionEvent e)
+{
+if (e.getSource()==button)
+{
+chooser.setCurrentDirectory(new File("."));
+
+int result=chooser.showOpenDialog(Music.this);
+
+if (result==JFileChooser.APPROVE_OPTION)
+{
+name=chooser.getSelectedFile().getPath();
+}
+}
+
+if (e.getSource()==timer)
+{
+
+StartA();
+
+}
+
+}
+
+class Selected implements Runnable
+{
+public void run()
+{
+String s;
+int index;
+
+try
+{
+File file=new File(name);
+out=new FileReader(file);
+in=new BufferedReader(out);
+pattern = Pattern.compile("//[//d{2}://d{2}.//d{2}//]");
+}
+catch (FileNotFoundException ex)
+{
+System.out.println("未找到文件!");
+}
+
+try
+{
+while ((s=in.readLine())!=null)
+{
+
+Matcher matcher = pattern.matcher(s);
+
+if (matcher.find())
+{
+
+index=0;
+
+matcher.replaceAll("");
+
+m.add(0,s);
+list.setSelectedIndex(index);
+index++;
+StopA();
+
+try
+{
+Thread.sleep(5000);
+}
+catch (InterruptedException e)
+{
+}
+
+
+}
+}
+
+}
+catch (IOException exp)
+{
+}
+
+}
+}
+
+}
+
+分享到： 

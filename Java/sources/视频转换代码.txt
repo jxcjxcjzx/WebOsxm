@@ -1,0 +1,228 @@
+我做的视频格式转换器,只能转换3gp格式.代码如下:
+
+import java.io.File;
+import java.awt.event.*;
+import java.util.List;
+import javax.swing.*;
+import javax.swing.filechooser.*;
+import java.awt.*;
+
+public class ConvertVideo extends JFrame
+{
+JButton button1;
+JButton button2;
+JButton button3;
+JFileChooser chooser;
+ProcessBuilder builder;
+String oldFileName;
+String newFileName;
+JLabel label3;
+
+public ConvertVideo()
+{
+setTitle("视频格式转换器");
+setSize(600,70);
+
+JPanel panel=new JPanel();
+JLabel label1=new JLabel("转换文件路径:");
+
+chooser=new JFileChooser();
+
+button1=new JButton("添加转换文件");
+button1.addActionListener(new ActionListener()
+{
+public void actionPerformed(ActionEvent e)
+{
+chooser.setCurrentDirectory(new File("."));
+
+int result=chooser.showOpenDialog(ConvertVideo.this);
+
+if (result==JFileChooser.APPROVE_OPTION)
+{
+String name=chooser.getSelectedFile().getPath();
+oldFileName=name;
+}
+
+}
+});
+
+JLabel label2=new JLabel("转换后文件路径:");
+button2=new JButton("创建转换文件路径");
+button2.addActionListener(new ActionListener()
+{
+public void actionPerformed(ActionEvent e)
+{
+chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); 
+
+int result=chooser.showSaveDialog(ConvertVideo.this);
+
+if (result==JFileChooser.APPROVE_OPTION)
+{
+newFileName=chooser.getSelectedFile().getPath();
+}
+
+}
+});
+
+button3=new JButton("开始转换");
+button3.addActionListener(new ActionListener()
+{
+public void actionPerformed(ActionEvent e)
+{
+check();
+}
+});
+
+label3=new JLabel();
+
+JPanel panel2=new JPanel();
+
+panel2.add(label3);
+
+panel.add(label1);
+panel.add(button1);
+panel.add(label2);
+panel.add(button2);
+panel.add(button3);
+
+add(panel,BorderLayout.NORTH);
+add(panel2,BorderLayout.SOUTH);
+}
+
+public static void main(String args[])
+{
+ConvertVideo c=new ConvertVideo();
+c.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+c.setVisible(true);
+}
+
+public void check()
+{
+
+if (!checkfile(oldFileName))
+{
+System.out.println(oldFileName+"没有此文件");
+}
+
+if (process(oldFileName,newFileName))
+{
+System.out.println("文件转换成功!");
+label3.setText("文件转换成功!");
+}
+
+}
+
+private boolean process(String oldFileName,String newFileName)
+{
+
+int type = checkContentType(oldFileName);
+
+boolean status=false;
+if (type==0)
+{
+status=process3GP(oldFileName,newFileName);
+}
+
+return status;
+}
+
+private int checkContentType(String oldFileName)
+{
+String type=oldFileName.substring(oldFileName.lastIndexOf(".")+1,oldFileName.length()).toLowerCase();
+
+System.out.println(type);
+
+if (type.equals("avi"))
+{
+return 0;
+}
+else if (type.equals("mpg"))
+{
+return 0;
+}
+else if (type.equals("wmv")) {
+return 0;
+}
+else if (type.equals("3gp"))
+{
+return 0;
+}
+else if (type.equals("mov"))
+{
+return 0;
+}
+else if (type.equals("mp4"))
+{
+return 0;
+}
+else if (type.equals("asf"))
+{
+return 0;
+}
+else if (type.equals("asx"))
+{
+return 0;
+}
+else if (type.equals("flv"))
+{
+return 0;
+}
+
+return 9;
+}
+
+private boolean checkfile(String path)
+{
+File file=new File(path);
+if (!file.isFile())
+{
+return false;
+}
+
+return true;
+}
+
+private boolean process3GP(String oldfilepath,String newfilepath)
+{
+
+if (!checkfile(oldfilepath))
+{
+System.out.println(oldfilepath+"没有发现此文件");
+return false;
+}
+
+List<String> commend=new java.util.ArrayList<String>();
+commend.add("e:/ffmpeg");
+commend.add("-i");
+commend.add(oldfilepath);
+commend.add("-ar");
+commend.add("8000");
+commend.add("-ac");
+commend.add("1");
+commend.add("-s");
+commend.add("176*144");
+commend.add("-r");
+commend.add("12");
+commend.add("-b");
+commend.add("250");
+commend.add("-ab");
+commend.add("12");
+commend.add(newfilepath);
+
+try {
+builder = new ProcessBuilder();
+builder.command(commend);
+System.out.println("正在转换格式中...");
+label3.setText("正在转换格式中...");
+builder.start();
+
+return true;
+} catch (Exception e) {
+e.printStackTrace();
+return false;
+}
+
+}
+
+}
+
