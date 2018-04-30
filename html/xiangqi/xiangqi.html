@@ -1,0 +1,120 @@
+
+
+<!DOCTYPE html> 
+<html>
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" id="viewport" content="width = device-width, initial-scale = 0.9, minimum-scale = 0.9, maximum-scale = 0.9, user-scalable=no">
+<title>中国象棋 | html5游戏 | html5中国象棋</title>
+<link href="./index_files/zzsc.css" type="text/css" rel="stylesheet">
+
+<style type="text/css">
+#tyroPlay,#normalPlay,#superPlay,#regretBn,#moreGamestBn,#shareGamestBn {
+background:url(buttonbg.png); 
+width:90px;
+height:30px;
+border:none;
+font-weight:bold;
+color:white;
+}
+</style>
+<script type="text/javascript"></script>
+</head>
+<body scroll="no" style="background: url(./img/bg.jpg);">
+
+<div class="box" id="box">
+
+<script type="text/javascript">
+
+    window.shareData = {
+        "imgUrl": "http://game.html5youxi.com/xiangqi/141936_2031.jpg",
+        "timeLineLink": "http://game.html5youxi.com/xiangqi/",//...
+        "tTitle": "中国象棋-html5象棋",
+        "tContent": "酒逢知已千杯少,棋遇对手古难求,象棋世界风起云涌,中国象棋对战平台征招象棋高手..."
+    };
+
+function showmore(){//更多游戏
+  window.location.href="http://www.html5youxi.com";
+}
+
+function showme(){//关注我们
+  window.location.href="http://www.html5youxi.com/";
+}
+
+document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+        
+        WeixinJSBridge.on('menu:share:appmessage', function(argv) {
+            WeixinJSBridge.invoke('sendAppMessage', {
+                "img_url": window.shareData.imgUrl,
+                "link": window.shareData.timeLineLink,
+                "desc": window.shareData.tContent,
+                "title": window.shareData.tTitle
+            }, function(res) { 
+			 dp_share();
+            })
+        });
+
+        WeixinJSBridge.on('menu:share:timeline', function(argv) {
+            WeixinJSBridge.invoke('shareTimeline', {
+                "img_url": window.shareData.imgUrl,
+                "img_width": "640",
+                "img_height": "640",
+                "link": window.shareData.timeLineLink,
+                "desc": window.shareData.tContent,
+                "title": window.shareData.tTitle
+            }, function(res) { 
+			 dp_share();
+            });
+        });
+
+
+        WeixinJSBridge.on('menu:share:weibo', function(argv) {
+            WeixinJSBridge.invoke('shareWeibo', {
+                "content": window.shareData.tContent,
+                "url": window.shareData.timeLineLink
+            }, function(res) { 
+			 dp_share();
+            });
+        });
+
+        }, false)
+
+
+</script>
+
+	<div class="chess_left">
+		<canvas id="chess" width="325" height="402"></canvas>
+		<!-- <audio src="audio/click.wav" id="clickAudio" preload="auto"></audio> -->
+		<!--<audio src="audio/check.wav" id="checkAudio" preload="auto"></audio>-->
+		<!-- <audio src="audio/select.wav" id="selectAudio" preload="auto"></audio> -->
+		<div>
+			<div class="bn_box" id="bnBox" style="display: block;">
+				<input type="button" name="offensivePlay" id="tyroPlay"   value="新手开始">
+				<input type="button" name="offensivePlay" id="normalPlay" value="中级开始">
+                <input type="button" name="offensivePlay" id="superPlay"  value="高手开始">
+				 
+				<!--
+			<input type="button" name="offensivePlay" id="offensivePlay" value="先手开始" />
+			<input type="button" name="defensivePlay" id="defensivePlay" value="后手开始" />
+			-->
+				<input type="button" name="regret" id="regretBn" value="悔棋">
+				<!-- <input type="button" name="billBn" id="billBn" value="棋谱" class="bn_box" /> -->
+				<!-- <input type="button" name="stypeBn" id="stypeBn" value="换肤" /> --> 
+				<input type="button" name="moreGames" id="moreGamestBn" value="更多游戏" onclick="showmore();">
+				<input type="button" name="moreGames" id="shareGamestBn" value="关注我们" onclick="showme();">
+			</div>
+		</div>
+	</div>
+	<div class="chess_right" id="chessRight">
+		<select name="billList" id="billList">
+		</select>
+		<ol id="billBox" class="bill_box">
+		</ol>
+	</div>
+	<!-- <div id="moveInfo" class="move_info"> </div> -->
+</div>
+ 
+<script language="javascript" type="text/javascript" src="./js/game.min.js"></script>
+<script src="./js/gambit.js"></script>
+<script type="text/javascript"></script>
+<script type="text/javascript"></script>
+</body></html>
