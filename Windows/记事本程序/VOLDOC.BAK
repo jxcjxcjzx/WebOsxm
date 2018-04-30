@@ -1,0 +1,51 @@
+#include <conio.h>
+#include <stdio.h>
+#include <stdlib.h>
+main()
+
+{
+  char input[999];
+  int count;
+  char a=0;
+  int key;
+  long direct;
+  char NameofDoc[10];
+  FILE *fp;
+  clrscr();
+  direct=ftell(fp);
+  printf("This is designed for creating documents.\n");
+  delay(1000);
+  printf("Created by Mr Jiang.\n");
+  delay(2000);
+  printf("So the new document you want to create is:\n");
+  scanf("%s",NameofDoc);
+  if((fp=fopen(NameofDoc,"a"))==NULL)
+    {
+    printf("Sorry to inform you error has happened.\n");
+    exit(0);
+    }
+  else
+   {
+    printf("Put the words you want in:\n");
+    for(count=0;count<999;count++)
+     {
+       key=bioskey(0);
+       if(key==7181)
+	break;
+
+
+       fseek(fp,direct,SEEK_SET);
+       scanf("%s",input);
+       fputs(input,fp);
+       fputc(a,fp);
+       direct=ftell(fp);
+     }
+   }
+   delay(900);
+   printf("Succeed to put the words in!\n");
+   rewind(fp);
+   fclose(fp);
+   getch();
+  return 0;
+
+}

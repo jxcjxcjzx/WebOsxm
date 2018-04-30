@@ -1,0 +1,39 @@
+package readin;
+import java.io.FileWriter;
+import java.io.*;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.net.*;
+
+
+public class Readinterface {
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+     try
+     {
+		URL aurl = new URL("http://www.douban.com/location/nanjing/");
+		InputStreamReader br = new InputStreamReader(aurl.openStream(),"UTF-8");
+		FileWriter fw = new FileWriter("123.txt");
+		StringBuffer input = new StringBuffer();
+		int ch;
+		while((ch = br.read())!=-1)
+		input.append((char)ch);
+		System.out.println(input);
+		fw.write(input.toString());
+		fw.flush();
+		fw.close();
+
+     }
+     catch (IOException e) {
+			e.printStackTrace();
+		}
+	  }
+		
+	}
+
+
+

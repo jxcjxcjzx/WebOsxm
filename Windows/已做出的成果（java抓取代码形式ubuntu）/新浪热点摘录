@@ -1,0 +1,55 @@
+import java.io.*;
+import java.util.regex.*;
+
+public class zhengzehere {
+	
+	public static void main(String[] args) {
+		try	{
+			boolean biaozhi = true;
+			boolean biaozhi2 = false;
+			Pattern ridofblank = Pattern.compile("<.+?>");
+			Pattern myinterest = Pattern.compile("(.*热点专题.*)");
+			Pattern lowbound = Pattern.compile(".*房产·地产·家居·汽车·车型·F1·高尔夫·上海.*");
+
+			
+			BufferedReader br = new BufferedReader(new FileReader("rawmaterial.txt"));
+			String str = null;
+			while (((str=br.readLine() )!= null)&&(biaozhi)) {
+				
+				
+				Matcher m = ridofblank.matcher(str);
+			   
+			
+				String string = m.replaceAll("");
+				
+				Matcher m2 = myinterest.matcher(string);
+			
+				Matcher m3 = lowbound.matcher(string);
+				
+				if(m3.matches())
+				{
+					System.out.println("tuichu!");
+					biaozhi=false;
+				}
+				
+				while (m2.find()) {					
+					System.out.println(m2.group(1));
+					biaozhi2=true;
+				}
+			    if(biaozhi2)
+			    {
+			    	System.out.println(string);
+			    }
+			    else
+			    {
+			    	
+			    }
+				
+				
+			
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+} 

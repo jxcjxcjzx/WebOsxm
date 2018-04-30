@@ -1,0 +1,155 @@
+#include <stdio.h>
+#include <stdlib.h>
+#define M 7
+#define N 9
+#define cishu 19
+int main()
+{
+    
+	int map[M][N]; 
+	int b;
+	void printpath(int map_copytwo[M][N]);
+	int superjudge(int map_copysix[M][N]);
+	int superdel(int map_copyfive[M][N]);
+	void del(int ii,int jj,int mmap_copyone[M][N]);	 
+	void set(int i,int j,int map_copyone[M][N]);
+	int findpath(int map_copythree[M][N],int i,int j,int prei,int prej);
+	void recordpath(int map_copyfour[M][N]);
+	 int i;
+	 int j;
+	 int jianzhishu;
+	 for(i=1;i<8;i++)
+		 for(j=1;j<10;j++)
+			 map[i][j]=0;
+		 for(i=5,j=1;j<10;j++)
+			 map[i][j]=1;
+		 set(4,2,map);
+		 set(4,6,map);
+		 set(2,5,map);
+		 set(3,7,map);
+		 set(3,8,map);
+		 for(i=3,j=2;j<7;j++)
+		    map[i][j]=1;
+			del(5,5,map);
+	     printpath(map);
+	  for(jianzhishu=1;jianzhishu<cishu;jianzhishu++)
+ 		superdel(map);
+	    	findpath(map,5,2,5,1);
+     
+  return 0;
+}
+
+
+void printpath(int map_copytwo[M][N])
+{
+	  int i;
+	  int j;
+	  for(i=1;i<M+1;i++)
+	  {
+	    for(j=1;j<N+1;j++)
+			printf("%d",map_copytwo[i][j]);
+		    printf("\n");
+	  
+	  }
+	
+	
+	
+}
+
+
+int findpath(int map_copythree[M][N],int i,int j,int prei,int prej)
+{
+       	
+	    if((i==5)&&(j==9))
+		{
+		
+			printf("Success!Find it!");
+		}
+
+
+	    if((map_copythree[i][j+1]==1)&&!((i==prei)&&((j+1)==prej)))
+	{
+			printf("向右走\n");
+	    findpath(map_copythree,i,j+1,i,j);
+	}
+		 if((map_copythree[i][j-1]==1)&&!((i==prei)&&((j-1)==prej)))
+	{
+			printf("向左走\n");
+	    findpath(map_copythree,i,j-1,i,j);
+	}
+		 if((map_copythree[i+1][j]==1)&&!(((i+1)==prei)&&(j==prej)))
+	{
+			printf("向下走\n");
+	    findpath(map_copythree,i+1,j,i,j);
+	}
+		 if((map_copythree[i-1][j]==1)&&!(((i-1)==prei)&&(j==prej)))
+	{
+			printf("向上走\n");
+	    findpath(map_copythree,i-1,j,i,j);
+	}
+		
+
+}
+
+int superjudge(int map_copysix[M][N])
+{
+
+   int flag=0;
+   int i;
+   int j;
+   for(i=2;i<7;i++)
+	  for(j=2;j<9;j++)
+	  {
+		  if(((map_copysix[i][j+1]==0)&&(map_copysix[i][j-1]==0)&&(map_copysix[i+1][j]==0))
+			   ||((map_copysix[i][j+1]==0)&&(map_copysix[i][j-1]==0)&&(map_copysix[i-1][j]==0))
+				    ||((map_copysix[i-1][j]==0)&&(map_copysix[i][j-1]==0)&&(map_copysix[i+1][j]==0))
+						 ||((map_copysix[i-1][j]==0)&&(map_copysix[i][j+1]==0)&&(map_copysix[i+1][j]==0)))
+		  {
+			  printf("hello!");
+			  flag=1;
+		  }
+	  }		
+  return flag;
+
+
+}
+int superdel(int map_copyfive[M][N])
+{
+
+  int i;
+  int j;
+
+  for(i=2;i<7;i++)
+	  for(j=2;j<9;j++)
+	  {
+		  if((map_copyfive[i][j+1]==0)&&(map_copyfive[i][j-1]==0)&&(map_copyfive[i+1][j]==0))
+			  map_copyfive[i][j]=0;
+		  else
+			   if((map_copyfive[i][j+1]==0)&&(map_copyfive[i][j-1]==0)&&(map_copyfive[i-1][j]==0))
+				   map_copyfive[i][j]=0;
+			   else
+				    if((map_copyfive[i-1][j]==0)&&(map_copyfive[i][j-1]==0)&&(map_copyfive[i+1][j]==0))
+						map_copyfive[i][j]=0;
+					else
+						 if((map_copyfive[i-1][j]==0)&&(map_copyfive[i][j+1]==0)&&(map_copyfive[i+1][j]==0))
+							 map_copyfive[i][j]=0;
+	  }		
+  return 0;
+
+
+
+}
+void set(int i,int j,int map_copyone[M][N])
+{
+  map_copyone[i][j]=1;
+
+}
+
+void del(int ii,int jj,int mmap_copyone[M][N])
+{
+
+mmap_copyone[ii][jj]=0;
+
+
+
+}

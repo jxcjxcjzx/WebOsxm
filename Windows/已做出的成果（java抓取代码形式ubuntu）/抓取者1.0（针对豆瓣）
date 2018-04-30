@@ -1,0 +1,79 @@
+package readin;
+import java.io.*;
+import java.net.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+
+public class Readinterface {
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+     try
+     {
+		URL aurl = new URL("http://www.douban.com/location/nanjing/");
+		InputStreamReader br = new InputStreamReader(aurl.openStream(),"UTF-8");
+		FileWriter fw = new FileWriter("123.txt");
+		StringBuffer input = new StringBuffer();
+		int ch;
+		while((ch = br.read())!=-1)
+		input.append((char)ch);
+		fw.write(input.toString());
+		fw.flush();
+		fw.close();
+		
+		
+		
+		
+		Pattern myinterest = Pattern.compile(".*title(.*)");
+		Pattern aftermatch = Pattern.compile("([^>]+)</a>");
+	
+		
+		BufferedReader read = new BufferedReader(new FileReader("123.txt"));
+		String str = null;
+		while ((str=read.readLine() )!= null) {
+
+			Matcher m2 = myinterest.matcher(str);
+			
+			
+			if(m2.matches())
+			{
+			   Matcher m4 = aftermatch.matcher(m2.group(1).toString());
+			   if(m4.find())
+				{
+				  System.out.println(m4.group(1));
+				}
+			
+			}
+			
+	
+			
+		
+		}
+	
+		
+		
+		
+		
+		
+
+     }
+     catch (IOException e) {
+			e.printStackTrace();
+		}
+     
+     
+     
+     
+     
+     
+     
+	  }
+		
+	}
+
+
+
