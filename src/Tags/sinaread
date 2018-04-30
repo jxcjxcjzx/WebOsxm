@@ -1,0 +1,1453 @@
+新浪文化读书_电子书免费阅读_新浪网
+(function(padUrl){if(location.href.indexOf('f=pad')!==-1){return}; if(/\(iPad/i.test(navigator.userAgent)){location.replace(padUrl+'?f=web')};})('http://ipad.sina.com.cn/book/');
+function ScrollPic(scrollContId,arrLeftId,arrRightId,dotListId,listType){this.scrollContId=scrollContId;this.arrLeftId=arrLeftId;this.arrRightId=arrRightId;this.dotListId=dotListId;this.listType=listType;this.dotClassName="dotItem";this.dotOnClassName="dotItemOn";this.dotObjArr=[];this.listEvent="onclick";this.circularly=true;this.pageWidth=0;this.frameWidth=0;this.speed=10;this.space=10;this.upright=false;this.pageIndex=0;this.autoPlay=true;this.autoPlayTime=5;this._autoTimeObj;this._scrollTimeObj;this._state="ready";this.stripDiv=document.createElement("DIV");this.lDiv01=document.createElement("DIV");this.lDiv02=document.createElement("DIV")};ScrollPic.prototype={version:"1.45",author:"mengjia",pageLength:0,touch:true,scrollLeft:0,eof:false,bof:true,initialize:function(){var thisTemp=this;if(!this.scrollContId){throw new Error("必须指定scrollContId.");return};this.scDiv=this.$(this.scrollContId);if(!this.scDiv){throw new Error("scrollContId不是正确的对象.(scrollContId = \""+this.scrollContId+"\")");return};this.scDiv.style[this.upright?'height':'width']=this.frameWidth+"px";this.scDiv.style.overflow="hidden";this.lDiv01.innerHTML=this.scDiv.innerHTML;this.scDiv.innerHTML="";this.scDiv.appendChild(this.stripDiv);this.stripDiv.appendChild(this.lDiv01);if(this.circularly){this.stripDiv.appendChild(this.lDiv02);this.lDiv02.innerHTML=this.lDiv01.innerHTML;this.bof=false;this.eof=false};this.stripDiv.style.overflow="hidden";this.stripDiv.style.zoom="1";this.stripDiv.style[this.upright?'height':'width']="32766px";this.lDiv01.style.overflow="hidden";this.lDiv01.style.zoom="1";this.lDiv02.style.overflow="hidden";this.lDiv02.style.zoom="1";if(!this.upright){this.lDiv01.style.cssFloat="left";this.lDiv01.style.styleFloat="left"};this.lDiv01.style.zoom="1";if(this.circularly&&!this.upright){this.lDiv02.style.cssFloat="left";this.lDiv02.style.styleFloat="left"};this.lDiv02.style.zoom="1";this.addEvent(this.scDiv,"mouseover",function(){thisTemp.stop()});this.addEvent(this.scDiv,"mouseout",function(){thisTemp.play()});if(this.arrLeftId){this.alObj=this.$(this.arrLeftId);if(this.alObj){this.addEvent(this.alObj,"mousedown",function(e){thisTemp.rightMouseDown();e=e||event;thisTemp.preventDefault(e)});this.addEvent(this.alObj,"mouseup",function(){thisTemp.rightEnd()});this.addEvent(this.alObj,"mouseout",function(){thisTemp.rightEnd()})}};if(this.arrRightId){this.arObj=this.$(this.arrRightId);if(this.arObj){this.addEvent(this.arObj,"mousedown",function(e){thisTemp.leftMouseDown();e=e||event;thisTemp.preventDefault(e)});this.addEvent(this.arObj,"mouseup",function(){thisTemp.leftEnd()});this.addEvent(this.arObj,"mouseout",function(){thisTemp.leftEnd()})}};var pages=Math.ceil(this.lDiv01[this.upright?'offsetHeight':'offsetWidth']/this.frameWidth),i,tempObj;this.pageLength=pages;if(this.dotListId){this.dotListObj=this.$(this.dotListId);this.dotListObj.innerHTML="";if(this.dotListObj){for(i=0;i=this.lDiv01[this._sWidth]){this.scDiv[this._scroll]=this.scDiv[this._scroll]+this.space-this.lDiv01[this._sWidth]}else{this.scDiv[this._scroll]+=this.space}}else{if(this.scDiv[this._scroll]+this.space>=this.lDiv01[this._sWidth]-this.frameWidth){this.scDiv[this._scroll]=this.lDiv01[this._sWidth]-this.frameWidth;this.leftEnd()}else{this.scDiv[this._scroll]+=this.space}};this.accountPageIndex()},moveRight:function(){if(this._state!="floating"){return};if(this.circularly){if(this.scDiv[this._scroll]-this.spacethis.space){thisMove=this.space};if(thisMove=0?1:-1}else{thisMove=Math.round(thisMove)};var temp=this.scDiv[this._scroll]+thisMove;if(thisMove>0){if(this.circularly){if(this.scDiv[this._scroll]+thisMove>=this.lDiv01[this._sWidth]){this.scDiv[this._scroll]=this.scDiv[this._scroll]+thisMove-this.lDiv01[this._sWidth]}else{this.scDiv[this._scroll]+=thisMove}}else{if(this.scDiv[this._scroll]+thisMove>=this.lDiv01[this._sWidth]-this.frameWidth){this.scDiv[this._scroll]=this.lDiv01[this._sWidth]-this.frameWidth;this._state="ready";theEnd=true}else{this.scDiv[this._scroll]+=thisMove}}}else{if(this.circularly){if(this.scDiv[this._scroll]+thisMove=this.lDiv01[this._sWidth]-this.frameWidth){this._state="ready";if(reStar){this.pageTo(0)}}else{this.move(this.pageWidth)}}},play:function(){var thisTemp=this;if(!this.autoPlay){return};clearInterval(this._autoTimeObj);this._autoTimeObj=setInterval(function(){thisTemp.next(true)},this.autoPlayTime*1000)},stop:function(){clearInterval(this._autoTimeObj)},pageTo:function(num){if(this.pageIndex==num){return};if(num=this.pageLength){pageIndex=0};this.scrollLeft=this.scDiv[this._scroll];var scrollMax=this.lDiv01[this._sWidth]-this.frameWidth;if(!this.circularly){this.eof=this.scrollLeft>=scrollMax;this.bof=this.scrollLeftMath.floor(this.lDiv01[this.upright?'offsetHeight':'offsetWidth']/this.frameWidth)){this.pageIndex=0};var i;for(i=0;i1){this._touchend()};this.iPadLastX=e.touches[0].pageX;var cX=this.iPadX-this.iPadLastX;if(this.iPadStatus=='ok'){if(this.iPadScrollY==window.pageYOffset&&this.iPadScrollX==window.pageXOffset&&Math.abs(cX)>20){this.iPadStatus='touch'}else{return}};this._state='touch';var scrollNum=this.scDivScrollLeft+cX;if(scrollNum>=this.lDiv01[this._sWidth]){if(this.circularly){scrollNum=scrollNum-this.lDiv01[this._sWidth]}else{return}};if(scrollNum<0){if(this.circularly){scrollNum=scrollNum+this.lDiv01[this._sWidth]}else{return}};this.scDiv[this._scroll]=scrollNum;e.preventDefault()},_touchend:function(e){if(this.iPadStatus!='touch'){return};this.iPadStatus='ok';var cX=this.iPadX-this.iPadLastX;if(cX<0){this.rightEnd()}else{this.leftEnd()};this.play()},_overTouch:function(){this.iPadStatus='ok'},$:function(objName){if(document.getElementById){return eval('document.getElementById("'+objName+'")')}else{return eval('document.all.'+objName)}},isIE:navigator.appVersion.indexOf("MSIE")!=-1?true:false,addEvent:function(obj,eventType,func){if(obj.attachEvent){obj.attachEvent("on"+eventType,func)}else{obj.addEventListener(eventType,func,false)}},delEvent:function(obj,eventType,func){if(obj.detachEvent){obj.detachEvent("on"+eventType,func)}else{obj.removeEventListener(eventType,func,false)}},preventDefault:function(e){if(e.preventDefault){e.preventDefault()}else{e.returnValue=false}}};
+i+='>\n';for(var l in I.__params){i+='	\n'}
+if(I.__flashVarsStr!=""){i+='	\n'}
+i+='>\n';return i},__forSetAttribute:function(I,i){var l=this;if(typeof(I)=="undefined"||I==''||typeof(i)=="undefined"||i==''){return}
+function SubShowClass(ID,eventType,defaultID,openClassName,closeClassName){var t=this;this.parentObj=this.$(ID);if(this.parentObj==null&&ID!="none"){throw new Error("SubShowClass(ID)参数错误:ID 对像不存在!(value:"+ID+")")};this.lock=false;this.label=[];this.defaultID=defaultID==null?0:defaultID;this.selectedIndex=this.defaultID;this.openClassName=openClassName==null?"selected":openClassName;this.closeClassName=closeClassName==null?"":closeClassName;this.mouseIn=false;var mouseInFunc=function(){t.mouseIn=true};var mouseOutFunc=function(){t.mouseIn=false};if(ID!="none"&&ID!=""){this.addEvent(this.parentObj,"mouseover",mouseInFunc)};if(ID!="none"&&ID!=""){this.addEvent(this.parentObj,"mouseout",mouseOutFunc)};if(typeof(eventType)!="string"){eventType="onmousedown"};eventType=eventType.toLowerCase();switch(eventType){case"onmouseover":this.eventType="mouseover";break;case"onclick":this.eventType="click";break;case"onmouseup":this.eventType="mouseup";break;default:this.eventType="mousedown"};this.autoPlay=false;this.autoPlayTimeObj=null;this.spaceTime=5000};SubShowClass.prototype={version:"1.31",author:"mengjia",_delay:200,_setClassName:function(obj,type){var temp;temp=obj.className;if(temp){temp=temp.replace(this.openClassName,"");temp=temp.replace(this.closeClassName,"");temp+=" "+(type=="open"?this.openClassName:this.closeClassName)}else{temp=(type=="open"?this.openClassName:this.closeClassName)};obj.className=temp},addLabel:function(labelID,contID,parentBg,springEvent,blurEvent){var t=this;var labelObj=this.$(labelID);var contObj=this.$(contID);if(labelObj==null&&labelID!="none"){throw new Error("addLabel(labelID)参数错误:labelID 对像不存在!(value:"+labelID+")")};var TempID=this.label.length;if(parentBg==""){parentBg=null};this.label.push([labelID,contID,parentBg,springEvent,blurEvent]);var tempFunc=function(){if(t.eventType=='mouseover'){clearTimeout(labelObj._timeout);labelObj._timeout=setTimeout(function(){t.select(TempID)},t._delay)}else{t.select(TempID)}};if(labelID!="none"){this.addEvent(labelObj,this.eventType,tempFunc);if(t.eventType=='mouseover'){this.addEvent(labelObj,'mouseout',function(){clearTimeout(labelObj._timeout)})}};if(TempID==this.defaultID){if(labelID!="none"){this._setClassName(labelObj,"open")};if(this.$(contID)){contObj.style.display=""};if(this.ID!="none"){if(parentBg!=null){this.parentObj.style.background=parentBg}};if(springEvent!=null){eval(springEvent)}}else{if(labelID!="none"){this._setClassName(labelObj,"close")};if(contObj){contObj.style.display="none"}};var mouseInFunc=function(){t.mouseIn=true};var mouseOutFunc=function(){t.mouseIn=false};if(contObj){this.addEvent(contObj,'mouseover',mouseInFunc);this.addEvent(contObj,'mouseout',mouseOutFunc)}if(this.label.length==1){this.selectedContEle=contObj}this.touchInit(contObj)},select:function(num,force){if(typeof(num)!="number"){throw new Error("select(num)参数错误:num 不是 number 类型!(value:"+num+")")};if(force!=true&&this.selectedIndex==num){return};var i;for(i=0;i=num){this.select(i);break}}},play:function(spTime){var t=this;if(typeof(spTime)=="number"){this.spaceTime=spTime};clearInterval(this.autoPlayTimeObj);this.autoPlayTimeObj=setInterval(function(){t.autoPlayFunc()},this.spaceTime);this.autoPlay=true},autoPlayFunc:function(){if(this.autoPlay==false||this.mouseIn==true){return};this.nextLabel()},nextLabel:function(){var t=this;var index=this.selectedIndex;index++;if(index>=this.label.length){index=0};this.select(index);if(this.autoPlay==true){clearInterval(this.autoPlayTimeObj);this.autoPlayTimeObj=setInterval(function(){t.autoPlayFunc()},this.spaceTime)}},previousLabel:function(){var t=this;var index=this.selectedIndex;index--;if(index1){this.touchStatus='ok';return};this.touchLastX=e.touches[0].pageX;var cX=this.touchX-this.touchLastX;if(this.touchStatus=='ok'){if(this.scrollY==window.pageYOffset&&this.scrollX==window.pageXOffset&&Math.abs(cX)>50){this.selectedContEle.parentNode.style.overflowX='hidden';this.selectedContEle.style.width=this.selectedContEle.offsetWidth+'px';this.touchStatus='touch'}else{return}};if(this.touchStatus=='touch'){this.selectedContEle.style.marginLeft=-cX+'px';e.preventDefault()}},_touchend:function(e){if(this.touchStatus!='touch'){return};this.touchStatus='ok';var cX=this.touchX-this.touchLastX;var tempThis=this;var speed=Math.round(this.selectedContEle.offsetWidth/5);this.selectedContEle.style.marginLeft='';this.selectedContEle.parentNode.style.overflowX='';this.selectedContEle.style.width='';if(cX=1){return};opacity+=1/step;tempThis.setOpacity(obj,opacity);obj._extend_show_timeOut=setTimeout(arguments.callee,20)},20)},actPX:function(obj,key,start,end,speed,endFn,u){if(typeof(u)=='undefined'){u='px'};clearTimeout(obj['_extend_actPX'+key.replace(/\-\.\=/,'_')+'_timeOut']);if(start>end){speed=-Math.abs(speed)}else{speed=Math.abs(speed)};var now=start;var length=end-start;obj['_extend_actPX'+key.replace(/\-\.\=/,'_')+'_timeOut']=setTimeout(function(){now+=speed;var space=end-now;if(startlength/3){speed=Math.floor(space/3)};if(space>=0){obj[key]=end+u;if(endFn){endFn()};return}};obj[key]=now+u;obj['_extend_actPX'+key.replace(/\-\.\=/,'_')+'_timeOut']=setTimeout(arguments.callee,20)},20)}}};
+function DivSelect(id,divId,className){this.id=id;this.divId=divId;this.divClassName=className||'selectView';this.ele=this.$(this.id);if(!this.ele){return};var that=this;this.status="close";this.parentObj=this.ele.parentNode;while(this.readStyle(this.parentObj,"display")!="block"){if(this.parentObj.parentNode){this.parentObj=this.parentObj.parentNode}else{break}};this.parentObj.style.position="relative";var sp=this.absPosition(this.ele,this.parentObj);this.ele.style.visibility="hidden";this.__div=document.createElement("div");if(divId){this.__div.id=divId};if(this.divClassName){this.__div.className=this.divClassName};this.parentObj.appendChild(this.__div);this.__div.style.width=this.ele.offsetWidth+"px";this.__div.style.position="absolute";this.__div.style.left=sp.left+"px";this.__div.style.top=sp.top+"px";this.__div.onclick=function(){that.click()};this.__div_count=document.createElement("div");this.__div.appendChild(this.__div_count);this.__div_count.className="ds_cont";this.__div_title=document.createElement("div");this.__div_count.appendChild(this.__div_title);this.__div_title.className="ds_title";this.__div_button=document.createElement("div");this.__div_count.appendChild(this.__div_button);this.__div_button.className="ds_button";this.__div_list=document.createElement("div");this.__div.appendChild(this.__div_list);this.__div_list.className="ds_list";this.__div_list.style.display="none";this.__div_listCont=document.createElement("div");this.__div_list.appendChild(this.__div_listCont);this.__div_listCont.className="dsl_cont";this.list=[];var temp;for(var i=0;i=this.list.length){return}this.ele.selectedIndex=num;if(this.ele.onchange){this.ele.onchange()};this.__div_title.innerHTML=this.list[num].innerHTML},clickClose:function(e){var thisObj=e.target?e.target:event.srcElement;var that=this;do{if(thisObj==that.__div){return};if(thisObj.tagName=="BODY"){break};thisObj=thisObj.parentNode}while(thisObj.parentNode);that.close()},keyDown:function(e){var num=this.showIndex;if(e.keyCode==38){num--;if(num=this.list.length){num=0};this.showSelectIndex(num);this.stopDefault(e)};if(e.keyCode==13||e.keyCode==9){this.setIndex(num);this.stopDefault(e);this.close()};if(e.keyCode==27){this.close()}},open:function(){var that=this;this.showSelectIndex();this.__div_list.style.display="block";this.status="open";this.__closeFn=function(e){that.clickClose(e)};this.__keyFn=function(e){that.keyDown(e)};this.addEvent(document,"click",this.__closeFn);this.addEvent(document,"keydown",this.__keyFn)},close:function(){var that=this;this.__div_list.style.display="none";this.status="close";this.delEvent(document,"click",this.__closeFn);this.delEvent(document,"keydown",this.__keyFn)},click:function(){if(this.status=="open"){this.close()}else{this.open()}},$:function(objName){if(document.getElementById){return eval('document.getElementById("'+objName+'")')}else{return eval('document.all.'+objName)}},addEvent:function(obj,eventType,func){if(obj.attachEvent){obj.attachEvent("on"+eventType,func)}else{obj.addEventListener(eventType,func,false)}},delEvent:function(obj,eventType,func){if(obj.detachEvent){obj.detachEvent("on"+eventType,func)}else{obj.removeEventListener(eventType,func,false)}},readStyle:function(i,I){if(i.style[I]){return i.style[I]}else if(i.currentStyle){return i.currentStyle[I]}else if(document.defaultView&&document.defaultView.getComputedStyle){var l=document.defaultView.getComputedStyle(i,null);return l.getPropertyValue(I)}else{return null}},absPosition:function(obj,parentObj){var left=obj.offsetLeft;var top=obj.offsetTop;var tempObj=obj.offsetParent;var sss="";try{while(tempObj.id!=document.body&&tempObj.id!=document.documentElement&&tempObj!=parentObj&&tempObj!=null){sss+=tempObj.tagName+" , ";tempObj=tempObj.offsetParent;left+=tempObj.offsetLeft;top+=tempObj.offsetTop}}catch(e){};return{left:left,top:top}},stopDefault:function(e){if(e.preventDefault){e.preventDefault()}else{e.returnValue=false}}};
+(function(){var win=window,doc=document,nav=navigator,ua=nav.userAgent,scr=win.screen,loc=win.location.href;var prtl=loc.indexOf("https")>-1?"https://":"http://",domain="beacon.sina.com.cn";var a_gif=prtl+domain+"/a.gif?",g_gif=prtl+domain+"/g.gif?",d_gif=prtl+domain+"/d.gif?",e_gif=prtl+domain+"/e.gif?";var sudaCount=0;var sudaRef=doc.referrer.toLowerCase();var cookie_SINAGLOBAL="SINAGLOBAL",cookie_For_Flash="FSINAGLOBAL",cookie_Apache="Apache",cookie_ULV="ULV",cookie_SUP="SUP",cookie_UOR="UOR",cookie__s_acc="_s_acc",cookie__s_tentry="_s_tentry";var count=0;var inFrame=false,isMetaFresh=false;var loginUserInfo="";var commonType=16777215,performance=0,filter,interval=0;var sudaPageid="",sudaExt1="",sudaExt2="";var sudaInfo=[],acTrackInfo=[],uaTrackInfo=[];var sudaGlobalCount=0;var fsudaGlobalCount=0;var storage=(function(){var objDS=window.localStorage,store,STORE_NAME;if(objDS){return{get:function(key){return unescape(objDS.getItem(key))},set:function(key,value){objDS.setItem(key,escape(value))}}}else{if(window.ActiveXObject){store=document.documentElement;STORE_NAME="localstorage";try{store.addBehavior("#default#userdata");store.save("localstorage")}catch(e){}return{set:function(key,value){try{store.setAttribute(key,value);store.save(STORE_NAME)}catch(e){}},get:function(key){try{store.load(STORE_NAME);return store.getAttribute(key)}catch(e){}}}}else{return{get:getCookie,set:setCookie}}}})();var flashData={flashObj:null,id:"sudaDataFrame",status:"loading",$:function(objName){if(document.getElementById){return eval('document.getElementById("'+objName+'")')}else{return eval("document.all."+objName)}},clear:function(){this.flashObj.write("")},read:function(name){if(this.status!="ok"){return""}var nameRule=/[=,;]+/i;if(nameRule.test(name)){return""}var dataScring=this.flashObj.read();if(dataScring==null){dataScring=""}var reg=new RegExp("(?:^|;)"+name+"=(.*?),expires=([^;]*)","i");var value=dataScring.match(reg);if(value==null){value=""}else{if(value.length>=3){var now=new Date();var dd=now.getTime();if(new Number(value[2])>dd){value=value[1];value=value.replace(/\[\$\=\]/g,"=");value=value.replace(/\[\$\;\]/g,";");value=value.replace(/\[\$\,\]/g,",")}else{value=""}}else{value=""}}return value},write:function(name,value,hours){if(this.status!="ok"){return}var nameRule=/[=,;]+/i;if(nameRule.test(name)){return}value=value.toString();value=value.replace(/\\/g,"\\\\");value=value.replace(/\&/g,"&amp;");value=value.replace(/\=/g,"[$$=]");value=value.replace(/\;/g,"[$$;]");value=value.replace(/\,/g,"[$$,]");if(typeof(hours)!="number"){hours=24*30*3}var now=new Date();var expire=new Date(now.getTime()+hours*3600000);expire=",expires="+expire.getTime();var list=this.flashObj.read();if(list==null){list=""}list=list.split(/;(?!\])/i);var newList=[],update=false;var data;for(var i=0;inow&&data[2]!=""){newList.push(list[i])}}}if(!update){newList.push(name+"="+value+expire)}var newStr="";for(var i=0;i0)?pidx:0;return(pMeta.length>idx)?pMeta[idx].content:""}function getSudaMeta(){var pMeta=doc.getElementsByName("sudameta");var meta=[];for(var idx=0;idxs){if(!reg.test(str.charAt(len-1))){break}len-=1}return str.slice(s,len)}function isArray(o){return Object.prototype.toString.call(o)==="[object Array]"}function queryToJson(QS,isDecode){var _Qlist=trim(QS).split("&");var _json={};var _fData=function(data){if(isDecode){return decodeURIComponent(data)}else{return data}};for(var i=0,len=_Qlist.length;i-1)?"MSIE":nav.appName):""},cpu:function(){return(commonType&524288==524288)?(nav.cpuClass||nav.oscpu):""},platform:function(){return(commonType&262144==262144)?(nav.platform):""},jsVer:function(){if(commonType&131072!=131072){return""}var p,appsign,appver,jsver=1,isN6=0,navigatorAppName=(nav.appName.indexOf("Microsoft Internet Explorer")>-1)?"MSIE":nav.appName,navigatorAppVersion=nav.appVersion;if("MSIE"==navigatorAppName){appsign="MSIE";p=navigatorAppVersion.indexOf(appsign);if(p>=0){appver=window.parseInt(navigatorAppVersion.substring(p+5));if(3=0){jsver=1.5}}}return jsver},network:function(){if(commonType&65536!=65536){return""}var ct="";ct=(nav.connection&&nav.connection.type)?nav.connection.type:ct;try{doc.body.addBehavior("#default#clientCaps");ct=doc.body.connectionType}catch(e){ct="unkown"}return ct},language:function(){return(commonType&32768==32768)?(nav.systemLanguage||nav.language):""},timezone:function(){return(commonType&16384==16384)?(new Date().getTimezoneOffset()/60):""},flashVer:function(){if(commonType&8192!=8192){return""}var pl=nav.plugins,flash,item,desc;if(pl&&pl.length){for(var key in pl){item=pl[key];if(item.description==null){continue}if(flash!=null){break}desc=item.description.toLowerCase();if(desc.indexOf("flash")!=-1){flash=item.version?parseInt(item.version):desc.match(/\d+/);continue}}}else{if(window.ActiveXObject){for(var i=10;i>=2;i--){try{var object=new ActiveXObject("ShockwaveFlash.ShockwaveFlash."+i);if(object){flash=i;break}}catch(e){}}}else{if(ua.indexOf("webtv/2.5")!=-1){flash=3}else{if(ua.indexOf("webtv")!=-1){flash=2}}}}return flash},javaEnabled:function(){if(commonType&4096!=4096){return""}var pl=nav.plugins,java=nav.javaEnabled(),item,desc;if(java==true){return 1}if(pl&&pl.length){for(var key in pl){item=pl[key];if(item.description==null){continue}if(java!=null){break}desc=item.description.toLowerCase();if(desc.indexOf("java plug-in")!=-1){java=parseInt(item.version);continue}}}else{if(window.ActiveXObject){java=(new ActiveXObject("JavaWebStart.IsInstalled")!=null)}}return java?1:0}};var PI={pageId:function(pageid){var pid=pageid||sudaPageid,defaultPageID="-9999-0-0-1";if((undefined==pid)||(""==pid)){try{var metaTxt=getMeta("publishid");if(""!=metaTxt){var pbidList=metaTxt.split(",");if(pbidList.length>0){if(pbidList.length>=3){defaultPageID="-9999-0-"+pbidList[1]+"-"+pbidList[2]}pid=pbidList[0]}}else{pid="0"}}catch(e){pid="0"}pid=pid+defaultPageID}return pid},sessionCount:function(){var count=getCookie("_s_upa");if(count==""){count=0}return count},excuteCount:function(){return sudaCount},referrer:function(){if(commonType&2048!=2048){return""}var re=/^[^\?&#]*.swf([\?#])?/;if((sudaRef=="")||(sudaRef.match(re))){var ref=stringSplice(loc,"ref","&","");if(ref!=""){return escape(ref)}}return escape(sudaRef)},isHomepage:function(){if(commonType&1024!=1024){return""}var isHome="";try{doc.body.addBehavior("#default#homePage");isHome=doc.body.isHomePage(loc)?"Y":"N"}catch(e){isHome="unkown"}return isHome},PGLS:function(){return(commonType&512==512)?getMeta("stencil"):""},ZT:function(){if(commonType&256!=256){return""}var zt=getMeta("subjectid");zt.replace(",",".");zt.replace(";",",");return escape(zt)},mediaType:function(){return(commonType&128==128)?getMeta("mediaid"):""},domCount:function(){return(commonType&64==64)?doc.getElementsByTagName("*").length:""},iframeCount:function(){return(commonType&32==32)?doc.getElementsByTagName("iframe").length:""}};var UI={visitorId:function(gid){if(!gid){var gid=getCookie(cookie_SINAGLOBAL);return gid}else{setCookie(cookie_SINAGLOBAL,gid,3650)}},fvisitorId:function(fid){if(!fid){var fid=getCookie(cookie_For_Flash);return fid}else{setCookie(cookie_For_Flash,fid,3650)}},sessionId:function(){var sid=getCookie(cookie_Apache);if(""==sid){var now=new Date();sid=Math.random()*10000000000000+"."+now.getTime();setCookie(cookie_Apache,sid)}return sid},flashCookie:function(gid){if(gid){flashData.write("local_unique",gid,24*360)}else{return local_unique}},lastVisit:function(){var sid=getCookie(cookie_Apache);var lvi=getCookie(cookie_ULV);var lva=lvi.split(":");var lvr="",lvn;if(lva.length>=6){if(sid!=lva[4]){lvn=new Date();var lvd=new Date(window.parseInt(lva[0]));lva[1]=window.parseInt(lva[1])+1;if(lvn.getMonth()!=lvd.getMonth()){lva[2]=1}else{lva[2]=window.parseInt(lva[2])+1}if(((lvn.getTime()-lvd.getTime())/86400000)>=7){lva[3]=1}else{if(lvn.getDay()=2){return upa[0]}else{return""}},advCount:function(){return(commonType&2==2)?getCookie(cookie__s_acc):""},setUOR:function(){var uoc=getCookie(cookie_UOR),uor="",uol="",up_t="",up="",currLoc=loc.toLowerCase(),ref=doc.referrer.toLowerCase();var re=/[&|?]c=spr(_[A-Za-z0-9]{1,}){3,}/;var ct=new Date();if(currLoc.match(re)){up_t=currLoc.match(re)[0]}else{if(ref.match(re)){up_t=ref.match(re)[0]}}if(up_t!=""){up_t=up_t.substr(3)+":"+ct.getTime()}if(uoc==""){if(getCookie(cookie_ULV)==""){uor=getHost(ref);uol=getHost(currLoc)}setCookie(cookie_UOR,uor+","+uol+","+up_t,365)}else{var ucg=0,uoa=uoc.split(",");if(uoa.length>=1){uor=uoa[0]}if(uoa.length>=2){uol=uoa[1]}if(uoa.length>=3){up=uoa[2]}if(up_t!=""){ucg=1}else{var upa=up.split(":");if(upa.length>=2){var upd=new Date(window.parseInt(upa[1]));if(upd.getTime()=minH)&&(doc.body.clientWidth>=minW))?false:true}catch(e){return true}}})(320,240);isMetaFresh=(function(){return false})();UI.setUOR();var sid=UI.sessionId();if(!UI.visitorId()){UI.visitorId(sid)}window.SUDA=window.SUDA||[];SUDA.log=function(){gatherCommon.apply(null,arguments)};SUDA.acTrack=function(){acTrack.apply(null,arguments)};SUDA.uaTrack=function(){uaTrack.apply(null,arguments)};SUDA.flashData=flashData;if(!UI.fvisitorId()){createFlashIFrame();flashData.onload=function(){local_unique=flashData.read("local_unique");if(local_unique){UI.fvisitorId(local_unique)}else{var gid=UI.visitorId();UI.fvisitorId(gid);UI.flashCookie(gid)}loaded=true}}addEvent(doc.body,"click",trackAgent);window.GB_SUDA=SUDA;GB_SUDA._S_pSt=function(){gatherCommon.apply(null,arguments)};GB_SUDA._S_acTrack=function(){acTrack.apply(null,arguments)};GB_SUDA._S_uaTrack=function(){uaTrack.apply(null,arguments)};window._S_pSt=function(){gatherCommon.apply(null,arguments)};window._S_acTrack=function(){acTrack.apply(null,arguments)};window._S_uaTrack=function(){uaTrack.apply(null,arguments)};window._S_PID_=""})();
+var sinaSSOManager=sinaSSOManager||{};sinaSSOManager.getSinaCookie=function(){function dc(u){if(u==undefined){return""}var decoded=decodeURIComponent(u);return decoded=="null"?"":decoded}function ps(str){var arr=str.split("&");var arrtmp;var arrResult={};for(var i=0;i
+new function(r,s,t){this.a=function(n,t,e){if(window.addEventListener){n.addEventListener(t,e,false);}else if(window.attachEvent){n.attachEvent("on"+t,e);}};this.b=function(f){var t=this;return function(){return f.apply(t,arguments);};};this.c=function(){var f=document.getElementsByTagName("form");for(var i=0;i
+			新浪首页&gt;&gt;
+			&nbsp;NBA热播视频集　直击2013巴黎时装周　英语四六级成绩查询
+					新闻
+					图片
+					博客
+					视频
+			通行证登录
+            新闻
+            军事
+            社会
+            健康
+            财经
+            股票
+            基金
+            理财
+            体育
+            英超
+            彩票
+            NBA
+              科技
+              手机
+              下载
+              趣图
+              娱乐
+              电影
+              明星
+              音乐
+                   视频
+                   综艺	
+                   电视
+                   大片
+              博客
+              微博
+              图片
+              轻博
+                汽车
+                报价
+                买车
+                图库
+            读书
+            乐库
+            房产
+	    	二手房
+               女性
+               育儿
+            	家居
+                尚品
+            	教育
+		        星座
+            	旅游
+	         	SHOW
+                	游戏
+		            爱问
+                	论坛
+		            天气
+            	短信
+		        导航
+                  彩铃
+                  邮箱
+			恢复经典导航
+			重置
+			确定
+					推荐
+					新闻
+					体育
+					娱乐
+					财经
+					科技
+					读书
+					女性
+					教育
+					汽车
+					房产
+					视频
+					微博
+					博客
+					其他
+							新闻	
+							军事	
+							国内	
+							国际	
+							社会	
+							深度	
+							传媒	
+							天气	
+							航空	
+							体育	
+							NBA	
+							国际足球	
+							中超	
+							欧冠	
+							篮球	
+							英超	
+							彩票
+							CBA	
+							娱乐	
+							明星	
+							电视	
+							电影	
+							音乐	
+							戏剧	
+							韩娱	
+							日娱	
+							财经	
+							股票	
+							理财	
+							美股	
+							期货	
+							基金	
+							港股	
+							外汇	
+							科技	
+							探索	
+							手机	
+							环球地理	
+							数码	
+							笔记本	
+							互联网	
+							IT业界	
+							相机	
+							微博	
+							博客	
+							视频	
+							大片	
+							女性	
+							育儿	
+							教育	
+							星座	
+							房产	
+							汽车	
+							游戏	
+							搜索	
+							邮箱	
+							站点地图
+							新闻
+							军事
+							国内	
+							国际	
+							社会	
+							深度	
+							传媒	
+							天气	
+							航空	
+							环保	
+							评论	
+							新闻专题	
+							新闻滚动	
+							看图	
+							体育	
+							NBA	
+							国际足球	
+							欧冠	
+							英超	
+							西甲	
+							意甲	
+							中超	
+							亚冠	
+							篮球	
+							CBA	
+							彩票	
+							综合	
+							网球	
+							高尔夫	
+							赛车	
+							棋牌	
+ 娱乐	
+ 明星	
+ 电影	
+ 电视	
+ 音乐	
+ 戏剧	
+ 娱乐视频	
+ 大片	
+ 乐库	
+ 娱乐博客	
+ 娱乐图库	
+ 韩娱	
+ 日娱	
+ 影讯	
+ 演出订票	
+ 电视节目	
+ 财经	
+ 股票	
+ 理财	
+ 美股	
+ 港股	
+ 期货	
+ 基金	
+ 外汇	
+ 财经评论	
+ 银行	
+ 保险	
+ 黄金	
+ 农业	
+ 财经滚动	
+ 行情中心	
+ 财经博客	
+ 股吧	
+ 信用卡	
+							科技
+							探索
+							手机
+							环球地理
+							数码	
+							笔记本	
+							互联网	
+							IT业界	
+							电信	
+							硬件	
+							家电	
+							相机	
+							平板电脑	
+							电子商务	
+							报价
+							创事记	
+							下载	
+ 读书	
+ 新书	
+ 书库	
+ 图书	
+ 原创	
+ 全本包月	
+ 听书	
+ 文化	
+ 文化新闻	
+ 文化博客	
+ 历史	
+ 书摘	
+ 读书高清	
+ 读书排行	
+ 全本连载	
+							女性	
+							服饰	
+							美容	
+							时尚	
+							美体	
+							情感
+							八卦
+							女性高清	
+							化妆品库	
+							口述	
+							微博社区	
+							女性论坛	
+							整形	
+							婚嫁	
+							女性专题	
+							教育	
+							中考	
+							高考	
+							考研	
+							公务员	
+							四六级	
+							出国	
+							留学	
+							外语	
+							移民	
+							商学院	
+							少儿英语	
+							中小学	
+							题库	
+							院校库	
+							教育图库	
+ 公开课	
+							汽车	
+							购车	
+							导购	
+							车型	
+							降价	
+							报价	
+							新车	
+							试车	
+							违章查询	
+							自驾游	
+							房产	
+							买房
+							二手房	
+							租房
+							家居	
+							家装
+							业主论坛	
+							乐居会
+							地产	
+							房产数据	
+							房产评测
+							房商通	
+ 视频	
+ 大片	
+ 音乐	
+ 微视频	
+ 综艺	
+ 嘉宾聊天	
+ 搞笑	
+ 微电台	
+ 公开课	
+ 新闻视频	
+ 体育视频	
+ 娱乐视频	
+ 财经视频	
+ 购车视频	
+							微博	
+							名人堂	
+							风云榜	
+							长微博	
+							微访谈	
+							体育微博	
+							娱乐微博	
+							教育微博	
+							女性微博	
+							收藏微博	
+							炒股大赛	
+							尚品微博	
+							健康答疑	
+							汽车微博	
+							博客	
+							草根博客	
+							名人库	
+							博客搬家	
+							博客排行	
+							博客图片	
+							摄影博客	
+							文化博客	
+							体育博客	
+							博客专题	
+							媒体博客	
+							校园博客	
+							娱乐博客	
+							女性博客	
+							IT博客	
+							财经博客	
+							股票博客	
+							汽车博客	
+							房产博客
+							教育博客
+							游戏博客
+							军事博客
+							星座博客
+							美食博客
+							家居博客
+							育儿博客
+							健康博客
+							收藏博客
+							育儿
+							星座
+							健康	
+							中医	
+							尚品
+							尚文
+							收藏
+							游戏
+							手游	
+							公益	
+							论坛
+							搜索	
+							旅游	
+							个人中心	
+							邮箱	
+							UC
+							应用
+							无线
+							站点地图
+function SubShowClass(ID,eventType,defaultID,openClassName,closeClassName){var t=this;this.parentObj=this.$(ID);if(this.parentObj==null&&ID!="none"){throw new Error("SubShowClass(ID)参数错误:ID 对像不存在!(value:"+ID+")")};this.lock=false;this.label=[];this.defaultID=defaultID==null?0:defaultID;this.selectedIndex=this.defaultID;this.openClassName=openClassName==null?"selected":openClassName;this.closeClassName=closeClassName==null?"":closeClassName;this.mouseIn=false;var mouseInFunc=function(){t.mouseIn=true};var mouseOutFunc=function(){t.mouseIn=false};if(ID!="none"&&ID!=""){this.addEvent(this.parentObj,"mouseover",mouseInFunc)};if(ID!="none"&&ID!=""){this.addEvent(this.parentObj,"mouseout",mouseOutFunc)};if(typeof(eventType)!="string"){eventType="onmousedown"};eventType=eventType.toLowerCase();switch(eventType){case"onmouseover":this.eventType="mouseover";break;case"onclick":this.eventType="click";break;case"onmouseup":this.eventType="mouseup";break;default:this.eventType="mousedown"};this.autoPlay=false;this.autoPlayTimeObj=null;this.spaceTime=5000};SubShowClass.prototype={version:"1.31",author:"mengjia",_delay:200,_setClassName:function(obj,type){var temp;temp=obj.className;if(temp){temp=temp.replace(this.openClassName,"");temp=temp.replace(this.closeClassName,"");temp+=" "+(type=="open"?this.openClassName:this.closeClassName)}else{temp=(type=="open"?this.openClassName:this.closeClassName)};obj.className=temp},addLabel:function(labelID,contID,parentBg,springEvent,blurEvent){var t=this;var labelObj=this.$(labelID);var contObj=this.$(contID);if(labelObj==null&&labelID!="none"){throw new Error("addLabel(labelID)参数错误:labelID 对像不存在!(value:"+labelID+")")};var TempID=this.label.length;if(parentBg==""){parentBg=null};this.label.push([labelID,contID,parentBg,springEvent,blurEvent]);var tempFunc=function(){if(t.eventType=='mouseover'){clearTimeout(labelObj._timeout);labelObj._timeout=setTimeout(function(){t.select(TempID)},t._delay)}else{t.select(TempID)}};if(labelID!="none"){this.addEvent(labelObj,this.eventType,tempFunc);if(t.eventType=='mouseover'){this.addEvent(labelObj,'mouseout',function(){clearTimeout(labelObj._timeout)})}};if(TempID==this.defaultID){if(labelID!="none"){this._setClassName(labelObj,"open")};if(this.$(contID)){contObj.style.display=""};if(this.ID!="none"){if(parentBg!=null){this.parentObj.style.background=parentBg}};if(springEvent!=null){eval(springEvent)}}else{if(labelID!="none"){this._setClassName(labelObj,"close")};if(contObj){contObj.style.display="none"}};var mouseInFunc=function(){t.mouseIn=true};var mouseOutFunc=function(){t.mouseIn=false};if(contObj){this.addEvent(contObj,'mouseover',mouseInFunc);this.addEvent(contObj,'mouseout',mouseOutFunc)}if(this.label.length==1){this.selectedContEle=contObj}this.touchInit(contObj)},select:function(num,force){if(typeof(num)!="number"){throw new Error("select(num)参数错误:num 不是 number 类型!(value:"+num+")")};if(force!=true&&this.selectedIndex==num){return};var i;for(i=0;i=num){this.select(i);break}}},play:function(spTime){var t=this;if(typeof(spTime)=="number"){this.spaceTime=spTime};clearInterval(this.autoPlayTimeObj);this.autoPlayTimeObj=setInterval(function(){t.autoPlayFunc()},this.spaceTime);this.autoPlay=true},autoPlayFunc:function(){if(this.autoPlay==false||this.mouseIn==true){return};this.nextLabel()},nextLabel:function(){var t=this;var index=this.selectedIndex;index++;if(index>=this.label.length){index=0};this.select(index);if(this.autoPlay==true){clearInterval(this.autoPlayTimeObj);this.autoPlayTimeObj=setInterval(function(){t.autoPlayFunc()},this.spaceTime)}},previousLabel:function(){var t=this;var index=this.selectedIndex;index--;if(index1){this.touchStatus='ok';return};this.touchLastX=e.touches[0].pageX;var cX=this.touchX-this.touchLastX;if(this.touchStatus=='ok'){if(this.scrollY==window.pageYOffset&&this.scrollX==window.pageXOffset&&Math.abs(cX)>50){this.selectedContEle.parentNode.style.overflowX='hidden';this.selectedContEle.style.width=this.selectedContEle.offsetWidth+'px';this.touchStatus='touch'}else{return}};if(this.touchStatus=='touch'){this.selectedContEle.style.marginLeft=-cX+'px';e.preventDefault()}},_touchend:function(e){if(this.touchStatus!='touch'){return};this.touchStatus='ok';var cX=this.touchX-this.touchLastX;var tempThis=this;var speed=Math.round(this.selectedContEle.offsetWidth/5);this.selectedContEle.style.marginLeft='';this.selectedContEle.parentNode.style.overflowX='';this.selectedContEle.style.width='';if(cX=1){return};opacity+=1/step;tempThis.setOpacity(obj,opacity);obj._extend_show_timeOut=setTimeout(arguments.callee,20)},20)},actPX:function(obj,key,start,end,speed,endFn,u){if(typeof(u)=='undefined'){u='px'};clearTimeout(obj['_extend_actPX'+key.replace(/\-\.\=/,'_')+'_timeOut']);if(start>end){speed=-Math.abs(speed)}else{speed=Math.abs(speed)};var now=start;var length=end-start;obj['_extend_actPX'+key.replace(/\-\.\=/,'_')+'_timeOut']=setTimeout(function(){now+=speed;var space=end-now;if(startlength/3){speed=Math.floor(space/3)};if(space>=0){obj[key]=end+u;if(endFn){endFn()};return}};obj[key]=now+u;obj['_extend_actPX'+key.replace(/\-\.\=/,'_')+'_timeOut']=setTimeout(arguments.callee,20)},20)}}};
+	function DivSelect(id,divId,className){this.id=id;this.divId=divId;this.divClassName=className||'selectView';this.ele=this.$(this.id);if(!this.ele){return};var that=this;this.status="close";this.parentObj=this.ele.parentNode;while(this.readStyle(this.parentObj,"display")!="block"){if(this.parentObj.parentNode){this.parentObj=this.parentObj.parentNode}else{break}};this.parentObj.style.position="relative";var sp=this.absPosition(this.ele,this.parentObj);this.ele.style.visibility="hidden";this.__div=document.createElement("div");if(divId){this.__div.id=divId};if(this.divClassName){this.__div.className=this.divClassName};this.parentObj.appendChild(this.__div);this.__div.style.width=this.ele.offsetWidth+"px";this.__div.style.position="absolute";this.__div.style.left=sp.left+"px";this.__div.style.top=sp.top+"px";this.__div.onclick=function(){that.click()};this.__div_count=document.createElement("div");this.__div.appendChild(this.__div_count);this.__div_count.className="ds_cont";this.__div_title=document.createElement("div");this.__div_count.appendChild(this.__div_title);this.__div_title.className="ds_title";this.__div_button=document.createElement("div");this.__div_count.appendChild(this.__div_button);this.__div_button.className="ds_button";this.__div_list=document.createElement("div");this.__div.appendChild(this.__div_list);this.__div_list.className="ds_list";this.__div_list.style.display="none";this.__div_listCont=document.createElement("div");this.__div_list.appendChild(this.__div_listCont);this.__div_listCont.className="dsl_cont";this.list=[];var temp;for(var i=0;i=this.list.length){return}this.ele.selectedIndex=num;if(this.ele.onchange){this.ele.onchange()};this.__div_title.innerHTML=this.list[num].innerHTML},clickClose:function(e){var thisObj=e.target?e.target:event.srcElement;var that=this;do{if(thisObj==that.__div){return};if(thisObj.tagName=="BODY"){break};thisObj=thisObj.parentNode}while(thisObj.parentNode);that.close()},keyDown:function(e){var num=this.showIndex;if(e.keyCode==38){num--;if(num=this.list.length){num=0};this.showSelectIndex(num);this.stopDefault(e)};if(e.keyCode==13||e.keyCode==9){this.setIndex(num);this.stopDefault(e);this.close()};if(e.keyCode==27){this.close()}},open:function(){var that=this;this.showSelectIndex();this.__div_list.style.display="block";this.status="open";this.__closeFn=function(e){that.clickClose(e)};this.__keyFn=function(e){that.keyDown(e)};this.addEvent(document,"click",this.__closeFn);this.addEvent(document,"keydown",this.__keyFn)},close:function(){var that=this;this.__div_list.style.display="none";this.status="close";this.delEvent(document,"click",this.__closeFn);this.delEvent(document,"keydown",this.__keyFn)},click:function(){if(this.status=="open"){this.close()}else{this.open()}},$:function(objName){if(document.getElementById){return eval('document.getElementById("'+objName+'")')}else{return eval('document.all.'+objName)}},addEvent:function(obj,eventType,func){if(obj.attachEvent){obj.attachEvent("on"+eventType,func)}else{obj.addEventListener(eventType,func,false)}},delEvent:function(obj,eventType,func){if(obj.detachEvent){obj.detachEvent("on"+eventType,func)}else{obj.removeEventListener(eventType,func,false)}},readStyle:function(i,I){if(i.style[I]){return i.style[I]}else if(i.currentStyle){return i.currentStyle[I]}else if(document.defaultView&&document.defaultView.getComputedStyle){var l=document.defaultView.getComputedStyle(i,null);return l.getPropertyValue(I)}else{return null}},absPosition:function(obj,parentObj){var left=obj.offsetLeft;var top=obj.offsetTop;var tempObj=obj.offsetParent;var sss="";try{while(tempObj.id!=document.body&&tempObj.id!=document.documentElement&&tempObj!=parentObj&&tempObj!=null){sss+=tempObj.tagName+" , ";tempObj=tempObj.offsetParent;left+=tempObj.offsetLeft;top+=tempObj.offsetTop}}catch(e){};return{left:left,top:top}},stopDefault:function(e){if(e.preventDefault){e.preventDefault()}else{e.returnValue=false}}};
+				document.getElementById('cheadUserInfo').innerHTML = '您好，' + un + '退出';
+				//
+								document.getElementById('mailinfo').innerHTML = '(' + uread + ')';
+				//
+//商业广告(flash)
+rad.push(["http://d2.sina.com.cn/201302/26/478454_book-64090.swf", "", "2013-03-04", "2013-03-04", "3361891"]);
+//商业广告(flash)
+rad.push(["http://d2.sina.com.cn/201302/26/478454_book-64090.swf", "", "2013-03-01", "2013-03-01", "3361891"]);
+//商业广告
+rad.push(["http://d5.sina.com.cn/201208/29/451578_64090.gif", "http://sina.allyes.com/main/adfclick?db=sina&bid=527918,593768,599045&cid=0,0,0&sid=601744&advid=1293&camid=91407&show=ignore&url=http://sms.sina.com.cn/sms/vip_weibo.html", "2013-3-1", "2013-3-1", ""]);
+//商业广告
+rad.push(["http://d5.sina.com.cn/201208/29/451578_64090.gif", "http://sina.allyes.com/main/adfclick?db=sina&bid=527918,593768,599045&cid=0,0,0&sid=601744&advid=1293&camid=91407&show=ignore&url=http://sms.sina.com.cn/sms/vip_weibo.html", "2013-3-2", "2013-3-2", ""]);
+//商业广告
+rad.push(["http://d5.sina.com.cn/201208/29/451578_64090.gif", "http://sina.allyes.com/main/adfclick?db=sina&bid=527918,593768,599045&cid=0,0,0&sid=601744&advid=1293&camid=91407&show=ignore&url=http://sms.sina.com.cn/sms/vip_weibo.html", "2013-03-03", "2013-03-03", ""]);
+//市场广告
+rad.push(["http://d4.sina.com.cn/201212/13/469075_64090.JPG", "http://screen.weibo.com/nianhui", "2012-12-13", "2012-12-25", "2552223"]);
+		导航
+		热门排行
+		客户端
+		手机版
+                iPad版
+        板块定制介绍
+        导航定制介绍
+return this.browserInfo;this.browserInfo={};var ua=navigator.userAgent.toLowerCase();var bs=['msie','chrome','firefox','opera','safari'];var brIndex='';for(var i=0,bl=bs.length;i-1){var str=ua.substr(brIndex);this.browserInfo.browser=bs[i];this.browserInfo.version=str.match(/\d+/)[0];break;}}
+else if(document.body){return{x:ev.clientX+document.body.scrollLeft-document.body.clientLeft,y:ev.clientY+document.body.scrollTop-document.body.clientTop};}},actTo:function(obj,key,start,end,speed,endFn,u){if(typeof(u)=='undefined'){u='px'};clearTimeout(obj['_extend_actPX'+key.replace(/\-\.\=/,'_')+'_timeOut']);if(start>end){speed=-Math.abs(speed);}else{speed=Math.abs(speed);};var now=start;var length=end-start;obj['_extend_actPX'+key.replace(/\-\.\=/,'_')+'_timeOut']=setTimeout(function(){now+=speed;var space=end-now;if(startlength/3){speed=Math.floor(space/3);};if(space>=0){obj[key]=end+u;if(endFn){endFn()};return;};};obj[key]=now+u;obj['_extend_actPX'+key.replace(/\-\.\=/,'_')+'_timeOut']=setTimeout(arguments.callee,20);},20);},windowScrollTo:function(start,end,speed,endFn,u){var obj={},key='';if(typeof(u)=='undefined'){u='px'};clearTimeout(obj['_extend_actPX'+key.replace(/\-\.\=/,'_')+'_timeOut']);if(start>end){speed=-Math.abs(speed);}else{speed=Math.abs(speed);};var now=start;var length=end-start;obj['_extend_actPX'+key.replace(/\-\.\=/,'_')+'_timeOut']=setTimeout(function(){now+=speed;var space=end-now;if(startlength/3){speed=Math.floor(space/3);};if(space>=0){window.scrollTo(0,end);if(endFn){endFn()};return;};};window.scrollTo(0,now);obj['_extend_actPX'+key.replace(/\-\.\=/,'_')+'_timeOut']=setTimeout(arguments.callee,20);},20);},opacityTo:function(element,op,time,endFn){var oOp=parseFloat(fn.getStyle(element,'opacity')),speed,counter=0,loop;if(op!=oOp){speed=(op-oOp)/5;loop=setInterval(function(){if(counter==5){fn.setStyle(element,'opacity',op);clearInterval(loop);return;}
+return false;},swapNode:function(node1,node2){var parent=node1.parentNode;var t1=node1.nextSibling;var t2=node2.nextSibling;if(t1)parent.insertBefore(node2,t1);else parent.appendChild(node2);if(t2)parent.insertBefore(node1,t2);else parent.appendChild(node1);},subTring:function(str,n){var r=/[^\x00-\xff]/g;if(str.replace(r,"mm").length=n){return str.substr(0,i)+"...";}}return str;}};var Drag=function(){var init=function(opts){this.conf=this._initOpts(opts);this._initEvent(true);};init.prototype={_extendOpts:function(destination,source){for(property in source){destination[property]=source[property];}},_initOpts:function(o){var defaultOpts={objDom:document.getElementById('custom_drag'),handle:null,activated:true,range:[0,800,0,500],beforeDrag:function(conf){},onDraging:function(conf){},afterDrag:function(conf){}};this._extendOpts(defaultOpts,o);return defaultOpts;},_initEvent:function(isAble){var that=this,dom=this.conf.handle?this.conf.handle:this.conf.objDom,diffX,diffY,onMove,onUp,onDown,doc,obj=this.conf.objDom;onMove=function(e){var e=e||window.event,moveX=e.clientX-diffX,moveY=e.clientY-diffY,minX,maxX,minY,maxY,mousePos=fn.getMousePos(e);conf=that.conf;if(conf.range){minX=conf.range[0];maxX=conf.range[1];minY=conf.range[2];maxY=conf.range[3];moveXmaxX&&(moveX=maxX);moveYmaxY&&(moveY=maxY);}
+var flashData;if(!window.tmpUidev||!window.tmpUidev._flashData){var tmpUidev=window.tmpUidev||{};window.tmpUidev=tmpUidev;flashData={flashObj:null,id:"uidevGuessInfoDataFrame",status:"loading",clear:function(){this.flashObj.write("");},read:function(name){if(this.status!="ok"){return"";};var nameRule=/[=,;]+/i;if(nameRule.test(name)){return"";};var dataScring=this.flashObj.read();if(dataScring==null){dataScring=''};var reg=new RegExp("(?:^|;)"+name+"=(.*?),expires=([^;]*)","i");var value=dataScring.match(reg);if(value==null){value="";}else if(value.length>=3){var now=new Date();var dd=now.getTime();if(new Number(value[2])>dd){value=value[1];value=value.replace(/\[\$\=\]/g,"=");value=value.replace(/\[\$\;\]/g,";");value=value.replace(/\[\$\,\]/g,",");}else{value="";};}else{value="";};return value;},write:function(name,value,hours){if(this.status!="ok"){return;};var nameRule=/[=,;]+/i;if(nameRule.test(name)){return;};value=value.toString();value=value.replace(/\\/g,"\\\\");value=value.replace(/\&/g,"&amp;");value=value.replace(/\=/g,"[$$=]");value=value.replace(/\;/g,"[$$;]");value=value.replace(/\,/g,"[$$,]");if(typeof(hours)!="number"){hours=24*30*3};var now=new Date();var expire=new Date(now.getTime()+hours*3600000);expire=",expires="+expire.getTime();var list=this.flashObj.read();if(list==null){list=''};list=list.split(/;(?!\])/i);var newList=[],update=false;var data;for(var i=0;inow&&data[2]!=""){newList.push(list[i]);};};};if(!update){newList.push(name+"="+value+expire);};var newStr="";for(var i=0;i0){for(i=0;i<this.myLoadFn.length;i++){this.myLoadFn[i]();}}
+var div=document.createElement('div');div.style.width='1px';div.style.height='1px';div.style.overflow='hidden';div.style.position='absolute';div.style.left='-2000px';div.innerHTML='';body.insertBefore(div,body.children[0]);};loadDataIframe();}}else{flashData=window.tmpUidev._flashData;}
+function _preview(ele,pos,ed){var ul=doms.nav_c_ul,liList=ul.getElementsByTagName('li'),liListLen=liList.length,index,li,thisLi;index=pos[0]+pos[1]*11;thisLi=ele.parentNode;if(pos[0]10||pos[1]>1||index>21){if(_preview.box&&_preview.box.parentNode){ul.removeChild(_preview.box);liList[liListLen-1].style.display='inline';}
+if(thisLi!=li){if(ed){fn.swapNode(thisLi,li);if(fn.hasClass(li,'custom_item_blank')){var rIndex=_getIndex(li);var row=(rIndex';if(row==1){lineLast=ul.getElementsByTagName('li')[11];ul.removeChild(li);ul.insertBefore(bItem,lineLast);}else{ul.removeChild(li);ul.appendChild(bItem);}}
+var tIndex=_getIndex(thisLi);var tR=tIndex_getIndex(nLi[i])){fn.swapNode(thisLi,nLi[i]);break;}}}else{for(var i=11;i_getIndex(nLi[i])){fn.swapNode(thisLi,nLi[i]);break;}}}}}
+function _previewFromS(ele,pos){var index,li,ul;index=pos[0]+pos[1]*11,ul=doms.nav_c_ul;if(pos[0]10||pos[1]>1||index>21){return;};if(!_previewFromS.box){_previewFromS.box=document.createElement('div');_previewFromS.box.className='custom_items_coverred';}
+if(pos[0]10||pos[1]>1||index>21){removeNav(ele.getAttribute('data-ci'));}
+function _moveToFromS(ele,pos){var index=pos[0]+pos[1]*11,ul=doms.nav_c_ul,cI,oI,aLi,oLi;if(pos[0]10||pos[1]>1||index>21){fn.removeClass(ele.parentNode,'drag');ele.style.position='static';ele.style.left='auto';ele.style.top='auto';if(_previewFromS.cur){ul.removeChild(_previewFromS.box);_previewFromS.cur.style.display='block';}}
+else{cI=ele.getAttribute('data-ci');aLi=document.createElement('li');var text=ele.innerHTML;aLi.innerHTML=''+text+'';if(_previewFromS.cur.getElementsByTagName('a')[0].getAttribute('data-ci')){oI=_previewFromS.cur.getElementsByTagName('a')[0].getAttribute('data-ci');replaceNav(oI,aLi);}else{replaceBlank(cI,aLi);customNavData.setData('filled',customNavData.getData('filled')+1);}
+function _sortItems(str,boo){var ul=doms.nav_c_ul,aLi,ciList=str.split(','),ciListLen=22,lastLi,navItem,nName;ul.innerHTML='';if(boo){for(var i=0;i';}else{navItem=customNavData.getDataBase().navItems[ciList[i]];if(typeof(navItem)!='undefined'){nName=navItem['nName'];aLi.innerHTML=''+nName+'';}else{aLi.className='custom_item_blank';aLi.innerHTML='';}}
+if(!(ciList[11]=='blank'||typeof(ciList[i])=='undefined'||typeof(customNavData.getDataBase().navItems[ciList[11]])=='undefined')){for(var i=11;i';}else{navItem=customNavData.getDataBase().navItems[ciList[i]];if(typeof(navItem)!='undefined'){nName=navItem['nName'];aLi.innerHTML=''+nName+'';}else{aLi.className='custom_item_blank';aLi.innerHTML='';}}
+fn.getById('custom_nav').style.display='block';showPlus();}else{for(var i=0;i';}else{navItem=customNavData.getDataBase().navItems[ciList[i]];if(typeof(navItem)!='undefined'){nName=navItem['nName'];var text=nName;aLi.innerHTML=''+text+'';}else{aLi.className='custom_item_blank';aLi.innerHTML='';}}
+function addNav(cI){var ul,itemStrW,itemStr,navName,domInactive,deletedBlank;ul=doms.nav_c_ul;domInactive=fn.getElementsByAttribute('data-ci',cI,doms.inactive_c)[0];var text=domInactive.innerHTML;itemStr=''+text+'';itemStrW=document.createElement('li');itemStrW.innerHTML=itemStr;deletedBlank=fn.getElementsByClass('custom_item_blank')[0];ul.replaceChild(itemStrW,deletedBlank);_updateInactive(cI,false);customNavData.setData('filled',customNavData.getData('filled')+1);_upDateStorage();}
+function removeNav(cI){var ul=doms.nav_c_ul,row,lineLast,removedItem=fn.getElementsByAttribute('data-ci',cI,doms.nav_c)[0],removedLi=removedItem.parentNode,rIndex=_getIndex(removedLi);var bItem=document.createElement("li");bItem.className="custom_item_blank";bItem.innerHTML='';row=(rIndex<11)?1:2;if(row==1){lineLast=ul.getElementsByTagName('li')[11];ul.removeChild(removedLi);ul.insertBefore(bItem,lineLast);}else{ul.removeChild(removedLi);ul.appendChild(bItem);}
+function doGuide(){var steps=[],fragments=[],stepIndex=0,sI=0,ss,nstep={guideStr:'',guidePos:{relatedDom:fn.getById(standardHeaderChannel),x:617,y:20},bgStr:'',bgPos:{relatedDom:fn.getById(standardHeaderChannel),x:0,y:32}};guiding=true;doms.nav_w.style.display='none';fn.getById(logonav).style.display='block';_initStep();_initGuide();_initGuideEvent();showGuide(0);function _initStep(){steps.push({guideStr:'',guidePos:{relatedDom:fn.getById(standardHeaderChannel),x:617,y:20},bgStr:'',bgPos:{relatedDom:fn.getById(standardHeaderChannel),x:0,y:32}});steps.push({guideStr:'',guidePos:{relatedDom:fn.getById(standardHeaderChannel),x:157,y:24},bgStr:'',bgPos:{relatedDom:fn.getById(standardHeaderChannel),x:0,y:36}});steps.push({guideStr:'',guidePos:{relatedDom:fn.getById(standardHeaderChannel),x:468,y:260},bgStr:'',bgPos:{relatedDom:fn.getById(standardHeaderChannel),x:0,y:36}});steps.push({guideStr:'',guidePos:{relatedDom:fn.getById(standardHeaderChannel),x:200,y:24},bgStr:'',bgPos:{relatedDom:fn.getById(standardHeaderChannel),x:0,y:36}});}
+function _initIntoGuide(){var intoGuideBox=document.createElement('div'),intoSample=document.createElement('div'),intoBtnBox=document.createElement('div');intoGuideBox.className='move_intoguide_box';document.body.appendChild(intoGuideBox);intoSample.className='mobe_intoguide_sample';intoSample.innerHTML='定制功能介绍';document.body.appendChild(intoSample);intoBtnBox.className='move_intoguide_btnBox';intoBtnBox.innerHTML='';move_intoGuide_Box=intoGuideBox;move_intoGuide_sample=intoSample;move_intoGuide_btnBox=intoBtnBox;document.body.appendChild(move_intoGuide_btnBox);move_intoGuide_btnBox.onclick=function(e){var evt=e||window.event,eTarget=evt.target||evt.srcElement,theClass=eTarget.className;switch(theClass){case'move_intoguide_try':_hideIntoGuide();if(move_tipBox)_showGuide(index);else setTimeout(function(){_initGuide();},50);break;case'move_intoguide_known':_hideIntoGuide();window.scrollTo(0,0);break;default:return;}}
+function _initGuide(){var tipBox=document.createElement('div'),samplePic=document.createElement('div'),btnBox=document.createElement('div'),ss;tipBox.className='move_guide_box';document.body.appendChild(tipBox);btnBox.className='move_guide_btnBox';btnBox.innerHTML='';document.body.appendChild(btnBox);btnBox.onclick=function(e){var evt=e||window.event,eTarget=evt.target||evt.srcElement,theClass=eTarget.className;switch(theClass){case'move_guide_try':move_HideArrs();_hideGuide();window.scrollTo(0,_getBoxData(move_DomStates[index][0]).y-5);for(var i=0;i<move_PosList.length;i++){if(move_PosList[i]==index){break;}}
+	首页
+	新闻
+	图书
+	原创
+	全本·包月
+	听书
+	文化
+	历史
+	文化博客
+	滚动资讯
+	新书
+	书摘
+	好书榜|
+	名人堂
+	文坛开卷
+	文化博客
+	微博
+	论坛
+	电子杂志
+	高清组图
+	专题
+	扬帆捐书
+	新视界-美国历史频道
+	新书信息
+	书业观察|
+	作家动态
+	文化新闻
+	文化时评
+	考古发现
+	收藏拍卖
+	展演资讯
+	图书点击榜
+最新上线
+	都市小说
+	官场小说
+	商战小说
+	军事小说
+	历史小说
+	悬疑奇幻
+	言情小说
+	校园青春
+	恐怖惊悚
+	传记
+	娱乐时尚
+	政史军事	
+	金融管理	
+	原创点击榜
+	奇幻武侠	都市情感
+	军事历史
+	青春言情
+	游戏竞技
+	恐怖灵异
+	科幻小说
+	美文其他 | 
+	投稿
+	帮助手册
+	问题答疑
+	交流论坛
+书库大全
+	原创点击榜
+	奇幻武侠
+	都市情感
+	军事历史
+	青春言情
+	游戏竞技
+	恐怖灵异
+	科幻小说
+	美文其他 
+	投稿
+	帮助手册
+	问题答疑
+	交流论坛
+书库大全
+	小说
+	曲艺|
+	少儿
+	经营与管理
+	生活
+	文史
+	国学
+	文学
+		文化资讯
+	文化视点|
+	历史解密
+	纸上谈兵
+	野史村言
+	艺术
+	收藏
+	书画
+	古玩|
+	人物
+	专题
+	图库
+	论坛
+	历史解密
+	人物风流|
+	纸上谈兵
+	野史村言
+	人文书库
+	凭栏观史
+	新视界-美国历史频道
+	历史好书榜
+	人文
+	观点
+	记录
+	史话
+	阅读
+	八卦
+	独家
+	情感
+			模糊作者书名出版社
+						登陆注册
+						读者中心
+						作者中心
+								用户名：
+								密码：
+		注册
+		找回密码
+									我的书架
+									查询余额
+									查询消费记录
+									我的包月
+									升级为白金VIP
+									用道具打折
+									积分换U币
+									我要推荐作品
+									最近浏览的书
+									充值
+									申请作者
+									创建作品
+									管理我的作品
+									我的作品正在被??
+									作品销售情况
+									本月入账
+									U币换积分
+									积分换U币
+									我要推荐作品
+					个人中心
+					我的书架
+					充值
+					退出
+									申请作者
+									查询余额
+									查询消费记录
+									我的包月
+									升级为白金VIP
+									用道具打折
+									积分换U币
+									我要推荐作品
+								最近浏览的书
+					个人中心
+					我的书架
+					退出
+							    创建作品
+									管理我的作品
+									我的作品正在被...
+									作品销售情况
+									本月入账
+									U币换积分
+									积分换U币
+									我要推荐作品
+								最近浏览的书
+				最新上架
+				宠冠后宫的艰辛路：尚宫(全本)
+					她唯一愿望就是坐上尚宫之位，却被新帝[阅读]
+                                        [强推]&nbsp;尚宫 恐房时代 省委大院 神医傻妃
+				爱我请放手：总裁的烙痕
+					他们再度相遇，她妄想全身而退，他誓[阅读]
+                                        [强推]&nbsp;良缘天赐
+我愿意为你
+女处长
+真假前妻
+				即将上架
+				正妻不如表妹：二品嫡女
+					为娶心爱之人入府丈夫竟使她三年不孕[阅读]
+                                        [强推]&nbsp;官场暗流
+神婆手札
+机关男女
+替身娇妻
+						官场老二政治生存之道：二把手2
+						何东阳调到西州市担任代理市长后，看似位居一人之下，众人之上，呼风唤雨，风光无限，却又不得不时刻奉上慎下，进退维谷。煤矿塌方、河水污染、群众上访、艳照曝光、刑警队长…[阅读]
+						情错相噬：谁拿情深乱了流年
+						人世沉浮，因为乱爱，因为莽撞，因为互伤，也因为自尊与自爱，青春成了一曲荒腔走板的离散与心酸，那些若即若离的暧昧，那些昼夜辗转的情伤，那些自以为是的冷漠，那些刻骨铭…[阅读]
+						从乡村少年到总统：金大中自传
+						他是韩国的忍冬草，最终忍过数九寒冬，得以绚丽绽放；他是亚洲的曼德拉，曾多次锒铛入狱却始终坚持理想；他是政坛的不死鸟，险遭绑架暗杀，五次命悬一线却决不妥协；他是民主…[阅读]
+						木心留给世界的礼物：文学回忆录
+						文学是可爱的。生活是好玩的。艺术是要有所牺牲的。八十年代末，木心客居纽约时期，亦自他恢复写作、持续出书以来，纽约地面的大陆和台湾同行在异国谋饭之中，居然促成木心开…[阅读]
+				读历史知两会：“两会”中的民主之路
+				毛泽东最后到会 | 领导人会场风采 | 从两会看中国民主
+				两会黑衣人保安 | 古代“两会”啥样 | 溥仪的政协趣事
+官二代之死揭打黑谜团：无字审判(全)
+案中案，局中局，一切都离不开权力背后的博弈[阅读]
+[热书]&nbsp;党政班子 | 步步高 | 高干升迁 | 市府内幕
+回首相思错：恨亦无期
+如果这是命，那她要与他对抗到底，谁是谁的劫…
+[阅读]
+[热书]&nbsp;前妻难逑 | 许你唯一 | 闪婚陌生人 |纵爱成伤
+             莫言首上“两会”将吁建国家荣誉制度
+                 张爱玲给夏志清的信出版 | 年画邮票五年后遭质疑 
+                8个历史文化名城被黄牌警告 | 冰心儿子起诉前妻
+				李银河：情妇反腐与个人隐私
+党校教授评析省一把手 | 重建中华文化的信仰之维
+中国式父母的自私 | 我所理解的公知与知识分子
+[文化]红杉资本1.5亿投新经典图书无效库存成业界包袱[作家]莫言首次上“两会”张爱玲的103封信出版[历史]蒋介石去世当晚灵异事解放军如何全歼印度军
+	新浪历史频道用户调查 新浪好书榜2012年度榜
+	大片：两性奥秘 香奈儿秘密情史 皇室风流史
+//商业广告
+rad.push(["http://d5.sina.com.cn/201207/16/442432.JPG", "http://sina.allyes.com/main/adfclick?db=sina&bid=471588,535574,540847&cid=0,0,0&sid=541844&advid=1293&camid=85902&show=ignore&url=http://swf.games.sina.com.cn/tgy/wxqmx/ng/neiguang.html?sina001", "2012-11-11", "2012-11-11", ""]);
+//商业广告
+rad.push(["http://d4.sina.com.cn/201211/12/463391.jpg", "http://sina.allyes.com/main/adfclick?db=sina&bid=471851,535864,541138&cid=0,0,0&sid=542158&advid=1293&camid=85905&show=ignore&url=http://swf.games.sina.com.cn/tgy/dxz/ng/neiguang.html?sina006", "2012-11-12", "2012-11-12", ""]);
+//市场广告
+rad.push(["http://d3.sina.com.cn/201206/06/428334_250-230.JPG", "http://vdisk.weibo.com/qiuzhi?C=Spr_wbmkt_sina_book_baodian_p1003", "2012-06-6", "2012-06-30", "2552223"]);
+				微博
+文茜小妹大：台北101顶端打上了：李安。他今日的致词，感动所有台湾人。他...
+张小娴：活著就是跟時間慢舞。千帆過盡，青春來了又去，追求的東西有所不...
+廖伟棠：#新譯倉央嘉措# 我青梅竹馬的戀人 你必須是狼族的血親  與我纏綿...
+张小娴：老了不是更相信愛情，而是更明白，愛情的濃度終究會被時間稀釋掉...
+			领白衣秀士勋章赢U币|读书客户端
+新浪读书|文化|书摘|老照片
+				好书榜
+				好书榜2013年1月榜
+止庵文学榜评
+刘苏里社科榜评
+苏小和财经榜评
+颜桥生活榜评
+function showRecentBooks(result){if(result){var h="",list=result.data.data;for(var book in list){h+=''+list[book].title.substr(0,10)+'';}
+(function(){var _$=function(id){return document.getElementById(id)};function DateView(div){if(typeof div=='string'){this.__ele=_$(div)}else if(typeof div){this.__ele=div};if(!div){return};var template='';template+='&lt;&lt;';template+='&gt;&gt;';template+='';template+='';template+='';template+='日';template+='一';template+='二';template+='三';template+='四';template+='五';template+='六';template+='';this.__ele.innerHTML=template;var a=this.__ele.getElementsByTagName('a');this.__preMonth=a[0];this.__nextMonth=a[1];var s=this.__ele.getElementsByTagName('select');this.__yearSelect=s[0];this.__monthSelect=s[1];this.__dateTable=document.createElement('div');this.__ele.appendChild(this.__dateTable);this.__dateTable.className='dv_date'};DateView.prototype={startDate:"2002-12-21",startDateObj:null,selectDate:"",selectDateObj:new Date(),showDateObj:null,nowDateObj:new Date(),endDate:'',endDateObj:null,dataTableId:'dateTable',init:function(){var tempThis=this;var hDate=this.startDate.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);if(!hDate){throw"日期格式不正确！";};this.startDateObj=new Date(parseInt(hDate[1]),parseInt(hDate[2])-1,parseInt(hDate[3]));if(this.nowDateObjthis.nowDateObj){this.showDateObj=new Date(this.nowDateObj)};this.show()},setMonth:function(month){if(month-1==this.showDateObj.getMonth()){return};this.showDateObj.setMonth(month-1);this.show()},preMonth:function(){this.showDateObj.setMonth(this.showDateObj.getMonth()-1);this.show()},nextMonth:function(){this.showDateObj.setMonth(this.showDateObj.getMonth()+1);this.show()},show:function(date){if(date){var hDate=date.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);if(!hDate){throw"日期格式不正确！";};this.showDateObj=new Date(parseInt(hDate[1]),parseInt(hDate[2])-1,parseInt(hDate[3]))};var year=this.showDateObj.getFullYear();var month=this.showDateObj.getMonth();var day=this.showDateObj.getDate();if(year==this.startDateObj.getFullYear()&&month==this.startDateObj.getMonth()){this.__preMonth.style.visibility='hidden'}else{this.__nextMonth.style.visibility='inherit'};if(year==this.nowDateObj.getFullYear()&&month==this.nowDateObj.getMonth()){this.__nextMonth.style.visibility='hidden'}else{this.__preMonth.style.visibility='inherit'};this.__yearSelect.value=this.showDateObj.getFullYear();var minMonth=1,maxMonth=12;if(year==this.startDateObj.getFullYear()){minMonth=this.startDateObj.getMonth()+1};if(year==this.endDateObj.getFullYear()){maxMonth=this.endDateObj.getMonth()+1};this.__monthSelect.innerHTML='';for(var i=minMonth;i';for(var i=0;i&nbsp;'};while(forinDay.getMonth()==month){if(sum==7){tableHTML+='';sum=0};sum++;count++;if(forinDaythis.endDateObj){tableHTML+=''+forinDay.getDate()+''}else{var className='';if(year==this.nowDateObj.getFullYear()&&month==this.nowDateObj.getMonth()&&forinDay.getDate()==this.nowDateObj.getDate()){className=' class="today"'};if(year==this.selectDateObj.getFullYear()&&month==this.selectDateObj.getMonth()&&forinDay.getDate()==this.selectDateObj.getDate()){className=' class="selected"'};tableHTML+=''+forinDay.getDate()+''};forinDay.setDate(forinDay.getDate()+1)};for(var i=0;i';sum=0};sum++;tableHTML+='&nbsp;'};tableHTML+="";this.__dateTable.innerHTML=tableHTML},click:function(ele){var year=this.showDateObj.getFullYear();var month=this.showDateObj.getMonth();var date=ele.innerHTML;if(this.onclick){this.onclick(year,month+1,date)};this.selectDateObj=new Date(year,month,date);this.show()}};window.DateView=DateView})();
+					专题策划
+							文史观天下
+							文化新观察
+	清代官场游戏规则
+	如果把清政府比作一部庞大的国家机器，皇帝相当于运动装置，官员为控制装置，书吏则是工...[详细]
+	传说中的供暖线
+	供暖线没有严格意义，主要有三个版本：1秦岭-淮河一线，2黄河一线，3黄河以北、长江以南...[详细]
+	历史答疑：南方冬天要集中供暖吗
+	挨过一个不靠谱的末日之后，大多数祖国人民迫切需要实现这两个心愿：北方也包邮，南方能...[详细]
+	走进中国危险的邻居：印度
+	近日印度暴力事件频发，这个正从南亚崛起的准大国，究竟有着怎样的社会风俗，不妨一睹为...[详细]
+						音乐剧《大红灯笼》点亮新年戏剧季
+网友热议诺贝尔文学奖及得主莫言
+	漂泊的文物：两岸故宫珍宝的聚散离合
+	时光回溯到1930年代，来自日本侵略者的威胁，让故宫文物岌岌可危。政府作出了文物搬迁的...[详细]
+	蛇年说蛇：吉祥与邪恶的“双生花”
+	农历蛇年就要到了。作为中国传统十二生肖之一，蛇紧随龙后，通常为了好听，被一些人称为...[详细]
+	《V字仇杀队》深度解析
+	央视六套播出了《V字仇杀队》，引发了众人的讨论。戴着面具的V，用他神出鬼没的行动，为...[详细]
+	跟莫言一起走进诺贝尔颁奖典礼
+	12月10日，在瑞典首都斯德哥尔摩音乐厅举行的2012年诺贝尔奖颁奖仪式上，中国作家莫言从...[详细]
+						音乐剧《大红灯笼》点亮新年戏剧季
+网友热议诺贝尔文学奖及得主莫言
+								精彩书斋
+								更多
+        彭德怀拒与毛泽东谈话
+    谁说孙文是跋扈野心家
+                                              揭秘：金正日指定李雪主做金正恩妻子揭秘貂蝉最后结局：被曹操囚禁当性奴能否称为革命：太平天国公案的由来组图：林彪的政治巅峰时期解密：曹操为何让三个亲生女儿共侍一夫
+										视觉图片
+										更多
+组图：毛泽东的八大管家
+组图：探访印度传统婚礼习俗
+组图：百年奥斯卡精彩瞬间
+组图：邓小平与他最亲密的战友
+				重磅图书
+				更多
+军干子弟特战部队生涯
+穿越废妃乱世夺情
+千年美食：面条之路
+袁伟时重审近代史：缠斗
+官场草根借力上位：拿下
+离婚男人二入围城：再婚
+大师风采：民国课堂
+腹黑王爷抢婚：养女成妃
+农门子弟仕途：后发制人
+林语堂全集：苏东坡传
+婚姻之伤：多少爱可重来
+名将传奇：歃血·霓裳曲
+谁比我更爱你：弄假成婚
+撒哈拉的眼泪：三毛传
+红二代市长：班底(全本)
+				精品原创
+				更多
+你是我的劫
+猎鹰计划
+龙组特工
+	冷情王爷：情陷太子妃
+	情陷官场红颜：暗流
+	屋檐下沦陷：我愿意为你
+	红颜仕途：草根高官路
+	情陷仗义女：攻心掳爱
+	契约：恶魔总裁锁爱
+	混迹官场：平步青云
+	名门盛宠：市长夫人
+	女总裁的贴身高手
+	老婆是恶霸：纨绔皇后
+					中国好假期旅游攻略
+捐本书给贫困山区学生
+为山区留守儿童圆梦
+清爽阅读 尽在此处
+气质不凡绝妙签名
+参与网民研究计划！
+				点击榜
+						图书
+						原创
+点击
+			新驻京办主任：对手
+			永远有多远：婚久必昏
+			帅痞军官情恸迷糊女：中校的新娘
+			小人物沉浮权利场：底牌①②
+			省委第一秘书：领导亲信
+			中南海特卫传奇：一号保镖
+			靠近女领导：靠山
+			倾国女医震天下：神医傻妃
+			二号首长①②③
+			谁拿情深乱了流年
+			特战精英巅峰对决：王牌特卫
+			省委大院①②③
+			庶女弃妃绝爱铁血王爷：妾本惊华
+			冷魅王爷要休妻：失宠王妃
+			总裁的契约新娘：豪门绝恋
+			医道官途：妇产科
+			官场生存手册：权力征途
+			草根医生的升迁：医道仕途
+			公务员仕途升迁记：官途
+			市委科员沉沦与升华：权力之路
+			小人物的官场路：升官指南
+			浪子官场
+			妖孽特种兵：护花狂龙
+			机关沉浮：女教委主任
+			中南海保镖在都市：枭雄
+			绩优男情陷仗义女：攻心掳爱
+			佣兵之王：女总裁的贴身高手
+			特种兵纵横都市：贴身保安
+			谋权与夺美：官情(全本)
+			名门盛宠：市长夫人
+			非常保镖
+			最是缠绵无尽意
+			市委女处长
+			这个高官爱不得
+			失宠王妃
+			浓情巧克力
+			暗夜官途
+			贴身保安
+			权力漩涡
+			腹黑总裁找上门(全本)
+			玩火市长
+			婚久必昏
+			别样仕途
+			女总裁的贴身高手
+			天生煞星
+				客户端
+				新浪读书客户端
+				新浪听书客户端
+不支持Flash
+    	一周好书
+        更多
+袁岳：趁年轻折腾吧
+南中国海上的幽灵
+理想主义到经验主义
+婚姻之痒：婚久必昏
+张学良幽禁秘史
+魔幻经典：霍比特人
+倾国女医：神医傻妃
+		文化
+	    更多
+				越南统一前的战争影像
+李天一并非李双江梦鸽首个孩子
+90年代初，著名歌唱家李双江与青年歌唱演员梦鸽的婚讯传出，顿时引来社会各界的议论纷纷[更多]
+				人生忌没有戒心忌随意拍照诺奖评委谈汉语语法的历史演变中国有雾霾日本有花粉(图)到底谁指挥西路军渡过了黄河爱情是有选择之下仍然挑选对方中国式父母的无私和自私
+            	历史上的今天
+				查询历史
+					03.01
+1810年音乐家肖邦出生
+中国共产党的亲密战友邓演达诞
+孙中山重新成立大元帅府
+国共两党召开反对军阀政治分裂
+富克斯泄露核机密被判14年徒刑
+					文化新闻
+					更多
+					作家方方挺冯小刚“屌丝”说：这词难登大雅之堂
+						前晚近11时，冯小刚在个人微博中称，一位会中文的外国朋友向他询问“屌丝”是什么意思，他向其解释“是对境遇不...[详细]
+					故宫筒子河捞出4吨垃圾啃剩的玉米棒万余根拆旧仿古频上演8个历史文化名城被“黄牌警告”郭沫若故居院内百年香樟树被挪走文化产品出口占进口30%《对话》寻求解决思路年画邮票发行5年后遭质疑：清代侠女被印成大脚北京永定门外现公开盗墓现象棺木骸骨散落一地
+					文史奇观
+					更多
+					新中国十大悍匪：曾一人全歼两支特警队
+						龙治民，陕西省商洛市商州区杨峪河镇人，制造了新中国最大的个人恶性杀人案，在自己家中连杀48人，并将尸体埋在自家院...[详细]
+					蒋介石去世当晚灵异事：窗帘掉落文革时乞丐用语录行乞：革命人要关心历史上的朝鲜都曾经受过哪些国家的制裁距新德里300公里：解放军如何全歼印军强中自有强中手：李克农完胜戴笠的秘笈许世友一刀秒杀日军官
+            	点击榜
+                    历史
+                    书摘
+                    新闻
+                	民国有多少位作家婉拒诺贝尔奖提名盘点：中国军人曾打趴全球21国军队你不知道的秘密：清朝太监的年终奖70年代美国人如何应对“毒空气”金华别墅：耗百万为毛泽东建休息室后人评说：国民党十大起义将领结局印度犯罪内幕：滥杀女婴又缺少新娘神秘：探秘朝鲜的“毛泽东班”(图)<a title="实拍：文革结束后中国珍贵影像(图)" href="http://forum.book.sina.com.cn/thread-5341393-1-1.html
+" target="_blank">实拍：文革结束后中国珍贵影像(图)
+<a title="江青在监狱也不失“戏子”本色" href="http://forum.book.sina.com.cn/thread-5342095-1-1.html
+" target="_blank">江青在监狱也不失“戏子”本色
+往事：庐山会议后彭德怀拒与毛泽东
+解密：曹操为何让三个亲生女儿共侍
+揭秘貂蝉最后结局：被曹操囚禁当性
+揭秘：金正日指定李雪主做金正恩妻
+亲密战友宋教仁点评孙中山：跋扈的
+袁世凯是如何让卖国二十一条成为废
+忠告女人：男人与情人分手的理由
+能否称为革命：太平天国公案的由来
+军政界解读楚汉战争：刘邦获胜三原
+朱军忆北漂生活：刚进中央台只是编
+                	 民营书业迎来单笔最大投资：红杉1.
+ “骏马奖”获奖诗歌被指“抄袭”：
+ 张爱玲写给夏志清的103封信出版
+ 莫言首次上“两会”将呼吁建立国家
+ “泰坦尼克II”在南京建造号称世界
+ 年画邮票发行5年后遭质疑：清代侠女
+ 郭沫若故居院内百年香樟树被挪走
+ 北京永定门外现公开盗墓现象棺木骸
+ 故宫筒子河捞出4吨垃圾啃剩的玉米棒
+ 《简·爱》系列三部曲繁体版首次亮
+        <!--
+        //-->
+            图书
+经典言情 | 都市婚恋 | 权力官场 | 军事历史
+	    作品状态
+	    全部原创出版
+	    图书大类
+						小说
+						经管
+						励志与成功
+						文学
+						传记
+						国学
+						娱乐时尚
+						少儿
+						家庭
+						婚恋
+						政史军事
+						社科
+						其他
+						评书
+						曲艺
+						生活
+			    			    武侠小说
+			    			    科幻小说
+			    			    魔幻/奇幻/玄幻小说
+			    			    侦探/推理/悬疑小说
+			    			    恐怖/惊悚/历险小说
+			    			    言情小说
+			    			    校园青春小说
+			    			    都市小说
+			    			    历史小说
+			    			    官场小说
+			    			    商场小说
+			    			    乡土小说
+			    			    影视小说
+			    			    中国现代小说
+			    			    中国当代小说
+			    			    外国小说
+			    			    军事小说
+			    			    游戏竞技
+			    			    古今名著
+			    			    其他
+			    			    管理学
+			    			    领导学
+			    			    企业管理
+			    			    项目管理
+			    			    市场营销
+			    			    金融投资
+			    			    经济理论
+			    			    个人理财
+			    			    其他
+			    			    成功学
+			    			    自我完善
+			    			    自我激励
+			    			    自我调节
+			    			    心灵鸡汤
+			    			    社会交往
+			    			    其他
+			    			    文学理论
+			    			    名家作品及研究
+			    			    作品集
+			    			    纪实文学
+			    			    诗歌词曲
+			    			    散文随笔
+			    			    戏剧与曲艺
+			    			    其他
+			    			    财经人物
+			    			    历代帝王
+			    			    军政界
+			    			    科学家
+			    			    人文学家、社会学家
+			    			    哲学家、思想家
+			    			    文学界
+			    			    传媒英才
+			    			    文体明星
+			    			    其他
+			    			    经部
+			    			    史部
+			    			    子部
+			    			    集部
+			    			    诗词散文
+			    			    小说传奇
+			    			    今人新著
+			    			    国学入门
+			    			    书目辞典
+			    			    国学大家
+			    			    古籍善本影印本
+			    			    国学普及读物
+			    			    综合
+			    			    美容美发
+			    			    塑形健身
+			    			    服装搭配
+			    			    都市生活
+			    			    消遣娱乐
+			    			    明星书
+			    			    其他
+			    			    科普文化
+			    			    童话世界
+			    			    神话传说
+			    			    寓言幽默
+			    			    传统文化
+			    			    文学天地
+			    			    才艺课堂
+			    			    游戏乐园
+			    			    动漫世界
+			    			    励志与成长
+			    			    生活知识
+			    			    不同年龄读物
+			    			    综合
+			    			    家庭关系
+			    			    家庭医护
+			    			    孕产知识
+			    			    亲子
+			    			    家庭理财
+			    			    其他
+			    			    恋爱
+			    			    婚姻
+			    			    两性
+			    			    综合
+			    			    历史
+			    			    军事
+			    			    综合
+			    			    其他
+			    			    政治
+			    			    社会科学理论
+			    			    哲学与宗教
+			    			    地理
+			    			    社会学
+			    			    统计学
+			    			    其他
+			    			    文化、教育与信息传播
+			    			    科学与自然
+			    			    其他
+			    			    英语与其他外语
+			    			    考试、教材与参考书
+			    			    中国语言文字学
+			    			    计算机与互联网
+			    			    医学
+			    			    体育
+			    			    工业技术
+			    			    农业林业
+			    			    交通运输
+			    			    法律
+			    			    期刊杂志
+			    			    辞典与工具书
+			    			    进口原版
+			    			    地图
+			    			    影印版和引进版
+			    			    特价书
+			    			    综合二
+			    			    综合三
+			    			    综合四
+			    			    品质生活
+			    			    手工艺爱好
+			    			    收藏
+			    			    宠物
+			    			    艺术与摄影
+			    			    动漫与幽默
+			    			    运动与养生
+			    			    烹饪美食与酒
+			    			    旅游
+			<!--
+						//-->
+	    更新状态
+	    全部已完本连载中选载
+	    排序方式
+	    最新周点击日点击月点击周推荐月推荐总推荐周收藏月收藏日畅销周畅销月畅销总畅销
+	检索 重选
+                    	苏北散文集
+                        植点青绿在心田
+                         北京人离合悲欢
+                         建筑师沦陷
+                         满汉家族历史
+                         二战战犯受审
+特种军人卧底：刀锋所向
+神秘美女陷谋杀案：连环劫
+中日谍战：子弹飞过地平线
+爱情与奋斗：男人那点事儿
+高官卧底谍战：王牌间谍
+爱已成风：别在天亮之前离开我
+歌女到一国之后：我卫子夫
+红颜三嫁：天命皇妃乱君心
+黑老大和少女：黑道不容爱
+历代嫔妃：嫔妃浮华录
+人与兽的边缘：圆月的诱惑
+穿越女横遭夺爱：真假王爷帝王妃
+扶贫项目引发的官场地震：暗斗
+狼女逆袭美男王爷：狼妃花嫁
+                    	图书排行榜
+                            畅销
+                            新书
+                            点击
+			新驻京办主任：对手
+			小人物沉浮权利场：底牌①②
+			妾本惊华
+			中南海特卫传奇：一号保镖
+			省委第一秘书：领导亲信
+			神医傻妃
+			当官是一门技术活：二号首长①②
+			省委大院①②③
+			永远有多远：婚久必昏
+			靠近女领导：靠山
+			祈爱的衔光
+			成人之美
+			记述一个男人的故事：创婚日记
+			冰城，燃起不灭激情
+			相恋在左 心痛在右
+			你的清纯我做主：爱情三十六记
+			超越感悟
+			青春疼爱系列：爱，会说谎的灰
+			青春疼爱系列：我是匹诺曹
+			我一个人疼你就够了
+			抵押尊严的情人：最是缠绵无尽意
+			冷魅王爷要休妻：失宠王妃
+			永远有多远：婚久必昏
+			省委第一秘书：领导亲信
+			帅痞军官情恸迷糊女：中校的新娘
+			中南海特卫传奇：一号保镖
+			后宫搏斗：尚宫(全本)
+			二号首长①②③
+			官场老二政治生存之道：二把手2
+			官二代之死揭打黑谜团：无字审判
+                <!--
+                //-->
+                    	任正非企业管理哲学
+                        下一个倒下的会不会是华为
+                         神秘电话揭内幕
+                         民国的暗杀
+                         小正太反扑御姐
+                         军二代特勤生涯
+改变仕途命运：后发制人
+纪检书记暗斗：利剑行动
+智搏军统特务：龙城谍战
+迟子建爱情小说：第三地晚餐
+皇子骗婚：痴情皇子追逃妃
+落胎女虐情敌：毕业后我们裸婚
+公主的庸俗成名：无忧公主
+若你离去，谁许我余生幸福
+红颜素手倾天下：归离
+向天下名相学做事：铁血的霸途
+“下放”副书记夺权：谁主沉浮
+皇子夺爱穿越复仇女：宫非宫
+官商的房产黑幕：拆迁
+药商揭医药黑幕：医药代表
+                    	分类排行榜
+                            官场
+                            都市
+                            军事
+    	        	省委第一秘书：领导亲信
+		        	二号首长①②③
+		        	二把手2
+		        	女副部长官场博弈
+		        	新驻京办主任：对手
+		        	官场奋斗史：副县长(全本)
+		        	靠近女领导：靠山
+		        	交易
+		        	乡村教师变身市府红人：借势
+		        	小人物沉浮权利场：底牌①②
+    	        	我的野蛮上司
+		        	永远有多远：婚久必昏
+		        	中南海特卫传奇：一号保镖
+		        	没人比我更爱你：弄假成婚
+		        	男人那点事儿
+		        	婚姻之伤：有多少爱可以重来
+		        	生死诺言藏迷局：兄弟承诺
+		        	谁是房主
+		        	这辈子，你欠我一个解释
+		        	前妻我们恋爱吧：瓷婚记
+    	        	军二代淬炼特勤生涯：特种兵
+		        	中央警卫2
+		        	特种军人卧底除奸：刀锋所向
+		        	中国特种部队生存实录：狼牙
+		        	子弹无痕
+		        	特战精英巅峰对决：王牌特卫
+		        	机关算尽：琅琊榜
+		        	特种兵2
+		        	神秘狙击手：刺客
+		        	射击天才狼性生存：弑狼
+                <!--
+                //-->
+        	原创
+            更多
+                    	素妆夺君心
+                        失宠香妃(全)
+                         别样仕途
+                         官路风云
+                         住在隔壁的爱人
+                         婚色撩人
+					特种兵与女市长博弈：暗夜官途
+					庶出小姐被退婚：浴火王妃
+					高官溺爱：大叔太多情
+					温柔陷阱：致命真相替身爱
+					冷血保镖：沉默高手
+					情人契约：恶魔总裁锁爱
+					霍乱时期的爱情：我的美女病人
+					夺情总裁：豪门老公不及格
+					官场生存手册：权力征途
+					美人谋：重生嫡女不受宠
+					机关男女：官场潜规则
+					绝色神偷：替身傻妃
+					绝对官路：走近女领导
+					爱我请放手：总裁的烙痕
+                    	原创排行榜
+                            点击
+                            畅销
+                            新书
+			非常保镖
+			市委女处长
+			这个高官爱不得
+			浓情巧克力
+			暗夜官途
+			贴身保安
+			权力漩涡
+			腹黑总裁找上门(全本)
+			玩火市长
+			别样仕途
+			豪门无罪：如果一辈子相爱
+			双面潜伏：尖刀一号
+			再见检察官：爱与愿违
+			闪婚多情陌生人：借点爱给我
+			南疆秘史：巫蛊长城
+			一世倾情：触不透的恋人
+			爱在相逢时：娇妻惹火夜未央
+			特种兵与女市长：暗夜官途
+			后宫劫：这个皇妃很腹黑
+			佣兵之王：女总裁的贴身高手
+                <!--
+                //-->
+                    	小人物官场奋斗史
+                        宦海风云记
+                         帝妃在侧
+                         怪事集
+                         悔婚不悔爱
+                         总裁的贴身高手
+					少年子弟江湖老：蜀仙奇缘
+					医道天才浪荡都市：医修
+					溺婚：丫头不见不散
+					花都猎人：天生煞星
+					倾城祸妃喋血深宫：宫杀
+					萧峰重生：逆天成神
+					末日的恐怖真相：十日诡谈
+					猎国：重生之大明摄政王
+					绝色弃妃返宫夺宠：斗凰
+					杀手之王闯花都
+					盗墓人传奇：摸金校尉
+					村长到省级大员
+					乱世红颜夺天下：独孤皇后
+					男房女客：我的合租女友
+                    	编辑排行榜
+                            编推
+                            强推
+                            海川社
+			豪门无罪：如果一辈子相爱
+			双面潜伏：尖刀一号
+			再见检察官：爱与愿违
+			闪婚多情陌生人：借点爱给我
+			南疆秘史：巫蛊长城
+			一世倾情：触不透的恋人
+			爱在相逢时：娇妻惹火夜未央
+			特种兵与女市长：暗夜官途
+			后宫劫：这个皇妃很腹黑
+			佣兵之王：女总裁的贴身高手
+			错位姻缘：爱不爱都疼
+			盗墓人传奇：摸金校尉
+			一恋执着：我只在乎你
+			冰山王爷的女强人：嫡女玲珑
+			花都猎人：天生煞星
+			仕途恋歌：大爱晚成
+			前妻的逆袭：非你不嫁
+			小秘书弄权路：官商结
+			错惹冷情上司：第三种结局
+			小杂役修真：武道乾坤
+			将军孤女西疆行
+			良缘天赐
+			有匪君子
+			江湖风雨寻仇
+			尸蛹
+			官高一级
+			神婆手札
+			末日之门
+			一号特工②
+			君生我未生
+                <!--
+                //-->
+        	全本包月
+            查看更多包月套餐
+                    	男人那点事儿
+                        男人那点事儿
+                	[简介]　梁宇良因离职而回到江海市，结束了与妻子的双城生活，并进入一家成员关系复杂的房地产公司。本想可以如鱼得水、大展手脚，却不想遇到各种问题……
+　　凌兰语...[详细]
+     被侮辱与被损害的：情迷不夜城
+穷二代屌丝苏锦，一个落魄的夜店服务员，在结识了夜店女老总李小楠之后，为了改变命运以自己...[详细]
+			至尊宝宝：腹黑总裁找上门绿肥红瘦
+			小夫妻遇婚变：第三种出轨刘华丽
+			无巧不成爱：宁寻我心萌羽
+			无敌村长横行都市：妖孽村长大脚丫
+			混迹黑白两道：黑道大佬飘扬
+			一夕错情：这个高官爱不得青青翠竹
+			恋上黑道小教父：错近君身安东东
+			豪门游戏：协议未婚妻鼠盗盗
+			官路殇情：祸水红颜哭泣的骆驼
+                    	包月排行榜
+   倒霉男人升迁记：逆袭
+办公室情仇：逆转
+代嫁王妃
+才情女子：多金总裁的情人
+下堂夫人很抢手：夫人请娶
+错嫁残酷王爷：假面王妃
+总裁，别太坏
+迫嫁为妾（全）
+黑道称王：花门太子
+偷心小女人：铁腕总裁猎冷妻
+        	听书
+            查看更多音频作品
+                    	商业调查师的神秘面纱
+                        时光之城
+                	[简介]正在上大三的许真，失去了相依为命的父亲。因为学费，她不得不向素未蒙面的母亲、也是国际大导演梁婉汀借钱。在梁婉汀那里，许真碰到了自己的偶像顾持钧，而顾持...[详细]
+     曹云金单口相声《隋唐演义》
+清代长篇历史演义小说，以隋朝末年农民起义为故事背景，讲述隋朝覆灭与大唐建立的一段历史演...[详细]
+					三国演义
+					潜伏资本市场
+					安徒生童话集
+					裸奔的钱
+					黑蚂蚁
+					冰是睡着的水
+					地狱的第19层
+					死亡通知单
+					空镜子
+					女心理师
+					牧野诡事
+					暗算(上)
+					哈佛之恋
+					女外交官手记
+					狼牙（上）
+					藏獒（一）
+					纪委专案
+					玉观音
+                    	畅销排行榜
+			周易大师第二部
+			周易大师第一部
+			省委班子1
+			让孩子受益一生的成功故事全集
+			后宫甄嬛传第四部之错缘
+			大西南剿匪记
+			时光之城
+			单田方_三国演义
+			门第
+			盗墓笔记第6部之阴山古楼
+        	访谈
+                	嘉宾在线
+                    更多
+                	刘苏里做客文坛开卷谈万圣书园产品体系
+                    梦想，一旦扎根，就能带给人无限的力量。万圣书园，是刘苏里梦想实现的地方……[详细]
+文坛开卷：刘苏里聊万圣书园
+文坛开卷：袁岳谈数字里的中国
+                	微访谈
+                    更多
+                	著名武侠小说家黄易谈新书《日月当空》
+                    黄易，香港中文大学艺术系毕业，代表作有《破碎虚空》、《覆雨翻云》、《寻秦记》[详细]
+                    著名学者余秋雨谈新书《何谓文化》
+图书商报孙月沐：2012中国创意工业创新奖
+                        微访谈
+                              《读书》杂志再陷人事动荡   
+曾获诺贝尔文学奖提名的中国作家
+        香港“文化遗老”、作家也斯去世 
+                            首页回顾
+  首页
+  新闻
+  读书
+  体育
+  科技
+  财经
+  娱乐
+  汽车
+  9:00
+  21:00
+        	团体专区
+                        
+
+                        <img src="http://i1.sinaimg.cn/book/328/2012/0616/U6800P112T328D6F10149DT20120619181315.jpg" width="50" height="50" alt="潇湘书院原创文学网站，95%以上用户为15至35岁女性，属同行中女性用户最集中的网站，曾荣获“江苏省行业特色网站”等荣誉。
+"/>
+                        <img src="http://i3.sinaimg.cn/book/328/2012/0616/U6800P112T328D6F10161DT20120619181315.jpg" width="50" height="50" alt="凤鸣轩小说网原创文学创作与阅读平台，原创文学数字版权运营商。
+"/>
+                                
+                        <img src="http://i3.sinaimg.cn/book/328/2012/0616/U6814P112T328D7F10161DT20130228132608.jpg" width="50" height="50" alt="北方文艺出版社成立于1961年，逐步形成了以弘扬民族文化、具有文学艺术价值的古今中外优秀文艺作品及文艺理论专著为主，以历史文化知识为辅的出版风格和特色。
+"/>
+                                
+                        
+                    	团体销量排行榜
+			至尊宝宝：腹黑总裁找上门
+			小夫妻遇婚变：第三种出轨
+			无巧不成爱：宁寻我心
+			无敌村长横行都市：妖孽村长
+			混迹黑白两道：黑道大佬
+			一夕错情：这个高官爱不得
+			恋上黑道小教父：错近君身
+			豪门游戏：协议未婚妻
+        	合作伙伴
+        	出版单位
+						人民文学出版社
+						上海文艺出版社
+						作家出版社
+						文汇出版社
+						中国青年出版社
+						百花洲文艺出版社
+						中共党史出版社
+						朝华出版社
+						山西人民出版社
+						百花文艺出版社
+						重庆出版社
+						中国社科出版社
+						中央编译出版社
+						中信出版社
+						辽宁人民出版社
+                                                湖南文艺出版社
+						团结出版社
+						辽宁教育出版社
+						世界知识出版社
+						吉林文史出版社
+						九州出版社
+						学苑出版社
+						中国人大出版社
+译林出版社
+						华夏出版社
+						金城出版社
+						二十一世纪
+						当代中国出版社
+博集天卷
+						中国金融出版社	
+人民日报出版社
+						商务印书馆
+						中国中医药出版社
+						长江文艺出版社
+						现代出版社
+						四川人民出版社
+						春风文艺出版社
+						机械工业出版社
+		  河南科学技术出版社
+						人民出版社
+						经济科学出版社
+						安徽人民出版社
+						江西美术出版社
+						中华书局
+						华艺出版社
+						社科文献出版社
+						河南文艺出版社
+						新星出版社
+						上海贝贝特
+						故事会
+												  禹田文化
+						中国财政经济出版社
+			媒　体
+					中国作家网
+					京东读书
+					中国出版网
+					人民网读书
+					言情小说吧
+					新华网读书
+					半壁江文学
+					17k文学网
+					四月天
+					逐浪小说网
+					红袖言情小说
+					广东文化网
+					出版商务周报
+					3G书城
+					bookfm读书
+					看书网
+					翠微居
+					新华网副刊
+					文学报
+					一刀中文网
+					《人民文学》杂志社
+					百道网
+                                              中国新闻网文化频道
+					中国作品网
+                                              天涯文学
+					武侠故事
+					长城网读书频道
+                                  起点中文网
+				大佳网
+			书　店
+						北发图书网
+						中国书店
+						北京王府井书店
+						中关村图书大厦
+						北京图书大厦
+						博库书城
+						广州购书中心
+						九久读书人
+						四川新华书店
+            城市·招商
+                庐山全国摄影艺术大展
+					发泰山祈福微博过大年
+2012内蒙古银冬之旅
+河南机遇 产业崛起
+北京丰台微小说大赛
+高层访谈   对话城市
+[微博]多个视角看城市
+		新浪网文化读书频道网友意见留言板　电话：010-62675388　　欢迎批评指正
+		新浪简介 | 
+		About Sina | 
+		广告服务 | 
+		联系我们 | 
+		招聘信息 | 
+		网站律师 | 
+		SINA English | 
+		通行证注册 | 
+		产品答疑
+		Copyright &copy; 1996 - 2013 SINA Corporation, All Rights Reserved 
+		新浪公司　版权所有
+	 "2013-01-30",
+	 "2013-01-30",
+	]);
+	 "2013-02-09",
+	 "2013-02-10",
+	]);
+	 "2013-02-02",
+	 "2013-02-03",
+	]);
+suds_init(391,10.0000,1015,2);
+var sinaSSOManager=sinaSSOManager||{};sinaSSOManager.q=function(b){if(typeof b!="object"){return""}var a=new Array();for(key in b){a.push(key+"="+encodeURIComponent(b[key]))}return a.join("&")};sinaSSOManager.es=function(f,d,e){var c=document.getElementsByTagName("head")[0];var a=document.getElementById(f);if(a){c.removeChild(a)}var b=document.createElement("script");if(e){b.charset=e}else{b.charset="gb2312"}b.id=f;b.type="text/javascript";d+=(/\?/.test(d)?"&":"?")+"_="+(new Date()).getTime();b.src=d;c.appendChild(b)};sinaSSOManager.doCrossDomainCallBack=function(a){sinaSSOManager.crossDomainCounter++;document.getElementsByTagName("head")[0].removeChild(document.getElementById(a.scriptId))};sinaSSOManager.crossDomainCallBack=function(a){if(!a||a.retcode!=0){return false}var d=a.arrURL;var b,f;var e={callback:"sinaSSOManager.doCrossDomainCallBack"};sinaSSOManager.crossDomainCounter=0;if(d.length==0){return true}for(var c=0;c5){if(n!=null){clearTimeout(n)}n=setTimeout("sinaSSOManager.updateCookie()",g*1000)}var d=j();var c=(new Date()).getTime()/1000;var o={};if(d==null){o={retcode:6102}}else{if(dc){o={retcode:6110}}else{if(d-c>p){o={retcode:6111}}}}}if(o.retcode!==undefined){return false}var a=l+"?callback=sinaSSOManager.updateCookieCallBack";sinaSSOManager.es(b,a)}catch(k){}return true};sinaSSOManager.updateCookie();
+var wrUrl="//sina.wrating.com/";var wrDomain="sina.com.cn";var wratingDefaultAcc="860010-0323010000";var wratingAccArray={"2012.sina.com.cn":"860010-0308150000","torch.2008.sina.com.cn":"860010-0308070000","video.sina.com.cn":"860010-0309010000","ent.sina.com.cn":"860010-0312010000","tech.sina.com.cn":"860010-0313010000","mobile.sina.com.cn":"860010-0313020000","house.sina.com.cn":"860010-0315010000","bj.house.sina.com.cn":"860010-0315020000","auto.sina.com.cn":"860010-0316010000","eladies.sina.com.cn":"860010-0317010000","woman.sina.com.cn":"860010-0317010000","games.sina.com.cn":"860010-0318010000","edu.sina.com.cn":"860010-0307010000","baby.sina.com.cn":"860010-0320010000","astro.sina.com.cn":"860010-0321020000","news.sina.com.cn":"860010-0310010000","weather.news.sina.com.cn":"860010-0310020000","mil.news.sina.com.cn":"860010-0310030000","www.sina.com.cn":"860010-0322010000","home.sina.com.cn":"860010-0322010000","sports.sina.com.cn":"860010-0308010000","shidefc.sina.com.cn":"860010-0308020000","weiqi.sina.com.cn":"860010-0308030000","f1.sina.com.cn":"860010-0308040000","golf.sina.com.cn":"860010-0308050000","2002.sina.com.cn":"860010-0308060000","2004.sina.com.cn":"860010-0308060000","2006.sina.com.cn":"860010-0308060000","2008.sina.com.cn":"860010-0308070000","yayun2002.sina.com.cn":"860010-0308060000","yayun2006.sina.com.cn":"860010-0308060000","book.sina.com.cn":"860010-0319010000","cul.book.sina.com.cn":"860010-0319020000","comic.book.sina.com.cn":"860010-0319030000","finance.sina.com.cn":"860010-0314010000","money.sina.com.cn":"860010-0314020000","yue.sina.com.cn":"860010-0324010000","www.sina.com":"860010-0322010000"};function vjTrack(){var U=1800;var T=false;var S=false;var R="";var Q="0";var P="";var N;var L;var K;var J;var I;var H="expires=Fri, 1 Jan 2038 00:00:00 GMT;";var G=0;if(document.location.protocol=="file:"){return }T=navigator.cookieEnabled?"1":"0";S=navigator.javaEnabled()?"1":"0";var F="0";var E;var C=-1;var D=document.cookie;if(T=="1"){C=D.indexOf("vjuids=");if(CU){F="1";document.cookie="vjlast="+Math.round(X.getTime()/1000)+";"+H+";domain="+wrDomain+";path=/;"}if(L!=""){B=B+"&r="+escape(L)}if(F!="0"){B=B+"&n="+G}if(Q!="0"){B=B+"&u="+Q}var V;var A=vjGetAcc();var W=vjGetDomain();V=wrUrl+"a.gif?a="+X.getTime().toString(16)+"&t="+escape(I)+"&i="+escape(E)+"&b="+escape(document.location)+"&c="+A+B+"&ck="+W;document.write('')}function vjGetAcc(){var B=document.location.toString().toLowerCase();var C=(B.split("/"))[2];var A=wratingAccArray[C];if(typeof (A)=="undefined"){A=wratingDefaultAcc}return A}function vjFlash(){var _wr_f="-",_wr_n=navigator;if(_wr_n.plugins&&_wr_n.plugins.length){for(var ii=0;ii=2;ii--){try{var fl=eval("new ActiveXObject('ShockwaveFlash.ShockwaveFlash."+ii+"');");if(fl){_wr_f=ii+".0";break}}catch(e){}}}}return _wr_f}function vjHash(B){if(!B||B==""){return 0}var D=0;for(var C=B.length-1;C>=0;C--){var A=parseInt(B.charCodeAt(C));D=(D<<5)+D+A}return D}function vjVisitorID(){var B=vjHash(document.location+document.cookie+document.referrer).toString(16);var A;A=new Date();return B+"."+A.getTime().toString(16)+"."+Math.random().toString(16)}function vjGetCookieVal(B){var A=document.cookie.indexOf(";",B);if(A==-1){A=document.cookie.length}return unescape(document.cookie.substring(B,A))}function vjGetCookie(C){var B=C+"=";var F=B.length;var A=document.cookie.length;var E=0;while(E<A){var D=E+F;if(document.cookie.substring(E,D)==B){return vjGetCookieVal(D)}E=document.cookie.indexOf(" ",E)+1;if(E==0){break}}return null}function vjGetDomain(){var A=0;try{if(window.self.parent!=self){var D=/sina.com/i;var C=document.location.toString().toLowerCase();var B=parent.location.toString().toLowerCase();if(D.test(C)&&D.test(B)){A=1}}}catch(e){A=1}return A}vjTrack();
