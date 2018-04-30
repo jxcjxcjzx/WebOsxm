@@ -1,0 +1,98 @@
+网易 新闻 
+微博 
+邮箱 
+相册 
+阅读 
+有道 
+摄影 
+爱拍 
+优惠券 
+云笔记 
+闪电邮 
+手机邮 
+印像派 
+网易识字 
+ 
+更多   博客 手机博客 
+博客搬家 
+博客VIP服务 
+ 
+LiveWriter写博 
+word写博 
+邮件写博 
+短信写博 
+ 
+群博客 
+博客油菜地 
+博客话题 
+博客热点 
+博客圈子 
+找朋友 发现小组风格   网易真人搭配社区iStyle下载最文艺的手机博客APP>下载最文艺的手机博客APP>创建博客 登录    加关注   显示下一条  |  关闭 温馨提示！由于新浪微博认证机制调整，您的新浪微博帐号绑定已过期，请重新绑定！立即重新绑定新浪微博》  |  关闭 likang0110的博客
+ 导航
+首页 日志 相册 音乐 收藏 博友 关于我      日志   likang01 
+  加博友   关注他 
+ 他的网易微博
+被推荐日志
+最新日志
+C语言中一些容易被人忽略的单片机C语言下LCD多级菜单的存储器的大端与小端两种存储ARM编译中的RO、RW和ZI DATAC语言高效编程的几招.硬件问题坑死人该作者的其他文章
+博主推荐
+随机阅读
+谢娜否认怀孕 综艺一姐的私服甜美搭让员工每年有一次机会当主角外国女性如何舍身“套”色狼国五条离婚北京人成了＂京白梨＂？12星座的情人该如何关心？中国有庞大的时尚老年群体却无人注意他们的消费能力首页推荐
+假冒中南海高官有何窍门国人亿元抄底美国房地产老人误入洗脚城后险暴毙揭秘军车换牌原因和规律女排陈招娣曾让我们发疯做爱时她下面太湿怎么办更多>>
+
+
+  C语言文件操作函数大全  STM32固件库内STM32f10x.h中定义的启动设置的介绍
+ADPCM文件解码详解  2012-08-20 15:39:32|  分类： 技术文章 |  标签：adpcm  pcm  wav  解码   |字号大
+中
+小 订阅 
+一、搞了几天终于搞定这个ADPCM解码了，之前找了很多的资料，大致描述的都是千篇一律，但是基本上都没有说到细节上，让我也走了不少弯路，其实主要在细节，网上给的算法是正确的，但是直接运用根本就不行，噪音很大。这一点让我一直很头疼，最后还是看了英文资料，才得到解答，还是老外的原始资料好。
+
+二、给个英文参考网址吧
+
+http://www.moon-soft.com/program/FORMAT/windows/wavec.htm
+
+https://ccrma.stanford.edu/courses/422/projects/WaveFormat/
+
+这两个讲的很详细，请仔细阅读！通过阅读我发现细节在与adpcm格式的wav文件的block的特点，每一个block包含header和data两部分，
+
+Typedef struct{ 
+
+         short  sample0;    //block中第一个采样值（未压缩） 
+
+         BYTE  index;     //上一个block最后一个index，第一个block的index=0;
+
+         BYTE  reserved;   //尚未使用
+
+}MonoBlockHeader
+
+关键是我们要抓住每一个block的header里面的信息，即sample0，运算的时候注意运用！
+
+三、还是给个代码吧,多的也不说了！
+
+1、adpcm.c文件代码
+
+#include "adpcm.h" /* Intel ADPCM step variation table */static int indexTable[16] = {    -1, -1, -1, -1, 2, 4, 6, 8,    -1, -1, -1, -1, 2, 4, 6, 8,};static int stepsizeTable[89] = {    7, 8, 9, 10, 11, 12, 13, 14, 16, 17,    19, 21, 23, 25, 28, 31, 34, 37, 41, 45,    50, 55, 60, 66, 73, 80, 88, 97, 107, 118,    130, 143, 157, 173, 190, 209, 230, 253, 279, 307,    337, 371, 408, 449, 494, 544, 598, 658, 724, 796,    876, 963, 1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066,    2272, 2499, 2749, 3024, 3327, 3660, 4026, 4428, 4871, 5358,    5894, 6484, 7132, 7845, 8630, 9493, 10442, 11487, 12635, 13899,    15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767};void adpcm_decoder(char *inbuff,char *outbuff,int len_of_in,struct adpcm_state * state ){ int  i=0,j=0;    char tmp_data;    struct adpcm_state * tmp_state =state;    long step; /* Quantizer step size */    signed long predsample; /* Output of ADPCM predictor */    signed long diffq; /* Dequantized predicted difference */    int index; /* Index into step size table */    int Samp;    unsigned char SampH, SampL;    unsigned char inCode;      /* Restore previous values of predicted sample and quantizer step    size index    */    predsample = state->valprev;    index = state->index;     for(i=0;i<len_of_in*2;i++) {  tmp_data=inbuff[i/2];    if(i%2)   inCode=(tmp_data& 0xf0) >> 4;  else   inCode=tmp_data & 0x0f;      step = stepsizeTable[index];   /* Inverse quantize the ADPCM code into a predicted difference    using the quantizer step size   */      diffq = step >> 3;  if( inCode & 4 )   diffq += step;  if( inCode & 2 )   diffq += step >> 1;  if( inCode & 1 )   diffq += step >> 2;    /* Fixed predictor computes new predicted sample by adding the    old predicted sample to predicted difference    */  if( inCode & 8 )   predsample -= diffq;  else   predsample += diffq;    /* Check for overflow of the new predicted sample    */   if( predsample > 32767 )   predsample = 32767;   else if( predsample < -32768 )   predsample = -32768;    /* Find new quantizer stepsize index by adding the old index    to a table lookup using the ADPCM code    */   index += indexTable[inCode];    /* Check for overflow of the new quantizer step size index    */  if( index < 0 )   index = 0;  if( index > 88 )   index = 88;    /* Return the new ADPCM code */  Samp=predsample;  if (Samp >= 0)  {   SampH=Samp / 256;   SampL = Samp - 256 * SampH;  }  else  {   Samp= 32768+Samp;   SampH = Samp / 256;   SampL = Samp - 256 * SampH;   SampH += 0x80;  }  outbuff[j++]=SampL;  outbuff[j++]=SampH;    }  /* Save the predicted sample and quantizer step size index for next iteration */ state->valprev = (short)predsample; state->index = (char)index;}2、adpcm.h文件代码#ifndef ADPCM_H#define ADPCM_H#ifdef __cplusplusextern "C" {#endifstruct adpcm_state {    short valprev; /* Previous output value */    char index;  /* Index into stepsize table */};void adpcm_decoder(char *inbuff,char *outbuff,int len_of_in,struct adpcm_state * state );#ifdef __cplusplus}  /* extern "C" */#endif#endif /* ADPCM_H*/3、main.c文件代码 #include "stdio.h"#include  "stdlib.h"#include  "adpcm.h"#define CFG_BlkSize     256   char ch[CFG_BlkSize];  //用来存储wav文件的头信息char savedata[CFG_BlkSize*4]; unsigned char RiffHeader[] = {      'R' , 'I' , 'F' , 'F' , // Chunk ID (RIFF)      0x70, 0x70, 0x70, 0x70, // Chunk payload size (calculate after rec!)      'W' , 'A' , 'V' , 'E' , // RIFF resource format type           'f' , 'm' , 't' , ' ' , // Chunk ID (fmt )      0x10, 0x00, 0x00, 0x00, // Chunk payload size (0x14 = 20 bytes)      0x01, 0x00,             // Format Tag ()      0x01, 0x00,             // Channels (1)      0x40, 0x1f, 0x00, 0x00, // Sample Rate,  = 16.0kHz      0x80, 0x3e, 0x00, 0x00, // Byte rate       32.0K   0x02, 0x00,             // BlockAlign == NumChannels * BitsPerSample/8    0x10, 0x00     // BitsPerSample     }; unsigned char RIFFHeader504[] = {  'd' , 'a' , 't' , 'a' , // Chunk ID (data)  0x70, 0x70, 0x70, 0x70  // Chunk payload size (calculate after rec!)};/****************************************************************函数名称：    main功能描述：   输入参数：    none输出参数：    none****************************************************************/void main(void){ FILE *fpi,*fpo; unsigned long iLen,temp; struct adpcm_state ADPCMstate; unsigned long i = 0; unsigned long j; fpi=fopen("f:\\lk\\test.adpcm","rb");     //为读，打开一个wav文件 if((fpi=fopen("f:\\lk\\test.adpcm","rb"))==NULL)  //若打开文件失败，退出 {  printf("can't open this file\n");  printf("\nread error!\n");  printf("\n%d\n",i);  exit(0); } fseek(fpi,0,SEEK_END);       iLen=ftell(fpi);  printf("\n======================================================\n"); printf("\n========================%d========================\n",iLen); printf("\n======================================================\n"); if((iLen-44)%CFG_BlkSize)  iLen = (iLen-44)/CFG_BlkSize+1; else  iLen = (iLen-44)/CFG_BlkSize;  fpo=fopen("f:\\lk\\new.pcm","rb+");                     //为写，打开一个wav文件 if((fpo=fopen("f:\\lk\\new.pcm","rb+"))==NULL)          //若打开文件失败，退出 {  printf("can't open this file\n");  printf("\nwrite error!\n");  exit(0); } fseek(fpo,0,SEEK_SET); fwrite(RiffHeader,sizeof(RiffHeader),1,fpo);    //写文件riff fwrite(RIFFHeader504,sizeof(RIFFHeader504),1,fpo);   //写 data块头 while(i<iLen) {  fseek(fpi,48+i*CFG_BlkSize,SEEK_SET);  fread(ch,1,CFG_BlkSize,fpi);   printf("\n======================================================\n");  for(j=0;j<100;j++)   printf("| %d |",ch[j]);  printf("\n======================================================\n");  ////////////////////////添加读取BlockHeader部分开始////////////////////////////////  if(i == 0)  {   ADPCMstate.index = 0; //第一个block的index为 0     当前的BlockSize为 256 即采样点数为 （256-4）*2+1 = 505  }  else  {   ADPCMstate.index = ch[2];  }  ADPCMstate.valprev = (short)ch[0] + ((short)(ch[1]))*256;   //每一个block里面帧头有一个未压缩的数据 存储时 先低后高  savedata[0] = ch[0];     //存储第一个没有被压缩的数据  savedata[1] = ch[1];     //存储第一个没有被压缩的数据  ////////////////////////添加读取BlockHeader部分结束////////////////////////////////  adpcm_decoder(&ch[4], &savedata[2], CFG_BlkSize-4, &ADPCMstate);//解码出来了   （256-4）*4 个字节     temp = (CFG_BlkSize-4)*4 + 2;  fseek(fpo,44+i*temp,SEEK_SET);       //开始写声音数据  fwrite(savedata,temp,1,fpo);  i++; } temp *= i; RiffHeader[4] = (unsigned char)((40 + temp)&0x000000ff); RiffHeader[5] = (unsigned char)(((40 + temp)&0x0000ff00)>>8); RiffHeader[6] = (unsigned char)(((40 + temp)&0x00ff0000)>>16); RiffHeader[7] = (unsigned char)(((40 + temp)&0xff000000)>>24); fseek(fpo,4,SEEK_SET); fwrite(&RiffHeader[4],4,1,fpo); RiffHeader[40] = (unsigned char)(temp&0x000000ff); RiffHeader[41] = (unsigned char)((temp&0x0000ff00)>>8); RiffHeader[42] = (unsigned char)((temp&0x00ff0000)>>16); RiffHeader[43] = (unsigned char)((temp&0xff000000)>>24); fseek(fpo,40,SEEK_SET); fwrite(&RiffHeader[40],4,1,fpo); fclose(fpi);        fclose(fpo);   printf("\n==========================OK!=========================\n");}四、以上是给出的代码，绝对管用，读者在实验时候请在vc++6.0环境下建立工程，实验时候请在f:\\lk\\下放置一个adpcm格式的文件和一个空的pcm格式文件，当然了这个pcm和adpcm其实都是wav格式的，试验者可以随意命名格式，我为了区分才这样命名后缀的，希望我总结的能够读者带来帮助，谢谢您的阅读！
+
+  评论这张  转发至微博  转发至微博  0人  |  分享到：         阅读(315)| 评论(0)| 转载 (0) |举报 
+ 
+  C语言文件操作函数大全  STM32固件库内STM32f10x.h中定义的启动设置的介绍
+历史上的今天
+
+最近读者
+登录后，您可以在此留下足迹。 jclick28  air_fans  byzxg201 
+评论
+点击登录|昵称： 
+   取消 验证码：换一张  
+
+上一页 1... -1-1-1-1-1-1-1... -1下一页              页脚
+公司简介 - 联系方法 - 招聘信息 - 客户服务 - 隐私政策 - 博客风格 - 手机博客 - VIP博客 - 订阅此博客 
+网易公司版权所有 ©1997-2013
+×信息提示时装周后台现蕾丝底裤
+揭秘军车换牌的原因和规律
+西游记中最懂得调情的女妖
+中国娘花650万美金抄底美国买'学区房'
+假冒中南海高官有何窍门？
+分析苏27飞机事故原因(图)
+H7N9病毒与沪死猪有无关系
+女排陈招娣曾让我们'发疯'
+        

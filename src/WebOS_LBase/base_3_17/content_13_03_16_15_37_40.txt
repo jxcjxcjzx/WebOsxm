@@ -1,0 +1,483 @@
+ 
+ 
+ChinaUnix.net 首页 | 博客 | Linux | 论坛 | 人才 | 培训 | 知识库 | 资料 | 读书 | 手册 | 精华 | 下载 | 沙龙 | 搜索  
+ 
+ 
+ 
+   
+Linux首页 | Linux论坛 | 论坛精华 | 开源新闻 | 技术文章 | 专题专栏 | 新手指南 | 迁移方案 | 产品方案 | 开源项目 | 开源图书 | 软件下载 | 人才招聘 | Linux博客  
+ 
+  搜索 
+   
+
+  产品与方案 
+·中科红旗全面打造现代化邮政体系
+·红旗助力“网上审批服务” 推动电子政务
+·红旗正版化开创呼和浩特网吧建设新起点
+·红旗Linux助信息产业部邮件服务器“快跑”
+·中标普华Linux 为电子政务信息化保驾护航
+·中标普华Linux助力基金产业
+·中标普华Office率先支持UOF标准
+·中标普华邮件系统助力西藏政府信息化建设
+·红旗Linux助力国库集中支付系统改革
+·红旗助中信卫星 掀起GIS通信应用风暴
+·红旗软件助力烟草总局 全面建设“数字烟草”
+·红旗助力“信访阳光工程”打造畅通信访渠道
+·红帽联合FIS发布下一代实时核心银行平台
+·红旗助力金盾 打造全无忧出入境信息系统
+·红旗Linux全力打造中国邮政总局名址信息库
+·爱尔兰证交所从Unix迁移到红帽企业Linux
+·一流的意大利银行选择使用红帽企业Linux
+·PLUS Finanzservice选择使用红帽企业Linux
+·红帽助力TransACT Communications 公司
+·法国零售业巨头Lapeyre采用Redhat Linux
+·旅游预订网站选择使用红帽企业Linux
+·马哈拉施特拉邦政府的红帽解决之道
+·美国联邦政府案例
+·红帽为慕尼黑展览会提供现代化集群系统
+·Yuba郡用开源软件和红帽产品提高了效率
+·红帽企业Linux助印度理工建立高性能计算中心
+·采用红帽Linux 将系统维护时间缩短了65%
+·从UNIX迁移到Linux使PeÃ±oles公司获益非浅
+·Hikal公司用红帽企业Linux开展任务关键的ERP项目
+·KDE3.5.4新版本发布
+·芝加哥商业交易所从Unix向Linux迁移
+·南方基金管理有限公司成功案例 Red Hat Linux
+·广东北电通讯设备有限公司成功案例
+·挪威国家石油公司从UNIX迁移到红帽Linux，成本减半
+·中央电视台CCTV动画部案例 Red Hat Linux
+ 
+
+  图书 
+
+鸟哥的Linux私房菜基础学..
+
+Linux程序设计.第3版
+
+Linux设备驱动开发详解
+ 
+
+  下载 
+·Endian Firewall
+·linux kernel(Linux 内核)
+·CentOS
+·Fedora Core 6
+·Scientific Linux
+·Slackware 11.0
+·Gentoo Linux
+·ubuntu-6.10-i386服务器版本
+·ubuntu-6.10-amd64服务器版
+·ubuntu-6.10-i386桌面版
+·ubuntu-6.10-amd64桌面版
+·Engarde Linux
+ 
+  您的位置: Linux时代 > 技术文档 > 程序开发 > 
+Linux下的shell编程入门 
+
+日期：2006-10-17　作者：www.cciss.cn　来自：www.cciss.cn
+
+
+--------------------------------------------------------------------------------
+
+　　通常情况下，我们从命令行输入命令每输入一次就能够得到系统的一次响应。一旦需要我们一个接着一个的输入命令而最后才得到结果的时候，这样的做法显然就没有效率。要达到这样的目的，通常我们利用shell程序或者shell脚本来实现。
+
+　　一、简介
+
+　　Shell编程有很多类似C语言和其他程序语言的特征，但是又没有编程语言那样复杂。Shell程序就是放在一个文件中的一系列Linux命令和实用程序，在执行的时候，通过Linux一个接着一个地解释和执行每个命令。
+
+　　下面我们来看一个简单的shell程序：
+
+　　1、首先建立一个内容如下的文件，名字为date,将其存放在目录下的bin子目录中。
+
+　　#Program date
+
+　　#usageto ::show the date in this way (注释)
+
+　　echo “Mr.$USER,Today is:”
+
+　　echo date “+%B%d%A”
+
+　　echo “Whish you a lucky day !”
+
+　　2、编辑完该文件之后它还不能执行，我们需要给它设置可执行权限。使用如下命令：
+
+　　chmod +x date
+
+　　通过以上过程之后，我们就可以像使用ls命令一样执行这个shell程序.
+
+　　[beichen@localhost bin]$ date
+
+　　Mr.beichen,Today is:
+
+　　January 13 Friday
+
+　　Whish you a lucky day !
+
+　　为了在任何目录里都可以执行这个程序，可以将bin的这个目录添加到路径中去。
+
+　　[beichen@localhost bin]$ PATH=$PATH:$HOME/bin
+
+　　(注：这里的$HOME代替的是/home/beichen,而bin目录是自己建的一个目录)
+
+　　另外一种执行date的方法就是把它作为一个参数传给shell命令:
+
+　　[beichen@localhost /]$ bash date
+
+　　Mr.beichen,Today is:
+
+　　January 13 Friday
+
+　　Whish you a lucky day !
+
+　　尽管在前面我们使用chmod +x date将date设置为可执行，其实不设置也没有关系，但在Linux里执行它，需要先告诉系统它是一个可执行的脚本。
+
+　　[beichen@localhost /]$ .date
+
+　　Mr.beichen,Today is:
+
+　　January 13 Friday
+
+　　Whish you a lucky day !
+
+　　即在date前面加上一个点”.”，并且用空格与后面的shell脚本的文件名隔开。当然，不推荐这样做。
+
+　　二、shell参数
+
+　　如同ls 命令可以接受目录等作为它的参数一样，在shell编程时同样可以使用参数。Shell有位置参数和内部参数。
+
+　　1、 位置参数
+
+　　由系统提供的参数称为位置参数。位置参数的值可以用$N得到，N是一个数字，如果为1，即$1.类似C语言中的数组，Linux会把输入的命令字符串分段并给每段进行标号，标号从0开始。第0号为程序名字，从1开始就表示传递给程序的参数。如$0表示程序的名字，$1表示传递给程序的第一个参数，以此类推。
+
+　　2、 内部参数
+
+　　上述过程中的$0是一个内部变量，它是必须的，而$1则可有可无。和$0一样的内部变量还有以下几个。
+
+　　$# ----传递给程序的总的参数数目
+
+　　$? ----上一个代码或者shell程序在shell中退出的情况，如果正常退出则返回0，反之为非0值。
+
+　　$* ----传递给程序的所有参数组成的字符串。
+
+　　下面举例进行说明：
+
+　　建立一个内容为如下的程序P1:
+
+　　echo “Program name is $0”
+
+　　echo “There are totally $# parameters passed to this program”
+
+　　echo “The last is $?”
+
+　　echo “The parameters are $*”
+
+　　执行后的结果如下：
+
+　　[beichen@localhost bin]$ P1 this is a test program //传递5个参数
+
+　　Program name is /home/beichen/bin/P1 //给出程序的完整路径和名字
+
+　　There are totally 5 parameters passed to this program //参数的总数
+
+　　The last is 0 //程序执行结果
+
+　　The parameters are this is a test program //返回有参数组成的字符串
+
+　　下面我们利用内部变量和位置参数编写一个名为del的简单删除程序：
+
+　　#name: del
+
+　　#author: liangnian
+
+　　#this program to compress a file to the dustbin
+
+　　if test $# -eq 0 
+
+　　then
+
+　　echo “Please specify a file!” 
+
+　　else
+
+　　gzip $1 //先对文件进行压缩
+
+　　mv $1.gz $HOME/dustbin //移动到回收站
+
+　　echo “File $1 is deleted !”
+
+　　fi
+
+　　三、变量表达式
+
+　　在上面我们编写的小程序中我们用到了一个关键字test，其实它是shell程序中的一个表达式?D?D比较(test)。通过和shell提供的if等条件语句(后面我们会介绍)相结合我们可以方便的完判断。
+
+　　其用法如下：
+
+　　test 表达式
+
+　　表达式所代表的操作符有字符串操作符、数字操作符、逻辑操作符以及文件操作符。其中文件操作符是一种shell独特的操作符，因为shell里的变量都是字符串，为了达到对文件进行操作的目的，于是才提供了这样的一种操作符。
+
+　　1、 字符串比较
+
+　　作用：测试字符串是否相等、长度是否为零，字符串是否为NULL(注：bash区分零长度字符串和空字符串)
+
+　　常用的字符穿操作符有：
+
+　　= 比较两个字符串是否相同，同则为“是”!= 比较两个字符串是否相同，不同则为“是”
+
+　　-n 比较字符串长度是否大于零，如果大于零则为“是”
+
+　　-z 比较字符串的穿度是否等于零，如果等于则为“是”
+
+　　2、 数字比较
+
+　　这里区别于其他编程语言，test语句不使用>?类似的符号来表达大小的比较，而是用整数式来表示这些。
+
+　　-eq 相等
+
+　　-ge 大于等于
+
+　　-le 小于等于
+
+　　-ne 不等于
+
+　　-gt 大于
+
+　　-lt 小于
+
+　　3、 逻辑操作! 反：与一个逻辑值相反的逻辑值
+
+　　-a 与(and)：两个逻辑值为“是”返回值才为“是”，反之为“否”
+
+　　-o 或(or)：两个逻辑值有一个为“是”，返回值就为“是”
+
+　　4、 文件操作
+
+　　文件测试表达式通常是为了测试文件的信息，一般由脚本来决定文件是否应该备份、复制或删除。由于test关于文件的操作符有很多，我们只列举一些常用的。
+
+　　-d 对象存在且为目录返回值为“是”
+
+　　-f 对象存在且为文件返回值为“是”
+
+　　-L 对象存在且为符号连接返回值为“是”
+
+　　-r 对象存在且可读则返回值为“是”
+
+　　-s 对象存在且长度非零则返回值为“是”
+
+　　-w 对象存在且可写则返回值为“是”
+
+　　-x 对象存在且可执行则返回值为“是”
+
+　　file1 ?Cnt(-ot) file2 文件1比文件2新(旧)
+
+　　四、循环结构语句
+
+　　shell常见的循环语句有for循环、while循环、until循环
+
+　　for 循环
+
+　　语法：for 变量 in 列表
+
+　　do
+
+　　操作
+
+　　done
+
+　　注：变量是要在循环内部用来指代当前所指代的列表中的那个对象的。
+
+　　列表是在for 循环的内部要操作的对象，可以是字符串也可以是文件，如果是文件则为文件名。
+
+　　例：删除垃圾箱中的所有.gz文件
+
+　　#delete all file with extension of “gz” in the dustbin
+
+　　for I in $HOME/dustbin/*.gz
+
+　　do
+
+　　rm ?Cf $i
+
+　　echo “$i has been deleted!”
+
+　　done
+
+　　执行结果如下：
+
+　　[beichen@localhost bin]$.f_rmgz
+
+　　/home/beichen/dustbin/nessus-4.0.0.2.tar.gz has been deleted!
+
+　　/home/beichen/dustbin/gftp-2.2.1.tar.gz has been deleted!
+
+　　While循环
+
+　　语法：while 表达式
+
+　　do
+
+　　操作
+
+　　done
+
+　　只要while表达式成立，do和done之间的操作就一直会进行。
+
+　　until循环
+
+　　语法：until 表达式
+
+　　do
+
+　　操作
+
+　　done
+
+　　重复do和done之间的操作直到表达式成立为止。
+
+　　例:
+
+　　#test until
+
+　　#add from 1 to 100
+
+　　total=0
+
+　　num=0
+
+　　until test num ?Ceq 100
+
+　　do
+
+　　total=`expr $total + $num` //注意，这里的引号是反引号,下同
+
+　　num=`expr $num+1`
+
+　　done
+
+　　echo “The result is $total”
+
+　　执行结果如下：
+
+　　[beichen@localhost bin]$until
+
+　　The result is 5050!
+
+　　五、条件语句
+
+　　Shell程序中的条件语句主要有if语句、case语句；
+
+　　If语句
+
+　　语法：if 表达式1 then
+
+　　操作
+
+　　elif 表达式2 then
+
+　　操作
+
+　　elif 表达式3 then
+
+　　操作
+
+　　…..
+
+　　else
+
+　　操作
+
+　　fi
+
+　　Linux里的if的结束标志是将if反过来写成fi；而elif其实是else if的缩写
+
+　　其中elif理论上可以有无限多个。
+
+　　Case语句
+
+　　语法：case 字符串 in
+
+　　值1|值2)
+
+　　操作::
+
+　　值3|值4)
+
+　　操作::
+
+　　值5|值6)
+
+　　操作::
+
+　　*}
+
+　　操作::
+
+　　esac
+
+　　case的作用就是当字符串与某个值相同是就执行那个值后面的操作。如果同一个操作对于多个值，则使用”|”将各个值分开。在case的每一个操作的最后面都有两个”::”，分号是必须的。
+
+　　例：
+
+　　case $USER in
+
+　　beichen)
+
+　　Echo “You are beichen!”;;
+
+　　liangnian)
+
+　　echo “You are liangnian”; //注意这里只有一个分号
+
+　　echo “Welcome!”;; //这里才是两个分号
+
+　　root)
+
+　　echo “You are root!:echo Welcome!”;; //将两命令写在一行，用一个分号作为分隔符
+
+　　*)
+
+　　echo “Who are you?$USER?”;;
+
+　　esac
+
+　　执行结果：
+
+　　[liangnian@localhost bin]$ test
+
+　　You are liangnian
+
+　　Welcome!
+
+　　关于shell编程基础的东西就介绍这么多，如果你想更进一步了解shell编程的知识，请查阅相关书籍。
+
+
+
+本文被浏览次
+
+
+
+ 相关新闻  
+Linux主要shell命令详解2005-02-03 15:43:30 
+shell入门基础必备2005-02-03 15:32:57 
+Linux程式设计-18.Dialog (11)配合Shell Script进阶使用2001-05-27 11:00:00
+
+ 
+
+ 相关评论  
+ 
+   
+ 
+ 
+关于我们 | 联系方式 | 广告合作 | 诚聘英才 | 网站地图 | 免费注册  
+ 
+
+
+Copyright © 2001-2006 ChinaUnix.net All Rights Reserved
+
+
+感谢所有关心和支持过ChinaUnix的朋友们 
+
+京ICP证041476号 
+ 
+

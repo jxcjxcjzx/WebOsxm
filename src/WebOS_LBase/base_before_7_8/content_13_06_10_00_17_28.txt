@@ -1,0 +1,105 @@
+
+首页我的主页相册广场游戏昵称搜索
+消息 私信模板设置退出关注此空间
+lyf的空间
+2011-12-06 21:56 匹配两字符串的最长共有串(c语言描述)
+今天写了写字符串的一些操作，有的东西不经常练习到很快就忘记了，也当做复习复习。
+写了一个匹配两字符串的最长共有串下面简单说说：
+我的思路：
+1.首先找到这两字符串中较短的字符串，用较短的字符串去匹配较长的字符串
+2.若较短的字符串与较大的字符串不匹配则调整较短字符串，让较短字符串的长度减一的所有子串去与较大串匹配，
+若不匹配，继续调整较短子串，让较短子串的长度减二的所有子串与较长子串匹配，以后不匹配反复调整，重复上述操作
+直到找到位置，或所有都不匹配（即不含有公共部分)
+ 
+ 
+下面的图是较短字符串，在匹配过程中移动的情况
+
+ 
+实现该匹配的函数源代码：
+//该函数实现匹配source1与source2中最长公共部分，并将结果存储与dest中
+void find_max_str(char *source1,char *source2,char *dest)
+//该函数实现将source2中从start到end处所组成的子串与source1匹配若匹配成功则返回1否则返回0
+int substring(char *source1,char *source2,int start,int end)
+int substring(char *source1,char *source2,int start,int end)
+{//将source2的start位置到end位置所组成的串与source1匹配,查找在
+ //source1中是否存在所组成的串
+ int i,len1=strlen(source1),j;
+ for(i=0,j=start;i<len1&&j<=end;)
+ {
+  if(source1[i]==source2[j])
+  {//匹配移动位置
+   i++;
+   j++;
+  }
+  else
+  {//不匹配调整位置
+   i=i-(j-start)+1;
+   j=start;
+  }
+ }
+ if(j>end)//
+   return 1;
+ return 0;
+}
+void find_max_str(char *source1,char *source2,char *dest)
+{//匹配两字符串中的最大子串
+  char *max,*min;//max表示较长字符串,min表示较短字符串
+ 
+  int len1,len2,i,j,k;
+ 
+  if(source1==NULL||source2==NULL||dest==NULL)
+    return;
+  //分别计算两字符串长度 
+  len1=strlen(source1);
+  len2=strlen(source2);
+  //找到最长字符串,与最短字符串,并将最短字符串的长度赋值给len2
+  max=(len1>len2)?source1:source2;
+  min=(max==source1)?source2:source1;
+  len2=(len1<len2)?len1:len2;
+  //max min分别为source1与source2中较长字符串和较短字符串
+  for(i=0;i<len2;i++)
+  {
+    for(j=0,k=len2-i-1;k<len2;k++,j++)//j代表图中的start位置,k代表图中的end位置
+      if(substring(max,min,j,k))
+      //从较短字符串的j到k位置去匹配较长字符串,查看较长字符串中是否包含较短字符串的j到k的所有字符
+    {
+         strcpy(dest,min+j);//找到则将字符该匹配字符串赋值给目标结果
+         *(dest+k-j+1)='\0';
+         return;
+    }
+  }
+}
+ 
+ 2011-12-6 -----made by lyf(^_^)
+                                                                                                                           
+#c语言
+分享到： 举报 浏览(326) 评论 转载
+你可能也喜欢
+
+ 
+qq1627702928发布的图片
+ 
+【桂纶镁】
+ 
+安静的女生最美丽
+ 
+【欧美风情】乌克兰美女模特外拍
+ 
+带刺刺刺的蝎子
+ 
+普罗旺斯致美丽的你
+ 
+java连接SQL Server2005 数据库
+本文最近访客
+
+ 
+小print
+4月24日
+ 
+catfool
+3月23日
+评论
+
+帮助中心 | 空间客服 | 投诉中心 | 空间协议
+©2013 Baidu
+

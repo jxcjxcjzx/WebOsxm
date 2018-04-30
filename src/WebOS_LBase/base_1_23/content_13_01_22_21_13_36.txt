@@ -1,0 +1,315 @@
+网易 新闻 微博 邮箱 相册 阅读 有道 摄影 爱拍 优惠券 云笔记 闪电邮 手机邮 印像派 网易识字  更多   博客 手机博客 博客搬家 博客VIP服务  LiveWriter写博 word写博 邮件写博 短信写博  群博客 博客油菜地 博客话题 博客热点 博客圈子 找朋友 发现小组风格   网易真人搭配社区iStyle
+网易LOFTER-Android版下载>
+网易LOFTER-Android版下载>.创建博客 登录    加关注..   显示下一条  |  关闭 温馨提示！由于新浪微博认证机制调整，您的新浪微博帐号绑定已过期，请重新绑定！立即重新绑定新浪微博》  |  关闭 
+seara520的博客
+java学习
+
+ 
+导航
+首页 日志 相册 音乐 收藏 博友 关于我 .  
+   
+日志   seara520 
+   加博友    关注他 
+ 
+被推荐日志
+最新日志
+使用jexcel生成excel，使用aMYSQL Too many connectionsstruts2利用annotation和xml使用Struts2 annotation 的T使用拦截器注解struts2 一些常量设置该作者的其他文章
+博主推荐
+相关日志
+随机阅读
+刘思敏：携程推出海外酒店预订新平台 艺龙去哪儿网或将跟进中国特色的罚款经济学理性看待传统文化开发1979北京机场vs.2012爱登堡机场：有的人就是少见多怪人脉管理的福音书佛家的用人故事首页推荐
+德国怀疑美国偷千吨黄金王立军秘书被殴下身糜烂胡锦涛表扬24岁正处干部王家卫王晶谁是一代宗师乾隆帝地宫女尸之谜(图)牛刀：北京房价最后疯狂更多>>
+
+
+  J2EE学习中一些值得研究的开源项目  Hibernate的Criteria用法总结.
+Lucene搜索方法总结  2010-01-15 08:20:07|  分类： Lucene |  标签： |字号大中小 订阅 .
+
+Lucene搜索方法总结
+ 
+1.多字段搜索
+使用 multifieldqueryparser 可以指定多个搜索字段。
+query query = multifieldqueryparser.parse(”name*”, new string[] { fieldname, fieldvalue }, analyzer);
+indexreader reader = indexreader.open(directory);
+indexsearcher searcher = new indexsearcher(reader);
+hits hits = searcher.search(query);
+ 
+2.多条件搜索除了使用 queryparser.parse 分解复杂的搜索语法外，还可以通过组合多个 query 来达到目的。
+query query1 = new termquery(new term(fieldvalue, “name1′)); // 词语搜索
+query query2 = new wildcardquery(new term(fieldname, “name*”)); // 通配符 
+//query query3 = new prefixquery(new term(fieldname, “name1′)); // 字段搜索 field:keyword，自动在结尾添加 *
+//query query4 = new rangequery(new term(fieldnumber, numbertools.longtostring(11l)), new term(fieldnumber, numbertools.longtostring(13l)), true); // 范围搜索
+//query query5 = new filteredquery(query, filter); // 带过滤条件的搜索
+booleanquery query = new booleanquery();
+query.add(query1, booleanclause.occur.must);
+query.add(query2, booleanclause.occur.must);
+indexsearcher searcher = new indexsearcher(reader);
+hits hits = searcher.search(query);
+ 
+3.过滤使用 filter 对搜索结果进行过滤，可以获得更小范围内更精确的结果。
+举个例子，我们搜索上架时间在 2005-10-1 到 2005-10-30 之间的商品。
+对于日期时间，我们需要转换一下才能添加到索引库，同时还必须是索引字段。 // index
+document.add(fielddate, datefield.datetostring(date), field.store.yes, field.index.un_tokenized);
+//…
+// search
+filter filter = new datefilter(fielddate, datetime.parse(”2005-10-1′), datetime.parse(”2005-10-30′));
+hits hits = searcher.search(query, filter);
+除了日期时间，还可以使用整数。比如搜索价格在 100 ~ 200 之间的商品。
+lucene.net numbertools 对于数字进行了补位处理，如果需要使用浮点数可以自己参考源码进行。 // index
+document.add(new field(fieldnumber, numbertools.longtostring((long)price), field.store.yes, field.index.un_tokenized));
+//…
+// search
+filter filter = new rangefilter(fieldnumber, numbertools.longtostring(100l), numbertools.longtostring(200l), true, true);
+hits hits = searcher.search(query, filter);
+使用 query 作为过滤条件。 queryfilter filter = new queryfilter(queryparser.parse(”name2′, fieldvalue, analyzer));
+我们还可以使用 filteredquery 进行多条件过滤。
+filter filter = new datefilter(fielddate, datetime.parse(”2005-10-10′), datetime.parse(”2005-10-15′));
+filter filter2 = new rangefilter(fieldnumber, numbertools.longtostring(11l), numbertools.longtostring(13l), true, true);
+query query = queryparser.parse(”name*”, fieldname, analyzer);
+query = new filteredquery(query, filter);
+query = new filteredquery(query, filter2);
+indexsearcher searcher = new indexsearcher(reader);
+hits hits = searcher.search(query);
+ 
+4.分布搜索我们可以使用 multireader 或 multisearcher 搜索多个索引库。
+multireader reader = new multireader(new indexreader[] { indexreader.open(@”c:\index”), indexreader.open(@”\\server\index”) });
+indexsearcher searcher = new indexsearcher(reader);
+hits hits = searcher.search(query);
+或
+indexsearcher searcher1 = new indexsearcher(reader1);
+indexsearcher searcher2 = new indexsearcher(reader2);
+multisearcher searcher = new multisearcher(new searchable[] { searcher1, searcher2 });
+hits hits = searcher.search(query);
+还可以使用 parallelmultisearcher 进行多线程并行搜索。
+ 
+5.显示搜索语法字符串我们组合了很多种搜索条件，或许想看看与其对等的搜索语法串是什么样的。 booleanquery query = new booleanquery();
+query.add(query1, true, false);
+query.add(query2, true, false);
+//…
+console.writeline(”syntax: {0}”, query.tostring());
+输出：
+syntax: +(name:name* value:name*) +number:[0000000000000000b to 0000000000000000d]
+呵呵，就这么简单。
+ 
+6.如何删除索引lucene提供了两种从索引中删除document的方法，一种是
+ 
+void deleteDocument(int docNum)
+ 
+这种方法是根据document在索引中的编号来删除，每个document加进索引后都会有个唯一编号，所以根据编号删除是一种精确删除，但是这个编号是索引的内部结构，一般我们不会知道某个文件的编号到底是几，所以用处不大。另一种是
+ 
+void deleteDocuments(Term term)
+ 
+这种方法实际上是首先根据参数term执行一个搜索操作，然后把搜索到的结果批量删除了。我们可以通过这个方法提供一个严格的查询条件，达到删除指定document的目的。
+下面给出一个例子：
+ 
+Directory dir = FSDirectory.getDirectory(PATH, false);
+IndexReader reader = IndexReader.open(dir);
+Term term = new Term(field, key);
+reader.deleteDocuments(term);
+reader.close();
+ 
+7.如何更新索引lucene并没有提供专门的索引更新方法，我们需要先将相应的document删除，然后再将新的document加入索引。例如：
+ 
+Directory dir = FSDirectory.getDirectory(PATH, false);
+IndexReader reader = IndexReader.open(dir);
+Term term = new Term(“title”, “lucene introduction”);
+reader.deleteDocuments(term);
+reader.close();
+ 
+IndexWriter writer = new IndexWriter(dir, new StandardAnalyzer(), true);
+Document doc = new Document();
+doc.add(new Field("title", "lucene introduction", Field.Store.YES, Field.Index.TOKENIZED));
+doc.add(new Field("content", "lucene is funny", Field.Store.YES, Field.Index.TOKENIZED));
+writer.addDocument(doc);
+writer.optimize();
+writer.close();
+ 
+8.多样化的搜索 
+/** *** 一个关键字，对一个字段进行查询 **** */
+QueryParser qp = new QueryParser("content",analyzer);
+query = qp.parse(keyword);
+Hits hits = searcher.search(query);
+ 
+/** *** 模糊查询 **** */
+Term term = new Term("content",keyword);
+FuzzyQuery fq = new FuzzyQuery(term);
+Hits hits = searcher.search(fq);
+ 
+/** *** 一个关键字，在两个字段中查询 **** */
+/*
+ * 1.BooleanClause.Occur[]的三种类型： MUST : + and MUST_NOT : - not SHOULD : or
+ * 2.下面查询的意思是：content中必须包含该关键字，而title有没有都无所谓
+ * 3.下面的这个查询中，Occur[]的长度必须和Fields[]的长度一致。每个限制条件对应一个字段
+ */
+BooleanClause.Occur[] flags = new BooleanClause.Occur[]{BooleanClause.Occur.SHOULD,BooleanClause.Occur.MUST};
+query=MultiFieldQueryParser.parse(keyword,new String[]{"title","content"},flags,analyzer);
+ 
+ 
+/** *** 两个(多个)关键字对两个(多个)字段进行查询,默认匹配规则 **** */
+/*
+ * 1.关键字的个数必须和字段的个数相等 
+ * 2.由于没有指定匹配规定，默认为"SHOULD" 因此，下面查询的意思是："title"中含有keyword1 或 "content"含有keyword2. 
+ * 在此例中，把keyword1和keyword2相同
+ */
+ query=MultiFieldQueryParser.parse(new String[]{keyword,keyword},new
+ String[]{"title","content"},analyzer);
+ 
+ 
+/** *** 两个(多个)关键字对两个(多个)字段进行查询,手工指定匹配规则 **** */
+/*
+ * 1.必须 关键字的个数 == 字段名的个数 == 匹配规则的个数
+ * 2.下面查询的意思是："title"必须不含有keyword1,并且"content"中必须含有keyword2
+ */
+ BooleanClause.Occur[] flags = new
+ BooleanClause.Occur[]{BooleanClause.Occur.MUST_NOT,BooleanClause.Occur.MUST};
+ query=MultiFieldQueryParser.parse(new String[]{keyword,keyword},new
+ String[]{"title","content"},flags,analyzer);
+ 
+ 
+/** *** 对日期型字段进行查询 **** */
+ 
+/** *** 对数字范围进行查询 **** */
+/*
+ * 1.两个条件必须是同一个字段 
+ * 2.前面一个条件必须比后面一个条件小，否则找不到数据
+ *  3.new RangeQuery中的第三个参数，表示是否包含"=" true: >= 或 <= false: > 或 < 
+ * 4.找出 55>=id>=53 or 60>=id>=57:
+ */
+Term lowerTerm1 = new Term("id","53");
+Term upperTerm1 = new Term("id","55");
+RangeQuery rq1 = new RangeQuery(lowerTerm1,upperTerm1,true);
+ 
+Term lowerTerm2 = new Term("id","57");
+Term upperTerm2 = new Term("id","60");
+RangeQuery rq2 = new RangeQuery(lowerTerm2,upperTerm2,true);
+ 
+BooleanQuery bq = new BooleanQuery();
+bq.add(rq1,BooleanClause.Occur.SHOULD);
+bq.add(rq2,BooleanClause.Occur.SHOULD);
+Hits hits = searcher.search(bq);
+ 
+9.结果排序  排序的关键点有两个：
+ 
+1:首先你要排序的字段必须是被index的，并且是untokenized的。
+ 
+如：
+ 
+doc.add(new Field("click", dv.get("click").toString(), Field.Store.NO, Field.Index.UN_TOKENIZED));
+2：在检索时候：
+ 
+如：   
+  
+   /*****  排序  *****/
+   /*
+    * 1.被排序的字段必须被索引过(Indexecd)，在索引时不能 用 Field.Index.TOKENIZED
+    *   (用UN_TOKENIZED可以正常实现.用NO时查询正常，但排序不能正常设置升降序)
+    * 2.SortField类型
+    *   SCORE、DOC、AUTO、STRING、INT、FLOAT、CUSTOM 此类型主要是根据字段的类型选择
+    * 3.SortField的第三个参数代表是否是降序true:降序  false:升序
+    */
+   Sort sort = new Sort(new SortField[]{new SortField("click", SortField.INT, true)});
+   Hits hits = searcher.search(querystring,sort);
+   
+    /*
+    * 按日期排序
+    */
+   Sort sort = new Sort(new SortField[]{new SortField("createTime", SortField.INT, false)});
+ 
+    
+    /*****  过滤器 ******/
+   QueryParser qp1 = new QueryParser("content",analyzer);
+   Query fquery  = qp1.parse("我");
+   
+   BooleanQuery bqf = new BooleanQuery();
+   bqf.add(fquery,BooleanClause.Occur.SHOULD);
+    
+   QueryFilter qf = new QueryFilter(bqf);
+   
+   Hits hits = searcher.search(query);
+ 
+10.将小索引文件合并到大的索引文件中去(此方法性能不佳)/** 将小索引文件合并到大的索引文件中去 
+  *   @param   from   将要合并到to文件的文件 
+  *   @param   to       将from文件合并到该文件 
+  *   @param   analyzer   
+  */ 
+private   void   mergeIndex(File   from,File   to,Analyzer   analyzer) 
+{ 
+IndexWriter   indexWriter   =   null; 
+try{ 
+System.out.println("正在合并索引文件!\t"); 
+indexWriter   =   new   IndexWriter(to,analyzer,   false); 
+indexWriter.setMergeFactor(100000); 
+indexWriter.setMaxFieldLength(Integer.MAX_VALUE); 
+indexWriter.setMaxBufferedDocs(Integer.MAX_VALUE); 
+indexWriter.setMaxMergeDocs(Integer.MAX_VALUE); 
+FSDirectory[]   fs   =   {FSDirectory.getDirectory(from,false)}; 
+indexWriter.addIndexes(fs); 
+indexWriter.optimize(); 
+indexWriter.close(); 
+System.out.println("已完成合并!\t"); 
+} 
+catch(Exception   e) 
+{ 
+Utility.writeLog("合并索引文件出错！mergeIndex()"+e.getMessage(),""); 
+} 
+finally 
+{ 
+try{ 
+if(indexWriter!=null) 
+indexWriter.close(); 
+} 
+catch(Exception   e   ){ 
+ 
+} 
+ 
+} 
+ 
+} 
+ 
+合并时间是从每天的凌晨3点钟开始,一直到早上9点左右,足足用5个小时才合并完成,其中大索引文件大小为4G,小索引为10MB.
+ 
+ 
+11.问题2：单字共现频率的局部统计的原理解答：
+ 
+高频字串统计的理论基础是N - 元模型。
+设W1 W2 &#8943;WN 是长度为N 的字串,则字串W 的似然度为
+p ( W) = p ( w i | w1 w2 &#8943;w i - 1) (1)
+上面公式的意义反映连续个N 字之间的结合程度,如果若干种不同的历史组合W1 W2 &#8943;WN的最后N - 1 个字相同,就把它们都看作一类。在这一假设下,每一个字出现的概率不再与前面的历史有关.
+
+  评论这张 
+ 转发至微博 
+ 转发至微博 
+ 0人  |  分享到：         阅读(151)| 评论(0)| 转载 (0) |举报 .
+ 
+  J2EE学习中一些值得研究的开源项目  Hibernate的Criteria用法总结.
+历史上的今天.
+相关文章.
+最近读者
+登录后，您可以在此留下足迹。. 海边的小  yuhedeyo  xiechao2 .
+评论
+点击登录|昵称： 
+   取消 
+验证码：换一张 
+ 
+上一页 1... -1-1-1-1-1-1-1... -1下一页..  
+   . 
+ 
+ 
+ 
+ 
+ 
+   
+页脚
+公司简介 - 联系方法 - 招聘信息 - 客户服务 - 隐私政策 - 博客风格 - 手机博客 - VIP博客 - 订阅此博客 
+网易公司版权所有 ©1997-2013
+×
+信息提示
+  
+精选 来自：阿拽 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

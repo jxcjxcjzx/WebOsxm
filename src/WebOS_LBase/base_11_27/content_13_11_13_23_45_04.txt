@@ -1,0 +1,41 @@
+【原】C++ 11 auto & decltype
+
+
+
+
+      C++ 11中引入的auto主要有两种用途：自动类型推断和返回值占位。auto在C++ 98中的标识临时变量的语义，由于使用极少且多余，在C++ 11中已被删除。
+      auto自动类型推断，用于从初始化表达式中推断出变量的数据类型。通过auto的自动类型推断，可以大大简化我们的编程工作。下面是一些使用auto的例子。
+ 
+
+ auto a;                 // 错误，没有初始化表达式，无法推断出a的类型
+ auto int a = 10;        // 错误，auto临时变量的语义在C++ 11中已不存在
+ auto a = 10;
+ auto c = 'A';
+ auto s("hello");
+ vector<int> vctTemp;
+ auto it = vctTemp.begin();
+ auto ptr = [](){ cout << "hello world" << endl; };
+ 
+      另外，在使用模板技术时，如果某个变量的类型依赖于模板参数，不使用auto将很难确定变量的类型（使用auto后，将由编译器自动进行确定）。下面是一个具体的例子。
+ 
+
+template <class T, class U>
+void Multiply(T t, U u)
+{
+ auto v = t*u;
+}
+ 
+      auto返回值占位，主要与decltype配合使用，用于返回值类型后置时的占位。
+ 
+
+template <class T, class U>
+ auto Multiply(T t, U u)->decltype(t*u)
+{
+ typedef decltype(t*u) NewType;
+ NewType *pResult = new NewType(t*u);
+ return *pResult;
+}
+ 
+      至于为什么需要将返回值类型后置，这里简单说明一下。如果没有后置，则函数声明为decltype(t*u) Multiply(T t, U u)，但此时模板参数t和u还未声明，编译无法通
+过。另外，如果非要使用返回值类型前置的形式，也可以将函数声明为decltype((*(T *)0)*(*(U *)0)) Multiply(T t, U u)，但这种形式比较晦涩难懂，因此不推荐采用。
+

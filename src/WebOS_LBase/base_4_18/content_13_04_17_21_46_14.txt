@@ -1,0 +1,261 @@
+分享到一键分享QQ空间新浪微博百度搜藏人人网腾讯微博百度相册开心网腾讯朋友百度贴吧豆瓣网搜狐微博百度新首页QQ好友和讯微博更多...百度分享
+首页技术频道51CTO旗下网站地图  社区：论坛博客下载读书更多 登录注册网络 
+安全 
+开发 
+数据库 
+服务器 
+系统 
+虚拟化 
+云计算 
+嵌入式 
+移动开发 
+51CTO.COM 
+CIOage.com 
+WatchStor.com 
+HC3i.cn 
+灵客风LinkPhone 
+家园 
+微博 
+博客 
+论坛 
+下载 
+自测 
+门诊 
+周刊 
+读书 
+技术圈 
+知道 
+Rational Functional Tester Windows应用商店全新的商机 下载赛门铁克虚拟化保护方案 启明星辰WAF市场份额名列前茅 
+首页 | 思科 | 路由 | 交换 | 无线 | ADSL | VPN | 网管 | 布线 | 接入 | 全部文章 
+您所在的位置：网络频道 > 基础技术 > 网络协议 > OSPF配置示例(1) 
+
+OSPF配置示例(1)2005-11-08 18:37 51cto.com整理 我要评论(8) 字号：T | T
+本文涵盖了OSPF配置的诸多示例
+
+AD： 2013大数据全球技术峰会低价抢票中 
+
+
+在图1，Mollie使用DLCI 201 与Neon 通信，使用DLCI 202 与Jelly通信， 使 用DLCI 203与Platty 通信。Neon 使用DLCI 101 与Mollie 通信，使用DLCI 102与Platty通信。Platty 使用DLCI 401与Neon 通信，使用DLCI 402与Mollie 通信。Jelly 使用DLCI 301与Mollie通信。
+ 
+
+
+1. Mollie 的配置如下:
+hostname mollie
+!
+interface serial 1
+ip address 10.0.0.2 225.0.0.0
+ip ospf network point-to-multipoint 
+encapsulation frame-relay 
+frame-relay map ip 10.0.0.1 201 broadcast 
+frame-relay map ip 10.0.0.3 202 broadcast 
+frame-relay map ip 10.0.0.4 203 broadcast
+!
+router ospf 1
+network 10.0.0.0 0.0.0.225 area 0 
+2. Neon 的配置如下: 
+hostname neon
+!
+interface serial 0 
+ip address 10.0.0.1 225.0.0.0 
+ip ospf network point-to-multipoint 
+encapsulation frame-relay 
+frame-relay map ip 10.0.0.2 101 broadcast 
+frame-relay map ip 10.0.0.4 102 broadcast
+!
+router ospf 1 
+network 10.0.0.0 0.0.0.255 area 0
+3. Platty的配置如下:
+hostname platty
+!
+interface seria1 3 
+ip address 10.0.0.4 255.0.0.0 
+ip ospf network point-to-multipoint 
+encapsulation frame-relay 
+clock rate 1000000
+frame-relay map ip 10.0.0.1 401 broadcast
+frame-relay map ip 10.0.0.2 402 broadcast
+!
+router ospf 1 
+network 10.0.0.0 0.0.0.255 area 0
+4. Jelly的配置如下:
+hostname jelly
+!
+interface seria1 2 
+ip address 10.0.0.3 255.0.0.0 
+ip ospf network point-multipoint 
+encapsulation frame-relay 
+clock rate 2000000 
+frame-relay map ip 10.0.0.2 301 broadcast
+! 
+router ospf 1 
+network 10.0.0.0 0.0.0.255 area 0
+
+
+
+1 2 3 4 5 6 7 8 下一页>>内容导航
+
+
+
+
+
+
+
+ 
+给力
+(190票)
+  
+动心
+(181票)
+  
+废话
+(186票)
+  
+专业
+(186票)
+  
+标题党
+(181票)
+  
+路过
+(184票)
+ 
+原文：OSPF配置示例(1) 返回网络频道首页 
+
+分享到： 0收藏|打印|复制
+关于配置的更多文章Nginx配置参数说明
+无线路由器的WDS功能如何配置?
+路由协议配置
+用最简单网络 学习IP和ARP协议
+为自定义配置的编辑提供“智能感知”的支持 
+Ubuntu开源技术交流频道
+ 
+Ubuntu是一个以桌面应用为主的Linux操作系统，其名称来自非洲南[详细]
+
+
+网友评论TOP5查看所有评论（8） 
+
+zlaixzl05-27 22:48
+好 顶
+51CTO网友08-15 03:32
+madden 10 reviews 
+
+andrew luster
+
+ron mexico
+
+freebies4mom
+
+wasp 17
+51CTO网友08-14 16:37
+free virus scan software
+51CTO网友08-14 13:22
+netroots nation netroots nation
+andrea penoyer andrea penoyer
+eagles roster eagles roster
+t boz t boz
+major garrett fox news major garrett fox news
+51CTO网友08-13 00:19
+mutant parakeet
+boston market
+eleven madison park
+last night s meteor shower
+facebook lite
+piers morgan girlfriend
+robin meade swimsuit
+stwd
+marisa elise
+google caffeine
+ephren taylor
+advanced acai
+98.5 sports hub
+trion z
+提交评论 通行证： 密码：   注册通行证
+ 
+
+ 
+验证码：  点击图片可刷新验证码请点击后输入验证码  匿名发表  
+ 
+
+
+栏目热门更多>>
+BGP/MPLS VPN几个关键性概念 
+OpenFlow能解决私有云网络VLAN问题么 
+思科对OpenFlow态度仍不明朗 
+网络2012：供应商预测行业发展 
+软件定义网络架构的应用层 
+同期最新更多>>
+OSPF路由协议概念及工作原理 
+OSPF协议介绍（二） 
+OSPF协议介绍（一） 
+OSPF计算路由 
+OSPF协议的报文简述 
+
+网络频道频道导航
+热门 路由技术|交换网络|无线网络技术 布线技术|运维技术|接入技术专题 专题汇总|网管软件|网络控速
+热点推荐
+
+ 
+Android开发应用详解
+ 
+那些性感的让人尖叫的程序员
+ 
+HTML5 下一代Web开发标准详解
+ 
+高性能WEB开发应用指南
+ 
+Ubuntu开源技术交流频道
+热门标签： windows频道移动开发云计算objective-ctp-link路由器设置图解html5 专题 从隐私安全说cookies 
+
+ “Cookies”也被称为HTTP cookies、网络cookies或... 思科UCS助力医疗数据库部署优化
+2013 RSA大会：掌控数据 保护世界
+
+
+文章排行本月本周24小时 
+宽带路由器设置图解七步骤 详解TP-Link路由器设置（图解） 192.168.1.1打不开或进不去怎么办？ 了解光纤上网的实质是什么 为什么路由器设置地址192.168.1.1打不 宽带路由器设置：192.168.0.1 无线路由器密码破解：BT3-spoonwep2 无线路由器的桥接和覆盖图文教程 无线“蹭网卡”热卖 任意密码5分钟破解 tenda无线路由器设置图解 思科首席技术官麦库尔离职 或加盟竞争 3G无线监控广泛前景 3G与WIFI的区别 SDN有了新组织OpenDaylight 三网融合今年全面推广 工信部与广电合 华为携手Intel重新定义企业路由器 共建 拒绝不如拥抱 BYOD出现让CIO何处着手 联通亦庄IDC试点引入SDN 节点数量已达 数据中心的隐型杀手---静电 如何应对激增的远程访问员工? 网络巨头将在OpenDaylight项目中共同推 面粉比面包贵频频发生 宽带中国需要真 虚拟化该成为网络面向应用的第一步 迎合网络时代脚步 探索SDN全新发展机遇 网吧路由器qos设置的操作步骤 了解光纤上网的实质是什么 三种应用性能监控工具对比 解析中国移动互联网未来的发展趋势 虚拟化网络集成和管理的4个技巧 网络虚拟化的“实招” 路由器qos设置包括哪些内容 
+热点专题更多>>
+ 
+谁来统领企业无线网络
+从802.11n诞生以来，一直就没有正式案发布，现在市面 
+艰难WAPI标准之路
+中国正式在无线局域网领域提出WAPI安全标准之前，这个 
+网管天下应用实践手册
+从基础知识到实践经验；从规划建设到维护管理；从设备
+热点标签
+局域网网速 IPv6 负载均衡 思科 交换机典型配置 VPN技术 路由器设置 家庭无线局域网 路由故障 网管软件 广域网优化 视频会议 MOVE无线 十大布线品牌 tenda无线路由器设置点击这里查看样刊 
+
+ 
+全站热点
+ 
+Java路线图：甲骨文的两年计划
+ 
+《开发月刊》2012年01月刊发布
+爱乔布斯:改变世界的方法 
+乔布斯和他的对手们 
+Silverlight寻光之旅--企业级RIA项目 
+数字学习力：网络时代伴学工具使用手 
+51CTO情人节专题：看各路IT宅男能否 
+
+读书 
+Oracle 10g应用指导与案例精讲
+本书作者结合自己多年实践经验，从Oracle开发应用中遇到的问题着手，全面系统地介绍Oracle的安装与卸载、数据字典、安全管理以及
+Fedora Core 5 Linux系统安装与管理 
+Fedora Core 5 Linux架站与网管 
+网管员必读——超级网管经验谈 
+SQL Server 2000中文版数据库管理与应用标准教程 
+
+博文推荐更多>>
+企业员工：今天，你电脑维护了吗？
+创新总动员
+postfix+dovecot+squrrelmail邮件服
+SMS2003之软件分发 
+
+最新热帖更多>>
+菜鸟级SQL21天自学通
+从零开始教你配置H3C路由器
+SQL Server 安全管理思路
+SQLServer2005 TOP30_management
+SQL Server 应用程序中的高级SQL注入 
+
+
+51CTO旗下网站
+领先的IT技术网站 51CTO 领先的中文存储媒体 WatchStor 中国首个CIO网站 CIOage 中国首家数字医疗网站 HC3i 移动互联网生活门户 灵客风LinkPhone Copyright©2005-2013 51CTO.COM 版权所有 未经许可 请勿转载Rational Functional TesterWindows应用商店全新的商机下载赛门铁克虚拟化保护方案启明星辰WAF市场份额名列前茅8 

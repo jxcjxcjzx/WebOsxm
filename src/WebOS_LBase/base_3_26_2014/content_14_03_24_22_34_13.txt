@@ -1,0 +1,89 @@
+WTL界面编程
+
+WTL界面编程
+
+WTL是个很奇特的东西，它由微软公司一群热情的程序员维护，它从未出现在微软的官方产品名单上，但可以从微软的官方网站下载最新的WTL。它没有正式的文档支持，用WTL做关键字在MSDN中检索只能得到0个结果，但是全世界的开发网站上都有针对WTL的讨论组和邮件列表，任何问题都会得到热情的解答。
+　 但是一时的热情不能解决文档缺乏的困扰，虽然网上有很多使用WTL的例子和说明文章，几乎把MFC能实现的各种稀奇古怪的效果都实现了，但都是零散的不系统的介绍，故对推广WTL是一种障碍，本教程将弥补这个空白，希望能广大读者在学习WTL方面有所帮助。
+
+在学习WTL界面编程之前需要了解以一些COM的知识。COM即组件对象模型，是Component Object Model 取前三个字母的缩写，这三个字母在当今Windows世界中随处可见。随时涌现出来的大把大把的新技术都以COM为基础。各种文档中也充斥着诸如COM对象、接口、服务器之类的术语。因此，对于一个程序员来说，不仅要掌握使用COM的方法，而且还要彻底熟悉COM的所有一切。
+
+一、WTL的简介与安装
+
+WTL 在开发者之间的悄悄传播已经超过一年了, 传闻它是基于ATL的,并在微软内部使用.这理所当然的引起了ATL开发者社区的注意.这些人从ATL1.1开始,就一直为ATL控件书写UI代码,但是他们发现,他们的所写的代码常常就是纯的Win32 GDI代码.我告诉您, WTL并没有多大不同.是不是让人失望? 不,因为ATL只是对COM进行了简单的封装,这也是ATL的强大之处. 是的,写ATL您必须通晓COM. 您在ATL上额外花费的功夫跟您学习COM所作的努力比起来,简直微不足道.这跟那些需要把主要精力花费在学习类库本身,忽略COM的库是完全不同的.WTL与此类似.您需要懂得Win32窗口技术和GDI.只要您懂得,学习WTL就似清风抚面,再简单不过了.如果您不懂 这些,那么您最好使用VB来写UI代码.
+
+WTL有什么?
+
+它给各种类型的应用程序提供了一个基本的框架.注意,虽然您没有MFC那样的文档/视结构,但是您有视(views). 在WTL有大量的代码让您来管理视,而且加入您自己的代码也很容易. WTL有AppWizard,可以让您生成SDI, MDI 和多线程SDI程序多线程SDI跟IE或Windows Explorer很像.它看起来是打开了多个程序实例,实际上这些窗口都是属于一个进程的.另外,您的程序可以是基于对话框的,也可以是基于视的.视可以是基于CWindowImpl的,也可以是基于控件,甚至是IE里的一个HTML页.您可以选择您的程序是否需要一个rebar, command bar (CE-like), toolbar 和/或status bar.另外,您的程序可以主持ActiveX控件,以及成为一个COM服务器.
+
+这里有几个关于视的选项. WTL提供splitter窗口类(这样在一个视里您可以有两个窗口)和scroll窗口类(这样您的窗口可以比它显示的"视"小). WTL也有个类似MFC的UpDateUI的东西,但是它们不是很一样 - 主要的区别是您需要把需要更新的项用宏映射标注出来,然后您在您的类里加入执行UpdateUI的代码. DDX/DDV在WTL也支持,同样类似MFC,但有不同. 您必须加一个宏映射来实现DoDataExchange,然后加入调用它的代码.现在WTL也有GDI类了.然而,HDC的封装类就像CWindow一样,只进行了很简单的封装 - 它几乎没有加入任何新的功能.不过,在WTL,你可以得到播放meta文件和OpenGL支持. 最有价值的我猜应该是打印机DC的那些继承类 - WTL有打印机支持,甚至打印预览. 当然也有GDI对象的封装. 诸如画笔,画刷,区域等.WTL对所有的Win32 (和W2K) 通用对话框进行了封装.同样尽管简单,但是它的确使请求字体或者文件变的非常的简单.合成了旧的AtlControls.h,新加了一些封装类. 这些封装类封装了W2K控件,以及一些不属于Win32的"控件",像Command Bar, bitmap button, hyperlink 和 wait cursor.WTL 最终把消息分离带入了ATL! 一些新的MSG映射宏将消息分离,调用您类里的消息处理函数.消息处理函数的参数的值是从消息分离得到的.唯一令人头痛的是,您需要查看头文件以确定函数参数的意义.
+
+最后,WTL还有一些实用类.最重要的是CString. 不错,它是从MFC克隆得到的(copy on write),具有(在我知道的范围内)MFC版本的所有方法.还有查找文件的API的封装类,以及CRect, CSize and CPoint.如果您打算写一个Win32 界面程序,我建议您在考虑MFC之前,先试试WTL.使用WTL来写您的代码, 程序将变得小巧些,也更有效率些.使用WTL, 您还将得到ATL支持COM好处.您可以在2000年一月份的平台SDK中找到WTL.在MSI选项页的Source Code section下.
+
+安装：
+
+WTL全称为Window Template Library,一个构架于ATL之上的C++类库,它包装了大多数的窗口控制.从网上看的,也只是个大概的了解.先安装了弄个Hello World试试吧,呵呵
+
+1.1 下个WTL安装包,其实上个压缩包.现在最新的是8.0版,默认解压目录为C:\WTL80,其中80为版本号,如果下的是7.5则为C:\WTL75
+
+WTL安装包下载地址：http://sourceforge.net/projects/wtl/files/
+
+1.2 自动安装
+
+在目录C:\WTL80\AppWiz有四个JS文件,选择一个你机子上安装的VC版本,点击相应的JS脚本进行安装即可,如VS2005的VC版本为8.0,则相应文件为setup80.js
+
+1.3 手动安装
+
+自动安装有时安装不成功,如点击文件后却打开了一个记事本,其实手动安装也挺不错的.
+
+将C:\WTL80\AppWiz\Files目录下的三个WTLAppWiz.*文件考到VC安装目录的vcprojects目录下,如E:\Program Files\Microsoft Visual Studio 8\VC\vcprojects, 打开WTLAppWiz.vsz,原文件为:
+
+VSWIZARD 7.0
+
+Wizard=VsWizard.VsWizardEngine
+
+Param="WIZARD_NAME = WTLAppWiz"
+
+Param="WIZARD_VERSION = 7.0"
+
+Param="ABSOLUTE_PATH = ."
+
+Param="FALLBACK_LCID = 1033"
+
+将其改为
+
+VSWIZARD 7.0
+
+Wizard=VsWizard.VsWizardEngine.8.0
+
+Param="WIZARD_NAME = WTLAppWiz"
+
+Param="WIZARD_VERSION = 7.0"
+
+Param="ABSOLUTE_PATH = C:\WTL80\AppWiz\Files"
+
+Param="FALLBACK_LCID = 1033"
+
+其中Wizard后面需加上WTL的版本号,否则能在VC里看到WTL项目,但其向导无法工作
+
+Param ="ABSOLUTE_PATH后加上WTL解压的路径
+
+环境路径设置
+
+工具-->选项-->项目和解决方案-->VC目录，在左边选择包含文件，把WTL解压目录下的C:\WTL80\include路径加上。
+
+二、基础知识
+
+COM编程技术基础讲座：
+
+http://dev.yesky.com/SoftChannel/72348977504190464/20040531/1803087.shtml
+
+WTL教程中文版：http://www.yakergong.com/wtl/
+
+三、WTL技术资料
+
+MFC程序员的WTL开发指南：http://www.yesky.com/zhuanti/302/1927802.shtml
+
+WTL开发代码资料：http://124.254.44.84/Articles/ArticleListByClasses/48.aspx
+
+
+本文来自CSDN博客，转载请标明出处：http://blog.csdn.net/byxdaz/archive/2010/05/03/5551956.aspx

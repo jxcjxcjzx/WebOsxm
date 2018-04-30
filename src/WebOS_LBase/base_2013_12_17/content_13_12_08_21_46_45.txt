@@ -1,0 +1,211 @@
+ 加载中…Focus
+http://blog.sina.com.cn/daylive [订阅][手机订阅]首页 博文目录 图片 关于我个人资料 
+ Live 
+Qing 微博 
+加好友 发纸条 
+
+写留言 加关注 
+
+
+博客等级： 博客积分：576 博客访问：50,941 关注人气：21 
+相关博文 
+
+
+更多>>
+精彩图文 
+推荐博文 
+竖版中国地图应得到大力推广
+单之蔷
+放弃出售：黑莓未来的为与不为
+孙永杰
+乐视超级电视X60体验记
+李瀛寰
+“马雷成功学”与“创业成功学”
+信海光
+杨元庆：我们要当“PC+平板”
+IT老记
+贾跃亭：做事就要做“绝”了
+李瀛寰
+从双十一看骆驼如何成功转型电商
+李成东
+去哪儿上市对百度而言意义何在？
+葛甲
+土豪还是小伙伴？----评锐迪
+顾文军
+关于富士X系统的一些想法及狂想
+依旧四木
+查看更多>>
+谁看过这篇博文 
+加载中…
+正文 字体大小：大 中 小 
+c++ STL set和multiset的使用(2009-11-18 23:00:04) 
+标签： cstlsetnultisetacmlovedreamliveit 分类： Pro.Languages  
+C++ STL set和multiset的使用
+1，set的含义是集合，它是一个有序的容器，里面的元素都是排序好的，支持插入，删除，查找等操作，就    像一个集合一样。所有的操作的都是严格在logn时间之内完成，效率非常高。 set和multiset的区别是：set插入的元素不能相同，但是multiset可以相同。
+   创建 multiset<ss> base;
+   删除：如果删除元素a,那么在定义的比较关系下和a相等的所有元素都会被删除
+   base.count( a )：set能返回０或者１，multiset是有多少个返回多少个．
+   Set和multiset都是引用<set>头文件,复杂度都是logn
+
+
+2，Set中的元素可以是任意类型的，但是由于需要排序，所以元素必须有一个序，即大小的比较关系，比如    整数可以用＜比较．
+3，自定义比较函数；
+    include<set>
+    typedef struct
+    { 定义类型　}
+    ss(类型名);
+    struct cmp
+    {
+          bool operator()( const int &a, const int &b ) const
+             { 定义比较关系＜}
+    };
+    (运算符重载，重载<)
+    set<ss> base; ( 创建一个元素类型是ss,名字是base的set )
+    注：定义了＜，＝＝和＞以及＞＝，＜＝就都确定了，STL的比较关系都是用＜来确定的，所以必须通     过定义＜　－－“严格弱小于”来确定比较关
+
+
+4，set的基本操作：
+begin()         返回指向第一个元素的迭代器
+clear()         清除所有元素
+count()         返回某个值元素的个数
+empty()         如果集合为空，返回true
+end()           返回指向最后一个元素的迭代器
+equal_range()   返回集合中与给定值相等的上下限的两个迭代器
+erase()         删除集合中的元素
+find()          返回一个指向被查找到元素的迭代器
+get_allocator() 返回集合的分配器
+insert()        在集合中插入元素
+lower_bound()   返回指向大于（或等于）某值的第一个元素的迭代器
+key_comp()      返回一个用于元素间值比较的函数
+max_size()      返回集合能容纳的元素的最大限值
+rbegin()        返回指向集合中最后一个元素的反向迭代器
+rend()          返回指向集合中第一个元素的反向迭代器
+size()          集合中元素的数目
+swap()          交换两个集合变量
+upper_bound()   返回大于某个值元素的迭代器
+value_comp()    返回一个用于比较元素间的值的函数
+
+
+
+
+5,自定义比较函数：
+For example：
+#include<iostream>
+#include<set>
+using namespace std;
+
+
+typedef struct {
+int a,b;
+char s;
+}newtype;
+
+
+struct compare   //there is no ().
+{
+bool operator()(const newtype &a, const newtype &b) const
+{
+return a.s<b.s;
+}
+};//the “; ”  is  here;
+
+
+set<newtype,compare>element;
+int main()
+{
+newtype a,b,c,d,t;
+a.a=1; a.s='b';
+b.a=2; b.s='c';
+c.a=4; c.s='d';
+d.a=3; d.s='a';
+
+
+element.insert(a);
+element.insert(b);
+element.insert(c);
+element.insert(d);
+set<newtype,compare>::iterator it;
+
+
+for(it=element.begin(); it!=element.end();it++)
+cout<<(*it).a<<" ";
+cout<<endl;
+for(it=element.begin(); it!=element.end();it++)
+cout<<(*it).s<<" ";
+}
+element自动排序是按照char s的大小排序的；
+
+
+6.其他的set构造方法；
+#include <iostream>
+#include <set>
+using namespace std;
+bool fncomp (int lhs, int rhs) {return lhs<rhs;}
+struct classcomp {
+  bool operator() (const int& lhs, const int& rhs) const
+  {return lhs<rhs;}
+};
+
+
+int main ()
+{
+  set<int> first;                           // empty set of ints
+
+
+  int myints[]= {10,20,30,40,50};
+  set<int> second (myints,myints+5);        // pointers used as iterators
+
+
+  set<int> third (second);                  // a copy of second
+
+
+  set<int> fourth (second.begin(), second.end());  // iterator ctor.
+
+
+  set<int,classcomp> fifth;                 // class as Compare
+
+
+  bool(*fn_pt)(int,int) = fncomp;
+  set<int,bool(*)(int,int)> sixth (fn_pt);  // function pointer as Compare
+ 
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+分享： 分享到新浪Qing  
+喜欢
+
+阅读┊ 评论 ┊ 收藏 ┊禁止转载 ┊ 喜欢▼ ┊打印┊举报 已投稿到：  排行榜 圈子  
+
+加载中，请稍候......
+前一篇：绵延的河流.200910后一篇：vista,windows7下删除隧道适配器
+评论 重要提示：警惕虚假中奖信息 | [发评论]评论加载中，请稍候...
+
+发评论 | 
+  
+登录名： 密码： 找回密码 注册 记住登录状态
+昵   称：
+
+ 分享到微博    
+
+验证码： 请点击后输入验证码 收听验证码
+匿名评论发评论 
+以上网友发言只代表其个人观点，不代表新浪网的观点或立场。
+< 前一篇
+绵延的河流.200910后一篇 >
+vista,windows7下删除隧道适配器
+  新浪BLOG意见反馈留言板　不良信息反馈　电话：4006900000 提示音后按1键（按当地市话标准计费）　欢迎批评指正
+
+新浪简介 | About Sina | 广告服务 | 联系我们 | 招聘信息 | 网站律师 | SINA English | 会员注册 | 产品答疑 
+
+Copyright © 1996 - 2013 SINA Corporation, All Rights Reserved
+
+新浪公司 版权所有
+

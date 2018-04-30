@@ -1,0 +1,136 @@
+Linux调度器(schedule函数）
+
+分类： 内核开发 2009-03-15 22:56 1659人阅读 评论(0) 收藏 举报
+linuxstructnullthreadsignallist
+1：在进程却换前，scheduler做的事情
+Schedule所作的事情是用某一个进程替换当前进程。
+（1）    关闭内核抢占，初始化一些局部变量。
+need_resched:
+
+preempt_disable( );
+prev = current;
+rq = this_rq( );
+当前进程current被保存在prev,和当前CPU相关的runqueue的地址保存在rq中。
+（2）       检查prev没有持有big kernel lock.
+if (prev->lock_depth >= 0)
+up(&kernel_sem);
+Schedule没有改变lock_depth的值，在prev唤醒自己执行的情况下，假如lock_depth的值不是负的，prev需要重新获取kernel_flag自旋锁。所以大内核锁在进程却换过程中是自动释放的和自动获取的。
+（3）    调用sched_clock( )，读取TSC，并且将TSC转换成纳秒，得到的timestamp保存在now中，然后Schedule计算prev使用的时间片。
+now = sched_clock( );
+run_time = now - prev->timestamp;
+if (run_time > 1000000000)
+    run_time = 1000000000;
+（4）    在察看可运行进程的时候，schedule必须关闭当前CPU中断，并且获取自旋锁保护runqueue.
+spin_lock_irq(&rq->lock);
+（5）    为了识别当前进程是否已终止，schedule检查PF_DEAD标志。
+if (prev->flags & PF_DEAD)    prev->state = EXIT_DEAD;
+（6）    Schedule检查prev的状态，假如他是不可运行的，并且在内核态没有被抢占，那么从runqueue删除他。但是，假如prev有非阻塞等待信号并且他的状态是TASK_INTERRUPTBLE,配置其状态为TASK_RUNNING，并且把他留在runqueue中。该动作和分配CPU给prev不相同，只是给prev一个重新选择执行的机会。
+if (prev->state != TASK_RUNNING &&
+    !(preempt_count() & PREEMPT_ACTIVE)) {
+    if (prev->state == TASK_INTERRUPTIBLE && signal_pending(prev))
+        prev->state = TASK_RUNNING;
+    else {
+        if (prev->state == TASK_UNINTERRUPTIBLE)
+            rq->nr_uninterruptible++;
+        deactivate_task(prev, rq);
+    }
+}
+deactivate_task( )是从runqueue移除进程：
+rq->nr_running--;
+dequeue_task(p, p->array);
+p->array = NULL;
+（7）       检查runqueue中进程数，
+A:假如有多个可运行进程，调用dependent_sleeper( )函数。一般情况下，该函数立即返回0，但是假如内核支持超线程技术，该函数检查将被运行的进程是否有比已运行在同一个物理CPU上一个逻辑CPU上的兄弟进程的优先级低。假如是，schedule拒绝选择低优先级进程，而是执行swapper进程。
+if (rq->nr_running) {    if (dependent_sleeper(smp_processor_id( ), rq)) {        next = rq->idle;        goto switch_tasks;    }}
+B:假如没有可运行进程，调用idle_balance( )，从其他runqueue队列中移动一些进程到当前runqueue，idle_balance( )和load_balance( )相似。
+if (!rq->nr_running) {    idle_balance(smp_processor_id( ), rq);    if (!rq->nr_running) {        next = rq->idle;        rq->expired_timestamp = 0;        wake_sleeping_dependent(smp_processor_id( ), rq);        if (!rq->nr_running)            goto switch_tasks;    }}
+假如idle_balance( )移动一些进程到当前runqueue失败，schedule( )调用wake_sleeping_dependent( )重新唤醒空闲CPU的可运行进程。
+
+假设schedule( )已决定runqueue中有可运行进程，那么他必须检查可运行进程中至少有一个进程是激活的。假如没有，交换runqueue中active 和expired域的内容，任何expired进程变成激活的，空数组准备接受以后expire的进程。
+if (unlikely(!array->nr_active)) {
+       /*
+        * Switch the active and expired arrays.
+        */
+       schedstat_inc(rq, sched_switch);
+       rq->active = rq->expired;
+       rq->expired = array;
+       array = rq->active;
+       rq->expired_timestamp = 0;
+       rq->best_expired_prio = MAX_PRIO;
+    }
+（8）    查找在active prio_array_t数组中的可运行进程。Schedule在active数组的位掩码中查找第一个非0位。当优先级列表不为0的时候，相应的位掩码北配置，所以第一个不为0的位标示一个有最合适进程运行的列表。然后列表中第一个进程描述符被获取。
+idx = sched_find_first_bit(array->bitmap);
+    queue = array->queue + idx;
+    next = list_entry(queue->next, task_t, run_list);
+    现在next指向将替换prev的进程描述符。
+（9）    检查next->activated，他标示唤醒进程的状态。
+（10）   假如next是个普通进程，并且是从TASK_INTERRUPTIBLE 或TASK_STOPPED状态唤醒。Scheduler在进程的平均睡眠时间上加从进程加入到runqueue开始的等待时间。
+
+if (!rt_task(next) && next->activated > 0) {
+        unsigned long long delta = now - next->timestamp;
+        if (unlikely((long long)(now - next->timestamp) 
+            delta = 0;
+
+        if (next->activated == 1)
+            delta = delta * (ON_RUNQUEUE_WEIGHT * 128 / 100) / 128;
+
+        array = next->array;
+        new_prio = recalc_task_prio(next, next->timestamp + delta);
+
+        if (unlikely(next->prio != new_prio)) {
+            dequeue_task(next, array);
+            next->prio = new_prio;
+            enqueue_task(next, array);
+        } else
+            requeue_task(next, array);
+    }
+    next->activated = 0;
+Scheduler区分被中断或被延迟函数唤醒的进程和被系统调用服务程式或内核线程唤醒的进程。前者，Scheduler加整个runqueue等待时间，后者只加一部分时间。
+2：进程却换时，Scheduler做的事情：
+现在，Scheduler已确定要运行的进程。
+（1）       访问next的thread_info,他的地址保存在next进程描述符的顶部。
+switch_tasks:
+       if (next == rq->idle)
+              schedstat_inc(rq, sched_goidle);
+       prefetch(next)
+（2）       在替换prev前，执行一些管理工作
+clear_tsk_need_resched(prev);
+    rcu_qsctr_inc(task_cpu(prev));
+clear_tsk_need_resched清除prev的TIF_NEED_RESCHED，该动作只发生在Scheduler是被间接调用的情况。
+（3）       减少prev的平均睡眠时间到进程使用的cpu时间片。
+    prev->sleep_avg -= run_time;
+    if ((long)prev->sleep_avg 
+        prev->sleep_avg = 0;
+    prev->timestamp = prev->last_ran = now;
+（4）       检查是否prev和next是同一个进程，假如为真，放弃进程却换，否则，执行（5）
+   if (prev == next) {
+    spin_unlock_irq(&rq->lock);
+    goto finish_schedule;
+}
+
+（5）       真正的进程却换
+        next->timestamp = now;
+        rq->nr_switches++;
+        rq->curr = next;
+        ++*switch_count;
+
+        prepare_task_switch(rq, next);
+        prev = context_switch(rq, prev, next);
+context_switch建立了next的地址空间，进程描述符的active_mm指向进程使用的地址空间描述符，而mm指向进程拥有的地址空间描述符，通常二者是相同的。但是内核线程没有自己的地址空间，mm一直为NULL。假如next为内核线程，context_switch确保next使用prev的地址空间。假如next是个正常的进程，context_switch使用next的替换prev的地址空间。
+    struct mm_struct *mm = next->mm;
+    struct mm_struct *oldmm = prev->active_mm;
+
+    if (unlikely(!mm)) {
+       next->active_mm = oldmm;
+       atomic_inc(&oldmm->mm_count);
+       enter_lazy_tlb(oldmm, next);
+    } else
+       switch_mm(oldmm, mm, next);
+假如prev是个内核线程或正在退出的进程，context_switch在runqueue的prev_mm中保存prev使用的内存空间。
+    if (unlikely(!prev->mm)) {
+       prev->active_mm = NULL;
+       WARN_ON(rq->prev_mm);
+       rq->prev_mm = oldmm;
+    }
+调用switch_to(prev, next, prev)进行prev和next的转换。（参见“进程间的转换“）。 3：进程转换后的工作（1）       finish_task_switch()：         struct mm_struct *mm = rq->prev_mm;         unsigned long prev_task_flags;          rq->prev_mm = NULL;          prev_task_flags = prev->flags;         finish_arch_switch(prev);         finish_lock_switch(rq, prev);         if (mm)                 mmdrop(mm);         if (unlikely(prev_task_flags & PF_DEAD))                 put_task_struct(prev)假如prev是内核线程，runqueue的prev_mm保存prev的内存空间描述符。Mmdrop减少内存空间的使用数，假如该数为0，该函数释放内存空间描述符，连同和之相关的页表和虚拟内存空间。finish_task_switch()还释放runqueue的自选锁，开中断。（2）       最后         prev = current;         if (unlikely(reacquire_kernel_lock(prev)                  goto need_resched_nonpreemptible;         preempt_enable_no_resched();         if (unlikely(test_thread_flag(TIF_NEED_RESCHED)))                 goto need_resched;
+schedule获取大内核块，重新使内核能够抢占，并且检查是否其他进程配置了当前进程的TIF_NEED_RESCHED，假如真，重新执行schedule，否则该程式结束

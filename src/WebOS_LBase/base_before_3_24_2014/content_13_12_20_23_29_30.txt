@@ -1,0 +1,438 @@
+HTML5中国
+帐号		自动登录	 找回密码
+密码		登录	 立即注册
+QQ登录
+只需一步，快速开始
+快捷导航
+首页HTML5资讯移动互联网应用推荐教程视频资源下载开发工具HTML5论坛
+	
+本版
+搜索	
+热搜: CanvasWebGLCSS3WebSocket离线存储工具
+HTML5中国›HTML5论坛›HTML5论坛›JavaScript交流›基于jquery的不规则矩形的排列实现代码
+返回列表发新帖
+查看: 1093|回复: 0
+打印 上一主题 下一主题
+基于jquery的不规则矩形的排列实现代码 [复制链接]
+renyishi
+
+金牌会员
+Rank: 6Rank: 6
+已累计签到106次
+升级  54.3%
+主题247精华3积分2086金钱1550 威望-19 贡献310 在线时间81 小时
+串个门加好友打招呼发消息	
+电梯直达跳转到指定楼层 楼主
+ 发表于 2012-4-18 16:21:14 |只看该作者 |倒序浏览
+现在很多网站都用不规则矩形来罗列图片，ipad上面很多应该用也都是用的不规则的矩形，但是还要让他们各自都靠近排列，不能有空隙
+这个东西让我想起了俄罗斯方块，这个实现起来很简单，容器里面所有的块元素用绝对定位排列，如果能放的下就放在这里，如果放不下了，在队列中找到能放得下的元素放置
+
+实在找不到，则换行排列下一行，具体思路是这样。代码里有详细的注释直接看代码吧。 
+
+下面是一个demo: 
+http://demo.jb51.net/js/2012/sortRect/
+
+代码打包下载 sortRect.rar
+
+代码如下:
+<!DOCTYPE html> 
+<html> 
+<head> 
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"/> 
+<title>不规则宽高排列</title> 
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.js"> 
+</script> 
+<script type="text/javascript" src="http://code.jquery.com/ui/1.8.18/jquery-ui.min.js"> 
+</script> 
+<style type="text/css"> 
+.box { 
+position: absolute; 
+width: 100px; 
+height: 100px; 
+border: 1px solid #ffffff; 
+display: none; 
+background: url(img/1.jpg); 
+/*margin-left: 4px; 
+margin-top: 4px;*/ 
+} 
+.box2 { 
+position: absolute; 
+width: 100px; 
+height: 202px; 
+border: 1px solid #ffffff; 
+display: none; 
+background: url(img/2.jpg); 
+/*margin-left: 4px; 
+margin-top: 4px;*/ 
+} 
+.box3 { 
+position: absolute; 
+width: 202px; 
+height: 100px; 
+border: 1px solid #ffffff; 
+display: none; 
+background: url(img/3.jpg); 
+/*margin-left: 4px; 
+margin-top: 4px;*/ 
+} 
+.box4 { 
+position: absolute; 
+width: 202px; 
+height: 202px; 
+border: 1px solid red; 
+background: url(img/4.jpg); 
+display: none; 
+} 
+</style> 
+</head> 
+<body> 
+<!-- 排列好下面20个方块 --> 
+<div id="pannel" style=" position:relative; width:1500px; height:800px; border:1px solid red; overflow:hidden;"> 
+<div class="box"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box3"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box3"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box2"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box2"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box4"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box2"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box3"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box4"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box3"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box2"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box4"> 
+</div> 
+<div class="box2"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box2"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box4"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box3"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box4"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box3"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box3"> 
+</div> 
+<div class="box2"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box2"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box4"> 
+</div> 
+<div class="box"> 
+</div> 
+<div class="box"> 
+</div> 
+</div> 
+<div id="con"> 
+</div> 
+<script type="text/javascript"> 
+//初始化矩阵 
+var initMatrix = function(x, y){ 
+if (!x || !y) { 
+return; 
+} 
+x = ~ ~ x; 
+y = ~ ~ y; 
+var mt = []; 
+var i = 0; 
+var getX = function(xl){ 
+var i = 0; 
+var matrixX = []; 
+for (; i < xl; i++) { 
+matrixX = 0; 
+} 
+return { 
+mt: matrixX, 
+isComplete: false, 
+spaces: [{ 
+index: 0, 
+len: matrixX.length 
+}] 
+}; 
+} 
+for (; i < y; i++) { 
+mt = getX(x); 
+} 
+return mt; 
+} 
+//生成元素相应的队列 
+var getQuene = function(eleColl, base){ 
+if (!eleColl) { 
+return; 
+} 
+var quene = []; 
+var i = 0; 
+var len = eleColl.length; 
+var getEleMatrix = function(ele, base){ 
+var ht = ele.outerHeight() / base.height; 
+var wt = ele.outerWidth() / base.width; 
+return { 
+ele: ele, 
+ht: ht, 
+wt: wt 
+} 
+} 
+for (; i < len; i++) { 
+quene = getEleMatrix($(eleColl), base); 
+} 
+return quene; 
+} 
+//以行为单位扫描矩阵 
+var sortEveryEle = function(pannelMatrix, sortQuene, unitEle, callback){ 
+if (!pannelMatrix || !sortQuene) { 
+return; 
+} 
+unitEle = unitEle || 
+{ 
+width: 0, 
+height: 0 
+}; 
+var checkSpace = function(line){ 
+var i = 0; 
+var len = line.mt.length; 
+var tmpWt = 0; 
+var tmpidx = 0; 
+var tmpQuene = []; 
+var isSetIdx = false; 
+for (; i < len; i++) { 
+if (line.mt == 0) { 
+if (!isSetIdx) { 
+tmpidx = i; 
+isSetIdx = true; 
+} 
+tmpWt++; 
+} 
+if ((line.mt == 1) || (i == len - 1)) { 
+//保存space信息到里面队列 
+if (tmpWt > 0) { 
+tmpQuene.push({ 
+index: tmpidx, 
+len: tmpWt 
+}); 
+} 
+//清空临时信息 
+tmpidx = 0; 
+tmpWt = 0; 
+} 
+} 
+if (tmpQuene.length <= 0) { 
+line.isComplete = true; 
+} 
+line.spaces = tmpQuene; 
+return; 
+} 
+var updateMartix = function(curLine, mt, ele, spidx, lineNum){ 
+var i = j = 0; 
+//获取当前空白信息 
+var sp = curLine.spaces[spidx]; 
+//如果占用多行则更新所有占用行的空间 
+if (ele.ht > 1) { 
+j = 0; 
+for (; j < ele.ht; j++) { 
+i = 0; 
+for (; i < ele.wt; i++) { 
+mt[lineNum + j].mt[sp.index + i] = 1; 
+} 
+//更新空白空间 
+checkSpace(mt[lineNum + j]); 
+} 
+} 
+else {//如果是单行的话只要更新第一个本行 
+for (; i < ele.wt; i++) { 
+curLine.mt[sp.index + i] = 1; 
+} 
+//更新模块 
+checkSpace(curLine); 
+} 
+}; 
+//获取合适的元素 
+var getRightEle = function(stQu, wd){ 
+var i = 0; 
+var len = stQu.length; 
+for (; i < len; i++) { 
+if (stQu.wt <= wd) { 
+return stQu.splice(i, 1); 
+} 
+} 
+return; 
+} 
+//扫描单行 
+var scanLine = function(oneLine, sortQuene, mt, lineNum){ 
+var i = 0; 
+var len = oneLine.spaces.length; 
+//填充 
+var theWt = oneLine.spaces.len; 
+var mtLeft = mtTop = 0; 
+//判断能容纳的宽是多少 
+var rtEle = getRightEle(sortQuene, theWt); 
+if (rtEle) { 
+//放置元素 
+//rtEle[0].ele.css("left", oneLine.spaces.index * 102);//base width 
+//rtEle[0].ele.css("top", lineNum * 102);//base height; 
+mtLeft = oneLine.spaces.index * (unitEle.width || 0); 
+mtTop = lineNum * (unitEle.height || 0); 
+if (callback) { 
+callback({ 
+left: mtLeft, 
+top: mtTop, 
+rect: rtEle[0] 
+}); 
+} 
+//更新矩阵 
+updateMartix(oneLine, mt, rtEle[0], i, lineNum); 
+//返回位置队列 
+return { 
+left: mtLeft, 
+top: mtTop, 
+rect: rtEle[0] 
+} 
+} 
+} 
+var i = j = 0; 
+var pmLen = pannelMatrix.length; 
+var completeLine = 0; 
+var thePosQuene = [], pos; 
+for (; i < pmLen; i++) { 
+while (!pannelMatrix.isComplete && (sortQuene.length > 0)) { 
+pos = scanLine(pannelMatrix, sortQuene, pannelMatrix, i); 
+if (pos) { 
+thePosQuene.push(pos); 
+} 
+} 
+} 
+return thePosQuene; 
+} 
+var con = $("#con"); 
+//生成相关的二维数组 
+var baseWidth = 102; 
+var baseHeight = 102; 
+var base = { 
+width: baseWidth, 
+height: baseHeight 
+} 
+var pannel = $("#pannel"); 
+var thePannelSize = { 
+width: pannel.width(), 
+height: pannel.height() 
+}; 
+var pannelMatrix = initMatrix(thePannelSize.width / baseWidth, thePannelSize.height / baseHeight); 
+//得到要排序的不规则宽高的方块队列 
+var sortQuene = getQuene(pannel.find("div"), base); 
+//遍历matrix 
+var theQu = sortEveryEle(pannelMatrix, sortQuene, base); 
+var theQuOne = theQu.shift(); 
+var selfCall = function(){ 
+if (!theQuOne) { 
+return; 
+} 
+var my = arguments.callee; 
+theQuOne.rect.ele.show().animate({ 
+left: "+" + theQuOne.left, 
+top: "+" + theQuOne.top 
+}, { 
+duration: 1000, 
+easing: "easeOutBounce", 
+complete: function(){ 
+theQuOne = theQu.shift(); 
+my.call(); 
+} 
+}); 
+} 
+selfCall(); 
+</script> 
+</body> 
+</html>
+
+来源：http://www.jb51.net/article/30115.htm 
+
+[发帖际遇]：renyishi 乐于助人，奖励 1 贡献.
+分享到:
+QQ空间QQ空间
+腾讯微博腾讯微博
+腾讯朋友腾讯朋友
+收藏收藏0
+0
+您可能也喜欢：
+jQuery实现百度导航li拖放排列效果
+现代浏览器中内置的几个可以等效替代jQuery的功能
+使用jQuery建立一个按字母顺序排列的友好的页面索引
+jQuery 定时器 jQuery timer
+无觅关联推荐[?]
+使用道具 举报
+返回列表发新帖
+高级模式
+BColorImageLinkQuoteCodeSmilies
+您需要登录后才可以回帖 登录 | 立即注册  
+发表回复 回帖后跳转到最后一页
+﻿
+ 无觅相关文章插件
+关于我们|HTML5论坛|友情链接|手机版|站长统计
+Copyright @HTML5中国 All Right Reserved. Powered by Discuz! X2.
+京ICP备11006447号-7 京公网安备:110105011387 京公网安备：11010802010583号
+回顶部

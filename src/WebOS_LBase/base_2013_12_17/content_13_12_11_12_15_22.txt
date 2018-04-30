@@ -1,0 +1,125 @@
+
+int 0x13 常用功能详解 
+
+--------------------------------------------------------------------------------
+1、 int 0x13 的扩展读（ah = 0x42） 
+int 0x13 的 0x42 号功能从磁盘读 n 个 sectors 到 buffer 中。
+ 
+入口参数：ah = 0x42, dl = 磁盘号（0x80 为硬盘）， ds:si = buffer
+
+
+
+ 
+读入的 buffer 结构，用 c 描述为：
+
+struct buffer_packet
+{
+    short buffer_packet_size;         /* struct's size（可以为 0x10 或 0x18）*/
+    short sectors;                    /* 读多少个 sectors */
+    char *buffer;                     /* buffer address */
+    long long start_sectors;          /* 从哪个 sector 开始读 */
+    long long *l_buffer;              /* 64 位的 buffer address */
+} buffer;
+ 
+
+这个 buffer_packet 结构大小可以为 16 bytes 或者 24 bytes
+
+当 buffer_packet_size 设置为 0x10，最后的 l_buffer 无效。 buffer_packet_size 设为 0x18 时，l_buffer 需要提供。 
+
+
+
+
+注意：
+ 
+   buffer_packet 结构里的 buffer 地址，它是个逻辑地址，即：segment:offset
+ 
+  低 word 放着 offset 值，高 word 放着 segment 值。
+
+  切记！
+ 
+
+ 
+
+ 下面是摘自 windows 7 的 MBR 中的典型用法
+
+
+
+ 
+典型的 int 0x13 第 0x42 号功能用法：
+ 
+/* 以下是使用 int 0x13 扩展功能读 disk */
+ 
+00000061  666800000000      push dword 0x0
+00000067  66FF7608          push dword [bp+0x8]   /* start sectors for read */
+ 0000006B  680000            push word 0x0
+ 0000006E  68007C            push word 0x7c00   /* buffer address */
+ 00000071  680100            push word 0x1
+ 00000074  681000            push word 0x10   /* 使用 16 bytes 的结构，即不需要 64 位 buffer address */
+ 
+
+00000077  B442              mov ah,0x42
+ 00000079  8A5600            mov dl,[bp+0x0]      /* hard disk = 0x80 */
+ 0000007C  8BF4              mov si,sp            /* buffer_packet 的 address（ds:si） */
+0000007E  CD13              int 0x13            
+ 
+
+ 
+
+ 
+
+2、 int 0x13 获取磁盘参数（ah = 0x48） 
+
+获取的磁盘参数保存在提供的 buffer 里，这些参数包括：
+
+★ 磁盘的 cylinders 数量
+★ 磁盘的 heads 数量
+★ 每道的 sectors 数
+★ 磁盘总共有多少扇区
+★ 每个扇区有多少字节
+ 
+
+
+
+
+这个 buffer 结构，用 c 描述如下：
+ 
+struct driver_parameters 
+{
+    short buf_size;              /* 缓冲区结构的大小 */
+     short flags;                 /* 标志 */
+    int cylinders;               /* cylinders 数量 */
+    int heads;                   /* heads 数量 */
+    int sectors_per_track;       /* 每道的 sectors 数 */
+    long long sectors;           /* 磁盘总共的 sectors 数 */
+    short bytes_per_sector;      /* 每个扇区的 bytes 数 */
+
+} buffer;
+ 
+
+下面是摘自 windows 7 的 DBR 中的典型用法： 
+
+
+
+
+典型的 int 0x13 第 0x48 号功能用法：
+
+
+0000008D  1E                push ds
+0000008E  83EC18            sub sp,byte +0x18      /* 预留 0x18 个空间 */
+00000091  681A00            push word 0x1a         /* 写 buffer 的第 1 个 word ，即：buf_size = 0x1a */
+00000094  B448              mov ah,0x48
+00000096  8A160E00          mov dl,[0xe]           /* 驱动器 ID，即：0x80 */
+0000009A  8BF4              mov si,sp
+0000009C  16                push ss
+0000009D  1F                pop ds
+0000009E  CD13              int 0x13               /* 获取 driver 参数 */
+ 
+
+ 
+
+--------------------------------------------------------------------------------
+
+所有权限 mik（deng zhi）所有，转载请注明出处 
+
+ 
+

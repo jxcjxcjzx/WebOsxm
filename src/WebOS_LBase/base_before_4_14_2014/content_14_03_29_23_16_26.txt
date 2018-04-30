@@ -1,0 +1,105 @@
+Linux下pppoe设置
+
+分类： Linux 编程 2011-12-21 19:18 4020人阅读 评论(0) 收藏 举报
+linuxinterfaceubuntu脚本solarisuser
+ 在Linux下配置pppoe，一般有以下步骤：
+
+1. 安装pppoe软件。这个不多说，ape-get install pppoe即可。
+
+2. 设置拨号属性：
+
+root@ubuntu:~# pppoe-setup
+   详细过程如下：
+
+     用户名：
+
+USER NAME
+
+>>> Enter your PPPoE user name (default test): test
+     接口(网卡)：
+
+INTERFACE
+
+>>> Enter the Ethernet interface connected to the DSL modem
+For Solaris, this is likely to be something like /dev/hme0.
+For Linux, it will be ethn, where 'n' is a number.
+(default eth0): eth0
+
+      dns：
+
+>>> Enter the DNS information here:
+      密码：
+
+PASSWORD
+
+>>> Please enter your PPPoE password:    
+>>> Please re-enter your PPPoE password: 
+      防火墙：
+
+The firewall choices are:
+0 - NONE: This script will not set any firewall rules.  You are responsible
+          for ensuring the security of your machine.  You are STRONGLY
+          recommended to use some kind of firewall rules.
+1 - STANDALONE: Appropriate for a basic stand-alone web-surfing workstation
+2 - MASQUERADE: Appropriate for a machine acting as an Internet gateway
+                for a LAN
+>>> Choose a type of firewall (0-2): 0
+   保存设置：
+
+Ethernet Interface: eth0
+User name:          test
+Activate-on-demand: No
+DNS:                Do not adjust
+Firewalling:        NONE
+
+>>> Accept these settings and adjust configuration files (y/n)? y
+  保存成功了。
+
+Congratulations, it should be all set up!
+
+Type 'pppoe-start' to bring up your PPPoE link and 'pppoe-stop' to bring
+it down.  Type 'pppoe-status' to see the link status.
+3. 开始拨号
+
+root@ubuntu:~# pppoe-start
+到了这一步，如果没有问题的话，应该就可以正常连上pppoe服务器了。
+
+ 
+
+ 
+
+但在实际操作时，我遇到了以下两个问题：
+
+问题1：
+
+root@ubuntu:~# pppoe-setup
+Welcome to the Roaring Penguin PPPoE client setup.  First, I will run
+some checks on your system to make sure the PPPoE client is installed
+properly...
+
+Oops, I can't execute the program '/usr/local/sbin/pppd'.  You
+must install the PPP software suite, version 2.3.10 or later.
+
+   原因：目录/usr/local/sbin/没有pppd文件
+
+   解决方法：
+
+     将/usr/sbin/pppoe-setup脚本里PPPD=/usr/local/sbin/pppd
+     改为PPPD=/usr/sbin/pppd，保存修改后即恢复可正常
+
+ 
+
+问题2：
+
+root@ubuntu:~# pppoe-status: Link is down (can't read pppoe PID file /var/run/pppoe.conf-pppoe.pid.pppoe)
+    尝试运行pppoe-connect，出现和问题一类似的错误
+
+   原因：同问题1所述
+
+   解决方法和问题1中类似：
+     将/usr/sbin/pppoe-connect脚本里PPPD=/usr/local/sbin/pppd
+     改为PPPD=/usr/sbin/pppd，保存修改后即恢复可正常
+
+总结：
+
+       在配置pppoe时遇到奇怪的问题，很有可能是有相应的脚本的路径设置不当造成。

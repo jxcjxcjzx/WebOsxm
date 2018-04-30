@@ -1,0 +1,1048 @@
+个人中心我的展示应用博客相册视频圈子留言小游戏问答育儿自选股微博秀场设置搜狐首页欢迎访问登录 注册跟随你暂时没有新的跟随者，查看跟随者登录并查看消息你暂时没有新消息，查看消息登录并查看金币 [最新活动] 兴业银行精彩e生活 好礼天天送>> 
+商品兑换 查看金币 怎么挣金币 请选择您的用户帐号类型 
+ 
+ 
+搜狐通行证上搜狐，知天下
+
+帐　号 
+密　码 
+记住登录状态
+注册新用户忘记密码帮助中心
+loading...
+请稍候，正在下载...
+海 的 声音首页 日志 相册 视频 微博 资料 分享  海 的 声音首页 
+搜狐博客 > 海 的 声音 > 日志 搜狐博客 > 海 的 声音 > 日志  个人资料  
+   
+  
+海 的 声音
+看资料 加跟随
+写留言 打招呼
+
+查看博主的微博 
+姓名：sheena
+职业：** 
+年龄：** 
+位置：中国，**
+个性介绍： 
+*******
+
+修改个性介绍
+
+--------------------------------------------------------------------------------
+推荐给跟随  
+   
+
+ 博主最新文章  
+ Google利用“知识图谱”优化图片搜索结果 
+Google发布“知识图谱”：为用户提供有完整知识体系的搜索结果 
+Google 推出知识图谱 
+移动搜索的那些事 
+张小龙：微信背后的产品观 
+SimpleDateFormat 线程安全的问题 
+龙应台：《目送》 
+JAVA正则表达式-捕获组与非捕获组 
+Linux内核学习笔记：CPU高速缓存行对齐 
+一淘数据分析 
+更多文章>>  
+   
+
+ 推荐博文  
+ 奥巴马自费买热狗与领袖合影的十大明星
+柴静在节目中采访抑或表演
+博客专题 
+官员财产公开为何要等“通知”
+鄢烈山 
+从清理房产入手控制腐败
+宏皓 
+《甄嬛传》登美纯属国际玩笑
+王迪 
+简洁搭配任何场合都不出错/图
+Angel 
+冬日推荐暖胃酸菜胡椒猪肚汤
+小鼹鼠 
+更多相关文章>>  
+   
+ 日志正文  
+   
+ LIBSVM: a Library for Support Vector Machines  2007-09-18 17:48LIBSVM: a Library for Support Vector Machines
+Chih-Chung Chang and Chih-Jen Lin\u0003
+Last updated: June 14, 2007
+Abstract
+LIBSVM is a library for support vector machines (SVM). Its goal is to help
+users to easily use SVM as a tool. In this document, we present all its imple-
+mentation details. For the use of LIBSVM, the README le included in the
+package and the LIBSVM FAQ provide the information.
+1 Introduction
+LIBSVM is a library for support vector machines (SVM). Its goal is to let users can
+easily use SVM as a tool. In this document, we present all its implementation details.
+For using LIBSVM, the README le included in the package provides the information.
+In Section 2, we show formulations used in LIBSVM: C-support vector classi cation
+(C-SVC), \u0017-support vector classi cation (\u0017-SVC), distribution estimation (oneclass
+SVM), \u000F-support vector regression (\u000F-SVR), and \u0017-support vector regression
+(\u0017-SVR). We discuss the implementation of solving quadratic problems in Section 3.
+Section 4 describes two implementation techniques: shrinking and caching. We also
+support di erent penalty parameters for unbalanced data. Details are in Section 5.
+Then Section 6 discusses the implementation of multi-class classi cation. Parameter
+selection is important for obtaining good SVM models. LIBSVM provides simple and
+useful tools, which are discussed in Section 7. Section 8 presents the implementation
+of probability outputs.
+2 Formulations
+2.1 C-Support Vector Classi cation
+Given training vectors xi 2 Rn; i = 1; : : : ; l, in two classes, and a vector y 2 Rl such
+that yi 2 f1;\u00001g, C-SVC (Boser et al., 1992; Cortes and Vapnik, 1995) solves the
+\u0003Department of Computer Science, National Taiwan University, Taipei 106, Taiwan (http://
+www.csie.ntu.edu.tw/~cjlin). E-mail: cjlin@csie.ntu.edu.tw
+1
+following primal problem:
+min
+w;b;\u0018
+1
+2
+wTw + C
+l Xi=1
+\u0018i (2.1)
+subject to yi(wT\u001E(xi) + b) \u0015 1 \u0000 \u0018i;
+\u0018i \u0015 0; i = 1; : : : ; l:
+Its dual is
+min
+
+1
+2
+TQ \u0000 eT 
+subject to yT = 0; (2.2)
+0 \u0014 i \u0014 C; i = 1; : : : ; l;
+where e is the vector of all ones, C > 0 is the upper bound, Q is an l by l positive
+semide nite matrix, Qij \u0011 yiyjK(xi; xj), and K(xi; xj) \u0011 \u001E(xi)T\u001E(xj) is the kernel.
+Here training vectors xi are mapped into a higher (maybe in nite) dimensional space
+by the function \u001E.
+The decision function is
+sgn  l Xi=1
+yi iK(xi; x) + b!:
+2.2 \u0017-Support Vector Classi cation
+The \u0017-support vector classi cation (Scholkopf et al., 2000) uses a new parameter \u0017
+which controls the number of support vectors and training errors. The parameter
+\u0017 2 (0; 1] is an upper bound on the fraction of training errors and a lower bound of
+the fraction of support vectors.
+Given training vectors xi 2 Rn; i = 1; : : : ; l, in two classes, and a vector y 2 Rl
+such that yi 2 f1;\u00001g, the primal form considered is:
+min
+w;b;\u0018;\u001A
+1
+2
+wTw \u0000 \u0017\u001A +
+1
+l
+l Xi=1
+\u0018i
+subject to yi(wT\u001E(xi) + b) \u0015 \u001A \u0000 \u0018i;
+\u0018i \u0015 0; i = 1; : : : ; l; \u001A \u0015 0:
+2
+The dual is:
+min
+
+1
+2
+TQ 
+subject to 0 \u0014 i \u0014 1=l; i = 1; : : : ; l; (2.3)
+eT \u0015 \u0017; yT = 0:
+where Qij \u0011 yiyjK(xi; xj).
+The decision function is:
+sgn  l Xi=1
+yi iK(xi; x) + b!:
+In (Crisp and Burges, 2000; Chang and Lin, 2001), it has been shown that eT \u0015 \u0017
+can be replaced by eT = \u0017. With this property, in LIBSVM, we solve a scaled version
+of (2.3):
+min
+
+1
+2
+TQ 
+subject to 0 \u0014 i \u0014 1; i = 1; : : : ; l;
+eT = \u0017l;
+yT = 0:
+We output =\u001A so the computed decision function is:
+sgn  l Xi=1
+yi( i=\u001A)(K(xi; x) + b)!
+and then two margins are
+yi(wT\u001E(xi) + b) = \u00061
+which are the same as those of C-SVC.
+2.3 Distribution Estimation (One-class SVM)
+One-class SVM was proposed by Scholkopf et al. (2001) for estimating the support of
+a high-dimensional distribution. Given training vectors xi 2 Rn; i = 1; : : : ; l without
+any class information, the primal form in (Scholkopf et al., 2001) is:
+min
+w;b;\u0018;\u001A
+1
+2
+wTw \u0000 \u001A +
+1
+\u0017l
+l Xi=1
+\u0018i
+subject to wT\u001E(xi) \u0015 \u001A \u0000 \u0018i;
+\u0018i \u0015 0; i = 1; : : : ; l:
+3
+The dual is:
+min
+
+1
+2
+TQ 
+subject to 0 \u0014 i \u0014 1=(\u0017l); i = 1; : : : ; l; (2.4)
+eT = 1;
+where Qij = K(xi; xj) \u0011 \u001E(xi)T\u001E(xj).
+In LIBSVM we solve a scaled version of (2.4):
+min
+1
+2
+TQ 
+subject to 0 \u0014 i \u0014 1; i = 1; : : : ; l; (2.5)
+eT = \u0017l:
+The decision function is
+sgn(
+l Xi=1
+iK(xi; x) \u0000 \u001A):
+2.4 \u000F-Support Vector Regression (\u000F-SVR)
+Given a set of data points, f(x1; z1); : : : ; (xl; zl)g, such that xi 2 Rn is an input and
+zi 2 R1 is a target output, the standard form of support vector regression (Vapnik,
+1998) is:
+min
+w;b;\u0018;\u0018\u0003
+1
+2
+wTw + C
+l Xi=1
+\u0018i + C
+l Xi=1
+\u0018\u0003i
+subject to wT\u001E(xi) + b \u0000 zi \u0014 \u000F + \u0018i;
+zi \u0000 wT\u001E(xi) \u0000 b \u0014 \u000F + \u0018\u0003i ;
+\u0018i; \u0018\u0003i \u0015 0; i = 1; : : : ; l:
+The dual is:
+min
+; \u0003
+1
+2
+( \u0000 \u0003)TQ( \u0000 \u0003) + \u000F
+l Xi=1
+( i + \u0003i ) +
+l Xi=1
+zi( i \u0000 \u0003i )
+subject to
+l Xi=1
+( i \u0000 \u0003i ) = 0; 0 \u0014 i; \u0003i \u0014 C; i = 1; : : : ; l; (2.6)
+4
+where Qij = K(xi; xj) \u0011 \u001E(xi)T\u001E(xj).
+The approximate function is:
+l Xi=1
+(\u0000 i + \u0003i )K(xi; x) + b:
+2.5 \u0017-Support Vector Regression (\u0017-SVR)
+Similar to \u0017-SVC, for regression, Scholkopf et al. (2000) use a parameter \u0017 to control
+the number of support vectors. However, unlike \u0017-SVC, where \u0017 replaces with C,
+here \u0017 replaces with the parameter \u000F of \u000F-SVR. The primal form is
+min
+w;b;\u0018;\u0018\u0003;\u000F
+1
+2
+wTw + C(\u0017\u000F +
+1
+l
+l Xi=1
+(\u0018i + \u0018\u0003i )) (2.7)
+subject to (wT\u001E(xi) + b) \u0000 zi \u0014 \u000F + \u0018i;
+zi \u0000 (wT\u001E(xi) + b) \u0014 \u000F + \u0018\u0003i ;
+\u0018i; \u0018\u0003i \u0015 0; i = 1; : : : ; l; \u000F \u0015 0:
+and the dual is
+min
+; \u0003
+1
+2
+( \u0000 \u0003)TQ( \u0000 \u0003) + zT ( \u0000 \u0003)
+subject to eT ( \u0000 \u0003) = 0; eT ( + \u0003) \u0014 C\u0017;
+0 \u0014 i; \u0003i \u0014 C=l; i = 1; : : : ; l; (2.8)
+Similarly, the inequality eT ( + \u0003) \u0014 C\u0017 can be replaced by an equality. In
+LIBSVM, we consider C   C=l, so the dual problem solved is:
+min
+; \u0003
+1
+2
+( \u0000 \u0003)TQ( \u0000 \u0003) + zT ( \u0000 \u0003)
+subject to eT ( \u0000 \u0003) = 0; eT ( + \u0003) = Cl\u0017;
+0 \u0014 i; \u0003i \u0014 C; i = 1; : : : ; l: (2.9)
+The decision function is
+l Xi=1
+(\u0000 i + \u0003i )K(xi; x) + b;
+which is the same as that of \u000F-SVR.
+5
+3 Solving the Quadratic Problems
+3.1 The Decomposition Method for C-SVC, \u000F-SVR, and One-
+class SVM
+We consider the following general form of C-SVC, \u000F-SVR, and one-class SVM:
+min
+
+1
+2
+TQ + pT 
+subject to yT = \u0001; (3.1)
+0 \u0014 t \u0014 C; t = 1; : : : ; l;
+where yt = \u00061; t = 1; : : : ; l. It can be clearly seen that C-SVC and one-class SVM
+are already in the form of (3.1). For \u000F-SVR, we consider the following reformulation
+of (2.6):
+min
+; \u0003
+1
+2 \u0002 T ; ( \u0003)T \u0003\u0014 Q \u0000Q
+\u0000Q Q \u0015\u0014 
+\u0003\u0015+ \u0002\u000FeT + zT ; \u000FeT \u0000 zT \u0003\u0014 
+\u0003\u0015
+subject to yT \u0014 
+\u0003\u0015= 0; 0 \u0014 t; \u0003t \u0014 C; t = 1; : : : ; l; (3.2)
+where y is a 2l by 1 vector with yt = 1; t = 1; : : : ; l and yt = \u00001; t = l + 1; : : : ; 2l.
+The di\u000Eculty of solving (3.1) is the density of Q because Qij is in general not zero.
+In LIBSVM, we consider the decomposition method to conquer this di\u000Eculty. Some
+work on this method are, for example, (Osuna et al., 1997a; Joachims, 1998; Platt,
+1998). This method modi es only a subset of per iteration. This subset, denoted
+as the working set B, leads to a small sub-problem to be minimized in each iteration.
+An extreme case is the Sequential Minimal Optimization (SMO) (Platt, 1998), which
+restricts B to have only two elements. Then in each iteration one solves a simple
+two-variable problem without needing optimization software. Here we consider an
+SMO-type decomposition method proposed in Fan et al. (2005).
+Algorithm 1 (An SMO-type Decomposition method in Fan et al. (2005))
+1. Find 1 as the initial feasible solution. Set k = 1.
+2. If k is a stationary point of (2.2), stop. Otherwise, nd a two-element working
+set B = fi; jg by WSS 1 (described in Section 3.2). De ne N \u0011 f1; : : : ; lgnB
+and k
+B and k
+N to be sub-vectors of k corresponding to B and N, respectively.
+6
+3. If aij \u0011 Kii + Kjj \u0000 2Kij > 0
+Solve the following sub-problem with the variable B:
+min
+i; j
+1
+2 \u0002 i j\u0003\u0014Qii Qij
+Qij Qjj\u0015\u0014 i
+j\u0015+ (pB + QBN k
+N)T \u0014 i
+j\u0015
+subject to 0 \u0014 i; j \u0014 C; (3.3)
+yi i + yj j = \u0001 \u0000 yT
+N k
+N;
+else
+Solve
+min
+i; j
+1
+2 \u0002 i j\u0003\u0014Qii Qij
+Qij Qjj\u0015\u0014 i
+j\u0015+ (pB + QBN k
+N)T \u0014 i
+j\u0015
++
+\u001C \u0000 aij
+4
+(( i \u0000 k
+i )2 + ( j \u0000 k
+j )2) (3.4)
+subject to constraints of (3.3).
+4. Set k+1
+B to be the optimal solution of (3.3) and k+1
+N \u0011 k
+N. Set k   k + 1
+and goto Step 2.
+Note that B is updated at each iteration. To simplify the notation, we simply
+use B instead of Bk. If aij \u0014 0, (3.3) is a concave problem. Hence we use a convex
+modi cation in (3.4).
+3.2 Stopping Criteria and Working Set Selection for C-SVC,
+\u000F-SVR, and One-class SVM
+The Karush-Kuhn-Tucker (KKT) optimality condition of (3.1) shows that a vector 
+is a stationary point of (3.1) if and only if there is a number b and two nonnegative
+vectors \u0015 and \u0016 such that
+rf( ) + by = \u0015 \u0000 \u0016;
+\u0015i i = 0; \u0016i(C \u0000 i) = 0; \u0015i \u0015 0; \u0016i \u0015 0; i = 1; : : : ; l;
+where rf( ) \u0011 Q + p is the gradient of f( ). This condition can be rewritten as
+rf( )i + byi \u0015 0 if i < C; (3.5)
+rf( )i + byi \u0014 0 if i > 0: (3.6)
+7
+Since yi = \u00061, by de ning
+Iup( ) \u0011 ft j t < C; yt = 1 or t > 0; yt = \u00001g; and
+Ilow( ) \u0011 ft j t < C; yt = \u00001 or t > 0; yt = 1g;
+(3.7)
+a feasible is a stationary point of (3.1) if and only if
+m( ) \u0014 M( ); (3.8)
+where
+m( ) \u0011 max
+i2Iup( )\u0000yirf( )i; and M( ) \u0011 min
+i2Ilow( )\u0000yirf( )i:
+From this we have the following stopping condition:
+m( k) \u0000M( k) \u0014 \u000F: (3.9)
+About the selection of the working set set B, we consider the following procedure:
+WSS 1
+1. For all t; s, de ne
+ats \u0011 Ktt + Kss \u0000 2Kts; bts \u0011 \u0000ytrf( k)t + ysrf( k)s > 0 (3.10)
+and
+\u0016ats \u0011 \u001A ats if ats > 0,
+\u001C otherwise.
+(3.11)
+Select
+i 2 arg max
+t f\u0000ytrf( k)t j t 2 Iup( k)g;
+j 2 arg min
+t \u001A\u0000
+b2
+it
+\u0016ait j t 2 Ilow( k);\u0000ytrf( k)t < \u0000yirf( k)i\u001B: (3.12)
+2. Return B = fi; jg.
+Details of how we choose this working set is in (Fan et al., 2005, Section II).
+3.3 Convergence of the Decomposition Method
+See (Fan et al., 2005, Section III) or (Chen et al., 2006) for a detailed discussion of
+the convergence of Algorithm 1.
+8
+3.4 The Decomposition Method for \u0017-SVC and \u0017-SVR
+Both \u0017-SVC and \u0017-SVR can be considered as the following general form:
+min
+
+1
+2
+TQ + pT 
+subject to yT = \u00011; (3.13)
+eT = \u00012;
+0 \u0014 t \u0014 C; t = 1; : : : ; l:
+The KKT condition of (3.13) shows
+rf( )i \u0000 \u001A + byi = 0 if 0 < i < C;
+\u0015 0 if i = 0;
+\u0014 0 if i = C:
+De ne
+r1 \u0011 \u001A \u0000 b; r2 \u0011 \u001A + b:
+If yi = 1 the KKT condition becomes
+rf( )i \u0000 r1 \u0015 0 if i < C; (3.14)
+\u0014 0 if i > 0:
+On the other hand, if yi = \u00001, it is
+rf( )i \u0000 r2 \u0015 0 if i < C; (3.15)
+\u0014 0 if i > 0:
+Hence given a tolerance \u000F > 0, the stopping condition is:
+max (mp( ) \u0000Mp( );mn( ) \u0000Mn( )) < \u000F; (3.16)
+where
+mp( ) \u0011 max
+i2Iup( );yi=1\u0000yirf( )i; Mp( ) \u0011 min
+i2Ilow( );yi=1\u0000yirf( )i; and
+mn( ) \u0011 max
+i2Iup( );yi=\u00001\u0000yirf( )i; Mn( ) \u0011 min
+i2Ilow( );yi=\u00001\u0000yirf( )i:
+The working set selection is by extending WSS 1 to the following
+9
+WSS 2 (Extending WSS 1 to \u0017-SVM)
+1. Find
+ip 2 argmp( k);
+jp 2 arg min
+t (\u0000
+b2
+ipt
+\u0016aipt j yt = 1; t 2 Ilow( k);\u0000ytrf( k)t < \u0000yiprf( k)ip):
+2. Find
+in 2 argmn( k);
+jn 2 arg min
+t \u001A\u0000
+b2
+int
+\u0016aint j yt = \u00001; t 2 Ilow( k);\u0000ytrf( k)t < \u0000yinrf( k)in\u001B:
+3. Return fip; jpg) or fin; jng depending on which one gives smaller \u0000b2
+ij=\u0016aij .
+3.5 Analytical Solutions
+Details are described in Section 5 in which we discuss the solution of a more general
+sub-problem.
+3.6 The Calculation of b or \u001A
+After the solution of the dual optimization problem is obtained, the variables b or
+\u001A must be calculated as they are used in the decision function.
+We rst describe the case of C-SVC, \u000F-SVR, and one-class SVM. For this case, b
+has the same role as \u0000\u001A in one-class SVM, so we de ne rho = \u0000b and discuss how to
+nd it. If there are i which satisfy 0 < i < C, then from the KKT condition (3.8),
+\u001A = yirf( )i. Practically to avoid numerical errors, we average them:
+\u001A = P0< i<C yirf( )i P0< i<C 1
+:
+On the other hand, if there is no such i, the KKT condition becomes
+\u0000M( ) = maxfyirf( )i j i = 0; yi = \u00001 or i = C; yi = 1g
+\u0014 \u001A
+\u0014 \u0000m( ) = minfyirf( )i j i = 0; yi = 1 or i = C; yi = \u00001g:
+We take \u001A the midpoint of the range.
+10
+For the case of \u0017-SVC and \u0017-SVR, b and \u001A both appear. The KKT condition
+of (3.13) has been shown in (3.14) and (3.15). Now we consider the case of yi = 1.
+If there are i which satisfy 0 < i < C, then r1 = rf( )i. Practically to avoid
+numerical errors, we average them:
+r1 = P0< i<C;yi=1rf( )i P0< i<C;yi=1 1
+:
+On the other hand, if there is no such i, as r1 must satisfy
+max
+i=C;yi=1rf( )i \u0014 r1 \u0014 min
+i=0;yi=1rf( )i;
+we take r1 the midpoint of the range.
+For yi = \u00001, we can calculate r2 in a similar way.
+After r1 and r2 are obtained,
+\u001A =
+r1 + r2
+2
+and \u0000 b =
+r1 \u0000 r2
+2
+:
+3.7 Initial Values
+In the beginning of Algorithm 1, we must give a feasible . For C-SVC and \u000F-SVR,
+the initial is simply zero. For \u0017-SVC, after scaling we have from (2.5) that
+i \u0014 1 and Xi:yi=1
+i =
+\u0017l
+2
+:
+We therefore let the rst \u0017l
+2 elements of i with yi = 1 to have the value one. The
+situation for yi = \u00001 is similar.
+We use the same setting for one-class SVM and \u0017-SVR.
+4 Shrinking and Caching
+4.1 Shrinking
+Since for many problems the number of free support vectors (i.e. 0 < i < C) is small,
+the shrinking technique reduces the size of the working problem without considering
+some bounded variables (Joachims, 1998). Near the end of the iterative process, the
+decomposition method identi es a possible set A where all nal free i may reside
+11
+in. Indeed we can have the following theorem which shows that at the nal iterations
+of the decomposition proposed in Section 3.2 only variables corresponding to a small
+set are still allowed to move:
+Theorem 4.1 (Theorem IV in (Fan et al., 2005)) Assume Q is positive semi-
+de nite.
+1. The following set is independent of any optimal solution \u0016 :
+I \u0011 fi j \u0000yirf( \u0016 )i > M( \u0016 ) or \u0000 yirf( \u0016 )i < m( \u0016 )g: (4.1)
+Problem (2.2) has unique and bounded optimal solutions at i; i 2 I.
+2. Assume Algorithm 1 generates an in nite sequence f kg. There is \u0016k such that
+after k \u0015 \u0016k, every k
+i ; i 2 I has reached the unique and bounded optimal solution.
+It remains the same in all subsequent iterations and 8k \u0015 \u0016k:
+i 62 ft j M( k) \u0014 \u0000ytrf( k)t \u0014 m( k)g: (4.2)
+Hence instead of solving the whole problem (2.2), the decomposition method works
+on a smaller problem:
+min
+A
+1
+2
+T
+AQAA A \u0000 (pA \u0000 QAN k
+N)T A
+subject to 0 \u0014 ( A)t \u0014 C; t = 1; : : : ; q; (4.3)
+yT
+A A = \u0001 \u0000 yT
+N k
+N;
+where N = f1; : : : ; lgnA is the set of shrunken variables.
+Of course this heuristic may fail if the optimal solution of (4.3) is not the corresponding
+part of that of (2.2). When that happens, the whole problem (2.2) is
+reoptimized starting from a point where A is an optimal solution of (4.3) and N
+are bounded variables identi ed before the shrinking process. Note that while solving
+the shrunken problem (4.3), we only know the gradient QAA A + QAN N + pA of
+(4.3). Hence when problem (2.2) is reoptimized we also have to reconstruct the whole
+gradient rf( ), which is quite expensive.
+Many implementations began the shrinking procedure near the end of the iterative
+process, in LIBSVM however, we start the shrinking process from the beginning. The
+procedure is as follows:
+12
+1. After every min(l; 1000) iterations, we try to shrink some variables. Note that
+during the iterative process
+m( k) > M( k) (4.4)
+as (3.9) is not satis ed yet. Following Theorem 4.1, we conjecture that variables
+in the following set can be shrunken:
+ft j \u0000ytrf( k)t > m( k); t 2 Ilow( k); k
+t is boundedg [
+ft j \u0000ytrf( k)t < M( k); t 2 Iup( k); k
+t is boundedg
+= ft j \u0000ytrf( k)t > m( k); k
+t = C; yt = 1 or k
+t = 0; yt = \u00001g [
+ft j \u0000ytrf( k)t < M( k); k
+t = 0; yt = 1 or k
+t = C; yt = \u00001g:(4.5)
+Thus the set A of activated variables is dynamically reduced in every min(l; 1000)
+iterations.
+2. Of course the above shrinking strategy may be too aggressive. Since the decomposition
+method has a very slow convergence and a large portion of iterations
+are spent for achieving the nal digit of the required accuracy, we would not
+like those iterations are wasted because of a wrongly shrunken problem (4.3).
+Hence when the decomposition method rst achieves the tolerance
+m( k) \u0014 M( k) + 10\u000F;
+where \u000F is the speci ed stopping criteria, we reconstruct the whole gradient.
+Then we inactive some variables based on the current set (4.5). and the decomposition
+method continues.
+Therefore, in LIBSVM, the size of the set A of (4.3) is dynamically reduced. To
+decrease the cost of reconstructing the gradient rf( ), during the iterations we
+always keep
+\u0016G
+i = C X j=C
+Qij ; i = 1; : : : ; l:
+Then for the gradient rf( )i; i =2 A, we have
+rf( )i =
+l Xj=1
+Qij j + pi = \u0016Gi + X 0< j<C
+Qij j + pi:
+13
+For \u0017-SVC and \u0017-SVR, as the stopping condition (3.16) is di erent from (3.9),
+the set (4.5) must be modi ed. For yt = 1, we shrink elements in the following set
+ft j \u0000ytrf( k)t > mp( k); t = C; yt = 1g[
+ft j \u0000ytrf( k)t < Mp( k); t = 0; yt = 1g:
+For yt = \u00001, we shrink the following set:
+ft j \u0000ytrf( k)t > mn( k); t = 0; yt = \u00001g[
+ft j \u0000ytrf( k)t < Mn( k); t = C; yt = \u00001g:
+4.2 Caching
+Another technique for reducing the computational time is caching. Since Q is fully
+dense and may not be stored in the computer memory, elements Qij are calculated
+as needed. Then usually a special storage using the idea of a cache is used to store
+recently used Qij (Joachims, 1998). Hence the computational cost of later iterations
+can be reduced.
+Theorem 4.1 also supports the use of the cache as in nal iterations only some
+columns of the matrix Q are still needed. Thus if the cache can contain these columns,
+we can avoid most kernel evaluations in nal iterations.
+In LIBSVM, we implement a simple least-recent-use strategy for the cache. We
+dynamically cache only recently used columns of QAA of (4.3).
+4.3 Computational Complexity
+The discussion in Section 3.3 is about the asymptotic convergence of the decomposition
+method. Here, we discuss the computational complexity.
+The main operations are on nding QBN k
+N + pB of (3.3) and the update of
+rf( k) to rf( k+1). Note that rf( ) is used in the working set selection as well
+as the stopping condition. They can be considered together as
+QBN k
+N + pB = rf( k) \u0000 QBB k
+B; (4.6)
+and
+rf( k+1) = rf( k) + Q:;B( k+1
+B \u0000 k
+B); (4.7)
+14
+where Q:;B is the sub-matrix of Q with column in B. That is, at the kth iteration,
+as we already have rf( k), the right-hand-side of (4.6) is used to construct the
+sub-problem. After the sub-problem is solved, (4.7) is employed to have the next
+rf( k+1). As B has only two elements and solving the sub-problem is easy, the
+main cost is Q:;B( k+1
+B \u0000 k
+B) of (4.7). The operation itself takes O(2l) but if Q:;B is
+not available in the cache and each kernel evaluation costs O(n), one column indexes
+of Q:;B already needs O(ln). Therefore, the complexity is:
+1. #Iterations \u0002 O(l) if most columns of Q are cached during iterations.
+2. #Iterations\u0002O(nl) if most columns of Q are cached during iterations and each
+kernel evaluation is O(n).
+Note that if shrinking is incorporated, l will gradually decrease during iterations.
+5 Unbalanced Data
+For some classi cation problems, numbers of data in di erent classes are unbalanced.
+Hence some researchers (e.g. (Osuna et al., 1997b)) have proposed to use di erent
+penalty parameters in the SVM formulation: For example, C-SVM becomes
+min
+w;b;\u0018
+1
+2
+wTw + C+Xyi=1
+\u0018i + C\u0000 Xyi=\u00001
+\u0018i
+subject to yi(wT\u001E(xi) + b) \u0015 1 \u0000 \u0018i;
+\u0018i \u0015 0; i = 1; : : : ; l:
+Its dual is
+min
+
+1
+2
+TQ \u0000 eT 
+subject to 0 \u0014 i \u0014 C+; if yi = 1; (5.1)
+0 \u0014 i \u0014 C\u0000; if yi = \u00001; (5.2)
+yT = 0:
+Note that by replacing C with di erent Ci; i = 1; : : : ; l, most of the analysis earlier
+are still correct. Now using C+ and C\u0000 is just a special case of it. Therefore, the
+15
+implementation is almost the same. A main di erence is on the solution of the subproblem
+(3.3). Now it becomes:
+min
+i; j
+1
+2 \u0002 i j\u0003\u0014Qii Qij
+Qji Qjj\u0015\u0014 i
+j\u0015+ (Qi;N N \u0000 1) i + (Qj;N N \u0000 1) j
+subject to yi i + yj j = \u0001 \u0000 yT
+N k
+N; (5.3)
+0 \u0014 i \u0014 Ci; 0 \u0014 j \u0014 Cj ;
+where Ci and Cj can be C+ or C\u0000 depending on yi and yj .
+Let i = k
+i +di; j = k
+j +dj and ^ di \u0011 yidi; ^ dj \u0011 yjdj . Then (5.3) can be written
+as
+min
+di;dj
+1
+2 \u0002di dj\u0003\u0014Qii Qij
+Qij Qjj\u0015\u0014di
+dj\u0015+ \u0002rf( k)i rf( k)j\u0003\u0014di
+dj\u0015
+subject to yidi + yjdj = 0; (5.4)
+\u0000 k
+i \u0014 di \u0014 C \u0000 k
+i ;\u0000 k
+j \u0014 dj \u0014 C \u0000 k
+j :
+De ne aij and bij as in (3.10). Note that if aij \u0014 0, then a modi cation similar to
+(3.4). Using ^ di = \u0000^ dj , the objective function can be written as
+1
+2
+\u0016aij ^ d2
+j + bij ^ dj :
+Thus,
+new
+i = k
+i + yibij=\u0016aij ;
+new
+j = k
+i \u0000 yjbij=\u0016aij : (5.5)
+To modify them back to the feasible region, we rst consider the case yi 6= yj and
+write (5.5) as
+new
+i = k
+i + (\u0000rf( k)i \u0000 rf( k)j)=\u0016aij ;
+new
+j = k
+i + (\u0000rf( k)i \u0000 rf( k)j)=\u0016aij :
+If new is not feasible, ( new
+i ; new
+j ) is in one of the following four regions:
+-
+6
+i
+j
+I
+II
+III
+IV
+16
+If it is in region I, k+1
+i is set to be Ci rst and then
+k+1
+j = Ci \u0000 ( k
+i \u0000 k
+j ):
+Of course we must check if it is in region I rst. If so, we have
+k
+i \u0000 k
+j > Ci \u0000 Cj and new
+i \u0015 Ci:
+Other cases are similar. Therefore, we have the following procedure to identify
+( new
+i ; new
+j ) in di erent regions and change it back to the feasible set.
+if(y[i]!=y[j])
+{
+double quad_coef = Q_i[i]+Q_j[j]+2*Q_i[j];
+if (quad_coef <= 0)
+quad_coef = TAU;
+double delta = (-G[i]-G[j])/quad_coef;
+double diff = alpha[i] - alpha[j];
+alpha[i] += delta;
+alpha[j] += delta;
+if(diff > 0)
+{
+if(alpha[j] < 0) // in region III
+{
+alpha[j] = 0;
+alpha[i] = diff;
+}
+}
+else
+{
+if(alpha[i] < 0) // in region IV
+{
+alpha[i] = 0;
+alpha[j] = -diff;
+}
+}
+if(diff > C_i - C_j)
+{
+if(alpha[i] > C_i) // in region I
+{
+alpha[i] = C_i;
+alpha[j] = C_i - diff;
+}
+17
+}
+else
+{
+if(alpha[j] > C_j) // in region II
+{
+alpha[j] = C_j;
+alpha[i] = C_j + diff;
+}
+}
+}
+6 Multi-class classi cation
+We use the \one-against-one" approach (Knerr et al., 1990) in which k(k \u0000 1)=2
+classi ers are constructed and each one trains data from two di erent classes. The
+rst use of this strategy on SVM was in (Friedman, 1996; Kre\u0019el, 1999). For training
+data from the ith and the jth classes, we solve the following two-class classi cation
+problem:
+min
+wij ;bij ;\u0018ij
+1
+2
+(wij)Twij + C(Xt
+(\u0018ij)t)
+subject to (wij)T\u001E(xt) + bij \u0015 1 \u0000 \u0018ij
+t ; if xt in the ith class,
+(wij)T\u001E(xt) + bij \u0014 \u00001 + \u0018ij
+t ; if xt in the jth class,
+\u0018ij
+t \u0015 0:
+In classi cation we use a voting strategy: each binary classi cation is considered to be
+a voting where votes can be cast for all data points x - in the end point is designated
+to be in a class with maximum number of votes.
+In case that two classes have identical votes, though it may not be a good strategy,
+now we simply select the one with the smallest index.
+There are other methods for multi-class classi cation. Some reasons why we choose
+this \1-against-1" approach and detailed comparisons are in Hsu and Lin (2002).
+7 Parameter Selection
+LIBSVM provides a parameter selection tool using the RBF kernel: cross validation
+via parallel grid search. While cross validation is available for both SVC and SVR,
+18
+for the grid search, currently we support only C-SVC with two parameters C and 
+.
+They can be easily modi ed for other kernels such as linear and polynomial, or for
+SVR.
+For median-sized problems, cross validation might be the most reliable way for
+parameter selection. First, the training data is separated to several folds. Sequentially
+a fold is considered as the validation set and the rest are for training. The average of
+accuracy on predicting the validation sets is the cross validation accuracy.
+Our implementation is as follows. Users provide a possible interval of C (or 
+)
+with the grid space. Then, all grid points of (C; 
+) are tried to see which one gives
+the highest cross validation accuracy. Users then use the best parameter to train the
+whole training set and generate the nal model.
+For easy implementation, we consider each SVM with parameters (C; 
+) as an
+independent problem. As they are di erent jobs, we can easily solve them in parallel.
+Currently, LIBSVM provides a very simple tool so that jobs are dispatched to a cluster
+of computers which share the same le system.
+Note that now under the same (C; 
+), the one-against-one method is used for
+training multi-class data. Hence, in the nal model, all k(k \u00001)=2 decision functions
+share the same (C; 
+).
+LIBSVM also outputs the contour plot of cross validation accuracy. An example
+is in Figure 1.
+8 Probability Estimates
+Support vector classi cation (regression) predicts only class label (approximate target
+value) but not probability information. In the following we brie
+y describe how we
+extend SVM for probability estimates. More details are in Wu et al. (2004) for
+classi cation and in Lin and Weng (2004) for regression.
+Given k classes of data, for any x, the goal is to estimate
+pi = p(y = i j x); i = 1; : : : ; k:
+Following the setting of the one-against-one (i.e., pairwise) approach for multi-class
+19
+Figure 1: Contour plot of heart scale included in the LIBSVM package
+classi cation, we rst estimated pairwise class probabilities
+rij \u0019 p(y = i j y = i or j; x)
+using an improved implementation (Lin et al., 2003) of (Platt, 2000):
+rij \u0019
+1
+1 + eA ^ f+B
+; (8.1)
+where A and B are estimated by minimizing the negative log-likelihood function
+using known training data and their decision values ^ f. Labels and decision values
+are required to be independent so here we conduct ve-fold cross-validation to obtain
+decision values.
+Then the second approach in Wu et al. (2004) is used to obtain pi from all these
+rij 's. It solves the following optimization problem:
+min
+p
+1
+2
+k Xi=1 Xj:j6=i
+(rjipi \u0000 rijpj)2 subject to
+k Xi=1
+pi = 1; pi \u0015 0; 8i: (8.2)
+20
+The objective function comes from the equality
+p(y = j j y = i or j; x) \u0001 p(y = i j x) = p(y = i j y = i or j; x) \u0001 p(y = j j x)
+and can be reformulated as
+min
+p
+1
+2
+pTQp; (8.3)
+where
+Qij = (Ps:s6=i r2
+si if i = j;
+\u0000rjirij if i 6= j:
+(8.4)
+This problem is convex, so the optimality conditions that there is a scalar b such that
+\u0014Q e
+eT 0\u0015\u0014p
+b\u0015= \u00140
+1\u0015: (8.5)
+Here e is the k \u0002 1 vector of all ones, 0 is the k \u0002 1 vector of all zeros, and b is
+the Lagrangian multiplier of the equality constraint Pk
+i=1 pi = 1. Instead of directly
+solving the linear system (8.5), we derive a simple iterative method in the following.
+As
+\u0000pTQp = \u0000pTQ(\u0000bQ\u00001e) = bpT e = b;
+the solution p satis es
+Qttpt +Xj:j6=t
+Qtjpj \u0000 pTQp = 0; for any t: (8.6)
+Using (8.6), we consider the following algorithm:
+Algorithm 2
+1. Start with some initial pi \u0015 0; 8i and Pk
+i=1 pi = 1.
+2. Repeat (t = 1; : : : ; k; 1; : : :)
+pt  
+1
+Qtt
+[\u0000Xj:j6=t
+Qtjpj + pTQp] (8.7)
+normalize p (8.8)
+until (8.5) is satis ed.
+This procedure guarantees to nd a global optimum of (8.2). Using some tricks, we
+do not need to recalculate pTQp in each iteration. Detailed implementation notes
+21
+are in Appendix C of Wu et al. (2004). We consider a relative stopping condition for
+Algorithm 2:
+kQp \u0000 pTQpek1 = max
+t j(Qp)t \u0000 pTQpj < 0:005=k:
+When k is large, p will be closer to zero, so we decrease the tolerance by a factor of
+k.
+Next, we discuss SVR probability inference. For a given set of training data
+D = f(xi; yi) j xi 2 Rn; yi 2 R; i = 1; : : : ; lg, we suppose that the data are collected
+from the model:
+yi = f(xi) + \u000Ei; (8.9)
+where f(x) is the underlying function and \u000Ei are independent and identically distributed
+random noises. Given a test data x, the distribution of y given x and D,
+P(y j x;D), allows one to draw probabilistic inferences about y; for example, one
+can construct a predictive interval I = I(x) such that y 2 I with a pre-speci ed
+probability. Denoting ^ f as the estimated function based on D using SVR, then
+\u0010 = \u0010(x) \u0011 y \u0000 ^ f(x) is the out-of-sample residual (or prediction error), and y 2 I is
+equivalent to \u0010 2 I \u0000 ^ f(x). We propose to model the distribution of \u0010 based on a
+set of out-of-sample residuals f\u0010igl
+i=1 using training data D. The \u0010i's are generated
+by rst conducting a k-fold cross validation to get ^ fj , j = 1; : : : ; k, and then setting
+\u0010i \u0011 yi\u0000 ^ fj(xi) for (xi; yi) in the jth fold. It is conceptually clear that the distribution
+of \u0010i's may resemble that of the prediction error \u0010.
+Figure 2 illustrates \u0010i's from a real data. Basically, a discretized distribution like
+histogram can be used to model the data; however, it is complex because all \u0010i's must
+be retained. On the contrary, distributions like Gaussian and Laplace, commonly
+used as noise models, require only location and scale parameters. In Figure 2 we plot
+the tted curves using these two families and the histogram of \u0010i's. The gure shows
+that the distribution of \u0010i's seems symmetric about zero and that both Gaussian and
+Laplace reasonably capture the shape of \u0010i's. Thus, we propose to model \u0010i by zeromean
+Gaussian and Laplace, or equivalently, model the conditional distribution of y
+given ^ f(x) by Gaussian and Laplace with mean ^ f(x).
+(Lin and Weng, 2004) discussed a method to judge whether a Laplace and Gaussian
+distribution should be used. Moreover, they experimentally show that in all cases
+22
+they have tried, Laplace is better. Thus, here we consider the zero-mean Laplace with
+a density function:
+p(z) =
+1
+2\u001B
+e\u0000jzj \u001B : (8.10)
+Assuming that \u0010i are independent, we can estimate the scale parameter by maximizing
+the likelihood. For Laplace, the maximum likelihood estimate is
+\u001B = Pl
+i=1 j\u0010ij
+l
+: (8.11)
+(Lin and Weng, 2004) pointed out that some \very extreme" \u0010i may cause inaccurate
+estimation of \u001B. Thus, they propose to estimate the scale parameter by discarding \u0010i's
+which exceed \u00065\u0002(standard deviation of \u0010i). Thus, for any new data x, we consider
+that
+y = ^ f(x) + z;
+where z is a random variable following the Laplace distribution with parameter \u001B.
+In theory, the distribution of \u0010 may depend on the input x, but here we assume
+that it is free of x. This is similar to the model (8.1) for classi cation. Such an
+assumption works well in practice and leads to a simple model.
+Figure 2: Histogram of \u0010i's from a data set and the modeling via Laplace and Gaussian
+distributions. The x-axis is \u0010i using ve-fold CV and the y-axis is the normalized
+number of data in each bin of width 1.
+23
+Acknowledgments
+This work was supported in part by the National Science Council of Taiwan via
+the grants NSC 89-2213-E-002-013 and NSC 89-2213-E-002-106. The authors thank
+Chih-Wei Hsu and Jen-Hao Lee for many helpful discussions and comments. We also
+thank Ryszard Czerminski and Lily Tian for some useful comments.
+References
+B. E. Boser, I. Guyon, and V. Vapnik. A training algorithm for optimal margin
+classi ers. In Proceedings of the Fifth Annual Workshop on Computational Learning
+Theory, pages 144{152. ACM Press, 1992.
+C.-C. Chang and C.-J. Lin. Training \u0017-support vector classi ers: Theory and algorithms.
+Neural Computation, 13(9):2119{2147, 2001.
+P.-H. Chen, R.-E. Fan, and C.-J. Lin. A study on SMO-type decomposition methods
+for support vector machines. IEEE Transactions on Neural Networks, 17:893{908,
+July 2006. URL http://www.csie.ntu.edu.tw/~cjlin/papers/generalSMO.
+pdf.
+C. Cortes and V. Vapnik. Support-vector network. Machine Learning, 20:273{297,
+1995.
+D. J. Crisp and C. J. C. Burges. A geometric interpretation of \u0017-SVM classi ers.
+In S. Solla, T. Leen, and K.-R. Muller, editors, Advances in Neural Information
+Processing Systems, volume 12, Cambridge, MA, 2000. MIT Press.
+R.-E. Fan, P.-H. Chen, and C.-J. Lin. Working set selection using second order
+information for training SVM. Journal of Machine Learning Research, 6:1889{1918,
+2005. URL http://www.csie.ntu.edu.tw/~cjlin/papers/quadworkset.pdf.
+J. Friedman. Another approach to polychotomous classi cation. Technical
+report, Department of Statistics, Stanford University, 1996. Available at
+http://www-stat.stanford.edu/reports/friedman/poly.ps.Z.
+24
+C.-W. Hsu and C.-J. Lin. A comparison of methods for multi-class support vector
+machines. IEEE Transactions on Neural Networks, 13(2):415{425, 2002.
+T. Joachims. Making large-scale SVM learning practical. In B. Scholkopf, C. J. C.
+Burges, and A. J. Smola, editors, Advances in Kernel Methods - Support Vector
+Learning, Cambridge, MA, 1998. MIT Press.
+S. Knerr, L. Personnaz, and G. Dreyfus. Single-layer learning revisited: a stepwise
+procedure for building and training a neural network. In J. Fogelman, editor, Neu-
+rocomputing: Algorithms, Architectures and Applications. Springer-Verlag, 1990.
+U. Kre\u0019el. Pairwise classi cation and support vector machines. In B. Scholkopf,
+C. J. C. Burges, and A. J. Smola, editors, Advances in Kernel Methods | Support
+Vector Learning, pages 255{268, Cambridge, MA, 1999. MIT Press.
+C.-J. Lin and R. C. Weng. Simple probabilistic predictions for support vector regression.
+Technical report, Department of Computer Science, National Taiwan University,
+2004. URL http://www.csie.ntu.edu.tw/~cjlin/papers/svrprob.pdf.
+H.-T. Lin, C.-J. Lin, and R. C. Weng. A note on Platt's probabilistic outputs for support
+vector machines. Technical report, Department of Computer Science, National
+Taiwan University, 2003. URL http://www.csie.ntu.edu.tw/~cjlin/papers/
+plattprob.ps.
+E. Osuna, R. Freund, and F. Girosi. Training support vector machines: An application
+to face detection. In Proceedings of CVPR'97, pages 130{136, New York, NY, 1997a.
+IEEE.
+E. Osuna, R. Freund, and F. Girosi. Support vector machines: Training and applications.
+AI Memo 1602, Massachusetts Institute of Technology, 1997b.
+J. Platt. Probabilistic outputs for support vector machines and comparison to regularized
+likelihood methods. In A. Smola, P. Bartlett, B. Scholkopf, and D. Schuurmans,
+editors, Advances in Large Margin Classi ers, Cambridge, MA, 2000. MIT
+Press. URL citeseer.nj.nec.com/platt99probabilistic.html.
+25
+J. C. Platt. Fast training of support vector machines using sequential minimal optimization.
+In B. Scholkopf, C. J. C. Burges, and A. J. Smola, editors, Advances in
+Kernel Methods - Support Vector Learning, Cambridge, MA, 1998. MIT Press.
+B. Scholkopf, A. Smola, R. C. Williamson, and P. L. Bartlett. New support vector
+algorithms. Neural Computation, 12:1207{1245, 2000.
+B. Scholkopf, J. C. Platt, J. Shawe-Taylor, A. J. Smola, and R. C. Williamson.
+Estimating the support of a high-dimensional distribution. Neural Computation,
+13(7):1443{1471, 2001.
+V. Vapnik. Statistical Learning Theory. Wiley, New York, NY, 1998.
+T.-F. Wu, C.-J. Lin, and R. C. Weng. Probability estimates for multi-class classi cation
+by pairwise coupling. Journal of Machine Learning Research, 5:975{1005, 2004.
+URL http://www.csie.ntu.edu.tw/~cjlin/papers/svmprob/svmprob.pdf.
+26 体验新版博客 
+ 分享 |  评论 (0) |  阅读 (25)  |  固定链接 |  发表于 17:48 
+提示：“固定链接”为您显示此篇文章的固定不变链接，如果您有还有疑问请点击帮助
+链接地址：http://guoxinmiao8.blog.sohu.com/64371401.html 复制此地址
+
+评论     想第一时间抢沙发么？由于最近广告泛滥，暂只允许登录用户对此文评论。登录  
+   
+
+奥巴马自费买热狗柴静在节目中采访抑或表演
+·官员财产公开为何要等通知 ·日美夺岛联合军演有何玄机 ·建议从清理房产入手治腐败 ·甄嬛传登陆美国是国际玩笑 ·简洁搭配任何场合都不出错 周迅姚晨谁是真正女王 ·自制酱牛蹄筋赛海参 冬日推荐暖胃酸菜胡椒猪肚汤 
+帮助 - 客服中心 - 意见建议 - 举报 - 搜狐博客 - 搜狐首页 | 举报不良信息 
+Copyright © 2013 Sohu.com Inc. All rights reserved. 搜狐公司 版权所有 
+
+
+ 

@@ -1,0 +1,165 @@
+下载2频道 我的主页帐号设置退出秀才　二级|私信(1)|我的百科我的贡献草稿箱我的任务为我推荐|百度首页 新闻网页贴吧知道音乐图片视频地图百科文库
+    帮助 首页 自然 文化 地理 历史 生活 社会 艺术 人物 经济 科技 体育 图片 数字博物馆 核心用户 百科商城 百科数字博物馆突破30家
+求助编辑EBNF目录
+
+基本
+依据 ISO 的扩展
+扩展 BNF 的动机
+其他增加和修改
+另一个例子
+约定
+有关工作
+参见
+引用
+外部链接
+展开基本 
+依据 ISO 的扩展 
+扩展 BNF 的动机 
+其他增加和修改 
+另一个例子 
+约定 
+有关工作 
+参见 
+引用 
+外部链接
+展开　　
+扩展的巴科斯范式
+用来描述计算机语言语法的符号集。现在，几乎每一位新编程语言书籍的作者都使用巴科斯范式来定义编程语言的语法规则。 
+扩展巴科斯-瑙尔范式(EBNF)是表达作为描述计算机编程语言和形式语言的正规方式的上下文无关文法的元语法符号表示法。它是基本巴科斯范式(BNF)元语法符号表示法的一种扩展。
+它最初由尼古拉斯·沃斯开发，最常用的 EBNF 变体由标准，特别是 ISO-14977 所定义。
+编辑本段基本代码，如由终结符即可视字符、数字、标点符号、空白字符等组成的计算机程序的源代码。
+EBNF 定义了把各符号序列分别指派到非终结符的产生规则:
+digit excluding zero = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ; 
+digit = "0" | digit excluding zero ;
+这个产生规则定义了在这个指派的左端的非终结符 digit。竖杠表示可供选择，而终结符被引号包围，最后跟着分号作为终止字符。所以 digit 是一个0或可以是1 或2 或 3 直到 9 的一个 digit excluding zero。[1]
+产生规则还可以包括由逗号分隔的一序列终结符或非终结符:
+twelve = "1" , "2" ; two hundred one = "2" , "0" , "1" ; three hundred twelve = "3" , twelve ; twelve thousand two hundred one = twelve , two hundred one ;
+可以省略或重复的表达式可以通过花括号 { ... } 表示:
+natural number = {digit excluding} zero , ;
+在这种情况下，字符串 ', ', ...,1',...,1234',... 都是正确的表达式。要表示这种情况，于花括号内设立的所有东西可以重复任何次，包括根本不出现。
+可选项可以通过方括号 [...] 表示:
+integer = ["0" | "-"] natural number ;
+所以 integer 是一个零(')或可能前导可选的负号的一个自然数。
+EBNF 还包括描述指定次数的重复，和排除产生式的某部分或向 EBNF 文法插入注释的语法。
+编辑本段依据 ISO 的扩展依据 ISO 14977 标准，提供了两个设施来扩展 EBNF。其一是在 EBNF 文法部分的特殊序列，它是在问号包围内的任意文本，其解释超出了 EBNF 标准的范围。例如，空格字符可以用如下规则定义:
+space = ? US-ASCII character 32 ?;
+其二利用圆括号在 EBNF 中不能放置到紧随标识符之后的事实。下列不是有效的 EBNF:
+something = foo ( bar );
+所以 EBNF 的扩展可以使用这种表示法。例如，在 Lisp 文法中，函数应用可以用如下规则定义:
+function application = list( symbol , expression } );
+编辑本段扩展 BNF 的动机BNF 有着可选项和重复不能直接表达的问题。作为替代，它们需要利用中介规则或两选一规则，对于可选项，定义要么是空的要么是可选的产生式的规则，对于重复，递归的定义要么是被重复的产生式要么是自身的规则。同样的构造仍可用在 EBNF 中。
+可选项:
+signed number = , number ;
+可按 BNF-风格定义为:
+signed number = sign , number | number ;
+或
+signed number = optional sign , number ; optional sign = ε | sign ; (* 使用 ε 来更清晰的指示空产生式 *)
+重复:
+number = ;
+可按 BNF-风格定义为:
+number = digit | number digit;
+编辑本段其他增加和修改EBNF 排除了 BNF 的一些缺陷:
+BNF 为自身使用了符号 (<, >, |, ::=)。当它们出现在要定义的语言中的时候，BNF 不能不加以修改或解释的使用。
+BNF-语法在一行中只表示一个规则。
+EBNF 解决了这些问题: 
+终结符被严格的包围在引号 ("..." 或 '...') 中。给非终结符的尖括号 ("<...>")可以省略。
+通常使用终止字符分号结束一个规则。
+进一步还提供了定义重复次数，排除法选择(比如除了引号的所有字符)和注释等的增强机制。
+不管所有这些增强，EBNF 在能定义的语言的意义上不比 BNF 更强大。在原理上用 EBNF 定义的任何文法都可以用 BNF 表达。但是经常导致可观的更多规则的表示。
+EBNF 已经被ISO用代码 ISO/IEC 14977:1996(E' 标准化了。
+在某些场合任何扩展的 BNF 都被称为 EBNF。例如 W3C 使用 on' EBNF 来规定 XML。
+编辑本段另一个例子只允许赋值的简单编程语言可以用 EBNF 定义为:
+(* a simple program in EBNF ? Wikipedia *) program = 'PROGRAM' , white space , identifier , white space , 'BEGIN' , white space , { assignment , ";" , white space } , 'END.' ; identifier = alphabetic character , alphabetic character | digit } ; number = "-" , digit , digit } ; string = '"' , { all characters ? '"' } , '"' ; assignment = identifier , ":=" , ( number | identifier | string ) ; alphabetic character = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" ; digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ; white space = ? white space characters ? ; all characters = ? all visible characters ? ;
+一个语法上正确的程序:
+PROGRAM DEMO1 BEGIN A0:=3; B:=45; H:=-100023; C:=A; D123:=B34A; BABOON:=GIRAFFE; TEXT:="Hello world!"; END.
+这个语言可以轻易的扩展上控制流，算术表达式和输入/输出指令。就可以开发出一个小的、可用的编程语言了。
+使用了在标准中提议为正规表示的下列字符:
+用途 符号表示 
+定义 = 
+串接 , 
+终止 ; 
+分隔 
+可选 ... 
+重复 { ... } 
+分组 ( ... ) 
+双引号 " ... " 
+单引号 ' ... ' 
+注释 (* ... *) 
+特殊序列 ? ... ? 
+除外 -
+编辑本段约定1. 使用了如下约定: 
+扩展 BNF 每个元标识符都被写为用连字号连接起来的一个或多个字；
+结束于“-symbol” 的元标识符是扩展 BNF 的终结符的名字。
+2. 表示扩展 BNF 的每个操作符的正常字符和它所蕴涵的优先级(顶部为最高优先级)为: * repetition-symbol - except-symbol , concatenate-symbol | definition-separator-symbol = defining-symbol ; terminator-symbol 3. 下列括号对超越正常优先级: ′ first-quote-symbol first-quote-symbol ′ " second-quote-symbol second-quote-symbol " (* start-comment-symbol end-comment-symbol *) ( start-group-symbol end-group-symbol ) end-option-symbol { start-repeat-symbol end-repeat-symbol } ? special-sequence-symbol special-sequence-symbol ?
+作为例子，下列语法规则展示了表达重复的设施: aa = "A"; bb = 3 * aa, "B"; cc = 3 * aa, "C"; dd = , "D"; ee = aa, , "E"; ff = 3 * aa, 3 * aa, "F"; gg = {3 * aa}, "D"; 这些规则定义的终结字符串如下: aa: A bb: AAAB cc: C AC AAC AAAC dd: D AD AAD AAAD AAAAD etc. ee: AE AAE AAAE AAAAE AAAAAE etc. ff: AAAF AAAAF AAAAAF AAAAAAF gg: D AAAD AAAAAAD etc.
+编辑本段有关工作W3C 使用一种不同的 EBNF 来指定 XML 语法。
+British Standards Institute 在1981年出版了一个 EBNF 标准: BS 6154。
+IETF 使用在 RFC 4234 中规定的扩充 BNF (ABNF)。
+编辑本段参见扩充巴科斯范式
+巴科斯范式
+正则表达式
+Spirit Parser Framework
+Wirth Syntax Notation
+编辑本段引用Niklaus Wirth: What can we do about the unnecessary diversity of notation for syntactic definitions? CACM, Vol. 20, Issue 11, November 1977, pp. 822-823.
+Roger S. Scowen: Extended BNF — A generic base standard. Software Engineering Standards Symposium 1993.
+The International standard (ISO 14977) that defines the EBNF is now freely available as zipped pdf file.
+编辑本段外部链接Article "EBNF: A Notation to Describe Syntax (PDF)" by Richard E. Pattis describing the functions and syntax of EBNF
+Article "BNF and EBNF: What are they and how do they work?" by Lars Marius Garshol
+Article "The Naming of Parts" by John E. Simpson
+ISO/IEC 14977 : 1996(E)
+RFC 4234 - Augmented BNF for Syntax Specifications: ABNF
+BNF/EBNF variants - a table by Pete Jinks comparing several syntaxes.
+Create syntax diagrams from EBNF
+
+参考资料 
+1．  ENBF  ．WIKI [引用日期2012-11-6] ．
+扩展阅读： 
+1 
+http://www.soobb.com/Destination_Wiki_239673.html 
+开放分类： 
+EBNF 
+
+
+百度百科中的词条正文与判断内容均由用户提供，不代表百度百科立场。如果您需要解决具体问题（如法律、医学等领域），建议您咨询相关领域专业人士。
+本词条对我有帮助添加到搜藏 分享到:更多
+合作编辑者 
+topeco ， w_ou ， 727045240 ， SharkChaos ， rtcontrol ， untager ， 更多 
+如果您认为本词条还需进一步完善，百科欢迎您也来参与 编辑词条 在开始编辑前，您还可以先学习如何编辑词条
+如想投诉，请到百度百科投诉中心；如想提出意见、建议，请到百度百科吧。
+下载2频道
+00
+
+去兑换>>您尚无道具可使用
+成长任务加速升级，快速成长。我要去参加>>日常任务本月累计点亮0天。今日笑脸还没点亮哦。
+名符图实：参加任务，拿点亮任务日历获得财富值热词推送编辑热词可获得额外经验值
+词条动态进入我的百科您目前的等级是2级
+您目前的经验值是176点
+您还需324点经验值即可升为3级
+
+
+词条统计
+浏览次数：约 8942次
+编辑次数：6次 历史版本
+最近更新：2012-11-06
+创建者：untager
+最新动态
+百科新春嘉年华启动：
+
+百科消息：
+百科android客户端升级1.1版
+文库专题：过日子要有技术含量
+百科mini上线：聚合精彩主题APP
+2012年度十大科技谣言
+百科数字博物馆突破30家
+百科新增功能维护词条权威
+
+© 2013 Baidu 使用百度前必读 | 百科协议 | 百度百科合作平台
+EBNF基本依据 ISO 的扩展扩展 BNF 的动机其他增加和修改另一个例子约定有关工作参见引用外部链接
+
+  参考资料 
+退出 
+若有错误，请划词选中错误内容并按提示质疑，为词条的质量提升做出贡献。
+
+展开收起
+若您对这些内容有可信的参考资料，并掌握百科编辑技巧，欢迎你直接编辑词条。
+参与质疑×

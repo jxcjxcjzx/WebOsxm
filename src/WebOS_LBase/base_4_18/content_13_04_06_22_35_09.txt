@@ -1,0 +1,312 @@
+High一下!
+酷壳 – CoolShell.cn
+享受编程和技术所带来的快乐 – http://coolshell.cn
+首页 推荐文章 本站插件 留言小本 关于酷壳 关于陈皓
+
+首页 > Python	 > 非常简单的Python HTTP服务
+非常简单的Python HTTP服务
+2009年9月27日陈皓发表评论阅读评论 6,327 人阅读    
+如果你急需一个简单的Web Server，但你又不想去下载并安装那些复杂的HTTP服务程序，比如：Apache，ISS等。那么， Python 可能帮助你。使用Python可以完成一个简单的内建 HTTP 服务器。于是，你可以把你的目录和文件都以HTTP的方式展示出来。佻只需要干一件事情，那就是安装一个Python。
+
+实际上来说，这是一个可以用来共享文件的非常有用的方式。实现一个微型的HTTP服务程序来说是很简单的事情，在Python下，只需要一个命令行。下面是这个命令行：（假设我们需要共享我们的目录 /home/haoel 而IP地址是192.168.1.1）
+
+1
+2
+$ cd /home/haoel
+$ python -m SimpleHTTPServer
+
+这就行了，而我们的HTTP服务在8000号端口上侦听。你会得到下面的信息：
+
+Serving HTTP on 0.0.0.0 port 8000 ...
+你可以打开你的浏览器（IE或Firefox），然后输入下面的URL：
+
+http://192.168.1.1:8000
+如果你的目录下有一个叫 index.html 的文件名的文件，那么这个文件就会成为一个默认页，如果没有这个文件，那么，目录列表就会显示出来。
+
+如果你想改变端口号，你可以使用如下的命令：
+
+1
+$ python -m SimpleHTTPServer 8080
+如果你只想让这个HTTP服务器服务于本地环境，那么，你需要定制一下你的Python的程序，下面是一个示例：
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+import sys
+import BaseHTTPServer
+from SimpleHTTPServer import SimpleHTTPRequestHandler
+HandlerClass = SimpleHTTPRequestHandler
+ServerClass  = BaseHTTPServer.HTTPServer
+Protocol     = "HTTP/1.0"
+ 
+if sys.argv[1:]:
+    port = int(sys.argv[1])
+else:
+    port = 8000
+server_address = ('127.0.0.1', port)
+ 
+HandlerClass.protocol_version = Protocol
+httpd = ServerClass(server_address, HandlerClass)
+ 
+sa = httpd.socket.getsockname()
+print "Serving HTTP on", sa[0], "port", sa[1], "..."
+httpd.serve_forever()
+注意：所有的这些东西都可以在 Windows 或 Cygwin 下工作。
+
+（转载本站文章请注明作者和出处 酷壳 – CoolShell.cn ，请勿用于任何商业用途）
+
+——=== 访问 酷壳404页面 以支持公益事业 ===——
+8
+
+分类: Python标签: HTTP, Python
+ (4 人打了分，平均分： 5.00 )
+相关文章
+2009年12月11日 -- 如何使用Python操作摄像头
+2012年12月19日 -- Web工程师的工具箱
+2009年08月24日 -- Erlang和Python互通
+2009年05月10日 -- 用TCC可以干些什么？
+2012年07月13日 -- 代码执行的效率
+2011年06月07日 -- HTTP幂等性概念和应用
+2010年04月22日 -- 谷歌Chrome取消”http://”
+2009年04月26日 -- Python调用C语言函数
+Zemanta
+评论 (2)Trackbacks (0)发表评论Trackback
+
+bones7456
+2009年9月27日11:47	 | #1 回复 | 引用
+一般的linux发行版都自带python，就更方便了，我一直哪这个共享文件，都已经做了alias了
+
+kangkang
+2009年10月24日00:06	 | #2 回复 | 引用
+还有个支持cgi的，python -m CGIHTTPServer，程序放在cgi-bin下就好
+ 昵称 (必填)
+ 电子邮箱 (我们会为您保密) (必填)
+ 网址
+
+订阅评论
+TCP网络关闭的状态变换时序图 TCP注册端口号大全
+订阅
+Twitter
+本站公告
+访问 酷壳404页面 支持公益！
+
+酷壳建议大家多使用RSS访问阅读（本站已经是全文输出，推荐使用Google Reader）。有相关事宜欢迎电邮：haoel(at)hotmail.com。最后，感谢大家对酷壳的支持和体谅！
+
+感谢 42qu.com 为本站提供 VPS
+
+最新文章
+《Rework》摘录及感想
+实例分析Java Class的文件结构
+并发框架Disruptor译文
+sed 简明教程
+AWK 简明教程
+Linus：利用二级指针删除单向链表
+从面向对象的设计模式看软件设计
+应该知道的Linux技巧
+程序算法与人生选择
+Web工程师的工具箱
+如此理解面向对象编程
+程序员疫苗：代码注入
+你可能不知道的Shell
+为什么不能用微信或米聊这类的软件
+如何测试洗牌程序
+Go 语言简介（下）— 特性
+Go 语言简介（上）— 语法
+TF-IDF模型的概率解释
+xkcd 神图“Click and Drag”
+Bret Victor – Learnable Programming
+C/C++语言中闭包的探究及比较
+对九个超级程序员的采访
+无锁队列的实现
+“单元测试要做多细？”
+一次Ajax查错的经历
+为什么我反对纯算法面试题
+GCC 用 C++ 来编译
+K Nearest Neighbor 算法
+对技术的态度
+InfoQ的ArchSummit大会对我的采访
+全站热门
+程序员技术练级攻略
+简明 Vim 练级攻略
+6个变态的C语言Hello World程序
+如何学好C语言
+由12306.cn谈谈网站性能技术
+Android将允许纯C/C++开发应用
+“21天教你学会C++”
+我是怎么招聘程序员的
+SteveY对Amazon和Google平台的吐槽
+编程真难啊
+Web开发中需要了解的东西
+C++ 程序员自信心曲线图
+如何写出无法维护的代码
+应该知道的Linux技巧
+28个Unix/Linux的命令行神器
+各种流行的编程风格
+20本最好的Linux免费书籍
+三个事和三个问题
+Windows编程革命简史
+面试题：火车运煤问题
+深入理解C语言
+如何学好C++语言
+别的程序员是怎么读你的简历的
+偷了世界的程序员
+老手是这样教新手编程的
+程序算法与人生选择
+优秀程序员的十个习惯
+C语言的谜题
+再谈“我是怎么招聘程序员的”（上）
+你会做Web上的用户登录功能吗？
+新浪微博
+
+标签
+agile AJAX Algorithm Android Bash C++ Coding CSS Database Design design pattern ebook Flash Game Go Google HTML IE Java Javascript jQuery Linux MySQL OOP password Performance PHP Programmer programming language Puzzle Python Ruby SQL TDD UI Unix vim Web Windows XML 口令 安全 程序员 算法 面试
+分类目录
+.NET编程 (2)
+Ajax开发 (9)
+C/C++语言 (48)
+Erlang (1)
+Java语言 (27)
+PHP脚本 (11)
+Python (20)
+Ruby (4)
+Unix/Linux (62)
+Web开发 (97)
+Windows (12)
+业界新闻 (25)
+企业应用 (2)
+技术新闻 (32)
+技术管理 (7)
+技术读物 (114)
+操作系统 (42)
+数据库 (10)
+杂项资源 (244)
+流程方法 (43)
+程序设计 (63)
+系统架构 (5)
+编程工具 (61)
+编程语言 (157)
+网络安全 (21)
+职场生涯 (32)
+趣味问题 (13)
+轶事趣闻 (143)
+归档
+2013 年三月 (2)
+2013 年二月 (5)
+2013 年一月 (1)
+2012 年十二月 (4)
+2012 年十一月 (5)
+2012 年十月 (3)
+2012 年九月 (4)
+2012 年八月 (8)
+2012 年七月 (4)
+2012 年六月 (7)
+2012 年五月 (6)
+2012 年四月 (6)
+2012 年三月 (6)
+2012 年二月 (3)
+2012 年一月 (6)
+2011 年十二月 (5)
+2011 年十一月 (9)
+2011 年十月 (6)
+2011 年九月 (5)
+2011 年八月 (14)
+2011 年七月 (6)
+2011 年六月 (12)
+2011 年五月 (5)
+2011 年四月 (18)
+2011 年三月 (16)
+2011 年二月 (16)
+2011 年一月 (18)
+2010 年十二月 (11)
+2010 年十一月 (11)
+2010 年十月 (19)
+2010 年九月 (15)
+2010 年八月 (10)
+2010 年七月 (20)
+2010 年六月 (9)
+2010 年五月 (13)
+2010 年四月 (12)
+2010 年三月 (11)
+2010 年二月 (7)
+2010 年一月 (9)
+2009 年十二月 (22)
+2009 年十一月 (27)
+2009 年十月 (17)
+2009 年九月 (15)
+2009 年八月 (21)
+2009 年七月 (18)
+2009 年六月 (19)
+2009 年五月 (27)
+2009 年四月 (53)
+2009 年三月 (43)
+最新评论
+haiyun: 这个问题很早就发现了，也是调试了一大堆才发现编码的问题，处于 一线的同学们每天都会遇到很多奇怪的问题！
+cstopery: 怎么没有 php?
+麦兜不卖兜: 大概看了一遍 有个问题不是很理解 多个线程读取 Ringbuffer 的话怎么保证线程读取到的不是重复的数据 按我以前的做法，是维护一个读索引，做原子自增操作 但是文章上说Ringbuffer只维护一个写索引。。。 望指教
+lin-credible: Thanks so much!!!!
+风吹叶落: 在中国很多时候都存在流氓行为，如果坚持着正义之道，估计挺呛
+nocity: 对我使用vim帮助最大的一篇文章是“The grammar of vim”( http://rc3.org/2012/05/12/the- grammar-of-vim/ )，不再单纯去记忆命令，而是尝试着造句。
+godiscoder: @NoImagination 是的，本质上说，java只是语言的外在表现，内在还是 .class ，只不过使用javac 把 java源文件编译成为满足jvm规范的二进制文件 .class...
+花痴痴: 慕名而来这里，围观博主。以后一定会向您多多学习！
+defender: @feiyunruyue me too
+cfcodefans: 皓哥,有空讲讲游戏产业,游戏开发…… .应该挺有意思的.
+千月星痕: 获益良多，合理分配一些时间来看看这种博客绝对是必要的
+azhun: 很多新想法
+冰上游鱼: 嗯 写的真不错。看到 云计算、大数据那段儿，想到了“物联网”。
+理想照耀中国: 社会大环境就是如此， 理想主义者需要更加坚韧坚持。
+singo: 说的不错，有机会看看
+友情链接
+陈皓的博客
+并发编程
+四火的唠叨
+devtext 开发者社区
+Claymore's blog
+Dutor.net
+bones7456
+Keengle's Blog
+简明现代魔法
+罗素工作室
+代码回音
+HelloGcc Working Group
+吕毅的Blog
+Todd Wei的Blog
+C++爱好者博客
+HTML5研究小组
+12Free
+朱文昊Albert Zhu
+C瓜哥的博客
+开源吧
+靖难|魔都小码农
+ACMer
+陈鹏个人博客
+OneCoder
+狂Shell – Happy Hacking
+TekTea's Blog
+夕水溪下
+功能
+注册
+登录
+文章 RSS
+评论 RSS
+WordPress.org
+
+回到顶部WordPress
+版权所有 © 2009-2013 酷壳 – CoolShell.cn
+主题由 NeoEase 提供, 通过 XHTML 1.1 和 CSS 3 验证.
+

@@ -1,0 +1,24 @@
+我没有测试过不规则的，因为我用的都是规则的，呵呵 
+代码如下: 
+
+
+
+
+Java代码  
+1.public static String getImgStr(String htmlStr){  
+2.        String img="",tmp="";  
+3.        java.util.regex.Pattern p_image;  
+4.        java.util.regex.Matcher m_image;  
+5.          
+6.        String regEx_img = "http://[([a-z0-9]|.|/|\\-)]+.[(jpg)|(bmp)|(gif)|(png)]";//图片链接地址  
+7.        p_image = java.util.regex.Pattern.compile(regEx_img,java.util.regex.Pattern.CASE_INSENSITIVE);  
+8.        m_image = p_image.matcher(htmlStr);  
+9.        while(m_image.find()){  
+10.            img = img + "," + m_image.group();  
+11.        }  
+12.        if(img.indexOf(",")>=0)  
+13.            return img.substring(1);  
+14.        else  
+15.            return img;  
+16.   }  
+

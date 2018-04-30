@@ -1,0 +1,200 @@
+通过百度定位sdk获取实时位置
+
+分类： 移动开发 2013-05-03 01:53 3454人阅读 评论(15) 收藏 举报
+之前有一片关于基站定位的文章，当时的测试环境是小米+移动，比较顺利。
+
+但在实际运用中就出现问题了-联通和电信的号完全没办法定位！
+
+最好的解决方法就是用第三方sdk来定位了。
+
+百度的定位sdk还是很不错的，可以通过wifi，gps，gprs来定位，和运营商就无关了。
+
+最终效果：
+
+
+
+界面就一个button'和textview，点击按钮之后就开始定位，获取结果之后在textview中显示。
+
+
+实现步骤：
+
+添加sdk
+
+去这里下载最新的sdk，现在是3.3.
+将liblocSDK3.so文件拷贝到libs/armeabi目录下。将locSDK3.3.jar文件拷贝到工程的libs目录下，并在工程属性->Java Build Path->Libraries中选择“Add JARs”，选定locSDK3.3.jar，确定后返回。这样您就可以在程序中使用百度定位SDK了。
+
+添加service
+
+在manifest文件中添加：
+
+<service android:name="com.baidu.location.f" android:enabled="true"
+android:process=":remote" android:permission="android.permission.BAIDU_LOCATION_SERVICE">
+    <intent-filter>
+          <action android:name="com.baidu.location.service_v3.3"></action>
+    </intent-filter>
+</service>
+
+申明权限
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"></uses-permission>
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"></uses-permission>
+<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"></uses-permission>
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
+<uses-permission android:name="android.permission.CHANGE_WIFI_STATE"></uses-permission>
+<uses-permission android:name="android.permission.READ_PHONE_STATE"></uses-permission>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"></uses-permission>
+<uses-permission android:name="android.permission.READ_LOGS"></uses-permission>
+
+主activity代码
+package com.example.locationtest;
+
+import android.os.Bundle;
+import android.os.Vibrator;
+
+import com.baidu.location.BDLocation;
+import com.baidu.location.BDLocationListener;
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
+import com.baidu.location.BDNotifyListener;
+import android.app.Activity;
+import android.app.Service;
+import android.util.Log;
+import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.TextView;
+
+public class MainActivity extends Activity {
+
+	private LocationClient mLocationClient;
+	public BDLocationListener myListener;
+	private Button mButton;
+	private TextView mTv;
+	private Vibrator mVibrator01 =null;
+	private boolean  mIsStart;
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+		mButton = (Button)findViewById(R.id.button1);
+		mTv = (TextView)findViewById(R.id.textview1);
+		mIsStart = false;
+
+		mLocationClient = new LocationClient(this.getApplicationContext());  
+		myListener = new MyLocationListener();  
+		mLocationClient.registerLocationListener(myListener);  
+
+		LocationClientOption locationOption = new LocationClientOption();  
+		locationOption.setOpenGps(true);  
+		locationOption.setCoorType("bd09ll");  
+		locationOption.setPriority(LocationClientOption.NetWorkFirst);  
+		locationOption.setAddrType("all");  
+		locationOption.setProdName("BaiduLocation");  
+		locationOption.setScanSpan(5000);//设置发起定位请求的间隔时间为5000ms
+		locationOption.disableCache(true);//禁止启用缓存定位
+		locationOption.setPoiNumber(5);	//最多返回POI个数	
+		locationOption.setPoiDistance(1000); //poi查询距离		
+		locationOption.setPoiExtraInfo(true); //是否需要POI的电话和地址等详细信息
+		mLocationClient.setLocOption(locationOption);  
+
+		Log.i("Baidu", "BaiduMapMyLocationActivity 开启定位");  
+		mLocationClient.start();  
+
+		mButton.setOnClickListener(new OnClickListener()
+		{
+
+			@Override
+			public void onClick(View arg0) {
+				// TODO Auto-generated method stub
+				if (!mIsStart) {
+					mLocationClient.start();
+					mButton.setText("Stop");
+					mIsStart = true;
+
+				} else {
+					mLocationClient.stop();
+					mIsStart = false;
+					mButton.setText("Start");
+				} 
+			}
+
+		});
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.activity_main, menu);
+		return true;
+	}
+	public class MyLocationListener implements BDLocationListener {
+		@Override
+		public void onReceiveLocation(BDLocation location) {
+			if (location == null)
+				return ;
+			StringBuffer sb = new StringBuffer(256);
+			sb.append("time : ");
+			sb.append(location.getTime());
+			sb.append("\nerror code : ");
+			sb.append(location.getLocType());
+			sb.append("\nlatitude : ");
+			sb.append(location.getLatitude());
+			sb.append("\nlontitude : ");
+			sb.append(location.getLongitude());
+			sb.append("\nradius : ");
+			sb.append(location.getRadius());
+			if (location.getLocType() == BDLocation.TypeGpsLocation){
+				sb.append("\nspeed : ");
+				sb.append(location.getSpeed());
+				sb.append("\nsatellite : ");
+				sb.append(location.getSatelliteNumber());
+			} else if (location.getLocType() == BDLocation.TypeNetWorkLocation){
+				sb.append("\naddr : ");
+				sb.append(location.getAddrStr());
+			} 
+			mTv.setText(sb);
+			logMsg(sb.toString());
+		}
+		public void onReceivePoi(BDLocation poiLocation) {
+			if (poiLocation == null){
+				return ;
+			}
+			StringBuffer sb = new StringBuffer(256);
+			sb.append("Poi time : ");
+			sb.append(poiLocation.getTime());
+			sb.append("\nerror code : ");
+			sb.append(poiLocation.getLocType());
+			sb.append("\nlatitude : ");
+			sb.append(poiLocation.getLatitude());
+			sb.append("\nlontitude : ");
+			sb.append(poiLocation.getLongitude());
+			sb.append("\nradius : ");
+			sb.append(poiLocation.getRadius());
+			if (poiLocation.getLocType() == BDLocation.TypeNetWorkLocation){
+				sb.append("\naddr : ");
+				sb.append(poiLocation.getAddrStr());
+			} 
+			if(poiLocation.hasPoi()){
+				sb.append("\nPoi:");
+				sb.append(poiLocation.getPoi());
+			}else{				
+				sb.append("noPoi information");
+			}
+			mTv.setText(sb);
+			logMsg(sb.toString());
+		}
+	}
+	private void logMsg(String s)
+	{
+		System.out.println(s);
+	}
+	@Override
+	public void onDestroy() {
+		mLocationClient.stop();
+		super.onDestroy();
+	}
+}
+
+相关的文档可以参考百度的文档-http://developer.baidu.com/map/geosdk-android-classv3.3.htm

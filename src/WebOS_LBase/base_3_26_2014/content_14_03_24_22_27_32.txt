@@ -1,0 +1,309 @@
+MD5
+编辑
+
+Message Digest Algorithm MD5（中文名为消息摘要算法第五版）为计算机安全领域广泛使用的一种散列函数，用以提供消息的完整性保护。该算法的文件号为RFC 1321（R.Rivest,MIT Laboratory for Computer Science and RSA Data Security Inc. April 1992）
+目录
+
+1发展历史
+
+MD2简介
+MD4简介
+MD5简介
+2MD5应用
+
+一致性验证
+数字证书
+安全访问认证
+3算法原理
+
+原理
+VB2010实现
+伪代码实现
+4MD5优势
+
+5弱点
+
+6空字符串
+
+1发展历史
+
+MD5即Message-Digest Algorithm 5（信息-摘要算法5），用于确保信息传输完整一致。是计算机广泛使用的杂凑算法之一（又译摘要算法、哈希算法），主流编程语言普遍已有MD5实现。
+将数据（如汉字）运算为另一固定长度值，是杂凑算法的基础原理，MD5的前身有MD2、MD3和MD4。
+MD5的作用是让大容量信息在用数字签名软件签署私人密钥前被"压缩"成一种保密的格式（就是把一个任意长度的字节串变换成一定长的十六进制数字串）。
+除了MD5以外，其中比较有名的还有sha-1、RIPEMD以及Haval等
+MD2简介
+
+Rivest在1989年开发出MD2算法。在这个算法中，首先对信息进行数据补位，使信息的字节长度是16的倍数。然后，以一个16位的检验和追加到信息末尾，并且根据这个新产生的信息计算出散列值。后来，Rogier和Chauvaud发现如果忽略了检验将和MD2产生冲突。MD2算法加密后结果是唯一的（即不同信息加密后的结果不同）。
+MD4简介
+
+为了加
+
+  MD5
+
+强算法的安全性，Rivest在1990年又开发出MD4算法。MD4算法同样需要填补信息以确保信息的比特位长度减去448后能被512整除（信息比特位长度mod 512 = 448）。然后，一个以64位二进制表示的信息的最初长度被添加进来。信息被处理成512位damg?rd/merkle迭代结构的区块，而且每个区块要通过三个不同步骤的处理。Den boer和Bosselaers以及其他人很快的发现了攻击MD4版本中第一步和第三步的漏洞。Dobbertin向大家演示了如何利用一部普通的个人电脑在几分钟内找到MD4完整版本中的冲突（这个冲突实际上是一种漏洞，它将导致对不同的内容进行加密却可能得到相同的加密后结果）。毫无疑问，MD4就此被淘汰掉了。
+尽管MD4算法在安全上有个这么大的漏洞，但它对在其后才被开发出来的好几种信息安全加密算法的出现却有着不可忽视的引导作用。
+MD5简介
+
+1991年，Rivest开发出技术上更为趋近成熟的md5算法。它在MD4的基础上增加了"安全-带子"（safety-belts）的概念。虽然MD5比MD4复杂度大一些，但却更为安全。这个算法很明显的由四个和MD4设计有少许不同的步骤组成。在MD5算法中，信息-摘要的大小和填充的必要条件与MD4完全相同。Den boer和Bosselaers曾发现MD5算法中的假冲突（pseudo-collisions），但除此之外就没有其他被发现的加密后结果了。
+2MD5应用
+
+一致性验证
+
+MD5的
+
+  md5
+
+典型应用是对一段信息（Message）产生信息摘要（Message-Digest），以防止被篡改。比如，在Unix下有很多软件在下载的时候都有一个文件名相同，文件扩展名为.md5的文件，在这个文件中通常只有一行文本，大致结构如：
+MD5 (tanajiya.tar.gz) = 0ca175b9c0f726a831d895e269332461
+这就是tanajiya.tar.gz文件的数字签名。MD5将整个文件当作一个大文本信息，通过其不可逆的字符串变换算法，产生了这个唯一的MD5信息摘要。为了让读者朋友对MD5的应用有个直观的认识，笔者以一个比方和一个实例来简要描述一下其工作过程：
+大家都知道，地球上任何人都有自己独一无二的指纹，这常常成为司法机关鉴别罪犯身份最值得信赖的方法；与之类似，MD5就可以为任何文件（不管其大小、格式、数量）产生一个同样独一无二的“数字指纹”，如果任何人对文件做了任何改动，其MD5值也就是对应的“数字指纹”都会发生变化。
+我们
+
+  md5
+
+常常在某些软件下载站点的某软件信息中看到其MD5值，它的作用就在于我们可以在下载该软件后，对下载回来的文件用专门的软件（如Windows MD5 Check等）做一次MD5校验，以确保我们获得的文件与该站点提供的文件为同一文件。利用MD5算法来进行文件校验的方案被大量应用到软件下载站、论坛数据库、系统文件安全等方面。
+数字证书
+
+MD5的典型应用是对一段Message(字节串)产生fingerprint(指纹），以防止被“篡改”。举个例子，你将一段话写在一个叫 readme.txt文件中，并对这个readme.txt产生一个MD5的值并记录在案，然后你可以传播这个文件给别人，别人如果修改了文件中的任何内容，你对这个文件重新计算MD5时就会发现（两个MD5值不相同）。如果再有一个第三方的认证机构，用MD5还可以防止文件作者的“抵赖”，这就是所谓的数字签名应用。
+安全访问认证
+
+MD5还广泛用于操作系统的登陆认证上，如Unix、各类BSD系统登录密码、数字签名等诸多方面。如在Unix系统中用户的密码是以MD5（或其它类似的算法）经Hash运算后存储在文件系统中。当用户登录的时候，系统把用户输入的密码进行MD5 Hash运算，然后再去和保存在文件系统中的MD5值进行比较，进而确定输入的密码是否正确。通过这样的步骤，系统在并不知道用户密码的明码的情况下就可以确定用户登录系统的合法性。这可以避免用户的密码被具有系统管理员权限的用户知道。MD5将任意长度的“字节串”映射为一个128bit的大整数，并且是通过该128bit反推原始字符串是困难的，换句话说就是，即使你看到源程序和算法描述，也无法将一个MD5的值变换回原始的字符串，从数学原理上说，是因为原始的字符串有无穷多个，这有点象不存在反函数的数学函数。所以，要遇到了md5密码的问题，比较好的办法是：你可以用这个系统中的md5（）函数重新设一个密码，如admin，把生成的一串密码的Hash值覆盖原来的Hash值就行了。
+正是因为这个原因，现在被黑客使用最多的一种破译密码的方法就是一种被称为"跑字典"的方法。有两种方法得到字典，一种是日常搜集的用做密码的字符串表，另一种是用排列组合方法生成的，先用MD5程序计算出这些字典项的MD5值，然后再用目标的MD5值在这个字典中检索。我们假设密码的最大长度为8位字节（8 Bytes），同时密码只能是字母和数字，共26+26+10=62个字符，排列组合出的字典的项数则是P（62,1）+P（62,2）….+P（62,8），那也已经是一个很天文的数字了，存储这个字典就需要TB级的磁盘阵列，而且这种方法还有一个前提，就是能获得目标账户的密码MD5值的情况下才可以。这种加密技术被广泛的应用于Unix系统中，这也是为什么Unix系统比一般操作系统更为坚固一个重要原因。
+3算法原理
+
+原理
+
+对MD5算法简要的叙述可以为：MD5以512位分组来处理输入的信息，且每一分组又被划分为16个32位子分组，经过了一系列的处理后，算法的输出由四个32位分组组成，将这四个32位分组级联后将生成一个128位散列值。
+在MD5算法中，首先需要对信息进行填充，使其位长对512求余的结果等于448。因此，信息的位长（Bits Length）将被扩展至N*512+448，N为一个非负整数，N可以是零。填充的方法如下，在信息的后面填充一个1和无数个0，直到满足上面的条件时才停止用0对信息的填充。然后，在这个结果后面附加一个以64位二进制表示的填充前信息长度。经过这两步的处理，现在的信息的位长=N*512+448+64=(N+1）*512，即长度恰好是512的整数倍。这样做的原因是为满足后面处理中对信息长度的要求。总体流程如下图所示，
+
+表示第i个分组，每次的运算都由前一轮的128位结果值和第i块512bit值进行运算。初始的128位值为初试链接变量，这些参数用于第一轮的运算，以大端字节序来表示，他们分别为：A=0x01234567，B=0x89ABCDEF，C=0xFEDCBA98，D=0x76543210。
+
+  MD5算法的整体流程图[1]
+
+每一分组的算法流程如下：
+第一分组需要将上面四个链接变量复制到另外四个变量中：A到a，B到b，C到c，D到d。从第二分组开始的变量为上一分组的运算结果。
+主循环有四轮（MD4只有三轮），每轮循环都很相似。第一轮进行16次操作。每次操作对a、b、c和d中的其中三个作一次非线性函数运算，然后将所得结果加上第四个变量，文本的一个子分组和一个常数。再将所得结果向左环移一个不定的数，并加上a、b、c或d中之一。最后用该结果取代a、b、c或d中之一。
+以一下是每次操作中用到的四个非线性函数（每轮一个）。
+F(X,Y,Z) =(X&Y)|((~X)&Z)
+G(X,Y,Z) =(X&Z)|(Y&(~Z))
+H(X,Y,Z) =X^Y^Z
+I(X,Y,Z)=Y^(X|(~Z))
+（&；是与，|是或，~是非，^是异或）
+这四个函数的说明：如果X、Y和Z的对应位是独立和均匀的，那么结果的每一位也应是独立和均匀的。
+F是一个逐位运算的函数。即，如果X，那么Y，否则Z。函数H是逐位奇偶操作符。
+假设Mj表示消息的第j个子分组（从0到15），常数ti是4294967296*abs(sin(i)）的整数部分，i取值从1到64，单位是弧度。（4294967296等于2的32次方）
+FF(a,b,c,d,Mj,s,ti）表示 a = b + ((a + F(b,c,d) + Mj + ti) << s)
+GG(a,b,c,d,Mj,s,ti）表示 a = b + ((a + G(b,c,d) + Mj + ti) << s)
+HH(a,b,c,d,Mj,s,ti）表示 a = b + ((a + H(b,c,d) + Mj + ti) << s)
+Ⅱ（a,b,c,d,Mj,s,ti）表示 a = b + ((a + I(b,c,d) + Mj + ti) << s)
+这四轮（64步）是：
+第一轮
+FF(a,b,c,d,M0,7,0xd76aa478）
+FF(d,a,b,c,M1,12,0xe8c7b756）
+FF(c,d,a,b,M2,17,0x242070db)
+FF(b,c,d,a,M3,22,0xc1bdceee)
+FF(a,b,c,d,M4,7,0xf57c0faf)
+FF(d,a,b,c,M5,12,0x4787c62a)
+FF(c,d,a,b,M6,17,0xa8304613）
+FF(b,c,d,a,M7,22,0xfd469501）
+FF(a,b,c,d,M8,7,0x698098d8）
+FF(d,a,b,c,M9,12,0x8b44f7af)
+FF(c,d,a,b,M10,17,0xffff5bb1）
+FF(b,c,d,a,M11,22,0x895cd7be)
+FF(a,b,c,d,M12,7,0x6b901122）
+FF(d,a,b,c,M13,12,0xfd987193）
+FF(c,d,a,b,M14,17,0xa679438e)
+FF(b,c,d,a,M15,22,0x49b40821）
+第二轮
+GG(a,b,c,d,M1,5,0xf61e2562）
+GG(d,a,b,c,M6,9,0xc040b340）
+GG(c,d,a,b,M11,14,0x265e5a51）
+GG(b,c,d,a,M0,20,0xe9b6c7aa)
+GG(a,b,c,d,M5,5,0xd62f105d)
+GG(d,a,b,c,M10,9,0x02441453）
+GG(c,d,a,b,M15,14,0xd8a1e681）
+GG(b,c,d,a,M4,20,0xe7d3fbc8）
+GG(a,b,c,d,M9,5,0x21e1cde6）
+GG(d,a,b,c,M14,9,0xc33707d6）
+GG(c,d,a,b,M3,14,0xf4d50d87）
+GG(b,c,d,a,M8,20,0x455a14ed)
+GG(a,b,c,d,M13,5,0xa9e3e905）
+GG(d,a,b,c,M2,9,0xfcefa3f8）
+GG(c,d,a,b,M7,14,0x676f02d9）
+GG(b,c,d,a,M12,20,0x8d2a4c8a)
+第三轮
+HH(a,b,c,d,M5,4,0xfffa3942）
+HH(d,a,b,c,M8,11,0x8771f681）
+HH(c,d,a,b,M11,16,0x6d9d6122）
+HH(b,c,d,a,M14,23,0xfde5380c)
+HH(a,b,c,d,M1,4,0xa4beea44）
+HH(d,a,b,c,M4,11,0x4bdecfa9）
+HH(c,d,a,b,M7,16,0xf6bb4b60）
+HH(b,c,d,a,M10,23,0xbebfbc70）
+HH(a,b,c,d,M13,4,0x289b7ec6）
+HH(d,a,b,c,M0,11,0xeaa127fa)
+HH(c,d,a,b,M3,16,0xd4ef3085）
+HH(b,c,d,a,M6,23,0x04881d05）
+HH(a,b,c,d,M9,4,0xd9d4d039）
+HH(d,a,b,c,M12,11,0xe6db99e5）
+HH(c,d,a,b,M15,16,0x1fa27cf8）
+HH(b,c,d,a,M2,23,0xc4ac5665）
+第四轮
+Ⅱ（a,b,c,d,M0,6,0xf4292244）
+Ⅱ（d,a,b,c,M7,10,0x432aff97）
+Ⅱ（c,d,a,b,M14,15,0xab9423a7）
+Ⅱ（b,c,d,a,M5,21,0xfc93a039）
+Ⅱ（a,b,c,d,M12,6,0x655b59c3）
+Ⅱ（d,a,b,c,M3,10,0x8f0ccc92）
+Ⅱ（c,d,a,b,M10,15,0xffeff47d)
+Ⅱ（b,c,d,a,M1,21,0x85845dd1）
+Ⅱ（a,b,c,d,M8,6,0x6fa87e4f)
+Ⅱ（d,a,b,c,M15,10,0xfe2ce6e0)
+Ⅱ（c,d,a,b,M6,15,0xa3014314）
+Ⅱ（b,c,d,a,M13,21,0x4e0811a1）
+Ⅱ（a,b,c,d,M4,6,0xf7537e82）
+Ⅱ（d,a,b,c,M11,10,0xbd3af235）
+Ⅱ（c,d,a,b,M2,15,0x2ad7d2bb)
+Ⅱ（b,c,d,a,M9,21,0xeb86d391）
+所有这些完成之后，将A、B、C、D分别加上a、b、c、d。然后用下一分组数据继续运行算法，最后的输出是A、B、C和D的级联。
+当你按照我上面所说的方法实现MD5算法以后，你可以用以下几个信息对你做出来的程序作一个简单的测试，看看程序有没有错误。
+MD5 ("") = d41d8cd98f00b204e9800998ecf8427e
+MD5 ("a") = 0cc175b9c0f1b6a831c399e269772661
+MD5 ("abc") = 900150983cd24fb0d6963f7d28e17f72
+MD5 ("message digest") = f96b697d7cb7938d525a2f31aaf161d0
+MD5 ("abcdefghijklmnopqrstuvwxyz") = c3fcd3d76192e4007dfb496cca67e13b
+MD5 ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz") =
+f29939a25efabaef3b87e2cbfe641315
+VB2010实现
+
+Imports System
+Imports System.Security.Cryptography
+Imports System.Text
+Module Example
+    ' 哈希输入字符串并返回一个32字符的十六进制字符串哈希。
+    Function getMd5Hash(ByVal input As String) As String
+        ' 创建新的一个MD5CryptoServiceProvider对象的实例。
+        Dim md5Hasher As New MD5CryptoServiceProvider()
+        ' 输入的字符串转换为字节数组，并计算哈希。
+        Dim data As Byte() = md5Hasher.ComputeHash(Encoding.Default.GetBytes(input))
+        ' 创建一个新的StringBuilder收集的字节，并创建一个字符串。
+        Dim sBuilder As New StringBuilder()
+        ' 通过每个字节的哈希数据和格式为十六进制字符串的每一个循环。
+        Dim i As Integer
+        For i = 0 To data.Length - 1
+            sBuilder.Append(data(i).ToString("x2"))
+        Next i
+        ' 返回十六进制字符串。
+        Return sBuilder.ToString()
+    End Function
+    ' 验证对一个字符串的哈希值。
+    Function verifyMd5Hash(ByVal input As String,ByVal hash As String) As Boolean
+        ' 哈希的输入。
+        Dim hashOfInput As String = getMd5Hash(input)
+        ' 创建StringComparer1的哈希进行比较。
+        Dim comparer As StringComparer = StringComparer.OrdinalIgnoreCase
+        If 0 = comparer.Compare(hashOfInput,hash) Then
+            Return True
+        Else
+            Return False
+        End If
+    End Function
+    Sub Main()
+        Dim source As String = "Hello World!"
+        Dim hash As String = getMd5Hash(source)
+        Console.WriteLine("进行MD5加密的字符串为：" + source + " 加密的结果是：" + hash + ".")
+        Console.WriteLine("验证哈希...")
+        If verifyMd5Hash(source,hash) Then
+            Console.WriteLine("哈希值是相同的。")
+        Else
+            Console.WriteLine("哈希值是不相同的。")
+        End If
+    End Sub
+End Module
+' 此代码示例产生下面的输出：
+'
+' 进行MD5加密的字符串为：Hello World! 加密的结果是：ed076287532e86365e841e92bfc50d8c.
+' 验证哈希...
+' 哈希值是相同的。
+
+伪代码实现
+
+//Note: All variables are unsigned 32 bits and wrap modulo 2^32 when calculating
+var int[64] r,k //r specifies the per-round shift amounts
+r[ 0..15] := {7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22}
+r[16..31] := {5,9,14,20,5,9,14,20,5,9,14,20,5,9,14,20}
+r[32..47] := {4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23}
+r[48..63] := {6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21}
+
+//Use binary integer part of the sines of integers as constants:
+for i from 0 to 63
+    k[i] := floor(abs(sin(i + 1）） × 2^32）
+    
+//Initialize variables:
+var int h0 := 0x67452301
+var int h1 := 0xEFCDAB89
+var int h2 := 0x98BADCFE
+var int h3 := 0x10325476
+
+//Pre-processing:
+append "1" bit to message
+append "0" bits until message length in bits ≡ 448 (mod 512）
+append bit length of message as 64-bit little-endian integer to message
+
+//Process the message in successive 512-bit chunks:
+for each 512-bit chunk of message
+break chunk into sixteen 32-bit little-endian words w[i],0 ≤ i ≤ 15
+
+//Initialize hash value for this chunk:
+var int a := h0
+var int b := h1
+var int c := h2
+var int d := h3
+
+//Main loop:
+for i from 0 to 63
+    if 0 ≤ i ≤ 15 then
+        f := (b and c) or ((not b) and d)
+        g := i
+    else if 16 ≤ i ≤ 31
+        f := (d and b) or ((not d) and c)
+        g := （5×i + 1） mod 16
+    else if 32 ≤ i ≤ 47
+        f := b xor c xor d
+        g := （3×i + 5） mod 16
+    else if 48 ≤ i ≤ 63
+        f := c xor (b or (not d))
+        g := （7×i) mod 16
+    temp := d
+    d := c
+    c := b
+    b := ((a + f + k[i] + w[g]) leftrotate r[i]) + b
+    a := temp
+//Add this chunk's hash to result so far:
+h0 := h0 + a
+h1 := h1 + b
+h2 := h2 + c
+h3 := h3 + d
+var int digest := h0 append h1 append h2 append h3
+//(expressed as little-endian)
+4MD5优势
+
+Van oorschot和Wiener曾经考虑过一个在散列中暴力搜寻冲突的函数（brute-force hash function），而且他们猜测一个被设计专门用来搜索MD5冲突的机器（这台机器在1994年的制造成本大约是一百万美元）可以平均每24天就找到一个冲突。但单从1991年到2001年这10年间，竟没有出现替代MD5算法的MD6或被叫做其他什么名字的新算法这一点，我们就可以看出这个瑕疵并没有太多的影响MD5的安全性。上面所有这些都不足以成为MD5的在实际应用中的问题。并且，由于MD5算法的使用不需要支付任何版权费用的，所以在一般的情况下（非绝密应用领域。但即便是应用在绝密领域内，MD5也不失为一种非常优秀的中间技术），MD5怎么都应该算得上是非常安全的了。
+5弱点
+
+2004年8月17日的美国加州圣巴巴拉的国际密码学会议（Crypto’2004）上，来自中国山东大学的王小云教授做了破译MD5、HAVAL-128、 MD4和RIPEMD算法的报告，公布了MD系列算法的破解结果。宣告了固若金汤的世界通行密码标准MD5的堡垒轰然倒塌，引发了密码学界的轩然大波。(注意:并非是真正的破解，只是加速了杂凑冲撞）
+令世界顶尖密码学家想象不到的是，破解MD5之后，2005年2月，王小云教授又破解了另一国际密码SHA－1。因为SHA－1在美国等国际社会有更加广泛的应用，密码被破的消息一出，在国际社会的反响可谓石破天惊。换句话说，王小云的研究成果表明了从理论上讲电子签名可以伪造，必须及时添加限制条件，或者重新选用更为安全的密码标准，以保证电子商务的安全。
+
+  MD5验证可执行文件不再可靠的消息
+
+MD5破解工程权威网站是为了公开征集专门针对MD5的攻击而设立的，网站于2004年8月17日宣布：“中国研究人员发现了完整MD5算法的碰撞；Wang,Feng,Lai与Yu公布了MD5、MD4、HAVAL-128、RIPEMD-128几个 Hash函数的碰撞。这是近年来密码学领域最具实质性的研究进展。使用他们的技术，在数个小时内就可以找到MD5碰撞。……由于这个里程碑式的发现，MD5CRK项目将在随后48小时内结束”。
+在2004年8月之前，国际密码学界对王小云这个名字并不熟悉。2004年8月，在美国加州圣芭芭拉召开的国际密码大会上，并没有被安排发言的王小云教授拿着自己的研究成果找到会议主席，没想到慧眼识珠的会议主席破例给了她15分钟时间来介绍自己的成果，而通常发言人只被允许有两三分钟的时间。王小云与助手展示了MD5、SHA-0及其他相关杂凑函数的杂凑冲撞。所谓杂凑冲撞指两个完全不同的讯息经杂凑函数计算得出完全相同的杂凑值。根据鸽巢原理，以有长度限制的杂凑函数计算没有长度限制的讯息是必然会有冲撞情况出现的。可是，一直以来，电脑保安专家都认为要任意制造出冲撞需时太长，在实际情况上不可能发生，而王小云等的发现可能会打破这个必然性。就这样，王小云在国际会议上首次宣布了她及她的研究小组近年来的研究成果——对MD4、MD5、HAVAL-128和RIPEMD等四个著名密码算法的破译结果。
+在公布到第三个成果的时候，会场上已经是掌声四起，报告不得不一度中断。报告结束后，所有与会专家对他们的突出工作报以长时间的掌声，有些学者甚至起立鼓掌以示他们的祝贺和敬佩。由于版本问题，作者在提交会议论文时使用的一组常数和先行标准不同，在发现这一问题之后，王小云教授立即改变了那个常数，在很短的时间内就完成了新的数据分析，这段有惊无险的小插曲更证明了他们论文的信服力，攻击方法的有效性，验证了研究工作的成功。
+2005年8月，王小云、姚期智，以及姚期智妻子姚储枫（即为Knuth起名高德纳的人）联手于国际密码讨论年会尾声部份提出SHA-1杂凑函数杂凑冲撞演算法的改良版。此改良版使破解SHA-1时间缩短。
+2006年6月8日，王小云教授于中国科学院第13次院士大会和中国工程院第8次院士大会上以“国际通用Hash函数的破解”获颁陈嘉庚科学奖信息技术科学奖。
+2009年，冯登国、谢涛二人利用差分攻击，将MD5的碰撞算法复杂度从王小云的2^42进一步降低到2^21，极端情况下甚至可以降低至2^10。仅仅2^21的复杂度意味着即便是在2008年的计算机上，也只要几秒便可以找到一对碰撞。[1]
+6空字符串
+
+MD5("")
+　　= d41d8cd98f00b204e9800998ecf8427e
+[2]

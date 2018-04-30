@@ -1,0 +1,1281 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+结构之法 算法之道
+
+Google或baidu搜索：“结构之法”，进入本博客
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+【免费有礼】欧美最新网络营销技巧分享        博客导入工具      【限时优惠】第五届云计算大会社区门票抢购 
+探究云计算数据中心节能增效之道      专访邓凡平：Android开发路上的快速学习之道      CSDN博客第二期最佳移动开发博主评选 
+
+
+
+程序员编程艺术第二十五章：Jon Bentley：90%无法正确实现二分查找 
+.
+ 分类： 19.TAOPP algorithms11.TAOPP（编程艺术）13.TAOPP array2011-12-21 19:3532753人阅读评论(90)收藏举报
+ 
+编程测试chm算法blog文档
+
+
+
+目录(?)[+]
+
+
+
+
+
+
+
+ 
+
+
+第二十五章：二分查找实现（Jon Bentley：90%程序员无法正确实现）
+
+作者：July
+出处：结构之法算法之道
+
+引言
+
+    Jon Bentley：90%以上的程序员无法正确无误的写出二分查找代码。也许很多人都早已听说过这句话，但我还是想引用《编程珠玑》上的如下几段文字： 
+
+	“二分查找可以解决（预排序数组的查找）问题：只要数组中包含T（即要查找的值），那么通过不断缩小包含T的范围，最终就可以找到它。一开始，范围覆盖整个数组。将数组的中间项与T进行比较，可以排除一半元素，范围缩小一半。就这样反复比较，反复缩小范围，最终就会在数组中找到T，或者确定原以为T所在的范围实际为空。对于包含N个元素的表，整个查找过程大约要经过log(2)N次比较。 
+	 多数程序员都觉得只要理解了上面的描述，写出代码就不难了；但事实并非如此。如果你不认同这一点，最好的办法就是放下书本，自己动手写一写。试试吧。 
+	 我在贝尔实验室和IBM的时候都出过这道考题。那些专业的程序员有几个小时的时间，可以用他们选择的语言把上面的描述写出来；写出高级伪代码也可以。考试结束后，差不多所有程序员都认为自己写出了正确的程序。于是，我们花了半个钟头来看他们编写的代码经过测试用例验证的结果。几次课，一百多人的结果相差无几：90%的程序员写的程序中有bug（我并不认为没有bug的代码就正确）。 
+	 我很惊讶：在足够的时间内，只有大约10%的专业程序员可以把这个小程序写对。但写不对这个小程序的还不止这些人：高德纳在《计算机程序设计的艺术 第3卷 排序和查找》第6.2.1节的“历史与参考文献”部分指出，虽然早在1946年就有人将二分查找的方法公诸于世，但直到1962年才有人写出没有bug的二分查找程序。 ”——乔恩·本特利，《编程珠玑（第1版）》第35-36页。
+
+    你能正确无误的写出二分查找代码么？不妨一试。
+
+二分查找代码
+
+     二分查找的原理想必不用多解释了，不过有一点必须提醒读者的是，二分查找是针对的排好序的数组。OK，纸上读来终觉浅，觉知此事要躬行。我先来写一份，下面是我写的一份二分查找的实现（之前去某一家公司面试也曾被叫当场实现二分查找，不过结果可能跟你一样，当时就未能完整无误写出），有任何问题或错误，恳请不吝指正：
+
+
+
+
+01.//二分查找V0.1实现版  
+02.//copyright@2011 July  
+03.//随时欢迎读者找bug，email：zhoulei0907@yahoo.cn。  
+04.  
+05.//首先要把握下面几个要点：  
+06.//right=n-1 => while(left <= right) => right=middle-1;  
+07.//right=n   => while(left <  right) => right=middle;  
+08.//middle的计算不能写在while循环外，否则无法得到更新。  
+09.  
+10.int binary_search(int array[],int n,int value)  
+11.{  
+12.    int left=0;  
+13.    int right=n-1;  
+14.    //如果这里是int right = n 的话，那么下面有两处地方需要修改，以保证一一对应：  
+15.    //1、下面循环的条件则是while(left < right)  
+16.    //2、循环内当array[middle]>value 的时候，right = mid  
+17.  
+18.    while (left<=right)          //循环条件，适时而变  
+19.    {  
+20.        int middle=left + ((right-left)>>1);  //防止溢出，移位也更高效。同时，每次循环都需要更新。  
+21.  
+22.        if (array[middle]>value)  
+23.        {  
+24.            right =middle-1;   //right赋值，适时而变  
+25.        }   
+26.        else if(array[middle]<value)  
+27.        {  
+28.            left=middle+1;  
+29.        }  
+30.        else  
+31.            return middle;    
+32.        //可能会有读者认为刚开始时就要判断相等，但毕竟数组中不相等的情况更多  
+33.        //如果每次循环都判断一下是否相等，将耗费时间  
+34.    }  
+35.    return -1;  
+36.}  
+    简单测试下，运行结果如下所示（当然，一次测试正确不代表程序便0 bug了，且测试深度远远不够）：
+
+
+
+测试
+
+    也许你之前已经把二分查找实现过很多次了，但现在不妨再次测试一下。关闭所有网页，窗口，打开记事本，或者编辑器，或者直接在本文评论下，不参考上面我写的或其他任何人的程序，给自己十分钟到N个小时不等的时间，立即编写一个二分查找程序。独立一次性正确写出来后，可以留下代码和邮箱地址，我给你传一份本blog的博文集锦CHM文件 && 十三个经典算法研究带标签+目录的PDF文档（你也可以去我的资源下载处下载：http://download.csdn.net/user/v_july_v）。
+
+    当然，能正确写出来不代表任何什么，不能正确写出来亦不代表什么，仅仅针对Jon Bentley的言论做一个简单的测试而已。下一章，请见第二十六章：基于给定的文档生成倒排索引的编码与实践。谢谢。
+
+总结
+
+    本文发表后，马上就有很多朋友自己尝试了。根据从朋友们在本文评论下留下的代码，发现出错率最高的在以下这么几个地方：
+
+1.注释里已经说得很明白了，可还是会有不少朋友犯此类的错误：
+
+01.//首先要把握下面几个要点：    
+02.//right=n-1 => while(left <= right) => right=middle-1;    
+03.//right=n   => while(left <  right) => right=middle;    
+04.//middle的计算不能写在while循环外，否则无法得到更新。    
+
+2.还有一个最最常犯的错误是@土豆：
+middle= (left+right)>>1; 这样的话left与right的值比较大的时候，其和可能溢出。
+
+
+    各位继续努力。
+
+    updated：各位，可以到此处0积分下载本blog最新博文集锦第6期CHM文件：http://download.csdn.net/detail/v_july_v/4020172。
+
+ 
+分享到： 
+
+上一篇：编程艺术第二十三~四章&十一续：杨氏矩阵查找，倒排索引关键词Hash编码
+下一篇：程序员编程艺术第二十六章：基于给定的文档生成倒排索引（含源码下载）
+ .
+顶42踩3. 
+
+
+查看评论
+ 
+64楼 natulis 2013-04-14 17:14发表[回复] 发现个小细节问题，left + ((right-left)>>1)
+位移的优先级比四则运算低，所以不用写这么多括号，我觉得写成left + (right - left >> 1)就行了，博主你看看行不63楼 zhaojia1989 2013-03-26 16:00发表[回复] #include <iostream>
+using namespace std;
+
+int binary_search(int a[], int length, int dst)
+{
+ int *p = a;
+ while (length != 0)
+ {
+ if (p[length/2] == dst)
+ return length/2;
+ if (p[length/2] > dst)
+ length /= 2;
+ else
+ {
+ length /= length; 
+p += length;
+ }
+ }
+ return -1;
+}
+
+int main()
+{
+ int a[] = {1,2,3,4};
+ int rst = binary_search(a, 4, 3);
+ cout << rst << endl;
+ return 0;
+}
+为什么不考虑操作指针？62楼 onehao 2013-02-20 22:12发表[回复] 今天来跟着楼主一起学习，谢谢！61楼 syzcch 2012-10-16 13:15发表[回复] 确实 写出没bug的程序不容易60楼 slayerxj 2012-10-12 14:16发表[回复] 
+
+
+
+01.int binary_search(int array[], int n, int value)  
+02.{  
+03.    if ((array == NULL) || (n == 0)) {  
+04.        return -1;  
+05.    }  
+06.    if (array[0] == value) {  
+07.        return 0;  
+08.    }  
+09.    if (array[n] == value) {  
+10.        return n;  
+11.    }  
+12.  
+13.    int left = 0;  
+14.    int right = n;  
+15.    int middle = n >> 1;  
+16.    while (right - left != 1) {  
+17.        if (value < array[middle]) {  
+18.            right = middle;  
+19.        } else if (value > array[middle]) {  
+20.            left = middle;  
+21.        } else {  
+22.            return middle;  
+23.        }  
+24.        middle = left + ((right - left) >> 1);  
+25.    }  
+26.  
+27.    return -1;  
+28.}  
+29.int _tmain(int argc, _TCHAR* argv[])  
+30.{  
+31.    int array[] = {2, 4, 7, 11, 23, 57, 89, 46, 90};  
+32.    printf("%d\n", binary_search(array, 9, 2));  
+33.    printf("%d\n", binary_search(array, 9, 90));  
+34.    printf("%d\n", binary_search(array, 9, 57));  
+35.    printf("%d\n", binary_search(array, 9, 23));  
+36.    printf("%d\n", binary_search(array, 9, 26));  
+37.    getchar();  
+38.    return 0;  
+39.}  
+59楼 v_JULY_v 2012-02-10 11:36发表[回复] updated：各位，可以到此处0积分下载本blog最新博文集锦第6期CHM文件：http://download.csdn.net/detail/v_july_v/4020172。Re: yongjiyu 2012-04-20 08:57发表[回复] 中间有好几个连续相同的值时，没有考虑！到底是返回最左边的位置还是最右边的位置，代码是需要稍微修改一下的。回复v_JULY_v：Re: v_JULY_v 2012-04-20 09:50发表[回复] 回复yongjiyu：嗯？要作何修改？58楼 J812773326 2012-02-10 11:32发表[回复] 尝试写了一下，出现的问题都是楼主说的。佩服佩服啊。
+求资料一份，谢谢楼主，很喜欢你的博客~
+jxiaobao@gmail.com
+//返回值为int类型，-1表示没有，否则表示出现的位置
+template<typename T>
+int binarySearch(const vector<T> &var, T key) {
+ int size = var.size();//数组的长度
+ int mid = (size - 1) / 2;//中间位置
+ int left = 0, right = size - 1;
+ while (left <= right) {
+ if (key < var[mid]) {
+ right = mid - 1;
+ } else if (key > var[mid]) {
+ left = mid + 1;
+ } else {
+ return mid;
+ }
+ mid = (left + right) / 2;
+ }
+ return -1;
+}57楼 jiangbin00cn 2012-02-08 09:17发表[回复] 收不了CSDN的评论排版了
+http://blog.csdn.net/jiangbin00cn/article/details/7241154
+
+优化：减少主循环的计算量，代价是增大了某一条件下的计算量，总体而言是合算的。
+int middle=left + ((right-left)>>1); //防止溢出，移位也更高效。同时，每次循环都需要更新
+
+另外：在循环内申请变量的习惯不太好，若是多层循环可能导致变量的多次申请和释放。虽然编译器可能作出优化，但这个习惯不太好。56楼 jiangbin00cn 2012-02-08 09:01发表[回复] /*
+对折法
+
+参数：
+DWORD IN_pArray[], 待查找数组
+DWORD IN_ArrayNum, 数组大小
+DWORD Value 待匹配数据
+
+返回：
+0xffffffff 查找识别
+0-IN_ArrayNum-1 匹配成功，返回位置
+*/
+DWORD BinarySearch(DWORD IN_pArray[],DWORD IN_ArrayNum,DWORD Value )
+{
+ //首先判断是否在数组中
+if( (Value<IN_pArray[0]) || (Value>IN_pArray[IN_ArrayNum-1]) ) return 0xffffffff;
+
+ //数组头指针
+DWORD *pArray=IN_pArray;
+ //元素个数
+DWORD Num=IN_ArrayNum;
+ DWORD Temp;
+
+ //元素个数为1时，无需对折
+while( Num>1 )
+ {
+ //数量直接右移
+Temp=Num>>1;
+
+ //是否在数组右半部
+if( pArray[Temp]<Value )
+ {
+ pArray+=Temp+1;
+ Num-=Temp+1;
+ }
+ //是否在数组左半部
+else if( pArray[Temp]>Value )
+ {
+ Num=Temp;
+ }
+ //匹配成功
+else
+ {
+ //返回位置
+return pArray+Temp-IN_pArray;
+ }
+ }
+
+ //当元素个数为1是判断是否匹配，返回位置
+if( pArray[0]==Value ) return pArray-IN_pArray;
+ return 0xffffffff;
+}55楼 qq511246732 2011-12-30 22:17发表[回复] 楼主，小弟菜鸟一个。这句移位运算符等还不能理解通透。
+int middle=left + ((right-left)>>1);
+请问这句代码没有用移位运算符，该怎么实现的？望帮助，不胜感激！Re: qq511246732 2011-12-30 22:25发表[回复] 回复qq511246732：哦哦，就是除二的意思，哈哈54楼 wangzhiqing3 2011-12-28 10:58发表[回复] 
+
+
+
+01.public class Binary_2 {  
+02.    public int binary_search(int arr[],int n,int value){  
+03.        int left=0;  
+04.        int right=n-1;  
+05.        while(left<=right){  
+06.            int midle=left+((right-left)>>1);  
+07.            if(arr[midle]<value)  
+08.                left=midle+1;  
+09.            else if(arr[midle]>value)  
+10.                midle=right-1;  
+11.            else   
+12.                return midle;  
+13.        }  
+14.        return 0;  
+15.    }  
+16.    public static void main(String args[]){  
+17.        int arr[]={1,2,3,4};  
+18.        int n=4;  
+19.        int value=3;  
+20.        Binary_2 b=new Binary_2();  
+21.        int t=b.binary_search(arr, n, value);  
+22.        System.out.println(t);        
+23.    }  
+24.  
+25.}  
+Re: v_JULY_v 2011-12-28 11:01发表[回复] 回复wangzhiqing3：差不多了，不过，给你指出可能是一笔误：right=middle-1;53楼 v_JULY_v 2011-12-28 10:39发表[回复] 
+引用“v_JULY_v”的评论：注释里已经说得很明白了，可还是会有不少朋友犯此类的错误：
+[code=cpp]
+//首先要把握下面几...
+
+还有一个最最常犯的错误是@土豆：
+middle= (left+right)>>1; 这样的话left与right的值比较大的时候，其和可能溢出。52楼 ghlzs 2011-12-28 10:06发表[回复] int middle = left + ((right - left) >> 1); 
+
+为什么这样移位就能防止溢出而且更高效呢，楼主给解释一下把，多谢了Re: v_JULY_v 2011-12-28 10:37发表[回复] 回复ghlzs：土豆云：middle= (left+right)>>1; 这样的话left与right的值比较大的时候，其和可能溢出，减法可以使得结果为一个right还小的值， 至于移位运算和直接的除法运算，移位要更快一点。人生得数知己，死而无憾呐。51楼 hnwzs 2011-12-27 14:53发表[回复] 凑个热闹请指教
+int min = 0;
+ int max = a.Length - 1;
+ int middle;
+ while (min <= max)
+ {
+ middle = (max + min) / 2;
+ if (num > a[middle])
+ {
+ min = middle + 1;
+ }
+ else if (num < a[middle])
+ {
+ max = middle - 1;
+ }
+ else
+ {
+ return middle;
+ }
+ }
+ return -1;50楼 v_JULY_v 2011-12-27 11:54发表[回复] 非常感谢所有在本帖留下评论或代码的所有读者，感谢各位。49楼 v_JULY_v 2011-12-27 10:33发表[回复] chunyang xiao发邮件给的代码：
+
+
+
+
+01.#include <iostream>  
+02.#include <vector>  
+03.  
+04.using namespace std;  
+05.  
+06.template<typename T>  
+07.int _binary_search(const vector<T>& vec, const T& search, const int begin, const int end){  
+08.      
+09.    //Return the index of the search, -1 if the searched value doesn't exist  
+10.    //The vec is sorted from small to big  
+11.  
+12.    while(begin <= end){  
+13.        int middle = (begin+end) >> 1;  
+14.        if (search < vec[middle])  
+15.            return _binary_search(vec, search, begin, middle-1);   
+16.        if (search > vec[middle])  
+17.            return _binary_search(vec, search, middle+1, end);  
+18.        else  
+19.            return middle;  
+20.    }  
+21.  
+22.    return -1;    
+23.}  
+24.  
+25.template<typename T>  
+26.int binary_search(const vector<T>& vec, const T& search){  
+27.    return _binary_search(vec, search, 0, vec.size()-1);  
+28.}  
+29.  
+30.int main(){  
+31.  
+32.    vector<int> v_test;  
+33.    v_test.push_back(0);  
+34.    v_test.push_back(1);  
+35.    cout << binary_search(v_test, 1) << endl;  
+36.    v_test.push_back(5);  
+37.    cout << binary_search(v_test, 1) << endl;  
+38.    cout << binary_search(v_test, 12) << endl;  
+39.  
+40.}  
+48楼 qiulei11111 2011-12-27 09:16发表[回复] qdqwd47楼 qiulei11111 2011-12-27 09:16发表[回复] dqwd46楼 qiulei11111 2011-12-27 09:16发表[回复] weq45楼 niyuan9981 2011-12-27 09:00发表[回复] 测试过没有发现问题44楼 v_JULY_v 2011-12-26 17:27发表[回复] 注释里已经说得很明白了，可还是会有不少朋友犯此类的错误：
+
+
+
+
+01.//首先要把握下面几个要点：    
+02.//right=n-1 => while(left <= right) => right=middle-1;    
+03.//right=n   => while(left <  right) => right=middle;    
+04.//middle的计算不能写在while循环外，否则无法得到更新。    
+43楼 niyuan9981 2011-12-26 16:22发表[回复] int binary_search(int array[],int len,int val)
+{
+ 
+int i,s,p;
+ p=len-1; 
+s=0; 
+
+if(array[s]==val)
+ {
+ return s;
+ } 
+else if(array[p]==val)
+ {
+ return p;
+ } 
+
+while(s<(p-1))
+ { 
+i=(p+s)/2;
+
+ if(array[i]>val)
+ {
+ p=i;
+ }
+ else if(array[i]<val)
+ {
+ s=i;
+ } 
+else
+ {
+ return i;
+ } 
+}
+ return -1;
+}
+请指教，9017902@qq.comRe: v_JULY_v 2011-12-26 16:37发表[回复] 回复niyuan9981：边界条件出错~。Re: niyuan9981 2011-12-26 17:01发表[回复] 回复v_JULY_v：没明白，什么情况下会出错？Re: v_JULY_v 2011-12-26 17:25发表[回复] 回复niyuan9981：何不自己测试一下下？Re: niyuan9981 2011-12-26 17:46发表[回复] 回复v_JULY_v：//首先要把握下面几个要点： 
+//right=n-1 => while(left <= right) => right=middle-1; 
+//right=n => while(left < right) => right=middle; 
+你是说这个吗，我减1是因为我把最边上的值在循环外判断过了，循环内只判断中间值Re: v_JULY_v 2011-12-26 18:06发表[回复] 回复niyuan9981：测试了么？42楼 gaofengkuiyue 2011-12-26 15:30发表[回复] 求楼主一份资料，谢谢。453049664@qq.com 
+//二分查找的的时候，必须是排好序的数组
+private static int BinarySearch(int[] arr,int value)
+ {
+ if(arr.Length>0) //只有数组不为空，才能排序
+{
+int left = 0;
+ int right = arr.Length - 1;
+ int middle = (left + right + 1)/2;
+
+ while (left <= right)
+ {
+ if (value < arr[middle])
+ {
+ right = middle - 1;
+ }
+ else if (value > middle)
+ {
+ left = middle + 1;
+ }
+ else
+ {
+ return middle;
+ }
+ middle = (left + right + 1) / 2;
+ }
+ }
+ return -1;
+ }Re: v_JULY_v 2011-12-26 16:01发表[回复] 回复gaofengkuiyue：middle不必两次赋值。41楼 xx 2011-12-26 14:55发表[回复] 我要歪楼了，我承认我现在给我几个小时都写不出正确的二分算法。
+因为我知道5/2,余数是1，但是我并不知道为什么1+1=2，我也不需要写代码去实现1+1=？这个问题。
+我认为，在某些领域，算法可以被放到神的位置供奉都不为过，但在大量的应用软件面上，算法只不过是被封装在这种那种包或类或其他载体中的对程序员透明的代码。
+在晋升高层次的程序员时，或者在进行某些创造性较强的开发工作中，算法可能也会发挥出重要的作用或者成为难以逾越的绊脚石，但是如果以我现在所处的境地，让我现在去搞清楚弄明白那些算法，甚至自己去完整无误的实现一次，我拒绝，虽然我偶尔会在某时某刻特别渴望得知某种算法的实现，偶尔迸发出特别强烈需要改进某种算法的想法。Re: v_JULY_v 2011-12-26 16:03发表[回复] 回复njnu06040715：呵呵。只说一点，这里：“我承认我现在给我几个小时都写不出正确的二分算法”，你应该充满自信一点。40楼 chaijunkun 2011-12-26 14:17发表[回复] "你能正确无误的写出二分查找代码么？" "so easy!妈妈再也不用担心我的学习"39楼 KWSY2008 2011-12-26 11:36发表[回复] 看来我的最麻烦了，请楼主发我一份材料
+邮箱地址：xigongda200608@163.com
+bool QuickSort::Binary_Search(int arr[],int iStart,int iEnd,int iValue,int& index){
+ /************************************************************************/
+ /* 
+iStart:查找起始位置
+iEnd:查找结束位置
+iValue:要查找的数值
+index:如果找到，返回该数值所在位置的索引
+ 如果找到，函数返回true，否则返回false
+ */
+ /************************************************************************/
+ if(iStart>iEnd)
+ {
+ return false;
+ }
+ int midIndex=(iStart+iEnd)/2;
+ int iMid=arr[midIndex];
+ if(iMid==iValue)
+ {
+ index=midIndex;
+ return true;
+ }
+ if(iMid>iValue)
+ {
+ return Binary_Search(arr,iStart,midIndex-1,iValue,index);
+ }
+ if(iMid<iValue)
+ {
+ return Binary_Search(arr,midIndex+1,iEnd,iValue,index);
+ }
+ return false;
+}Re: v_JULY_v 2011-12-26 11:48发表[回复] 回复KWSY2008：错的地方太多niao38楼 searchwenjie 2011-12-26 00:11发表[回复] //function discription: binary search
+//paramiter discription: 
+// arr:the array to search and be sort in descent
+// len:the length of arr
+// value:the value to be search
+int binary_search(int arr[],int len,int value)
+{
+ int low,high,mid = -1;
+ int i;
+
+ //init search area
+ low = 0;
+ high = len - 1;
+
+ while(low <= high){
+ mid = (low + high) / 2;
+
+ if( value < arr[mid] ){
+ high = mid - 1;
+ }
+ else if( value > arr[mid] ){
+ low = mid + 1;
+ }
+ else{
+ return mid;
+ }
+ }
+ return -1;
+}37楼 quanben 2011-12-25 11:51发表[回复] 最近经常用ADA写程序，所有用ADA语言写了（类似pascal），凑个热闹，程序期望给出找到位置或插入点位置。
+写了一段时间，还是不太确定是否正确。测试了两个序列，看上去没错。
+
+
+
+
+01.procedure binarysearch(l : list_t; first, last : index_t; e : element_t;   
+02.                       index : out index_t; found : out boolean) is  
+03.  lo : index_t := first; -- 下界索引  
+04.  hi : index_t := last + 1; -- 上界索引（+1）  
+05.  mi : index_t; -- 中间索引  
+06.  vmi : element_t; -- 中间值  
+07.begin  
+08.  while lo < hi loop  
+09.    mi := (lo + hi) / 2;  
+10.    vmi := get(l, mi);  
+11.     
+12.    if e < vmi then  
+13.      hi := mi;  
+14.    elsif vmi < e then  
+15.      lo := mi + 1;  
+16.    else -- vmi = e, found  
+17.      index := mi;  
+18.      found := true;  
+19.        return;  
+20.    end if;  
+21.  end loop;  
+22.  index := lo;  
+23.  found := false;  
+24.end;  
+36楼 吕海鹏 2011-12-25 10:18发表[回复] 标题扣得帽子有些大 90%却也不太过分，
+这有些责任是老师的事，
+我现在在程序流程训练的基础课程中每次都加上这个练习的，35楼 newpb80 2011-12-25 00:09发表[回复] 我觉得算法对提高软件开发人员的基础知识还是不错的。
+但是做应用软件开发人员 很多人 算法写不了，但能开发大型应用软件系统的 大有人在。
+关键是提高设计能力和业务知识。34楼 owen_ccc 2011-12-24 22:59发表[回复] #include <stdio.h>
+
+int binary_search(int array[], int size, int value)
+{
+ int left = 0;
+ int right = size - 1;
+
+ while (left <= right) {
+ //运算符优先级问题，必须加括号、
+int middle = left + ((right - left) >> 1); 
+
+if (array[middle] < value) {
+ left = middle + 1;
+ } else if (array[middle] > value) {
+ right = middle - 1;
+ } else {
+ return middle;
+ } 
+}
+ printf("Error! value: %d not exist!\n", value);
+ return -1;
+}
+
+
+int main()
+{
+ int array[10] = {7, 6, 9, 2, 3, 4, 8, 5, 0, 10};
+ printf("Position: %d\n", binary_search(array, 10, 5));
+ return 0;
+}
+
+// Email : owen_ccc#163.com33楼 xni220 2011-12-24 17:21发表[回复] 看了楼主的帖子，蛮感兴趣的，可以发一份资料给我吗？谢谢。Re: xni220 2011-12-24 17:22发表[回复] 回复xni220：忘记写上邮箱了xni220@126.com32楼 lzj509649444 2011-12-24 13:56发表[回复] 楼主看过这篇“二分查找学习札记”吗，里面总结的比较好！http://blog.csdn.net/lzj509649444/article/details/7064203
+至于测试的话，10楼的有些观点还是值得思考学习的，如果非要那么全面的测试，应该是测试人员的工作。bug的存在，往往是自己代码有漏洞，楼主更应当思考展示几个典型的测试用例，普通的测试用例也可以贴出来！31楼 CsHeng 2011-12-24 13:29发表[回复] 来膜拜赚分的 - -30楼 complety 2011-12-24 13:18发表[回复] 麻烦lz把资料发我一份吧。419049501@qq.com。谢谢拉。
+#include<stdio.h>
+int binary_search(int data[],int size,int key)
+{
+ int min=0,max=size-1;
+ int middle;
+ while(min<=max)
+ {
+ middle=min+((max-min)>>1);
+ if(key>data[middle])
+ {
+ min=middle+1;
+ }
+ else if(key<data[middle])
+ {
+ max=middle-1;
+ }
+ else
+ return middle;
+ }
+ 
+
+return -1;
+}
+int main()
+{
+ int a[10]={1,2,3,4,5,6,7,8,9,10};
+ int key;
+ printf("enter an integer(1-10):\n");
+ scanf("%d",&key);
+ printf("the position of key is:%d\n",binary_search(a,10,key));
+ return 0;
+}29楼 cjoooooo 2011-12-24 12:53发表[回复] 我是来看排序的。没有。。。。。。。。。。28楼 Jocodeoe 2011-12-24 10:34发表[回复] 
+
+
+
+01.int Search(int array[],int n,int value)  
+02.{  
+03.    int min=0;  
+04.    int max=n;  
+05.    int temp;  
+06.    while(1)  
+07.    {  
+08.        temp=(min+max)/2;  
+09.        if(array[temp]>value)   
+10.            max=temp;  
+11.        else if(array[temp]<value)   
+12.            min=temp;     
+13.        else  
+14.            return temp;  
+15.    }  
+16.}  
+
+之前写得不太好，修改一下。27楼 longlong530 2011-12-24 08:34发表[回复] 这个有意义，马上写个试试26楼 quanben 2011-12-24 07:59发表[回复] 二分查找是最常用算法之一，原理简单，难在边界条件，很经典25楼 shangzhihaohao 2011-12-23 20:14发表[回复] 
+引用“Jocodeoe”的评论：[code=cpp]
+int Search(int array[],int n,int value)...
+
+如果查找失败你就悲剧了。Re: Jocodeoe 2011-12-23 22:00发表[回复] 回复shangzhihaohao：粗略地测试了一下，没有发现问题~24楼 Jocodeoe 2011-12-23 18:16发表[回复] 
+
+
+
+01.int Search(int array[],int n,int value)  
+02.{  
+03.    int min=0;  
+04.    int max=n;  
+05.    int temp;  
+06.    while(temp=(min+max)/2)  
+07.    {  
+08.        if(array[temp]==value) return temp;  
+09.        else if(array[temp]>value)   
+10.        {  
+11.            max=temp;  
+12.            continue;  
+13.        }  
+14.        else  
+15.            min=temp;  
+16.    }  
+17.}  
+
+
+请LZ审查~邮箱：109734103@qq.com23楼 卡卡_苏米 2011-12-23 16:13发表[回复] 我上次有叫我当场写出快速排序算法的，结果就。。。。22楼 LaoLiulaoliu 2011-12-23 15:37发表[回复] #python 小测一下，发现真不容易一次写对。烦请楼主帮忙看看
+
+
+
+
+01.def binary_search(n, arr, arr_len=None):  
+02.    """n can be numbers,characters,strings... 
+03.        arr is n type list """  
+04.    if arr_len is None:  
+05.        arr_len = len(arr)  
+06.    low, high = 0, arr_len - 1  
+07.    while True:  
+08.        if low >= high:  
+09.            return None  
+10.        mid = int((low + high) / 2)  
+11.        if arr[mid] < n:  
+12.            low = mid  
+13.        elif arr[mid] > n:  
+14.            high = mid  
+15.        else:  
+16.            return mid  
+Re: v_JULY_v 2011-12-23 15:42发表[回复] 回复LaoLiulaoliu：边界值调整：
+
+
+
+
+01.//首先要把握下面几个要点：    
+02.//right=n-1 => while(left <= right) => right=middle-1;    
+03.//right=n   => while(left <  right) => right=middle;    
+04.//middle的计算不能写在while循环外，否则无法得到更新。    
+Re: LaoLiulaoliu 2011-12-23 22:41发表[回复] 回复v_JULY_v：还真是有问题，谢谢楼主21楼 hellorld 2011-12-23 14:25发表[回复] 仅就本程序而言，因为left = 0,所以（left + right) / 2 也不会溢出吧。20楼 skylkj 2011-12-23 11:01发表[回复] c的，5年前写的一个。原本程序是二分法找索引，然后返回内容。所以找到后返回的下标都是+1的
+
+while(1)
+ {
+ if (datain == char_pointer[low*2])
+ return char_pointer[low*2+1];
+ else if (datain == char_pointer[hig*2])
+ return char_pointer[hig*2+1];
+ else if (hig-low <= 1)
+ {
+ //printf("low:%d hig:%d \r\n",low,hig);
+ return 0;
+ }
+
+ temp = (low + hig)/2;
+ if (datain==char_pointer[temp*2])
+ return char_pointer[temp*2+1];
+
+ if (datain<char_pointer[temp*2])
+ hig = temp;
+ else
+ low = temp;
+ }
+
+
+邮箱 ylagra@163.com 谢谢19楼 hotpos 2011-12-23 09:50发表[回复] 
+
+
+
+01.int bin_search(int arr[], int n, int val)  
+02.{  
+03.    int l = 0, r = n -1;  
+04.  
+05.    if (val == arr[r])  
+06.        return r;  
+07.    else if (val > arr[r])  
+08.        return -1;  
+09.  
+10.    if (val == arr[l])  
+11.        return l;  
+12.    else if (val < arr[l])  
+13.        return -1;  
+14.      
+15.    while (l < r)  
+16.    {  
+17.        int p = l + (r-l)/2;  
+18.  
+19.        if (p ==l || p==r)  
+20.            break;  
+21.  
+22.        if (arr[p] == val)  
+23.            return p;  
+24.        else if (arr[p] > val)  
+25.            r = p;  
+26.        else  
+27.            l = p;  
+28.    }  
+29.  
+30.    return -1;  
+31.}  
+
+
+发现一个BUG。。
+xujiafea123@gmail.com 感谢博主分享Re: v_JULY_v 2011-12-23 09:58发表[回复] 回复hotpos：既然发现了（好几处），还不改过？18楼 西部流云 2011-12-23 09:15发表[回复] Java版本：
+public static int bisearch(int [] arr , int n){
+ int low = 0;
+ int height = arr.length -1;
+ if(arr[low] == n) return low;
+ if(arr[height] == n) return height;
+
+ while(low <= height){
+ int mid = (low+height)/2;
+ if(arr[mid] == n) return mid;
+ else if(arr[mid] > n){
+ height = mid-1;
+ }
+ else{
+ low = mid+1;
+ }
+ }
+ return -1;
+ }17楼 complety 2011-12-22 23:24发表[回复] #include<stdio.h>
+int binary_search(int data[],int size,int key)
+{
+ int min=0,max=size-1;
+ int middle=min+((max-min)>>1);
+ if(data[max]==key)
+ return max;
+ while(min<=max)
+ {
+ if(key>data[middle])
+ {
+ min=middle;
+ middle=min+((max-min)>>1);
+ }
+ else if(key<data[middle])
+ {
+ max=middle;
+ middle=min+((max-min)>>1);
+ }
+ else
+ return middle;
+ }
+ 
+
+return -1;
+}
+int main()
+{
+ int a[10]={1,2,3,4,5,6,7,8,9,10};
+ int key;
+ printf("enter an integer(1-10):\n");
+ scanf("%d",&key);
+ printf("the position of key is:%d\n",binary_search(a,10,key));
+ return 0;
+}//刚刚写的时候忘了while里面查不出来最后的那个数，于是在开头就加了个if，419049501@qq.com这个是我邮箱，谢谢lz把资料共享，嘿嘿16楼 aikaibo 2011-12-22 19:17发表[回复] public class ArrayTwainLookup
+{
+ public static int lookup(int[] array, int value)
+ {
+ int low = 0;
+ int height = array.length - 1;
+ while(low <= height)
+ {
+ int i = (low / 2) + (height / 2);
+ if(array[i] == value)
+ {
+ return i;
+ }
+ else if(array[i] < value)
+ {
+ low = i + 1;
+ }
+ else
+ {
+ height = i - 1;
+ }
+ }
+ return -1;
+ }
+
+ public static void main(String[] args)
+ {
+ int[] array = new int[]{1,3,4,8,9,12,34};
+
+ int s = lookup(array,10);
+
+ System.out.println(s);
+ }
+
+
+
+}
+
+这是我写的呵呵 我的邮箱 414398175@qq.com15楼 快乐的海盗 2011-12-22 19:07发表[回复] LZ可否把经典算法发我一份，让我学习一下，非常感谢。cjxvswf@sina.com14楼 wangxzi 2011-12-22 18:00发表[回复] 写了一下，总能测出bug，跳了半个小时才搞定，好惭愧！ 楼主态度技能皆值得尊重。 希望楼主能发一份学习资料general_use@163.com 谢谢！Re: v_JULY_v 2011-12-22 18:05发表[回复] 回复wangxzi：可以，不过你先要把你的代码贴出来给我看一下。:)13楼 xug12345 2011-12-22 17:41发表[回复] 有点儿小越界
+int search(int a[],int n,int v)
+{
+ if(a[0]==v)return 0;
+ if(n==1)
+ return a[0]==v?0:-1;
+ int i=n>>1;
+ if(a[i]==v)
+ return i;
+ else if(a[i]>v)
+ return search(a,i,v);
+ else
+ {
+ int x=search(a+i+1,i,v);
+ return x<0?x:x+i+1;
+ } 
+}Re: xug12345 2011-12-23 10:29发表[回复] xug12345@hotmail.com12楼 meichen8050753 2011-12-22 16:47发表[回复] 没有什么是准确的。。11楼 cheniwantyou 2011-12-22 11:46发表[回复] 你写出了二分查找，然后你呢？代表什么？很牛逼吗？还是满足你意淫的需要？Re: 吹泡泡的小猫 2011-12-22 22:34发表[回复] 回复cheniwantyou：真想研究一下你这种人的心理Re: yikecai 2011-12-22 17:13发表[回复] 回复cheniwantyou：你个煞笔你也写一个出来，证明楼主能做到的是你不能，楼主是牛逼，你是傻逼Re: v_JULY_v 2011-12-22 12:21发表[回复] 回复cheniwantyou：不代表任何什么，朋友。10楼 alex_yu_e 2011-12-22 10:27发表[回复] 另外看了楼主这么多篇博文，您的测试方法也让我很想吐槽，无论一个多么复杂的算法，测试数据就一个大小不超过10的数组，至于这个算法的效率，到底有多高，以及这个程序运行时的内存分配、运行时间情况，一概没有测试，您的层次只是到把它实现出来而已，既然您都花了这么大工夫把它写出来了，多给点测试数据，看看程序运行时的内存分配、时间，调试测试一下然后告诉我们结果又有何妨9楼 alex_yu_e 2011-12-22 10:00发表[回复] 另外，楼主的不调程序直接贴出来也让我很汗颜，不调试测试的程序能叫程序吗，这样直接贴出来除了是大家开开玩笑而已有什么意义呢8楼 alex_yu_e 2011-12-22 09:55发表[回复] 楼主这篇博文让我想起了孔乙己的回字有多少种写法，指导一下在学数据结构的学生还行，但单单拿会写一个正确的二分查找来说自己比多少多少专业程序员强就有点那个了，毕竟程序员的世界不全是算法和数据结构，即使一时半会写不出来正确的，网上随便找一个或者参考您的总可以吧7楼 yangwp521 2011-12-22 09:33发表[回复] 
+
+
+
+01.private int search(int[] a, int f, int r, int value) {  //f表示数组头部，r表示尾部  
+02.        while(f <= r) {  
+03.            int temp = (r + f) >> 1;  
+04.            if(value > a[temp])  {  
+05.                f = temp + 1;  
+06.                search(a, f, r, value);  
+07.            }  
+08.            if(value < a[temp])  {  
+09.                r = r >> 1 - 1 ;  
+10.                search(a, f, r, value);   
+11.            }  
+12.            if(value == a[temp])   
+13.                return temp + 1;  
+14.        }  
+15.        return 0;  
+16.    }  
+6楼 a8326369 2011-12-22 08:52发表[回复] int middle=left + ((right-left)>>1); //防止溢出，移位也更高效。同时，每次循环都需要更新。 
+
+这里，不明白你说的“高效”是什么意思。
+你这样计算，需要算1次移位和2次加法。虽然可以有效的防止溢出，但是称不上高效。
+《代码之美》介绍过一个高效的算法
+int middle = left + right >>> 1;//无符号移位
+这样只需要1次加法一次移位就可以了Re: a8326369 2011-12-22 08:59发表[回复] 回复a8326369：哦，不好意思我浅薄了，原来C++没有无符号移位。。。。
+基础不牢，见谅5楼 michaelscofielddong 2011-12-21 21:00发表[回复] #include <iostream>
+
+using namespace std;
+
+int binSearch(int a[],int data,int begin, int end)
+{
+ int mid = 0;
+
+ while(begin <= end)
+ { 
+mid = (begin + end)/2;
+ if(a[mid] > data) 
+{
+ end = mid - 1;
+ }
+ else if(a[mid] < data) 
+{
+ begin = mid + 1;
+ }
+ else
+ {
+ return mid;
+ } 
+}
+ return -1;
+}
+
+int main(void)
+{
+ return 0;
+}Re: v_JULY_v 2011-12-21 21:05发表[回复] 回复michaelscofielddong：边界值未初始化，主函数中未调用binSearch4楼 longwen0124 2011-12-21 20:53发表[回复] //返回要查找的数在数组中的位置，没有找到则放回-1
+//数组中的元素是升序
+int binary_search(int array[], int n, int value)
+{
+ int left = 0,right = n-1;
+ int mid;
+ 
+while(left <= right) 
+{
+ mid = (left + right)/2; //每次取中间位置
+
+if(array[mid] < value) //value在mid位置后面
+{
+left = mid + 1;
+ } 
+else if(array[mid] > value) //value在mid位置前面
+{
+right = mid - 1;
+ }
+ else //不大于，不小于就只能等于了咯，等于就找到了
+{
+return mid;
+ }
+ }
+ return -1; //没有找到返回-1
+}3楼 wangeryuanbj 2011-12-21 20:51发表[回复] 
+
+
+
+01.int BSearchValue(int arr[], int n, int nValue)  
+02.{  
+03.    int tmpValue = 0;  
+04.    int nFirst = 0;  
+05.    int nLast = n - 1;  
+06.    int nMid = 0;  
+07.  
+08.    while (nFirst <= nLast)  
+09.    {  
+10.        nMid = (nFirst + nLast)/2;  
+11.        (arr[nMid] < nValue) ? (nFirst = nMid + 1) : (arr[nMid] > nValue ? nLast = nMid - 1 : tmpValue = arr[nMid]);  
+12.        if (tmpValue != 0) return tmpValue;  
+13.    }  
+14.    return -1;  
+15.}  
+16.  
+17.int _tmain(int argc, _TCHAR* argv[])  
+18.{  
+19.    int arr[10] = {1,2,3,4,5,6,7,8,9,10};  
+20.    int nMid = BSearchValue(arr, 10, 6);  
+21.    cout<<nMid<<endl;  
+22.    for (;;) {}  
+23.    return 0;  
+24.}  
+2楼 zhucegepp 2011-12-21 20:44发表[回复] 
+
+
+
+01.import java.util.ArrayList;  
+02.  
+03.public class BinarySearch {  
+04.  
+05.    public static int binarySearch(ArrayList<Integer> numList, int value) {  
+06.        int left = 0;  
+07.        int right = numList.size() - 1;  
+08.        while (left <= right) {  
+09.            int middle = (left + right) >> 1;  
+10.            if (numList.get(middle) == value) {  
+11.                return middle;  
+12.            } else if (numList.get(middle) > value) {  
+13.                right = middle - 1;  
+14.            } else {  
+15.                left = middle + 1;  
+16.            }  
+17.        }  
+18.        return -1;  
+19.    }  
+20.  
+21.    public static void main(String[] args) {  
+22.  
+23.        ArrayList<Integer> numList = new ArrayList<Integer>();  
+24.        for (int i = 0; i < 10; i++) {  
+25.            numList.add(i);  
+26.        }  
+27.        System.out.println(binarySearch(numList, 5));  
+28.    }  
+29.  
+30.}  
+1楼 hljhnu 2011-12-21 20:40发表[回复] #include <stdio.h>
+#include <stdlib.h>
+int bina_search(int data[],int size,int key)
+{
+ int left=1,right=size;
+ while(left<=right)
+ {
+ int middle=(left+right)/2;
+ int mid_value=data[middle];
+ if(key==mid_value)return middle;
+ else if(key<mid_value) right=middle-1;
+ else left=middle+1;
+ }
+ return -1;
+}
+int main()
+{
+ int data[5]={0,1,4,5,7};
+ int index=bina_search(data,4,7);
+ printf("%d",index);
+ system("pause");
+ return 0;
+}Re: v_JULY_v 2011-12-21 20:50发表[回复] 回复hljhnu：代码没有考虑是否溢出的问题
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料 
+
+v_JULY_v 
+
+
+
+
+
+
+访问：4195735次
+积分：25982分
+排名：第50名
+ . 原创：134篇
+转载：0篇
+译文：5篇
+评论：10137条
+ . 
+博客公告 ①.本blog开通于2010年10月11日，高级C /Algorithms交流群：149977547；北京程序员联盟：172727781。②.狂热算法，热爱数据挖掘，关注机器学习、统计分析，爱好文学数学。③.微博：研究者July，邮箱：zhoulei0907@yahoo.cn，July，二零一三年三月二十九日。 
+我的微博 
+文章分类 03.Algorithms（实现）(9) 
+01.Algorithms（研究）(27) 
+02.Algorithms（后续）(22) 
+04.Algorithms（讨论）(1) 
+05.MS 100' original(7) 
+06.MS 100' answers(13) 
+07.MS 100' classify(4) 
+08.MS 100' one Keys(6) 
+09.MS 100' follow-up(3) 
+10.MS 100' comments(4) 
+11.TAOPP（编程艺术）(26) 
+12.TAOPP string(6) 
+13.TAOPP array(10) 
+14.TAOPP list(2) 
+15.stack/heap/queue(0) 
+16.TAOPP tree(1) 
+17.TAOPP c/c++(2) 
+18.TAOPP function(2) 
+19.TAOPP algorithms(7) 
+20.number operations(1) 
+21.Essays(8) 
+22.Big Data Processing(5) 
+23.Redis/MongoDB(0) 
+24.data structures(12) 
+25.Red-black tree(7) 
+26.Image Processing(3) 
+27.Architecture design(4) 
+28.Source analysis(3) 
+29.Recommend&Search(4) 
+30.Machine L&Data Mining(5) 
+
+博客专栏
+
+
+
+
+微软面试100题系列
+文章：17篇
+阅读：1246124 
+
+
+
+
+
+程序员编程艺术
+文章：24篇
+阅读：859728 
+
+
+
+
+
+经典算法研究
+文章：32篇
+阅读：1110619 
+
+阅读排行 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(186273) 
+九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(141620) 
+教你如何迅速秒杀掉：99%的海量数据处理面试题(137467) 
+横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(127654) 
+从B树、B+树、B*树谈到R 树(122031) 
+十道海量数据处理面试题与十个方法大总结(101550) 
+九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(87335) 
+十一、从头到尾彻底解析Hash表算法(78390) 
+微软公司等数据结构+算法面试100题(第1-100题)全部出炉(75917) 
+支持向量机通俗导论（理解SVM的三层境界）(74618) 
+
+评论排行 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(371) 
+九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(361) 
+九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(331) 
+当今世界最为经典的十大算法--投票进行时(320) 
+从B树、B+树、B*树谈到R 树(264) 
+横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(263) 
+十三个经典算法研究与总结、目录+索引(216) 
+我的大学生涯(214) 
+程序员编程艺术第一章、左旋转字符串(203) 
+三五杆枪，可干革命，三五个人，可以创业(198) 
+
+最新评论 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦
+v_JULY_v: @q1w2ok11:替我感谢你的同事:-) 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦
+q1w2ok11: 同事推荐，太给力了，必须好好学习，楼主辛苦 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦
+kiritor: 谢谢博主的分享,先收藏了 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦
+v_JULY_v: @zhouqinxiong:哪个学校呢？替我谢谢你的老师:-) 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦
+zhouqinxiong: 老师推荐的，lz，你的博客非常给力 
+
+快速排序算法
+康天崽: 太给力了，我喜欢，爱死你了 
+
+我的大学生涯
+msjcool: 看完楼主的经历，感觉自己弱爆了 
+
+B树的C实现
+hao138548: 好贴 
+
+教你如何迅速秒杀掉：99%的海量数据处理面试题
+xiyandeng: 虽然看得不是很懂，以后可以慢慢消化！感谢博主啊 
+
+程序员编程艺术第一章、左旋转字符串
+dusx1981: void RightShift4(string &str, int k){ int len = st... 
+
+
+01、本blog索引 3、微软100题维护地址
+1、微软100题横空出世
+5、经典算法研究系列
+7、红黑树系列集锦
+6、程序员编程艺术系列
+2、微软面试全部100题
+0、经典4大原创系列集锦
+4、微软100题下载地址
+ 
+02、Google or baidu? Google搜--"结构之法"（My BLOG）
+baidu 搜--"结构之法"（My BLOG）
+ 
+03、个人标签 本BLOG RSS订阅
+zhoulei0907@yahoo.cn
+csdn blog订阅排行榜
+TAOPP修订wiki
+julymsn@live.cn
+电子工程网专家VIP
+ 博客园blog-成为推荐博客
+ ITpub-代码优化专家
+ 
+04、我的驻点 01. 为学论坛-万物皆数 终生为学
+ 02、Harry
+ 03、NoSQLFan
+ 04、酷勤网
+ 05、52nlp
+ 06、北大朋友的挖掘乐园
+ 07、跟Sophia_qing一起读硕士
+ 08、面试问答社区51nod
+ 09、韩寒
+ 10、我的有鱼
+ 11、曾经的叛逆与年少
+ 12、老D之MongoDB源码分析
+ 14、code4app:iOS代码示例
+ 17、斯坦福机器学习公开课
+ 18、TheItHome算法版块版主
+ 19、36氪--关注互联网创业
+ 20、德问--编程是一种艺术创作
+ 21、善科网
+ 22、百度搜索研发部
+ 23、淘宝搜索技术博客
+ 24、interviewstreet
+ 25、LeetCode
+ 26、Team_Algorithms人人小组
+ 
+文章存档 
+2013年03月(1).
+2012年12月(1).
+2012年11月(1).
+2012年09月(1).
+2012年06月(1).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持Copyright © 1999-2012, CSDN.NET, All Rights Reserved  

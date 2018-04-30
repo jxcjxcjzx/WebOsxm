@@ -1,0 +1,1028 @@
+
+
+
+您还未登录 !登录注册
+ .
+
+
+
+
+.
+
+
+
+论坛首页 →Java企业应用论坛 →
+Lucene搜索方法总结
+ .
+全部HibernateSpringStrutsiBATIS企业应用LuceneSOAJava综合设计模式TomcatOOJBoss
+
+
+
+
+Java开发新方式：专注UI，快速开发
+
+« 上一页 1 2 3 下一页 »
+
+浏览 13348 次
+ 
+
+
+
+锁定老帖子 主题：Lucene搜索方法总结
+
+精华帖 (1) :: 良好帖 (7) :: 新手帖 (2) :: 隐藏帖 (4)
+ 
+
+
+作者
+
+正文 
+
+
+
+
+summerbell
+等级: 初级会员
+
+性别: 
+文章: 17
+积分: 60
+来自: 武汉
+
+ 
+
+
+   发表时间：2010-01-13   最后修改：2010-03-08 
+
+
+
+
+<>猎头职位: 北京: 【北京】游戏公司诚邀php开发工程师
+
+相关文章:  ■Lucene-2.0学习文档（４）
+■Lucene全功能
+■关于BooleanQuery的问题
+
+推荐群组: lucene爱好者
+更多相关推荐
+Java综合.
+
+Lucene搜索方法总结
+ 
+ 
+ 
+更多lucene信息欢迎查看http://summerbell.iteye.com/category/91859 
+
+1.多字段搜索
+ 
+使用 multifieldqueryparser 可以指定多个搜索字段。
+ 
+query query = multifieldqueryparser.parse(”name*”, new string[] { fieldname, fieldvalue }, analyzer);
+ 
+indexreader reader = indexreader.open(directory);
+ 
+indexsearcher searcher = new indexsearcher(reader);
+ 
+hits hits = searcher.search(query);
+ 
+ 
+ 
+2.多条件搜索
+ 
+除了使用 queryparser.parse 分解复杂的搜索语法外，还可以通过组合多个 query 来达到目的。
+ 
+query query1 = new termquery(new term(fieldvalue, “name1′)); // 词语搜索
+ 
+query query2 = new wildcardquery(new term(fieldname, “name*”)); // 通配符 
+
+//query query3 = new prefixquery(new term(fieldname, “name1′)); // 字段搜索 field:keyword，自动在结尾添加 *
+ 
+//query query4 = new rangequery(new term(fieldnumber, numbertools.longtostring(11l)), new term(fieldnumber, numbertools.longtostring(13l)), true); // 范围搜索
+ 
+//query query5 = new filteredquery(query, filter); // 带过滤条件的搜索
+ 
+booleanquery query = new booleanquery();
+ 
+query.add(query1, booleanclause.occur.must);
+ 
+query.add(query2, booleanclause.occur.must);
+ 
+indexsearcher searcher = new indexsearcher(reader);
+ 
+hits hits = searcher.search(query);
+ 
+ 
+ 
+3.过滤
+ 
+使用 filter 对搜索结果进行过滤，可以获得更小范围内更精确的结果。
+ 
+举个例子，我们搜索上架时间在 2005-10-1 到 2005-10-30 之间的商品。
+ 
+对于日期时间，我们需要转换一下才能添加到索引库，同时还必须是索引字段。 // index
+ 
+document.add(fielddate, datefield.datetostring(date), field.store.yes, field.index.un_tokenized);
+ 
+//…
+ 
+// search
+ 
+filter filter = new datefilter(fielddate, datetime.parse(”2005-10-1′), datetime.parse(”2005-10-30′));
+ 
+hits hits = searcher.search(query, filter);
+ 
+除了日期时间，还可以使用整数。比如搜索价格在 100 ~ 200 之间的商品。
+ 
+lucene.net numbertools 对于数字进行了补位处理，如果需要使用浮点数可以自己参考源码进行。 // index
+ 
+document.add(new field(fieldnumber, numbertools.longtostring((long)price), field.store.yes, field.index.un_tokenized));
+ 
+//…
+ 
+// search
+ 
+filter filter = new rangefilter(fieldnumber, numbertools.longtostring(100l), numbertools.longtostring(200l), true, true);
+ 
+hits hits = searcher.search(query, filter);
+ 
+使用 query 作为过滤条件。 queryfilter filter = new queryfilter(queryparser.parse(”name2′, fieldvalue, analyzer));
+ 
+我们还可以使用 filteredquery 进行多条件过滤。
+ 
+filter filter = new datefilter(fielddate, datetime.parse(”2005-10-10′), datetime.parse(”2005-10-15′));
+ 
+filter filter2 = new rangefilter(fieldnumber, numbertools.longtostring(11l), numbertools.longtostring(13l), true, true);
+ 
+query query = queryparser.parse(”name*”, fieldname, analyzer);
+ 
+query = new filteredquery(query, filter);
+ 
+query = new filteredquery(query, filter2);
+ 
+indexsearcher searcher = new indexsearcher(reader);
+ 
+hits hits = searcher.search(query);
+ 
+ 
+ 
+4.分布搜索
+ 
+我们可以使用 multireader 或 multisearcher 搜索多个索引库。
+ 
+multireader reader = new multireader(new indexreader[] { indexreader.open(@”c:\index”), indexreader.open(@”\\server\index”) });
+ 
+indexsearcher searcher = new indexsearcher(reader);
+ 
+hits hits = searcher.search(query);
+ 
+或
+ 
+indexsearcher searcher1 = new indexsearcher(reader1);
+ 
+indexsearcher searcher2 = new indexsearcher(reader2);
+ 
+multisearcher searcher = new multisearcher(new searchable[] { searcher1, searcher2 });
+ 
+hits hits = searcher.search(query);
+ 
+还可以使用 parallelmultisearcher 进行多线程并行搜索。
+ 
+ 
+ 
+5.显示搜索语法字符串
+ 
+我们组合了很多种搜索条件，或许想看看与其对等的搜索语法串是什么样的。 booleanquery query = new booleanquery();
+ 
+query.add(query1, true, false);
+ 
+query.add(query2, true, false);
+ 
+//…
+ 
+console.writeline(”syntax: {0}”, query.tostring());
+ 
+输出：
+ 
+syntax: +(name:name* value:name*) +number:[0000000000000000b to 0000000000000000d]
+ 
+呵呵，就这么简单。
+ 
+ 
+ 
+6.如何删除索引
+ 
+lucene提供了两种从索引中删除document的方法，一种是
+ 
+ 
+ 
+void deleteDocument(int docNum)
+ 
+ 
+ 
+这种方法是根据document在索引中的编号来删除，每个document加进索引后都会有个唯一编号，所以根据编号删除是一种精确删除，但是这个编号是索引的内部结构，一般我们不会知道某个文件的编号到底是几，所以用处不大。另一种是
+ 
+ 
+ 
+void deleteDocuments(Term term)
+ 
+ 
+ 
+这种方法实际上是首先根据参数term执行一个搜索操作，然后把搜索到的结果批量删除了。我们可以通过这个方法提供一个严格的查询条件，达到删除指定document的目的。
+ 
+下面给出一个例子：
+ 
+ 
+ 
+Directory dir = FSDirectory.getDirectory(PATH, false);
+ 
+IndexReader reader = IndexReader.open(dir);
+ 
+Term term = new Term(field, key);
+ 
+reader.deleteDocuments(term);
+ 
+reader.close();
+ 
+ 
+ 
+ms还有操作
+ 
+deleteDocuments(Term);   
+deleteDocuments(Term[]);   
+deleteDocuments(Query);   
+deleteDocuments(Query[]);  
+
+ 
+ 
+ 
+ 
+
+
+ 
+ 
+7.如何更新索引
+ 
+注：据多人反应，新版本的lucene以及提供了更新索引的方法。
+ 
+writer.updateDocument(doc); 
+
+
+————————————————————javaeye分割线——————————————
+ 
+ 
+ 
+lucene并没有提供专门的索引更新方法，我们需要先将相应的document删除，然后再将新的document加入索引。例如：
+ 
+ 
+ 
+Directory dir = FSDirectory.getDirectory(PATH, false);
+ 
+IndexReader reader = IndexReader.open(dir);
+ 
+Term term = new Term(“title”, “lucene introduction”);
+ 
+reader.deleteDocuments(term);
+ 
+reader.close();
+ 
+ 
+ 
+IndexWriter writer = new IndexWriter(dir, new StandardAnalyzer(), true);
+ 
+Document doc = new Document();
+ 
+doc.add(new Field("title", "lucene introduction", Field.Store.YES, Field.Index.TOKENIZED));
+ 
+doc.add(new Field("content", "lucene is funny", Field.Store.YES, Field.Index.TOKENIZED));
+ 
+writer.addDocument(doc);
+ 
+writer.optimize();
+ 
+writer.close();
+ 
+ 
+ 
+
+
+
+
+ 
+ 
+
+ 
+ 
+ 
+ 
+8.多样化的搜索
+ 
+ 
+ 
+/** *** 一个关键字，对一个字段进行查询 **** */
+ 
+QueryParser qp = new QueryParser("content",analyzer);
+ 
+query = qp.parse(keyword);
+ 
+Hits hits = searcher.search(query);
+ 
+ 
+ 
+/** *** 模糊查询 **** */
+ 
+Term term = new Term("content",keyword);
+ 
+FuzzyQuery fq = new FuzzyQuery(term);
+ 
+Hits hits = searcher.search(fq);
+ 
+ 
+ 
+/** *** 一个关键字，在两个字段中查询 **** */
+ 
+/*
+ 
+ * 1.BooleanClause.Occur[]的三种类型： MUST : + and MUST_NOT : - not SHOULD : or
+ 
+ * 2.下面查询的意思是：content中必须包含该关键字，而title有没有都无所谓
+ 
+ * 3.下面的这个查询中，Occur[]的长度必须和Fields[]的长度一致。每个限制条件对应一个字段
+ 
+ */
+ 
+BooleanClause.Occur[] flags = new BooleanClause.Occur[]{BooleanClause.Occur.SHOULD,BooleanClause.Occur.MUST};
+ 
+query=MultiFieldQueryParser.parse(keyword,new String[]{"title","content"},flags,analyzer);
+ 
+ 
+ 
+ 
+ 
+/** *** 两个(多个)关键字对两个(多个)字段进行查询,默认匹配规则 **** */
+ 
+/*
+ 
+ * 1.关键字的个数必须和字段的个数相等 
+
+ * 2.由于没有指定匹配规定，默认为"SHOULD" 因此，下面查询的意思是："title"中含有keyword1 或 "content"含有keyword2. 
+
+ * 在此例中，把keyword1和keyword2相同
+ 
+ */
+ 
+ query=MultiFieldQueryParser.parse(new String[]{keyword,keyword},new
+ 
+ String[]{"title","content"},analyzer);
+ 
+ 
+ 
+ 
+ 
+/** *** 两个(多个)关键字对两个(多个)字段进行查询,手工指定匹配规则 **** */
+ 
+/*
+ 
+ * 1.必须 关键字的个数 == 字段名的个数 == 匹配规则的个数
+ 
+ * 2.下面查询的意思是："title"必须不含有keyword1,并且"content"中必须含有keyword2
+ 
+ */
+ 
+ BooleanClause.Occur[] flags = new
+ 
+ BooleanClause.Occur[]{BooleanClause.Occur.MUST_NOT,BooleanClause.Occur.MUST};
+ 
+ query=MultiFieldQueryParser.parse(new String[]{keyword,keyword},new
+ 
+ String[]{"title","content"},flags,analyzer);
+ 
+ 
+ 
+ 
+ 
+/** *** 对日期型字段进行查询 **** */
+ 
+ 
+ 
+/** *** 对数字范围进行查询 **** */
+ 
+/*
+ 
+ * 1.两个条件必须是同一个字段 
+
+ * 2.前面一个条件必须比后面一个条件小，否则找不到数据
+ 
+ *  3.new RangeQuery中的第三个参数，表示是否包含"=" true: >= 或 <= false: > 或 < 
+
+ * 4.找出 55>=id>=53 or 60>=id>=57:
+ 
+ */
+ 
+Term lowerTerm1 = new Term("id","53");
+ 
+Term upperTerm1 = new Term("id","55");
+ 
+RangeQuery rq1 = new RangeQuery(lowerTerm1,upperTerm1,true);
+ 
+ 
+ 
+Term lowerTerm2 = new Term("id","57");
+ 
+Term upperTerm2 = new Term("id","60");
+ 
+RangeQuery rq2 = new RangeQuery(lowerTerm2,upperTerm2,true);
+ 
+ 
+ 
+BooleanQuery bq = new BooleanQuery();
+ 
+bq.add(rq1,BooleanClause.Occur.SHOULD);
+ 
+bq.add(rq2,BooleanClause.Occur.SHOULD);
+ 
+Hits hits = searcher.search(bq);
+ 
+ 
+ 
+9.结果排序  
+
+排序的关键点有两个：
+ 
+ 
+ 
+1:首先你要排序的字段必须是被index的，并且是untokenized的。
+ 
+ 
+ 
+如：
+ 
+ 
+ 
+doc.add(new Field("click", dv.get("click").toString(), Field.Store.NO, Field.Index.UN_TOKENIZED));
+ 
+2：在检索时候：
+ 
+ 
+ 
+如：   
+
+  
+
+   /*****  排序  *****/
+ 
+   /*
+ 
+    * 1.被排序的字段必须被索引过(Indexecd)，在索引时不能 用 Field.Index.TOKENIZED
+ 
+    *   (用UN_TOKENIZED可以正常实现.用NO时查询正常，但排序不能正常设置升降序)
+ 
+    * 2.SortField类型
+ 
+    *   SCORE、DOC、AUTO、STRING、INT、FLOAT、CUSTOM 此类型主要是根据字段的类型选择
+ 
+    * 3.SortField的第三个参数代表是否是降序true:降序  false:升序
+ 
+    */
+ 
+   Sort sort = new Sort(new SortField[]{new SortField("click", SortField.INT, true)});
+ 
+   Hits hits = searcher.search(querystring,sort);
+ 
+   
+
+    /*
+ 
+    * 按日期排序
+ 
+    */
+ 
+   Sort sort = new Sort(new SortField[]{new SortField("createTime", SortField.INT, false)});
+ 
+ 
+ 
+    
+
+    /*****  过滤器 ******/
+ 
+   QueryParser qp1 = new QueryParser("content",analyzer);
+ 
+   Query fquery  = qp1.parse("我");
+ 
+   
+
+   BooleanQuery bqf = new BooleanQuery();
+ 
+   bqf.add(fquery,BooleanClause.Occur.SHOULD);
+ 
+    
+
+   QueryFilter qf = new QueryFilter(bqf);
+ 
+   
+
+   Hits hits = searcher.search(query);
+ 
+ 
+ 
+10.将小索引文件合并到大的索引文件中去(此方法性能不佳)
+ 
+/** 将小索引文件合并到大的索引文件中去 
+
+  *   @param   from   将要合并到to文件的文件 
+
+  *   @param   to       将from文件合并到该文件 
+
+  *   @param   analyzer   
+
+  */ 
+
+private   void   mergeIndex(File   from,File   to,Analyzer   analyzer) 
+
+{ 
+
+IndexWriter   indexWriter   =   null; 
+
+try{ 
+
+System.out.println("正在合并索引文件!\t"); 
+
+indexWriter   =   new   IndexWriter(to,analyzer,   false); 
+
+indexWriter.setMergeFactor(100000); 
+
+indexWriter.setMaxFieldLength(Integer.MAX_VALUE); 
+
+indexWriter.setMaxBufferedDocs(Integer.MAX_VALUE); 
+
+indexWriter.setMaxMergeDocs(Integer.MAX_VALUE); 
+
+FSDirectory[]   fs   =   {FSDirectory.getDirectory(from,false)}; 
+
+indexWriter.addIndexes(fs); 
+
+indexWriter.optimize(); 
+
+indexWriter.close(); 
+
+System.out.println("已完成合并!\t"); 
+
+} 
+
+catch(Exception   e) 
+
+{ 
+
+Utility.writeLog("合并索引文件出错！mergeIndex()"+e.getMessage(),""); 
+
+} 
+
+finally 
+
+{ 
+
+try{ 
+
+if(indexWriter!=null) 
+
+indexWriter.close(); 
+
+} 
+
+catch(Exception   e   ){ 
+
+ 
+ 
+} 
+
+ 
+ 
+} 
+
+ 
+ 
+} 
+
+ 
+ 
+合并时间是从每天的凌晨3点钟开始,一直到早上9点左右,足足用5个小时才合并完成,其中大索引文件大小为4G,小索引为10MB.
+ 
+ 
+ 
+ 
+ 
+11.问题2：单字共现频率的局部统计的原理
+ 
+解答：
+ 
+ 
+ 
+高频字串统计的理论基础是N - 元模型。
+ 
+设W1 W2 ...WN 是长度为N 的字串,则字串W 的似然度为
+p ( W) = p ( w i | w1 w2 ...w i - 1) (1)
+上面公式的意义反映连续个N 字之间的结合程度,如果若干种不同的历史组合W1 W2 ...WN的最后N - 1 个字相同,就把它们都看作一类。在这一假设下,每一个字出现的概率不再与前面的历史有关,只与最近的N - 1 个字相关,字串的先验概率为
+p ( W) = p ( w i - ( n - 1) w i - ( n - 2) ...w i - 1) (2)
+当p ( W) 超过一定的阈值时,说明这N 个字的结合能力较强,我们就可以认为该字串能被看成一个“词”。
+ 
+正是根据以上所说原理，预先对待分词文本每个单字进行出现次数统计并记录它们在文中出现的位置（存储方式如附件图例所示），预处理后我们遍历单字频次统计 列表出现次数大于2的所有单字在文中出现的位置i，判断位置i+1的单字出现次数是否也大于2，若是则判断位置i+2的单字出现次数是否也大于2，如此类 推直至位置i+n+1的单字出现次数小于2，获得候选词组 w(i,i+1...i+n)并放入候选词汇集合，最后对候选词汇集合进行前缀后缀处理获得合适的高频词汇集合result
+ 
+
+
+
+
+12.索引合并
+ 
+writer.addIndexes(indexDirs); 
+
+.
+lucene_take_away.rar (5.5 MB)
+下载次数: 1317
+
+
+
+
+查看图片附件
+
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。 
+
+推荐链接•
+
+ 
+•Java开发新方式：专注UI，快速开发！
+
+
+ 
+
+
+返回顶楼
+
+
+     
+ 
+
+
+
+
+
+whaosoft
+等级: 
+
+性别: 
+文章: 3179
+积分: 100
+来自: 北京
+
+ 
+
+
+   发表时间：2010-01-14   
+
+
+
+呵呵 支持lz 顺便问下能写个 compass的 搜索方法总结吗? .
+ 
+
+
+返回顶楼
+
+
+     回帖地址
+
+1 0 请登录后投票
+ 
+
+
+
+
+
+偷懒的小鱼
+等级: 初级会员
+
+性别: 
+文章: 7
+积分: 30
+来自: 东莞
+
+ 
+
+
+   发表时间：2010-01-14   最后修改：2010-01-14 
+
+
+
+楼主给的链接是怎么一回事，只看到： 
+
+您没有权限执行这项操作，请检查登录的账号是否正确 
+
+
+
+楼主能讲讲不同文件格式文档的（比如pdf,xml）解析和建索引吗 .
+ 
+
+
+返回顶楼
+
+
+     回帖地址
+
+0 0 请登录后投票
+ 
+
+
+
+
+
+springoflove
+等级: 初级会员
+
+性别: 
+文章: 13
+积分: 40
+来自: 北京
+
+ 
+
+
+   发表时间：2010-01-14   
+
+
+
+楼主辛苦了 .
+ 
+
+
+返回顶楼
+
+
+     回帖地址
+
+0 0 请登录后投票
+ 
+
+
+
+
+
+summerbell
+等级: 初级会员
+
+性别: 
+文章: 17
+积分: 60
+来自: 武汉
+
+ 
+
+
+   发表时间：2010-01-14   
+
+
+
+
+springoflove 写道
+
+楼主辛苦了 
+
+为人民服务…… . 
+
+
+返回顶楼
+
+
+     回帖地址
+
+1 0 请登录后投票
+ 
+
+
+
+
+
+summerbell
+等级: 初级会员
+
+性别: 
+文章: 17
+积分: 60
+来自: 武汉
+
+ 
+
+
+   发表时间：2010-01-14   
+
+
+
+
+偷懒的小鱼 写道
+
+楼主给的链接是怎么一回事，只看到： 
+
+您没有权限执行这项操作，请检查登录的账号是否正确 
+
+
+
+楼主能讲讲不同文件格式文档的（比如pdf,xml）解析和建索引吗
+ 
+
+至于pdf，xml等的解析和建索引，我先说解析。 
+常用的文件格式如pdf，doc(x),ppt(x),html,甚至包括Java class，image都可以通过内容抽取的工具Tika来完成。 
+
+话说其实一般说的lucene是指lucene java，是Apache Lucene下的一个子项目。其他子项目包括大名鼎鼎的Nutch以及我在这里提到的Tika。
+ 
+Tika的更多信息和示例代码你可以查看http://summerbell.iteye.com/blog/565922， 
+我给出了Tika抽取docx，pdf，和html文件的代码和需要的jar包。 
+
+
+另外： 
+附件的问题我也觉得很诡异。 
+回头排查一下，似乎传上去以后改变了…… . 
+
+
+返回顶楼
+
+
+     回帖地址
+
+0 0 请登录后投票
+ 
+
+
+
+
+
+summerbell
+等级: 初级会员
+
+性别: 
+文章: 17
+积分: 60
+来自: 武汉
+
+ 
+
+
+   发表时间：2010-01-14   
+
+
+
+
+whaosoft 写道
+
+呵呵 支持lz 顺便问下能写个 compass的 搜索方法总结吗?
+ 
+
+lz对compass完全陌生，只知道compass也是在lucene基础上提供的全文检索服务。那么其搜索方式大约有一定的共性。 
+
+lz的主要研究领域在信息检索上（http://summerbell.iteye.com/category/91863），如果在这方面有问题欢迎交流~ . 
+
+
+返回顶楼
+
+
+     回帖地址
+
+0 0 请登录后投票
+ 
+
+
+
+
+
+caoyangx
+等级: 初级会员
+
+性别: 
+文章: 247
+积分: 50
+来自: 沈阳
+
+ 
+
+
+   发表时间：2010-01-14   
+
+
+
+总结的不错，愿意分享的人就很高尚。收藏了。 .
+ 
+
+
+返回顶楼
+
+
+     回帖地址
+
+0 0 请登录后投票
+ 
+
+
+
+
+
+Clayz
+等级: 初级会员
+
+性别: 
+文章: 62
+积分: 10
+来自: 东京
+
+ 
+
+
+   发表时间：2010-01-15   
+
+
+
+lucene已经提供了更新索引的方法了. .
+ 
+
+
+返回顶楼
+
+
+     回帖地址
+
+0 0 请登录后投票
+ 
+
+
+
+
+
+ferly_j
+等级: 初级会员
+
+性别: 
+文章: 78
+积分: 30
+来自: 上海
+
+ 
+
+
+   发表时间：2010-01-15   
+
+
+
+writer.updateDocument(doc);
+更新索引，也许以前的版本是没有的 .
+ 
+
+
+返回顶楼
+
+
+     回帖地址
+
+0 0 请登录后投票
+ 
+
+
+
+
+
+
+
+« 上一页 1 2 3 下一页 »
+ 
+
+论坛首页 →Java企业应用版
+
+跳转论坛:移动开发技术 Web前端技术 Java企业应用 编程语言技术 综合技术 入门技术 招聘求职 海阔天空上海: 用友汽车软件诚聘初级java开发工程师（UAP平
+上海: 用友汽车软件诚聘高级Java程序员
+吉林: 用友汽车软件诚聘高级Java工程师工作地点：长
+云南: 云南远信诚聘高级软件工程师(J2EE) 
+上海: 用友汽车软件诚聘中级java程序员（工作地点：
+广东: 用友汽车软件诚聘中级JAVA工程师 工作地点：
+上海: 用友汽车软件诚聘项目经理
+云南: 云南远信诚聘软件工程师（Java）
+上海: 用友汽车软件诚聘高级java开发工程师（UAP平
+
+
+
+
+
+
+首页
+资讯
+精华
+论坛
+问答
+博客
+专栏
+群组
+招聘
+搜索
+ .
+
+广告服务
+ITeye黑板报
+联系我们
+友情链接
+
+© 2003-2012 ITeye.com. [ 京ICP证110151号 京公网安备110105010620 ]
+百联优力(北京)投资有限公司 版权所有
+
+ 

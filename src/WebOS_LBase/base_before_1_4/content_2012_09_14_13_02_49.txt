@@ -1,0 +1,54 @@
+Processing 的程式碼, 負責接收串列通訊埠(COM PORT)的數據, 並用其來改變繪圖的內容
+
+01.
+ 
+02./*
+ 
+03.第一個資料傳送實驗
+ 
+04.從Adurino的輸入信號經過串列通訊埠(COM PORT), 去改變矩形的顏色
+ 
+05.*/
+ 
+06.import processing.serial.*; // 載入串列通訊物件模組
+ 
+07.Serial myPort;              // 建立一個串列通信物件類別
+ 
+08.int val;                    // 設定從串列埠接收數據的變數
+ 
+09.
+ 
+10.void setup()                // 設定程式段
+ 
+11.{
+ 
+12.  println(Serial.list());   // 列出使用通信埠的編號
+ 
+13.  size(640,480);            // 設定顯示視窗大小
+ 
+14.  String portName = Serial.list()[1];        // 設定通信埠的編號
+ 
+15.  myPort = new Serial(this, portName, 9600); // 設定物件類別內容
+ 
+16.}
+ 
+17.
+ 
+18.void draw()                      // 繪圖程式段
+ 
+19.{
+ 
+20.  if ( myPort.available() > 0) { // 檢查通信埠是否有資料傳入
+ 
+21.    val = myPort.read();         // 將資料存到 val 變數中
+ 
+22.  }
+ 
+23.  background(255);               // 設定背景色為白色 ( 黑色 = ___ )
+ 
+24.  fill(Val);                     // 設定後續圖形要填入的色彩
+ 
+25.  rect(50, 50, 100, 100);        // 畫出矩形 (x, y, width, height)
+ 
+26.}
+

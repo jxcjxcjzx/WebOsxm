@@ -1,0 +1,470 @@
+   
+ bulktree
+欢迎走进有风的地方~~   
+BlogJava    首页    新文章    新随笔    聚合    管理 posts - 63,  comments - 258,  trackbacks - 0 
+用commons-email-1.1.jar实现发邮件功能: 
+  
+
+今天在Apache网站上下载commons-lang jar文件时突然看到commons-email-1.1.jar这个项目jar文件，看了看user guide确实比JDK提供的好多了，简单的几行代码就实现了发邮件的功能，以前实现过一个纯JavaMail带附件发邮件功能，代码复杂不说，现在回过头来都懒得看（主要是WEB项目注释少）。
+
+    贴上TEST代码看看，简单、清晰。只要稍加修改（邮件服务器地址、名称、密码）就可以了
+  
+
+简单邮件的发送：
+
+
+
+package com.bulktree.mail;
+
+import java.util.Date;
+
+import org.apache.commons.mail.EmailException;
+
+import org.apache.commons.mail.SimpleEmail;
+
+publicclass SimpleMailTest {
+
+    publicstaticvoid main(String[] args) throws EmailException {
+
+       SimpleEmail email = new SimpleEmail();
+
+       //设置发送主机的服务器地址
+
+       email.setHostName("smtp.163.com");
+
+       //设置收件人邮箱
+
+       email.addTo("bulktree@126.com","bulktree");
+
+       //发件人邮箱
+
+       email.setFrom("bulktree@163.com", "bulktree");
+
+       //如果要求身份验证，设置用户名、密码，分别为发件人在邮件服务器上注册的用户名和密码
+
+       email.setAuthentication("bulktree", "123456");
+
+       //设置邮件的主题
+
+       email.setSubject("Hello, This is My First Email Application");
+
+       //邮件正文消息
+
+       email.setMsg("I am bulktree This is JavaMail Application");
+
+       email.send();
+
+       System.out.println("The SimpleEmail send sucessful!!!");
+
+    }
+
+}
+ 
+
+
+带附件邮件发送：
+
+
+
+package com.bulktree.mail;
+
+import java.net.MalformedURLException;
+
+import java.net.URL;
+
+import org.apache.commons.mail.EmailAttachment;
+
+import org.apache.commons.mail.EmailException;
+
+import org.apache.commons.mail.MultiPartEmail;
+
+publicclass AttachmentMailTest {
+
+    publicstaticvoid main(String[] args) throws EmailException, MalformedURLException {
+
+//     创建一个Email附件
+
+       EmailAttachment emailattachment = new EmailAttachment();
+
+       emailattachment.setPath("/biao_05.jpg");
+
+//     emailattachment.setURL(new URL("http://www.blogjava.net/bulktree/picture/bulktree.jpg"));
+
+       emailattachment.setDisposition(EmailAttachment.ATTACHMENT);
+
+       emailattachment.setDescription("This is Smile picture");
+
+       emailattachment.setName("bulktree");
+
+//     创建一个email
+
+       MultiPartEmail multipartemail = new MultiPartEmail();
+
+       multipartemail.setHostName("smtp.163.com");
+
+       multipartemail.addTo("bulktree@126.com", "bulktree");
+
+       multipartemail.setFrom("bulktree@163.com", "bulktree");
+
+       multipartemail.setAuthentication("bulktree", "123456");
+
+       multipartemail.setSubject("This is a attachment Email");
+
+       multipartemail.setMsg("this a attachment Eamil Test");
+
+       //添加附件
+
+       multipartemail.attach(emailattachment);
+
+       //发送邮件
+
+       multipartemail.send();
+
+       
+
+       System.out.println("The attachmentEmail send sucessful!!!");
+
+    }
+
+}
+ 
+
+
+posted on 2008-04-07 09:47 凌晨风 阅读(6173) 评论(16)  编辑  收藏 所属分类: Java学习笔记 
+ 
+
+FeedBack: 
+# re: 用commons-email-1.1.jar实现发邮件功能:2008-04-07 11:03 | Unmi
+
+其实也 JDK 本身没有提供发邮件的功能，JavaMail 是 J2ee 应具有的。
+用 commons-email 发邮件也是一样的，要注意发送中文时的乱码问题。
+
+试着在英文系统环境下发带中文的标题和内容，commons-email 提供了相应的方法来设置字符集的。  回复  更多评论
+  
+# re: 用commons-email-1.1.jar实现发邮件功能:[未登录]2008-04-07 14:52 | samad
+
+好，我试试看。。。。  回复  更多评论
+  
+# re: 用commons-email-1.1.jar实现发邮件功能:2008-04-07 15:01 | xdcsoft
+
+Exception in thread "main" java.lang.NoClassDefFoundError: com/sun/mail/util/LineInputStream 
+
+我试了，不知道是不是jdk版本问题？ 
+  回复  更多评论
+  
+# re: 用commons-email-1.1.jar实现发邮件功能:2008-04-07 15:03 | xdcsoft
+
+我用的是6.0野马，我看啦mail.jar下有这个类啊 
+怎么就报java.lang.NoClassDefFoundError  回复  更多评论
+  
+# re: 用commons-email-1.1.jar实现发邮件功能:2008-04-07 19:18 | 凌晨风
+
+运行本例子程序需要commons-email-1.1.jar和mail.jar这两个包！  回复  更多评论
+  
+# re: 用commons-email-1.1.jar实现发邮件功能:2008-04-10 20:43 | taijh999
+
+运行本例子程序需要commons-email-1.1.jar和mail.jar这两个包！
+
+非常好用，谢谢楼主的分享
+
+  回复  更多评论
+  
+# re: 用commons-email-1.1.jar实现发邮件功能:2008-04-19 15:48 | 老太
+
+确实很好用。前两天折腾javamail，真花时间。  回复  更多评论
+  
+# re: 用commons-email-1.1.jar实现发邮件功能:2008-05-02 15:40 | jezz
+
+那個mail.jar在哪找啊？我的JDK1.5不帶啊！  回复  更多评论
+  
+# re: 用commons-email-1.1.jar实现发邮件功能:2008-05-02 20:46 | 凌晨风
+
+@jezz 
+www.apache.org上不是有吗？  回复  更多评论
+  
+# re: 用commons-email-1.1.jar实现发邮件功能:[未登录]2008-05-12 10:39 | swl
+
+如果我的 
+email.setHostName("smtp.163.com")； 
+email.addTo("bulktree@126.com","bulktree"); 
+email.setFrom("bulktree@163.com", "bulktree"); 
+email.setAuthentication("bulktree", "123456"); 
+email.setSubject("Hello, This is My First Email Application"); 
+email.setMsg("I am bulktree This is JavaMail Application"); 
+email.send(); 
+这些信息都要从数据库中取到应该怎么做？（具体讲解下） 
+
+  回复  更多评论
+  
+# re: 用commons-email-1.1.jar实现发邮件功能:2009-01-09 15:16 | sds
+
+Exception in thread "main" org.apache.commons.mail.EmailException: Sending the email to the following server failed : smtp.qq.com:25
+at org.apache.commons.mail.Email.sendMimeMessage(Email.java:1138)
+at org.apache.commons.mail.Email.send(Email.java:1163)
+at com.rocwing.comm.SimpleMailTest.main(SimpleMailTest.java:39)
+Caused by: javax.mail.AuthenticationFailedException
+at javax.mail.Service.connect(Service.java:306)
+at javax.mail.Service.connect(Service.java:156)
+at javax.mail.Service.connect(Service.java:105)
+at javax.mail.Transport.send0(Transport.java:168)
+at javax.mail.Transport.send(Transport.java:98)
+at org.apache.commons.mail.Email.sendMimeMessage(Email.java:1128)
+... 2 more  回复  更多评论
+  
+# re: 用commons-email-1.1.jar实现发邮件功能:[未登录]2009-02-26 14:42 | cn-done
+
+还需要两个额外的包mail.jar，activation.jar，这两个包可以在j2ee1.4里面找到  回复  更多评论
+  
+# re: 用commons-email-1.1.jar实现发邮件功能:[未登录]2009-03-03 10:47 | cn-done
+
+确实不错 但是不晓得大家遇到 发送中文、日文文件名的附件时，出现的文件名乱码问题没？ 
+  回复  更多评论
+  
+# re: 用commons-email-1.1.jar实现发邮件功能:2009-03-30 14:31 | qqqq
+
+@凌晨风 
+  回复  更多评论
+  
+# re: 用commons-email-1.1.jar实现发邮件功能:2009-05-19 10:15 | 676
+
+Sending the email to the following server failed : smtp.163.com:25 
+
+
+jdk1.6 tomcat6.0 
+
+
+使用commons-email-1.1.jar出错 
+
+
+
+程序: 
+
+
+package javamial; 
+
+import java.util.Date; 
+
+import org.apache.commons.mail.EmailException; 
+
+import org.apache.commons.mail.SimpleEmail; 
+
+public class Sendmail { 
+
+
+public void sendMain(){ 
+
+SimpleEmail email = new SimpleEmail(); 
+
+//设置发送主机的服务器地址 
+
+email.setHostName("smtp.163.com"); 
+
+//设置收件人邮箱 
+
+try { 
+email.addTo("lujianfei333@sina.com","bulktree"); 
+} catch (EmailException e1) { 
+// TODO Auto-generated catch block 
+e1.printStackTrace(); 
+} 
+
+//发件人邮箱 
+
+try { 
+email.setFrom("lujianfei33@163.com", "bulktree"); 
+} catch (EmailException e1) { 
+// TODO Auto-generated catch block 
+e1.printStackTrace(); 
+} 
+
+//如果要求身份验证，设置用户名、密码，分别为发件人在邮件服务器上注册的用户名和密码 
+
+email.setAuthentication("lujianfei33", "6227985"); 
+
+//设置邮件的主题 
+
+email.setSubject("Hello, This is My First Email Application"); 
+
+//邮件正文消息 
+
+try { 
+email.setMsg("I am bulktree This is JavaMail Application"); 
+} catch (EmailException e) { 
+e.printStackTrace(); 
+} 
+
+try { 
+email.send(); 
+} catch (EmailException e) { 
+e.printStackTrace(); 
+} 
+} 
+
+} 
+  回复  更多评论
+  
+# re: 用commons-email-1.1.jar实现发邮件功能:2011-01-07 17:33 | afra.liu
+
+jisdjl fjdshfclkhflshfsfcd  回复  更多评论
+  
+新用户注册  刷新评论列表  
+
+找优秀程序员，就在博客园
+ 
+  
+   
+ 博客园  博问  IT新闻  Java程序员招聘  
+标题  请输入标题 
+姓名  请输入你的姓名 
+主页   
+请输入验证码  
+验证码 *    
+ 
+内容(请不要发表任何与政治相关的内容) 请输入评论内容
+ 
+ 
+Remember Me? 
+    登录        
+[使用Ctrl+Enter键可以直接提交] 
+  
+
+ 
+IT新闻：
+· 宽2.8公里 旧金山海湾大桥将成全球最大灯景工程
+· 微软邮件泄露GTA5发布日期？
+· WindowsAndroid在PC上运行Android
+· 三星要求苹果公开iOS6源代码 苹果称“荒唐”
+· 360多款应用被苹果App Store下架
+
+博客园首页随笔：
+· windows8开发笔记(4)-消息弹出动画
+· 性能测试新手误区（六）：性能监控
+· Qt实现图片移动(2)定时器和信号槽
+· javascript学习笔记[1]--变量
+· SQL Server 查询性能优化——索引与SARG（四）
+
+知识库：
+· Couchbase 与 Membase, CouchDB 的关系
+· 360的困兽之斗——重新探讨奇虎商业模式
+· Map Reduce – the Free Lunch is not over?
+· 从游戏设计机制以及玩家心理特征谈互联网产品设计理念
+· web前端性能优化进阶路
+ 
+ 
+网站导航:
+博客园   IT新闻   知识库   C++博客   程序员招聘   管理  
+相关文章: 
+Struts2整合JasperReport预览HTML格式不显示图片问题解决方案 
+Log4j的使用 
+dom4j操作xml基础--Visitor访问模式解析XML 
+Visitor访问者模式---------学习dom4j时遇到的顺便拿来交流 
+office javaScript调试工具 
+java截取字符串的一些常用处理 
+JFreeChart简单使用 
+用commons-email-1.1.jar实现发邮件功能: 
+Struts2表单请求流程（二）— Struts2高级的POJO访问 
+Struts2表单请求流程（一） 
+ 
+  
+ 
+ 
+
+
+< 2008年4月 > 
+ 
+日 一 二 三 四 五 六 
+30 31 1 2 3 4 5 
+6 7 8 9 10 11 12 
+13 14 15 16 17 18 19 
+20 21 22 23 24 25 26 
+27 28 29 30 1 2 3 
+4 5 6 7 8 9 10 
+
+常用链接
+我的随笔 
+我的评论 
+我的参与 
+最新评论 
+留言簿(11)
+给我留言 
+查看公开留言 
+查看私人留言 
+我参与的团队
+分享.学习.交流团队(0/0) 
+西安java用户群(0/0) 
+深圳Java俱乐部(0/0) 
+西安JAVA俱乐部(0/0) 
+随笔分类BlackBerry(6) 
+DATABSE(1) 
+iReport + JasperReport 系列(15) 
+Java学习笔记(29) 
+Spring/Hibernate/Struts2(3) 
+操作系统的一些解决方案(2) 
+源码备份 
+生活感悟(4) 
+随笔档案2011年1月 (7) 
+2010年4月 (1) 
+2009年12月 (2) 
+2009年10月 (2) 
+2008年12月 (12) 
+2008年8月 (6) 
+2008年4月 (4) 
+2008年3月 (1) 
+2008年1月 (1) 
+2007年12月 (20) 
+2007年11月 (6) 
+文章分类系统的一些解决方案(1) 
+文章档案2007年11月 (1) 
+新闻分类Program Information 
+一些转载的经典(2) 
+新闻档案2007年12月 (1) 
+2007年11月 (1) 
+收藏夹CSS+JavaScript(1) 
+DATEBSE 
+J2EE/Jsp/Servlet 
+Java基础知识 
+Struts2 
+设计模式 
+围脖最新随笔
+1. 黑莓开发学习入门系列，自己动手实现一个日历软件（六） 
+2. 黑莓开发学习入门系列，自己动手实现一个日历软件（五） 
+3. 黑莓开发学习入门系列，自己动手实现一个日历软件（四） 
+4. 黑莓开发学习入门系列，自己动手实现一个日历软件（三） 
+5. 黑莓开发学习入门系列，自己动手实现一个日历软件（二） 
+6. 黑莓开发学习入门系列，自己动手实现一个日历软件（一） 
+7. 2010年终总结 
+8. 离职了 
+9. iReport+jasperReport之客户端打印 (续二) ----数字签名 
+10. iReport+jasperReport之客户端打印 (续) 
+搜索
+
+  
+最新评论 
+1. re: iReport+jasperReport之JFreeChart（图表报表）[未登录] 
+评论内容较长,点击标题查看 
+--sky 
+2. re: iReport+jasperReport之JFreeChart（图表报表） 
+求web中与struts2结合使用的，我的邮箱是yuchensuifeng@hotmail.com,谢谢 
+--羽 
+3. re: Struts2整合JasperReport预览HTML格式不显示图片问题解决方案 
+不想要图片。。。网上这个问题的文章太少了。那个xx很讨厌. 
+--yuchen 
+4. re: 如何学习编程（转载） 
+不错啊，我转走了， 
+--酒煮红豆 
+5. re: 黑莓开发学习入门系列，自己动手实现一个日历软件（五） 
+沙发观看 
+--蒙奇奇 
+阅读排行榜
+1. Struts2中select/doubleselect标签数据显示(9077) 
+2. Spring2.5.3+Hibernate3.2+Struts2.0.11整合(7558) 
+3. java截取字符串的一些常用处理(6782) 
+4. iReport+jasperReport之JFreeChart（图表报表）(6380) 
+5. 用commons-email-1.1.jar实现发邮件功能:(6173) 
+评论排行榜
+1. 去北京面试时的题目（老师生日）微软面试题(28) 
+2. iReport+jasperReport概念的澄清(续)(23) 
+3. JDK5增强for循环的使用(21) 
+4. Spring2.5.3+Hibernate3.2+Struts2.0.11整合(20) 
+5. 用commons-email-1.1.jar实现发邮件功能:(16) 
+Copyright ©2013 凌晨风 Powered By博客园 模板提供：沪江博客 

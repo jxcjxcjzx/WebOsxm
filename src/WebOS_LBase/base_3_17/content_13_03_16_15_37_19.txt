@@ -1,0 +1,637 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Linux Today
+
+首页
+ 译文
+ 新闻
+ 入门 
+
+
+
+运维 
+
+
+
+
+
+
+
+
+
+桌面 
+
+
+
+
+
+编程
+ 嵌入
+ 更多 
+
+
+
+
+
+
+
+
+
+
+新浪微博腾讯微博微信互动
+ . 
+当前位置：首页 > 编程语言 > Linux Shell 编程常用技巧、实例（一） 
+
+Linux Shell 编程常用技巧、实例（一）
+
+
+发布日期：2011-12-221,745阅评论(1条评论)
+
+
+更多1
+
+一. 特殊文件: /dev/null和/dev/tty
+ 
+Linux系统提供了两个对Shell编程非常有用的特殊文件，/dev/null和/dev/tty。其中/dev/null将会丢掉所有写入它的数据，换句换说，当程序将数据写入到此文件时，会认为它已经成功完成写入数据的操作，但实际上什么事都没有做。如果你需要的是命令的退出状态，而非它的输出，此功能会非常有用，见如下Shell代码：
+     /> vi test_dev_null.sh
+    
+    #!/bin/bash
+    if grep hello TestFile > /dev/null
+    then
+        echo "Found"
+    else
+        echo "NOT Found"
+    fi 
+在vi中保存并退出后执行以下命令：
+     /> chmod +x test_dev_null.sh  #使该文件成为可执行文件
+    /> cat > TestFile
+    hello my friend
+    CTRL + D                             #退出命令行文件编辑状态
+    /> ./test_dev_null.sh
+    Found                                 #这里并没有输出grep命令的执行结果。 
+将以上Shell脚本做如下修改：
+     /> vi test_dev_null.sh
+    
+    #!/bin/bash
+    if grep hello TestFile
+    then
+        echo "Found"
+    else
+        echo "NOT Found"
+    fi 
+在vi中保存退出后，再次执行该脚本：
+     /> ./test_dev_null.sh
+    hello my friend                      #grep命令的执行结果被输出了。
+    Found 
+下面我们再来看/dev/tty的用途。当程序打开此文件是，Linux会自动将它重定向到一个终端窗口，因此该文件对于读取人工输入时特别有用。见如下Shell代码：
+     /> vi test_dev_tty.sh
+    
+    #!/bin/bash
+    printf "Enter new password: "    #提示输入
+    stty -echo                               #关闭自动打印输入字符的功能
+    read password < /dev/tty         #读取密码
+    printf "\nEnter again: "             #换行后提示再输入一次
+    read password2 < /dev/tty       #再读取一次以确认
+    printf "\n"                               #换行
+    stty echo                                #记着打开自动打印输入字符的功能
+    echo "Password = " $password #输出读入变量
+    echo "Password2 = " $password2
+    echo "All Done" 
+在vi中保存并退出后执行以下命令：
+     /> chmod +x test_dev_tty.sh #使该文件成为可执行文件
+    /> ./test_dev_tty
+    Enter new password:             #这里密码的输入被读入到脚本中的password变量
+    Enter again:                          #这里密码的输入被读入到脚本中的password2变量
+    Password = hello
+    Password2 = hello
+    All Done 
+二. 简单的命令跟踪
+ 
+Linux Shell提供了两种方式来跟踪Shell脚本中的命令，以帮助我们准确的定位程序中存在的问题。下面的代码为第一种方式，该方式会将Shell脚本中所有被执行的命令打印到终端，并在命令前加"+"：加号的后面还跟着一个空格。
+     /> cat > trace_all_command.sh
+    who | wc -l                          #这两条Shell命令将输出当前Linux服务器登录的用户数量
+    CTRL + D                            #退出命令行文件编辑状态
+    /> chmod +x trace_all_command.sh
+    /> sh -x ./trace_all_command.sh #Shell执行器的-x选项将打开脚本的执行跟踪功能。
+    + wc -l                               #被跟踪的两条Shell命令
+    + who
+    2                                       #实际输出结果。
+    Linux Shell提供的另一种方式可以只打印部分被执行的Shell命令，该方法在调试较为复杂的脚本时，显得尤为有用。
+    /> cat > trace_patial_command.sh
+    #! /bin/bash
+    set -x                                #从该命令之后打开跟踪功能
+    echo 1st echo                     #将被打印输出的Shell命令
+    set +x                               #该Shell命令也将被打印输出，然而在该命令被执行之后，所有的命令将不再打印输出
+    echo 2nd echo                    #该Shell命令将不再被打印输出。
+    CTRL + D                           #退出命令行文件编辑状态
+    /> chmod +x trace_patial_command.sh
+    /> ./trace_patial_command.sh
+    + echo 1st echo
+    1st echo
+    + set +x
+    2nd echo
+
+ 
+三. 正则表达式基本语法描述
+ 
+Linux Shell环境下提供了两种正则表达式规则，一个是基本正则表达式(BRE)，另一个是扩展正则表达式(ERE)。
+ 
+下面是这两种表达式的语法列表，需要注意的是，如果没有明确指出的Meta字符，其将可同时用于BRE和ERE，否则将尽适用于指定的模式。
+ 
+
+
+正则元字符
+ 
+模式含义
+ 
+用例
+ 
+
+
+\
+ 
+通常用于关闭其后续字符的特殊意义，恢复其原意。
+ 
+\(...\)，这里的括号仅仅表示括号。
+ 
+
+
+.
+ 
+匹配任何单个字符。
+ 
+a.b，将匹配abb、acb等
+ 
+
+
+*
+ 
+匹配它之前的0-n个的单个字符。
+ 
+a*b，将匹配ab、aab、aaab等。
+ 
+
+
+^
+ 
+匹配紧接着的正则表达式，在行的起始处。
+ 
+^ab，将匹配abc、abd等，但是不匹配cab。
+ 
+
+
+$
+ 
+匹配紧接着的正则表达式，在行的结尾处。
+ 
+ab$，将匹配ab、cab等，但是不匹配abc。
+ 
+
+
+[...]
+ 
+方括号表达式，匹配其内部任何字符。其中-表示连续字符的范围，^符号置于方括号里第一个字符则有反向的含义，即匹配不在列表内(方括号)的任何字符。如果想让]和-表示其原意，需要将其放置在方括号的首字符位置，如[]ab]或[-ab]，如这两个字符同时存在，则将]放置在首字符位置，-放置在最尾部，如[]ab-]。
+ 
+[a-bA-Z0-9!]表示所有的大小写字母，数字和感叹号。[^abc]表示a、b、c之外的所有字符。[Tt]om，可以匹配Tom和tom。
+ 
+
+
+\{n,m\}
+ 
+区间表达式，匹配在它前面的单个字符重复出现的次数区间，\{n\}表示重复n次；\{n,\}表示至少重复n次；\{n,m\}表示重复n到m次。
+ 
+ab\{2\}表示abb；ab\{2,\}表示abb、abbb等。ab\{2,4\}表示abb、abbb和abbbb。
+ 
+
+
+\(...\)
+ 
+将圆括号之间的模式存储在特殊“保留空间”。最多可以将9个独立的子模式存储在单个模式中。匹配于子模式的文本，可以通过转义序列\1到\9，被重复使用在相同模式里。
+ 
+\(ab\).*\1表示ab组合出现两次，两次之间可存在任何数目的任何字符，如abcdab、abab等。
+ 
+
+
+{n,m}(ERE)
+ 
+其功能等同于上面的\{n,m\}，只是不再写\转义符了。
+ 
+ab+匹配ab、abbb等，但是不匹配a。
+ 
+
+
++(ERE)
+ 
+和前面的星号相比，+匹配的是前面正则表达式的1-n个实例。
+ 
+ 
+ 
+
+
+?(ERE)
+ 
+匹配前面正则表达式的0个或1个。
+ 
+ab?仅匹配a或ab。
+ 
+
+
+|(ERE)
+ 
+匹配于|符号前后的正则表达式。
+ 
+(ab|cd)匹配ab或cd。
+ 
+
+
+[:alpha:]
+ 
+匹配字母字符。
+ 
+[[:alpha:]!]ab$匹配cab、dab和!ab。
+ 
+
+
+[:alnum:]
+ 
+匹配字母和数字字符。
+ 
+[[:alnum:]]ab$匹配1ab、aab。
+ 
+
+
+[:blank:]
+ 
+匹配空格(space)和Tab字符。
+ 
+[[:alnum:]]ab$匹配1ab、aab。
+ 
+
+
+[:cntrl:]
+ 
+匹配控制字符。
+ 
+ 
+ 
+
+
+[:digit:]
+ 
+匹配数字字符。
+ 
+ 
+ 
+
+
+[:graph:]
+ 
+匹配非空格字符。
+ 
+ 
+ 
+
+
+[:lower:]
+ 
+匹配小写字母字符。
+ 
+ 
+ 
+
+
+[:upper:]
+ 
+匹配大写字母字符。
+ 
+ 
+ 
+
+
+[:punct:]
+ 
+匹配标点字符。
+ 
+ 
+ 
+
+
+[:space:]
+ 
+匹配空白(whitespace)字符。
+ 
+ 
+ 
+
+
+[:xdigit:]
+ 
+匹配十六进制数字。
+ 
+ 
+ 
+
+
+\w
+ 
+匹配任何字母和数字组成的字符，等同于[[:alnum:]_]
+ 
+ 
+ 
+
+
+\W
+ 
+匹配任何非字母和数字组成的字符，等同于[^[:alnum:]_]
+ 
+ 
+ 
+
+
+\<\>
+ 
+匹配单词的起始和结尾。
+ 
+\<read匹配readme，me\>匹配readme。
+ 
+
+下面的列表给出了Linux Shell中常用的工具或命令分别支持的正则表达式的类型。
+ 
+
+
+ 
+ 
+grep
+ 
+sed
+ 
+vi
+ 
+egrep
+ 
+awk
+ 
+
+
+BRE
+ 
+*
+ 
+*
+ 
+*
+ 
+ 
+ 
+ 
+ 
+
+
+ERE
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+*
+ 
+*
+ 
+
+四. 使用cut命令选定字段
+ 
+cut命令是用来剪下文本文件里的数据，文本文件可以是字段类型或是字符类型。下面给出应用实例：
+     /> cat /etc/passwd
+    root:x:0:0:root:/root:/bin/bash
+    bin:x:1:1:bin:/bin:/sbin/nologin
+    daemon:x:2:2:daemon:/sbin:/sbin/nologin
+    adm:x:3:4:adm:/var/adm:/sbin/nologin
+    ... ...
+    /> cut -d : -f 1,5 /etc/passwd     #-d后面的冒号表示字段之间的分隔符，-f表示取分割后的哪些字段
+    root:root                                 #这里取出的是第一个和第五个字段。
+    bin:bin
+    daemon:daemon
+    adm:adm
+    ... ...
+    /> cut -d: -f 3- /etc/passwd       #从第三个字段开始显示，直到最后一个字段。
+    0:0:root:/root:/bin/bash
+    1:1:bin:/bin:/sbin/nologin
+    2:2:daemon:/sbin:/sbin/nologin
+    3:4:adm:/var/adm:/sbin/nologin
+    4:7:lp:/var/spool/lpd:/sbin/nologin
+    ... ...    
+    这里需要进一步说明的是，使用cut命令还可以剪切以字符数量为标量的部分字符，该功能通过-c选项实现，其不能与-d选项共存。
+    /> cut -c 1-4 /etc/passwd          #取每行的前1-4个字符。
+    /> cut -c-4 /etc/passwd            #取每行的前4个字符。
+    root
+    bin:
+    daem
+    adm:
+    ... ...
+    /> cut -c4- /etc/passwd            #取每行的第4个到最后字符。
+    t:x:0:0:root:/root:/bin/bash
+    :x:1:1:bin:/bin:/sbin/nologin
+    mon:x:2:2:daemon:/sbin:/sbin/nologin
+    :x:3:4:adm:/var/adm:/sbin/nologin
+    ... ...
+    /> cut -c1,4 /etc/passwd           #取每行的第一个和第四个字符。
+    rt
+    b:
+    dm
+    a:
+    ... ...
+    /> cut -c1-4,5 /etc/passwd        #取每行的1-4和第5个字符。
+    root:
+    bin:x
+    daemo
+    adm:x
+ 
+五. 计算行数、字数以及字符数
+
+ 
+Linux提供了一个简单的工具wc用于完成该功能，见如下用例：
+     /> echo This is a test of the emergency broadcast system | wc
+    1    9    49                              #1行，9个单词，49个字符
+    /> echo Testing one two three | wc -c
+    22                                         #22个字符
+    /> echo Testing one two three | wc -l
+    1                                           #1行
+    /> echo Testing one two three | wc -w
+    4                                           #4个单词
+    /> wc /etc/passwd /etc/group    #计算两个文件里的数据。
+    39   71  1933  /etc/passwd
+    62   62  906    /etc/group
+    101 133 2839  总用量
+ 
+六. 提取开头或结尾数行
+
+ 
+有时，你会需要从文本文件里把几行字，多半是靠近开头或结尾的几行提取出来。如查看工作日志等操作。Linux Shell提供head和tail两个命令来完成此项工作。见如下用例：
+     /> head -n 5 /etc/passwd           #显示输入文件的前五行。
+    root:x:0:0:root:/root:/bin/bash
+    bin:x:1:1:bin:/bin:/sbin/nologin
+    daemon:x:2:2:daemon:/sbin:/sbin/nologin
+    adm:x:3:4:adm:/var/adm:/sbin/nologin
+    lp:x:4:7:lp:/var/spool/lpd:/sbin/nologin
+
+    /> tail -n 5 /etc/passwd             #显示输入文件的最后五行。
+    sshd:x:74:74:Privilege-separated SSH:/var/empty/sshd:/sbin/nologin
+    mysql:x:27:27:MySQL Server:/var/lib/mysql:/bin/bash
+    pulse:x:496:494:PulseAudio System Daemon:/var/run/pulse:/sbin/nologin
+    gdm:x:42:42::/var/lib/gdm:/sbin/nologin
+    stephen:x:500:500:stephen:/home/stephen:/bin/bash
+ 
+如果使用者想查看不间断增长的日志(如服务程序输出的)，可以使用tail的-f选项，这样可以让tail命令不会自动退出，必须通过CTRL+C命令强制退出，因此该选项不适合用于Shell脚本中，见如下用例：
+     /> tail -f -n 5 my_server_log
+    ... ...
+    ^C                                         #CTRL+C退出到命令行提示符状态。
+
+
+ 
+
+与 shell 相关的文章： 
+•python调用shell脚本
+•监控网站可用性超实用脚本分享
+•bash/shell并发
+•使用shell监控重要进程
+•按时按登录IP记录Linux所有用户操作日志的方法（附脚本）
+
+
+Ubuntu 12.04 Development Update 9开源Java NIO框架：Grizzly 2.2 发布
+
+
+转载文章：Linux Shell 编程常用技巧、实例（一） / 标签：shell
+
+原文链接：http://www.cnblogs.com/stephen-liu74/
+
+
+
+
+
+
+
+
+
+
+
+
+ .
+ 
+
+
+
+
+
+
+
+本站最新发布
+1.Linux Deepin 下如何订阅 RSS 新闻源
+2.分享PHP隐藏文件的真实路径实现下载功能
+3.Google继续大扫除，关闭Google Reader
+4.GNOME计划到明年春完整支持Wayland
+5.nginx缓存服务器加强版
+6.WordPress评论发图片地址转换成图片
+7.ubuntu linux[server/64]安装svn及svnmanager
+8.VMware复制Ubuntu虚拟机后,新虚拟机网卡无法使用解决办法
+9.Fedora 19 KDE 公众测试日
+10.openSUSE 12.3 正式发布
+ . 
+（Linux单行命令技巧）回当前用户的宿主目录：cd ~
+ 
+
+
+
+关于
+
+关于我们
+站长博客
+联系我们
+论坛
+
+
+关注
+
+微信互动
+新浪微博
+腾讯微博
+订阅到邮箱
+收藏Ctrl+D
+
+
+帮助
+
+网站地图
+标签汇总
+网友投稿
+站长信箱
+友情链接
+
+
+
+
+
+©2013 Linux Today 关注Linux/Unix应用技术、业界新闻，同时也发布开源、移动互联网等新鲜资讯！交流QQ群：86575616
+
+ . 
+运行在Linux+Nginx+MySQL+PHP，推荐您使用Firefox、Chrome浏览本站，请不要使用古代的浏览器（IE6）
+ 
+
+

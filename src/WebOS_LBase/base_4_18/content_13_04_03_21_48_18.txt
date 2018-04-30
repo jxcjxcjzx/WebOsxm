@@ -1,0 +1,66 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename:  test.cpp
+ *
+ *    Description:  
+ *
+ *        Version:  1.0
+ *        Created:  2013年03月29日 21时07分21秒
+ *       Revision:  none
+ *       Compiler:  gcc
+ *
+ *         Author:  YOUR NAME (), 
+ *   Organization:  
+ *
+ * =====================================================================================
+ */
+
+
+#include <iostream>
+#include <map>
+#include <string>
+using namespace std ;
+
+/* 
+ * ===  FUNCTION  ======================================================================
+ *         Name:  main
+ *  Description:  
+ * =====================================================================================
+ */
+	int
+main ( int argc, char *argv[] )
+{
+	map<int, string> m;
+	m.insert(pair<int,string>(1, "abc"));
+	m.insert(pair<int,string>(2, "def"));
+	m.insert(pair<int,string>(3, "def"));
+	m.insert(pair<int,string>(4, "ghi"));
+
+	map<int ,string>::iterator it;
+
+	/* fault */
+	/*
+	for ( it = m.begin(); it != m.end(); ++it) {
+		m.erase(it);
+	}  
+	*/
+
+	/* right */
+	for ( it = m.begin(); it != m.end(); ) {
+		if ( it->second == "def" ) {
+			m.erase( it++);
+			//m.erase( (it++)->first);
+		} else {
+			++it;
+		}
+	}
+
+	map<int, string>::const_iterator cit;
+	for ( cit = m.begin(); cit != m.end(); ++cit ) {
+		cout << cit->first << ":" << cit->second << endl;
+	}
+
+	return 0;
+}				/* ----------  end of function main  ---------- */
+

@@ -1,0 +1,382 @@
+
+
+
+
+chenglinhust的专栏
+
+linux 算法 编译器 编程语言 虚拟化 存储 数据挖掘 windows编程 分布式 服务器开发 移动互联网 程序设计 架构设计
+
+
+
+
+ 
+
+
+
+•目录视图
+•摘要视图
+•订阅
+ 
+
+
+
+CSDN2013年度博客之星评选      文思海辉第一届在线编程大赛      消灭0回答，赢下载分      订阅CSDN社区周刊，及时了解社区精华内容      办公大师系列经典丛书 诚聘译者     
+ 
+
+
+orange's一个操作系统的实现之环境搭建 
+
+分类： 一个操作系统的实现2012-04-18 17:111756人阅读评论(7)收藏举报
+ 
+constructordestructorfilevmwaredebianubuntu
+
+
+                                                                                                                       搭建你的环境
+ 
+1.  虚拟计算机Bochs
+ 
+简单来讲，它相当于运行在计算机内的小计算机。这个好理解，我用的vmware 不就是这样的东东嘛。不过，现在看来，我得让Bochs 成为包含在vmware 中的“ 小小计算机”了。 
+
+1.1 Bochs初体验
+ 
+嗯，我已经从书上的插图看到啦，是个黑底白字的、运行着Debian 的、满天繁星似的窗口！
+ 
+1.2 Bochs的安装
+ 
+ubuntu 8.10下安装还真方便:sudo apt-get install vgabios bochs bochs-x bximage。 
+
+      停，作者在后面马上就说了：“ 不过这样安装虽然省事，但有个缺点不得不说，就是默认安装的Bochs 很可能是没有调试功能的，这显然不能满足我们的需要" 。阿弥陀佛，我们安装Bochs ，图得不就是它的调试功能吗，赶紧悬崖勒马，回头是岸。
+ 
+立马去bochs 的老家 h t t p://bochs.sourceforge.net搬了几个源码包过来，先是下了书上用的bochs2.3.5。
+ 
+tar xzvf bochs-2.3.5.tar.gz
+ 
+cd bochs-2.3.5
+ 
+./configure --enable-debugger --enable--disasm
+ 
+sudo make
+ 
+出现了错误:
+ 
+symbols.cc: At global scope:
+        symbols.cc:137: error: ISO C++ forbids declaration of ‘hash_map’ with no type
+ 
+symbols.cc:137: error: expected ‘;’ before ‘<’ token
+ 
+symbols.cc:145: error: expected constructor, destructor, or type conversion before ‘<’ token
+        symbols.cc: In constructor ‘context_t::context_t(Bit32u)’:
+        symbols.cc:152: error: ‘map’ was not declared in this scope
+        symbols.cc: In static member function ‘static context_t* context_t::get_context(Bit32u)’:
+        symbols.cc:173: error: ‘map’ was not declared in this scope
+        make[1]: *** [symbols.o] Error 1
+        make: *** [bx_debug/libdebug.a] Error 2 
+
+此时应该按照下面的步骤：
+ 
+1.sudo apt-get install build-essential
+ 
+sudo apt-get install xorg-dev
+ 
+sudo apt-get install bison （注意如果你的ubuntu是9点几的版本的话会出现缺少很多包，那么就从网上一个个下载，缺什么就下什么！）。
+ 
+2../configure --enable-docbook=--enable-debugger --enable-disasm (启动调试和反汇编功能)。
+ 
+3.在做make之前,需要在bx_debug/symbols.cc的97行之后加上一些代码，加后如下所示：
+ 
+using namespace std;
+ 
+#ifdef __GNUC__  (新加的，注意前后都是两个下划线)
+ 
+using namespace __gnu_cxx; (新加的，注意前面是两个下划线)
+ 
+#endif  (新加的)
+ 
+struct symbol_entry_t;
+ 
+4.sudo make
+ 
+5.sudo make install
+ 
+ 
+ 
+1.3 Bochs的使用
+ 
+所谓映像者，你可以理解为原始设备的逐字节复制，也就是说软盘的第M 个字节对应映像文件的第M 个字节。
+ 
+现在就用Bochs 自带的组件bximage 做一个吧:
+ 
+bximage回车，除了第一个选项输入"fd" 外，其余的直接按回车，完后在当前目录下多了一个a.img 。
+ 
+到目前为止，我已经有了" 小小计算机" 和“ 难得的软盘” ，是时候把第一章的“ 小麻雀”装进软盘了。我使用dd 命令： 
+
+      dd  if=boot.bin  of=a.img  bs=512  count=1  conv=notrunc 
+
+对了，还有件工具不能忘了：NASM。走捷径吧，sudo apt-get install nasm
+ 
+装好后执行：nasm  boot.asm  -o boot.bin
+ 
+至此，dd命令顺利执行。
+ 
+Bochs 的配置文件bochsrc 在哪里？找不到，自己依葫芦画瓢写一个:
+ 
+# memory
+ megs:32
+ 
+# file of rom images
+ romimage: file=/usr/local/share/bochs/BIOS-bochs-latest
+ vgaromimage: file=/usr/local/share/bochs/VGABIOS-lgpl-latest
+ 
+# disk will be used
+ floppya: 1_44=a.img, status=inserted
+ 
+# boot disk
+ boot:floppy
+ 
+# log messages
+ log:bochsout.log
+ 
+# disable the mouse
+ mouse:enabled=0
+ 
+#enable key mapping
+ keyboard_mapping:enabled=1, map=/usr/local/share/bochs/keymaps/x11-pc-us.map
+ 
+注意，romimage和vgaromimage 的路径，跟书上说的有点不同 。
+ 
+把上面编写的bochsrc和a.img 放在同一个目录下，在这个目录下输入bochs命令( 什么参数也没带) ，一个回车：
+ 
+========================================================================
+                        Bochs x86 Emulator 2.3.5
+             Build from CVS snapshot, on September 16, 2007
+ ========================================================================
+ 00000000000i[     ] reading configuration from bochsrc
+ ------------------------------
+ Bochs Configuration: Main Menu
+ ------------------------------
+ 
+This is the Bochs Configuration Interface, where you can describe the
+ machine that you want to simulate.  Bochs has already searched for a
+ configuration file (typically called bochsrc.txt) and loaded it if it
+ could be found.  When you are satisfied with the configuration, go
+ ahead and start the simulation.
+ 
+You can also start bochs with the -q option to skip these menus.
+ 
+1. Restore factory default configuration
+ 2. Read options from...
+ 3. Edit options
+ 4. Save options to...
+ 5. Restore the Bochs state from...
+ 6. Begin simulation
+ 7. Quit now
+ 
+Please choose one: [6]    再输入回车：
+ 
+
+
+
+Please choose one: [6]
+ 00000000000i[     ] installing x module as the Bochs GUI
+ 00000000000i[     ] using log file bochsout.log
+ Next at t=0
+ (0) [0xfffffff0] f000:fff0 (unk. ctxt): jmp far f000:e05b         ; ea5be000f0
+ <bochs:1> c   回车:
+ 
+
+
+
+如果用不带调试功能的Bochs2.4.5，那么在
+ 
+Please choose one: [6] 回车之后，马上就可以看到上面的效果了。
+ 
+注意：当用户输入bochs命令时，可能出现Message:ata0-0:could not open hard drive image file '30M.sample',此时说明不是从软盘启动的，那么用户应该输入完整的命令：bochs -f bochsrc,这样就可以了。
+ 
+现在大家应该可以看到自己的小型操作系统了吧，在这里非常感谢《orange's一个操作系统的实现》的作者于渊，我非常佩服作者的耐心和能力，作者的一句话令我很有启发：只要用心，就没有学不会的东西！！！
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+更多 
+
+•上一篇：如何参与LINUX内核开发
+•下一篇：linux设备驱动之构造和运行模块
+ 
+
+
+查看评论
+ 
+
+
+
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+核心技术类目
+
+ 全部主题 Java VPN Android iOS ERP IE10 Eclipse CRM JavaScript Ubuntu NFC WAP jQuery 数据库 BI HTML5 Spring Apache Hadoop .NET API HTML SDK IIS Fedora XML LBS Unity Splashtop UML components Windows Mobile Rails QEMU KDE Cassandra CloudStack FTC coremail OPhone CouchBase 云计算 iOS6 Rackspace Web App SpringSide Maemo Compuware 大数据 aptech Perl Tornado Ruby Hibernate ThinkPHP Spark HBase Pure Solr Angular Cloud Foundry Redis Scala Django Bootstrap
+ 
+
+
+
+
+个人资料 
+
+chenglinhust 
+
+
+
+
+◦访问：192970次
+◦积分：7754分
+◦排名：第497名
+ ◦原创：591篇
+◦转载：102篇
+◦译文：0篇
+◦评论：95条
+ 
+文章搜索
+
+ 
+个人简介 2007.9~2011.7 本科 计算机科学与技术 2011.9~2014.3 硕士 计算机系统结构。目前已签约国内某大型互联网公司。联系QQ：786071807 
+文章分类 • 算法菜鸟变身记(158) 
+• linux内核与编程(162) 
+• C vs C++(106) 
+• 存储(17) 
+• python学习(1) 
+• 虚拟机与虚拟化(37) 
+• 设计模式(8) 
+• 虚拟机备份系统项目(3) 
+• 数据库理论与编程(6) 
+• 分布式文件系统(3) 
+• 机器学习与推荐系统(8) 
+• 分布式key-value存储系统研究(5) 
+• Windows核心编程(23) 
+• 编译器与编程语言研究与开发(9) 
+• 数据挖掘(19) 
+• Android系统卷与应用卷(6) 
+• 高性能服务器程序研究与开发(14) 
+• Nginx开发从入门到精通(14) 
+• XML和Shell编程(1) 
+• go语言学习(0) 
+• 缓存系统研究(0) 
+• COM技术(2) 
+• 笔试面试专题(114) 
+• 网络理论与编程(6) 
+• 程序员自我修养(18) 
+• 计算机程序的构造和解释(9) 
+• Java菜鸟变身记(1) 
+• UML(1) 
+• 前端开发技术(1) 
+• 搜索引擎(1) 
+• LVS剖析(0) 
+• 游戏开发(0) 
+• P2P与CDN技术(1) 
+• 一个操作系统的实现(2) 
+• gtk/glade程序开发(1) 
+• 闲杂记录(8) 
+
+文章存档 
+•2013年12月(1)
+•2013年11月(1)
+•2013年10月(19)
+•2013年09月(62)
+•2013年08月(46)
+•2013年07月(45)
+•2013年06月(31)
+•2013年05月(31)
+•2013年04月(57)
+•2013年03月(46)
+•2013年02月(22)
+•2013年01月(55)
+•2012年12月(81)
+•2012年11月(67)
+•2012年10月(19)
+•2012年09月(28)
+•2012年08月(16)
+•2012年07月(4)
+•2012年06月(23)
+•2012年05月(14)
+•2012年04月(8)
+•2012年03月(9)
+•2012年02月(8)
+ 
+阅读排行 • 编程之美----寻找发帖水王(6648) 
+• KVM虚拟机创建功能详细讲解(4225) 
+• RHEL 6.1 KVM虚拟机桥接物理机网络(3126) 
+• 阿里巴巴2013实习生笔试题精选2道算法题(2319) 
+• virsh命令行管理工具(2296) 
+• linux下libxml库的安装及编译(2126) 
+• Debian 6.0 安装 KVM 桥接网络(2083) 
+• ﻿﻿Kvm 网络桥接方案(2048) 
+• 策略模式(2006) 
+• Linux下Makefile的automake生成全攻略(1947) 
+
+评论排行 • 阿里巴巴2013实习生笔试题精选2道算法题(9) 
+• orange's一个操作系统的实现之环境搭建(7) 
+• 2014迅雷校园招聘笔试题(C++)(7) 
+• 2014美团网校园招聘研发类笔试(哈尔滨站)(6) 
+• 使用libvirt管理KVM虚拟机(6) 
+• 微软十五道面试题(5) 
+• 深入浅出对象池(Object Pool)(5) 
+• 编程之美——寻找最大的K个数(3) 
+• 谷歌八道面试题(3) 
+• 虚拟机迁移研究(3) 
+
+推荐文章 
+最新评论 •使用libvirt管理KVM虚拟机
+u012890890: @chenglinhust:谢谢 
+
+•使用libvirt管理KVM虚拟机
+chenglinhust: @u012890890:libvirt中通过桥接方式不能手动配置IP地址，可以通过dhcp协议来提前... 
+
+•使用libvirt管理KVM虚拟机
+u012890890: 博主你好：我在XML里这样手动设置虚拟机IP地址，发现是错误的。不知博主是怎么手动设置，请指导下。 
+
+•文件数据块分块算法解析
+ooDragon: 同学，你好！我想向你咨询一下关于cdc的文件分块实现，我的QQ:846369885 我刚才加你了，谢... 
+
+•ptr = (char *)malloc(0)
+wang_hu_feng: 例如：int pp=(strlen(ptr=(char*)malloc(0))) ,int pp=(... 
+
+•readelf命令
+newningning: 也不支持64位的ELF文件?? 
+
+•百度2014校园招聘笔试题武汉站三道算法设计题
+chenglinhust: @newningning:谢谢师妹的鼓励~等找好了和你说啊~~ 
+
+•百度2014校园招聘笔试题武汉站三道算法设计题
+newningning: 祝师兄找工作顺利 
+
+•2014美团网校园招聘研发类笔试(哈尔滨站)
+zinss26914: @tli600605:1/4,贝叶斯+1 
+
+•深入浅出对象池(Object Pool)
+chenglinhust: @u010064842:恩，可以按照你说的做～ 
+
+
+Tech Blog 0 全能系： 
+Sophia_qing机器学习
+ 刘未鹏
+ 丕子
+ 编译器大牛 
+Tech Blog 1 算法系： 
+v_JULY_v
+ MoreWindows
+ hackbuteer1 
+
+
+
+

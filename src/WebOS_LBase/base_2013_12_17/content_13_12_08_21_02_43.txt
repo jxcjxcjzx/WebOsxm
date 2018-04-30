@@ -1,0 +1,549 @@
+ 加载中…霓裳嫣雨
+http://blog.sina.com.cn/t0rnad0 [订阅][手机订阅]首页 博文目录 图片 关于我个人资料 
+ 霓裳嫣雨 
+Qing 微博 
+加好友 发纸条 
+
+写留言 加关注 
+
+
+博客等级： 博客积分：2315 博客访问：32,099 关注人气：35 
+精彩图文 
+相关博文 
+
+
+美国政府关门为何没影响普通人
+叶檀
+淘金客：十月行情市场机会在哪
+淘金客
+梁静茹为何受国家主席的夸赞？
+Cl_中國娃娃
+好声音蘑菇头李琦竖中指不雅照
+吴庆芝
+汤唯与王力宏情欲照揭七段情史
+阳光
+美国政府关门以来首盛顿情况
+纽约高娓娓
+世界需要一次彻底的崩溃
+王海滨_Freedom
+我所遭遇的香格里拉野蛮导游
+礼让
+美国最受瞩目的一场庭审
+柴静
+节后市场还会面临探底之忧吗？
+图锐
+更多>>
+推荐博文 
+当游戏邂逅艺术 共赴经典与梦想
+新宇
+查看更多>>
+正文 字体大小：大 中 小 
+Unity 学习(2012-11-15 15:06:37)转载▼标签： 转载游戏  
+关于Local和Global
+基本上而言，你在动了物体的方向后，它的XYZ（RGB）会跟着自己的轴心指向新方向。你只有点了Global按钮，它才会重新指向场景轴心方向。
+
+关于脚本
+公共变量会在component界面出现
+私有变量则不会（两种方法设置私有变量，一是在函数内部声明，另一个是在函数外部用private声明）
+可以由其他脚本调用的变量则这样声明：static var ...
+
+射出一个小盒子（注意，盒子prefab实现在工程中创建好，在脚本写完后，再往components里面拖）：
+
+var speed = 3.0;
+var cratePrefab:Transform;
+
+function Update ()
+{
+    //find out if a fire button is pressed   
+    if(Input.GetButtonDown("Fire1"))
+    {
+        //create the prefab       
+        var crate = Instantiate(cratePrefab, transform.position,Quaternion.identity);
+       
+        //add force to the prefab
+        crate.rigidbody.AddForce(transform.forward * 2000);
+    }
+   
+}
+
+关于Terrain，天空盒 
+﻿在地形模块的最后一个工具，Terrain Setting里，有一组选项是关于wind的，调整后可以改变物理风速对长草的影响。
+可以通过Terrain -> Mass Place Trees, 直接在场景中加大量的树木。
+
+如果用第三方软件导入树木的模型，注意：
+The pivot point of the tree mesh must be exactly at the root of the tree, that is at the point where the tree should meet the surface it is placed on.
+
+
+有两种办法添加天空盒：
+一，在camera (比如First Person Controller这个prefab下的main camera)中，新增一个skybox组件（在components-> rendering 下）。通过这种方法所加的天空盒只在游戏调用相应的摄像机时候才会渲染。
+
+
+二，直接在Edit -> Redering Setting 中设置天空盒的材质。这样设置的天空盒无论在什么摄像机下都会渲染。
+
+
+
+
+关于GUI
+
+在Project目录中选好一个GUI资源文件，然后：
+GameObject -> Create Other -> GUI Texture
+ 
+同理，往Project相应目录里拖一个font文件（.ttf），然后：
+GameObject -> Create Other -> GUI Text
+ 
+可以通过调整transform position中的 z值来决定GUI的覆盖顺序。
+ 
+GUI 脚本范例：
+
+function Awake () {
+guiText.text = “”+0;
+}
+ 
+创建好脚本，写完之后，将之attach到游戏目录中的GUIText文件上。
+ 
+***创建3D主菜单***
+GameObject -> Create Other -> Cube
+ 
+可以同时打开Game Scene来实时的看Camera的调整状况
+ 
+可以在Create Other中添加3D Text
+ 
+如果想改3D Text的字体可以直接将工程目录的字体文件拖到3D Text 的属性中（font material 要另外拖到材质球选项中）
+ 
+- 解决字体模糊的方法：第一，将字体文件的尺寸变大，第二，将字符本身的尺寸（character size）变小
+ 
+加好3D效果的菜单文字后通过 Component -> Physics -> Box Collider 为这个字加碰撞组件
+ 
+ ***在项目中添加新的Scene并获得Scene的order标记数字***
+  
+***3D菜单脚本***
+ 
+var isQuitBtn = false;   //检查某个按钮是否是退出APP的按钮
+function onMouseEnter ()
+{
+     renderer.material.color = Color.red;
+}
+ 
+function onMouseExit ()
+{
+     renderer.material.color = Color.red;
+}
+ 
+function onMouseUp ()
+{
+     if(isQuitBtn)
+     {
+     Application.Quit();
+     }
+     else
+     {
+     Application.LoadLevel(1);  //这也就是前面说到的Level的Order Number了
+     }
+}
+
+
+
+导入3D模型资源
+1. 先把Texture Map放到Project目录中。﻿
+2.在同一目录中创建空的材质球（Material）
+3.为材质球赋予纹理贴图，如果需要其他shader，则增加shader，然后将相应纹理贴图拖上去（例如Normal就拖到Bumped Diffuse上）
+4.可以将这个完成的材质球直接拖到场景中的3D模型身上。
+5.或者，直接将材质球拖到创建好的prefab中的3D物体的材质模块中。
+
+http://unity3d.com/unity/features/asset-importing 
+6.可以在Texture的组件中找到一个选项叫做Generate Bumpmap，来利用Unity创建法线贴图
+
+
+
+关于粒子特效
+1. 如果要让特效随着物体转动（比如枪管喷射的火焰），则在粒子特效的Ellipsoid Particel Emitter中，关掉“simulate in worldspace”选项。
+2. 要调整粒子的拉伸方式，进入Particle Renderer模块，调整Stretch Particles的模式(Billboard改为Stretched)，然后将Velocity Scale调整之。
+
+关于动画
+1. 进行动画编辑前，先把动画面板打开
+2. 0:00，前面是时间，后面是帧数
+3.将play automatically的选项关掉，就不会自动播放了
+4.调用脚本触发动画（直接撞上去才能开，需要给door加一个tag）：
+function OnControllerColliderHit(hit : ControllerColliderHit)
+{
+    if(hit.gameObject.tag == "door")
+    {
+        hit.gameObject.animation.Play("door_open");
+    }
+}
+5.那么如何做一个感应门呢？这就要用到Raycasting了。
+function Update()
+{
+    var hit : RaycastHit;
+    //check if we're colliding
+    if(Physics.Raycast(transform.position, transform.forward, hit, 5))  
+//这里的5距离你可以在函数声明前定义一个变量，然后替换，比如 var RaycastLength = 5;，然后在游戏的脚本组件中显示出来，并实时地改变看效果
+
+    {
+        //...with a door
+        if(hit.collider.gameObject.tag == "door")
+        {
+            //open the door
+            hit.collider.gameObject.animation.Play("door_open");
+        }
+    }
+}
+
+
+
+
+关于拾取物品
+  
+1. 首先，让主角和拾取物产生碰撞
+function OnControllerConlliderHit(hit: ControllerColliderHit)
+{
+    if(hit.gameObject.tag == "crateGrenades")
+    {
+      print("BOX OF AMMO FOUND!")
+    }
+}
+
+2. 其次，让可拾取物在碰撞后会消失，消失后给你物品栏中的相应物品增加数量：
+Destroy(hit.gameObject);
+GRENADE_AMMO += 8;
+
+3.然后在射击逻辑里（调用该物品的逻辑），做一个if判断，就行了
+    if(Collide.GRENADE_AMMO > 0)
+        {
+        //create the prefab
+        var crate = Instantiate(cratePrefab, transform.position,Quaternion.identity);
+       
+        //add force to the prefab
+        crate.rigidbody.AddForce(transform.forward * 2000);
+       
+        Collide.GRENADE_AMMO --;
+        print("YOU NOW HAVE" +  Collide.GRENADE_AMMO   + "GRENADES");
+        }
+有一点要注意，因为GRENADE_AMMO是全局变量，在其他脚本可以调用，调用时前面直接加该脚本文件名即可
+
+4. 最后，对于手榴弹而言，如果你不想让它从屏幕中间飞出来（因为脚本挂靠的是Main Camera），可以另建一个低一点的Camera给shoot脚本挂上去
+
+5. 在看到手榴弹爆炸特效的脚本这一节：通常的做法是把资源扔到场景中看效果，并且调整效果 —> 然后创建prefab，把调整好的GameObject扔进去 —> 删除场景中的instance —> 以后都从prefab调用这个物件
+
+6. 怎么让爆炸效果和手榴弹prefab绑定呢：
+var creationTime = Time.time;
+var explotionPrefab : Transform;  //在手榴弹prefab内部强行创建一个空的prefab，稍后将爆炸特效的prefab拖进来落实
+var lifeTime = 3;
+
+function Awake()
+{
+    creationTime = Time.time;
+}
+
+function Update ()
+{
+    if(Time.time > (creationTime+lifeTime))
+    {
+        Destroy(gameObject);
+        Instantiate(explotionPrefab, transform.position, Quaternion.identity);
+    }
+}
+
+ 
+
+
+
+关于AI
+1. 如何让AI转向我？非常简单，只有一行代码：
+var lookAtTarget : Transform;
+function Update ()
+{
+    transform.LookAt(lookAtTarget);
+}
+然后将该代码附着于你想让其转向的Game Object（这将在它的组件中创建一个变量Look At Target）。然后再把Player这个Game Object，直接拖到变量Look At Target上。
+然后不管它是什么，都会很恐怖的盯着你看了……
+ 
+ 
+ 
+2.现在，让炮筒不要那么傻乎乎的：
+var target : Transform;
+var range = 10.0; //让炮筒对我有侦测范围
+function Awake()
+{
+      //让炮筒找到我，我的Tag是默认的
+      target = GameObject.FindWithTag("Player").transform;
+}
+ 
+function Update()
+{
+      if(targe && CanAttackTarget())  //既能找到我，也能攻击我
+     {
+      var targetRotation = Quaternion.LookRotation(target.position - transform.position, Vector3.up);
+      transfomr.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 2.0);
+     }
+}
+     //构造“是否启动攻击”的函数
+     function CanAttackTarget()
+{ 
+      // Check if the target is close enough
+ 
+      if(Vector3.Distance(transform.postion, target) > range)
+      {
+      print("Out of Range");//太远啦
+      return false; //确定该函数返回值是布尔变量。
+      }
+
+
+ var hit : RaycastHit;
+ //check if there collision inbetween turret and target
+ //看turret的视线里是不是有别的物体，还是能看见玩家
+
+ if(Physics.Linecast(transform.position, target.position, hit))
+ {
+       if(hit.collide.gameObject.tag != "Player")
+       {
+        print("Item in the way:" +hit.collide.gameObject.name);
+        return false;
+       }
+       else
+       {
+        print("Player detected!");
+        return true;
+       }
+ }
+ return true;
+ }
+如果发现RaycastHit侦测到了对象自己，就在属性的Layer里选“Ignor Raycast” 
+ 
+关于Quaternion.Slerp 
+static function Slerp (from : Quaternion, to : Quaternion, t : float) : Quaternion
+意思是：Spherically interpolates from towards to by t.
+
+
+3.如何让物件的分部分播放动画？比如让榴弹炮的炮管伸缩？
+
+在脚本的最前面：
+先加两个变量
+var leftFlame : GameObject;
+var rightFlame : GameObject;
+然后把枪管的火焰attch到这两个变量开放的值上（直接拖）
+在脚本的最后面：
+InvokeRepeating("FalconAnimate", 0, 0.05);
+//多长时间FalconAnimation这个函数会被执行
+function FalconAnimate()
+{
+     if (leftFlame && rightFlame)
+     {
+          if(leftFlame.renderer.enabled)
+           {
+            leftFlame.renderer.enabled = false;
+            rightFlame.renderer.enabled = true;
+           }
+
+
+           else
+           {
+            leftFlame.renderer.enabled = true;
+            rightFlame.renderer.enabled = false;
+           }
+     }
+     else
+     {
+         print("Effects on Turret not set!")
+     }
+}
+ 
+4.为了让榴弹炮真正的在看到我的时候才射击，需要设定Turret的状态机。
+
+在最前面加一个变量
+static var mode = "idle";
+在invoke之前加两个函数
+
+function Attack()
+{
+      if(mode != "attack")
+      {
+      InvokeRepeating("FalconAnimate", 0, 0.05);
+      mode = "attack";
+      }
+ 
+
+
+function Disengage()
+{
+      if(mode != "idle")
+      {
+       CancelInvoke();
+       mode = "idle";
+       leftFlame.renderer.enabled = false;
+       rightFlame.renderer.enabled = false;
+      }
+
+
+}
+ 
+别忘了在Awake里面加上以下代码：
+leftFlame.renderer.enabled = false;
+rightFlame.renderer.enabled = false;
+这样榴弹炮就不会游戏一开始就自动开打了。
+
+最后，为了触发Attack和Disengage这两个函数，到前面用新的函数替换掉原来相应的“Print”函数。
+
+
+
+
+
+  
+创建血槽系统
+
+
+1.首先一点，创建一个血槽UI，方法是，呃，创建10个分别代表不同血量的图片……
+2. 然后写一个脚本，写好后把他attach到player身上，然后在player的新组件里把相关的纹理关联上
+var h00 : Texture2D;
+var h10 : Texture2D;
+var h20 : Texture2D;
+var h30 : Texture2D;
+var h40 : Texture2D;
+var h50 : Texture2D;
+var h60 : Texture2D;
+var h70 : Texture2D;
+var h80 : Texture2D;
+static var HEALTH = 80;
+function update()
+{
+ var g_Health = gameObject.Find("g_Health");
+ 
+      if(HEALTH > 70)
+      {
+      g_Health.guiTexture.texture = h80;
+      return;
+      }
+      else if(HEALTH > 60)
+      {
+      g_Health.guiTexture.texture = h70;
+      return;
+      }
+ 
+if(HEALTH > 50)
+      {
+      g_Health.guiTexture.texture = h60;
+      return;
+      }
+      else if(HEALTH > 40)
+      {
+      g_Health.guiTexture.texture = h50;
+      return;
+      }
+ if(HEALTH > 30)
+      {
+      g_Health.guiTexture.texture = h40;
+      return;
+      }
+ else if(HEALTH > 20)
+      {
+      g_Health.guiTexture.texture = h30;
+      return;
+      }
+ if(HEALTH > 10)
+      {
+      g_Health.guiTexture.texture = h20;
+      return;
+      }
+ else if(HEALTH > 5)
+      {
+      g_Health.guiTexture.texture = h10;
+      return;
+      }
+ else if(HEALTH <= 0)
+      {
+      g_Health.guiTexture.texture = h00;
+      return;
+      }
+}
+
+
+3. 测试代码：
+InvokeReapting("subtract", 2, 0.5);
+function subtract()
+{
+      HEALTH -= 1;
+      print("health is now:" +HEALTH);
+}
+ 
+3. 如何决定炮管是否对我造成伤害？计算角度：
+var forward = transform.forward; //炮管的x方向
+var targetDir = target.position - transform.position; //炮管指向目标（玩家）的方向
+var angle = Vector3.Angle(targetDir, forward); //计算夹角
+ 
+4. 好了，造成伤害的话，要干掉你的血，接上面的代码：
+if(angle < 10.0)
+{
+      DoDamage
+}
+else
+{
+}
+var damageTimer = 0.0; //人为设置伤害计时器，否则每帧都会造成伤害
+function DoDamage()
+{
+      if(damageTimer = 0.0)
+      {
+       damageTimer = Time.time; //伤害计时器初始值与当前时间等同
+      }
+      if((damageTimer+0.05) > Time.time)
+      {
+       return;
+      }
+ else
+ {
+      Player.HEALTH -= 1；
+      print(Player.HEALTH);//测试代码
+      damageTimer = Time.time; //重置伤害计数器
+ }
+}
+ 
+5.最后，是如何触发结束画面的问题。还记得在Build Setting里设定不同Scene的tag数字吗？
+也就是加一行代码：
+ else if(HEALTH <= 0)
+ {
+ g_Health.guiTexture.texture = h00;
+ Application.LoadLevel(0);// 如果死了，马上Load主菜单场景；
+ return;
+ }
+ 
+
+ 
+
+
+创建大规模城市
+
+1.在City Engine中创建城市，然后导入Unity中。这个引擎既可以手动创建城市群，也可以自动生成不同风格的城市（细节由用户决定，甚至可以自动生成交通信号灯，马路上的车流...）。
+
+2. 如何自动生成纹理贴图？他介绍了一个插件叫做Filter Forge，他可以按照你的需求自动生成纹理，也可以制定纹理为法线贴图。
+
+
+分享： 分享到新浪Qing  
+喜欢
+
+阅读┊ 评论 ┊ 收藏 ┊转载 ┊ 喜欢▼ ┊打印┊举报 已投稿到：  排行榜  
+
+加载中，请稍候......
+前一篇：发射子弹的代码（子弹速度，预置物体的附加，子弹的消失）后一篇：RECT类
+评论 重要提示：警惕虚假中奖信息 | [发评论]评论加载中，请稍候...
+
+发评论 | 
+  
+登录名： 密码： 找回密码 注册 记住登录状态
+昵   称：
+
+ 分享到微博    评论并转载此博文
+
+验证码： 请点击后输入验证码 收听验证码
+匿名评论发评论 
+以上网友发言只代表其个人观点，不代表新浪网的观点或立场。
+< 前一篇
+发射子弹的代码（子弹速度，预置物体的附加，子弹的消失）后一篇 >
+RECT类
+  新浪BLOG意见反馈留言板　不良信息反馈　电话：4006900000 提示音后按1键（按当地市话标准计费）　欢迎批评指正
+
+新浪简介 | About Sina | 广告服务 | 联系我们 | 招聘信息 | 网站律师 | SINA English | 会员注册 | 产品答疑 
+
+Copyright © 1996 - 2013 SINA Corporation, All Rights Reserved
+
+新浪公司 版权所有
+

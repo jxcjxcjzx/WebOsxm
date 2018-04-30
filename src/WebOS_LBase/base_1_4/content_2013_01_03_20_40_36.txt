@@ -1,0 +1,259 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+lishaoqi_scau的专栏
+
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年4月微软MVP申请开始啦！    写给13岁的CSDN论坛    CSDN博客频道年终送好礼！
+ 2012CSDN博客之星评选正式上线      2000元大奖征异构开发博文      Q14年互联网产品进化史 
+
+
+
+OSS linux下的音频程序 
+.
+2012-03-13 11:05116人阅读评论(0)收藏举报
+
+
+昨天写了个利用OSS 音频驱动写的一个LINUX下的一个音频的录取与播放，写完后，录制了，听了下，播放速度太快了，然后调节了下播放时那个每次读取的数据的大小，开始都以2的N次方来调节，不是快了，就是慢了，折腾了一天，今天再看了下，试了把它调成中间的那个不是2的N次方的其他数，再调节试了下，咦。。得了，靠就这小问题就浪费了一天的时间。。 以下是程序，还不是最终完善的那个。。
+ 
+#include "sounddev.h"
+ 
+
+sounddev::sounddev()
+ {
+     QMessageBox::about(NULL,"test","loving china");
+ }
+ int sounddev::record()
+ {
+     int id,fd,i,j;
+     char buf[4*1024];
+     fd = open("/dev/dsp",O_RDONLY);
+     if(fd<0)
+     {
+         perror("Couldn't open the file /dev/audio:");
+         return -1;
+     }
+     id = open("test.wav",O_RDWR | O_CREAT,755);
+     if(id<0)
+     {
+         perror("Couldn't open the file test.wav:");
+         return -1;
+     }
+ 
+    /*************Set the ioctl********************/
+     i= (0X0001 <<16)+0X0001;
+     if(ioctl(fd,SNDCTL_DSP_SETFRAGMENT,(char *)&i)==-1){perror("Couldn't set the buffer:");return -1;}
+     i =0;
+     if(ioctl(fd,SNDCTL_DSP_RESET,(char *)&i)==-1)perror("reset error:");
+     if(ioctl(fd,SNDCTL_DSP_SYNC,(char *)&i)==-1)perror("sync error:");
+     i =1;
+     if(ioctl(fd,SNDCTL_DSP_NONBLOCK,(char *)&i)==-1)perror("nonblock error:");
+     i=(4*48000);
+     if(ioctl(fd,SNDCTL_DSP_SPEED,(char *)&i)==-1){perror("speed error:");return -1;}
+     i=1;
+     if(ioctl(fd,SNDCTL_DSP_CHANNELS,(char *)&i)==-1)perror("channel error:");
+     i=AFMT_S16_LE;
+     if(ioctl(fd,SNDCTL_DSP_SETFMT,(char *)&i)==-1){perror("setfmt error:");return -1;}
+         if(i!=AFMT_S16_LE){printf("the device is not suppor the AFMT_S16_LE");return -1;}
+     i=3;
+     if(ioctl(fd,SNDCTL_DSP_SETTRIGGER,(char *)&i)==-1)perror("settrigger error:");
+     i=3;
+     if(ioctl(fd,SNDCTL_DSP_SETFRAGMENT,(char *)&i)==-1)perror("setfragment error");
+     i=1;
+     if(ioctl(fd,SNDCTL_DSP_PROFILE,(char *)&i)==-1)perror("profile error");
+ 
+    /*****************TO Work*********************/
+         i=0;
+     for(j=0;j<1000;)
+     {
+         i=read(fd,buf,sizeof(buf));
+         printf("In the %dth time it had get %d bytes\n",j,i);
+         if(i>0)
+         {
+             write(id,buf,i);
+             j++;
+         }
+     }
+ close(fd);
+ close(id);
+    return 0;
+ }
+ 
+int sounddev::play()
+ {
+     int id,fd,i,j;
+     char buf[512];
+     fd = open("/dev/dsp",O_WRONLY);
+     if(fd<0)
+     {
+         perror("Couldn't open the file /dev/audio:");
+         return -1;
+     }
+     id = open("test.wav",O_RDWR | O_CREAT,755);
+     if(id<0)
+     {
+         perror("Couldn't open the file test.wav:");
+         return -1;
+     }
+ 
+    /*************Set the ioctl********************/
+     i= (0X0002 <<16)+0X0001;
+     if(ioctl(fd,SNDCTL_DSP_SETFRAGMENT,(char *)&i)==-1){perror("Couldn't set the buffer:");return -1;}
+     i =0;
+     if(ioctl(fd,SNDCTL_DSP_RESET,(char *)&i)==-1)perror("reset error:");
+     if(ioctl(fd,SNDCTL_DSP_SYNC,(char *)&i)==-1)perror("sync error:");
+     i =1;
+     if(ioctl(fd,SNDCTL_DSP_NONBLOCK,(char *)&i)==-1)perror("nonblock error:");
+     i=(4*48000);
+     if(ioctl(fd,SNDCTL_DSP_SPEED,(char *)&i)==-1){perror("speed error:");return -1;}
+     i=1;
+     if(ioctl(fd,SNDCTL_DSP_CHANNELS,(char *)&i)==-1)perror("channel error:");
+     i=AFMT_S16_LE;
+     if(ioctl(fd,SNDCTL_DSP_SETFMT,(char *)&i)==-1){perror("setfmt error:");return -1;}
+     if(i!=AFMT_S16_LE){printf("the device is not suppor the AFMT_S16_LE");return -1;}
+     i=3;
+     if(ioctl(fd,SNDCTL_DSP_SETTRIGGER,(char *)&i)==-1)perror("settrigger error:");
+     i=3;
+     if(ioctl(fd,SNDCTL_DSP_SETFRAGMENT,(char *)&i)==-1)perror("setfragment error");
+     i=1;
+     if(ioctl(fd,SNDCTL_DSP_PROFILE,(char *)&i)==-1)perror("profile error");
+ 
+    /*****************TO Work*********************/
+     i=0;
+     for(j=0;j<8000;)
+     {
+         i=read(id,buf,sizeof(buf));
+         printf("In the %dth time it had read %d bytes\n",j,i);
+         if(i>0)
+         {
+             write(fd,buf,i);
+             //ioctl(fd,SNDCTL_DSP_SYNC);
+             j++;
+         }
+     }
+     close(fd);
+     close(id);
+       return 0;
+ }
+ 
+ 
+ 
+ 
+ 
+分享到： 
+
+上一篇：Linux音频设备驱动
+下一篇：RTP
+ . 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+骑墙头等红杏
+ 
+
+
+
+
+访问：4818次
+积分：147分
+排名：千里之外
+.原创：8篇
+转载：18篇
+译文：0篇
+评论：1条
+. 
+文章搜索
+
+. 
+文章存档
+2012年09月(1).
+2012年08月(1).
+2012年07月(1).
+2012年06月(2).
+2012年05月(1).
+.
+.
+.
+
+展开.
+ 
+阅读排行QList介绍(882)
+LINUX下的JRTP编程(684)
+linux 用speex库压缩音频(299)
+SPEEX 语音压缩(295)
+关于SPEEX延迟问题(280)
+linux下的音频采集(210)
+QT工程中的文件介绍（1）----*.pro文件(200)
+编译Linphone 需要的软件包(198)
+基于C 的speex编程(169)
+NSF设置(167)
+ 
+评论排行关于SPEEX延迟问题(1)
+QT工程中的文件介绍（1）----*.pro文件(0)
+linux下的音频采集(0)
+linux音频的播放(0)
+linux 用speex库压缩音频(0)
+ortp库使用入门(0)
+编译Linphone 需要的软件包(0)
+2440 LED驱动(0)
+LINUX下的JRTP编程(0)
+深入OSS开发(0)
+ 
+推荐文章 
+最新评论 关于SPEEX延迟问题
+ph694264813: 求demo 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

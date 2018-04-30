@@ -1,0 +1,906 @@
+
+登录   注册
+ 
+Java开源
+PHP开源
+JS脚本大全
+OPEN家园
+OPEN经验库
+OPEN文档
+OPEN资讯
+OPEN论坛
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+所有分类 >  操作系统 >  Linux
+
+
+ 
+
+8 个实用的 Linux netcat 命令示例
+ 
+
+
+
+您的评价:
+
+
+     
+ 
+
+
+
+ 收藏该经验
+ 
+
+
+
+Netcat 或者叫 nc 是 Linux 下的一个用于调试和检查网络工具包。可用于创建 TCP/IP 连接，最大的用途就是用来处理 TCP/UDP 套接字。
+ 
+这里我们将通过一些实例来学习 netcat 命令。
+ 
+1. 在服务器-客户端架构上使用 Netcat
+ 
+netcat 工具可运行于服务器模式，侦听指定端口
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc -l 2389
+
+ 
+
+然后你可以使用客户端模式来连接到 2389 端口：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc localhost 2389
+
+ 
+现在如果你输入一些文本，它将被发送到服务器端：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc localhost 2389
+
+
+
+
+
+2
+
+HI, oschina
+
+ 
+在服务器的终端窗口将会显示下面内容：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc -l 2389
+
+
+
+
+
+2
+
+HI, oschina
+
+ 
+ 
+ 
+2. 使用 Netcat 来传输文件
+ 
+netcat 工具还可用来传输文件，在客户端，假设我们有一个 testfile 文件：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ cat testfile
+
+
+
+
+
+2
+
+hello oschina
+
+ 
+而在服务器端有一个空文件名为 test
+ 
+然后我们使用如下命令来启用服务器端：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc -l 2389 > test
+
+ 
+紧接着运行客户端：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+cat testfile | nc localhost 2389
+
+ 
+然后你停止服务器端，你可以查看 test 内容就是刚才客户端传过来的 testfile 文件的内容：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ cat test
+
+
+
+
+
+2
+
+hello oschina
+
+ 
+ 
+ 
+3. Netcat 支持超时控制
+ 
+多数情况我们不希望连接一直保持，那么我们可以使用 -w 参数来指定连接的空闲超时时间，该参数紧接一个数值，代表秒数，如果连接超过指定时间则连接会被终止。
+ 
+服务器:
+ 
+
+
+
+
+
+
+
+
+
+1
+
+nc -l 2389
+
+ 
+客户端:
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc -w 10 localhost 2389
+
+ 
+该连接将在 10 秒后中断。
+ 
+注意: 不要在服务器端同时使用 -w 和 -l 参数，因为 -w 参数将在服务器端无效果。
+ 
+4. Netcat 支持 IPv6
+ 
+
+netcat 的 -4 和 -6 参数用来指定 IP 地址类型，分别是 IPv4 和 IPv6：
+ 
+服务器端：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc -4 -l 2389
+
+ 
+客户端：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc -4 localhost 2389
+
+ 
+然后我们可以使用 netstat 命令来查看网络的情况：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ netstat | grep 2389
+
+
+
+
+
+2
+
+tcp        0      0 localhost:2389          localhost:50851         ESTABLISHED
+
+
+
+
+
+3
+
+tcp        0      0 localhost:50851         localhost:2389          ESTABLISHED
+
+ 
+接下来我们看看IPv6 的情况：
+ 
+服务器端：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc -6 -l 2389
+
+ 
+客户端：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc -6 localhost 2389
+
+ 
+再次运行 netstat 命令：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ netstat | grep 2389
+
+
+
+
+
+2
+
+tcp6       0      0 localhost:2389          localhost:33234         ESTABLISHED
+
+
+
+
+
+3
+
+tcp6       0      0 localhost:33234         localhost:2389          ESTABLISHED
+
+ 
+前缀是 tcp6 表示使用的是 IPv6 的地址。
+ 
+ 
+ 
+5. 在 Netcat 中禁止从标准输入中读取数据
+ 
+该功能使用 -d 参数，请看下面例子：
+ 
+服务器端：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc -l 2389
+
+ 
+客户端：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc -d localhost 2389
+
+
+
+
+
+2
+
+Hi
+
+ 
+你输入的 Hi 文本并不会送到服务器端。
+ 
+ 
+ 
+6. 强制 Netcat 服务器端保持启动状态
+ 
+如果连接到服务器的客户端断开连接，那么服务器端也会跟着退出。
+ 
+服务器端：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc -l 2389
+
+ 
+客户端：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc localhost 2389
+
+
+
+
+
+2
+
+^C
+
+ 
+服务器端：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc -l 2389
+
+
+
+
+
+2
+
+$
+
+ 
+上述例子中，但客户端断开时服务器端也立即退出。
+ 
+我们可以通过 -k 参数来控制让服务器不会因为客户端的断开连接而退出。
+ 
+服务器端：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc -k -l 2389
+
+ 
+客户端：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc localhost 2389
+
+
+
+
+
+2
+
+^C
+
+ 
+服务器端：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc -k -l 2389
+
+ 
+ 
+ 
+7. 配置 Netcat 客户端不会因为 EOF 而退出
+ 
+Netcat 客户端可以通过 -q 参数来控制接收到 EOF 后隔多长时间才退出，该参数的单位是秒：
+ 
+客户端使用如下方式启动：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+nc  -q 5  localhost 2389
+
+ 
+现在如果客户端接收到 EOF ，它将等待 5 秒后退出。
+ 
+ 
+ 
+8. 使用 Netcat 来处理 UDP 协议
+ 
+netcat 默认是使用 TCP 协议，但也支持 UDP，可使用 -u 参数来启用 UDP 协议通讯。
+ 
+服务器端：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc -4 -u -l 2389
+
+ 
+客户端：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ nc -4 -u localhost 2389
+
+ 
+这样客户端和服务器端都使用了 UDP 协议，可通过 netstat 命令来查看：
+ 
+
+
+
+
+
+
+
+
+
+1
+
+$ netstat | grep 2389
+
+
+
+
+
+2
+
+udp        0      0 localhost:42634         localhost:2389          ESTABLISHED
+
+英文原文， OSCHINA原创翻译 
+
+
+
+
+
+相关资讯 　—　更多
+Linux的shell实用程序，hdparm 9.43 发布
+每个程序员都应该知道的8个Linux命令
+流行Linux和Windows脚本语言列表
+推荐 8 个开源的 Linux 防火墙
+关于 shell 脚本编程的10 个最佳实践
+Cygwin的替代品 Gow
+你可能不知道的Shell
+Linux服务器管理系统wdcp 2.0_beta3发布
+Linux：黑客传说
+13个常用的CSS和HTML快速开发工具
+Linux 创始人：Android 问题多不在 Google
+五年程序员人生的点点滴滴
+在8位处理器上运行Linux
+Node.js v0.6.0 稳定版发布
+认识 6 个被误解的 Ruby 特性
+Linux终于搞定Windows 8的UEFI安全启动
+一名Linux用户的Windows 8体验之旅
+16个桌面Linux用户必须要知道的Shell命令
+你需要知道的 16 个 Linux 服务器监控命令
+桌面 Linux：免费背后的高昂代价
+
+ 
+
+
+相关文档 　—　更多
+开发Linux命令行实用程序.doc
+超详细的Linux实验教程.pdf
+Linux 必学的 60 个命令.pdf
+ORACLE傻瓜手册v2.0.pdf
+Linux必学的60个命令(pdf版).pdf
+Linux 嵌入式开发学习路线图.pdf
+linux课复习资料.doc
+Linux汇编语言（GNUGAS汇编）开发指南.doc
+Linux 汇编语言开发指南.pdf
+使用Python 进行UNIX和Linux管理.pdf
+超方便的Linux命令手册.doc
+Linux系统安全和优化中文版.pdf
+轻松学用Linux Shell编程.pdf
+运维工程师必会的109个Linux命令.doc
+Linux 的常用网络命令.pdf
+第03课 Linux下的常用命令.ppt
+Linux 命令大全和解析.doc
+linux命令全集(public).pdf
+Linux 的常用命令.ppt
+Linux面试.doc
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+内容信息
+ 
+
+ 5.0
+ 
+(已有1个人评价)
+ 
+  
+100%
+   
+0%
+   
+0%
+   
+0%
+   
+0%
+ 
+
+浏览：550次
+ 
+贡献者：fmms
+ 上传时间：2012-04-24 22:57:45
+ 
+
+
+
+
+
+
+经验标签
+ 
+Linux
+ 
+
+
+同类热门经验
+ 
+几点学习Linux编程的建议
+1092次浏览
+
+SSH原理与运用（一）：远程登录
+1888次浏览
+
+Linux的多个time属性
+1822次浏览
+
+Linux操作系统 SuSE 介绍
+1018次浏览
+
+28 个 Unix/Linux 的命令行神器
+679次浏览
+
+淘宝 Linux 服务器发行版 - taolinux
+1139次浏览
+
+ 
+
+
+相关经验
+ 
+UNIX 系统上的文本操作简介
+
+  1人评
+
+异步事件处理库 libevent
+
+  0人评
+
+OpenGL开发库的详细介绍 
+
+  2人评
+
+28 个 Unix/Linux 的命令行神器
+
+  3人评
+
+GIS开源软件大全
+
+  0人评
+
+10个工具让你的 shell 脚本更强大
+
+  8人评
+
+Git详解之二 Git基础 
+
+  10人评
+
+OpenSSH 服务器的 20 个最佳实践
+
+  0人评
+
+远程SHELL执行框架 sshxcute
+
+  0人评
+
+性能监控和分析工具--nmon 
+
+  1人评
+
+使用 Twitter Storm 处理实时的大数据 
+
+  0人评
+
+Socket 通信实现 FTP 客户端程序
+
+  1人评
+
+Slackware Linux 介绍
+
+  0人评
+
+揭秘Facebook官方底层C++函数 - Folly
+
+  0人评
+
+ 
+
+
+
+
+
+相关讨论 - 更多
+ 
+50个最常用的UNIX / Linux命令（结合实例）
+国外程序员推荐的免费编程书籍资源
+Linux vi/vim替换命令的使用说明
+高性能的 HTTP 和 反向代理服务器 Nginx
+查找各种Linux发行版的Windows工具 - Get Linux
+当设计师遭遇 HTML5
+C++著名类库
+ 
+
+
+
+
+联系我们 - 问题反馈 
+
+2005-2012 OPEN-OPEN, all rights reserved.
+ 
+
+
+
+
+.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.

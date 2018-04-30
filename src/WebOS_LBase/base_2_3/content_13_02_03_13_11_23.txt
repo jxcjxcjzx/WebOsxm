@@ -1,0 +1,229 @@
+登录   注册
+Java开源PHP开源JS脚本大全OPEN家园OPEN经验库OPEN文档OPEN资讯OPEN论坛
+
+  
+所有分类  >  开发语言与工具  >  Java开发
+浅析：Java与C++的主要区别
+您的评价:	
+     
+ 收藏该经验
+Java区别于C++
+
+表面看来两者最大的不同在于Java没有指针，或者说，Java满地都是指针。对于编程者而言Java的这种设计是安全且更易用的。说Java满地是指针的原因在于它把指针的功能隐藏了，其实在程序的深处，指针仍以存储地址的形式存在着。由于程序员无法获知真实地址，实际上提供了一个更加安全的系统，避免意外破坏。
+
+1.引用
+
+对于简单数据类型，Java将和C++同样采取直接存储的方式。如 int a=1;
+
+一个名为a的存储地址将存储整型指1。
+
+对于对象，如 Object o;
+
+一个名为o的存储地址将存储的是一个Object类型的地址的引用而非对象本身，对象本身被存储在别处。
+
+在C++中
+
+Object o;
+
+这句话将创建一个对象，且留出了存储这个对象所需的空间。在C++中也存在引用，但是需要显式说明，用&符号。
+
+2.赋值
+
+O1=O2;
+
+在C++中将一个名为O2的对象的数据复制给O1,即存在两个对象，他们的值相同。
+
+而在Java中，这句话只是把O2对象的引用复制给了O1，此时它们指向同一个对象，即只存在一个对象。
+
+4.垃圾回收机制
+
+在C++中，对于不再需要的空间，需要用delete来释放，估计大家几乎都经历过忘记或者错误删除存储空间的经历吧，后果是内存泄露，系统资源被消耗，程序不稳定，甚至系统崩溃...
+
+对于Java，这样的问题就不复存在了，程序员无需理会内存管理，系统将自动检查并回收空闲内存区。
+
+5.参数
+
+对于类类型，在参数传递时，Java的实参和形参指向同一对象，C++的形参指向的是复制来的另一个对象。
+
+对于基本数据类型，都采用值传递...
+
+6.==
+
+对类类型，Java中==判定的是两者是否指向同一对象，即是否为同一对象的引用。若要判定值是否相等，需调用在Object类中定义的equals()方法。
+
+7.重载操作符
+
+C++有而Java没有。Java中可以采用命名的办法...
+
+8.基本变量类型
+
+C和C++用整数值来表示真假，而Java中布尔型是独立的，true和false...
+
+Java的int变量32位，C/C++则取决于计算机环境。
+
+Java的String是类类型而非基本类型。
+
+对于C/C++可以自动进行的类型转换，Java要显式转换
+
+9.输入输出
+
+Java的输入输出是个令人发指的玩意儿...这是我首次接触是的赶脚
+
+字符串输入：
+
+InputStreamReader isr=new InputStreamReader(System.in);
+
+BufferReader br=new BufferReader(isr);
+
+String s=br.readLine();
+
+输入字符：
+
+InputStreamReader isr=new InputStreamReader(System.in);
+
+BufferReader br=new BufferReader(isr);
+
+String s=br.readLine();
+
+char c=s.charAt(index);
+
+输入整数：
+
+InputStreamReader isr=new InputStreamReader(System.in);
+
+BufferReader br=new BufferReader(isr);
+
+String s=br.readLine();
+
+int a=Integer.parseInt(s);
+
+输入浮点数：
+
+InputStreamReader isr=new InputStreamReader(System.in);
+
+BufferReader br=new BufferReader(isr);
+
+String s=br.readLine();
+
+Double d=Double.valueOf(s);
+
+double db=d.doubleValue();
+
+其中Double是双精度浮点型数据的封装类。。。
+
+ 
+相关资讯 　—　更多
+开源的系统级编程利器：D语言
+与Java SE 4和5增强的设计与实现者探讨Java未来
+Java 8将采用与C#语言一样的Lambda句法
+MobiRuby的野心：用Ruby替代Objective-C/C/Java
+历史上的今天：1998年开源一词诞生
+C++ 项目中使用 Java 的 Hibernate 框架 - CppHibernate
+程序员的创新修炼
+盘点 Oracle 在 2011 年取得的 Java 主要成就
+使用Go语言一段时间的感受
+关于Android流畅度不如iOS的几点看法
+为什么借助开源学习是最有效的？
+新的开源MariaDB驱动，支持 C 和 Java 两种语言
+看看9种编程语言的发明者是怎么说的
+除iPhone、Android外值得开发者关注的5个新兴平台
+log4cplus 1.1.0 RC10 发布，模仿的Java log4j 的C++ 日志 API
+在.NET/Mono上运行Java：Jeroens Frijters谈IKVM.NET
+分享8年开发经验，浅谈个人发展经历，明确自己发展方向
+现代C++与受控代码的对弈：性能 vs 生产力
+doxygen 1.8.3.1 发布，类似JavaDoc风格描述的文档系统
+C++的坑真的多吗？
+相关文档 　—　更多
+java与c之间的异步调用最新.doc
+Java编程基础绪论.doc
+51cto下载-开发月刊020期.pdf
+Java编程思想 中文完整版.pdf
+Java&C++框架整合开发要点.ppt
+原创Android面试——面霸经历（增加java基础）.pdf
+Android摄像头的应用.pdf
+24点算法的Java版和C语言版源码.doc
+如何搭建大流量网站的底层系统架构.docx
+Java 调用 C++.doc
+java调用c++.doc
+Java语言概述.doc
+Java编程第三讲：玩转Object.pdf
+java整型数与网络字节序的byte[]数组转换关系.doc
+Java入门教程 Applet和图形用户界面.ppt
+Java调用C(C++)dll.docx
+CSharp，深入浅出全接触.doc
+Java通过JNI与C/C++进行相互调用.doc
+大流量、高并发的网站的底层系统架构.docx
+Java和C结构体通信.doc
+
+ 
+
+
+ 
+内容信息
+ 0.0
+(已有0个人评价)
+  0%
+  0%
+  0%
+  0%
+  0%
+浏览：391次
+
+贡献者：jopen
+上传时间：2012-10-09 19:46:09
+
+ 
+经验标签
+Java
+同类热门经验
+JVM内存配置详解
+3734次浏览
+Java中反射机制（Reflection）学习
+1931次浏览
+java集合架构详解
+2586次浏览
+Java堆和栈的区别
+2240次浏览
+StringBuilder、StringBuffer和String三者的联系和区别
+2425次浏览
+Java泛型总结
+495次浏览
+相关经验
+语音识别系统 Sphinx-4 介绍
+  0人评
+Java堆和栈的区别
+  16人评
+Java 正则表达式入门
+  2人评
+java集合架构详解
+  14人评
+PHP高效率写法（详解原因） 
+  4人评
+C、C++、Java语言中异常处理机制浅析 
+  0人评
+JVM中的另一种锁Lock的实现
+  0人评
+5个 C# 和 Java 之间的不同方法
+  0人评
+十分钟让你明白Objective-C的语法（和Java、C++的对比） 
+  0人评
+Java泛型总结 
+  11人评
+HibernateTemplate 的常见用法
+  0人评
+java嵌入c,c++程序指南
+  0人评
+一个游戏程序员的学习资料 
+  18人评
+Java搜索引擎 MG4J
+  0人评
+相关讨论 - 更多
+Watij - 面向 Web 的自动化测试工具
+XML和JSON两种数据交换格式的比较
+Java与C++通过DES、blowfish互相加解密
+Android核心模块内容概述
+Java入门教程学习
+JDBC 介绍
+Java之异常与错误的区别及java的异常体系
+联系我们 - 问题反馈
+2005-2012 OPEN-OPEN, all rights reserved.

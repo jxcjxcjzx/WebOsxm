@@ -1,0 +1,642 @@
+
+
+
+
+晨钟暮鼓
+
+大多数人想要改造这个世界，但却罕有人想改造自己。
+
+
+ 
+
+
+•目录视图
+•摘要视图
+•订阅
+ 
+
+
+
+《这些年，我们读过的技术经典图书》主题有奖征文       专访李铁军：从医生到金山首席安全专家的转变      独一无二的职位：开源社区经理        CSDN博客第三期云计算最佳博主评选
+ 
+
+
+遍历二叉树的递归算法与非递归算法 
+
+分类： C/C++2009-03-08 17:269533人阅读评论(4)收藏举报
+ 
+算法recursiontreenullstruct数据结构
+
+ 
+遍历二叉树的递归算法与非递归算法
+ 
+
+ 
+ 
+先来看下面这棵二叉树。如图1。现在我们要对它进行先序遍历。递归思想：就是把这个大树拆分成N棵小树，每棵小树都进行一次先序遍历。再把这些遍历连合起来就是这棵树的先序遍历了。同理中序遍历和后序遍历也是一样的方法。下面举例说明先序递归算法：
+ 
+令先序遍历的结果等于S；
+ 
+
+
+ 
+ 
+                     图1
+ 
+ 
+ 
+对于图2这棵小树的先序遍历是：1    2     3
+ 
+S = 1      2     3
+ 
+
+
+ 
+ 
+              图2
+ 
+ 
+ 
+ 
+ 
+但以2为根节点又有一棵小树，这棵小树的先序遍历是：2    4     5
+ 
+S = 1      2     4     5     3
+ 
+
+
+ 
+ 
+       图3
+ 
+ 
+ 
+ 
+ 
+以3为根节点又有一棵小树，这棵小树的先序遍历是：3       6     7
+ 
+S = 1      2     4     5     3     6     7
+ 
+
+
+ 
+ 
+       图4
+ 
+ 
+ 
+ 
+ 
+以6为根节点又有一棵小树，这个小树的先序遍历是：6       7     
+
+S =1              2     4     5     3     6     8     7
+ 
+
+
+ 
+ 
+       图5
+ 
+ 
+ 
+以7为跟节点又有一棵小树，这棵小树的先序遍历是：7       9
+ 
+S = 1      2     4     5     3     6     8     7     9
+ 
+
+
+ 
+ 
+       图6
+ 
+ 
+ 
+这样就得出了这棵大树的最终先序遍历结果了：
+ 
+S = 1      2     4     5     3     6     8     7     9。
+ 
+再来看看这个变化过程：
+ 
+S = 1      2     3
+ 
+S = 1      2     4     5     3
+ 
+S = 1      2     4     5     3     6     7
+ 
+S =1              2     4     5     3     6     8     7
+ 
+S = 1      2     4     5     3     6     8     7     9
+ 
+ 
+ 
+ 
+ 
+对于二叉树的非递归算法，则是需要应用一种重要的数据结构—栈。用栈来存放准备需要访问的节点。例如先序遍历的非递归算法则是：
+ 
+指针p指向根节点；
+ 
+while （p不为NULL或栈不空）｛
+ 
+       反复访问当前节点*p，
+ 
+指针p进栈、再将指针左移，直至最左下节点；
+ 
+当栈不空时，出栈，
+ 
+取出栈顶指针且右移（返回上面操作，去遍历右子树）；
+ 
+｝
+ 
+ 
+ 
+下面是二叉树递归与非递归算法的C语言实现实例：
+ 
+ 
+ 
+//tree.h
+ 
+#ifndef __TREE_H__
+ 
+#define __TREE_H__
+ 
+ 
+ 
+typedef struct _node {
+ 
+       struct _node *left_child;
+ 
+       struct _node *right_child;
+ 
+       ctype_t    data;
+ 
+}node, *tree; //二叉树节点结构
+ 
+ 
+ 
+//一种简单创建树的办法，供测试使用
+ 
+void create_tree(tree *root, const ctype_t elems[], csize_t *current_index, const csize_t max_size);
+ 
+//不考虑二叉树的销毁了
+ 
+ 
+ 
+//二叉树先序遍历递归算法
+ 
+void preorder_recursion(tree root);
+ 
+ 
+ 
+//二叉树先序遍历递非归算法
+ 
+void preorder_nonrecursive(tree root);
+ 
+ 
+ 
+//二叉树中序遍历递归算法
+ 
+void inorder_recursion(tree root);
+ 
+ 
+ 
+//二叉树中序遍历递非归算法
+ 
+void inorder_nonrecursive(tree root);
+ 
+ 
+ 
+//二叉树后序遍历递归算法
+ 
+void postorder_recursion(tree root);
+ 
+ 
+ 
+//二叉树后序遍历递非归算法
+ 
+void postorder_nonrecursive(tree root);
+ 
+ 
+ 
+#endif //__TREE_H__
+ 
+ 
+ 
+ 
+ 
+//tree.c
+ 
+#include "tree.h"
+ 
+void create_tree(tree *root, const ctype_t elems[], csize_t *current_index, const csize_t max_size)
+ 
+{
+ 
+       if (*current_index < max_size)
+ 
+       {
+ 
+              const ctype_t t = elems[(*current_index)++];
+ 
+              if (0 == t)
+ 
+              {
+ 
+                     *root = NULL;
+ 
+                     return;
+ 
+              }
+ 
+              else
+ 
+              {
+ 
+                     *root = (node*)malloc(sizeof(node));//假设malloc总是成功
+ 
+                     (*root)->data = t;
+ 
+                     create_tree(&(*root)->left_child, elems, current_index, max_size);
+ 
+                     create_tree(&(*root)->right_child, elems, current_index, max_size);
+ 
+              }
+ 
+       }
+ 
+}
+ 
+ 
+ 
+void preorder_recursion(tree root)
+ 
+{
+ 
+       if (NULL != root)
+ 
+       {
+ 
+              printf("%d/t", root->data);            //根
+ 
+              preorder_recursion(root->left_child);    //左子树
+ 
+              preorder_recursion(root->right_child);  //右子树
+ 
+       }
+ 
+}
+ 
+ 
+ 
+void preorder_nonrecursive(tree root)
+ 
+{
+ 
+       tree stack[100];
+ 
+       int top = 0;
+ 
+       tree p=root;
+ 
+       while (NULL != p || top > 0)
+ 
+       {
+ 
+              while (NULL != p)
+ 
+              {
+ 
+                     printf("%d/t", p->data);
+ 
+                     stack[top++] = p;
+ 
+                     p=p->left_child;
+ 
+              }
+ 
+              p = stack[--top];
+ 
+              p = p->right_child;
+ 
+       }
+ 
+}
+ 
+ 
+ 
+void inorder_recursion(tree root)
+ 
+{
+ 
+       if (NULL != root)
+ 
+       {
+ 
+              inorder_recursion(root->left_child);             //左子树
+ 
+              printf("%d/t", root->data);            //根
+ 
+              inorder_recursion(root->right_child);    //右子树
+ 
+       }
+ 
+}
+ 
+ 
+ 
+void inorder_nonrecursive(tree root)
+ 
+{
+ 
+       tree stack[100];
+ 
+       int top = 0;
+ 
+       tree p = root;
+ 
+       while (NULL != p || top > 0)
+ 
+       {
+ 
+              while (NULL != p)
+ 
+              {
+ 
+                     stack[top++] = p;
+ 
+                     p = p->left_child;
+ 
+              }
+ 
+ 
+ 
+              p = stack[--top];
+ 
+              printf("%d/t", p->data);
+ 
+              p = p->right_child;
+ 
+       }
+ 
+}
+ 
+ 
+ 
+void postorder_recursion(tree root)
+ 
+{
+ 
+       if (NULL != root)
+ 
+       {
+ 
+              postorder_recursion(root->left_child);
+ 
+              postorder_recursion(root->right_child);
+ 
+              printf("%d/t", root->data);
+ 
+       }
+ 
+}
+ 
+ 
+ 
+void postorder_nonrecursive(tree root)
+ 
+{
+ 
+       tree stack[100];
+ 
+       int top=0;
+ 
+       tree p = root;
+ 
+       tree lastvist = NULL;
+ 
+       while (NULL != p || top > 0)
+ 
+       {
+ 
+              while (NULL != p)
+ 
+              {
+ 
+                     stack[top++] = p;
+ 
+                     p = p->left_child;
+ 
+              }
+ 
+ 
+ 
+              p = stack[top-1];
+ 
+              if (NULL == p->right_child || lastvist == p->right_child)
+ 
+              {
+ 
+                     printf("%d/t", p->data);
+ 
+                     --top;
+ 
+                     lastvist = p;
+ 
+                     p = NULL;
+ 
+              }
+ 
+              else
+ 
+              {
+ 
+                     p = p->right_child;
+ 
+              }
+ 
+       }
+ 
+}
+ 
+ 
+ 
+//main.c
+ 
+#include "tree.h"
+ 
+int main()
+ 
+{
+ 
+ctype_t elems[] = {1,2,4,0,0,5,0,0,3,6,8,0,0,0,7,0,9,0,0,0,};
+ 
+       csize_t current_index = 0;
+ 
+       tree t=NULL;
+ 
+       create_tree(&t, elems, &current_index, sizeof(elems));
+ 
+       
+
+       printf("二叉树先序遍历递归算法/n");
+ 
+       preorder_recursion(t);
+ 
+       printf("/n");
+ 
+       printf("二叉树先序遍历非递归算法/n");
+ 
+       preorder_nonrecursive(t);
+ 
+ 
+ 
+       printf("/n/n");
+ 
+       printf("二叉树中序遍历递归算法/n");
+ 
+       inorder_recursion(t);
+ 
+       printf("/n");
+ 
+       printf("二叉树中序遍历非递归算法/n");
+ 
+       inorder_nonrecursive(t);
+ 
+ 
+ 
+       printf("/n/n");
+ 
+       printf("二叉树后序遍历递归算法/n");
+ 
+       postorder_recursion(t);
+ 
+       printf("/n");
+ 
+       printf("二叉树后序遍历非递归算法/n");
+ 
+       postorder_nonrecursive(t);
+ 
+       printf("/n");
+ 
+       return 0;
+ 
+}
+ 
+ 
+ 
+输出结果：
+ 
+二叉树先序遍历递归算法
+ 
+1       2       4       5       3       6       8       7       9
+ 
+二叉树先序遍历非递归算法
+ 
+1       2       4       5       3       6       8       7       9
+ 
+ 
+ 
+二叉树中序遍历递归算法
+ 
+4       2       5       1       8       6       3       7       9
+ 
+二叉树中序遍历非递归算法
+ 
+4       2       5       1       8       6       3       7       9
+ 
+ 
+ 
+二叉树后序遍历递归算法
+ 
+4       5       2       8       6       9       7       3       1
+ 
+二叉树后序遍历非递归算法
+ 
+4       5       2       8       6       9       7       3       1
+ 
+Press any key to continue
+ 
+
+•上一篇：字符串格式化
+•下一篇：发现boost::object_pool的效率很低！难道大师没有考虑效率的问题？
+ 
+
+
+查看评论
+ 
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+个人资料 
+
+fuzhufang 
+
+
+
+
+◦访问：11339次
+◦积分：164分
+◦排名：千里之外
+ ◦原创：4篇
+◦转载：0篇
+◦译文：0篇
+◦评论：7条
+ 
+
+文章搜索
+
+ 
+文章分类 • C/C++(4) 
+• IT技术(0) 
+• 工作(0) 
+• 转载(0) 
+
+文章存档 
+•2009年06月(1)
+•2009年04月(1)
+•2009年03月(1)
+•2008年10月(1)
+ 
+阅读排行 • 遍历二叉树的递归算法与非递归算法(9532) 
+• 字符串格式化(813) 
+• 发现boost::object_pool的效率很低！难道大师没有考虑效率的问题？(550) 
+• 一个简单但很好用的线程锁(130) 
+
+评论排行 • 遍历二叉树的递归算法与非递归算法(4) 
+• 发现boost::object_pool的效率很低！难道大师没有考虑效率的问题？(2) 
+• 字符串格式化(1) 
+• 一个简单但很好用的线程锁(0) 
+
+推荐文章 
+最新评论 •遍历二叉树的递归算法与非递归算法
+jeck515: 还是无语啊哪儿抄的 
+
+•字符串格式化
+jeck515: 无语，程序有点想当然了！ 
+
+•遍历二叉树的递归算法与非递归算法
+oujackey: 
+
+•遍历二叉树的递归算法与非递归算法
+abigbadboy: 参考下 
+
+•遍历二叉树的递归算法与非递归算法
+wj971hewei: 这个程序的先序非递归是错误的，楼主可以自己试试 
+
+•发现boost::object_pool的效率很低！难道大师没有考虑效率的问题？
+iili: 错了 
+
+•发现boost::object_pool的效率很低！难道大师没有考虑效率的问题？
+iili: 结果不-样sizeof(X)=1028New Time:0Delete Time:0New Time... 
+
+
+
+

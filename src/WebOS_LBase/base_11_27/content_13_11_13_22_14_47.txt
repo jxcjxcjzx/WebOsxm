@@ -1,0 +1,613 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+u010216127的专栏
+目录视图摘要视图订阅
+亲，“社区之星”已经一周岁了！        WebApp实时开源框架Clouda---认识心得      Tag功能介绍—我们为什么打Tag      订阅CSDN社区周刊，及时了解社区精华内容
+ pcDuino的linux移植二
+分类： 全志A10 pcDuino笔记 2013-04-20 17:40 1100人阅读 评论(7) 收藏 举报
+A10linuxpcDuinocortex-a8U-Boot
+大清早就被摇醒了，床摇的厉害，赶紧往外跑，原来地震了，太吓人啦。言归正传，继pcduino的linux移植一，实现目标二移植内核
+
+1.获取linux源码
+
+https://github.com/pcduino/kernel 点击linux-sunxi,跳转到https://github.com/linux-sunxi/linux-sunxi下载linux-sunxi源码
+
+2.配置、编译
+
+解压上面下载的linux-sunxi-sunxi-3.0.zip，并解压到ubuntu工作目录
+
+change@change:~$ cd Si/A10/pcduino/linux-sunxi-sunxi-3.0/
+change@change:~/Si/A10/pcduino/linux-sunxi-sunxi-3.0$ ls
+Android.mk  build.sh  crypto         firmware  init    Kconfig  MAINTAINERS  modules  REPORTING-BUGS  scripts   tools
+arch        COPYING   Documentation  fs        ipc     kernel   Makefile     net      rootfs          security  usr
+block       CREDITS   drivers        include   Kbuild  lib      mm           README   samples         sound     virt
+
+2.1配置单板
+
+change@change:~/Si/A10/pcduino/linux-sunxi-sunxi-3.0$ find -name "*defconfig"
+
+./arch/arm/configs/sun4i_defconfig
+./arch/arm/configs/netx_defconfig
+./arch/arm/configs/vexpress_defconfig
+./arch/arm/configs/g3evm_defconfig
+./arch/arm/configs/at91rm9200_defconfig
+./arch/arm/configs/pxa168_defconfig
+./arch/arm/configs/at91sam9g20ek_defconfig
+./arch/arm/configs/stamp9g20_defconfig
+./arch/arm/configs/integrator_defconfig
+./arch/arm/configs/sun3i_defconfig
+./arch/arm/configs/pxa910_defconfig
+./arch/arm/configs/h5000_defconfig
+./arch/arm/configs/mini2440_defconfig
+./arch/arm/configs/a13_defconfig
+./arch/arm/configs/versatile_defconfig
+./arch/arm/configs/mx1_defconfig
+./arch/arm/configs/colibri_pxa270_defconfig
+./arch/arm/configs/ixp2000_defconfig
+./arch/arm/configs/sam9_l9260_defconfig
+./arch/arm/configs/a12_nuclear_defconfig
+./arch/arm/configs/s3c6400_defconfig
+./arch/arm/configs/sun4i_crane_defconfig
+
+找到全志A10默认单板配置./arch/arm/configs/sun4i_defconfig，下面使用默认单板配置
+change@change:~/Si/A10/pcduino/linux-sunxi-sunxi-3.0$ make ARCH=arm sun4i_defconfig
+#
+# configuration written to .config
+#
+change@change:~/Si/A10/pcduino/linux-sunxi-sunxi-3.0$ make ARCH=arm menuconfig
+  HOSTCC  scripts/kconfig/lxdialog/checklist.o
+  HOSTCC  scripts/kconfig/lxdialog/inputbox.o
+  HOSTCC  scripts/kconfig/lxdialog/menubox.o
+  HOSTCC  scripts/kconfig/lxdialog/textbox.o
+  HOSTCC  scripts/kconfig/lxdialog/util.o
+  HOSTCC  scripts/kconfig/lxdialog/yesno.o
+  HOSTCC  scripts/kconfig/mconf.o
+  HOSTLD  scripts/kconfig/mconf
+scripts/kconfig/mconf Kconfig
+
+保存退出即可，若执行make menuconfig报错，需要安装屏幕绘制动态库，安装过程如下：
+
+change@change:~/Si/A10/pcduino/linux-sunxi-sunxi-3.0$ sudo apt-get install libncurses5
+
+2.2编译
+
+编译器可以选用自己的，这里继续用pcduino的linux移植一配置的交叉编译链
+
+change@change:~/Si/A10/pcduino/linux-sunxi-sunxi-3.0$ make ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage
+
+出现如下错误：
+
+In file included from include/linux/memory_hotplug.h:6,
+                 from include/linux/mmzone.h:671,
+                 from include/linux/topology.h:32,
+                 from include/linux/sched.h:78,
+                 from arch/arm/kernel/asm-offsets.c:13:
+include/linux/notifier.h:15: fatal error: linux/srcu.h: No such file or directory
+compilation terminated.
+make[1]: *** [arch/arm/kernel/asm-offsets.s] Error 1
+make: *** [prepare0] Error 2
+
+2.3解决问题
+
+根据include/linux/notifier.h:15: fatal error: linux/srcu.h: No such file or directory解决错误，解决过程如下：
+
+change@change:~/Si/A10/pcduino/linux-sunxi-sunxi-3.0$ vim include/linux/notifier.h
+
+15:#include <linux/srcu.h>
+
+接着发现include/linux/目录下的确没有srcu.h，很是纳闷以前编译都没有这个错误，于是到linux-3.0.62下相应目录拷贝include/linux/srcu.h文件，继续编译
+
+change@change:~/Si/A10/pcduino/linux-sunxi-sunxi-3.0$ make ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- uImage
+
+上面的错误没了，编译过程有点长，吃完饭继续
+
+  LD      vmlinux
+  SYSMAP  System.map
+  SYSMAP  .tmp_System.map
+  OBJCOPY arch/arm/boot/Image
+  Kernel: arch/arm/boot/Image is ready
+  AS      arch/arm/boot/compressed/head.o
+  CC      arch/arm/boot/compressed/misc.o
+  GZIP    arch/arm/boot/compressed/piggy.gzip
+  CC      arch/arm/boot/compressed/decompress.o
+  SHIPPED arch/arm/boot/compressed/lib1funcs.S
+  AS      arch/arm/boot/compressed/lib1funcs.o
+  AS      arch/arm/boot/compressed/piggy.gzip.o
+  LD      arch/arm/boot/compressed/vmlinux
+  OBJCOPY arch/arm/boot/zImage
+  Kernel: arch/arm/boot/zImage is ready
+  UIMAGE  arch/arm/boot/uImage
+Image Name:   Linux-3.0.62
+Created:      Sat Apr 20 18:33:26 2013
+Image Type:   ARM Linux Kernel Image (uncompressed)
+Data Size:    4693068 Bytes = 4583.07 kB = 4.48 MB
+Load Address: 40008000
+Entry Point:  40008000
+  Image arch/arm/boot/uImage is ready
+终于编译完了，已生成arch/arm/boot/uImage，说明编译成功。
+
+ 3.烧写、测试
+
+插上tf卡，查看设备
+
+change@change:~/Si/A10/pcduino/linux-sunxi-sunxi-3.0$ ls /dev/sdb
+sdb   sdb1  
+3.1烧写u-boot
+
+过程参考pcduino的linux移植一：
+
+change@change:~/Si/A10/pcduino/linux-sunxi-sunxi-3.0$ cd ../u-boot-sunxi-sunxi/
+change@change:~/Si/A10/pcduino/u-boot-sunxi-sunxi$ sudo dd if=/dev/zero of=/dev/sdb bs=1M count=1
+[sudo] password for change: 
+1+0 records in
+1+0 records out
+1048576 bytes (1.0 MB) copied, 0.0103637 s, 101 MB/s
+change@change:~/Si/A10/pcduino/u-boot-sunxi-sunxi$ sudo sfdisk -R /dev/sdb
+BLKRRPART: Device or resource busy
+This disk is currently in use.
+
+出现这种BLKRRPART: Device or resource busy，tf卡已被挂载，重插拔一次即可
+change@change:~/Si/A10/pcduino/u-boot-sunxi-sunxi$ sudo sfdisk -R /dev/sdb
+change@change:~/Si/A10/pcduino/u-boot-sunxi-sunxi$ sudo cat <<EOT | sudo sfdisk --in-order -uM /dev/sdb
+> 1,16,c
+> ,,L
+> EOT
+Checking that no-one is using this disk right now ...
+OK
+
+
+Disk /dev/sdb: 1020 cylinders, 31 heads, 61 sectors/track
+
+
+sfdisk: ERROR: sector 0 does not have an msdos signature
+ /dev/sdb: unrecognized partition table type
+Old situation:
+No partitions found
+New situation:
+Units = mebibytes of 1048576 bytes, blocks of 1024 bytes, counting from 0
+
+
+   Device Boot Start   End    MiB    #blocks   Id  System
+/dev/sdb1         0+    17-    17-     17019    c  W95 FAT32 (LBA)
+/dev/sdb2        17+   941-   925-    946445+  83  Linux
+/dev/sdb3         0      -      0          0    0  Empty
+/dev/sdb4         0      -      0          0    0  Empty
+Warning: no primary partition is marked bootable (active)
+This does not matter for LILO, but the DOS MBR will not boot this disk.
+Successfully wrote the new partition table
+
+
+Re-reading the partition table ...
+
+
+If you created or changed a DOS partition, /dev/foo7, say, then use dd(1)
+to zero the first 512 bytes:  dd if=/dev/zero of=/dev/foo7 bs=512 count=1
+(See fdisk(8).)
+change@change:~/Si/A10/pcduino/u-boot-sunxi-sunxi$ sudo sfdisk -l /dev/sdb
+
+
+Disk /dev/sdb: 1020 cylinders, 31 heads, 61 sectors/track
+Units = cylinders of 968192 bytes, blocks of 1024 bytes, counting from 0
+
+
+   Device Boot Start     End   #cyls    #blocks   Id  System
+/dev/sdb1          1      18      18      17019    c  W95 FAT32 (LBA)
+/dev/sdb2         19    1019    1001     946445+  83  Linux
+/dev/sdb3          0       -       0          0    0  Empty
+/dev/sdb4          0       -       0          0    0  Empty
+change@change:~/Si/A10/pcduino/u-boot-sunxi-sunxi$ sudo mkfs.vfat /dev/sdb1
+mkfs.vfat 3.0.7 (24 Dec 2009)
+change@change:~/Si/A10/pcduino/u-boot-sunxi-sunxi$ sudo mkfs.ext4 /dev/sdb2
+mke2fs 1.41.11 (14-Mar-2010)
+文件系统标签=
+操作系统:Linux
+块大小=4096 (log=2)
+分块大小=4096 (log=2)
+Stride=0 blocks, Stripe width=0 blocks
+59264 inodes, 236611 blocks
+11830 blocks (5.00%) reserved for the super user
+第一个数据块=0
+Maximum filesystem blocks=243269632
+8 block groups
+32768 blocks per group, 32768 fragments per group
+7408 inodes per group
+Superblock backups stored on blocks: 
+        32768, 98304, 163840, 229376
+
+
+正在写入inode表：完成                          
+Creating journal (4096 blocks): 完成
+Writing superblocks and filesystem accounting information: 完成
+
+
+This filesystem will be automatically checked every 30 mounts or
+180 days, whichever comes first.  Use tune2fs -c or -i to override.
+change@change:~/Si/A10/pcduino/u-boot-sunxi-sunxi$ sudo dd if=spl/sunxi-spl.bin of=/dev/sdb bs=1024 seek=8
+20+0 records in
+20+0 records out
+20480 bytes (20 kB) copied, 0.0256702 s, 798 kB/s
+change@change:~/Si/A10/pcduino/u-boot-sunxi-sunxi$ sudo dd if=u-boot.bin of=/dev/sdb bs=1024 seek=32
+171+1 records in
+171+1 records out
+175272 bytes (175 kB) copied, 0.105589 s, 1.7 MB/s
+取下tf卡，插入pcduino，接上串口线设置115200 8 n 1,默认从tf卡启动，启动界面如下：
+
+U-Boot SPL 2012.10 (Apr 19 2013 - 18:46:44)
+DRAM: 1024MB
+SUNXI SD/MMC: 0
+
+
+U-Boot 2012.10 (Apr 19 2013 - 18:46:44) Allwinner Technology 
+
+CPU:   SUNXI Family
+Board: pcDuino
+I2C:   ready
+DRAM:  1 GiB
+MMC:   SUNXI SD/MMC: 0
+*** Warning - bad CRC, using default environment
+
+In:    serial
+Out:   serial
+Err:   serial
+Hit any key to stop autoboot:  0 
+sun4i#
+3.2烧写linux内核
+
+准备工作：
+
+制作对对A10芯片进行配置的二进制文件script.bin
+
+获取源码：https://github.com/pcduino/kernel 选择sunxi-tools,并下载
+
+ change@change:~/Si/A10/pcduino/linux-sunxi-sunxi-3.0$ cd ../sunxi-tools-master/
+
+change@change:~/Si/A10/pcduino/sunxi-tools-master$ make
+make 出现如下错误：
+
+Package libusb-1.0 was not found in the pkg-config search path.
+Perhaps you should add the directory containing `libusb-1.0.pc'
+to the PKG_CONFIG_PATH environment variable
+No package 'libusb-1.0' found
+Package libusb-1.0 was not found in the pkg-config search path.
+Perhaps you should add the directory containing `libusb-1.0.pc'
+to the PKG_CONFIG_PATH environment variable
+No package 'libusb-1.0' found
+但还是在sunxi-tools-master目录下生成了fex2bin。这个错误还没解决，打算先用生成的fex2bin试试(fex2bin 文件，能把 *.fex 文件生成 *.bin文件)
+
+解决方法：
+
+pkg-config 是一个提供从源代码中编译软件时查询已安装的库时使用的统一接口的计算机软件。可以解决明明在自己机器上编译好好的，在别人电脑上编译就不行问题。当安装一个库时（从RPM，deb或其他二进制包管理系统），会包括一个后缀名为pc的文件，它会同其他.pc文件一起放入一个文件夹（依赖与你的系统设置）。在这个文件里包含有数个条目。这些条目通常包含用于其他使用这个库的程序编译时需要的库设置，以及头文件的位置，版本信息和一个简介。
+
+change@change:/$ sudo apt-get install libusb-1.0-0-dev 
+正在读取软件包列表... 完成
+正在分析软件包的依赖关系树       
+正在读取状态信息... 完成       
+下列【新】软件包将被安装：
+  libusb-1.0-0-dev
+升级了 0 个软件包，新安装了 1 个软件包，要卸载 0 个软件包，有 207 个软件包未被升级。
+需要下载 149kB 的软件包。
+解压缩后会消耗掉 975kB 的额外空间。
+获取：1 http://free.nchc.org.tw/ubuntu/ lucid/main libusb-1.0-0-dev 2:1.0.6-1 [149kB]
+下载 149kB，耗时 3秒 (47.9kB/s)          
+选中了曾被取消选择的软件包 libusb-1.0-0-dev。
+(正在读取数据库 ... 系统当前总共安装有 142909 个文件和目录。)
+正在解压缩 libusb-1.0-0-dev (从 .../libusb-1.0-0-dev_2%3a1.0.6-1_i386.deb) ...
+正在处理用于 doc-base 的触发器...
+Processing 1 added doc-base file(s)...
+Registering documents with scrollkeeper...
+正在设置 libusb-1.0-0-dev (2:1.0.6-1) ...
+change@change:/$ ls /usr/lib/pkgconfig/libusb-1.0.pc 
+/usr/lib/pkgconfig/libusb-1.0.pc
+
+你可能在这个目录下找不到libusb-1.0.pc，64位的系统ubuntu 12.10在下面目录
+
+mcc@mcc:/$ sudo find -name "libusb-1.0.pc"
+[sudo] password for mcc: 
+./usr/lib/x86_64-linux-gnu/pkgconfig/libusb-1.0.pc
+mcc@mcc:/$ ls /usr/lib/x86_64-linux-gnu/pkgconfig/libusb-1.0.pc -l
+-rw-r--r-- 1 root root 327 Jul 19  2012 /usr/lib/x86_64-linux-gnu/pkgconfig/libusb-1.0.pc
+change@change:/$ export PKG_CONFIG_PATH=/usr/lib/pkgconfig:$PKG_CONFIG_PATH
+change@change:/$ set | grep PKG_CONFIG
+PKG_CONFIG_PATH=/usr/lib/pkgconfig:
+change@change:/$ pkg-config libusb-1.0 --cflags --libs
+-I/usr/include/libusb-1.0  -lusb-1.0  
+接着make就OK了。
+
+获取源码https://github.com/pcduino/kernel 选择sunxi-boards,
+
+利用上面生成的工具fex2bin,将sunxi-boards/sys_config/a10/pcduino.fex文件生成对A10芯片进行配置的二进制文件script.bin
+
+change@change:~/Si/A10/pcduino/sunxi-tools-master$ ./fex2bin ../sunxi-boards/sys_config/a10/pcduino.fex script.bin
+下面开始烧写tf卡，插入tf卡到ubuntu
+
+change@change:~/Si/A10/pcduino/linux-sunxi-sunxi-3.0$ sudo mount /dev/sdb1 /mnt/
+[sudo] password for change: 
+change@change:~/Si/A10/pcduino/linux-sunxi-sunxi-3.0$ cp arch/arm/boot/uImage /mnt/
+change@change:~/Si/A10/pcduino/sunxi-tools-master$ cp script.bin /mnt/
+change@change:~/Si/A10/pcduino/sunxi-tools-master$ sudo umount /mnt/
+取下tf卡，插到pcduino，接好串口线设置115200 8 n1,启动信息如下：
+
+U-Boot SPL 2012.10 (Apr 19 2013 - 18:46:44)
+DRAM: 1024MB
+SUNXI SD/MMC: 0
+
+U-Boot 2012.10 (Apr 19 2013 - 18:46:44) Allwinner Technology 
+
+CPU:   SUNXI Family
+Board: pcDuino
+I2C:   ready
+DRAM:  1 GiB
+MMC:   SUNXI SD/MMC: 0
+*** Warning - bad CRC, using default environment
+
+In:    serial
+Out:   serial
+Err:   serial
+Hit any key to stop autoboot:  0 
+reading uEnv.txt
+
+
+** Unable to read "uEnv.txt" from mmc 0:1 **
+Loading file "uEnv.txt" from mmc device 0:1
+Failed to mount ext2 filesystem...
+** Bad ext2 partition or disk - mmc 0:1 **
+ext2load - load binary file from a Ext2 filesystem
+
+Usage:
+ext2load <interface> <dev[:part]> [addr] [filename] [bytes]
+    - load binary file 'filename' from 'dev' on 'interface'
+      to address 'addr' from ext2 filesystem
+Loading file "boot/uEnv.txt" from mmc device 0:1
+Failed to mount ext2 filesystem...
+** Bad ext2 partition or disk - mmc 0:1 **
+ext2load - load binary file from a Ext2 filesystem
+
+Usage:
+ext2load <interface> <dev[:part]> [addr] [filename] [bytes]
+    - load binary file 'filename' from 'dev' on 'interface'
+      to address 'addr' from ext2 filesystem
+reading boot.scr
+
+
+** Unable to read "boot.scr" from mmc 0:1 **
+Loading file "boot.scr" from mmc device 0:1
+Failed to mount ext2 filesystem...
+** Bad ext2 partition or disk - mmc 0:1 **
+ext2load - load binary file from a Ext2 filesystem
+
+Usage:
+ext2load <interface> <dev[:part]> [addr] [filename] [bytes]
+    - load binary file 'filename' from 'dev' on 'interface'
+      to address 'addr' from ext2 filesystem
+Loading file "boot/boot.scr" from mmc device 0:1
+Failed to mount ext2 filesystem...
+** Bad ext2 partition or disk - mmc 0:1 **
+ext2load - load binary file from a Ext2 filesystem
+
+Usage:
+ext2load <interface> <dev[:part]> [addr] [filename] [bytes]
+    - load binary file 'filename' from 'dev' on 'interface'
+      to address 'addr' from ext2 filesystem
+reading script.bin
+
+44900 bytes read
+reading uImage
+
+4693132 bytes read
+## Booting kernel from Legacy Image at 48000000 ...
+   Image Name:   Linux-3.0.62
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    4693068 Bytes = 4.5 MiB
+   Load Address: 40008000
+   Entry Point:  40008000
+   Verifying Checksum ... OK
+   Loading Kernel Image ... OK
+OK
+
+Starting kernel ...
+
+
+<6>Initializing cgroup subsys cpuset
+<5>Linux version 3.0.62 (change@change) (gcc version 4.4.1 (Sourcery G++ Lite 2009q3-67) ) #1 PREEMPT Sat Apr 20 18:32:39 CST 2013
+CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c5387d
+CPU: VIPT nonaliasing data cache, VIPT aliasing instruction cache
+Machine: sun4i
+<6>Memory cut off:
+<6>     MALI : 0x5c000000 - 0x5fffffff  (  64 MB)
+<4>Ignoring unrecognised tag 0x00000000
+<6>Memory Reserved:
+<6>     SYS  : 0x43000000 - 0x4300ffff  (  64 kB)
+<6>     VE   : 0x44000000 - 0x48ffffff  (  80 MB)
+<6>     G2D  : 0x49000000 - 0x49ffffff  (  16 MB)
+<6>     LCD  : 0x5a000000 - 0x5bffffff  (  32 MB)
+Memory policy: ECC disabled, Data cache writeback
+<6>chip-id: A10 (AW1623 revision C)
+<7>On node 0 totalpages: 245760
+<7>free_area_init_node: node 0, pgdat c0887ea0, node_mem_map c094e000
+<7>  Normal zone: 1280 pages used for memmap
+<7>  Normal zone: 0 pages reserved
+<7>  Normal zone: 146176 pages, LIFO batch:31
+<7>  HighMem zone: 768 pages used for memmap
+<7>  HighMem zone: 97536 pages, LIFO batch:31
+<7>pcpu-alloc: s0 r0 d32768 u32768 alloc=1*32768
+<7>pcpu-alloc: [0] 0 
+Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 243712
+<5>Kernel command line: console=ttyS0,115200 root=/dev/mmcblk0p2 rootwait loglevel=8 panic=10
+............//太长了此处省略·若干
+
+<0>Kernel panic - not syncing: Attempted to kill init!
+[    2.650000] Kernel panic - not syncing: Attempted to kill init!
+[<c003e92c>] (unwind_backtrace+0x0/0x13c) from [<c05fa2ac>] (panic+0x74/0x188)
+[    2.660000] [<c003e92c>] (unwind_backtrace+0x0/0x13c) from [<c05fa2ac>] (panic+0x74/0x188)
+[<c05fa2ac>] (panic+0x74/0x188) from [<c006bfd0>] (do_exit+0x6c4/0x788)
+[    2.670000] [<c05fa2ac>] (panic+0x74/0x188) from [<c006bfd0>] (do_exit+0x6c4/0x788)
+[<c006bfd0>] (do_exit+0x6c4/0x788) from [<c003c87c>] (die+0x288/0x300)
+[    2.690000] [<c006bfd0>] (do_exit+0x6c4/0x788) from [<c003c87c>] (die+0x288/0x300)
+[<c003c87c>] (die+0x288/0x300) from [<c0042cb0>] (__do_kernel_fault+0x74/0x84)
+[    2.700000] [<c003c87c>] (die+0x288/0x300) from [<c0042cb0>] (__do_kernel_fault+0x74/0x84)
+[<c0042cb0>] (__do_kernel_fault+0x74/0x84) from [<c0042e40>] (do_page_fault+0x180/0x2e4)
+[    2.720000] [<c0042cb0>] (__do_kernel_fault+0x74/0x84) from [<c0042e40>] (do_page_fault+0x180/0x2e4)
+[<c0042e40>] (do_page_fault+0x180/0x2e4) from [<c00312b4>] (do_DataAbort+0x34/0x98)
+[    2.730000] [<c0042e40>] (do_page_fault+0x180/0x2e4) from [<c00312b4>] (do_DataAbort+0x34/0x98)
+[<c00312b4>] (do_DataAbort+0x34/0x98) from [<c0037dd0>] (__dabt_svc+0x70/0xa0)
+[    2.750000] [<c00312b4>] (do_DataAbort+0x34/0x98) from [<c0037dd0>] (__dabt_svc+0x70/0xa0)
+Exception stack(0xe783bee8 to 0xe783bf30)
+[    2.770000] Exception stack(0xe783bee8 to 0xe783bf30)
+bee0:                   29c5c734 00000000 1137666c f1c20800 00000001 55866a9a
+[    2.780000] bee0:                   29c5c734 00000000 1137666c f1c20800 00000001 55866a9a
+bf00: c0039358 00000000 00000001 6239831b c0944588 11376664 1137665c e783bf30
+[    2.790000] bf00: c0039358 00000000 00000001 6239831b c0944588 11376664 1137665c e783bf30
+bf20: f8a905a8 c0059aac 20000013 ffffffff
+[    2.810000] bf20: f8a905a8 c0059aac 20000013 ffffffff
+[<c0037dd0>] (__dabt_svc+0x70/0xa0) from [<c0059aac>] (sunxi_gpio_request_array+0x160/0x540)
+[    2.810000] [<c0037dd0>] (__dabt_svc+0x70/0xa0) from [<c0059aac>] (sunxi_gpio_request_array+0x160/0x540)
+[<c0059aac>] (sunxi_gpio_request_array+0x160/0x540) from [<c040b868>] (alloc_pin+0xc/0x60)
+[    2.830000] [<c0059aac>] (sunxi_gpio_request_array+0x160/0x540) from [<c040b868>] (alloc_pin+0xc/0x60)
+[<c040b868>] (alloc_pin+0xc/0x60) from [<c00209cc>] (sw_hci_sunxi_init+0x3c/0x144)
+[    2.850000] [<c040b868>] (alloc_pin+0xc/0x60) from [<c00209cc>] (sw_hci_sunxi_init+0x3c/0x144)
+[<c00209cc>] (sw_hci_sunxi_init+0x3c/0x144) from [<c0031378>] (do_one_initcall+0x34/0x180)
+[    2.870000] [<c00209cc>] (sw_hci_sunxi_init+0x3c/0x144) from [<c0031378>] (do_one_initcall+0x34/0x180)
+[<c0031378>] (do_one_initcall+0x34/0x180) from [<c00084d4>] (kernel_init+0x108/0x194)
+[    2.880000] [<c0031378>] (do_one_initcall+0x34/0x180) from [<c00084d4>] (kernel_init+0x108/0x194)
+[<c00084d4>] (kernel_init+0x108/0x194) from [<c0039358>] (kernel_thread_exit+0x0/0x8)
+[    2.900000] [<c00084d4>] (kernel_init+0x108/0x194) from [<c0039358>] (kernel_thread_exit+0x0/0x8)
+<0>Rebooting in 10 seconds..[    2.920000] Rebooting in 10 seconds..
+linux内核终于启动了，看到启动信息就知道出现不少问题。
+
+pcduino的linux移植二写的太长了，根文件系统移植以及未解决的问题留在pcduino的linux移植三。
+
+有些问题还未解决，知道的直接留言，我们一起解决。
+
+sd卡烧写参考http://linux-sunxi.org/Bootable_SD_card
+
+
+
+ 
+
+更多 0
+上一篇：pcDuino的linux移植一
+下一篇：pcDuino的linux移植三
+顶
+3
+踩
+0
+
+查看评论
+4楼 litiejun02 2013-07-16 09:37发表 [回复]
+
+感谢楼主无私的奉献 我一直追随您学习
+3楼 litiejun02 2013-07-12 09:03发表 [回复]
+
+楼主您什么时候写一篇安卓系统的呢 想学习一下
+
+现在pcduino 有安卓源文件吗？
+Re: 我用国芯 2013-07-12 11:27发表 [回复]
+
+回复litiejun02：pcduino官方Android源文件没有找到，只能自己下载Android源码移植了，没有现成的
+Re: 我用国芯 2013-07-12 11:25发表 [回复]
+
+回复litiejun02：尝试了很多次，编译Android不知花了多少时间,最后发现俺旧电脑不给力，现在编译Android 4.0需要4核心的CPU，伤不起。就换到OK6410编译Android 2.3。不过最近去深圳合作开发平板，到时候我再写点心得给大家分享
+2楼 litiejun02 2013-06-08 09:40发表 [回复]
+
+我用的是VMware 虚拟 ubuntu10.04 按照您的博客指导uboot和kenerl都编译过去了，可是我不知道如何下载到tf卡 我在电脑上usb接口接上tfk 如何从虚拟机把uboot和uImage下载到 tf卡呢
+烦请您指导一下谢谢
+Re: 我用国芯 2013-06-08 15:21发表 [回复]
+
+回复litiejun02：ubuntu下写tf卡命令一样，关键要把你的tf卡挂载到虚拟机里的ubuntu下，能挂载就行，其它操作一样
+1楼 litiejun02 2013-06-08 09:17发表 [回复]
+
+您好我刚刚买了一块平常duino开发板 以后还哟啊您多多帮帮和指点
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+ TOP
+核心技术类目
+全部主题 数据挖掘 SOA UML 开放平台 HTML5 开源 移动开发 iOS Android 移动游戏 Windows Phone JavaScript CSS 游戏引擎 云计算 大数据 Hadoop OpenStack 云平台 PHP MongoDB JSON Xcode Node.js 前端开发 神经网络 安全 Java .NET MySQL textview BigTable web框架 SQL Redis CouchDB Linux 可穿戴计算 NoSQL Ruby API GPL XAML ASP.NET 前端开发 虚拟化 框架 机器学习 数据中心 IE10 敏捷 集群
+个人资料
+ 访问我的空间 
+我用国芯
+ 
+
+访问：26375次
+积分：906分
+排名：第13954名
+原创：64篇转载：3篇译文：0篇评论：88条
+文章搜索
+
+文章分类
+全志A10 pcDuino笔记(13)
+君正JZ4755笔记(0)
+arduino笔记(7)
+android开发(13)
+micro2440单板(4)
+OK6410单板(11)
+s5pc100(CES-c100)单板(5)
+STM32(0)
+PIC(1)
+Arduino Leonardo(2)
+Ubuntu(1)
+tq2440单板(13)
+u-boot-2012.10分析(1)
+linux-3.0.62开发(2)
+linux-2.6.22.6开发(0)
+linux-2.6.29开发(1)
+Android NDK(3)
+文章存档
+2013年08月(2)
+2013年07月(10)
+2013年06月(7)
+2013年05月(25)
+2013年04月(23)
+阅读排行
+pcDuino的linux移植一(1331)
+pcDuino的linux移植五GPIO驱动开发(1173)
+pcDuino的linux移植二(1100)
+pcDuino的u-boot移植与分析(988)
+pcDuino的linux移植三(847)
+pcDuino + busybox 成功搭建最小linux系统(798)
+pcDuino裸板程序-led(713)
+pcDuino上跑第一个Arduino程序_blink(710)
+pcDuino第一个裸板程序uart0(687)
+pcDuino的linux移植四简单驱动开发(680)
+评论排行
+pcDuino的linux移植三(26)
+pcDuino的u-boot移植与分析(13)
+pcDuino的linux移植一(10)
+OK6410串口裸板程序uart0(10)
+pcDuino第一个裸板程序uart0(7)
+pcDuino的linux移植二(7)
+pcDuino的linux移植五GPIO驱动开发(4)
+TQ2440 u-boot-2012.04.01移植一串口正常输出(3)
+ok6410 u-boot-2012.04.01移植四增加MLC NAND支持(3)
+s5pc100第一个裸板程序led(2)
+推荐文章
+
+最新评论
+pcDuino的linux移植一
+云行易: 今天刚到的板子，按照上面的方法是了一下，U-boot编译成功，但是烧入到TF卡后，启动板子，输出信息...
+pcDuino的u-boot移植与分析
+我用国芯: @linlixinjie:自己做uboot、内核和根文件系统都是用SD卡的话，相当于做的SD卡启动盘...
+pcDuino的u-boot移植与分析
+linlixinjie: 自己做uboot、内核和根文件系统都是用SD卡的话，会覆盖板子提供的系统系统吗？
+pcDuino的linux移植一
+我用国芯: @j1406493495:可能你的镜像程序修改打印级别，省去了开机的打印信息。但是还是会打印其它lo...
+pcDuino的linux移植一
+垂钓的鱼: 楼主你好，我在做tf启动卡时总是卡在Starting kernel ...，然后就什么都不做了，是怎...
+pcDuino的linux移植五GPIO驱动开发
+我用国芯: @gyzgyz1989:不需要，写个驱动动态加载就行
+pcDuino的linux移植五GPIO驱动开发
+gyzgyz1989: 如果想用gpio的话，是不是要先编译内核？
+pcDuino的linux移植一
+我用国芯: @luoting1010322132:只是跑u-boot可以不分区，后面移植内核、文件系统才要分区。...
+pcDuino的linux移植一
+luoting1010322132: 楼主，我最近也在移植u-boot，请问你的sd卡不用分区么？我看到其它网站上都要求分区后再写入。而且...
+ok6410 u-boot-2012.04.01移植四增加MLC NAND支持
+隔夜月: 嗯 嗯 ，先谢谢啦 :)
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved GongshangLogo
+  

@@ -1,0 +1,1250 @@
+
+
+首页
+开源软件
+讨论区
+
+
+
+
+
+
+代码分享
+博客
+翻译
+资讯
+移动开发
+
+
+
+
+招聘
+
+你好2,您好 我的空间
+
+
+
+
+
+
+
+ |  添加软件 | 投递新闻 | 退出
+ 
+
+开源中国 
+代码分享
+ 当前位置：代码分享 » Java » 常规Java编程 » 常用工具方法 
+搜 索 
+
+
+
+
+
+
+
+
+
+微信面试题
+
+风少001 发布于 2013年04月10日 21时, 55评/7314阅
+
+
+ 
+
+
+分享到 
+
+新浪微博腾讯微博
+
+
+收藏+32
+
+踩顶1
+ 
+
+去面试微信实习，遇到这道算法题，当时被卡住，故今天把它写出来做下知识整理， 
+原题：实现一个栈，满足min() pop() push()方法的时间复杂度都为O(1).( min()返回栈中最小元素) 
+思路1：用一个变量minItem记录栈中的最小值，在push()中 每次加入一个item就跟minItem对比，item更小，只item赋给minItem，然后再min() 中直接return minItem;
+ 这种思路没考虑在pop()过程中，对minItem的影响，当栈顶元素是minItem，执行pop() 后minItem就不知道指向谁了，因为栈只记录最小值而起，至于最小值之前那些大小关系都没记录
+ 正确思路：为了实现更低的时间复杂度，我们都会想到用空间去换时间，所有这里增加一个数组来nextMinItem[index] 元素大小关系。如果当前最小值是 对象 item1 当push进来的item2比 item1更小，且元素个数从原本的a增加到a+1 这时候我们用我们就应该把item2这个更小的item赋给minItem 然后用nextMinItem[a+1] = item1 来记录 item2 后面的次小值，这样一来当item2 这个栈顶被pop()掉的话，我们就可以minItem = nextMinItem[a+1]，来恢复minItem。
+ 
+
+标签：<无> 
+
+
+
+
+代码片段(1)
+
+
+[代码] 完整代码
+
+
+
+
+
+
+
+
+
+
+01
+
+public class Stack {
+
+
+
+
+
+02
+
+    private int itemCount = 0;
+
+
+
+
+
+03
+
+    private Item minItem = null;
+
+
+
+
+
+04
+
+    private Item[] nextMinItem;
+
+
+
+
+
+05
+
+    private Item stackTop = null;
+
+
+
+
+
+06
+
+    private int maxSize = 100;
+
+
+
+
+
+07
+
+  
+
+
+
+
+
+08
+
+    public Stack() {
+
+
+
+
+
+09
+
+        nextMinItem = new Item[maxSize];
+
+
+
+
+
+10
+
+    }
+
+
+
+
+
+11
+
+  
+
+
+
+
+
+12
+
+    class Item {
+
+
+
+
+
+13
+
+        int Data;
+
+
+
+
+
+14
+
+        Item nextItem;
+
+
+
+
+
+15
+
+  
+
+
+
+
+
+16
+
+        public Item(int data) {
+
+
+
+
+
+17
+
+            this.Data = data;
+
+
+
+
+
+18
+
+        }
+
+
+
+
+
+19
+
+     }
+
+
+
+
+
+20
+
+  
+
+
+
+
+
+21
+
+    public boolean push(Item item) {
+
+
+
+
+
+22
+
+        if (itemCount == maxSize) {
+
+
+
+
+
+23
+
+            System.out.println("栈已满");
+
+
+
+
+
+24
+
+            return false;
+
+
+
+
+
+25
+
+        }
+
+
+
+
+
+26
+
+        itemCount++;
+
+
+
+
+
+27
+
+        if (minItem == null) {
+
+
+
+
+
+28
+
+            minItem = item;
+
+
+
+
+
+29
+
+        } else {
+
+
+
+
+
+30
+
+            if (item.Data < minItem.Data) {
+
+
+
+
+
+31
+
+                nextMinItem[itemCount] = minItem;
+
+
+
+
+
+32
+
+                minItem = item;
+
+
+
+
+
+33
+
+            }
+
+
+
+
+
+34
+
+        }
+
+
+
+
+
+35
+
+        item.nextItem = stackTop;
+
+
+
+
+
+36
+
+        stackTop = item;
+
+
+
+
+
+37
+
+          
+
+
+
+
+
+38
+
+        return true;
+
+
+
+
+
+39
+
+    }
+
+
+
+
+
+40
+
+  
+
+
+
+
+
+41
+
+    public boolean pop() {
+
+
+
+
+
+42
+
+        if (itemCount == 0) {
+
+
+
+
+
+43
+
+            System.out.println("栈是空的，无法出栈");
+
+
+
+
+
+44
+
+            return false;
+
+
+
+
+
+45
+
+        } 
+
+
+
+
+
+46
+
+        if (stackTop == minItem) {
+
+
+
+
+
+47
+
+            minItem = nextMinItem[itemCount];
+
+
+
+
+
+48
+
+        }
+
+
+
+
+
+49
+
+        stackTop = stackTop.nextItem;
+
+
+
+
+
+50
+
+        itemCount--;
+
+
+
+
+
+51
+
+        return true;
+
+
+
+
+
+52
+
+  
+
+
+
+
+
+53
+
+    }
+
+
+
+
+
+54
+
+  
+
+
+
+
+
+55
+
+    public Item min() {
+
+
+
+
+
+56
+
+        if (itemCount == 0) {
+
+
+
+
+
+57
+
+            System.out.println("栈是空的，无最小值");
+
+
+
+
+
+58
+
+            return null;
+
+
+
+
+
+59
+
+        }
+
+
+
+
+
+60
+
+        return minItem;
+
+
+
+
+
+61
+
+    }
+
+
+
+
+
+62
+
+  
+
+
+
+
+
+63
+
+    /**
+
+
+
+
+
+64
+
+     * @param args
+
+
+
+
+
+65
+
+     */
+
+
+
+
+
+66
+
+    public static void main(String[] args) {
+
+
+
+
+
+67
+
+        // TODO Auto-generated method stub
+
+
+
+
+
+68
+
+        Stack stack = new Stack();
+
+
+
+
+
+69
+
+        stack.push(stack.new Item(5));
+
+
+
+
+
+70
+
+        System.out.println("push:min=" + stack.min().Data+" itemCount="+stack.itemCount);
+
+
+
+
+
+71
+
+        stack.push(stack.new Item(4));
+
+
+
+
+
+72
+
+        System.out.println("push:min=" + stack.min().Data+" itemCount="+stack.itemCount);
+
+
+
+
+
+73
+
+        stack.push(stack.new Item(3));
+
+
+
+
+
+74
+
+        System.out.println("push:min=" + stack.min().Data+" itemCount="+stack.itemCount);
+
+
+
+
+
+75
+
+        stack.push(stack.new Item(2));
+
+
+
+
+
+76
+
+        System.out.println("push:min=" + stack.min().Data+" itemCount="+stack.itemCount);
+
+
+
+
+
+77
+
+        stack.push(stack.new Item(1));
+
+
+
+
+
+78
+
+        System.out.println("push:min=" + stack.min().Data+" itemCount="+stack.itemCount);
+
+
+
+
+
+79
+
+        stack.pop();
+
+
+
+
+
+80
+
+        System.out.println("pop :min=" + stack.min().Data+" itemCount="+stack.itemCount);
+
+
+
+
+
+81
+
+        stack.pop();
+
+
+
+
+
+82
+
+        System.out.println("pop :min=" + stack.min().Data+" itemCount="+stack.itemCount);
+
+
+
+
+
+83
+
+        stack.pop();
+
+
+
+
+
+84
+
+        System.out.println("pop :min=" + stack.min().Data+" itemCount="+stack.itemCount);
+
+
+
+
+
+85
+
+        stack.pop();
+
+
+
+
+
+86
+
+        System.out.println("pop :min=" + stack.min().Data+" itemCount="+stack.itemCount);
+
+
+
+
+
+87
+
+        stack.pop();
+
+
+
+
+
+88
+
+        System.out.println("栈结构为：n|____1_____|n|____2_____|n|____3_____|n|____4_____|n|____5_____|n");         
+
+
+
+
+
+89
+
+    }
+
+
+
+
+
+90
+
+}
+
+
+
+举报
+
+
+
+开源中国-程序员在线工具：API文档大全(120+) JS在线编辑演示 二维码更多»
+
+ 
+
+
+相关的代码(605)
+1回/125阅[Java]过滤词组件昨天(17:23) By idreamblue
+0回/121阅[Java]生成集群：Clustering with Tomcat 7 and Nginx昨天(17:04) By ddsbn
+3回/158阅[Java]json对象（json-lib）转换成list-map集合昨天(12:12) By Cyrus
+13回/230阅[Java]Java限制字符串长度（以字符长度为单位，不是字符个数。假设半角的长度为1，全角为2）2天前 By 吉他他老伯
+0回/153阅[Java]apache httpClient 保存登录状态（记录httpSession）4天前 By 戢冠生
+2回/217阅[Java]把数据库中某张表的数据导出为insert语句6天前 By 石宇
+6回/1123阅[Java]解析优酷地址获取视频真实地址8天前 By 花花兽
+13回/838阅[Java]request获取客户端IP地址15天前 By wangxiang87yz
+4回/285阅[Java]非递归之“数学归纳法”求斐波那契数列18天前 By jxqlove?
+显示所有 »
+
+发表评论回到顶部网友评论(55)
+
+
+
+
+
+
+
+ 1楼：Kerrigan 发表于 2013-04-10 22:20 回复此评论
+
+。。。这代码一句注释都没有。。不让你死才怪。。除非别的也很水。。
+
+ 
+
+
+
+
+
+
+
+2楼：Kerrigan 发表于 2013-04-10 22:25 回复此评论
+
+代码里面还有很坑爹的BUG。。
+
+ 
+
+
+
+
+
+
+
+3楼：qinshihai 发表于 2013-04-11 09:30 回复此评论
+
+代码不能运行~~
+
+ 
+
+
+
+
+
+
+
+4楼：来吧 发表于 2013-04-11 10:27 回复此评论
+
+以data和当前栈的最小值两个属性作为一个整体作栈元素，不用那么复杂
+
+ 
+
+
+
+
+
+
+
+5楼：tubexu 发表于 2013-04-11 14:25 回复此评论
+
+代码很深奥
+
+ 
+
+
+
+
+
+
+
+6楼：王老四 发表于 2013-04-11 16:25 回复此评论
+
+逻辑不对的，如果先删除的是进比min大的那个再删除min呢！
+
+ 
+
+
+
+
+
+
+
+7楼：小❤伟 发表于 2013-04-11 17:25 回复此评论
+
+我点到广告了！ 
+
+
+
+
+
+
+
+
+
+8楼：postdep 发表于 2013-04-11 18:14 回复此评论
+
+试问这种题能反映出什么？
+
+ 
+
+
+
+
+
+
+
+9楼：Tsukihime 发表于 2013-04-12 09:07 回复此评论
+
+同学，这样的话，push就不是O(1)的了，给有序数组 nextMinItem插入新值不是O(1)的复杂度
+
+ 
+
+
+
+
+
+
+
+10楼：liufuweiming1234 发表于 2013-04-12 10:12 回复此评论
+
+
+4楼： 来吧 发表于 2013-04-11 10:27  回复此评论
+
+ 以data和当前栈的最小值两个属性作为一个整体作栈元素，不用那么复杂 
+
+正解！ 
+
+
+
+
+
+
+
+
+
+11楼：blackMcDul 发表于 2013-04-12 10:48 回复此评论
+
+public class TestStack { 
+private List<Integer> list; 
+public TestStack(){ 
+list=new ArrayList<Integer>(); 
+} 
+
+public void push(Integer item){ 
+list.add(item); 
+} 
+
+public Integer min(){ 
+int min=0; 
+for(int i=0;i<list.size();i++){ 
+if(list.get(i)<min){ 
+min=list.get(i); 
+} 
+} 
+return min; 
+} 
+
+public Integer pop(){ 
+return list.get(0); 
+} 
+
+public static void main(String[] args) { 
+TestStack tt=new TestStack(); 
+tt.push(1); 
+tt.push(2); 
+tt.push(0); 
+tt.push(4); 
+System.out.println(tt.min()); 
+System.out.println(tt.pop()); 
+} 
+} 
+
+
+
+
+
+
+
+
+
+
+12楼：心平气和的编码 发表于 2013-04-12 14:30 回复此评论
+
+
+
+引用来自“blackMcDul”的评论
+
+public class TestStack { 
+private List<Integer> list; 
+public TestStack(){ 
+list=new ArrayList<Integer>(); 
+} 
+
+public void push(Integer item){ 
+list.add(item); 
+} 
+
+public Integer min(){ 
+int min=0; 
+for(int i=0;i<list.size();i++){ 
+if(list.get(i)<min){ 
+min=list.get(i); 
+} 
+} 
+return min; 
+} 
+
+public Integer pop(){ 
+return list.get(0); 
+} 
+
+public static void main(String[] args) { 
+TestStack tt=new TestStack(); 
+tt.push(1); 
+tt.push(2); 
+tt.push(0); 
+tt.push(4); 
+System.out.println(tt.min()); 
+System.out.println(tt.pop()); 
+} 
+} 
+
+你这个栈实现的有问题，pop出的不是栈顶的元素。而是第一个元素。栈后进先出。。。min()的时间复杂度不符合要求。你这个遍历一次O(n)的复杂度。
+ 
+
+
+
+
+
+
+
+13楼：邓凌飞 发表于 2013-04-12 17:04 回复此评论
+
+
+ 用一个辅助栈的栈顶元素保存最小值，当push的值小于等于这个辅助栈顶元素时，也push大辅助栈；当pop时，如果值等于这个最小值，则在辅助栈上操作pop。min其实就是取辅助栈的栈顶元素了 
+
+
+
+
+
+
+
+
+
+14楼：winktj 发表于 2013-04-12 20:58 回复此评论
+
+
+
+引用来自“邓凌飞”的评论
+
+
+ 用一个辅助栈的栈顶元素保存最小值，当push的值小于等于这个辅助栈顶元素时，也push大辅助栈；当pop时，如果值等于这个最小值，则在辅助栈上操作pop。min其实就是取辅助栈的栈顶元素了 
+不错
+ 
+
+
+
+
+
+
+
+15楼：winktj 发表于 2013-04-12 21:19 回复此评论
+
+
+
+引用来自“Tsukihime”的评论
+
+同学，这样的话，push就不是O(1)的了，给有序数组 nextMinItem插入新值不是O(1)的复杂度
+不是很明白，为什么给有序数组 nextMinItem插入新值不是O(1)的复杂度？
+ 
+
+
+
+
+
+
+
+16楼：Ellipse 发表于 2013-04-12 22:09 回复此评论
+
+不懂算法，更不懂算法复杂度，Java内置的数据结构已经很好了，把内置集合类用好就行。 
+
+
+
+
+
+
+
+
+
+
+17楼：依然傻笑 发表于 2013-04-13 19:00 回复此评论
+
+这个广告。。恶心啊。。。 
+按照4楼 @来吧 的思路，做出来了~~~ 
+
+
+
+
+
+
+
+
+
+
+
+18楼：L_huiyin 发表于 2013-04-13 19:37 回复此评论
+
+
+
+引用来自“来吧”的评论
+
+以data和当前栈的最小值两个属性作为一个整体作栈元素，不用那么复杂
+这个好使~
+ 
+
+
+
+
+
+
+
+19楼：巢鹏 发表于 2013-04-13 21:58 回复此评论
+
+这是一个不错的题目。。。对应聘者不算要求很高，没有那些很复杂的算法数据结构。。。就是最基本的栈，同时考查了应聘者的灵活性，这里主要是看你能不能想出栈每个状态下的最小值是固定的，所以4楼的答案是对的。。。据一些师弟的反馈，这次微信的面试题出得不错，有题3000人抽奖的可以过滤掉好多思维不灵活的，值得参考。。。
+
+ 
+
+
+
+
+
+
+
+20楼：WangDylan 发表于 2013-04-14 08:06 回复此评论
+
+记录三个指针不就行了么……
+
+ 
+
+1
+2
+3
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+回到顶部   回到评论列表
+
+开源从代码分享开始 分享代码
+
+
+
+风少001的其他代码微信面试题(55评/7314阅,7天前)
+全部(1)...
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+© 开源中国(OsChina.NET) | 关于我们 | 广告联系 | @新浪微博 | 开源中国手机版 | 粤ICP备12009483号-3
+ 
+开源中国手机客户端：AndroidiPhoneWP7 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2条新留言，查看留言»
+
+
+
+

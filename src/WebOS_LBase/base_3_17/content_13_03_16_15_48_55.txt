@@ -1,0 +1,206 @@
+资讯中心 Information 电信主站 网通镜像  简体->繁體服务热线：400-702-1168 (电话列表)   购物车(0) 您好，访客 请登陆 或 注册
+首页 域名注册 虚拟主机 企业邮箱 VPS主机 服务器 成品网站 代理中心 会员中心 客服中心 积分商城
+主页 关于我们 联系我们 付款方法 资讯中心 友情链接 人才招募 服务规范 合作伙伴产品 免费获赠推广费 站长SEO工具
+资讯中心首页| 行业资讯|域名资讯|虚拟主机|托管租用|VPS|CDN|网站运营|技术资讯|站长资讯|冲浪宝典|帮助中心
+Linux下多线程编程的一些注意事项
+发布时间：2007-01-02 07:59:00  来源： ChinaUnix博客 　  作者： ChinaUnix博客 　  点击：841
+
+                                提起Linux下的多线程编程，互联网上流传着的最好资料应该就是IBM开发者网站上连载的
+POSIX编程指南
+系列，其讲解也可谓深入浅出，对Linux具体实现的细节也有较为详细的解读，强烈推荐初、高级用户慢慢把玩，仔细体会。
+正如ESR所提到的那样，在UNIX类操作系统上利用POSIX线程库进行多线程编程是一件非常有挑战性的工作，太多的细节纠缠在一起，真的是扯不断、理还乱，稍有不甚，就可能陷入泥沼而不能自拔。加上POSIX线程具体实现上的种种不同，致使我们可能会稍微倾向于采用单进程的事件驱动模型编制程序，X服务器就是一个很好的例子。
+以前曾经调试过一个多线程程序，当时真的是被线程间通信的种种细节而搞得头晕目眩;这段时间的多线程程序的“除虫”经历，更让我对ESR的结论深信不疑，多线程真的是件麻烦事。
+我所遇到的问题的焦点似乎都聚集在了如何即时且干净地从线程中退出。下面我将主要就此问题谈谈自己的见解，不对之处，还劳烦各位看客指教：
+1. 通过调用pthread_exit()退出
+在C语言编程中，这确实是一个干净利落的退出方式，并且它提供的随时随地退出的灵活性也让开发人员象吸毒一样乐此不疲。你可能已经注意到我这里的用词是带有明显的感情色彩的，不假，我真的极力不推荐这种退出方式，因为它打破了程序应有的单点退出的规则;并且在C++语言环境下他可能不会引发堆栈对象的顺利析构（这点上和它类似的还有exit）。以下是具体的测试代码:
+File: a.h
+#include iostream>
+class A
+{
+        public:
+                A() { std::cout  "A()"  std::endl; };
+                ~A() { std::cout  "~A()"  std::endl; };
+};
+File: t_exit.cpp
+#include cstdlib>
+#include iostream>
+#include cstring>
+#include pthread.h>
+#include "a.h"
+using namespace std;
+int main(int argc, char *argv[])
+{
+        A a;
+        if (argc == 1)
+                return EXIT_SUCCESS;
+        if (strcmp(argv[1], "exit" ) == 0)
+                exit(EXIT_SUCCESS);
+        else if (strcmp(argv[1], "pthread_exit") == 0)
+                pthread_exit(EXIT_SUCCESS);
+        return 0;
+}
+和运行结果:
+xiaosuo@gentux cxx $ g++ -o t_exit t_exit.cpp
+xiaosuo@gentux cxx $ ./t_exit
+A()
+~A()
+xiaosuo@gentux cxx $ ./t_exit exit
+A()
+xiaosuo@gentux cxx $ ./t_exit pthread_exit
+A()
+xiaosuo@gentux cxx $ g++ -o t_exit t_exit.cpp -lpthread
+xiaosuo@gentux cxx $ ./t_exit
+A()
+~A()
+xiaosuo@gentux cxx $ ./t_exit exit
+A()
+xiaosuo@gentux cxx $ ./t_exit pthread_exit
+A()
+~A()
+注意以上红色标记部分，连接了pthread（测试环境是NPTL线程库，即Native Posix Thread Library）库之后，调用pthread_exit时析构函数被顺利执行了，对于此现象，目前我还不知道如何解释，pthread_exit的手册页（man page）中确实明确担保了对象的析构。
+ALP
+4.3.2（Advanced Linux Programming)中针对此问题（
+Linuxthreads
+）的解法是：构建一个Exception类，用抛出异常替换调用pthread_exit，然后在线程的顶层函数中捕获这个异常，并再次调用pthread_exit，解法虽然巧妙，可是否真的有再次调用pthread_exit的必要呢？恐怕又是画蛇添足之举！说到ALP，有必要多说两句，第一卷已经由
+完美废人
+翻译完毕，第二卷也已经有
+四月
+翻译的初稿，相信很快就能校订完毕，和大家见面了，对于英文不好而又有心介入Linux程序设计的同学，这可是好事一桩！
+2. 通过return语句结束
+这种结束方式应该是比较优雅的。如果调用pthread_exit的线程结束方式属于夭折或横死，那么return方式就是寿终正寝。没啥可以说的，强烈推荐采用此种方式。
+3. 通过调用pthread_cancel来结束其它进程执行
+这种方式应该算是谋杀了。虽然它能保证堆栈对象的顺利析构，但是由于取消点（Cancel Point）的不确定性、在临界区内退出而导致死锁（此问题可以通过调用pthread_cleanup_push和pthread_cleanup_pop解决）、未释放的系统资源（如文件或者套接字）等问题，致使它也并不是很好的问题解决之道。
+4. 基于信号的异步通信
+有的时候线程之间的异步通信是必要的，此时似乎就只有信号可以担当此重任。pthread_cancel虽然也是一种异步通信机制，但是由于并不是所有慢系统调用都是取消点，所以时效上可能差一些，并且它只能提供线程退出的同步，功能比较单一，加上我在三中给它罗列的罪状，所以还是不建议采用它。信号的处理也不简单，因为有些慢系统调用被信号中断后是会自动重启的，所以我们通常需要用siginterrupt(signo, 1)来关闭重启或者在用sigaction安装信号处理函数的时候取消SA_RESTART标志，之后就可以通过判断信号的返回值是否是-1和errno是否为EINTR来判断是否有信号抵达。伪码描述如下:
+    retval = slow_system_call();
+    if (retval == -1) {
+        if (errno == EINTR) {
+            do_sth_about_signal();
+        }
+        ...
+    }
+那么真正的信号处理函数呢？还是应该遵循越简单越好的原则，尤其不要在里面尝试获得任何锁，因为信号处理程序的优先级较普通过程要高，稍有不甚就可能造成死锁。里面尽量采用完全函数并用临时变量保存进入前的errno值，以下是一个响应SIGINT信号而退出的例子：
+#include unistd.h>
+#include stdio.h>
+#include stdlib.h>
+#include signal.h>
+#include pthread.h>
+#include errno.h>
+volatile int g_terminated = 0;
+pthread_t thread1, thread2;
+void sigint_handler(int signo)
+{
+        if (!g_terminated) {
+                int err = errno;
+                g_terminated = 1;
+                pthread_kill(thread1, signo);
+                pthread_kill(thread2, signo);
+                errno = err;
+        }
+}
+void* thread_main(void *args)
+{
+        pthread_t tid = pthread_self();
+        int retval;
+        while (1) {
+                retval = usleep(1000000);
+                if (retval == -1) {
+                        if (errno == EINTR && g_terminated)
+                                break;
+                }
+                fprintf(stderr, "thread[%lu] is runing＼n", tid);
+        }
+        fprintf(stderr, "thread[%lu] exit＼n", tid);
+        return NULL;
+}
+int main(int argc, char *argv[])
+{
+        signal(SIGINT, SIG_IGN);
+        pthread_create(&thread1, NULL, thread_main, NULL);
+        pthread_create(&thread2, NULL, thread_main, NULL);
+        siginterrupt(SIGINT, 1);
+        signal(SIGINT, sigint_handler);
+        pthread_join(thread1, NULL);
+        pthread_join(thread2, NULL);
+        return 0;
+}
+执行结果如下:
+xiaosuo@gentux cxx $ gcc -o t_pthread_sigint t_pthread_sigint.c -lpthread
+xiaosuo@gentux cxx $ ./t_pthread_sigint
+thread[3084721040] is runing
+thread[3076328336] is runing
+thread[3084721040] is runing
+thread[3076328336] is runing
+thread[3084721040] is runing
+thread[3076328336] is runing
+thread[3084721040] exit
+thread[3076328336] exit
+5. 用pthread_detach分离线程
+当不再感兴趣线程状态的时候将pthread_detach出去，确实是个极具诱惑力的做法，但是劝你不要偷懒，一切还是保持在可控状态的好。
+6. pthread_mutex_lock、pthread_cond_wait和信号中断
+pthread_mutex_lock和pthread_cond_wait都明确表示不应该因为被信号中断而返回，那么他们可能永远阻塞吗？mutex不会，因为它只是将操作串行化，pthread_cond_wait可能会，这就需要我们在必要的时候用pthread_cond_broadcast唤醒所有阻塞在其上的线程。
+                
+                
+胡思乱想了这么多，感觉虽然POSIX提供的接口不少，但是禁忌也比较多，跟我当时用Verilog做程序一样：到头来，可集成的语句寥寥可数。如果选用C++做开发，
+boost
+提供的
+thread
+应该就已足够，如果你觉得不够，肯定是你的程序没有设计好
+
+附加参考资料:
+[1] 
+Linux 线程模型的比较：LinuxThreads 和 NPTL
+                
+                
+
+
+以上内容由 华夏名网 搜集整理，如转载请注明原文出处，并保留这一部分内容。
+
+　　“华夏名网” http://www.sudu.cn 和 http://www.bigwww.com 是成都飞数科技有限公司的网络服务品牌，专业经营虚拟主机,域名注册，VPS,服务器租用业务。公司创建于2002年，经过6年的高速发展，“华夏名网”已经成为我国一家知名的互联网服务提供商，被国外权威机构webhosting.info评价为十大IDC服务商之一。
+华夏名网网址导航: 虚拟主机 双线主机 主机 域名注册 cn域名 域名 服务器租用 酷睿服务器 vps vps主机
+
+上一篇：GTK+图形化应用程序开发学习笔记（六）?按钮（3）	下一篇：Shell编程学习笔记第一部份
+ 
+
+
+
+技术资讯
+Mac OS网络设备路由技术网络技术HTML/DHTML源码天堂网络编程JavaPerlC/C++Shell数据库其他DB2Sybase存储备份硬件技术网站建设通信技术虚拟化技术安全其他安全工具加密和破解数据库安全程序安全网络安全 系统安全防火墙VPN网管技术其他 InformixOraclePostgreSQL Dreamweaver教程 windows操作系统XML编程 NET编程JSP编程PHP编程ASP编程MssqlMysqlAccessCoreldrawflashweb服务器ftp服务器mail服务器邮件系统IBM-AIXHP-UX ScoSolaris FreeBSD Linux ProxyCSS教程Javascript教程 Ajaxdns服务器Photoshop教程
+推荐资讯
+网站备案经验谈 工信部备...(4915次点击)
+移动电信联通介入域名注册...(2768次点击)
+消息称网站未备案将一律关...(4158次点击)
+事情很紧急 大部分站长如...(2793次点击)
+微软因收取XP降级费而被...(2369次点击)
+巨鲸CEO陈戈：看好互联...(3727次点击)
+搜狐副总裁王小川：搜索不...(3568次点击)
+没有回头客的垃圾站 如何...(2358次点击)
+百度google没收录也...(2528次点击)
+并非主流 CN域名一元体...(2438次点击)
+最新更新
+百度关闭部分竞价系统，凤...(3415次点击)
+数万中小企业翘首以待“....(3233次点击)
+整治网络视听低俗之风 四...(3244次点击)
+国内首个IPV6网站认证...(3989次点击)
+国内首家VIA成员：金山...(2408次点击)
+分析师称网络广告市场6月...(2320次点击)
+未备案网站将被贴标 投资...(3211次点击)
+对于天价cn短域名 我们...(3619次点击)
+Mozilla要求微软公...(2352次点击)
+戴尔通过Twitter销...(2334次点击)
+相关资讯
+xml轻松学习手册（3）xml...
+xml轻松学习手册（4）xml...
+xml轻松学习手册（5）xml...
+了解web页面工具语言xml(...
+了解web页面工具语言xml(...
+了解web页面工具语言xml(...
+了解web页面工具语言xml(...
+了解web页面工具语言xml(...
+了解web页面工具语言xml(...
+xml技术上传文件_xml技巧
+关于我们 - 联系我们 - 帮助中心 - 资讯中心 - 价格列表 - 付款方法
+中华人民共和国增值电信业务经营许可证号:川B2-20030002 
+©2002-2008 SUDU.CN 飞数科技 版权所有
+电话总机：028-86258691 86258692 66510191 66510192 66510193 66510194
+公司地址：四川省成都市青龙街51号倍特康派大厦10楼5号 Google Maps 

@@ -1,0 +1,285 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+计算所信息抽取小组专栏
+
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+CSDN客服工作问卷调查        智能开发框架 JEECG 作者张代浩专访
+ 2012CSDN博客之星火热出炉！        2013年全国百所高校巡讲讲师招募 
+
+
+
+WordNet介绍和使用 
+.
+ 分类： e 其他2009-03-20 17:453533人阅读评论(0)收藏举报
+
+ 
+
+
+Wordnet是一个词典。每个词语(word)可能有多个不同的语义，对应不同的sense。而每个不同的语义（sense）又可能对应多个词，如topic和subject在某些情况下是同义的，一个sense中的多个消除了多义性的词语叫做lemma。例如，“publish”是一个word，它可能有多个sense：
+ 
+1. (39) print, publish -- (put into print; "The newspaper published the news of the royal couple's divorce"; "These news should not be printed")
+ 
+2. (14) publish, bring out, put out, issue, release -- (prepare and issue for public distribution or sale; "publish a magazine or newspaper")
+ 
+3. (4) publish, write -- (have (one's written work) issued for publication; "How many books did Georges Simenon write?"; "She published 25 books during her long career")
+ 
+ 
+ 
+在第一个sense中，print和publish都是lemma。Sense 1括号内的数字39表示publish以sense 1在某外部语料中出现的次数。显然，publish大多数时候以sense 1出现，很少以sense 3出现。
+ 
+ 
+ 
+WordNet的具体用法
+ 
+NLTK是python的一个自然语言处理工具，其中提供了访问wordnet各种功能的函数。下面简单列举一些常用功能：
+ 
+ 
+ 
+得到wordnet本身：
+ 
+from nltk.corpus import wordnet
+ 
+ 
+ 
+获得一个词的所有sense，包括词语的各种变形的sense：
+ 
+wordnet.synsets('published')
+ 
+[Synset('print.v.01'),
+ 
+ Synset('publish.v.02'),
+ 
+ Synset('publish.v.03'),
+ 
+ Synset('published.a.01'),
+ 
+ Synset('promulgated.s.01')]
+ 
+ 
+ 
+得到synset的词性：
+ 
+>>> related.pos
+ 
+'s'
+ 
+ 
+ 
+得到一个sense的所有lemma：
+ 
+>>> wordnet.synsets('publish')[0].lemmas
+ 
+[Lemma('print.v.01.print'), Lemma('print.v.01.publish')]
+ 
+ 
+ 
+得到Lemma出现的次数：
+ 
+>>> wordnet.synsets('publish')[0].lemmas[1].count()
+ 
+39
+ 
+ 
+ 
+在wordnet中，名词和动词被组织成了完整的层次式分类体系，因此可以通过计算两个sense在分类树中的距离，这个距离反应了它们的语义相似度：
+ 
+>>> x = wordnet.synsets('recommended')[-1]
+ 
+>>> y = wordnet.synsets('suggested')[-1]
+ 
+>>> x.shortest_path_distance(y)
+ 
+0
+ 
+ 
+ 
+形容词和副词的相似度计算方法：
+ 
+形容词和副词没有被组织成分类体系，所以不能用path_distance。
+ 
+>>> a = wordnet.synsets('beautiful')[0]
+ 
+>>> b = wordnet.synsets('good')[0]
+ 
+>>> a.shortest_path_distance(b)
+ 
+-1
+ 
+形容词和副词最有用的关系是similar to。
+ 
+>>> a = wordnet.synsets('glorious')[0]
+ 
+>>> a.similar_tos()
+ 
+[Synset('incandescent.s.02'),
+ 
+ Synset('divine.s.06'),
+ 
+……]
+ 
+ 
+ 
+ 
+ 
+
+分享到： 
+
+上一篇：通用抽取工具Mask介绍
+下一篇：如何在python程序中调用weka的分类器
+ . 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+ictextr9
+ 
+
+
+
+访问：44036次
+积分：969分
+排名：第9665名
+.原创：47篇
+转载：8篇
+译文：1篇
+评论：27条
+. 
+文章搜索
+
+. 
+文章分类a 团队介绍(5)
+b 演示系统(0)
+c 研究成果(15)
+d 相关文献(12)
+e 其他(16)
+ 
+文章存档
+2012年12月(1).
+2012年11月(2).
+2012年08月(1).
+2012年01月(2).
+2011年12月(1).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+阅读排行WordNet介绍和使用(3533)
+svm原理简介(3227)
+CRF简介（一）(2316)
+团队成员-吴博(1902)
+网上信息抽取技术纵览(1863)
+如何在python程序中调用weka的分类器(1564)
+Mozilla FireFox Gecko内核源代码解析(1.nsParser)(1334)
+有关信息抽取的文章列表(1)(1191)
+C++ Html解析器-HtmlCxx用户手册和源代码解析(1071)
+网页内容抽取Demo(1014)
+ 
+评论排行CRF简介（一）(4)
+小议信息抽取系统的结构（1） ------by songlinhai(4)
+统计关系学习 --------------songlinhai(3)
+Blog Post Extraction Using Titles ------------- by songlinhai(3)
+论坛元信息抽取工具(2)
+论文: Blog Post and Comment Extraction Using Information Quantity of Web Format(2)
+通用抽取工具Mask介绍(2)
+ECON: An Approach to Extract Content from Web News Page(2)
+C++ Html解析器-HtmlCxx用户手册和源代码解析(1)
+网页内容抽取Demo(1)
+ 
+推荐文章 
+最新评论 C++ Html解析器-HtmlCxx用户手册和源代码解析
+hzmfly235: 你好，我想请问，htmlcxx解析出来得到的tree，实际上并没有体现出节点之间的父子关系，而是一个... 
+
+Mozilla FireFox Gecko内核源代码解析(3.nsScanner)
+xzl_19860118: 写的很透彻，现在怎么不更新别的部分了？DTD验证，DOM构造等等 
+
+Mozilla FireFox Gecko内核源代码解析(2.nsTokenizer)
+三刀流: 超过我的能力啊 
+
+通用抽取工具Mask介绍
+大狂人: 可以将源码发给小弟研究下吗？ 
+
+论坛元信息抽取工具
+yyy520: 在哪里 可以分享你的过程吗 
+
+小议信息抽取系统的结构（1） ------by songlinhai
+dogdoger: 回复 fireman1985：兄弟，我也是硕士论文这个方向，按照这个时间我估计你已经完成了吧，如果你... 
+
+CRF简介（一）
+yu992324: 回复 tttmusic：前辈能不能给点关于crf信息？？？谢谢!!邮箱1256871037@qq.c... 
+
+Blog Post Extraction Using Titles ------------- by songlinhai
+GeeSeek: 博客网页的正文抽取和其他网页类型的正文抽取似乎并没有本质的不同，如果要去除comments的干扰，通... 
+
+ECON: An Approach to Extract Content from Web News Page
+匿名用户: 回复 匿名用户：“相邻节点的distance为0，也就是说相邻节点的标点符号数目相等就停止了”——存... 
+
+CRF简介（一）
+匿名用户: 欢迎加入和推广QQ群109709858，交流CRF 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

@@ -1,0 +1,140 @@
+void setup()
+ 
+{
+ 
+  Serial.begin(9600);
+ 
+}
+ 
+
+void loop()
+ 
+{
+ 
+  while (Serial.available() > 0)
+ 
+  {
+ 
+    SerialReadVal(4); //运行子程序，并给定要求读字段数量，注意不可大于子程序中最大分段数
+ 
+  }
+ 
+}
+ 
+
+//读串口数据、数据分段子程序
+ 
+void SerialReadVal(unsigned int comdata_digit)
+ 
+{
+ 
+  String comdata = "";  //串口字符串传递变量
+ 
+  char comdata_mark = ','; //字符串分段标志，可更改
+ 
+  int comdata_mark_count = 0; //分段标志数量
+ 
+  unsigned int comdata_mark_list[63]; //分段标志位置列表，最大63+1段，此三项可视实际情况增减
+ 
+  unsigned int comdata_val_long[64]; //每段字串长度列表，最大64段
+ 
+  String comdata_val[64]; //分段字符串列表，最大64段数据，此数组可在程序开始定义为全局变量，用于返回数据，数据可继续进行深加工
+ 
+  
+ 
+//读入串口数据并赋值给传递变量
+ 
+  while (Serial.available() > 0)
+ 
+  {
+ 
+    comdata += char(Serial.read());
+ 
+        delay(2);
+ 
+  }
+ 
+  
+ 
+//确定分段标志位置，并判断输入段数是否符合给定值
+ 
+  for (int i = 0; i < comdata.length(); i++)
+ 
+  {
+ 
+    if (comdata.charAt(i) == comdata_mark)
+ 
+        {
+ 
+          comdata_mark_list[comdata_mark_count] = i;
+ 
+          comdata_mark_count++;
+ 
+        }
+ 
+  }
+ 
+  for (int i = 0; i <= comdata_mark_count; i++)
+ 
+  {
+ 
+    if (i == 0) comdata_val_long[0] = comdata_mark_list[0];
+ 
+        else if (i == comdata_mark_count) comdata_val_long[i] = comdata.length() - comdata_mark_list[i-1] - 1;
+ 
+        else comdata_val_long[i] = comdata_mark_list[i] - comdata_mark_list[i-1] - 1;
+ 
+  }
+ 
+/*
+ 
+  串口监视程序运行
+ 
+  Serial.println(comdata);
+ 
+  Serial.println(comdata_mark_count);
+ 
+  Serial.println();
+ 
+  for (int i = 0; i < comdata_mark_count; i++) Serial.println(comdata_mark_list[i]);
+ 
+  Serial.println();
+ 
+  for (int i = 0; i < (comdata_mark_count + 1); i++) Serial.println(comdata_val_long[i]);
+ 
+  Serial.println();
+ 
+  */
+ 
+  if (comdata_mark_count < (comdata_digit - 1)) return;
+ 
+  
+ 
+//按给定的段数分段
+ 
+  for (int i = 0; i < comdata_digit; i++)
+ 
+  {
+ 
+    if (i == 0)
+ 
+        {
+ 
+          for (int ii = 0; ii < comdata_val_long[0]; ii++) comdata_val[i] += comdata.charAt(ii);
+ 
+        }
+ 
+        else
+ 
+        {
+ 
+      for (int ii = 0; ii < comdata_val_long[i]; ii++) comdata_val[i] += comdata.charAt(comdata_mark_list[i-1]+1+ii);
+ 
+        }
+ 
+  }
+ 
+  for (int i = 0; i < comdata_digit; i++) Serial.println(comdata_val[i]); // 串口监视程序运行
+ 
+}
+ 

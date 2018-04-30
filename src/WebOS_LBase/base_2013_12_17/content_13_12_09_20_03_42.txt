@@ -1,0 +1,414 @@
+
+
+Chinaunix首页　| 　论坛　| 　问答　| 　博客登录 | 注册
+
+
+
+博文博主
+
+
+
+
+
+
+
+
+
+hubertx的ChinaUnix博客hubert.blog.chinaunix.net
+
+暂无签名
+
+
+•【原创评选】10-11月原创博文评选
+•2013第三季度“ChinaUnix博客之星”评选
+•2013 Hadoop中国技术峰会（11.22-11.23，北京） 
+
+首页　| 　博文目录　| 　关于我
+ 
+
+
+
+
+hubertx
+•博客访问： 89757 
+•博文数量： 104 
+•博客积分： 1751 
+•博客等级： 上尉 
+•技术积分： 1167 
+•用 户 组： 普通用户
+•注册时间： 2011-05-31 22:37 
+•
+
+•
+•
+•
+•
+
+
+文章分类
+
+
+全部博文（106）
+•git（1） 
+•java（3） 
+•rtkernel（1） 
+•Programe（1） 
+•graphic（9） 
+•storage（3） 
+•Power management（3） 
+•linux环境编程（1） 
+•ubuntu（5） 
+•python（7） 
+•android（16） 
+•skills（8） 
+•x86 arch（4） 
+•Compile&LD（4） 
+•ARM architecture（5） 
+•boot（3） 
+•Compile&Link（3） 
+•linux内核学习（22） 
+•未分配的博文（7） 
+
+
+文章存档
+
+
+2013年（20）
+
+
+
+
+
+
+
+
+
+2012年（53）
+
+
+
+
+
+
+
+
+
+
+
+2011年（31）
+
+
+
+
+
+
+
+
+
+我的朋友
+•
+dogsun88
+
+•
+Gforge
+
+•
+athsonxy
+
+•
+chubbyhu
+
+
+
+最近访客
+•
+chengfan
+
+•
+mjx91282
+
+•
+cu_fwang
+
+•
+stonelib
+
+•
+hannimao
+
+•
+watercol
+
+•
+nb985211
+
+•
+liqun_du
+
+•
+chenzhon
+
+
+
+订阅
+•
+•
+
+
+推荐博文
+•·杂拌儿糖职场手册——Leo鉴书...
+•·memcached中保证用户不会访问...
+•·python类、对象、方法、属性...
+•·【JAVA】设计模式之简单工厂...
+•·windows 8.x/2012/2012 r2下...
+
+
+热词专题
+•·ubuntu下mysql的安装
+•·各linux文件系统比较
+•·linux下用TCP/IP协议实现在线...
+•·学习linux
+•·在AIX中查看文件夹占用空间大...
+ 
+
+
+
+MTRR是什么2012-03-20 15:28:34
+
+
+
+分类： LINUX
+
+
+ 1、MTRR的概念
+内存类型范围寄存器（MTRRs，翻译过来真别扭，后面都以MTRR直接来说了）提供了一种机制，这种机制其实就是确定在系统内存中物理一段内存的类型。这个类型其实是正对CPU来说的，见图1
+
+ 
+
+图1 内存的类型
+
+这些类型，其实是告訴CPU在解析或者说操作内存的时候应该用什么手段。就这么简单。为什么要这样做呢？一般情况下，内存都是应该是被设置为有cache来帮助CPU操作内存的，这样的话整个系统的效率就会比较高。但是某些设备所使用的内存却比较特殊，比如说Frame buffer就是一种很好的例子。那么软件（一般情况下是BIOS）就需要配置CPU的相关寄存来申明那些范围的内存在处理的时候需要做什么样的动作（这就是类型）。总的来说它们允许CPU优化不同类型的内存如RAM，ROM和帧缓冲内存（frame buffer），内存操作映射I / O设备。这种做法简化了内存控制系统的硬件设计引脚。
+
+MTRR机制允许多达96个内存范围（memory ranges）在物理内存的定义，它定义了一系列的MSRs，这些寄存器分别去说明MSR定义中包含的那段内存的具体类型。图2是MTRRs物理内存映射的示意图。
+
+ 
+
+图2 MTRRs物理内存映射示意
+
+而每一段的内存可以被定义的类型有多个，见图3.
+
+ 
+
+ 
+
+图3 Memory Types That Can Be Encoded in MTRRs
+
+硬件复位之后，P6及大多最近的处理器系列禁用所有的固定和可变MTRRs，这使得所有的物理内存的类型都成为了uncacheable。初始化软件应该依据系统定义的存储器映射设置MTRRs成特定的类型。典型的，BIOS（基本输入/输出系统）软件来配置MTRRs。
+
+在一个多处理器系统中，使用的P6系列或者较新的处理器系列，每个处理器必须使用相同的MTRR内存映射，从而使软件的内存有一致的视点。
+2 MTRR Feature Identification
+MTRR的功能可用性是模型具体。软件可以判定处理器上MTRRs是否支持。它只需要通过执行CPUID指令，读取的MTRR Flag的状态（EDX的bit 12）状态。
+
+如果MTRR标志被置为1（表明该处理器采用MTRRs），MTRRs的其他信息可以从64位的寄存器IA32_MTRRCAP中获得（MTRRcap MSR是P6系列处理器的名字）。IA32_MTRRCAP MSR是一个只读的MSR，它可以用RDMSR指令读取。图4显示了IA32_MTRRCAP MSR的内容。
+
+ 
+
+图4 IA32_MTRRCAP Register
+
+寄存器中的这些Flags和相应区域的功正如：
+
+ •VCNT（variable range registers count）区域（field），Bit0到Bit7——表明的处理器的实施变量范围的数目。奔腾4，英特尔至强，和P6系列处理器有8个变量设置8 对MTRRs的范围。
+
+•FIX（fixed range registers supported）标志（flag），Bit8 ——当被置1时，固定MTRRs的范围（IA32_MTRR_FIX64K_00000到IA32_MTRR_FIX4K_0F8000）则支持；当被清零的时候，则表明没有固定的范围。
+
+•WC（write combining）标志（flag），Bit10 ——当被置1时写结合（WC）的内存类型支持;当被清零的时候，WC类型不支持清楚。IA32_MTRRCAP MSR的Bit9和bit11~bit63是保留的。如果软件试图写入IA32_MTRRCAPMSR，一般保护异常（general-protection exception，＃GP）将会发生。对于奔腾4，英特尔至强，和P6系列处理器，该IA32_MTRRCAP MSR始终是508H。
+3、IA32_MTRR_DEF_TYPE MSR
+IA32_MTRR_DEF_TYPE MSR（P6系列处理器被命名为MTRRdefType MSR）设定的不被MTRRs包含的物理内存区域的默认属性。这个寄存器的标志（flag）及区域（field）的功能如下：
+
+• Type字段（field），bit0到bit7——表明了，那么些没有被MTRR定义的物理内存段的默认内存类型。这些类型和MTRR定义的那些类型的种类是一模一样的。见图2。这个区域的逻辑值为0，1，4，5和6。所有其他值都会触发一般保护异常（general-protection exception ＃GP）。那些物理内存地址处如果没有实际内存存在的话，英特尔建议使用UD（uncached）内存类型。给那些并不存在内存的地方分配UC的类型，那么我们可以指定这段内存要么是默认类型类型字段要么就是可变MTRRs分配的。
+
+图5是IA32_MTRR_DEF_TYPE MSR示意图
+
+ 
+
+图5 IA32_MTRR_DEF_TYPE MSR
+
+• FE (fixed MTRRs enabled)标志（flag），bit10——当置1时，固定范围MTRRs enabled，反之亦反。当固定范围MTRRs的启用时，他们较之于可变的MTRRS的有更高的优先级，所以他们的范围发生重叠的时候，那么fixed-range MTRRs则优先于variable-range MTRRs。如果在fixed-range MTRRs是disabled的，fixed-range MTRRs仍可使用，可以映射通常由固定的范围MTRRs覆盖范围。
+
+• E (MTRRs enabled)标志（flag），bit11——当它置1时，MTRRs被启用，当被清零时，所有MTRRs被禁用，并且UC内存类型适用于所有的物理内存。当此标志被置1，FE标志可以禁用固定范围MTRRs（fixed-range MTRRs），当被清零时，是FE标志不会有影响。当E标志置1时，图5中“default memory type field”里包含的具体类型是指那些没有被固定的或者可变的MTRR分配的内存的类型。
+
+IA32_MTRR_DEF_TYPE 的Bit8，bit9和bit12到bit63是保留的，如果软件尝试写入非零值给他们处理器触发一个一般保护异常（general-protection exception＃GP）。
+4、Fixed Range MTRRs
+Fixed memory ranges是由11个64位的fixed memory ranges位寄存器来做到映射的。这些寄存器都是被分为8bits的区域（field）的，这个区域用来指定每个区域所控制的内存段的内存类型（memory type）：
+
+•寄存器IA32_MTRR_FIX64K_00000——映射从0H到7FFFFH的512Kbyte的地址范围。此范围被分为8个64Kbyte子区间。
+
+•寄存器IA32_MTRR_FIX16K_80000,IA32_MTRR_FIX16K_A0000——映射2个128Kbyte的地址范围，从80000H到BFFFFH 。此范围被分为16个16Kbyte的子区间，每个寄存器有8个范围。
+
+•寄存器IA32_MTRR_FIX4K_C0000到IA32_MTRR_FIX4K_F8000 ——映射从C0000H到FFFFFH 的8个 32Kbyte的地址范围。此范围分为64 个4KB的子区间，每个寄存器有8个范围。
+
+图6显示了固定的物理地址范围和固定范围MTRRs相应领域的关系
+
+ 
+
+图6 Address Mapping for Fixed-Range MTRRs
+
+而fixed memory ranges的内存类型正是图3所示的类型。
+
+对于六系列处理器，fixed memory ranges前缀是MTRRfix。
+5、Variable Range MTRRs
+奔腾4，英特尔至强，和P6系列处理器允许软件，用每个范围的MTRRs对来指定8 variable-size address ranges的内存类型。每对寄存器的第一项定义为基地址和范围内存类型（IA32_MTRR_PHYSBASEn），第二项包含用来确定地址范围的掩码
+
+（IA32_MTRR_PHYSMASKn）。字母“N”后缀表示，寄存器对的序号0~7。 P6系列处理器，Variable Range MTRRs的前缀是MTRRphysBase和MTRRphysMask。
+
+图7是IA32_MTRR_PHYSBASEn and IA32_MTRR_PHYSMASKn Variable-Range Register Pair的示意图，展示了这些寄存器的标志和区域。
+
+ 
+
+图7 IA32_MTRR_PHYSBASEn and IA32_MTRR_PHYSMASKn Variable-Range Register Pair
+
+这些标志（flag）和字段（field）的职能是：
+
+•Type字段（field），bit0到bit7——指定的范围内存类型（见图3所示）。
+
+•PhysBase字段（field），bit12到（MAXPHYADDR - 1）——地址的范围内基址。如果MAXPHYADDR是36位，那么这24位值，扩展低端12位形成24位，从而形成基地址（它会自动对齐4KB的边界地址）。
+
+•PhysMask字段（field），bit12到（MAXPHYADDR - 1）——指定一个掩码（如果最大的物理地址大小为36位那么掩码就是24位，如果最大的物理地址大小为40位那么掩码就是28位）。掩码决定了该区域范围内被映射，按照下列关系：
+
+
+
+
+Address_Within_Range AND PhysMask = PhysBase AND PhysMask
+ 
+ 
+ 
+
+
+——掩码会被扩展到低端的12个bit，从而形成掩码的值。如果想要了解更加细致点的话，参阅后面的章节。
+
+——PhysMask的字段宽度取决于处理器能够支持的最高的物理地址的大小。 CPUID.80000008H反应了CPU能够支持的最大物理地址。如果CPUID.80000008H无效的话，那么软件可以假设CPU能够支持36 bit的物理地址。（于是PhysMask就是24bit宽，IA32_MTRR_PHYSMASKn的高28bit被保留。详细可见图7）
+
+•V (valid)标志（flag），bit11——当被置1时，上面提到的寄存器对有效，反之亦反。
+
+所有IA32_MTRR_PHYSBASEn和IA32_MTRR_PHYSMASKn寄存器的其他位均保留，如果软件试图写这些位置，处理器产生一个一般保护异常（general-protection exception＃GP）。
+
+一些掩码值可能导致范围是不连续的。在这样的范围内，掩码值并没有映射区域，那么它将被设置为默认的内存类型。英特尔不鼓励“不连续”范围使用，因为它们可能要求的整个4 GByte物理内都存在，而且从头到尾被映射。如果没有提供内存，那么这个行为将是不确定的。
+6、Example Base and Mask Calculations
+本节中的例子适用的处理器，可以支持最高36位物理地址的大小。variable-range MTRR对的基地址和掩码的值是24位值，然后处理器自动扩展（低12个bit）到36位。
+6.1示例1：单独确定一段内存属性
+例如，要输入一个基地址为2 Mbytes（200000H）到IA32_MTRR_PHYSBASE3 寄存器中去，最低12有效位会被截断，从而形成的值是000200H 作为基地址被存入PhysBase字段。掩码值也是同样的操作被存入的。例如，从200000H映射地址范围3FFFFFH（2 Mbytes到4 Mbytes），那么这个掩码的值是FFFE00000H。由于和base的操作是一样的，那么实际被存入到IA32_MTRR_PHYSMASK3的PhysMask字段中的值是FFFE00H。当任何200000H地址3FFFFFH范围内的内存地址与掩码值AND（与操作）后，它将返回与基地址掩码值AND（与操作）相同的值（200000H）。
+
+同理，映射从400000H 到7FFFFFH地址范围（4 Mbytes到8 Mbytes），应该填入的基地址值是000400H，掩码值应该是FFFC00H。
+
+ 
+6.2示例2：给系统内存配置类型
+我们假设有这样一个系统，需要它的内存有以下的特征：
+
+•系统内存96 MBytes被映射为 write-back memory（ WB）的类型，因为这样的性能最高。
+
+•自定义4 Mbytes I / O卡被映射到内存的64兆字节的基地址处，而且它们的属性应该是uncached memory (UC)。这个限制导致了本应该是96 Mbytes的系统内存被分成了从0到64 Mbytes处理，和从68 Mbytes到100 Mbytes，从而因为I / O卡的原因，造成了一个4 Mbytes的洞（hole）。
+
+•一个8 Mbytes的显卡映射到A0000000H开始的地址处，它的内存属性是write-combining（WC）。
+
+•BIOS区域从15 Mbytes到16 Mbytes，并且被定义为UC内存。
+
+下面就是它们分别对应的基地址和掩码寄存器的值：
+
+IA32_MTRR_PHYSBASE0 = 0000 0000 0000 0006H
+
+IA32_MTRR_PHYSMASK0 = 0000 000F FC00 0800H
+
+Caches 0-64 MByte as WB cache type.
+
+1Mbytes = 10 0000H将FC00 0800H扩展后是FC00 0000H然后再取反的3FF FFFFH= 64MByte。
+
+IA32_MTRR_PHYSBASE1 = 0000 0000 0400 0006H
+
+IA32_MTRR_PHYSMASK1 = 0000 000F FE00 0800H
+
+Caches 64-96 MByte as WB cache type.
+
+基地址：将0000 0000 0400 0006H扩展后是 0400 0000H可知是64 Mbytes。
+
+掩码：将FE00 0800H扩展后是FE00 0000H然后再取反的1FF FFFFH= 32MByte。
+
+IA32_MTRR_PHYSBASE2 = 0000 0000 0600 0006H
+
+IA32_MTRR_PHYSMASK2 = 0000 000F FFC0 0800H
+
+Caches 96-100 MByte as WB cache type.
+
+将FFC0 0800H扩展后是FFC0 0000H然后再取反的3F FFFFH= 4MByte。后面以此类推。
+
+IA32_MTRR_PHYSBASE3 = 0000 0000 0400 0000H
+
+IA32_MTRR_PHYSMASK3 = 0000 000F FFC0 0800H
+
+Caches 64-68 MByte as UC cache type.
+
+IA32_MTRR_PHYSBASE4 = 0000 0000 00F0 0000H
+
+IA32_MTRR_PHYSMASK4 = 0000 000F FFF0 0800H
+
+Caches 15-16 MByte as UC cache type.
+
+IA32_MTRR_PHYSBASE5 = 0000 0000 A000 0001H
+
+IA32_MTRR_PHYSMASK5 = 0000 000F FF80 0800H
+
+Caches A0000000-A0800000 as WC type.
+
+ 
+
+以上就是目前我對MTRR的認知，可能會有人會問，爲什麽你要說到MTRR這個東西呢？主要還是因為系統性能的原因。（咦，這和系統的性能有何聯繫呢？）內存，不的不說它是整個系統的重要原件。因為我們的CPU再解析他的時候依據屬性的不一樣，速度和安全性會不太一樣。在我們的主板上，曾經就遇到過這樣的問題，由於AWXXX code的原因，對某些chipset的支持不夠好，所以在配置Frame buffer的時候出了點小問題，當Frrame buffer為8M的時候，code會因為算法的原因把其餘一部份系統佔用的內存屬性配置成了UC（這種方式很可靠，但是效率和性能卻最差）。然而系統的內存一般為了能夠提高性能一般都是配置的WB（這種方式性能是最好的。）由於本應該是WB的內存類型，被配置成了UC，所以會直接影響整個系統的性能。如果您不信，您可以試試。（不過，算法挺複雜的。-_-~）
+
+
+
+
+阅读(1741) | 评论(0) | 转发(0) | 
+
+
+0
+
+上一篇：Vertical blank interrupt VBI中断
+
+下一篇：DDC及EDID 的定义
+
+
+相关热门文章
+•帮宝适会员优惠券与纸尿片相似...
+•帮宝适特级棉柔纸尿裤价格粘贴...
+•为了宝宝的舒适 挑选合适的帮...
+•帮宝适优惠券可以省去很多麻烦...
+•帮宝适印花积分与尿布的不同 ...
+•linux 常见服务端口
+•【ROOTFS搭建】busybox的httpd...
+•什么是shell
+•linux socket的bug??
+•linux的线程是否受到了保护？...
+•关于MYSQL 时间类型存储在数据...
+•schedule如何将新程序运行？...
+•修改默认端口为222，centos自...
+•用PHP做一个ftp登录页面...
+•Toad for Oracle工具,为什么在...
+
+
+
+给主人留下些什么吧！~~
+
+
+
+
+评论热议
+
+
+ 请登录后评论。 
+登录 注册
+ 
+
+关于我们 | 关于IT168 | 联系方式 | 广告合作 | 法律声明 | 免费注册
+Copyright 2001-2010 ChinaUnix.net All Rights Reserved 北京皓辰网域网络信息技术有限公司. 版权所有 
+
+感谢所有关心和支持过ChinaUnix的朋友们 
+京ICP证041476号 京ICP证060528号
+ 

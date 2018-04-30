@@ -1,0 +1,189 @@
+
+求教基于MATLAB的PCM脉冲编码调制仿真实现的程序编写 
+[复制链接] 
+
+
+
+
+
+
+
+
+
+
+
+fangfang0l
+ 
+
+
+
+
+
+.
+
+
+
+ 
+
+
+
+
+
+
+
+7
+主题 
+
+0
+好友 
+
+25
+积分 
+
+M学校：童生
+ 
+
+
+
+
+
+财富积分-1 麦片最佳答案0 个在线时间48 小时帖子23. 发消息
+ . 
+
+
+电梯直达 
+1# 
+
+
+
+发表于 2009-5-1 16:15:17 |只看该作者 |倒序浏览 
+
+
+
+
+
+
+基于MATLAB的PCM脉冲编码调制仿真实现的程序编写:L 基于MATLAB的PCM脉冲编码调制仿真实现
+ 一道MATLAB题运行不出来．帮看看为什么．（有的人说好象开头没有定义变量，请帮忙给改好了，万分感谢的）
+ 设输入信号为 x(t)=Acsin2Лt,对x(t)信号进行抽样、量化和A律PCM编码，经过传输后，接收端进行PCM译码。
+ 画出经过PCM编码、译码后的波形与未编码波形；
+ 设信道没有误码，画出不同Ac情况下，PCM译码后的量化信噪比。
+ 解：仿真的系统框图如图所示。
+ 图为A律PCM量化器的动态范围仿真框图
+ 
+
+%show the pcm encode and decode
+ clear all;
+ close all;
+ t = 0:0.01:10;
+ vm1 = -70:1:0; %输入的正弦信号幅度不同
+ vm = 10.^(vm1/20);
+ figure(1)
+ for k = 1:length(vm)
+ for m = 1:2
+ x = vm (k)*sin(2*pi*t+2*pi*rand(1));
+ v = 1;
+ xx = x/v;%normalize
+ sxx = floor(xx*4096);
+ y = pcm_encode(sxx);
+ yy = pcm_decode(y,v);
+ 
+nq(m) = sum((x-yy).*(x-yy))/length(x);
+ sq(m) = mean(yy.^2);
+ snr(m) = (sq(m)/nq(m));
+ 
+drawnow
+ subplot(211)
+ plot(t,x);
+ title('sample sequence');
+ subplot(212)
+ plot(t,yy)
+ title('pcm decode sequence');
+ end
+ snrq(k)=10*log10(mean(snr));
+ end
+ 
+figure(2)
+ plot(vm1,snrq);
+ grid;
+ 
+
+
+function [out]=pcm_encode(x)
+ %x encode to pcm code 
+n=length(x);
+ %-4096<x<4096
+ for i = 1:n
+ if x(i)>0
+ out(i,1)=1;
+ else
+ out(i,1)=0;
+ end
+ 
+if abs (x(i))> = 0 & abs(x(i))<32
+ out(i,2)=0;out(i,3)=0;out(i,4)=0;step=2;st=0;
+ elseif32<=abs(x(i))&abs(x(i))<64
+ out(i,2)=0;out(i,3)=0;out(i,4)=1;step=2;st=32;
+ elseif64<=abs(x(i))&abs(x(i))<128
+ out(i,2)=0;out(i,3)=1;out(i,4)=0;step=4;st=64;
+ elseif128<=abs(x(i))&abs(x(i))<256
+ out(i,2)=0;out(i,3)=1;out(i,4)=1;step=8;st=128
+ elseif256<=abs(x(i))&abs(x(i))<512
+ out(i,2)=1;out(i,3)=0;out(i,4)=0;step=16;st=256;
+ elseif512<=abs(x(i))&abs(x(i))<1024
+ out(i,2)=1;out(i,3)=0;out(i,4)=1;step=32;st=512;
+ elseif1024<=abs(x(i))&abs(x(i))<2048
+ out(i,2)=1;out(i,3)=1;out(i,4)=0;step=64;st=1024;
+ elseif2048<=abs(x(i))&abs(x(i))<4096
+ out(i,2)=1;out(i,3)=1;out(i,4)=1;step=128;st=2048;
+ else
+ out(i,2)=1;out(i,3)=1;out(i,4)=1;step=128;st=2048;
+ end
+ 
+if(abs(x(i))&abs(x(i)))<4096
+ out(I,2:8)=[1 1 1 1 1 1 1];
+ else
+ tmp=floor((abs(x(i))-st)/step);
+ t=dec2bin(tmp,4)-48;%函数dec2bin输出的是ASCII字符串，48对应0
+ out(i,5:8)=t(1:4);
+ end
+ end
+ out=reshape(out',1,8*n);
+ 
+
+
+function[out]= pcm_decode(in,v)
+ %decode the input pcm code
+ %in : input the pcm code 8 bits sample
+ %v:quantized level
+ n=length(in);
+ 
+in=reshape(in',8,n/8)';
+ slot(1)=0;
+ slot(2)=32;
+ slot(3)=64;
+ slot(4)=128;
+ slot(5)=256;
+ slot(6)=512;
+ slot(7)=1024;
+ slot(8)=2048;
+ 
+step(1)=2;
+ step(2)=2;
+ step(3)=4;
+ step(4)=8;
+ step(5)=16;
+ step(6)=32;
+ step(7)=64;
+ step(8)=128;
+ 
+for i=1:n/8
+ ss=2*in(i,1)-1;
+ tmp = in(i,2)*4+in(i,3)*2+in(i,4)+1;
+ st = slot(tmp);
+ dt = (in(i,5)*8+in(i,6)*4+in(i,7)*2+in(i,8))*step(tmp)+0.5*step(tmp);
+ out(i)=ss*(st+dt)/4096*v;
+ end
+ 
+
+

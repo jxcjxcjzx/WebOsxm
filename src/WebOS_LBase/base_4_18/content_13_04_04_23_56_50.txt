@@ -1,0 +1,180 @@
+网易 
+博客 
+发现
+小组
+风格
+ 
+网易真人搭配社区iStyle
+创建博客登录  加关注
+与天奋斗其乐无穷，与地奋斗其乐无穷
+与人奋斗其乐无穷----超越自我
+首页
+日志
+相册
+音乐
+收藏
+博友
+关于我
+  
+日志
+  
+克隆人
+我思故我在！~~~~
+  加博友   关注他
+ 他的网易微博
+最新日志
+详解C中volatile关键字----
+【转】C程序存储空间布局（
+Proteus仿真过程中的颜色变
+#ifndef#define#endif的用法
+RO段、RW段和ZI段 -- 会穿裤
+ARM中的RO、RW和ZI - 
+随机阅读
+同气质美女大PK 你最中意谁
+十年房地产调控:无人喝彩的尴尬
+为何中国人都重利益而轻灵魂？
+(转载）张雷夫妻向耶鲁捐款8888888美元内幕
+【初生牛股】2013年筑底打基
+何方的新书
+首页推荐
+范冰冰成女艺人整容范本
+毛泽东拒吃加酱油的烧肉
+叶檀：坐等房价再次翻番
+做爱时她下面太湿怎么办
+巨星崔银姬被绑架到朝鲜
+江泽民为何总抓夫人胳膊
+更多>>
+
+
+
+ Qt 简介 LINUX下Qt学习点滴！
+linux下安装QT   
+
+2009-03-10 23:05:19|  分类： 默认分类 |字号 订阅
+Linux下安装Qt
+前段时间简单的学习了一下Linux下图形编程Qt编程软件，安装方法我来说一下，最令我难忘的是安装Qt编译时间长达漫长两个小时。下面我就来说一下安装Qt的具体步骤：
+
+一、下载Qt源码包到本机，然后解压缩
+#tar zxvf qt-x11-free-3.2.1.tar.gz -C /usr/local          //将qt-x11-opensource-src-4.2.3.tar.gz源码包解压缩到/usr/local目录（推荐解压缩至 /usr/local目录）
+
+二、进入用户家目录的.bash_profile文件设置Qt环境变量，在这里我们以root用户以例。
+#vi /root/.bash_profile          //打开root用户.bash_profile文件
+在root用户.bash_profile文件中设置环境变量，在此文件里面添加如下内容：
+QTDIR=/usr/local/qt-x11-opensource-src-4.3.0
+PATH=$QTDIR/bin:$PATH
+MANPATH=$QTDIR/doc/man:$MANPATH
+LD_LIBRARY_PATH=$QTDIR/lib:$LD_LIBRARY_PATH
+export QTDIR PATH MANPATHLD_LIBRARY_PATH
+添加完上面信息后按ESC键，“Shife+:”组合键回到vi编辑器命令行状态，输入wq!（强制保存退出）
+
+三、添加完环境变量后，使环境变量立即生效：#source /root/.bash_profile
+
+四、进入Qt解压缩的目录
+#cd $QTDIR或#cd /usr/local/qt-x11-free-3.2.1都可以，因为在/root/.bash_profile文件已经定义了环境变量QTDIR= /usr/local/qt-x11-free-3.2.1和export QTDIR 。
+
+五、使用configure工具来构建Qt库和它提供的工具：./configure（./configure --help 配置选择的列表。例：-thread选项来创建这个库的一个多纯种版本。）
+
+六、最后一步就要进入漫长的Qt安装编译时间了，有事的就出去办事吧，安装编译时间大约需要两个小时。编译命令：make
+Qt安装过程就是这样了，祝您安装Qt成功！！最后说明一下我的安装环境是Red Hat Linux 9 操作系统。
+
+首先我们进入Linux的图形界面，打开一个控制终端（在桌面空间处单击鼠标右键，在弹出的单菜中选择“新建控制终端”。），在控制终端里面新建一个.cpp文件，并编写程序，如下：
+#vi HelloWorld.cpp        //建立一个HelloWorld.cpp文件
+#include<qapplication.h>
+#include<qlabel.h>
+int main(int argc,char *argv[])
+{
+          QLabel *label=new QLabel("Hello World!!!",0);
+          QApplication app(argc,argv);
+          app.setMainWidget(label);
+          label->show();
+          return app.exec();
+}
+写完上面的代码后保存退出（wq）vi编辑器。
+#qmake -project          //把.cpp文件编译成.pro文件
+#qmake HelloWorld.pro          //通过.pro文件自动创建Makefile文件
+#make            //编译，生成HelloWorld执行文件
+#./HelloWorld        //运行HelloWorld文件
+程序正常运行对话框显示“HelloWorld!!!”，证明Qt安装成功！！
+
+
+QT 3.0 简明安装、使用指南
+
+假设你已经下载了 QT 3.0 的源代码包并解压到了 /usr/local/qt 目录下，然后按照下面的步骤可以安装 QT 库到你的计算机中。此方法在 Red Hat Linux 7.1 下编译安装通过。
+
+1. 请先设置环境变量，否则无法编译 QT。
+编辑 /etc/profile 文件，输入：
+
+QTDIR=”/usr/local/qt”
+PATH=”$QTDIR/bin:$PATH”
+LD_LIBRARY_PATH=”$LD_LIBRARY_PATH”
+QMAKESPEC=”linux-g++”
+export QTIDR PATH LD_LIBRARY_PATH QMAKESPEC
+
+QMAKESPEC 环境变量可参考 $QTDIR/mkspec 目录中的名字，各位可根据自己的系统编译环境进行设置。
+比如你用 Microsoft Visual Studio 编译程序，那么就要设置如下环境变量：
+QMAKESPEC=”win32-msvc”
+用 Linux 就这样设置：
+QMAKESPEC=”linux-g++”
+
+
+2. 编译 QT。
+
+cd /usr/local/qt
+./configure
+make
+美美地睡 N 个小时…
+qmake
+
+3. 用 QT 3.0 编译程序。
+
+这里假设你已经用 QT Designer 做好一个窗体并已写好了相关事件的响应代码，下面在 QT Designer 中选择 File|New 菜单并选择 “C++ Main-File (main.cpp)” 项，然后保存。
+切换到命令行方式，输入：
+
+qmake
+make
+
+第二次编译时就不必再输入 qmake 了，因为 make 会为你代劳
+
+
+
+引文来源  linux下安装QT - mai_wei_qiang的日志 - 网易博客
+分享到：        阅读(2769)| 评论(0)| 转载 (0) |举报
+ Qt 简介 LINUX下Qt学习点滴！
+历史上的今天
+电子制作实验室欢迎您！AT24C02串行E2PROM的读写2010-03-10 23:35:47
+开漏（open&nbsp;drain）和开集（open&nbsp;collector）(转载）_2010-03-10 00:04:54
+AT24C01或者AT24C02的C51源程序（2010-03-10 00:02:00
+最近读者
+登录后，您可以在此留下足迹。 
+piqio379
+  
+williamc
+  
+jimpier
+  
+风之殇
+  
+boyadme
+  
+lh_hang
+  
+cuimengq
+ 
+xuanming
+评论
+点击登录|昵称：
+
+ 
+       
+公司简介 - 联系方法 - 招聘信息 - 客户服务 - 隐私政策 - 博客风格 - 手机博客 - VIP博客 - 订阅此博客
+网易公司版权所有 ©1997-2013
+
+
+武汉学童被卖身女包围
+李文波  超震撼的西方涂鸦
+一年有百万人死于空气污染
+魏英杰：由'女神探'制造的冤案还有多少
+柴静：被逼搬去台湾的母子
+自闭症孩子眼中的世界(图)
+我们很少人知道的真实印度
+三位中共领导人坟墓在国外

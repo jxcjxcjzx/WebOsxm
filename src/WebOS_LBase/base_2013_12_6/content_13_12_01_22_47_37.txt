@@ -1,0 +1,816 @@
+JSPCN主页 
+JSP空间 
+VPS主机 
+JSP论坛 
+JSP技术 
+JSP下载 
+关于我们 
+联系我们 
+  
+
+当前位置: 首页 --> JSP文章 -->  JAVA技术 --> JAVA基础 --> 向 Java 应用程序伸出援助之手 
+关于Date和Calendar类的基础用法 
+Eclipse基础－－plugin插件安装 
+基础篇：Java语言的基本组成 
+基础篇：条件控制 
+基础篇：Brake和Label 
+基础篇：数组 
+基础篇：循环 
+线程基础---wait(),notify的应用一例 
+XML Web Service 基础 
+JAVA的入门基础一些精典 
+JVM结构基础(一) 
+JDBC基础教程之CallableStatement 
+Java基础：Java泛型编程快速入门 
+Process-Display-Process (PDP) pattern 
+Why Java can be used for games? 
+Single Entry Point to EJB Layer 
+足球战术之observer及memento篇 
+如何将form保存到图片中！ 
+Applet间的通讯(2)--Tricks of the Java Programming Gurus 
+TOMCAT下的JIVE2的中文问题分析及解决 
+更多... 
+
+
+向 Java 应用程序伸出援助之手
+
+
+
+作者：未知    文章来源：www.jspcn.net
+发布日期：2005年01月19日
+入门
+在本文中，将为一个 Tax Calculator 应用程序构建一个 JavaHelp 系统。图 1 显示了这个 Tax Calculator。可以在本文最后的 参考资料 中找到这个例子的源代码。运行 FirstLook 以显示 Tax Calculator。
+
+图 1. Tax Calculator 的 About 页
+
+
+在图 2 中您会看到 Tax Calculator 帮助系统的导航设置。注意突出显示了后面将要讨论的一些导航图标。
+
+图 2. 导航帮助系统
+
+
+安装 JavaHelp 2.0
+可以在 JavaHelp 主页 中找到 JavaHelp 2.0 二进制发布。在将下载的 zip 文件解压缩到所选的目录中以安装 JavaHelp 软件之前，在开发计算机上必须已安装版本 1.2.2 或者是更高的 J2SE SDK。应当创建一个像 JAVAHELP_HOME 这样的环境变量以包含到安装 JavaHelp 2.0 的文件夹的路径。应当在 classpath 中加入 
+%JAVAHELP_HOME%javahelplibjhall.jar。
+
+注意在安装版本 2.0 之前，必须删除所有以前版本的 JavaHelp。
+
+
+使用 HelpSet
+每一个 JavaHelp 帮助系统都包含一组称为 HelpSet 的文件。这些文件共同提供了应用程序帮助系统的工作基础。JavaHelp HelpSet 包括三种类型的文件：
+
+HelpSet 数据文件 
+导航文件 
+主题文件 
+可以在 参考资料 中找到示例 Tax Calculator 的帮助系统的 HelpSet 文件。HelpSet 数据文件是 TaxCalculatorHelpSet.hs 和 TaxCalculatorMap.jhm。导航文件是 TaxCalculatorIndex.xml、TaxCalculatorTOC.xml 和 TaxCalculatorGlossary.xml。主题文件位于文件夹 TaxCalculator 中。请使用这些文件以跟随下面几节中的讨论。 
+
+HelpSet 数据文件
+有两种 HelpSet 数据文件，分别是 helpset 文件和 map 文件。helpset 文件 是帮助系统的主控制文件。它必须有文件扩展名 .hs。map 文件 用于为每一个帮助主题关联一个 map ID 以进行导航。map 文件的文件扩展名是 .jhm。我将详细介绍每一种 HelpSet 文件类型。
+
+helpset 文件
+helpset 文件提供了应用程序帮助系统的工作基础。一个典型的 helpset 文件的结构类似清单 1。
+
+清单 1. helpset 文件
+
+<helpset version="2.0">
+<!-- maps section -->
+<maps>...</maps>
+
+<!-- views section -->
+<view>...</view>
+...
+
+<!-- presentation section -->
+<presentation>...</presentation>
+
+<!-- implementation section -->
+<impl>...</impl>
+</helpset>
+
+
+
+可以注意到典型的 helpset 文件有四部分：maps（映射）部分、view（视图）部分、presentation（展示）部分和 implementation（实现）部分。当用户访问帮助系统时，系统首先读取 .hs 文件。它使用在 maps 部分指定的 map 文件寻找所需要的主题文件，在 view 部分的导航文件用于创建导航视图等。我将用 Tax Calculator 帮助系统作为例子展示这四部分 helpset 文件是如何实际共同工作的。
+
+maps 部分
+<maps> 元素指定 map 文件，我在下面还将进一步讨论。清单 2 显示了 TaxCalculatorHelpSet.hs 的 maps 部分。注意 TaxCalculatorMap.jhm 是一个 map 文件。它位于 TaxCalculatorHelpSet.hs 所在的同一目录。
+
+清单 2. maps 部分
+
+<maps>
+<homeID>overview</homeID>
+<mapref location="TaxCalculatorMap.jhm" />
+</maps>
+
+
+
+view 部分
+helpset 文件可以指定一个或者多个 <view> 元素，用于指定帮助系统的导航视图以及它们的导航文件。导航视图显示在导航窗格中（请参阅 图 2）。在设置帮助系统时，可以选择以下的视图：
+
+javax.help.GlossaryView
+javax.help.TOCView
+javax.help.IndexView
+javax.help.FavoritesView
+javax.help.SearchView
+清单 3 指定了一个 Glossary 视图和它的导航文件的位置。
+
+清单 3. 一个 Glossary 视图元素
+
+<view>
+<name>Glossary</name>
+<label>Glossary</label>
+<type>javax.help.GlossaryView</type>
+<data>TaxCalculatorGlossary.xml</data>
+<image>glossary_icon</image>
+</view>
+
+
+
+可以使用任何内容作为视图的 <name> 和 <label>。<type> 元素指定帮助系统的导航视图，而 <data> 元素指定导航文件的路径。如果指定 <image> 元素，图像将显示在导航窗格的顶部作为该视图的选项卡图标（如 图 2 第 3 部分所示）。元素值 glossary_icon 是在 map 文件中定义的（请参阅 清单 6）。
+
+presentation 部分
+<presentation> 元素定义了帮助窗口属性，如清单 4 所示。
+
+清单 4. presentation 部分
+
+<presentation default="true">
+<name>Main_Window</name>
+<size width="640" height="480" />
+<location x="0" y="0" />
+<title>Tax Calculator</title>
+<image>icon</image>
+<toolbar>
+<helpaction>javax.help.BackAction</helpaction>
+<helpaction image="addfav_icon">javax.help.FavoritesAction</helpaction>
+</toolbar>
+</presentation>
+
+
+
+可以在 Java 代码中调用元素 <name> 的值 ?? Main_Window。将用 <title> 元素指定帮助窗口的标题，用 <image> 元素指定标题栏图标（见 图 2 的第一个面板）。注意这个 icon 是在下面 map 文件中定义的。<toolbar> 元素也是可配置的。如果没有指定一个值，那么帮助系统将包括一些默认的标题栏按钮。每一个 <helpaction> 对应于帮助窗口工具栏中的一个工具栏按钮。JavaHelp 提供了八种类型的 helpaction，如下所示：
+
+BackAction
+ForwardAction
+SeparatorAction
+HomeAction
+ReloadAction
+PrintAction
+PrintSetupAction
+FavoritesAction
+请参见前面的 图 2，您会看到工具栏按钮是（从左到右）：BackAction、ForwardAction、SeparatorAction、HomeAction、ReloadAction、SeparatorAction、PrintAction、PrintSetupAction 和 FavoritesAction。可以通过指定 <helpaction> 元素的 image 属性改变工具栏按钮的图标。注意 addfav_icon 是在下面的 map 文件中定义的。将 <presentation> 标签的 default 属性改为 true 将使它成为帮助系统的默认展示。
+
+implementation 部分
+在 <impl> 元素中，可以指定可以在内容查看器中显示的文件类型。例如，清单 5 中的代码使用户可以观看 HTML 和 PDF 文件。
+
+清单 5. implementation 部分
+
+<impl>
+<helpsetregistry helpbrokerclass="javax.help.DefaultHelpBroker" />
+<viewerregistry viewertype="text/html" viewerclass="com.sun.java.help.impl.CustomKit" />
+<viewerregistry viewertype="application/pdf" viewerclass="Your PDF Editor Kit" />
+</impl>
+
+
+
+map 文件
+map 文件 是在 HelpSet 数据文件中可以找到的另一种文件类型。它通过将 ID 字符串映射到帮助主题文件的 URL 而为每一个帮助主题关联一个 map ID。helpset 文件和导航文件总是通过 map ID 引用帮助主题。map 文件可以将 map ID 分配给任何类型的文件。清单 6 显示了 Tax Calculator 帮助系统的 map 文件。
+
+清单 6. TaxCalculatorMap.jhm
+
+<map version="2.0">
+...
+<mapID target="overview" url="TaxCalculator/overview.htm" />
+<mapID target="icon" url="images/icon.gif" />
+<mapID target="glossary_icon" url="images/g.gif" />
+<mapID target="addfav_icon" url="images/addfav_icon.gif" />
+...
+</map>
+
+
+
+导航文件
+回到原来的 HelpSet，可以看到下一种文件类型是导航文件。四种导航文件是 TOC、Index、Glossary 和 Favorites。帮助系统读取这些文件中的信息以建立四种类型的导航视图，然后将它们显示在导航窗格中。我将详细介绍每一种导航文件。
+
+TOC
+每一个 <tocitem> 元素都可以有属性 text、target 和 image，如清单 7 所示。text 属性的值是 tocItem 的文字标签。target 属性的值是表示帮助主题文件的 map ID。image 属性指定一个显示在 tocItem 左边的图片。如果没有指定一个图片，那么帮助系统将使用默认图片，如 图 2 的第四部分所示。清单 7 显示了 Tax Calculator 帮助系统的 TOC 文件的局部。
+
+清单 7. TaxCalculatorTOC.xml
+
+<toc version="2.0">
+...
+<tocitem text="Pages" image="topLevel">
+<tocitem text="About Page" target="about" image="secondLevel" />
+<tocitem text="Color Chooser" target="colorChooser" />
+</tocitem>
+...
+</toc>
+
+
+
+Index
+每一个 <indexitem> 元素都可以有属性 text 和 target。text 属性的值是 indexItem 的文字标签。target 属性的值是表示帮助主题文件的 map ID。清单 8 显示了 Tax Calculator 帮助系统的 index 文件的部分内容。
+
+清单 8. TaxCalculatorIndex.xml
+
+<index version="2.0">
+...
+<indexitem text="Color">
+<indexitem text="Changing Color" target="changeColor"/>
+<indexitem text="Color Chooser" target="colorChooser"/> 
+</indexitem>
+...
+</index>
+
+
+
+Glossary
+Glossary 文件也使用 <indexitem> 元素，如清单 9 所示。
+
+清单 9. TaxCalculatorGlossary.xml
+
+<index version="2.0">
+...
+<indexitem text="Button" target="button_def"/>
+...
+</index>
+
+
+
+Favorites
+帮助系统自动生成 Favorites.xml 文件。它存储在 usrdir/javahelp 中。如果在同一台计算机中安装了多个 JavaHelp 系统，那么将保留最后运行的帮助系统的 Favorites.xml。
+
+主题文件
+主题文件为 HTML 格式。建议在 HTML 文件中指定 <title> 标签，因为 <title> 标签将用于在搜索数据库中进行全文搜索 ?? 稍后将作介绍。
+
+在编写了主题文件、导航文件、map 文件和 helpset 文件后，就可以通过运行 %JAVAHELP_HOME%demosin 中的 hsviewer.jar 打开 helpset。图 3 显示了浏览到 TaxCalculatorHelpSet.hs 并单击 Display 时所出现的情况。
+
+图 3. hsviewer 中的 Tax Calculator HelpSet
+
+
+在 Java 应用程序中调用 JavaHelp
+在构建了一个基本的帮助系统后，会希望可以在 Java 应用程序中调用它。可以通过单击一个按钮或者菜单项调出 JavaHelp 系统。清单 10 显示了用按钮调出帮助系统的两种方式。不管采用哪种方式，第一步都是创建一个新的 helpset（如在前面的练习中所做的）并为它创建 help broker。然后可以利用 help broker 的 enableHelpOnButton() 方法用按钮调出帮助系统，也可以加入一个名为 CSH.DisplayHelpFromSource() 的操作监听器。单击按钮时，操作监听器将得到操作源的 helpID 并在帮助查看程序中显示这个 helpID。清单 10 中显示了这两种方式。
+
+清单 10. ButtonHelp.java
+...
+help_but=new JButton("Help");
+...
+Classloader loader = ButtonHelp.class.getClassLoader();
+URL url = HelpSet.findHelpSet(loader, "TaxCalculatorHelpSet");
+try {
+hs = new HelpSet(loader, url);
+} catch (HelpSetException e) {
+... 
+}
+HelpBroker helpbroker = hs.createHelpBroker("Main_Window");
+
+/**-----the first way of calling a help system------------
+helpbroker.enableHelpOnButton(help_but, "overview", hs);
+
+/**-----the second way of calling a help system-----------
+ActionListener contentListener = new CSH.DisplayHelpFromSource(helpbroker);
+CSH.setHelpIDString(help_but, "overview");
+help_but.addActionListener(contentListener);
+*/
+
+
+
+用菜单项调用帮助系统的过程与此类似。要了解有关用按钮调用的更多内容，请参阅本文源代码中的 ButtonHelp.java （在 参考资料 中），使用菜单项调用的情况请参阅 MenuItemHelp.java。
+
+自定义外观
+尽管一开始完全可以使用默认的 JavaHelp 帮助系统，但是一般会希望定制它的外观以更好地适合自己的应用程序。在这一节，将介绍如何为 GUI　组件配置特别的图标，自定义导航标签和工具栏并设置帮助系统字体。
+
+配置图标
+可在 helpset 文件中配置 JavaHelp 标题栏图标、工具栏按钮图标和导航标签图标。标题栏图标是用 <presentation> 标签设置的，可以用 <presentation> 标签的 <helpaction> 元素的一个属性设置工具栏按钮图标，而导航标签图标可以在 <view> 标签中设置。此外，可以在导航文件中设置导航文件项图标。
+
+基于文字的标签还是基于图像的标签？
+可以在帮助系统中使用默认的图像标签，也可以使用文字标签。要使用文字标签，需要在 TaxCalculatorHelpSet.hs 中将 <presentation> 标签的 displayviewimages 属性设置为 false。例如，代码 <presentation default="true" displayviewimages="false"> 将得到如图 4 的第二个面板所示的基于文字的标签。
+
+图 4. 图像标签和文字标签
+
+
+注意如图 4 所示显示在文字标签上的字是 helpset 文件 TaxCalculatorHelpSet.hs 的 <view> 标签的 <label> 元素的值。
+
+要工具栏还是不要工具栏？
+可以显示不带工具栏的帮助窗口。要选择所喜欢的那种方式，运行 ButtonHelp.java 文件的 ButtonHelp.class 并单击 Help 按钮。将会看到两个帮助窗口，一个带工具栏，另一个不带。如果选择不带工具栏，只要在 helpset 文件 TaxCalculatorHelpSet.hs 中创建一个没有 <toolbar> 元素的 <presentation> 标签。
+
+设置字体
+设置帮助系统的字体非常容易。例如，代码 Font font = new Font("SansSerif", Font.ITALIC, 10); helpbroker.setFont(font); 将产生如图 5b 所示的自定义字体，可以与图 5a 所示的默认字体进行比较。
+
+图 5a. 默认字体显示
+
+
+图 5b. 自定义字体显示
+
+
+使用展示窗口
+在 JavaHelp 帮助系统中有三种类型 ?? 或者层 ?? 的帮助窗口：
+
+主窗口 可以有图标、改变大小、让用户移动和让用户关闭。在默认情况下，主窗口包含一个工具栏、一个导航窗格和一个内容查看器。
+
+
+二级窗口 可以有图标、改变大小、让用户移动、可以让用户关闭或者在关闭帮助查看器时关闭它。它可以包含工具栏和导航窗格，但是在默认情况下它只包含一个内容查看器。
+
+
+弹出窗口 专门用于内容敏感的帮助，然而也可以定制它在其他地方使用。这个窗口不能改变大小或者移动，并且失去焦点时关闭。它只包含内容查看器。 
+在不同的展示窗口之间移动信息很简单，可以通过配置主题文件或者调用 Java 代码中的函数实现。在给定主题文件中嵌入一个 <ahref=url> 标签会在调用时在当前窗口中打开链接的文件，不过要在二级窗口或者弹出窗口中显示新的主题文件需要多做一点工作（在下面讨论）。如要对展示做精心调整，可以在 JavaHelp API 中使用带参数 presentation 的方法。例如，HelpBroker 类的 enableHelpOnButton() 将像下面这样：
+
+
+enableHelpOnButton(java.lang.Object obj, java.lang.String id, HelpSet hs, 
+java.lang.String presentation, java.lang.String presentationName)
+
+
+
+如果采用这种方式，将需要为参数 presentation 选择 main window、secondary window 或者 popup window。例如，下面一行代码将使用户可以单击按钮 help_but 在二级窗口中打开帮助主题：
+
+
+helpbroker.enableHelpOnButton(help_but, "overview", hs, "javax.help.SecondaryWindow", "main");
+
+
+
+<object> 标签
+如果选择使用主题文件而不是调用 Java 代码中的函数，那么将需要在 HTML 文件中加入 <object> 标签以在不同类型的窗口中移动文件。清单 11 显示了如何用 <object> 标签打开一个二级窗口。
+
+清单 11. 打开一个二级窗口
+
+<object CLASSID="java:com.sun.java.help.impl.JHSecondaryViewer">
+<param name="id" value="about">
+<param name="viewerActivator" value="javax.help.LinkLabel">
+<param name="iconByName" value="../images/topLevel.gif">
+<param name="viewerSize" value="350,400">
+<param name="viewerName" value="TaxCal">
+</object>
+
+
+
+<object> 标签有多个参数。表 1 介绍了二级窗口（CLASSID="java:com.sun.java.help.impl.JHSecondaryViewer）的 <object> 标签的 15 个有效的参数。
+
+表 1. object 标签的有效参数
+功能 参数 说明 
+窗口 viewStyle 可以设置为 javax.help.SecondaryWindow（默认值）或者 java.help.Popup。 
+内容 id 用在 map 文件中定义的 map ID 指定内容。 
+内容 content 用相对 URL 指定内容。 
+Activator viewerActivator 可以设置为 javax.help.LinkButton（默认值）或者 javax.help.LinkLabel。 
+大小 viewerSize 示例：value="300, 400" 表明窗口是 300 像素宽，400 像素高。 
+位置 viewerLocation 示例：value="300, 400" 表明窗口位于离左边 300 像素，离上边 400 像素的位置。 
+名字 viewerName 设置窗口的名字。只对 secondaryWindow 起作用，Popup window 忽略这个参数。 
+图标 iconByID 用在 map 文件中定义的 map ID 指定图像。 
+图标 iconByName 用相对 URL 指定图像。 
+文字 text 用户将会看到的字符串。 
+文字特性 textFontFamily 可以设置为 Serif、SansSerif、Monospaced、Dialog、DialogInput 或者 Symbol。 
+文字特性 textFontSize 可以设置为 xx-small、x-small、small、medium、large、x-large、xx-large、bigger、smaller （bigger 和 smaller 的单位是 1）、nnpt（将字体大小设置为特定的磅数 nn）、+n ,-n（+n 和 -n 将当前基准字体大小增加或者减小 n）、n （设置字体大小为与索引 n 相关联的磅数）。 
+文字特性 textFontWeight 可以设置为 plain 或者 bold。 
+文字特性 textFontStyle 可以设置为 plain 或者 italic。 
+文字特性 textColor 可以设置为 black、blue、cyan、darkGray、gray、green、lightGray、magenta、orange、pink、red、white 或者 yellow。 
+
+四种 activator
+activator 是一个用户单击以启动展示窗口（弹出或者二级）的对象。使用参数 viewerActivator 和参数 text 或者 icon 将生成四种 activator：文字标签、图像标签、文字按钮或者图像按钮,如图 6 所示。（注意第二种 activator 是 清单 11 中的代码的结果。）
+
+图 6. activator 的四种类型
+
+
+单击如图 6 所示的 About 页上的第二个或者第四个 activator 后，将可发现调出的二级窗口与主窗口几乎一样。如果回到 helpset 文件的 <presentation> 标签，将会看到 Main_Window 展示设置为 default。因为二级窗口也使用这个默认展示，它也有一个导航窗格和工具栏。
+
+调出展示窗口的完整代码和展示请见 about.htm。
+
+添加内容敏感的帮助
+内容敏感的帮助是向用户提供信息的特别具有用户友好特点的方式。当用户单击一个特定的图标或者字段时 ?? 如下面例子中显示的 Calculation 字段 ?? 就会有一个弹出窗口解释功能或者这个字段下一步要做的事情。内容敏感的帮助可以归为下列三类之一：
+
+窗口级帮助：当 Java 应用程序的窗口拥有焦点时，用户按下 Help 键（F1）以启动帮助系统的特定主题，它通常是一个介绍主题。
+
+
+字段级帮助：当 Java 应用程序的 GUI 上的一个特定组件 ?? 如文本字段或者按钮 ?? 拥有焦点时，用户按下 Help 键（F1）或者单击一个按钮以启动帮助系统的描述当前组件的特定主题。
+
+
+屏幕级帮助：用户单击一个按钮以调出具有描述应用程序当前屏幕的特定主题的帮助系统。 
+我将在后面几节中介绍调用各种类型的内容敏感的帮助的基本内容。代码示例可见 ContextSensitiveHelp.java 文件中的完整源代码。
+
+窗口级帮助
+当用户处在一个给定应用程序窗口中并发现他或者她需要帮助时，就可调出窗口级帮助。用户可以按 Help 键（F1）调出窗口级帮助。调出的帮助系统如图 7 所示。
+
+图 7. 用 Help 键（F1）调出窗口级帮助
+
+
+为了启用如图 7 所示的 Tax Calculator 窗口的 Help 键（F1），要调用 helpbroker.enableHelpKey(getRootPane(), "personal", hs);。注意我用帮助系统的 map ID personal 设置帮助主题。注意 helpbroker.enableHelpKey() 只对在基于 Swing 的应用程序中 JFrame 的 rootPane 或者基于 AWT 的应用程序的 java.awt.Window 起作用。我将在稍后讨论如何启用字段级组件的 Help 键。
+
+字段级帮助
+字段级帮助文件是根据焦点启动的，即光标的位置和按下 Help 键。清单 12 显示了如何用 CSH.DisplayHelpFromFocus() 启用字段级帮助的 Help 键。
+
+清单 12. 用 Help 键调出的字段级帮助
+
+CSH.setHelpIDString(maid_tf, "maid");
+CSH.setHelpIDString(course_tf, "course");
+CSH.setHelpIDString(income_tf, "income");
+CSH.setHelpIDString(result_tf, "result");
+ActionListener listener = new CSH.DisplayHelpFromFocus(hs, "javax.help.MainWindow", null);
+maid_tf.addActionListener(listener);
+course_tf.addActionListener(listener);
+income_tf.addActionListener(listener);
+result_tf.addActionListener(listener);
+
+
+
+继续上面的例子，单击 Calculation 选项卡以转换到 calculation 页并将光标移到这一页上的第一个文字字段 maid_tf。当光标在 maid_tf 中闪动时，按 F1 在主窗口中显示 Maid Levy 帮助主题，如图 8 所示。
+
+图 8. 用 Help 键调出的字段级帮助
+
+
+也可以用按钮调出字段级帮助，如图 9 中的一个带有箭头的按钮。为此，应使用 CSH.DisplayHelpAfterTracking()，如下所示：
+
+
+help_but.addActionListener(new CSH.DisplayHelpAfterTracking(hs,"javax.help.Popup", "popup"));
+
+
+
+注意还有一个弹出窗口展示帮助主题。在单击箭头按钮并将光标移到 maid_tf 字段，然后单击鼠标，会显示一个带有帮助主题 Maid Levy 的弹出窗口，如图 9 所示。
+
+图 9. 用按钮调出字段级帮助
+
+
+屏幕级帮助
+当位于给定应用程序屏幕中的用户通过单击一个按钮请求关于该屏幕的信息（或者帮助）时，就会调出屏幕级帮助。在这个例子中，有一个有四种不同屏幕的选项卡窗格。清单 13 显示了一种根据当前屏幕显示帮助的方法。
+
+清单 13. 屏幕级帮助
+
+menu.addChangeListener(new ChangeListener() {
+public void stateChanged(ChangeEvent evt) {
+int sel = menu.getSelectedIndex();
+if(sel==0) CSH.setHelpIDString(help_but1, "about");
+else if(sel==1) CSH.setHelpIDString(help_but1, "preference");
+else if(sel==2) CSH.setHelpIDString(help_but1, "personal");
+else if(sel==3) CSH.setHelpIDString(help_but1, "calculation");
+}
+});
+
+...
+help_but1.addActionListener(new CSH.DisplayHelpFromSource(hs, 
+"javax.help.SecondaryWindow", "secondary")); 
+
+
+
+对象 help_but1 表示图 10 中带有文字 Help 的按钮。我为选项卡窗格 menu 添加了一个 ChangeListener。当焦点变为新的屏幕时，用 CSH.setHelpIDString() 为 help_but1 设置新的 helpID。注意 help_but1 还有一个名为 CSH.DisplayHelpFromSource() 的操作监听器。当用户单击按钮时，操作监听器将得到操作源（即 help_but1）的当前 helpID，并在帮助查看器中显示这个 helpID。因此，不管用户用任何种方法转换屏幕（使用选项卡或者菜单项），帮助系统都会显示当前屏幕的正确信息。
+
+图 10 显示当用户转换到 Preference 屏幕时，显示描述 preferences 的特定主题。
+
+图 10. 屏幕级帮助
+
+
+添加嵌入帮助
+在建立了默认在线帮助系统后，可以将它直接嵌入到应用程序的界面中。清单 14 显示了如何将一个 TOC 视图嵌入到示例 Tax Calculator 应用程序中。toc 是一个 JPanel，tabbedpane 将 toc JPanel 关联到选项卡 TOC。getNavigatorView() 的参数必须与在帮助文件中定义的视图的名字相同。它是大小写敏感的。可以用类似的方式将其他导航视图嵌入到应用程序中。
+
+清单 14. EmbeddedHelp.java
+
+viewer = new JHelpContentViewer(hs);
+viewer.setPreferredSize(new Dimension(250,220));
+navTOC = (JHelpTOCNavigator)hs.getNavigatorView("TOC").createNavigator(viewer.getModel());
+navTOC.setPreferredSize(new Dimension(150,220));
+toc.add(navTOC);
+toc.add(viewer);
+
+
+
+图 11 显示了将 TOC 嵌入到 Tax Calculator 应用程序的结果。注意只有在选择了菜单项 Show 后才会显示帮助系统。
+
+图 11. 嵌入的帮助
+
+
+添加搜索功能
+搜索功能是帮助系统的基本部分。要想利用这种功能，需要创建一个搜索数据库。JavaHelp API 包括一个可以自动索引帮助主题目录并建立搜索数据库的功能。按以下步骤创建搜索数据库：
+
+设置帮助主题所在的目录为当前目录。在这个例子中是 srcTaxCalculator。
+
+
+运行 %JAVAHELP_HOME%javahelpinjhindexerTaxCalculator 命令。记住 srcTaxCalculator 是存储主题文件的目录。这会在当前目录创建一个名为 JavaHelpSearch 的索引文件夹。
+
+
+运行 %JAVAHELP_HOME%javahelpinjhsearchJavaHelpSearch 命令以验证搜索数据库的有效性。如果看到消息 initialized; enterquery，就是成功创建了搜索数据库。 
+停用词
+停用词（Stop words）是在搜索时不提供结果的常用单词。下面是创建搜索数据库时使用的默认停用词。
+
+a all am an and any are as at be 
+but by can could for from etc does do did 
+goes got had has have he her him his how 
+if in is it let me more much must my 
+nor not now of off on or our own see 
+set shall she should so some than that the them 
+then there these this those though to too us was 
+way we what when where which who why will would 
+yes yet you 
+
+图 12 显示在 EmbeddedHelp 的搜索视图中搜索单词 how 时所出现的情况。没有结果显示，因为在默认情况下 how 是一个停用词。
+
+图 12. 默认停用词的搜索结果
+
+
+自定义停用词列表
+可以创建一个自定义停用词列表。例如，假设希望将单词 how 从默认停用词列表中删除。有两种方法可以做到这一点，它们都需要用一个配置文件。第一种方法要创建一个配置文件（config.txt），然后将停用词存到另一个名为 stopWords.txt 的文件中。然后文件 config.txt 用 StopWordsFile stopWords.txt 这一行指定停用词文件的位置。
+
+清单 15 显示了这个自定义停用词文件，其中去掉了单词 how。注意在 stopWords.txt 中，每个停用词都必须开始一个新行。
+
+清单 15. stopWords.txt
+
+a
+all
+...
+his
+if
+...
+
+
+
+也可以在配置文件中直接包含所有停用词。为此，只要创建一个名为 config1.txt 的配置文件并将停用词直接加入到配置文件中，如下所示：
+
+
+StopWords a, all,..., his, if...
+
+
+
+要索引自定义的停用词列表，需要让 src 成为当前目录并运行命令
+%JAVAHELP_HOME%javahelpinjhindexer -c config.txt TaxCalculator。用自已的配置文件替换命令中的 config.txt。例如，如果用 -c config1.txt 运行 jhindexer 命令，然后在 EmbeddedHelp 视图中重新搜索 how，它将会返回几个结果项，如图 13 所示。
+
+图 13.使用自定义停用词的搜索结果
+
+
+搜索窗口中的红圈表明结果项与查询的相关程度。圆圈填充得越满，结果项的相关程度就越高。有五种相关程度。在图 13 中，数字表示查询在结果文件中匹配的次数。数字右边的文字是从帮助系统的主题文件中的 <title> 标签中提取的。
+
+合并 helpset
+大型、模块化的应用程序可能需要创建很多 helpset，甚至可能是由开发应用程序不同方面的不同小组所创建的。让用户分别观看每一个 helpset 当然是有用的，但是他或者她可能还想将所有 helpset（或者主题列表）作为一个整体来看。要做到这一点，可以合并 helpset。
+
+在 JavaHelp 2.0 中有四种合并类型：SortMerge、UniteAppendMerge、AppendMerge 和 NoMerge。表 2 列出了这四种合并类型及它们的特点。
+
+表 2. JavaHelp 2.0 合并类型
+SortMerge UniteAppendMerge AppendMerge NoMerge 
+这种合并类型完全按字母排序。如果在一个新视图中的项与在现有视图中的一项有同样的文字和目标，那么在合并的视图中这两项将成为一项。如果只有文字是相同的，那么在项的结尾处将加上 helpset 标题。 这种合并类型保留现有视图层次结构。它将两个视图中匹配的元素合并为一个元素，然后合并且排序匹配元素的所有子元素。它将所有剩下的元素附加到现有视图的最后。 这种合并类型只是将新视图数据附加到现有视图数据之后。 不进行合并。 
+Search 视图的默认合并类型 。 没有视图默认使用这种类型的合并。 TOC、Index 和 Glossary 视图的默认合并类型。 Favorites 视图的默认合并类型。 
+
+每种合并类型都是在 helpset 文件或者在导航文件中指定的。为了正确合并，现有 helpset 的视图名和新 helpset 的视图名必须相同。可以静态或者动态地合并 helpset。
+
+静态和动态合并 
+可以通过在现有 helpset 文件中添加 <subhelpset> 标签静态合并 helpset。如果使用绝对路径，那么位置应当有前缀 file:，如: <subhelpset location="file:...helpset.hs">。如果使用相对路径，那么位置看起来应当像这样：<subhelpset location="helpset.hs">。
+
+可以用方法 hs.add(hs1)、hs.remove(hs1) 动态合并 helpset。hs 是现有 helpset，而 hs1 是新的 helpset。要看到动态合并操作的结果，请参见本文源代码中的 MergeHelp.java 并运行 MergeHelp。
+
+结果
+在图 14 中有两个 helpset TOC 以及合并它们的结果。
+
+图 14. 合并
+
+
+在现有 helpset 的 TOC 视图标签中添加属性 mergetype="javax.help.UniteAppendMerge" 将得到图 14 的第三个面板中的合并的 helpset，如清单 16 所示。
+
+清单 16. Mergetype 属性 ?? TaxCalculatorHelpSet.hs
+
+<view mergetype="javax.help.UniteAppendMerge">
+<name>TOC</name>
+<label>TOC</label>
+<type>javax.help.TOCView</type>
+<data>TaxCalculatorTOC.xml</data>
+</view>
+
+
+
+图 14 的第四个面板显示了在现有 helpset 的 TOC 导航文件中的 tocitem Pages 中添加属性 mergetype="javax.help.SortMerge" 的结果，如清单 17 所示。注意第三个和第四个面板中 Pages 主题的不同展示。在第三个面板中，新视图的元素附加到现有视图的最后。在第四个面板中，新视图和现有视图的元素按字母排列。
+
+清单 17. Mergetype 属性 ?? TaxCalculatorTOC.xml
+
+<tocitem text="Pages" image="topLevel" mergetype="javax.help.SortMerge">
+... 
+</tocitem>
+
+
+
+如果选择了菜单项 Add，那么就合并两个 helpset。如果没有选择这个菜单项，那么应用程序就从第一个 helpset 中删除第二个 helpset。
+
+添加轻量级组件
+Java 平台的轻量级组件类可以在定制帮助系统方面发挥很多作用。例如，您已经看到如何用轻量级组件类 JHSecondaryViewer 和 <object> 标签，创建及打开二级窗口和弹出窗口。在本节，将在这个练习的基础上创建自己的轻量级组件，然后用 <object> 标签操纵它。将开发一个组件类 LightWeightCom，在用户单击一个图像时它会播放一段音频。
+
+请参阅本文源代码 LightWeightCom.java 和 LightWeightComBeanInfo.java，以跟随本节的例子。要观看结果，使用 about.htm。
+
+清单 18 中显示的 BeanInfo 类提供了关于轻量级组件的清晰信息。它必须扩展 SimpleBeanInfo。getPropertyDescriptors() 是 ContentViewer 使用的这个类中的惟一方法。
+
+清单 18. LightWeightComBeanInfo.java
+
+public PropertyDescriptor[] getPropertyDescriptors() {
+PropertyDescriptor back[] = new PropertyDescriptor[4];
+try {
+back[0] = new PropertyDescriptor("iconByName", LightWeightCom.class);
+back[1] = new PropertyDescriptor("iconByID", LightWeightCom.class);
+back[2] = new PropertyDescriptor("audioByName", LightWeightCom.class);
+back[3] = new PropertyDescriptor("audioByID", LightWeightCom.class);
+return back;
+} catch (Exception ex) {
+return null;
+}
+}
+
+
+
+轻量级组件类必须直接扩展 java.awt.Component 或者 java.awt.Container，或者一个实现了轻量级组件的类。这个例子扩展 JLabel，它是一个实现了轻量级组件的类。如果您的组件将利用 View 的信息，那么必须实现 com.sun.java.help.impl.ViewAwareComponent 接口的 setViewData() 方法。对于这个示例音频组件，我将利用 View 的 helpset 和文档库（document base）信息，如清单 19 所示。
+
+清单 19. LightWeightCom.java ?? 实现 setViewData
+
+public class LightWeightCom extends JLabel implements ViewAwareComponent {
+... 
+public void setViewData(View v) {
+myView = v;
+doc = (HTMLDocument) myView.getDocument();
+base = doc.getBase();
+
+// Loop through and find the JHelpContentViewer
+Component c = container = (Component) myView.getContainer();
+while (c != null) {
+if (c instanceof JHelpContentViewer) {
+break;
+}
+c = c.getParent();
+}
+
+// Get the helpset if there was JHelpContentViewer
+if (c !=null) {
+TextHelpModel thm = ((JHelpContentViewer)c).getModel();
+if (thm != null) {
+hs = thm.getHelpSet();
+}
+}
+}
+...
+}
+
+
+
+轻量级组件应当可以接受参数。例如，清单 20 设计为接收 param audioByID。setAudioByID 方法使用由 setViewData() 获取的 helpset 信息。这个方法用 map ID 得到主题文件的位置，如下所示。
+
+清单 20. LightWeightCom.java ?? setAudioByID
+
+public void setAudioByID(String name) {
+sound = null;
+URL url=null;
+Map map = hs.getCombinedMap();
+try {
+url = map.getURLFromID(ID.create(name, hs));
+} catch (java.net.MalformedURLException e2) {
+return;
+}
+sound = Applet.newAudioClip(url);
+}
+
+
+
+编译 LightWeightCom.java 和 LightWeightComBeanInfo.java 后，将它们的类添加到类路径中并在帮助主题文件中添加清单 21 中的各行。在这个例子中，我将它们加到 about.htm 中。结果，单击图像标签时，将播放不同的音频片段。注意 <object> 标签的属性 CLASSID 必须以 java: 开始，否则，帮助查看器将忽略它。
+
+清单 21. about.htm 中的 Object 标签
+
+<OBJECT CLASSID="java:LightWeightCom">
+<param name="iconByID" value="top">
+<param name="audioByID" value="music">
+</OBJECT>
+<OBJECT CLASSID="java:LightWeightCom">
+<param name="iconByName" value="../images/leaf2.gif">
+<param name="audioByName" value="../audio/voice.au">
+</OBJECT>
+
+
+
+基于服务器的帮助
+基于服务器的应用程序需要在线帮助。在这一节，将介绍如何向网络上的用户展示帮助系统。为了跟随本节中的练习，最好熟悉 Tomcat Web 服务器以及 JavaBean 和 JavaServer pages （JSP）技术的基础知识，以及 JavaScript 和 HTML 脚本。
+
+服务器上的服务更少
+JavaHelp 2.0 的基于服务器的帮助比基于客户机的帮助所提供的功能要少，尽管它非常健壮。基于服务器的帮助只包括 TOC、Index 和 Search 视图，并且它不包括对使用和创建轻量级组件的支持。因此，不能在弹出窗口或者二级窗口中打开主题文件、或者为服务器端帮助系统创建自定义轻量级组件。
+
+
+设置
+我将使用 Tomcat Web server 4.1.18 运行本节中的例子。如果在开发计算机上没有安装 Tomcat version 4.0 或者更高版本，那么现在应当安装它。（更多信息请参阅 参考资料。）
+
+为了完成这些练习，在 Tomcat Web 服务器的 webapps 目录创建一个文件夹并将其命名为 TaxCalculatorHelp。作为最简单的基于服务器的帮助设置，我将利用 JavaHelp 2.0 的 serverhelp demo 中的代码。可以在 %JAVAHELP_HOME%/demos/serverhelp/web 目录中找到这些代码。将所有 .js、.html、.jsp、.tld 文件和子文件夹 images 拷贝到新的 TaxCalculatorHelp 文件夹中。将自己的 helpset 文件也拷贝到这个文件夹。最后，在 TaxCalculatorHelp 中，创建一个名为 WEB-INF 的文件夹和两个名字分别为 classes 和 lib 的子文件夹。将 jh.jar 拷贝到 WEB-INF/lib，就设置完成了。这种设置的例子请见本文源代码。
+
+JavaHelp 服务器 bean
+ServletHelpBroker 是存储帮助状态信息的 JavaBeans 组件，如所使用的 helpset、当前 ID、当前导航视图和其他帮助信息。清单 22 的第 1 行定义了 help broker。第 2 和第 3 行通过提供 helpSetName 设置特定 helpset 的 help broker。第 4 到第 6 行将新的 helpset 合并到现有的 HelpSet。如果 merge 属性设置为 false，那么 help broker 将只对现有 HelpSet 起作用。
+
+清单 22. JavaHelp 服务器 bean
+
+1. <jsp:useBean id="helpBroker" class="javax.help.ServletHelpBroker" scope="session" />
+2. <jh:validate helpBroker="<%= helpBroker %>" 
+3. helpSetName="TaxCalculatorHelp/TaxCalculatorHelpSet.hs"/>
+4. <jh:validate merge="<%= true %>" 
+5. helpSetName="TaxCalculatorHelp/ContextSensitive/HelpSet.hs"
+6. helpBroker="<%= helpBroker %>" />
+
+
+
+JavaScript 文件
+有几个重要的 JavaScript 文件。tree.js 用于构建树。可以用这个文件创建 TOC 和 Index 视图的导航树。可以用清单 23 中的代码构建树。文件 searchList.js 可以用于构建 Search 视图的树。util.js 检查内容中是否有任何改变。如果发生了改变，那么就会由这个改变触发更新。
+
+清单 23. 构建树
+
+indexTree = new Tree(name, lineHeight, selectColor, showIcon, expandAll)
+indexTree.addTreeNode(parent, idnum, icon, content, helpID, URLData, expandType)
+indexTree.drawTree();
+indexTree.refreshTree();
+
+
+
+JSP 文件
+要介绍几个重要的 JSP 文件。navigator.jsp 用于从 helpset 文件中得到视图。javax.help.TOCView.jsp、javax.help.SearchView.jsp 和 javax.help.IndexView.jsp 分别构建它们相应的视图。help.jsp 文件控制帮助窗口的整体展示。图 15 中帮助窗口的顶部帧显示标题（banner）。可以通过修改 banner.html 文件创建自己的标题。也可排除标题。图 15 中左下方的帧包含文件 navigator.jsp 和一个树导航器。右下方的帧包含文件 toolbar.html 和帮助主题内容查看器。可以将帧移到其他位置以及加入和/或排除帧而改变 GUI 显示。
+
+让我们首先分析 navigator.jsp 文件。
+
+清单 24. navigator.jsp
+
+<jh:navigators helpBroker="<%= helpBroker %>" >
+<td classtableDefStyle BGCOLOR="<%= isCurrentNav.booleanValue() 
+? "white" : "#E5E5E5" %>" ALIGN="center">
+<A class=tabbedAnchorStyle 
+HREF="navigator.jsp?nav=<%= name %>">
+<IMG src="<%= iconURL!=""? iconURL : "images/" + 
+className +".gif" %>" Alt="<%= tip %>" border=0>
+</A>
+</td>
+</jh:navigators>
+
+
+
+表 3 列出了所有 JSP 扩展。注意所有 JSP 扩展都必须以符号 jh: 开始。
+
+表 3. JSP 扩展
+标签 说明 属性 
+validate 用新的 helpset 设置 help broker，它可以与其他 helpset 合并。它还可以指定当前 ID 要求的属性：helpbroker; 非要求的属性：setInvalidURL, helpSetName, currentID, merge 
+navigators 返回给定 help broker 的 navigatorView 信息 要求的属性：helpbroker; 非要求的属性：currentNav 
+tocItem 返回给定 TOCView 的 tocItem 信息 要求的属性：tocView, helpbroker; 非要求的属性：baseID 
+indexItem 返回给定 IndexView 的 IndexItem 信息 要求的属性：indexView、helpbroker，非要求的属性：baseID 
+searchTOCItem 返回给定 SearchView 的 SearchTOCItem 信息 要求的属性：searchView、helpbroker，非要求的属性：baseID 
+
+注意嵌套在 JSP 扩展的正文中的脚本变量 navigators、tocItem、indexItem 和 searchTOCItem。清单 24 用嵌套的变量的 名字 从 helpset 文件中得到所有视图。下表显示了在 <jh:navigators> 开始和结束标签之间可以使用的变量。
+
+表 4. 导航器变量 变量 数据类型 说明 
+classname String NavigatorView 类的名字，例如，javax.help.TOCView 
+name String 在 helpset 中定义的视图的名字，在这个例子中，对于 NavigatorView 类 javax.help.TOCView 它是“TOC” 
+tip String 视图的工具提示 
+iconURL String 在 helpset 中的视图的 image 属性中定义的图标位置 
+
+现在，让我们分析文件 javax.help.TOCView.jsp。
+
+清单 25. javax.help.TOCView.jsp
+
+tocTree = new Tree("tocTree", 16, "ccccff", true, false);
+<% TOCView curNav = (TOCView)helpBroker.getCurrentNavigatorView(); %>
+<jh:tocItem helpBroker="<%= helpBroker %>" tocView="<%= curNav %>" >
+tocTree.addTreeNode("<%= parentID %>","<%= nodeID %>","<%= iconURL!=""?iconURL:"null" %>",
+"<%= name %>","<%= helpID %>","<%= contentURL!=""?contentURL:"null" %>",
+"<%= expansionType%>" );
+</jh:tocItem>
+tocTree.drawTree();
+tocTree.refreshTree();
+
+
+
+这段代码构建当前 helpset 的 TOC 导航树。可以用类似的方式创建 Search 和 Index 视图。您已经知道了 JSP 扩展 tocItem、indexItem 和 searchTOCItem 及它们的属性。下面将介绍它们的嵌套变量，可在 <jh:tocItem>、<jh:indexItem> 和 <jh:searchTOCItem> 的开始和结束标签之间调用下面表 5 和表 6 的变量。
+
+表 5. tocItem 和 indexItem 变量的功能
+变量 数据类型 说明 
+name String 用 tocItem 或者 IndexItem 的“name”属性设置的文字 
+target String 用 tocItem 或者 IndexItem 的“target”属性设置的目标 
+parent String 标识父代码的十六进制值 
+parentID String 标识父代码的字符串 
+node String 标识当前节点的十六进制值 
+nodeID String 标识当前节点的字符串 
+iconURL String 定位在 tocItem 或者 IndexItem 中的“image”属性中定义的图标 
+contentURL String 由这一项所表示的内容的 URL 
+isCurrentNav Boolean 如果是当前导航器则为 true，否则为 false。注意：这个变量只对 tocItem 可用 
+
+
+表 6. searchTOCItem 变量的功能
+变量 数据类型 说明 
+name String searchTOCItem 的名字 
+helpID String 与 searchTOCItem 相关联的 ID 
+confidence String 查询结果的相关程度 
+hits String 在得到的文件中查询匹配的次数 
+contentURL String 内容的位置 
+hitBoundries String 一组边界 
+
+测试服务器端帮助
+所有开发过程的最后一步自然是测试工作的成果。要测试服务器端帮助系统，遵循以下步骤：
+
+运行 Tomcat 服务器 
+打开 Web 浏览器 
+进入 URL http://127.0.0.1:8080/TaxCalculatorHelp 
+跟随 Web 页面中的链接，可以找到服务器端帮助系统。当进入第一个链接时，将会看到与图 15a 同样的一个窗口。当进入第二个链接时，将会看到与图 15b 相同的窗口。
+
+图 15a. 服务器端帮助
+
+
+图 15b. 服务器端帮助
+
+
+结束语
+本文介绍了 Java 平台的帮助系统 API: JavaHelp 2.0。利用 JavaHelp，可以容易地在任何 Java 应用程序、组件或者设备中加入全功能的、标准的帮助系统。一个独立的 JavaHelp 帮助系统可以在任何平台上运行并可以嵌入到任何应用程序中。有了 JavaHelp 2.0，还可以为网络上的用户开发健壮的帮助系统，虽然功能没有那么全。
+
+JavaHelp 2.0 有许多很好的功能，我们在这篇文章中对它们作了初步探讨。通过一步一步的解释和练习，介绍了如何创建和操纵位于 JavaHelp 2.0 帮助系统核心的主题文件、导航文件和 helpset 数据文件。还介绍了如何定制自己的 helpset、将它嵌入到现有的 Java 应用程序中、合并 helpset、为帮助系统创建轻量级组件插件、为用户提供上下文敏感的帮助等。在本文的最后介绍了 JavaHelp 2.0 API 的服务器端帮助功能。
+
+在这里，我鼓励读者练习所学的内容。研究本文的源代码并试着用 JavaHelp 2.0 API 构建不同功能和不同类型的帮助系统。更多参考请参阅 参考资料 中的文章。
+　 
+JSP虚拟主机,JSP空间,JSP主机,JAVA虚拟主机,JAVA空间 
+免费vps试用,vps在线开通,linux vps 
+tomcat web hosting 
+jsp主机 
+支持月付的JSP主机 
+Copyright © 2002-2012 JSPCN.net. All rights reserved.
+JSP中文网    备案号：粤ICP备09171188号
+成都恒海科技发展有限公司    成都市一环路南二段6号新瑞楼三楼8号 

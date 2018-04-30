@@ -1,0 +1,184 @@
+繁體
+你好，游客 登录 注册 搜索
+	
+首页Linux新闻Linux教程数据库技术Linux编程服务器应用Linux安全Linux下载Linux认证Linux主题Linux壁纸Linux软件数码手机电脑
+首页 → Linux编程
+  
+
+
+背景：       阅读新闻
+从汇编的角度分析C语言
+
+char *p与char p[]的区别
+
+[日期：2012-02-20]	来源：Linux社区  作者：sg131971	[字体：大 中 小]
+
+
+ 
+C语言代码：
+
+
+[cpp]
+#include <stdlib.h>   
+#include <stdio.h>   
+  
+void main()  
+{  
+    char array1[] = { "123456" };  
+    char *pointer1 = "123456";  
+}  
+汇编代码：
+
+
+[html]
+(gdb) disassemble main   
+Dump of assembler code for function main:  
+   0x08048394 <+0>:     push   %ebp  
+   0x08048395 <+1>:     mov    %esp,%ebp  
+   0x08048397 <+3>:     sub    $0x10,%esp  
+   0x0804839a <+6>:     movl   $0x34333231,-0xb(%ebp)  
+   0x080483a1 <+13>:    movw   $0x3635,-0x7(%ebp)  
+   0x080483a7 <+19>:    movb   $0x0,-0x5(%ebp)  
+   0x080483ab <+23>:    movl   $0x8048484,-0x4(%ebp)  
+   0x080483b2 <+30>:    leave    
+   0x080483b3 <+31>:    ret      
+End of assembler dump.  
+(gdb) x/7xb 0x8048484  
+0x8048484 <__dso_handle+4>:     0x31    0x32    0x33    0x34    0x35    0x36    0x00  
+(gdb)   
+从<+6><+13><+19>三行可以看出，程序为array1分配了7bytes的内存空间，用来存储“123456”+‘\0’。
+而<+23>行表示将地址0x8048484赋给了pointer1，我们可以查看内存0x8048484之后内容，7bytes正好为“123456”+‘\0’，这里pointer1只是一个指针，并没有为其分配内存单元。
+那么下面的这段代码就不难理解了。
+
+
+[cpp]
+#include <stdlib.h>   
+#include <stdio.h>   
+  
+void main()  
+{  
+    char array1[] = { "123456" };  
+    char array2[] = { "123456" };  
+    char *pointer1 = "123456";  
+    char *pointer2 = "123456";  
+}  
+汇编代码：
+
+[html]
+(gdb) disassemble main   
+Dump of assembler code for function main:  
+   0x08048394 <+0>:     push   %ebp  
+   0x08048395 <+1>:     mov    %esp,%ebp  
+   0x08048397 <+3>:     sub    $0x20,%esp  
+   0x0804839a <+6>:     movl   $0x34333231,-0xf(%ebp)  
+   0x080483a1 <+13>:    movw   $0x3635,-0xb(%ebp)  
+   0x080483a7 <+19>:    movb   $0x0,-0x9(%ebp)  
+   0x080483ab <+23>:    movl   $0x34333231,-0x16(%ebp)  
+   0x080483b2 <+30>:    movw   $0x3635,-0x12(%ebp)  
+   0x080483b8 <+36>:    movb   $0x0,-0x10(%ebp)  
+   0x080483bc <+40>:    movl   $0x8048494,-0x4(%ebp)  
+   0x080483c3 <+47>:    movl   $0x8048494,-0x8(%ebp)  
+   0x080483ca <+54>:    leave    
+   0x080483cb <+55>:    ret      
+End of assembler dump.  
+(gdb) x/7xb 0x8048494  
+0x8048494 <__dso_handle+4>:     0x31    0x32    0x33    0x34    0x35    0x36    0x00  
+(gdb)  
+
+接着这段代码也就顺其自然了！
+[html]
+(gdb) disassemble  main   
+Dump of assembler code for function main:  
+   0x08048394 <+0>:     push   %ebp  
+   0x08048395 <+1>:     mov    %esp,%ebp  
+   0x08048397 <+3>:     sub    $0x20,%esp  
+   0x0804839a <+6>:     movl   $0x34333231,-0xf(%ebp)  
+   0x080483a1 <+13>:    movw   $0x3635,-0xb(%ebp)  
+   0x080483a7 <+19>:    movb   $0x0,-0x9(%ebp)  
+   0x080483ab <+23>:    movl   $0x34333231,-0x16(%ebp)  
+   0x080483b2 <+30>:    movw   $0x3635,-0x12(%ebp)  
+   0x080483b8 <+36>:    movb   $0x0,-0x10(%ebp)  
+   0x080483bc <+40>:    movl   $0x8048494,-0x4(%ebp)  
+   0x080483c3 <+47>:    movl   $0x804849b,-0x8(%ebp)  
+   0x080483ca <+54>:    leave    
+   0x080483cb <+55>:    ret      
+End of assembler dump.  
+(gdb) x/7xb 0x8048494  
+0x8048494 <__dso_handle+4>:     0x31    0x32    0x33    0x34    0x35    0x36    0x00  
+(gdb) x/9xb 0x804849b  
+0x804849b <__dso_handle+11>:    0x31    0x32    0x33    0x34    0x35    0x36    0x37    0x38  
+0x80484a3 <__dso_handle+19>:    0x00  
+(gdb)   
+
+ 
+123456下一页
+
+【内容导航】
+第1页：char *p与char p[]的区别	 第2页：gcc代码优化
+第3页：指针的赋值	 第4页：函数的调用过程
+第5页：函数指针与指针的指针	 第6页：switch和if else效率分析
+0
+顶一下
+0
+点击进入
+
+领航教育●国内顶尖IT技术-专注于提供高端Linux、Oracle、Cisco技术人才。
+
+Android + Mini2440 无线网络视频监控系统
+Ubuntu下编译Android2.3源码问题集
+相关资讯       C语言  C 
+Linux下C语言调试  (今 09:14)
+C语言中除以2的幂  (03月08日)
+C语言判断两个整数相加会不会溢出  (03月08日)
+C语言中的extern关键字用法  (昨 10:23)
+判断C语言中int 与 unsigned 乘法  (03月08日)
+C语言中数据类型不一致导致安全性  (03月08日)
+图片资讯      
+ipconfig的C语言实现高质量程序设计指南C+C语言访问INFORMIX数C语言的可变参数表函用C语言实现Prim算法用C语言实现DijkstraC语言如何将每行代码C语言单链表逆置
+本文评论 　　查看全部评论 (0)
+表情：  姓名：   匿名 字数  
+点评：   
+　　　同意评论声明 　　　发表
+评论声明
+尊重网上道德，遵守中华人民共和国的各项有关法律法规
+承担一切因您的行为而直接或间接导致的民事或刑事法律责任
+本站管理人员有权保留或删除其管辖留言中的任意内容
+本站有权在网站内转载或引用您的评论
+参与本评论即表明您已经阅读并接受上述条款
+
+
+
+ 
+最新资讯
+Linux下C语言调试
+Ubuntu下cocos2d-x开发环境搭建及配置
+Android获取短信中心号
+Hibernate 面试中最常考察的知识点整合
+Oracle AWR 阙值影响历史执行计划
+Oracle smon_scn_time 表 说明
+Oracle中不使用索引和使用索引的效果比较分析
+Hibernate配置Log4J显示SQL参数
+Surface Pro于4月2日起大陆地区正式发售
+三星Galaxy S4 Mini确实存在，并会在Galaxy S4
+本周热门
+Android核心分析
+在Windows平台下使用安装GCC(图)
+Linux shell脚本全面学习
+Android Binder设计与实现 – 设计篇
+Shell for&while 循环详细总结
+Android SD卡路径问题以及如何获取SDCard 内存
+Linux内核的ioctl函数学习
+make menuconfig详解
+Android的onCreateOptionsMenu()创建菜单Menu详
+基于Linux的v4l2视频架构驱动编写
+
+Linux公社简介 - 广告服务 - 网站地图 - 帮助信息 - 联系我们
+本站（LinuxIDC）所刊载文章不代表同意其说法或描述，仅为提供更多信息，也不构成任何建议。
+主编：漏网的鱼 (QQ:3165270) 联系邮箱: (如有版权及广告合作请联系) 
+本站带宽由[6688.CC]友情提供
+关注Linux，关注LinuxIDC.com，请向您的QQ好友宣传LinuxIDC.com，多谢支持！ 
+Copyright © 2006-2011　Linux公社　All rights reserved 浙ICP备06018118号
+
+ 
+
+ 

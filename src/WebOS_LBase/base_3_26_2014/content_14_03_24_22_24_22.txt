@@ -1,0 +1,176 @@
+ifconfig、ifup、ifdown (ZZ)
+
+(2010-05-27 00:22:19)
+转载▼
+标签：
+it
+
+5.1.1  ifconfig、ifup、ifdown
+
+这3个命令的用途都是启动网络接口，不过，ifup与ifdown仅就 /etc/sysconfig/network- scripts内的ifcfg-ethx（x为数字）进行启动或关闭的操作，并不能直接修改网络参数，除非手动调整ifcfg-ethx文件才行。至于 ifconfig则可以直接手动给予某个接口IP或调整其网络参数。下面我们就分别来谈一谈。
+
+1. ifconfig
+
+ifconfig主要是可以手动启动、观察与修改网络接口的相关参数，可以修改的参数很多，包括IP参数以及MTU等都可以修改，它的语法如下：
+
+[root@linux ~]# ifconfig {interface} {up|down}  <== 观察与启动接口
+
+[root@linux ~]# ifconfig interface {options}    <== 设置与修改接口
+
+参数：
+
+Interface，网卡接口代号，包括 eth0、eth1、ppp0 等
+
+Options，可以接的参数，包括如下：
+
+    Up或down，启动 (up) 或关闭 (down) 该网络接口(不涉及任何参数)
+
+    mtu，可以设置不同的 MTU 数值，例如MTU 1500 (单位为 byte)
+
+    netmask，就是子屏蔽网络
+
+    broadcast，就是广播地址
+
+范例：
+
+
+
+范例一：观察所有的网络接口(直接输入 ifconfig)
+
+[root@linux ~]# ifconfig
+
+eth0 Link encap:Ethernet  HWaddr 00:0F:EA:A3:06:A2
+
+      inet addr:192.168.10.100  Bcast:192.168.10.255  
+
+Mask:255.255.255.0
+
+      inet6 addr: fe80::20f:eaff:fe73:682/64 Scope:Link
+
+      UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+
+      RX packets:3439 errors:0 dropped:0 overruns:0 frame:0
+
+      TX packets:2735 errors:0 dropped:0 overruns:0 carrier:0
+
+      collisions:0 txqueuelen:1000
+
+      RX bytes:646935 (631.7 KiB)  TX bytes:562313 (549.1 KiB)
+
+      Interrupt:209 Memory:fb000000-0
+
+一般来说，直接输入ifconfig就会列出目前已经被启动的卡，不论这个卡是否有设置IP，都会被显示出来。而如果是输入 ifconfig eth0，则会显示出这个接口的相关数据，而不管该接口是否启动。所以，如果你想要知道某个网卡的Hardware Address，直接输入“ifconfig"网络接口代号"”即可。至于上述代码中出现的各项数据是这样的（数据排列由上而下、由左而右）。
+
+· eth0：网卡的代号，也有lo这个loopback。
+
+· HWaddr：网卡的硬件地址，习惯称为MAC。
+
+· inet addr：IPv4的IP地址，后续的Bcase、Mask分别代表的是Broadcast与Netmask。
+
+· inet6 addr：是IPv6的版本的IP，我们没有使用，所以略过。
+
+· RX：那一行代表的是网络由启动到目前为止的数据包接收情况，packets代表数据包数、errors代表数据包发生错误的数量、dropped代表数据包由于有问题而遭丢弃的数量等。
+
+· TX：与RX相反，为网络由启动到目前为止的传送情况。
+
+· collisions：代表数据包碰撞的情况，如果发生太多次，表示你的网络状况不太好。
+
+· txqueuelen：代表用来传输数据的缓冲区的储存长度。
+
+· RX Bytes、TX Bytes：总传送、接收的字节总量。
+
+· Interrupt、Memory：网卡硬件的数据，IRQ岔断与内存地址。
+
+通过观察上述的资料，大致上可以了解到你的网络情况，尤其是RX、TX内的error数量，以及是否发生严重的collision情况，都是需要注意的。
+
+范例二：暂时修改网络接口
+
+[root@linux ~]# ifconfig eth0 192.168.100.100
+
+# 如果不加任何其他参数，则系统会依照该 IP 所在的 class 范围，
+
+# 自动地计算出 netmask 以及 network, broadcast 等 IP 参数
+
+
+
+[root@linux ~]# ifconfig eth0 192.168.100.100 netmask 255.255.255.128 \
+
+> mtu 8000 
+
+# 设置网络接口，同时设置 MTU 的数值
+
+
+
+[root@linux ~]# ifconfig eth0 MTU 9000
+
+# 仅修改该接口的 MTU 数值，其他的保持不动
+
+
+
+[root@linux ~]# ifconfig eth0:0 192.168.50.50
+
+# 仔细看那个接口， eth0:0 。那就是在该网络接口上，再仿真一个网络接口，
+
+# 亦即是在一个网卡上面设置多个 IP 的意思啦
+
+
+
+[root@linux ~]# ifconfig
+
+eth0      Link encap:Ethernet  HWaddr 00:0F:EA:A3:06:A2
+
+          inet addr:192.168.10.100 Bcast:192.168.10.255  Mask:255.255.255.0
+
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+
+          RX packets:3669 errors:0 dropped:0 overruns:0 frame:0
+
+          TX packets:2892 errors:0 dropped:0 overruns:0 carrier:0
+
+          collisions:0 txqueuelen:1000
+
+          RX bytes:667547 (651.9 KiB)  TX bytes:584799 (571.0 KiB)
+
+          Interrupt:209 Memory:fb000000-0
+
+
+
+eth0:0    Link encap:Ethernet  HWaddr 00:0F:EA:A3:06:A2
+
+          inet addr:192.168.200.2 Bcast:192.168.200.255  Mask:255.255.255.0
+
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+
+          Interrupt:209 Memory:fb000000-0
+
+# 仔细看，是否与硬件有关的信息都相同。没错。因为是同一个网卡。
+
+
+
+[root@linux ~]# ifconfig eth0:0 down
+
+# 关掉 eth0:0 这个接口。如果想要启动 eth1 ，并且不设置任何网络参数
+
+# ifconfig eth1 up 就可以实现
+
+
+
+[root@linux ~]# /etc/init.d/network restart
+
+# 刚刚设置的数据全部失效，会以 ifcfg-ethx 的设置为主
+使用ifconfig可以暂时用手动来设置或修改某个适配卡的相关功能，并且也可以通过eth0:0这种虚拟的网络接口来设置一张网卡上面的多个 IP。手动的方式是比较简单。而且设置错误也没有关系，因为我们可以利用 /etc/init.d/network restart来重新启动整个网络接口，那么之前手动的设置数据会全部失效。另外，要启动某个网络接口，但又不让它具有IP参数时，直接给它 ifconfig eth0 up即可。这个操作经常在无线网卡当中进行，因为我们需要启动无线网卡让它去检测AP存在与否。
+
+2. ifup、ifdown
+
+实时地手动修改一些网络接口参数，可以利用ifconfig来实现，如果是要直接以配置文件，亦即是在 /etc/sysconfig/network-scripts里面的ifcfg-ethx等文件的设置参数来启动的话，那就得要通过ifdown或 ifup来实现了。
+
+[root@linux ~]# ifup   {interface}
+
+[root@linux ~]# ifdown {interface}
+
+
+
+[root@linux ~]# ifup eth0
+ifup与ifdown真是太简单了。这两个程序其实是script而已，它会直接到 /etc/ sysconfig/network-scripts目录下搜索对应的配置文件，例如ifup eth0，它会找出ifcfg-eth0这个文件的内容，然后加以设置。关于ifcfg-eth0的设置请参考前一章连上Internet的说明。
+
+不过，由于这两个程序主要是搜索设置文件（ifcfg-ethx）来进行启动与关闭的，所以在使用前请确定ifcfg-ethx是否真的存在于正确 的目录内，否则会启动失败。另外，如果以ifconfig eth0来设置或者是修改了网络接口后，就无法再以ifdown eth0的方式来关闭了。因为ifdown会分析比较目前的网络参数与ifcfg-eth0是否相符，不符的话，就会放弃这次操作。因此，使用 ifconfig修改完毕后，应该要以ifconfig eth0 down才能够关闭该接口。

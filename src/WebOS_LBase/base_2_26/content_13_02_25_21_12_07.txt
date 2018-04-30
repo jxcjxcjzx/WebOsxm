@@ -1,0 +1,291 @@
+Qtargets used in Webclopedia
+USC Information Sciences Institute 
+
+Introduction 
+Weblcopedia uses so-called qtargets to narrow the search space of possible answers. For example, given a question like
+
+
+
+How tall is Mt. Everest?
+
+Webclopedia parses the question and then, using recursive pattern matching, determines that the answer must be a distance quantity, something we refer to as the qtarget for this question. After parsing various answer candidate sentences, e.g.
+
+
+Jack knows exactly how tall Mt. Everest is. 
+Jack climbed the 29,028-foot Mt. Everest in 1984 and the 7,130-foot Mt. Kosciusko in Australia in 1985. 
+Mt. Everest is 2.8% taller than K2.
+
+Webclopedia determines that there are no distance quantities in the first and third sentences (even though the words might look "promising"), and two distance quantities ("29,028-foot" and "7,130-foot") in the second sentence. For these three sentences, with thousands of substrings in the range of 1-50 bytes, the search space has now been reduced to a mere two candidates. 
+Some qtargets are very narrow: for example, I-EN-PROPER-PLANET currently has only nine sub-concepts, the nine planets of our solar system. Other qtargets can be much more vague: S-NP considers all noun phrases, leaving much of the answer-pinpointing work to subsequent modules of the question-answer matcher. 
+
+There are several different types of qtargets: 
+
+Abstract qtargets - Q-DEFINITION, Q-WHY-FAMOUS-PERSON - Who was Jane Goodall? 
+Semantic qtargets - C-DATE, I-EN-PROPER-PERSON - Who discovered America? 
+Syntactic qtargets - S-NP, S-VP - What did John Hinckley do to impress Jodie Foster? 
+Slot qtargets - SLOT TITLE-P TRUE - Name a poem by Milton. 
+Role qtargets - ROLE REASON - Why can't ostriches fly? 
+Slot qtargets - SLOT TITLE-P TRUE - Name a poem by Milton. 
+Lexical qtargets - LEX Berlin - What's the capital of Germany? 
+Predicative qtargets - PREDICATE airport-code-p - What is the airport code for Los Angeles International? 
+Combinations of qtargets - ((I-EN-PROPER-CITY 1.0) (EQ I-EN-PROPER-PLACE 0.8)) - Where is the Getty Museum? 
+Back to main Webclopdia demo page 
+
+
+
+
+Detailed listing of qtargets 
+Abstract qtargets
+
+
+Q-WHY-FAMOUS 
+Q-WHY-FAMOUS-PERSON
+- Who was Jane Goodall?
+- What is Jane Goodall famous for?
+- wild chimpanzee researcher Jane Goodall
+- Jane Goodall, who pioneered the study of primates in the wild 
+
+Q-WHY-FAMOUS-ORGANIZATION (new) - What is Amnesty International? 
+Q-DEFINITION - What are invertebrates? 
+Q-TRANSLATION (new) - What's the Spanish word for house? - How do you say "French fries" in French? - What does caliente mean in English? 
+Argument order: (1) source expression (2) target language (3) source language 
+Q-TERMINOLOGY (new) - What are the animals that don't have backbones called? 
+Q-TERMINOLOGY-COLLECTIVE-TERM (new) - What do you call a group of geese? 
+Q-ABBREVIATION-EXPANSION - What does NAFTA stand for? 
+Q-ABBREVIATION - What's the abbreviation for limited partnership? 
+Q-SYNONYM - Aspartame is also known as what? 
+Q-CONTRAST - What's the difference between DARPA and NSF? 
+Q-POPULATION - How many people live in Greater Tokyo? 
+Q-VERACITY 
+Q-YES-NO-QUESTION - Does light have weight? 
+Q-TRUE-FALSE-QUESTION - Chaucer was an actual person. True or false? 
+Q-FUNCTION (new) - What is the esophagus used for? 
+Q-COMPONENTS (new) - What is pastrami made of? 
+Q-CAUSE-OF-DEATH (new) - How did Bob Marley die? 
+Q-TIME (new) - What time is it in Japan? 
+Q-CONVERSION (new) - How many liters in a gallon? - What is 200 sq mt in sq ft? 
+Argument order: (1) source quantity (2) target unit 
+Q-CURRENCY-CONVERSION (new) - How much is a Euro in US dollars? 
+Q-PHILOSOPHICAL-QUESTION - What is the meaning of life? 
+Semantic qtargets
+
+Semantic qtargets limit the search space to sentence constituents that satisfy a particular semantic class with respect to the Webclopdia ontology. Semantic qtargets include: 
+
+C-TEMP-LOC - before the conference 
+C-DATE - July 4 
+C-DATE-WITH-YEAR - July 4, 1776 
+C-DATE-WITH-YEAR-AND-DAY-OF-THE-WEEK - Thursday, July 4, 1776 
+C-DATE-WITH-DAY-OF-THE-WEEK - Thursday, July 4 
+C-DATE-WITH-YEAR-AND-DAY-OF-THE-WEEK 
+C-YEAR-RANGE 
+C-DECADE - in the 1980s 
+C-CENTURY - in the 19th century 
+C-MILLENNIUM - in the second millennium B.C. 
+C-TEMP-LOC-WITH-YEAR - July 1776 
+C-DATE-WITH-YEAR 
+C-DATE-RANGE - July 12-14 
+C-TIME - at 2:15pm EST 
+C-AT-LOCATION - under the bed 
+I-EN-PROPER-NAMED-ENTITY 
+I-EN-PROPER-PERSON - John F. Kennedy 
+I-EN-PROPER-DYNASTY - Hohenzollern 
+I-EN-PROPER-LANGUAGE - Afrikaans 
+I-EN-PROPER-ANIMAL - Lassie 
+I-EN-PROPER-PLACE 
+I-EN-CONTINENT - Africa 
+I-EN-WORLD-REGION - Middle East 
+I-EN-US-REGION - Midwest 
+I-EN-PROPER-COUNTRY - Canada 
+I-EN-PROPER-STATE-DISTRICT - Alberta, Bavaria, California, Dordogne, Essex 
+I-EN-PROPER-COUNTY - Orange County 
+I-EN-PROPER-CITY - Chicago 
+I-EN-PROPER-CITY-DIVISION - Manhattan, Brooklyn 
+I-EN-PROPER-BODY-OF-WATER 
+I-EN-PROPER-OCEAN 
+I-EN-PROPER-SEA 
+I-EN-PROPER-LAKE 
+I-EN-PROPER-RIVER 
+I-EN-PROPER-CREEK 
+I-EN-PROPER-CANAL 
+I-EN-PROPER-GULF 
+I-EN-PROPER-BAY 
+I-EN-PROPER-STRAIT 
+I-EN-PROPER-ISLAND 
+I-EN-PROPER-CANYON 
+I-EN-PROPER-VALLEY 
+I-EN-PROPER-MOUNTAIN 
+I-EN-PROPER-VOLCANO 
+I-EN-PROPER-DESERT 
+I-EN-PROPER-FOREST 
+I-EN-PROPER-STAR-CONSTELLATION - Orion 
+I-EN-ZODIACAL-CONSTELLATION - Sagittarius 
+I-EN-PROPER-STAR - Polaris 
+I-EN-PROPER-PLANET - Venus 
+I-EN-PROPER-MOON - Ganymede 
+I-EN-PROPER-AMUSEMENT-PARK - Disney Land 
+I-EN-PROPER-HOTEL - Holiday Inn 
+I-EN-PROPER-PALACE - Buckingham Palace 
+I-EN-PROPER-MUSEUM - Tate Gallery 
+I-EN-PROPER-BANK-COMPANY - Commerzbank, Banque Nationale de Paris 
+I-EN-PROPER-UNIVERSITY - Harvard 
+I-EN-PROPER-COLLEGE - Agnes Scott College 
+I-EN-PROPER-AIRPORT - LAX 
+I-EN-PROPER-ORGANIZATION 
+I-EN-PROPER-SPORTS-TEAM 
+I-EN-PROPER-SOCCER-SPORTS-TEAM 
+I-EN-PROPER-BASKETBALL-SPORTS-TEAM 
+I-EN-PROPER-BASEBALL-SPORTS-TEAM 
+I-EN-PROPER-ICE-HOCKEY-SPORTS-TEAM 
+I-EN-PROPER-AMERICAN-FOOTBALL-SPORTS-TEAM 
+I-EN-PROPER-CENTRAL-BANK 
+I-EN-PROPER-POLITICAL-PARTY 
+I-EN-PROPER-COMPANY 
+I-EN-PROPER-BROADCASTING-COMPANY 
+I-EN-PROPER-NEWSPAPER 
+I-EN-PROPER-MAGAZINE 
+I-EN-PROPER-HOTEL 
+I-EN-PROPER-FINANCE-COMPANY 
+I-EN-PROPER-BANK-COMPANY - Commerzbank 
+I-EN-PROPER-AUTOMOBILE-COMPANY 
+I-EN-PROPER-AIRLINE-COMPANY 
+I-EN-PROPER-OIL-COMPANY 
+I-EN-PROPER-OPERA-COMPANY 
+I-EN-PROPER-BALLET-COMPANY 
+I-EN-PROPER-THEATER-COMPANY 
+I-EN-GOVERNMENT-AGENCY - House of Representatives, OSHA 
+I-EN-PROPER-TERRORIST-GROUP - Al-Qaeda, IRA (new) 
+I-EN-PLANT-FLORA 
+I-EN-FLOWER 
+I-EN-TREE 
+I-EN-SUBSTANCE 
+I-EN-SOLID-SUBSTANCE 
+I-EN-METAL 
+I-EN-LIQUID 
+I-EN-BEVERAGE 
+I-EN-GAS-FORM-SUBSTANCE (new) 
+I-EN-QUANTITY 
+I-EN-MONETARY-QUANTITY - How much does one ton of cement cost? - How much was a ticket for the Titanic? 
+I-EN-SPATIAL-QUANTITY 
+I-EN-DISTANCE-QUANTITY - How far is it from Denver to Aspen? - How tall is the Sears Building? 
+I-EN-AREA-QUANTITY - How big is Australia? 
+I-EN-VOLUME-QUANTITY - How much milk did you buy? 
+I-EN-TEMPORAL-QUANTITY - How long did Desert Storm last? - What is the life expectancy for crickets? 
+I-EN-SPEED-QUANTITY - How fast is sound? 
+I-EN-ACCELERATION-QUANTITY - What's the gravity on the moon? 
+I-EN-NUMERICAL-QUANTITY/I-ENUM-CARDINAL - How many moons does Jupiter have? 
+I-EN-FREQUENCY-QUANTITY - How often does Old Faithful erupt at Yellowstone National Park? 
+I-EN-SCORE-QUANTITY - What was the score of the World Cup final Germany vs. Netherlands? 
+I-EN-PERCENTAGE-QUANTITY - What is the sales tax rate in New York? 
+I-EN-TEMPERATURE-QUANTITY - How hot is the core of the earth? 
+I-EN-INFORMATION-QUANTITY - How much memory does your VAIO laptop come with? 
+I-EN-MASS-QUANTITY - What is the average weight of a Yellow Labrador? 
+I-EN-POWER-QUANTITY - How many megawatts will the new power plant in Indonesia produce? 
+I-EN-ENERGY-QUANTITY - How many calories are there in a Big Mac? 
+I-EN-MAGNETIC-FIELD-QUANTITY in Tesla, Gauss 
+I-EN-INDUCTANCE-QUANTITY in Henry 
+I-EN-RESISTANCE-QUANTITY in Ohm 
+I-EN-FORCE-QUANTITY in Newton 
+I-EN-CHARGE-QUANTITY in Coulomb 
+I-EN-PRESSURE-QUANTITY in Pascal, bar, atm 
+I-EN-POTENTIAL-QUANTITY in Volt 
+I-EN-ILLUMINATION-QUANTITY in Candela, Lux 
+I-EN-CAPACITANCE-QUANTITY in Farad 
+I-EN-CURRENT-QUANTITY in Ampere 
+I-EN-RADIATION-QUANTITY in Becquerel, Sievert, Curie, rem, gray, rad 
+I-EN-MAGNETIC-FLUX-QUANTITY in Maxwell, Weber 
+I-EN-UNIT (new) 
+I-EN-MONETARY-UNIT (new) - What currency do they use in Brazil? 
+C-LOCATOR 
+C-PHONE-NUMBER - (202) 456-1414 
+C-ADDRESS - 1600 Pennsylvania Avenue 
+C-ZIP-CODE - 20500 
+C-EMAIL-ADDRESS - president@whitehouse.gov 
+C-URL - http://www.whitehouse.gov 
+I-EN-UNIVERSITY-AGENCY - biology department 
+I-EN-SPIRITUAL-BEING 
+I-EN-OCCUPATION-PERSON - computer scientist 
+I-EN-ANIMAL 
+I-EN-HUMAN-FOOD 
+I-EN-BODY-PART 
+I-EN-TEMPORAL-INTERVAL 
+I-EN-DAY-OF-THE-WEEK 
+I-EN-MONTH-OF-THE-YEAR 
+I-EN-SEASON 
+I-EN-DISEASE - arthritis 
+I-EN-INSTRUMENT - hammer 
+I-EN-MUSICAL-INSTRUMENT -trumpet 
+I-EN-SPORT - football 
+I-EN-LEFT-OR-RIGHT - left, right 
+I-EADJ-COLOR - blue 
+I-EADJ-NATIONALITY - German 
+Syntactic qtargets
+
+
+S-NP, S-NOUN - What does the Peugeot company manufacture? 
+S-VP - What did John Hinckley do to impress Jodie Foster? 
+S-PROPER-NAME 
+Syntactic qtargets are fairly weak, that is they generally don't restrict the search space much. However they still enforce the answer to be a constituent in a parse tree. Webclopedia uses S-NP as the default qtarget. 
+Role qtargets
+
+
+ROLE REASON - Why did David Koresh ask the FBI for a word processor? 
+ROLE MANNER - What's the easiest way to remove wallpaper? 
+Roles refer to the role of a constituent within a phrase. For example, in the parse tree 
+[1] The tournament was cancelled due to bad weather.  [S-SNT]
+    (SUBJ LOG-OBJ) [2] The tournament  [S-NP]
+    (PRED) [5] was cancelled  [S-VERB]
+    (REASON) [6] due to bad weather  [S-PP]
+    (DUMMY) [14] .  [D-PERIOD]
+
+the phrase "due to the bad weather" would satisfy the qtarget ROLE REASON. The constraint is independent from the syntactic category, which also could have been a subordinate clause (because the weather was so bad) or a verb phrase (to avoid injuries). 
+Slot qtarget
+
+Slots can access any slot associated with a phrase. Slots can be filled during parsing or some post-parsing processing, and then be used for qtarget matching. 
+
+SLOT TITLE-P TRUE - Name a novel written by John Steinbeck. 
+SLOT QUOTE-P TRUE - What did Richard Feynman say upon hearing he would receive the Nobel Prize in Physics? 
+SLOT POSSIBLE-REASON-P TRUE
+secondary qtarget used with ROLE REASON for constituents that might be a reason 
+Lexical qtargets
+
+Lexical qtargets are used when the answer is already available from some external knowledge, and all the system still has to do is look for text supporting that answer: 
+
+LEX Berlin - What's the capital of Germany? 
+SURF Berlin - What's the capital of Germany? 
+LEX and SURF differ in that for LEX, only the lexical head has to match, whereas for SURF the strings have to match exactly. That is, "LEX Washington" matches not only "Washington", but also "WASHINGTON" and "Washington, DC". 
+Note: in this specific example, the principal "external knowledge source" is WordNet, which lists "Berlin" and "German capital" as synonyms. 
+
+Predicative qtargets
+
+
+PREDICATE airport-code-p (new) - What is the airport code for Los Angeles International? 
+PREDICATE chemical-formula-p (new) - What is the chemical formula for sulphur dioxide? 
+Predicative qtargets take the name of a predicate as an argument. A constituent is considered an answer candidate if the predicate holds for that constituent. The predicate airport-code-p for example checks whether the surface string of a constituent consists of three capital letters, e.g. LAX. 
+Wouldn't it be better to have a semantic class for airport codes, chemical formulas, etc.? The problem here is the difficulty to identify such categories with high accuracy in a parse tree. It is not trivial to decide in the general case whether EPA might be an airport code or the abbreviation of something else. However, the system can greatly benefit if the module in the matcher that proposes an initial set of answer candidates can narrow the space of candidates from any noun phrase to words consisting of three capital letters. So the predicative qtarget is in some way a compromise between a strong semantic qtarget that a parser/preprocessor might not be able to support and a weak syntactic qtarget that fails to exploit our knowledge about how certain answers are expected to look like. 
+
+Combinations of qtargets
+
+For many questions, the qtarget is a combination of simple qtargets.
+
+
+
+Question: Where is the Getty Museum? 
+Qtarget: ((I-EN-PROPER-CITY 1.0) (C-AT-LOCATION 0.7) (I-EN-PROPER-PLACE 0.7) (I-EN-PLACE 0.5)) 
+
+In the question above, Webclopedia prefers a proper city (score factor 1.0), but also considers other location expressions, proper places and general places. 
+
+Question: What is the capital of Ontario? 
+Qtarget: ((I-EN-PROPER-CITY 1.0) (EQ I-EN-PROPER-PLACE 0.8)) 
+
+In the example above, the system prefers a proper city as well, but given that the named entity tagger might identify Toronto only as a general location, the system also allows I-EN-PROPER-PLACE, although with lower preference - just to be on the safe side.
+
+Note: The EQ option means that sub-classes of I-EN-PROPER-PLACE can *NOT* be considered. For example, if the system identifies "Canada" as a I-EN-PROPER-COUNTRY, "Canada" will properly be disqualified as a potential answer to our question. 
+
+
+--------------------------------------------------------------------------------
+
+Back to main Webclopdia demo page 
+
+Written by Ulf Hermjakob
+Last updated: November 7, 2002 
+

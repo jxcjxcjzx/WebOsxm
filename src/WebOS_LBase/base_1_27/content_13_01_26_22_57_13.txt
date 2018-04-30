@@ -1,0 +1,246 @@
+下载2频道 我的主页帐号设置退出秀才　二级|私信(1)|我的百科我的贡献草稿箱我的任务为我推荐|百度首页 新闻网页贴吧知道音乐图片视频地图百科文库
+    帮助 首页 自然 文化 地理 历史 生活 社会 艺术 人物 经济 科技 体育 图片 数字博物馆 核心用户 百科商城 
+求助编辑net.exe目录
+
+概要
+net.exe命令的常见用法一、 net account
+二、 net computer
+三、 net config
+四、 net config server
+五、 net config workstation
+六、Net Continue
+七、Net File
+八、Net Group
+九、Net Help
+十、Net Helpmsg
+展开概要 
+net.exe命令的常见用法 一、 net account 
+二、 net computer 
+三、 net config 
+四、 net config server 
+五、 net config workstation 
+六、Net Continue 
+七、Net File 
+八、Net Group 
+九、Net Help 
+十、Net Helpmsg
+展开编辑本段概要工作组连接安装程序, 如果选择 " 不要 " 无法运行连接工作组, 中 AUTOSTART 语句是空白 SYSTEM.INI 中 =。 通过默认, 无论值 NET 命令如果执行需要加载网络重定向器, NET 命令 NET.EXE 应该加载完全重定向器。 NET.EXE 根据执行, 什么命令可能无法加载完全重定向器。 两 NET LOGON 和 NET START RDR 要求网络重定向器。 如果没有定向器加载或由 AUTOSTART 指定 = 语句, NET.EXE 应加载完全重定向器。 但是, 如果执行 NET LOGON, NET.EXE 加载完全重定向器 ； 如果执行 NET START RDR, 它加载基本重定向器。 
+--------------------------------------------------------------------------------
+这篇文章中的信息适用于:
+• Microsoft Windows for Workgroups Connection 1.0 
+回到顶端
+关键字： KB91221 KbMtzh kbmt 
+对于net.exe 管理员应该给的权限：
+C: \Windows\System32\cacls.exe、cmd.exe、net.exe，、net1.exe 文件只给 Administrators 组和 SYSTEM 的完全控制权限。 
+--------------------------------------------------------------------------------
+编辑本段net.exe命令的常见用法一、 net account
+功能：将用户帐户数据库升级并修改所有帐户的密码和登录请求。 
+格式：net accounts [/forcelogoff:{minutes | no}] [/minpwlen:length]
+[/maxpwage:{days|unlimited}][/minpwage:days] [/uniquepw:number] [/sync] [/domain] 
+参数： 
+（1）无：即键入不带参数的net accounts，命令显示密码、登录限制和域信息的当前配置。 
+（2）/forcelogoff:{minutes | no}
+设置当用户帐户或有效登录时间到期时在结束用户与服务器的会话前要等待的分钟数。no 选项防止强制注销。默认设置是 no。
+指定了 /forcelogoff:minutes 选项后，系统在强制用户离开网络的 minutes 分钟前发送警告。如果任何文件被打开，系统将警告用户。如果 minutes 少于 2，系统将警告用户立即从网络注销。 
+（3）/minpwlen:length
+设置用户帐户密码的最少字符数。范围是 0-127 个字符，默认是 6 个字符。
+实例:设置不少于 10 个字符的用户密码
+net accounts /minpwlen:10 
+（4）/maxpwage:{days | unlimited}
+设置用户帐户密码有效天数的最大值。　
+/maxpwage:unlimited 设置帐户密码永远有效。
+/maxpwage 选项必须大于 /minpwage，（也就是如果以前设置了/minpwlen:30，那么days取值必须大于30）范围是 1-49,710 天（无限），默认是 90 天。 
+（5）/minpwage:days
+设置在用户可以更改新密码前的最小天数。数值 0 设置无限短时间。范围是 0-49,710 天，默认值是 0 天。 
+（6）/uniquepw:number
+要求用户不对 number 次密码更改重复相同的密码。范围是 0-24 次密码更改，默认值是 5 次密码更改。
+实例:防止用户每少于3天更改一次密码，强制用户每15天更改一次密码，并在登录时间到期后用2分钟警告强制用户注销。
+net accounts /forcelogoff:2 /minpwage:3　/maxpwage:15 
+（7）/sync
+更新所有成员服务服务器的用户帐户数据库。当在主域控制器上使用时，使域中的所有备份域控制器同步。当在备份域控制器上使用时，使备份域控制器只与主域控制器同步。该命令只适用于 Windows NT/2000 Server 域成员计算机。 
+（8）/domain
+对当前域的主域控制器执行操作。否则，操作在本地计算机上执行。
+该参数只适用于属 Windows NT/2000 Server 域成员的 Windows 2000 Workstation / Professional 计算机。默认情况下，Windows NT/2000 Server 计算机在主域控制器上执行操作。 
+二、 net computer
+功能：从域数据库中添加或删除计算机，所有计算机的添加和删除都会转发到主域控制器。 
+格式：net computer \\computername {/add | /del} 
+参数： 
+（1）\\computername
+指定要从域中添加或删除的计算机名。 
+（2）/add
+将特定的计算机添加到域中。
+实例：将计算机bb添加到登录的域中。
+net computer \\bb /add 
+（3）/del
+从域中删除指定的计算机。
+实例：将计算机bb从登录的域中删除。
+net computer \\bb /del 
+三、 net config
+功能：显示当前运行的可配置服务，或显示并更改某项服务的设置。更改立即生效并且是永久的 
+格式：net config [service [options] 
+参数： 
+（1）无
+键入不带参数的 net config 命令显示可配置服务的列表。 
+（2）service
+通过net config命令进行配置的服务(server或workstation) 
+（3）options
+服务的特定选项。 
+四、 net config server
+功能：更改可配置"服务器"服务参数。更改立即生效，并且永久保持。但是并非所有的"服务器"服务的参数都能使用 net config Server 命令进行更改，net config server 显示可包含其他信息，包括以下关于服务器的信息：
+1．服务器的计算机名、描述注释和软件版本。
+2．网络描述。
+3．服务器的隐藏设置。
+4．可以使用服务器的共享资源的最多用户数。
+5．可以打开的服务器文件的最大数量。
+6．空闲会话时间设置。 
+格式：net config server [/autodisconnect:time] [/srvcomment:"text "] [/hidden:{yes | no}] 
+参数： 
+（1）无
+键入 net config server 命令显示"服务器"服务的当前配置 
+（2）/autodisconnect:time
+设置在断开连接前用户会话可以不活动的最大分钟数。可以指定-1不断开连接。范围从-1到65535分钟，默认值是15分钟。
+实例：在10分钟的非活动状态后断开用户连接。
+net config server /autodisconnect:10 
+（3）/srvcomment:"text"
+用net view命令，为在屏幕上显示出来的服务器添加注释。注释可以包含多达48个字符（24个汉字）。给文本加上引号。 
+（4）/hidden:{yes | no}
+指定服务器的计算机名是否在服务器显示列表上显示。注意隐藏的服务器将不会改变服务器上的权限。默认设置是 no。
+实例：从可用服务器列表中隐藏服务器的计算机名。
+net config server /hidden:yes 
+（ 只能在Windows NT/2000 中使用 ）
+五、 net config workstation
+功能：显示更改可配置工作站服务参数。更改立即生效，并且永久保持。
+并非所有的工作站服务参数都能使用 net config workstation 命令进行更改。其他参数可以在配置注册表时修改。 
+格式：net config workstation [/charcount:bytes] [/chartime:msec] [/charwait:sec] 
+参数： 
+（1）无
+键入 net config workstation 命令显示本地计算机的当前配置。 
+（2）/charcount:bytes
+指定在将数据发送到通讯设备之前Windows 收集的数据量。如果还设置了 /chartime:msec，Windows 将执行第一个满足的
+选项。范围从0到-65535字节，默认值是16字节。 
+（3）/chartime:msec
+设置 Windows在将数据发送到通讯设备前收集数据的毫秒数。如果还设置了 /charcount:bytes，Windows 2000 将执行第
+一个满足的选项。范围从0到65535000毫秒，默认是250毫秒。 
+（4）/charwait:sec
+将Windows等待通讯设备的秒数设置为可用。范围从0到65535秒，默认值是3600秒。
+实例：要设置在将数据发送到最大1000毫秒的通讯设备之前Windows等待。
+net config workstation /chartime:1000 
+六、Net Continue
+功能：重新激活挂起的服务
+格式：net continue service 
+参数 
+??service 
+??能够继续运行的服务，包括： file server for macintosh（该服务仅限于 Windows NT Se
+??rver）, ftp publishing service, lpdsvc, net logon, network dde，network dde dsdm
+??，nt lm security support provider，remoteboot（该服务仅限于 Windows NT Server），
+??remote access server, schedule，server，simple tcp/ip services 及 workstation 
+七、Net File
+功能：显示某服务器上所有打开的共享文件名及锁定文件数。该命令也可以关闭个别文件并取消文 
+??件锁定。 
+格式：net file [id [/close]] 
+参数 
+??（1）无 
+??键入不带参数的 net file 可获得服务器上打开文件的列表。 
+??id 
+??文件标识号。 
+??（2）/close 
+??关闭打开的文件并释放锁定记录。请从共享文件的服务器中键入该命令。 
+八、Net Group
+功能：在 Windows NT Server 域中添加、显示或更改全局组。该命令仅在 Windows NT Server 域
+?? 中可用。 
+格式：net group [groupname [/comment:"text "]] [/domain] 
+?? net group groupname {/add [/comment:"text "] | /delete} [/domain] 
+?? net group groupname username [ ...] {/add | /delete} [/domain] 
+参数 
+??（1）无 
+??键入不带参数的 net group 可以显示服务器名称及服务器的组名称。 
+??groupname 
+??要添加、扩展或删除的组。仅提供某个组名便可查看组中的用户列表。 
+??（2）/comment:"text " 
+??为新建组或现有组添加注释。注释最多可以是 48 个字符，并用引号将注释文字引住。 
+??（3）/domain 
+??在当前域的主域控制器中执行该操作，否则在本地计算机上执行操作。 
+??该参数仅用于作为 Windows NT Server 域成员的 Windows NT Workstation 计算机。Windo
+??ws NT Server 计算机默认为在主域控制器中操作。 
+??username[ ...] 
+??列表显示要添加到组或从组中删除的一个或多个用户。使用空格分隔多个用户名称项。 
+??（4）/add 
+??添加组或在组中添加用户名。必须使用该命令为添加到组中的用户建立帐号。 
+??（5）/delete 
+??删除组或从组中删除用户名。 
+九、Net Help
+功能：提供网络命令列表及帮助主题，或提供指定命令或主题的帮助。可用网络命令列于 N 下面的
+?? “命令参考”中“命令”窗口内。
+格式：net help [command] 
+?? net command {/help | /?} 
+参数 
+??（1）无 
+??键入不带参数的 net help 显示能够获得帮助的命令列表和帮助主题。 
+??command 
+??需要其帮助的命令，不要将 net 作为 command 的一部分。 
+??（2）/help 
+??提供显示帮助文本方式选择。 
+??（3）/? 
+??显示命令的正确语法。 
+十、Net Helpmsg
+功能：提供 Windows NT 错误信息的帮助。
+格式：net helpmsg message#
+参数 
+??message# 
+??需要其帮助的 Windows NT 消息的四位代码。
+
+开放分类： 
+电脑 文件 进程信息 
+
+
+百度百科中的词条正文与判断内容均由用户提供，不代表百度百科立场。如果您需要解决具体问题（如法律、医学等领域），建议您咨询相关领域专业人士。
+本词条对我有帮助添加到搜藏 分享到:更多
+合作编辑者 
+w_ou ， 非同烂铁007 ， 散夜之歌 ， dongriqiang ， 1360461201 ， 更多 
+如果您认为本词条还需进一步完善，百科欢迎您也来参与 编辑词条 在开始编辑前，您还可以先学习如何编辑词条
+如想投诉，请到百度百科投诉中心；如想提出意见、建议，请到百度百科吧。
+百度百科内容方针
+提倡有可靠依据、权威可信的内容鼓励客观、中立、严谨的表达观点不欢迎恶意破坏、自我或商业宣传在这里你可以
+编辑
+质疑
+投诉
+全方位的质量监督
+学术委员会：为亿万网友提供权威意见质量委员会：把控质量，做更好的知识下载2频道
+00
+
+去兑换>>您尚无道具可使用
+成长任务加速升级，快速成长。我要去参加>>日常任务本月累计点亮0天。今日笑脸还没点亮哦。
+名符图实：参加任务，拿点亮任务日历获得财富值热词推送编辑热词可获得额外经验值
+词条动态进入我的百科您目前的等级是2级
+您目前的经验值是188点
+您还需312点经验值即可升为3级
+
+
+词条统计
+浏览次数：约 17672次
+编辑次数：5次 历史版本
+最近更新：2012-08-30
+创建者：1360461201
+最新动态
+数字博物馆新馆上线：
+
+百科消息：
+百科android客户端升级1.1版
+文库专题：过日子要有技术含量
+百科mini上线：聚合精彩主题APP
+一种细菌如何让污水变清？
+百科数字博物馆突破30家
+百科新增功能维护词条权威
+
+© 2013 Baidu 使用百度前必读 | 百科协议 | 百度百科合作平台
+net.exe概要net.exe命令的常见用法一、 net account二、 net computer三、 net config四、 net config server五、 net config workstation六、Net Continue七、Net File八、Net Group九、Net Help十、Net Helpmsg
+
+  参考资料 
+退出 
+若有错误，请划词选中错误内容并按提示质疑，为词条的质量提升做出贡献。
+
+展开收起
+若您对这些内容有可信的参考资料，并掌握百科编辑技巧，欢迎你直接编辑词条。
+
+如果你想了解更详细的质疑原因，并参与更多的词条讨论，欢迎进入词条讨论页。 
+参与质疑×

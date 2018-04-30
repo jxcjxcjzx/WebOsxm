@@ -1,0 +1,260 @@
+
+
+您还未登录！|登录|注册|帮助
+
+    首页
+    业界
+    移动
+    云计算
+    研发
+    论坛
+    博客
+    下载
+    更多
+
+新风作浪的博客专栏
+懂得太少，表现太多；才华太少，锋芒太多，很浅薄，一眼就能被看穿. 沉下来，打根基，让别人不会觉得你烦！
+
+    目录视图
+    摘要视图
+    订阅
+
+2013年1月当选微软MVP名单揭晓！    CSDN博客频道年终送好礼获奖名单公布！
+2012CSDN博客之星评选正式上线      2000元大奖征异构开发博文
+[置顶] 开源中国iOS客户端学习——(六)网络连接检测
+分类： 菜鸟学iOS的笔记 2013-01-03 10:06 952人阅读 评论(0) 收藏 举报
+
+         开源中国iOS客户端基于网络同步数据，从而达到与网页看到同样数据效果，所以在启动程序的时候需要检查网络；这也是每一个联网应用启动的第一步，如果联网应用没有检查网络，苹果公司将不予以审核通过；
+
+       开源中国iOS客户端大牛们在写网络检测时很迷惑人，开始以为他们用的是ASI类库做的网络检测，今天才看明白，他们并不是用的ASI类库检测，而是用到AFNetworking这个类库里一个实例方法做网络连接检测；
+
+
+先看Appdelegate文件:
+
+在application:didFinishLaunchingWithOptions:方法里
+
+[cpp] view plaincopyprint?
+
+    //检查网络是否存在 如果不存在 则弹出提示  
+        [Config Instance].isNetworkRunning = [CheckNetwork isExistenceNetwork];  
+
+
+在applicationDidBecomeActive:方法里
+
+[cpp] view plaincopyprint?
+
+    - (void)applicationDidBecomeActive:(UIApplication *)application  
+    {  
+          
+        [Config Instance].isNetworkRunning = [CheckNetwork isExistenceNetwork];  
+        if ([Config Instance].isNetworkRunning == NO) {  
+            UIAlertView *myalert = [[UIAlertView alloc] initWithTitle:@"警告" message:@"未连接网络,将使用离线模式" delegate:self cancelButtonTitle:@"确认" otherButtonTitles:nil,nil];  
+            [myalert show];  
+        }  
+    }  
+
+
+都用到了[Config Instance].isNetworkRunning = [CheckNetwork isExistenceNetwork];再看看Config和CheckNetwork这两个类定义
+
+Config类的Instance方法，
+
+[cpp] view plaincopyprint?
+
+    static Config * instance = nil;  
+    +(Config *) Instance  
+    {  
+        @synchronized(self)  
+        {  
+            if(nil == instance)  
+            {  
+                [self new];  
+            }  
+        }  
+        return instance;  
+    }  
+
+从字面意思也能推测出是给Cinfig类实例化用的，isNetworkRunning是BOOL型变量
+
+CheckNetwork在ASIHttp文件里，和ASI类库放到一块的，(里面汉字出现乱码)
+
+[cpp] view plaincopyprint?
+
+    +(BOOL)isExistenceNetwork  
+    {  
+    //  BOOL isExistenceNetwork;  
+    //  Reachability *r = [Reachability reachabilityWithHostName:@"www.oschina.net"];  
+    //    switch ([r currentReachabilityStatus]) {  
+    //        case NotReachable:  
+    //          isExistenceNetwork=FALSE;  
+    //            //   NSLog(@"娌℃湁缃戠粶");  
+    //            break;  
+    //        case ReachableViaWWAN:  
+    //          isExistenceNetwork=TRUE;  
+    //            //   NSLog(@"姝ｅ湪浣跨敤3G缃戠粶");  
+    //            break;  
+    //        case ReachableViaWiFi:  
+    //          isExistenceNetwork=TRUE;  
+    //            //  NSLog(@"姝ｅ湪浣跨敤wifi缃戠粶");          
+    //            break;  
+    //    }  
+    //  return isExistenceNetwork;  
+          
+        return YES;  
+    }  
+
+本来是使用苹果官方提供的Reachability来检测网络连接状况，但是大牛们又给注释掉了，return YES;
+
+也就是[Config Instance].isNetworkRunning=YES;
+
+但是当我把iMac网线拔掉运行的时候却能检测出网络无连接，通过查找 “错误 网络无连接”
+
+     
+
+发现他们都在AFNetworking类库
+
+- (void)postPath:(NSString *)path parameters:(NSDictionary *)parameters success:(void (^)(AFHTTPRequestOperation *operation, id responseObject))success failure:(void (^)(AFHTTPRequestOperation *operation, NSError *error))failure  方法里面，
+
+这个方法使用AFHTTPRequestOperation和“PATCH”请求HTTP客户端操作队列，使用到了block块(iOS 4.0+特性)，URL请求成功执行success块里操作，这里面block块没有返回值，接受两个参数，创建请求操作和响应数据请求，URL请求失败执行failure里面的方法，这个block块里仍没有返回值，接受两个参数创建请求操作和NSError对象，描述网络或解析错误状况；
+
+所以才有了上面截图中网络的连接检测，拿源码中一处来举例
+
+
+
+
+
+正在学习过程中，错误之处请指正，欢迎交流，共同学习；
+
+欢迎转载分享，请注明出处http://blog.csdn.net/duxinfeng2010
+
+
+分享到：
+上一篇：写给即将逝去的2012
+下一篇：copy, retain, assign , readonly , readwrite,strong,weak,nonatomic整理
+
+顶
+    1
+
+踩
+    0
+
+查看评论
+
+  暂无评论
+
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+TOP
+
+    个人资料
+
+    [访问我的空间]
+    duxinfeng2010
+        访问：63519次
+        积分：1530分
+        排名：第5089名
+        原创：79篇
+        转载：21篇
+        译文：0篇
+        评论：90条
+
+    博客专栏
+
+    	开源中国iOS客户端学习
+
+    文章：7篇
+    阅读：6557
+
+    文章分类
+
+    菜鸟学iOS的笔记(43)
+    学习iOS转载博客(12)
+    菜鸟的Objective-C笔记(12)
+    菜鸟学习cocos2d笔记(4)
+    C/C++学习笔记(8)
+    沉思录(7)
+    备用资料(5)
+    Linux学习笔记(1)
+    Qt学习(4)
+    杂谈(1)
+    数据库(1)
+    Mac软件(2)
+
+    文章存档
+
+    2013年01月(2)
+    2012年12月(19)
+    2012年11月(10)
+    2012年10月(4)
+    2012年09月(8)
+    展开
+
+    阅读排行
+
+    开源免费天气预报接口API以及全国所有地区代码！！（国家气象局提供）(8759)
+    古典问题：有一对兔子，从出生后第3个月起每个月都生一对兔子，小兔子长到第三个月后每个月又生一对兔子，假如兔子都不死，问每个月的兔子总数为多少？(4527)
+    开源中国iOS客户端学习——(二)下拉刷新特效EGOTableViewPullRefresh(3132)
+    输入某年某月某日，判断这一天是这一年的第几天？(2377)
+    iOS三种Json方法解析国家气象局API(2199)
+    UITableViewCell的标记、移动、删除、插入(2050)
+    代码实现UIPickerView(1613)
+    ios 视图切换翻页效果(1510)
+    判断101-200之间有多少个素数，并输出所有素数。(1508)
+    代码实现 UITableView与UITableViewCell(1505)
+
+    评论排行
+
+    开源中国iOS客户端学习——(二)下拉刷新特效EGOTableViewPullRefresh(21)
+    开源中国iOS客户端学习——(四)GCDiscreetNotificationView提示视图(7)
+    判断101-200之间有多少个素数，并输出所有素数。(6)
+    代码写Button遇到问题(5)
+    开源中国iOS客户端学习——(一)Prefix.pch文件(4)
+    我的移动开发情缘(4)
+    ios 视图切换翻页效果(4)
+    Windows环境 和 Linux环境下搭建Qt开发环境(3)
+    输入某年某月某日，判断这一天是这一年的第几天？(3)
+    代码实现UIPickerView(3)
+
+    最新评论
+
+    怎样像iPhone模拟器中添加图片
+
+    余书懿: good!
+    写给即将逝去的2012
+
+    suliyea: 多懂事的一孩纸
+    开源中国iOS客户端学习——(二)下拉刷新特效EGOTableViewPullRefresh
+
+    duxinfeng2010: @love512590471:呵呵 一样一样 加油
+    开源中国iOS客户端学习——(二)下拉刷新特效EGOTableViewPullRefresh
+
+    love512590471: 菜鸟一枚学习中 感谢楼主
+    开源中国iOS客户端学习——(二)下拉刷新特效EGOTableViewPullRefresh
+
+    love512590471: 感谢楼主
+    开源中国iOS客户端学习——(二)下拉刷新特效EGOTableViewPullRefresh
+
+    duxinfeng2010: @yupixiu:果酱了
+    开源中国iOS客户端学习——(四)GCDiscreetNotificationView提示视图
+
+    yupixiu: @duxinfeng2010:谢谢楼主，没问题了！
+    开源中国iOS客户端学习——(四)GCDiscreetNotificationView提示视图
+
+    duxinfeng2010: @yupixiu:你可以看GCDiscreetNotificationView.h里面包含的头文件，...
+    开源中国iOS客户端学习——(四)GCDiscreetNotificationView提示视图
+
+    yupixiu: 我在使用GCDiscreetNotificationView时也出现了类似EGORefreshTab...
+    开源中国iOS客户端学习——(二)下拉刷新特效EGOTableViewPullRefresh
+
+    yupixiu: 楼主 很厉害！
+
+    推荐文章
+
+    公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+    京 ICP 证 070598 号
+    北京创新乐知信息技术有限公司 版权所有
+    世纪乐知(北京)网络技术有限公司 提供技术支持
+    江苏乐知网络技术有限公司 提供商务支持
+    联系邮箱：webmaster(at)csdn.net
+    Copyright © 1999-2012, CSDN.NET, All Rights Reserved GongshangLogo
+
+

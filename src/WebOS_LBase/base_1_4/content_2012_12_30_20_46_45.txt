@@ -1,0 +1,224 @@
+
+
+
+
+
+Screenshots
+ Propaganda
+ Users
+ Licensing
+ Blog
+ Forum
+ DocumentationLearning
+
+
+
+ Using vvvv
+
+
+
+
+
+
+ Topics
+
+
+
+
+
+
+
+
+
+
+
+ Node Reference
+ Devvvveloping
+
+
+
+
+
+
+ Website
+ 
+Contributions
+ Downloads
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+vvvv » Documentation » Learning » Tutorials
+» Tutorial SpreadsII
+
+
+
+
+Tutorial SpreadsII
+
+
+
+
+
+
+
+
+Mandarin | French | Russian | Japanese | Italian
+
+The following tutorial assumes that you have already worked through tutorial IV: IOBoxes.
+ 
+Recall
+ 
+Now that we've learned how to deal with IOBoxes let's have another look at how nodes deal with spreads. 
+
+
+
+The two samples give you an idea what happens inside a node if it has to deal with spreads of different slicecount. Note that the first two and the last two graphs have the same result.
+ 
+A node looks first at the slicecounts of all spreads it receives. The maximum slicecount of the inputs is used as the nodes output slicecount. Then the smaller inputspreads are internally resized to that slicecount. While filling up the new slices the existing slices are simply repeated.
+ 
+If that last paragraph confused you more than it helped you understand the subject. Well. Never mind. Often times simple things are hard to explain. If you've read this far you may have already understood the whole thing, even though you are not completely aware of it. Just quickly have a look at the next example. 
+
+Effortless handling of multiple Instances
+ 
+Suppose you have a RoundRect (GDI) linearly spreaded along its X coordinate and now you want every first rectangle be drawn green and every second drawn in red. 
+
+
+
+Now how would you go about having a grid of 5x5 rectangles? Your first thought may be to simply connect the LinearSpread (Spreads) to the RoundRect (GDI)s Y input. But see what happens:
+ 
+
+
+Still the RoundRect (GDI) only draws itself only 5 times because the maximum slicecount on its inputs is still 5. The first X coordinate is the same as the first Y coordinate, second X is same as second Y and so on resulting in an ascending order. 
+
+Thank vvvv there is a node, that comes in handy for the purpose of generating coordinates for a grid structure. Try the Cross (2D) node as shown in the screenshot below.
+ 
+
+
+Cross (2D) outputs 25 slices for X and Y each which represent every possible combination of the input slices. Also note the distance between the rectangles can now be adjusted via the second input on the LinearSpread (Spreads).
+ 
+Finally let's add some interaction again. Say we want to know the distance of each rectangle to the mouse cursor. Again there is a node for such tasks: Points2Vector (2D) gives you the distance between 2 points. Connect the node like shown below and guess what the 25 numbers in the bottom-right IOBox stand for.
+ 
+
+
+Right. Points2Vector (2D) is so neat and returns us the 25 distances of each of the grids points to the mouse coordinate.
+ Now map those distances to a reasonable length so that we can use it as a size for the RoundRect (GDI)s. Call it multimedia. 
+
+
+
+Now adjust the Spreadcount of the LinearSpread (Spreads) and you'll see: No matter how many rectangles you want to deal with, the patch stays as simple as on the first day.
+ 
+There are still some more things to know about spreads but for now you are released. Whenever you have the feeling you are missing some information browse the manual section on Spreads for additional details.
+
+
+
+
+anonymous user login
+
+ 
+
+
+
+
+
+Shoutbox
+
+
+
+
+
+
+~9h ago
+
+Hadasi:http://www.escapemotions.com/experiments/flame/index.html
+ 
+
+
+~10h ago
+
+tonfilm: you can listen to the #techno #jazz #liveset from #vvvvX at #lamf here on #soundcloud : https://soundcloud.com/tonfilmtechno/tonfilm-techno-live-on-vvvvx
+ 
+
+
+~17h ago
+
+matka: thanks vux 
+
+
+
+~18h ago
+
+vux: And here is part 2 :) https://vimeo.com/56469381
+ 
+
+
+~22h ago
+
+vux: Part 1 online: https://vimeo.com/56462513 upload Part 2 soon 
+
+
+
+~1d ago
+
+metrowave: Has anybody tried 'ACCELL ULTRAAV'? http://www.ebay.co.uk/itm/ACCELL-ULTRAAV-BETTER-THAN-MATROX-TRIPLEHEAD2GO-LAPTOP-MACKBOOK-/261147971924?pt=PCC_Video_TV_Cards&hash=item3ccda1d154
+ 
+
+
+~2d ago
+
+metrowave: @vux: the video tutorials are very much appreciated! 
+
+
+
+~2d ago
+
+manolito: @ventolinmono: vlagshipstore is un-occupied at the moment. we will be back in 2013. 
+
+
+
+~2d ago
+
+yair: @skyliner , im at #brvrbt, near the soldering workshops. say hi 
+
+
+
+~2d ago
+
+fibo: @vux: big step forward HLSL coding in v4 
+
+read more
+ follow on twitter
+
+ 
+
+impressum | Page created by joreg, last modification by joreg on 03.06.10 [03:28 UTC], read 12348 times 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.

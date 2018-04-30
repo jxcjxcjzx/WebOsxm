@@ -1,0 +1,267 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+浪人的星空
+
+十年磨一剑，历练出锋芒，求知路漫漫，需不断探索之！
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+CSDN客服工作问卷调查        社区专家谈 12306      CSDN社区“海外程序员经验谈”活动正式上线 
+专访王豫翔：编程道路上的“三少三多”        2013年全国百所高校巡讲讲师招募 
+
+
+
+Webkit实战技术：如何添加日志信息 
+.
+ 分类： Android Webkit专题研究2012-07-17 22:581229人阅读评论(0)收藏举报
+
+
+
+目录(?)[+]
+
+
+
+
+
+
+
+调试日志信息
+ 调试日志都是由宏来定义和实现的，并由另外定义的宏来作为开关。
+ 
+日志开关
+ Webkit中只有JNI部分是有Log日志的，其他代码都没有加入日志。JNI部分常用的LOG有：
+ •DBG_SET_LOG      在external/webkit/Source/WebKit/android/jni/PictureSet.h中定义，开关为PICTURE_SET_DEBUG
+•DBG_SET_LOGD在external/webkit/Source/WebKit/android/jni/PictureSet.h中定义开关为PICTURE_SET_DEBUG
+• DBG_HANDLE_LOG 在external/webkit/Source/WebKit/android/nav/SelectText.cpp中定义，开关为VERBOSE_LOGGING
+•DBG_NAV_LOG在external/webkit/Source/WebKit/android/nav/CachedDebug.h中定义，开关为DEBUG_NAV_UI
+•DBG_NAV_LOGD在external/webkit/Source/WebKit/android/nav/CachedDebug.h中定义
+•DBG_NAV_LOGV在external/webkit/Source/WebKit/android/nav/CachedDebug.h中定义开关为DEBUG_NAV_UI_VERBOSE
+•DEBUG_PRINT_BOOL在external/webkit/Source/WebKit/android/nav/CachedNode.cpp和CachedRoot.cpp中定义，开关是DUMP_NAV_CACHE
+•DEBUG_PRINT_RECT在external/webkit/Source/WebKit/android/nav/CachedNode.cpp和CachedRoot.cpp中定义，开关是DUMP_NAV_CACHE
+•DEBUG_PRINT_COLOR在external/webkit/Source/WebKit/android/nav/CachedColor.cpp和CachedHistory.cpp中定义，开关是DUMP_NAV_CACHE
+ 
+添加日志
+ 对于Android的JNI代码或是C/C++层代码添加日志是通过system/core/include/cutils/log.h中定义的一些宏来实现的，log.h定义了这些宏，并有一些调试相关的开关。
+ LOGV，LOGD，LOGI，LOGW，LOGE
+ 它们的级别是由上向下递增的，这些宏与Java代码android.util.Log中的Log.v，Log.d，Log.i，Log.w ，Log.e都是类似的。通常情况下只有LOGV是关闭的，其他的都是打开的。具体的定义和开关设置可以查看system/core/include/cutils/log.h文件。这些宏都使用了system/core/include/android/log.h中定义的一些方法如__android_log_print，__android_log_write等。
+ LOGE等这些宏跟print()函数一样可以使用变参，如LOGE(“rect is {%d,%d,%d,%d}”, a, b,c,d);但是查看LOGE宏的定义可以看到，还有一个参数就是宏LOG_TAG，cutils/log.h中定义的默认LOG_TAG是NULL，所以当你使用LOGE这些宏的时候要自己定义一个LOG_TAG。
+ 总结，想要给C/C++ 文件添加日志，需要：
+ 1.#include <utils/Log.h>把Log.h 文件包含进来
+2.#define LOG_TAG “your log tag”定义LOG_TAG，通常为文件名字，以方便定位到哪个文件
+3.使用LOGE，LOGW或LOGD等添加打印输出。
+ -------------------------------------------------更新于2012年7月19日------------------------------------------
+ 
+如果发现LOGE等无法打印出Log，换用android_printLog试试，它的用法是：
+ 
+android_printLog(LOG_LEVEL, LOG_TAG, ...)，例如：
+ 
+android_printLog(ANDROD_LOG_ERROR, "FrameLoader", "url is %s", url.string().latin1().data());
+ 
+如何打印各种变量
+ 
+对于bool, int, long就用%d就可以了；
+ 
+对于指针类型可以用%p;
+ 
+对于字串类型，有点麻烦，在WebKit中有四种字串类型：AtomicString，String, CString, string。但是打印输出中只能用％s来输出字符数组或字符指针，也就是char *类型，所以想要打印字串类型就需要把字串转化为char *类型。
+ 
+•对于string，最简单，它是STL中的类型，直接用string.c_str()方法即可
+•对于CString，它是与平台相关的类，它的方法data()可以返回char *类型，如LOGE("url is %s", url.data());
+•对于String，要先转化为CString，它的方法latin1()可以转化为CString，再用其data()方法，如LOGE("url is %s", url.latin1().data());
+•对于AtomicString，要先转化为String，它的方法string()即可得到String类型，如LOGE("url is %s", url.string().latin1().data());
+ 
+
+可以看出，C＋＋中的打印输出还是非常麻烦的，而Java中所有对象均有toString()方法就大大方便了I／O操作了。还要注意要包含头文件
+ 
+•#include <CString.h>
+•#include <String.h>
+•#include <AtomicString.h>
+ 
+
+否则编译会有错误:incomplete type。这跟Java编译器的提示也不一样，Java会直接提示cannot find symbol，相对来说比较直观。
+ 
+分享到： 
+
+上一篇：给大一新生的建议
+下一篇：WebKit技巧：如何用GDB进行调试
+ .
+顶2踩0. 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+hitlion2008
+ 
+
+
+
+
+访问：278931次
+积分：5848分
+排名：第611名
+.原创：170篇
+转载：38篇
+译文：1篇
+评论：378条
+. 
+公告栏Get busy living or get busy dying! 
+文章搜索
+
+. 
+文章分类Android Webkit专题研究(2)
+Android(74)
+Android Mms专题研究(11)
+Java(13)
+Productive Programmer Toolbox(3)
+C/C++(12)
+Linux/Unix(8)
+学习方法(13)
+经验与总结(13)
+编程方法(18)
+生活在职场(30)
+杂谈(22)
+健身(4)
+ 
+文章存档
+2013年02月(4).
+2012年12月(1).
+2012年11月(2).
+2012年10月(2).
+2012年09月(6).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+阅读排行Android实战技巧：ViewStub的应用(12744)
+这一年，我所感悟到的(7725)
+Android实战技巧：如何在ScrollView中嵌套ListView(7328)
+Android实战技巧：用TextView实现Rich Text---在同一个TextView中设置不同的字体风格(6755)
+Android Mms专题之：Mms概览介绍(6472)
+杂谈：后台进程对Android性能的影响(6439)
+Android实战技巧：深入解析AsyncTask(6050)
+南京谷歌开发者社区成立了(5503)
+Android Mms专题之：接收信息流程(5289)
+再论：如何解Bug(5103)
+ 
+推荐文章 
+最新评论 Android实战技巧：ViewStub的应用
+malinkang1989: 说实话 真没看懂什么意思 
+
+Android实战技巧：用TextView实现Rich Text---在同一个TextView中设置不同的字体风格
+skyinmyheart: 学习了，不错 
+
+Android实战技巧：如何在ScrollView中嵌套ListView
+chainway765: 这个办法不错！！！解决问题了！ 
+
+Android实战技巧：如何在ScrollView中嵌套ListView
+zxk_liuke: 为什么我的不行呢 
+
+C语言中编译相关的常见错误
+wwwy1111: 好啊 
+
+杂谈：Android or iOS，我们何去何从？
+zhanglfat111: 偏颇 
+
+Android实战技巧：深入解析AsyncTask
+eyingsoftware: 你好，这个DEMO有么？发我邮箱一个，谢谢了E-mail: eyingsoft@126.com 
+
+Android实战技巧：深入解析AsyncTask
+eyingsoftware: 非常不错。。学习了 
+
+Android实战技巧：深入解析AsyncTask
+zxl789: 学习了，感谢 
+
+Android实战技巧：用TextView实现Rich Text---在同一个TextView中设置不同的字体风格
+waylife: 不错，路过支持 
+
+
+评论排行写技术博客的注意事项(42)
+这一年，我所感悟到的(41)
+杂谈：后台进程对Android性能的影响(27)
+Android实战技巧：用TextView实现Rich Text---在同一个TextView中设置不同的字体风格(26)
+Android Mms专题之：Mms源码结构(25)
+Android实战技巧：深入解析AsyncTask(21)
+Android实战技巧：ViewStub的应用(15)
+再论：如何解Bug(11)
+Android实战技巧：如何在ScrollView中嵌套ListView(9)
+观点：何为经验(7)
+ 
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

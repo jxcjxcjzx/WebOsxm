@@ -1,0 +1,1317 @@
+
+
+
+
+lingyun1120
+ 
+
+
+博客园
+ 首页
+ 博问
+ 闪存
+ 新随笔
+ 联系
+ 订阅 
+管理
+ 
+随笔- 55  文章- 0  评论- 39  
+
+
+
+
+
+
+Android学习笔记——OAuth完全手册_国内篇
+
+
+
+
+ 
+ 
+
+本文主要是介绍OAuth认证以及各大平台粗略比较，如有纰漏，望请谅解。
+ 
+转载请注明：http://www.cnblogs.com/lingyun1120/archive/2012/07/11/2585767.html 
+ 
+　　Preface：
+ •开发目的及进展
+ 
+　　利用工作上关于SNS网站的研究，将多个SNS平台集成起来，一键分享。利用闲暇时间做了一个demo，还有很多需要改进的地方，请大家多多指教。
+ 
+　　目前基本进展是完成了包括新浪微博、腾讯微博、QQ空间、人人网、开心网、豆瓣网、搜狐微博、网易微博在内的8个国内主要网站的OAuth认证以及简单api的使用。为此我总结成一篇博客，详细分析一下OAuth认证过程的要点，以及几大平台的比较。
+ 
+　　以下是我做的demo的相关UI以及登录各个平台进行认证界面(webview)。
+ 
+ 　　
+ 
+　　
+ 
+ 
+ •OAuth介绍
+ 
+　　在分享过程中不可避免的会考虑到用户账户安全性的问题，第三方程序不应该直接接触用户账户信息，但是没有账户信息，又如何取得SNS平台的数据呢？OAuth很好的解决了这个问题，从第三方发起认证过程，在webview或者浏览器中完成认证过程，获得access token来代替账户密码，从而可以获取平台数据。OAUTH协议为用户资源的授权提供了一个安全的、开放而又简易的标准。同时，任何第三方都可以使用OAUTH认证服务，任何服务提供商都可以实现自身的OAUTH认证服务，因而OAUTH是开放的。
+ •国内各平台支持程度
+ 
+　　
+ 
+
+
+
+SNS
+ 
+
+OAuth1.0a
+ 
+
+OAuth2.0
+ 
+
+备注
+ 
+
+
+
+新浪微博
+ 
+
+不支持（曾经支持）
+ 
+
+支持
+ 
+
+最近已经放弃1.0认证。但是1.0的开发文档还是可以学习。
+ 
+
+
+
+腾讯微博
+ 
+
+支持
+ 
+
+支持
+ 
+
+两者都支持，向2.0转变
+ 
+
+
+
+QQ空间
+ 
+
+不支持
+ 
+
+支持
+ 
+
+节操摆一边，文档干净清晰
+ 
+
+
+
+人人
+ 
+
+不支持
+ 
+
+支持
+ 
+
+人人文档很糟糕，用过的都知道
+ 
+
+
+
+开心
+ 
+
+支持
+ 
+
+支持
+ 
+
+两者都支持，向2.0转变
+ 
+
+
+
+豆瓣
+ 
+
+支持
+ 
+
+不支持
+ 
+
+豆瓣在开发平台方面确实做得不好，看它的文档就一目了然。
+ 
+
+
+
+搜狐微博
+ 
+
+支持
+ 
+
+不支持
+ 
+
+文档一般，logo素材太少
+ 
+
+
+
+网易微博
+ 
+
+支持
+ 
+
+支持
+ 
+
+文档一般，logo素材丰富
+ 
+•关于开发文档
+ 
+　　文档地址：
+ 
+　　新浪：http://open.weibo.com/wiki/%E9%A6%96%E9%A1%B5
+ 
+　　空间：
+ 
+　　http://wiki.opensns.qq.com/wiki/%E3%80%90QQ%E7%99%BB%E5%BD%95%E3%80%91%E6%96%87%E6%A1%A3%E8%B5%84%E6%BA%90
+ 
+　　腾讯：http://wiki.open.t.qq.com/index.php/%E9%A6%96%E9%A1%B5
+ 
+　　人人：http://wiki.dev.renren.com/wiki/%E9%A6%96%E9%A1%B5
+ 
+　　开心：http://open.kaixin001.com/document.php
+ 
+　　豆瓣：http://www.douban.com/service/apidoc/
+ 
+　　搜狐：http://open.t.sohu.com/en/%E9%A6%96%E9%A1%B5
+ 
+　　网易：http://open.t.163.com/wiki/index.php?title=%E9%A6%96%E9%A1%B5
+ 
+　　我们在进行开发时最重要的还是看平台的开发文档，而从开发文档也可以看出这个公司或者开发团队的专业程度。以下是我总结的各个平台的优缺之处，也给大家使用开发文档时增加一些帮助。
+ 
+　　首先我觉得一个开放平台开发文档比较重要的几个点：OAuth文档、API文档、SDK、视觉(标示)素材、返回错误码说明这几个方面，当然这是从我现有的开发经验来选择，你可以根据实际情况侧重其他方面进行比较。
+ 
+　　（BTW，8个平台中豆瓣的文档是最简陋的，而且许多接口也没有开放，无SDK，不过整体思路还是清晰的，开发时也不会有太多困惑，因此下面不再提及。）  
+ 
+       OAuth文档：所有文档中以开心和腾讯微博做的最好，腾讯微博是有清晰示意图，本文也是引用他们的图片，而开心在于每个细节都描述的很清楚，在开发时不会有任何困惑的地方。最差的是人人和搜狐的文档，人人整体还是可以的，但是因为他们对于session key的处理让人很困惑，也不讲清楚，而且文档中有很多地方做的不够好，连请求参数都不列清楚，而搜狐在于他们的OAuth文档居然是外网的链接（包括OAuth官网地址，若干博客地址），既然做了就做完整。为了能够在搜狐认证成功，我最后在API列表中找到接口，在找到参数列表。其他平台的话，新浪稍好一点，其他半斤八两吧。
+ 
+       API文档：包含接口说明、访问权限、请求地址、支持格式、请求方式（POST/GET）、请求参数说明，返回结果（有例子）、字段说明。做的最好的是开心，除了这些说明，还会给出注意事项、调用示例、请求参数细分（api参数、OAuth1.0参数、OAuth2.0参数）。其他平台大同小异，不再赘述。
+ 
+       SDK：其实如果你不想了解OAuth认证以及调用API的细节之处，你完全可以使用它们的SDK。但是也有很多局限性：首先作为Android开发，有些网站不提供AndroidSDK（当然可以使用java SDK代替）；其次SDK中很多代码你并不需要使用到（比如人人的支付功能），直接导入SDK包也会造成程序的臃肿；再者，如何我们需要修改SDK的一些功能，阅读SDK代码的代价也是很大的，每个平台的SDK整体结构也是天差地别。这些网站中，新浪、开心、腾讯微博的SDK比较好（后来和facebook的SDK相比较，大家都是各种借鉴啊）。而搜狐最让我伤心，居然什么SDK都没有……
+ 
+       视觉素材：搜狐提供的非常稀少，其他平台都有丰富的素材。
+ 
+　　 综上：开心网应该是做的比较好，为此我的demo主要是借鉴了它的SDK，给位读者可以去开心网自己下载SDK研究，下面是关于关于OAuth1.0和OAuth2.0的介绍，如果你已经了解，请直接无视吧。
+ 
+--------------------------------------------------------------------------------
+
+ 　　Part 1：OAuth 1.0a
+ •OAuth1认证基本步骤：　　
+ 1.获取未授权的Request Token(temporary credentials)
+ 2.请求用户授权Request Token
+ 3.使用授权后的Request Token换取Access Token(token credentials)
+ 4.使用 Access Token 访问或修改受保护资源
+ 
+　　示意图（来自腾讯微博开发文档）
+ 
+　　
+ •请求签名
+ 
+　　所有的OAuth请求使用同样的算法来生成(signature base string)签名字符基串和签名。
+ 
+　　base string是把http方法名,请求URL以及请求参数用&字符连起来后做URL Encode编码。具体来讲，base string由http方法名，之后是&，接着是过url编码(url-encoded)之后的url和访问路径及&。接下来，把所有的请求参数包括POST方法体中的参数，经过排序(按参数名进行文本排序，如果参数名有重复则再安参数值进行重复项目排序)，使用%3D替代=号，并且使用%26作为每个参数之间的分隔符，拼接成一个字符串。
+ 
+　　示意图（来自腾讯微博开发文档）
+ 
+
+
+ 　　
+ 
+　　　　
+ 
+
+
+ 1     private static String generateSignature(String baseString,
+ 2             String consumerKeySecret, String tokenSecret) {
+ 3 
+ 4         byte[] byteHMAC = null;
+ 5         try {
+ 6             Mac mac = Mac.getInstance("HmacSHA1");
+ 7             SecretKeySpec spec;
+ 8             String oauthSignature = encode(consumerKeySecret) + "&"
+ 9                     + ((tokenSecret != null) ? encode(tokenSecret) : "");
+10             spec = new SecretKeySpec(oauthSignature.getBytes(), "HmacSHA1");
+11             mac.init(spec);
+12             byteHMAC = mac.doFinal(baseString.getBytes());
+13         } catch (InvalidKeyException e) {
+14             e.printStackTrace();
+15         } catch (NoSuchAlgorithmException ignore) {
+16             // should never happen
+17         }
+18         return new BASE64Encoder().encode(byteHMAC);
+19     } 
+
+
+ 
+ •获取未授权的Request Token
+ 
+　　接口地址：
+ 
+　　支持格式：OAuth HTTP 标准认证返回格式
+ 
+　　HTTP请求方式：GET/POST
+ 
+　　是否需要登录：否
+ 
+　　请求参数：
+ 
+
+
+
+参数名
+ 
+必选
+ 
+介绍
+ 
+
+
+oauth_consumer_key
+ 
+true
+ 
+API Key(组件信息中的API Key值)
+ 
+
+
+oauth_signature_method
+ 
+true
+ 
+签名方法，暂只支持HMAC-SHA1
+ 
+
+
+oauth_signature
+ 
+true
+ 
+签名值，密钥为：API Secret&
+ 
+
+
+oauth_timestamp
+ 
+true
+ 
+时间戳，其值是距1970 00:00:00 GMT的秒数，必须是大于0的整数
+ 
+
+
+oauth_nonce
+ 
+true
+ 
+单次值，随机生成的32位字符串（每次请求必须不同）
+ 
+
+
+oauth_callback
+ 
+true
+ 
+认证成功后浏览器会被重定向到这个url中
+ 
+
+
+oauth_version
+ 
+false
+ 
+版本号，如果填写必须为1.0
+ 
+
+
+scope
+ 
+false
+ 
+以空格分隔的权限列表，若不传递此参数，代表请求默认的basic权限。
+如需调用扩展权限，必需传递此参数，
+
+ 
+　　返回参数：
+ 
+
+
+
+参数名 
+
+必选
+ 
+意义
+
+ 
+
+oauth_token 
+
+true
+ 
+未授权的Request Token
+
+ 
+
+oauth_token_secret 
+
+true
+ 
+对应的Request Token Secret
+
+ 
+
+oauth_callback_confirmed 
+
+true
+ 
+对oauth_callback的确认信号 (true/false)
+
+ 
+　　注：有一些平台不需要输入scope参数，在开发时请参照开发文档。
+ 
+
+
+
+ 1 　　　public boolean getRequestToken(Context context, String callbackUrl,
+ 2             　　　　　　　　　　　　　　String[] permissions) throws IOException {
+ 3         Bundle params = new Bundle();
+ 4         params.putString("oauth_callback", callbackUrl);
+ 5         if (permissions != null && permissions.length > 0) {
+ 6             String scope = TextUtils.join(" ", permissions);
+ 7             params.putString("scope", scope);
+ 8         }
+ 9         params = Util.generateURLParams(OAUTH1_REQUEST_TOKEN_URL, GET_METHOD,
+10                 params, CONSUMER_KEY, CONSUMER_SECRET, null);
+11         String response = Util.openUrl(context, OAUTH1_REQUEST_TOKEN_URL,
+12                 GET_METHOD, params, null);
+13         if (response == null) {
+14             return false;
+15         }
+16 
+17         Bundle bundle = Util.decodeUrl(response);
+18         String token = (String) bundle.get(OUATH_TOKEN);
+19         String tokenSecret = (String) bundle.get(OUATH_TOKEN_SECRET);
+20         if (token == null || tokenSecret == null) {
+21             return false;
+22         }
+23 
+24         setRequestToken(token);
+25         setRequestTokenSecret(tokenSecret);
+26 
+27         return true;
+28     } 
+
+
+•请求用户授权Request Token 
+
+　　接口地址：
+ 
+　　支持格式：OAuth HTTP 标准认证返回格式
+ 
+　　HTTP请求方式：GET/POST
+ 
+　　是否需要登录：否
+ 
+　　请求参数：
+ 
+
+
+
+参数名
+ 
+必选
+ 
+意义
+ 
+
+
+oauth_token
+ 
+true
+ 
+上一步中获得的未授权的Request Token
+ 
+
+
+wap/client_type
+ 
+false
+ 
+设置用户认证界面形式，PC还是mobile，参照各自文档
+ 
+
+　　返回参数：
+ 
+
+
+
+参数名
+ 
+必选
+ 
+意义
+ 
+
+
+oauth_token
+ 
+true
+ 
+用户授权之后的Token值，与未授权Token值相同
+ 
+
+
+oauth_verifier
+ 
+true
+ 
+验证码
+ 
+
+•使用授权后的Request Token换取Access Token
+ 
+　　接口地址：
+ 
+　　支持格式：OAuth HTTP 标准认证返回格式
+ 
+　　HTTP请求方式：GET/POST
+ 
+　　是否需要登录：否
+ 
+　　请求参数：
+ 
+ 
+ 
+
+
+
+参数名
+ 
+必选
+ 
+意义
+ 
+
+
+oauth_consumer_key
+ 
+true
+ 
+API Key
+ 
+
+
+oauth_token
+ 
+true
+ 
+第一步中获得的Request Token
+ 
+
+
+oauth_signature_method
+ 
+true
+ 
+签名方法，暂只支持HMAC-SHA1
+ 
+
+
+oauth_signature
+ 
+true
+ 
+签名值，(密钥为：API Secret&Request Token Secret)
+ 
+
+
+oauth_timestamp
+ 
+true
+ 
+时间戳， 其值是距1970 00:00:00 GMT的秒数，必须是大于0的整数
+ 
+
+
+oauth_nonce
+ 
+true
+ 
+单次值，随机生成的32位字符串，防止重放攻击（每次请求必须不同）
+ 
+
+
+oauth_verifier
+ 
+true
+ 
+上一步请求授权request token时返回的验证码
+ 
+
+
+oauth_version
+ 
+flase
+ 
+版本号，如果填写必须为1.0
+ 
+
+ 
+ 
+　　返回参数：
+ 
+ 
+ 
+
+
+
+参数名
+ 
+必选
+ 
+意义
+ 
+
+
+oauth_token
+ 
+true
+ 
+Access Token
+ 
+
+
+oauth_token_secret
+ 
+true
+ 
+Access Token Secre
+ 
+
+ 
+ 
+
+
+
+ 1     public boolean getAccessToken(Context context, String requestToken,
+ 2             String requestTokenSecret, String verifier) throws IOException {
+ 3         Bundle params = new Bundle();
+ 4         params.putString(OUATH_TOKEN, requestToken);
+ 5         if (verifier != null)
+ 6             params.putString(OUATH_TOKEN_VERIFIER, verifier);
+ 7         params = Util.generateURLParams(OAUTH1_ACCESS_TOKEN_URL, GET_METHOD,
+ 8                 params, CONSUMER_KEY, CONSUMER_SECRET, requestTokenSecret);
+ 9         String response = Util.openUrl(context, OAUTH1_ACCESS_TOKEN_URL,
+10                 GET_METHOD, params, null);
+11         if (response == null) {
+12             return false;
+13         }
+14 
+15         Bundle bundle = Util.decodeUrl(response);
+16         String token = (String) bundle.get(OUATH_TOKEN);
+17         String tokenSecret = (String) bundle.get(OUATH_TOKEN_SECRET);
+18         if (token == null || tokenSecret == null) {
+19             return false;
+20         }
+21 
+22         setAccessToken(token);
+23         setAccessTokenSecret(tokenSecret);
+24 
+25         return true;
+26     } 
+
+
+ 
+ 
+
+--------------------------------------------------------------------------------
+
+
+　　Part 2：OAuth 2.0 
+ 
+　　 OAuth2.0和OAuth1.0的区别还是在于简化了认证过程，不需要从未授权的Request Token转化到授权Request Token，而是利用app key通过用户授权生成access token但是，与1.0的不同之处是access token有自身的有效期，且不同平台、不同级别的程序有着不同的有效期，在程序开发中一定记得判断access token是否过期，对于过期之后的处理方法主要是利用access token和refresh token重新生成access token或者重新利用app key向服务器发送请求生成access token。由于这个问题，与OAuth1.0基本一致不一样，各个平台OAuth2.0做了不一样的选择。
+ 
+　　OAuth2.0服务支持以下获取Access Token的方式：
+ 
+　　a. Authorization Code：Web Server Flow，适用于所有有Server端配合的应用。
+　　b. Implicit Grant：User-Agent Flow，适用于所有无Server端配合的应用。
+ 
+　　因为demo是无服务器的程式，所以我们采用Implicit Grant：User-Agent Flow的获取方式。
+ 
+　　示意图（来自腾讯微博开发文档）
+ 
+ 　　
+ 
+　　
+ •获取Access Token　　
+ 
+
+　　为了获取Access Token，应用需要将用户浏览器（或手机/桌面应用中的浏览器组件）到OAuth2.0授权服务的“http://xxxxxxxxx/authorize”地址上，并带上以下参数：
+ 
+
+
+
+参数名
+ 
+必选
+ 
+介绍
+
+ 
+
+client_id
+ 
+true
+ 
+申请组件时获得的API Key
+
+ 
+
+response_type
+ 
+true
+ 
+此值固定为“token”
+
+ 
+
+redirect_uri
+ 
+true
+ 
+授权后要回调的URI，即接受code的URI。对于无Web Server的应用，
+其值可以是“oob”。
+
+ 
+
+scope
+ 
+false
+ 
+以空格分隔的权限列表，若不传递此参数，代表请求默认的basic权限。
+如需调用扩展权限，必需传递此参数
+
+ 
+
+state
+ 
+false
+ 
+用于保持请求和回调的状态，授权服务器在回调时（重定向用户
+浏览器到“redirect_uri”时），会在Query Parameter中原样回传该参数
+
+ 
+
+display
+ 
+false
+ 
+登录和授权页面的展现样式，默认为“page”。手机访问时，此参数无效
+
+ 
+
+client
+ 
+false
+ 
+是否为手机访问。手机访问：client=1；不是手机，无需次参数
+
+ 
+
+　　若用户登录并接受授权，授权服务将重定向用户浏览器到“redirect_uri”，并在Fragment中追加如下参数：
+ 
+
+
+
+参数名
+ 
+介绍
+
+ 
+
+access_token
+ 
+要获取的Access Token
+
+ 
+
+expires_in
+ 
+Access Token的有效期，以秒为单位
+
+ 
+
+refresh_token
+ 
+
+用于刷新Access Token 的 Refresh Token
+ 
+一些平台不返回这个参数，需要程序员进行判断处理
+ 
+
+
+scope
+ 
+
+Access Token最终的访问范围，即用户实际授予的权限列表
+ 
+
+
+state
+ 
+如果请求获取Access Token时带有state参数，则将该参数原样返回
+
+ •人人网和QQ空间的后续操作
+ 
+　　人人网获得access token还需要获得session key和session secret，然后再调用api接口的时候利用app key、session key以及sig（签名认证，点击此处查看详细算法），最近人人说可以使用access token来替换app key和session key的组合，貌似不需要session key，但是sig参数又需要通过session key才能获得，真是多此一举。
+ 
+
+
+ 1 public void getRenrenSessionKey(Context context, String accessToken) {
+ 2         if (accessToken == null || accessToken.length() < 1) {
+ 3             return;
+ 4         }
+ 5         Bundle params = new Bundle();
+ 6         params.putString("oauth_token", accessToken);
+ 7         try {
+ 8             String sk = Util.openUrl(
+ 9                     "http://graph.renren.com/renren_api/session_key", "POST",
+10                     params);
+11             JSONObject obj = new JSONObject(sk);
+12             String error = obj.optString("error", null);
+13             if (error != null) {
+14                 throw new SNSAuthError(obj.toString(), null, null);
+15             }
+16             String sessionKey = obj.getJSONObject("renren_token").getString(
+17                     "session_key");
+18             String sessionSecret = obj.getJSONObject("renren_token").getString(
+19                     "session_secret");
+20 
+21             long uid = obj.getJSONObject("user").getLong("id");
+22             // 服务器返回的过期时间单位为秒，故乘以1000
+23             long expires = obj.getJSONObject("renren_token").getLong(
+24                     "expires_in") * 1000;
+25             long current = System.currentTimeMillis();
+26             long expireTime = current + expires;
+27 
+28             setSeeionKey(sessionKey);
+29             setSeeionSecret(sessionSecret);
+30             setSeeionExpires(expireTime);
+31 
+32             Log.i(Util.LOG_TAG, "---login success sessionKey:" + sessionKey
+33                     + " expires:" + expires + " sessionSecret:" + sessionSecret
+34                     + " uid:" + uid);
+35         } catch (JSONException e) {
+36             throw new RuntimeException(e.getMessage(), e);
+37         }
+38     } 
+
+
+ 
+ 
+　　QQ空间没有人人网这么麻烦，只是在返回参数中多了一个openId参数，这个参数在调用api接口是需要传入，除此之外没什么特殊之处，openid估计是为了他们平台的统一性设计的，无大碍。
+ 
+
+
+ 1 public void getQzoneOpenId(Context context, String accessToken) {
+ 2         if (accessToken == null || accessToken.length() < 1) {
+ 3             return;
+ 4         }
+ 5         Bundle params = new Bundle();
+ 6         params.putString("access_token", accessToken);
+ 7         String open = Util.openUrl("https://graph.z.qq.com/moc2/me", "GET", params);
+ 8         String[] param = open.split("&");
+ 9         String[] openid = param[1].split("=");
+10 
+11         setOpendId(openid[1]);
+12 
+13     } 
+
+
+ 
+ 
+--------------------------------------------------------------------------------
+
+　　Summary
+ 
+ 　　OAuth认证其实很简单，调用api也是根据各个平台进行些许的调整而已，在进行开发的过程更细心的一点应该没什么问题，如果你有问题，欢迎大家来交流。关于代码的问题，大家把平台上相关的SDK下载下来稍微研究一下就可以了，本人是利用开心网的SDK修改的，新浪和腾讯的都不错，以上信息，仅作参考，如有错误之处，望指正！谢谢！
+ 
+　　过段时间在完成《国外篇》，流程类似，主要还是介绍各自特点吧，OAuth不再赘述。
+ 
+　　
+ 
+
+
+
+
+
+标签: Android, weibo, OAuth, sina
+ 
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+
+
+
+
+lingyun1120
+ 关注 - 6
+ 粉丝 - 20 
+
+
+
++加关注 
+
+
+5
+
+0
+
+
+ (请您对文章做出评价) 
+
+
+« 上一篇：Android学习笔记——文件路径(/mnt/sdcard/...)、Uri(content://media/external/...)学习
+
+ 
+posted @ 2012-07-11 17:39 lingyun1120 阅读(5322) 评论(13) 编辑 收藏
+ 
+
+
+
+评论列表
+ 
+
+
+
+  
+#1楼2012-07-12 10:24 Tear Y  
+
+很好，学习了
+
+支持(0)反对(0)
+
+
+
+   
+#2楼2012-07-12 14:54 精神邋遢的民工  
+
+内容很丰富 mark
+
+支持(0)反对(0)
+
+
+
+   
+#3楼2012-07-13 14:32 逍遥K杰  
+
+总结的挺不错，之前做过新浪微博和腾讯微博。感觉新浪微博SDK更简洁，更容易使用。
+
+支持(0)反对(0)
+
+
+
+   
+#4楼[楼主] 2012-07-13 16:05 lingyun1120  
+
+@逍遥K杰 
+谢谢，SDK是新浪的比较好~
+
+支持(0)反对(0)
+
+
+
+   
+#5楼2012-08-07 18:29 youxiachai  
+
+spring mobile 自带集成oauth 认证
+
+支持(0)反对(0)
+
+
+
+   
+#6楼2012-09-19 19:15 牧涛  
+
+mark
+
+支持(0)反对(0)
+
+
+
+   
+#7楼2013-01-17 17:44 彼岸荼蘼_花非花  
+
+学习 谢谢
+
+支持(0)反对(0)
+
+
+
+   
+#8楼2013-03-04 11:59 qiushuitian  
+
+很不错，哥们，我们公司正在做这个玩意，你有兴趣的话来我们公司看看吧~~ 看不到你的联系方式 ，我的微博http://www.weibo.com/qiushuitian1111?wvr=5&
+
+支持(0)反对(0)
+
+
+
+   
+#9楼[楼主] 2013-03-05 10:01 lingyun1120  
+
+@qiushuitian
+谢谢你，我现在不在北京了。
+
+支持(0)反对(0)
+
+
+
+   
+#10楼2013-03-19 09:46 LinKang  
+
+mark ~ 正需要。。不知楼主源码可否共享一下？
+
+支持(1)反对(0)
+
+
+
+   
+#11楼2013-04-17 14:41 yang.chen  
+
+额。其实我想做facebook的分享，不知道有什么区别，赐教一下
+
+支持(0)反对(0)
+
+
+
+   
+#12楼[楼主] 2013-04-18 11:03 lingyun1120  
+
+@yang.chen
+本质上没有区别，具体接口你看它给的开发文档就行了。
+
+支持(0)反对(0)
+
+
+
+   
+#13楼2013-05-09 16:32 yang.chen  
+
+@lingyun1120
+恩恩，我的facebook和twitter分享已经做好了，十分感谢哈
+
+支持(0)反对(0)
+
+ 
+
+
+刷新评论刷新页面返回顶部
+ 
+
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+
+ 
+博客园首页博问新闻闪存程序员招聘知识库
+ 
+
+
+<body style='background:transparent'></body></html>"">
+ 
+
+最新IT新闻:
+ · 西门子CEO不愿被炒 拉董事长垫背
+ · 官方回应：MIUI为啥不做Nexus 4适配
+ · 主机服务商的服务条款禁止运行Tor
+ · 搜狐CEO张朝阳：不迷信并购 整合失败案例很多
+ · Office Show： 阳狮脉达网帆上海新办公室
+» 更多新闻...
+
+最新知识库文章:
+
+ · 云计算的演进和挑战性研究问题
+ · 探索Google App Engine背后的奥秘
+ · Cgroups在云计算中的应用
+ · 浏览器的渲染原理简介
+ · 关于“兴趣爱好”之我见
+
+» 更多知识库文章... 
+
+<body style='background:transparent'></body></html>"">
+ 
+
+
+
+
+公告
+
+
+昵称：lingyun1120
+园龄：1年11个月
+粉丝：20
+关注：6
++加关注
+ 
+
+
+
+
+
+
+<
+
+2012年7月
+
+>
+
+ 
+
+
+日
+
+一
+
+二
+
+三
+
+四
+
+五
+
+六
+
+
+
+24
+
+25
+
+26
+
+27
+
+28
+
+29
+
+30
+
+
+
+1
+
+2
+
+3
+
+4
+
+5
+
+6
+
+7
+
+
+
+8
+
+9
+
+10
+
+11
+
+12
+
+13
+
+14
+
+
+
+15
+
+16
+
+17
+
+18
+
+19
+
+20
+
+21
+
+
+
+22
+
+23
+
+24
+
+25
+
+26
+
+27
+
+28
+
+
+
+29
+
+30
+
+31
+
+1
+
+2
+
+3
+
+4
+
+ 
+
+
+
+搜索
+ 
+ 
+ 
+ 
+ 
+
+常用链接
+ 我的随笔
+我的评论
+我的参与
+最新评论
+我的标签
+更多链接
+ 
+
+
+最新随笔
+ 1. Android学习笔记——OAuth完全手册_国内篇
+2. Android学习笔记——文件路径(/mnt/sdcard/...)、Uri(content://media/external/...)学习
+3. Androd学习笔记——解决facebook sdk里的一个bug
+4. Androd学习笔记——Conflict between Android SDK and Facebook for Android app
+5. 其他——80'
+6. Androd学习笔记——新浪微博Android SDK——如何打印出5位错误码
+7. Androd学习笔记——Android上利用Facebook SDK的开发——上传图文到涂鸦墙
+8. 其他——[转]从实现iPhone的OAuth封装看国内互联网和开放平台
+9. 其他——Adele：Someone Like You(另寻沧海)
+10. Androd学习笔记——OAuth 认证步骤
+ 
+
+我的标签
+ Android(23)
+C/C++(21)
+weibo(3)
+XML(2)
+facebook(2)
+IT职场(2)
+OAuth(1)
+share(1)
+sina(1)
+ 
+
+随笔档案
+2012年7月 (1) 
+2012年4月 (2) 
+2012年3月 (3) 
+2012年2月 (1) 
+2012年1月 (5) 
+2011年12月 (7) 
+2011年11月 (16) 
+2011年10月 (15) 
+2011年9月 (5) 
+
+
+积分与排名
+ 积分 - 37672 
+排名 - 3595 
+
+
+最新评论
+
+1. Re:Android学习笔记——OAuth完全手册_国内篇
+@lingyun1120
+恩恩，我的facebook和twitter分享已经做好了，十分感谢哈
+--yang.chen
+2. Re:Android学习笔记——OAuth完全手册_国内篇
+@yang.chen
+本质上没有区别，具体接口你看它给的开发文档就行了。
+--lingyun1120
+3. Re:Android学习笔记——OAuth完全手册_国内篇
+额。其实我想做facebook的分享，不知道有什么区别，赐教一下
+--yang.chen
+4. Re:Android学习笔记——OAuth完全手册_国内篇
+mark ~ 正需要。。不知楼主源码可否共享一下？
+--LinKang
+5. Re:Android学习笔记——OAuth完全手册_国内篇
+@qiushuitian
+谢谢你，我现在不在北京了。
+--lingyun1120
+ 
+
+阅读排行榜
+
+1. View的setOnClickListener的添加方法(10209)
+2. Android学习笔记——文件路径(/mnt/sdcard/...)、Uri(content://media/external/...)学习(9701)
+3. MFC中全局变量的定义及使用(7506)
+4. Android学习笔记——OAuth完全手册_国内篇(5322)
+5. Androd学习笔记——Android上利用Facebook SDK的开发——上传图文到涂鸦墙(3370)
+ 
+
+评论排行榜
+
+1. Android学习笔记——OAuth完全手册_国内篇(13)
+2. Android学习笔记——文件路径(/mnt/sdcard/...)、Uri(content://media/external/...)学习(7)
+3. Androd学习笔记——Android上利用Facebook SDK的开发——上传图文到涂鸦墙(6)
+4. Android学习笔记之java中的回调函数(4)
+5. Androd学习笔记——新浪微博Android SDK——如何打印出5位错误码(2)
+ 
+
+推荐排行榜
+ 
+1. Android学习笔记——OAuth完全手册_国内篇(5)
+2. Androd学习笔记——Android上利用Facebook SDK的开发——上传图文到涂鸦墙(3)
+3. Androd学习笔记——新浪微博Android SDK——如何打印出5位错误码(2)
+4. Android学习笔记之java中的回调函数(2)
+5. View的setOnClickListener的添加方法(1)
+ 
+
+
+Copyright ©2013 lingyun1120 
+

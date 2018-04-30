@@ -1,0 +1,383 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+This is my house!
+
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年1月当选微软MVP名单揭晓！    智能开发框架 JEECG 作者张代浩专访
+ 2012CSDN博客之星火热出炉！      2013年全国百所高校巡讲讲师招募 
+
+
+
+JWNL - Java WordNet Library - Dev Guide 
+.
+2008-10-31 17:34852人阅读评论(0)收藏举报
+
+
+
+目录(?)[+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+JWNL - Java WordNet Library - Dev Guide
+
+--------------------------------------------------------------------------------
+
+
+Table of Contents
+IntroductionI. Concepts1. JWNL - Java WordNet Library1.1. A Brief Look at WordNet1.2. JWNL APIII. Configuration2. JWNL - Configuration2.1. Property File ConfigurationIII. Utilities3. JWNL - Utilities3.1. File System to Database Conversion3.1.1. DictionaryToDatabase3.1.2. Usage
+
+
+
+
+Introduction
+
+ This handbook is written primarily to assist either an application developer wishing to use the JWNL libraries, or a developer wishing to make modifications to the source code of JWNL.
+ 
+JWNL is an API for accessing WordNet-style relational dictionaries. It also provides functionality beyond data access, such as relationship discovery and morphological processing. JWNL is a pure java implementation of the WordNet API, which means all that is required is the java libraries and the dictionary files. 
+
+
+
+
+
+Part I. Concepts
+
+
+Table of Contents
+1. JWNL - Java WordNet Library1.1. A Brief Look at WordNet1.2. JWNL API
+
+
+
+
+Chapter 1. JWNL - Java WordNet Library
+
+
+Table of Contents
+1.1. A Brief Look at WordNet1.2. JWNL API
+
+
+
+
+1.1. A Brief Look at WordNet
+
+ "WordNet is a semantic lexicon for the English language. It groups English words into sets of synonyms called synsets, provides short, general definitions, and records the various semantic relations between these synonym sets. The purpose is twofold: to produce a combination of dictionary and thesaurus that is more intuitively usable, and to support automatic text analysis and artificial intelligence applications.
+ 
+WordNet distinguishes between nouns, verbs, adjectives and adverbs because they follow different grammatical rules. Every synset contains a group of synonymous words or collocations (a collocation is a sequence of words that go together to form a specific meaning, such as "car pool"); different senses of a word are in different synsets. The meaning of the synsets is further clarified with short defining glosses (Definitions and/or example sentences). A typical example synset with gloss is:
+ 
+good, right, ripe -- (most suitable or right for a particular purpose; "a good time to plant tomatoes"; "the right time to act"; "the time is ripe for great sociological changes")
+ 
+Most synsets are connected to other synsets via a number of semantic relations."
+ 
+[source: http://en.wikipedia.org/wiki/WordNet] 
+
+
+
+
+
+1.2. JWNL API
+
+Using JWNL is very simple. First, call JWNL.initialize() somewhere in the initialization code of your program. Then, just call Dictionary.getInstance() to get the currently installed dictionary. The only dictionary methods you should really ever need to call are lookupIndexWord(), lookupAllIndexWords(), and getIndexWordIterator().
+ 
+The other methods you may be interested in Relationship.findRelationships(), and those in PointerUtils.
+ 
+Relationship.findRelationships() allows you to find relationships of a given type between two words (such as ancestry). Another way of thinking of a relationship is as a path from the source synset to the target synset.
+ 
+The methods in PointerUtils allow you to find chains of pointers of a given type. For example, calling PointerUtils.getHypernymTree() on the synset that contains "dog," returns a tree with all its parent synsets ("canine"), and its parents' parents ("carnivore"), etc., all the way to the root synset ("entity").
+ 
+JWNL provides support for accessing the WordNet database through three structures - the standard file distribution, a database, or an in-memory map. Utilities are provided to convert from the file structure to an SQL database or in-memory map, and a configuration file controls which system the library uses.
+ 
+
+
+
+
+Part II. Configuration
+
+
+Table of Contents
+2. JWNL - Configuration2.1. Property File Configuration
+
+
+
+
+Chapter 2. JWNL - Configuration
+
+
+Table of Contents
+2.1. Property File Configuration
+
+
+
+
+2.1. Property File Configuration
+
+ A JWNL Properties file is an XML file that can be validated using the included DTD or XSD.
+ 
+Basically, the properties file allows you to specify three properties: 
+
+- Dictionary class: This defines the class used to interface with the dictionary. JWNL comes with three dictionary classes - MapBackedDictionary, FileBackedDictionary, and DatabaseBackedDictionary. Exactly 1 dictionary tag is required in a properties file. If there are more than one, the first one will be used.
+     <dictionary class="[dictionary class name]">    ..parameters    </dictionary>- Version: Gives information on the version of WordNet being interfaced with. Excactly 1 version tag is required in a properties file.   <version publisher="[publisher]" number="[version number]" language="[language]" country="[country]"/>where [language] and [country] are used to specify the locale whose language is covered by the dictionary. If these tags are not included, the default locale is assumed. See the Java documentation for java.util.Locale for information on locales.
+ - Resources: A resource file contains mapping between keys and text used in the program. Typically, this text is error or status messages. Resource files are used so that a program can be used with different (spoken) languages without having to modify the code. See the Java documentation for java.util.ResourceBundle on how to name your resource files. You can specify as many resources as you want.
+   <resource class="[resource file path]"/> In the top-level tag, you can specify the language and country to use for resolving resources. For example:   <jwnl_properties language="en" country="us">    ..properties  </jwnl_properties>tells the program to print all messages in American English (a resource file containing these messages has to be present, of course).
+ You'll notice that dictionary and dictionary_element_factory allow you to provide parameters. Parameters are of the form:
+   <param name="[param name]" value="[param value]">    ..nested parameters  </param> Parameters are provided to the install method of the class. Parameters can be nested. For example:   <param name="data_class" value="net.didion.stuff.Money">    <param name="currency" value="USD"/>  </param>A set of params like this most likely means that an instance of net.didion.stuff.Money is going to be created, and that its constructor will be passed "USD" as a parameter.
+ The valid parameters for each class are specified in that class's documentation. I would encourage you to follow this convention of documenting valid parameters in the class documentation of any classes you write that take parameters.
+ 
+
+
+
+
+Part III. Utilities
+
+
+Table of Contents
+3. JWNL - Utilities3.1. File System to Database Conversion3.1.1. DictionaryToDatabase3.1.2. Usage
+
+
+
+
+Chapter 3. JWNL - Utilities
+
+
+Table of Contents
+3.1. File System to Database Conversion3.1.1. DictionaryToDatabase3.1.2. Usage
+
+
+
+
+3.1. File System to Database Conversion
+
+
+
+
+
+3.1.1. DictionaryToDatabase
+
+Requires JWNL Version 1.3 or greater.
+
+DictionaryToDatabase allows you to create and populate a database with the WordNet data. This database is compatible with DatabaseBackedDictionary.
+
+ The advantages/disadvantages of using the DatabaseBackedDictionary depends largely on the type of database you use, and whether the database is local or remote. For example, using Axion, an in-process database, with all data stored in memory, is about as fast as using a Map-backed dictionary, but requires around 300MB of memory. Using Axion in file-backed mode, the speed is still faster than a file-backed dictionary and the memory requirements are quite small. However, the process of importing the WordNet data into file-backed Axion takes several hours. Using a traditional client-server database, such as MySQL, is slower than a Map- or Axion-backed dictionary, but can be as fast as or faster than a file-backed dictionary. About 37MB is required on the database server for the WordNet data, and it takes about 30 minutes to populate the database. The main benefit of using a database-backed dictionary is that the data is centralized and can be used by many clients. There is no need to set up and configure the WordNet data files on each client computer. 
+
+
+
+
+
+3.1.2. Usage
+
+Make sure you have your file-properties.xml file set up correctly. Also, if you are using a database that is not in-process, make sure to create a new database for the the WordNet data. For example:
+     create database jwnl; And then just call:     java -cp jwnl.jar;utilities.jar;commons-logging.jar net.didion.jwnl.utilities.DictionaryToDatabase <property file> <index dictionary location> <create tables script> <driver class> <connection url> [username [password]] For example:     java -cp jwnl.jar;utilities.jar;commons-logging.jar net.didion.jwnl.utilities.DictionaryToDatabase ./include/file-properties.xml ./WordNet/3.0/sense.index ./include/create.sql com.mysql.jdbc.Driver jdbc:mysql://localhost/jwnl?user=jwnl&password=jwnl"Once you have loaded the data into the database, make sure you have configured database-properties.xml correctly and initialize JWNL using that file. 
+分享到： 
+
+上一篇：经典图片
+下一篇：http://www.mirrorservice.org/sites/download.sourceforge.net/pub/sourceforge/j/jw/jwordnet/jwnl13rc1.src.zip%5Bpeek%5D
+ . 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+hgd250
+ 
+
+
+
+访问：46944次
+积分：1569分
+排名：第4897名
+.原创：107篇
+转载：34篇
+译文：0篇
+评论：13条
+. 
+文章搜索
+
+. 
+文章分类C/C++(3)
+english words(2)
+hibernate(4)
+HTML(5)
+j2ee 其他(5)
+javaScript(9)
+MINA(1)
+mysql(0)
+perl(1)
+Spring(2)
+struts2(2)
+ubuntu相关东西(17)
+好東西(9)
+学习资料(7)
+异常(Exception )集锦(5)
+数据结构(1)
+聚类(2)
+设计模式(1)
+郁闷经历。。。。(3)
+面试经历(3)
+jetty/jboss(3)
+maven(1)
+hadoop(4)
+thrift(1)
+ 
+文章存档
+2012年12月(1).
+2012年10月(2).
+2012年07月(1).
+2012年06月(1).
+2012年04月(3).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+阅读排行log4j.rootLogger 与log4j.rootCategory 有什么区别(4065)
+ORA-00936-Missing-Expression(3564)
+一道小题:指向二维数组的指针...我的一点理解（int w[2][3],(*pw)[3];pw=w; 则下列错误的是 a.*(w[0]+2) b.*(pw+1)[2] c..pw[0][0] d.*(pw[1]+2) ）(2518)
+后缀树线性构造算法(1506)
+DBCP使用方法实例(1494)
+Exception in thread "main" java.lang.NoClassDefFoundError: org/apache/commons/collections/map/LRUMap(1407)
+HibernateUtil 工具类(1365)
+ubuntu 网络配置(用代理上网的也包括)(1183)
+js中设置带中文参数的URL 解决办法(1175)
+ERROR [org.logicalcobwebs.proxool.ShutdownHook] - Problem calling "get cause" on IllegalStateException.(1064)
+ 
+评论排行后缀树线性构造算法(4)
+js中动态修改frame的src属性，frame自己刷新。。。(2)
+HibernateUtil 工具类(2)
+ISI Web of Knowledge 帐号(1)
+ 搜狐畅游戏，java面试日记(1)
+数据结构 笔记（一） 快排序,shell排序(1)
+新学期开始了。。。(1)
+frameset 的一些使用技巧(1)
+应该好好计划一下剩下的时间了。。。呵呵，又有保研时的感觉了。。。(0)
+尘埃落定，长出一口气。。。。(0)
+ 
+推荐文章 
+最新评论 frameset 的一些使用技巧
+flysun03: 比较使用 不错啊 
+
+js中动态修改frame的src属性，frame自己刷新。。。
+Imbyr: 请问在哪里调用函数呢？frame中如何嵌入js代码？谢谢！ 
+
+js中动态修改frame的src属性，frame自己刷新。。。
+cqdoor: 在中src怎么写啊？ 
+
+HibernateUtil 工具类
+q415588562: 自己写的工具类嘛 
+
+HibernateUtil 工具类
+xqf222: 太多import javax.naming.InitialContext;import javax.... 
+
+搜狐畅游戏，java面试日记
+qq419984149: 结果呢？ 
+
+数据结构 笔记（一） 快排序,shell排序
+ELFexeCHILD: 学习，转走了呵呵 
+
+后缀树线性构造算法
+challenge_fate: 你好,在E. Ukkonen的论文中,有这么一句话,The definition of the su... 
+
+ISI Web of Knowledge 帐号
+jtzlx: 我试了,怎么不好用啊 
+
+新学期开始了。。。
+spspli: lucene...what is it? 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

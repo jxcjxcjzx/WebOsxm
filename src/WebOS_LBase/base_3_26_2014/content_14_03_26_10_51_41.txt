@@ -1,0 +1,278 @@
+GNU汇编语言结构                                              
+     主要包括三个常用的段：
+     data      数据段 声明带有初始值的元素
+     bss       数据段 声明使用0或者null初始化的元素
+     text      正文段 包含的指令, 每个汇编程序都必须包含此段
+
+     使用.section 指令定义段, 如:
+     .section .data
+     .section .bss
+     .section .text
+
+     起始点:
+     gnu汇编器使用_start标签表示默认的起始点, 此外如果想要汇编内部的标签能够被外部程序访问,
+     需要使用.globl 指令, 如:.globl _start
+
+
+     使用通用库函数时可以使用:
+     ld -dynamic-linker /lib/ld-linux.so.2
+
+
+################################################################################################
+# 四, 数据传递                                             
+################################################################################################  
+1, 数据段
+     使用.data声明数据段, 这个段中声明的任何数据元素都保留在内存中并可以被汇编程序的指令读取,
+     此外还可以使用.rodata声明只读的数据段, 在声明一个数据元素时, 需要使用标签和命令:
+
+     标签:用做引用数据元素所使用的标记， 它和c语言的变量很相似, 它对于处理器是没有意义的, 它
+          只是用做汇编器试图访问内存位置时用做引用指针的一个位置。
+
+     指令:这个名字指示汇编器为通过标签引用的数据元素保留特定数量的内存， 声明命令之后必须给出
+          一个或多个默认值。
+
+     声明指令:
+     .ascii   文本字符串
+     .asciz   以空字符结尾的字符串
+     .byte    字节值
+     .double 双精度浮点值
+     .float   单精度浮点值
+     .int     32位整数
+     .long    32位整数, 和int相同
+     .octa    16字节整数
+     .quad    8字节整数
+     .short   16位整数
+     .single 单精度浮点数(和float相同)
+
+
+     例子:
+     output:
+     .ascii "hello world."
+
+     pi:
+     .float 2.14
+
+     声明可以在一行中定义多个值, 如:
+     ages:
+     .int 20, 10, 30, 40
+
+
+     定义静态符号:
+     使用.equ命令把常量值定义为可以在文本段中使用的符号，如:
+     .section .data
+     .equ LINUX_SYS_CALL, 0x80
+     .section .text
+     movl $LINUX_SYS_CALL, %eax
+
+
+
+2, bss段
+    和data段不同, 无需声明特定的数据类型, 只需声明为所需目的保留的原始内存部分即可。
+    GNU汇编器使用以下两个命令声明内存区域:
+    .comm           声明为未初始化的通用内存区域
+    .lcomm          声明为未初始化的本地内存区域
+
+    两种声明很相似， 但.lcomm是为不会从本地汇编代码之外进行访问的数据保留的， 格式为:
+    .comm/.lcomm symbol, length
+
+    例子:
+    .section .bss
+    .lcomm buffer, 1000
+    该语句把1000字节的内存地址赋予标签buffer, 在声明本地通用内存区域的程序之外的函数是
+    不能访问他们的.(不能在.globl命令中使用他们)
+
+
+    在bss段声明的好处是, 数据不包含在可执行文件中。在数据段中定义数据时, 它必须被包含在
+    可执行程序中, 因为必须使用特定值初始化它。 因为不使用数据初始化bss段中声明的数据区域,
+    所以内存区域被保留在运行时使用, 并且不必包含在最终的程序中
+
+
+
+
+3， 传送数据
+     move 指令:
+格式 movex 源操作数, 目的操作数。 其中x为要传送数据的长度, 取值有:
+     l 用于32位的长字节
+     w 用于16位的字
+     b 用于8位的字节值
+
+
+     立即数前面要加一个$符号, 寄存器前面要加%符号。
+
+     8个通用的寄存器是用于保存数据的最常用的寄存器, 这些寄存器的内容可以传递
+     给其他的任何可用的寄存器。 和通用寄存器不同, 专用寄存器(控制, 调试, 段)
+     的内容只能传送给通用寄存器, 或者接收从通用寄存器传过来的内容。
+
+
+     在对标签进行引用时:
+     例：
+     .section .data
+     value:
+     .int 100
+     _start:
+     movl value, %eax
+     movl $value, %eax
+     movl %ebx, (%edi)
+     movl %ebx, 4(%edi)
+
+     其中:movl value, %eax     只是把标签value当前引用的内存值传递给eax
+          movl $value, %eax    把标签value当前引用的内存地址指针传递给eax
+          movl %ebx, (%edi)    如果edi外面没有括号那么这个指令只是把ebx中的
+                              值加载到edi中, 如果有了括号就表示把ebx中的内容
+                              传送给edi中包含的内存位置。
+          movl %ebx, 4（%edi) 表示把edi中的值放在edi指向的位置之后的4字节内存位置中
+          movl %ebx, -4(%edi) 表示把edi中的值放在edi指向的位置之前的4字节内存位置中
+
+
+
+    cmove 指令(条件转移):
+    cmovex 源操作数, 目的操作数. x的取值为:
+    无符号数:
+    a/nbe    大于/不小于或者等于
+    ae/nb    大于或者等于/不小于
+    nc       无进位
+    b/nae    小于/不大于等于
+    c        进位
+    be/na    小于或等于/不大于
+    e/z      等于/零
+    ne/nz    不等于/不为零
+    p/pe     奇偶校验/偶校验
+    np/po    非奇偶校验/奇校验
+
+    有符号数:
+    ge/nl    大于或者等于/不小于
+    l/nge    小于/不大于或者等于
+    le/ng    小于或者等于/不大于
+    o        溢出
+    no       未溢出
+    s        带符号（负)
+    ns       无符号(非负)
+
+
+
+
+
+    交换数据:
+    xchg     在两个寄存器之间或者寄存器和内存间交换值
+    如:
+    xchg 操作数, 操作数, 要求两个操作数必须长度相同且不能同时都是内存位置
+    其中寄存器可以是32，16，8位的
+
+
+    bswap    反转一个32位寄存器的字节顺序
+
+    如: bswap %ebx
+
+
+    xadd 交换两个值 并把两个值只和存储在目标操作数中
+
+    如: xadd 源操作数,目标操作数
+    其中源操作数必须是寄存器, 目标操作数可以是内存位置也可以是寄存器
+    其中寄存器可以是32，16，8位的
+
+    cmpxchg
+    cmpxchg source, destination
+    其中source必须是寄存器, destination可以是内存或者寄存器, 用来比较
+    两者的值, 如果相等，就把源操作数的值加载到目标操作数中, 如果不等就把
+    目标操作数加载到源操作数中，其中寄存器可以是32，16，8位的, 其中源操作
+    数是EAX,AX或者AL寄存器中的值
+
+
+    cmpxchg8b 同cmpxchg， 但是它处理8字节值， 同时它只有一个操作数
+    cmpxchg8b destination
+    其中destination引用一个内存位置, 其中的8字节值会与EDX和EAX寄存器中
+    包含的值(EDX高位寄存器, EAX低位寄存器)进行比较, 如果目标值和EDX:EAX
+    对中的值相等, 就把EDX:EAX对中的64位值传递给内存位置, 如果不匹配就把
+    内存地址中的值加载到EDX:EAX对中
+
+
+
+4, 堆栈
+    ESP 寄存器保存了当前堆栈的起始位置, 当一个数据压入栈时， 它就会自动递减,
+        反之其自动递增
+
+    压入堆栈操作:
+    pushx source, x取值为:
+    l 32位长字
+    w 16位字
+
+    弹出堆栈操作:
+    popx source
+    其中source必须是16或32位寄存器或者内存位置, 当pop最后一个元素时ESP值应该
+    和以前的相等
+
+
+5，压入和弹出所有寄存器
+    pusha/popa     压入或者弹出所有16位通用寄存器
+    pushad/popad   压入或者弹出所有32位通用寄存器
+    pushf/popf     压入或者弹出EFLAGS寄存器的低16位
+    pushfd/popfd   压入或者弹出EFLAGS寄存器的全部32位
+
+6，数据地址对齐
+    gas 汇编器支持.align 命令， 它用于在特定的内存边界对准定义的数据元素， 在数据段
+    中.align命令紧贴在数据定义的前面
+
+比较:
+cmp operend1, operend2
+
+
+进位标志修改指令:
+    CLC          清空进位标志(设置为0)
+    CMC          对进位标志求反(把它改变为相反的值)
+    STC          设置进位标志(设置为1)
+
+
+循环:
+loop            循环直到ECX寄存器为0
+loope/loopz     循环直到ecx寄存器为0 或者没有设置ZF标志
+loopne/loopnz   循环直到ecx为0或者设置了ZF标志
+
+指令格式为: loopxx address    注意循环指令只支持8位偏移地址
+
+以上转自
+
+http://hi.baidu.com/walkingman520/blog/item/7296bbeec777012a2cf5344a.html
+
+另有一个比较篇的如下：
+
+ARM汇编和Gnu汇编的转换
+
+将ARM ADS下的汇编码移植到GCC for ARM编译器时，有如下规则：
+1, 注释行以"@"或""代替";"
+
+2, GET或INCLUDE => .INCLUDE
+如：get option.a =>     .include "option.a"
+
+3, EQU => .equ
+TCLK2   EQU   PB25    =>         .equ   TCLK2, PB25
+     SETA ==> .equ
+     SETL ==> .equ
+BUSWIDTH SETA 16   => .equ BUSWIDTH, 16
+
+4, EXPORT => .global
+     IMPORT => .extern
+     GBLL => .global
+     GBLA => .global
+
+5, DCD => .long
+
+6, IF :DEF: => .IFDEF
+     ELSE => .ELSE
+     ENDIF => .ENDIF
+     :OR:    => |
+     :SHL:    =>      <<
+
+7,   END    =>.end
+NOTE:在被include的头文件中，如"option.a"中，不再需要.end，否则会导致主汇编程序结束。
+
+8,   符号定义加"："号
+Entry =>    Entry:
+AREA Word, CODE, READONLY ==> .text
+AREA Block, DATA, READWRITE ==> .data
+CODE32     ==> .arm
+CODE16     ==> .thumb
+
+9,   MACRO ==>   .macro
+     MEND   ==> .endm
+
+阅读(63) | 评论(0) | 转发(0) 

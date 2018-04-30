@@ -1,0 +1,696 @@
+装配中的脑袋
+用大脑装配程序，再用程序装配大脑
+
+随笔- 58  文章- 0  评论- 1125 
+博客园  首页  新随笔  新文章  联系  管理  订阅 
+自己动手开发编译器（十二）生成托管代码
+前一阶段我们完成了编译器中的重要阶段——语义分析。现在，程序中的每一个变量和类型都有其正确的定义；每一个表达式和语句的类型都是合法的；每一处方法调用都选择了正确的方法定义。现在即将进入下一个阶段——代码生成。代码生成的最终目的，是生成能在目标机器上运行的机器码，或者可以和其他库链接在一起的可重定向对象。代码生成，和这一阶段的各个优化手段，统称为编译器的后端。目前大部分编译器，在代码生成时，都倾向于先将前段解析的结果转化成一种中间表示，再将中间表示翻译成最终的机器码。比如Java语言会翻译成JVM bytecode，C#语言会翻译成CIL，再经由各自的虚拟机执行；IE9的javascript也会先翻译成一种bytecode，再由解释器执行或者进行JIT翻译；即使静态编译的语言如C++，也存在先翻译成中间语言，再翻译成最终机器码的过程。中间表示也不一定非得是一种bytecode，我们在语法分析阶段生成的抽象语法树（AST）就是一种很常用的中间表示。.NET 3.5引入的Expression Tree正是采用AST作为中间表示的动态语言运行库。那为什么这种做法非常流行呢？因为翻译中中间语言有如下好处：
+
+ 
+
+使用中间语言可以良好地将编译器的前端和后端拆分开，使得两部分可以相对独立地进行。
+同一种中间语言可以由多种不同的源语言编译而来，而又可以针对多种不同的目标机器生成代码。CLR的CIL就是这一特点的典型代表。
+有许多优化可以直接针对中间语言进行，这样优化的结果就可以应用到不同的目标平台。
+ 
+
+我们这次动手编写编译器，自然也少不了中间语言这一步。为了达到亲手实践的目的，我们将会自己定义中间语言，但是那样的话想要把编译出的程序运行起来就还需要很多工作。为了提前体验运行目标代码的成就感，同时验证编译器前端的正确性，我们这次先将miniSharp编译成CLR的中间语言——CIL（Common IL，MSIL），并且就使用.NET自带的Reflection.Emit库来做。
+
+ 
+
+首先来了解一下CIL的特点。CIL是一种bytecode，在.NET的程序集里他是二进制方式存在的。我们常常见到的是用ILDASM或者ILSpy反汇编而成的汇编形态。例如这一段：
+
+.method public hidebysig newslot
+    instance int32 ComputeFac (
+    int32 num
+    ) cil managed
+{
+    // Method begins at RVA 0x2050
+    // Code size 30 (0x1e)
+    .maxstack 6
+    .locals init (
+        [0] int32
+    )
+    IL_0000: ldarg.1
+    IL_0001: ldc.i4.1
+    IL_0002: clt
+    IL_0004: brfalse IL_0010
+    IL_0009: ldc.i4.1
+    IL_000a: stloc.0
+    IL_000b: br IL_001c
+    IL_0010: ldarg.1
+    IL_0011: ldarg.0
+    IL_0012: ldarg.1
+    IL_0013: ldc.i4.1
+    IL_0014: sub
+    IL_0015: call instance int32 Fac::ComputeFac(int32)
+    IL_001a: mul
+    IL_001b: stloc.0
+    IL_001c: ldloc.0
+    IL_001d: ret
+} // end of method Fac::ComputeFac
+
+和机器语言相比，CIL是一种高度抽象的中间语言。程序集里有非常丰富的元数据，可以直接对应到源代码里的类和方法。而CIL仅仅用于描述方法体的逻辑。CIL较少反应出运行时真正发生在CPU上的事情，而更多地与源代码中的语句和表达式接近。所以我们说CIL是一种相当高级的中间语言。CIL是一种栈式机。要注意的是，这里的“栈”与运行时的内存堆和栈的“栈”没有任何关系。CIL的栈是一个运算栈（evaluation stack），它在运行时实际是不存在的，但我们必须要在理解CIL运行过程时想象它存在。运算栈在CIL中的作用是保存运算的中间结果，这与寄存器机的寄存器有些类型。CIL的每一条指令都只能对运算栈顶进行操作。
+
+ 
+
+看上面的IL代码，第一行ldarg.1指令的作用是将1号实参加载到运算栈的栈顶上，第二条ldc.i4.1指令是将32位整型常量1压入运算栈。注意“ldc.i4.1”是一条指令，它是不带参数的。IL中有许多这种缩短格式的指令，以消除或减少指令参数，从而减少目标代码的体积。经过这两条指令后，运算栈中有两个值：栈顶是32位常量1，其下面是方法的1号参数值。这时遇到指令clt，这条指令会将运算栈先后弹出两个值，并比较它们的大小，如果后弹出的值小于先弹出的值，则将32位整数“1”压入运算栈，反之则将“0”压入运算栈。假设该方法第一个实参传的是“0”，以上过程如图所示：
+
+ 
+
+执行指令	运算栈
+ 	空
+ldarg.1	压入参数值0
+0
+ldc.i4.1	压入常数1
+1
+0
+clt	弹出1
+弹出0
+比较0 < 1，所以压入1
+1
+接下来的brfalse指令又会弹出运算栈顶的值，并根据这个值决定是否要进行跳转。以此类推，即可理解每条指令的作用。任何一条IL指令总会将一些值压入栈；或者从栈中弹出一些值；或者先弹出一些值，再压入一些值。这些不同的动作称为这条指令的栈转换行为。每条指令都有固定的栈转换行为，只要理解了栈转换行为，就等于完全理解一条IL指令。
+
+ 
+
+MSDN中OpCodes类的帮助中详细介绍了每一条指令的栈转换规则。当我们需要了解CIL指令的含义时，这个帮助就是最好的资料。简单了解了CIL与运算栈之后，大部分指令的行为都是很好理解的。我这里稍微解释一下某些特殊的规则。
+
+ 
+
+在CIL指令表当中大家会看到许多指令有多个版本。比如ldloc指令用于将局部变量加载到运算栈顶。这个指令就有ldloc、ldloc.s、ldloc.0、ldloc.1等不同的版本。这其中的ldloc是该指令的长版本，其他指令则是短版本。因为CIL是bytecode，所以这些指令在程序集中都是一个或两个字节的代码。ldloc长版本指令自身编码为两个字节（FE 06），而且它需要一个uint16（两字节）的参数，所以它一共需要占四个字节的空间。我们知道一个方法很少有65536这么多个本地变量，很多也就是1-2个，有十几个的已经算是非常多了。所以都用这么长的指令非常浪费。短版本ldloc.s自身编码只有一个字节（11），而且它的参数是uint8（一个字节），该指令只占2个字节的空间。但是ldloc.s只能加载索引在0-255范围内的本地变量。最后，针对最常用的头4个本地变量，还有四个最短版本。比如ldloc.0，仅占一个字节的编码（06）没有参数。我们在生成代码的时候需要根据访问本地变量的索引来选取不同的指令：
+
+private void EmitLoadLocal(int locIndex)
+{
+    switch (locIndex)
+    {
+        case 0:
+            m_ilgen.Emit(OpCodes.Ldloc_0);
+            break;
+        case 1:
+            m_ilgen.Emit(OpCodes.Ldloc_1);
+            break;
+        case 2:
+            m_ilgen.Emit(OpCodes.Ldloc_2);
+            break;
+        case 3:
+            m_ilgen.Emit(OpCodes.Ldloc_3);
+            break;
+        default:
+            if (locIndex <= 255)
+            {
+                m_ilgen.Emit(OpCodes.Ldloc_S, (byte)locIndex);
+            }
+            else
+            {
+                m_ilgen.Emit(OpCodes.Ldloc, (short)locIndex);
+            }
+            break;
+    }
+}
+ 
+
+下面我们就开始为miniSharp语言编写CIL代码生成器。和语义分析阶段类似，我们只需要编写一个AST的Visitor实现即可。要注意，我们不仅需要生成方法的IL代码，还需要生成程序集、模块、类、方法、构造函数、字段等定义。Reflection.Emit为这些结构提供了各类Builder类型，使用非常方便，但必须注意一些规则：
+
+为了生成exe，程序集入口的PEFileKind应当是ConsoleApplication（默认是Dll）。
+每个类对应一个TypeBuilder，生成一个类之后必须调用其CreateType方法真正生成类型。一个类CreateType之前，它的父类必须已经CreateType过才行。所以要按照继承顺序创建各个类。
+TypeBuilder上也有Type类的所有方法，如GetConstructor、GetMethod之类，但只有当TypeBuilder调用过CreateType之后这些方法才能使用。所以我们必须自己保存未完成类型的成员信息。
+ 
+
+下面的代码展示了按照类继承顺序生成各类的代码：
+
+public override AstNode VisitProgram(Program ast)
+{
+    List<ClassDecl> classesInHierarchyOrder = new List<ClassDecl>();
+
+    var topBaseClasses = from c in ast.Classes where c.BaseClass.Type == null select c;
+    classesInHierarchyOrder.AddRange(topBaseClasses);
+
+    while (classesInHierarchyOrder.Count < ast.Classes.Count)
+    {
+        foreach (var c in ast.Classes)
+        {
+            foreach (var b in classesInHierarchyOrder.ToArray())
+            {
+                if (c.BaseClass.Type == b.Type)
+                {
+                    classesInHierarchyOrder.Add(c);
+                }
+            }
+        }
+    }
+
+    foreach (var c in classesInHierarchyOrder)
+    {
+        Visit(c);
+    }
+
+    Visit(ast.MainClass);
+
+    return ast;
+}
+ 
+
+下面展示MainClass的生成方法。这里用了一个技巧，即static class = abstract + sealed。
+
+public override AstNode VisitMainClass(MainClass ast)
+{
+    m_currentType = m_module.DefineType(
+        ast.Type.Name, TypeAttributes.Class | TypeAttributes.Abstract | TypeAttributes.Sealed);
+    m_currentMethod = m_currentType.DefineMethod(
+        "Main", MethodAttributes.Public | MethodAttributes.Static, typeof(void), new[] { typeof(string[]) });
+
+    m_ilgen = m_currentMethod.GetILGenerator();
+
+    foreach (var s in ast.Statements)
+    {
+        Visit(s);
+    }
+
+    m_ilgen.Emit(OpCodes.Ret);
+
+    m_currentType.CreateType();
+    m_mainMethod = m_currentMethod;
+    return ast;
+}
+ 
+
+搞定类和方法之后，就开始要生成方法体的代码了。这一部分最主要的翻译对象是语句和表达式，有一个要注意的规则：
+
+表达式执行之后，该表达式的结果应当压入运算栈。
+语句执行后，运算栈应当被清空。
+如果不满足上述规则，生成的代码就很有可能是错的，要非常小心。下面展示两个最基本的语句——if else和while的生成方法。
+
+public override AstNode VisitIfElse(IfElse ast)
+{
+    var ifBlock = m_ilgen.DefineLabel();
+    var elseBlock = m_ilgen.DefineLabel();
+    var endif = m_ilgen.DefineLabel();
+
+    Visit(ast.Condition);
+    //the e-stack should have a bool value
+    m_ilgen.Emit(OpCodes.Brfalse, elseBlock);
+
+    //if block
+    m_ilgen.MarkLabel(ifBlock);
+    Visit(ast.TruePart);
+    m_ilgen.Emit(OpCodes.Br, endif);
+
+    //elseblock
+    m_ilgen.MarkLabel(elseBlock);
+    Visit(ast.FalsePart);
+
+    //after if
+    m_ilgen.MarkLabel(endif);
+
+    return ast;
+}
+
+public override AstNode VisitWhile(While ast)
+{
+    var beforeWhile = m_ilgen.DefineLabel();
+    var afterWhile = m_ilgen.DefineLabel();
+
+    m_ilgen.MarkLabel(beforeWhile);
+
+    Visit(ast.Condition);
+    //the e-stack should have a bool value
+    m_ilgen.Emit(OpCodes.Brfalse, afterWhile);
+
+    Visit(ast.LoopBody);
+
+    m_ilgen.Emit(OpCodes.Br, beforeWhile);
+    m_ilgen.MarkLabel(afterWhile);
+
+    return ast;
+}
+这里if语句采用的是brfalse指令。实际上CIL中有许多条件分支语句，如blt、bge等等，可直接翻译if ( a > b )这样的结构，效率更高。此次我采用偷懒的做法，全都用clt, cgt这样的有返回值的指令来计算大于小于等比较运算，但后统一用brfalse来执行条件跳转。上面这段代码还展示了Label在Emit API中的使用方法。翻译赋值语句和数组赋值语句时要注意，为本地变量、本地参数或类的字段赋值时采用的指令和栈转换动作均有所不同，需要分别考虑。比如ldfld之前必须先将目标对象压栈，如果是this的话应该用ldarg.0指令（实例方法默认第0个参数是this引用）
+
+ 
+
+再来演示两个基本表达式的翻译，二元运算符和方法调用：
+
+public override AstNode VisitBinary(Binary ast)
+{
+    //push operands
+    Visit(ast.Left);
+    Visit(ast.Right);
+
+    switch (ast.Operator)
+    {
+        case BinaryOperator.Add:
+            m_ilgen.Emit(OpCodes.Add);
+            break;
+        case BinaryOperator.Substract:
+            m_ilgen.Emit(OpCodes.Sub);
+            break;
+        case BinaryOperator.Multiply:
+            m_ilgen.Emit(OpCodes.Mul);
+            break;
+        case BinaryOperator.Divide:
+            m_ilgen.Emit(OpCodes.Div);
+            break;
+        case BinaryOperator.Less:
+            m_ilgen.Emit(OpCodes.Clt);
+            break;
+        case BinaryOperator.Greater:
+            m_ilgen.Emit(OpCodes.Cgt);
+            break;
+        case BinaryOperator.Equal:
+            m_ilgen.Emit(OpCodes.Ceq);
+            break;
+        case BinaryOperator.LogicalAnd:
+            m_ilgen.Emit(OpCodes.And);
+            break;
+        case BinaryOperator.LogicalOr:
+            m_ilgen.Emit(OpCodes.Or);
+            break;
+        default:
+            m_ilgen.Emit(OpCodes.Pop);
+            m_ilgen.Emit(OpCodes.Pop);
+            m_ilgen.Emit(OpCodes.Ldc_I4_0);
+            break;
+    }
+    return ast;
+}
+
+public override AstNode VisitCall(Call ast)
+{
+    var methodRInfo = GetClrMethod(ast.Method.MethodInfo);
+
+    //push target object
+    Visit(ast.Target);
+
+    //push arguments
+    foreach (var arg in ast.Arguments)
+    {
+        Visit(arg);
+    }
+
+    m_ilgen.EmitCall(OpCodes.Call, methodRInfo, null);
+
+    return ast;
+}
+注意这里翻译&&和||运算符时没有生成“短路”操作，因此与C#的语义稍有不同。如果要支持短路也非常容易，大家可以亲自实验一下。翻译二元运算符时，如果语义分析正确无误，不应该进入default分支。所以在此只进行一种错误处理的逻辑，它仍然要保持运算栈的平衡。翻译方法调用时，应当先将方法的目标对象压栈，然后从左到右依次压入每个实参，最后调用call指令完成调用。
+
+ 
+
+所有的TypeBuilder都调用CreateType之后，最后调用AssemblyBuilder.Save方法，就可以将目标程序集写入磁盘了！
+
+public void Create(Ast.AstNode ast, string url)
+{
+    Visit(ast);
+
+    Debug.Assert(m_assembly != null);
+
+    m_assembly.SetEntryPoint(m_mainMethod, PEFileKinds.ConsoleApplication);
+    m_assembly.Save(url);
+}
+ 
+
+现在终于可以试试看了，我们来编译一段miniSharp代码试试：（阶乘计算）
+
+static class 程序入口
+{
+    //中文注释
+    public static void Main(string[] args)
+    {
+        Fac o;
+        o = new Fac();
+        System.Console.WriteLine(o.ComputeFac(8));
+    }
+}
+
+class Fac
+{
+    public int ComputeFac(int num)
+    {
+        int num_aux;
+        if (num < 1)
+            num_aux = 1;
+        else
+            num_aux = num * (this.ComputeFac(num - 1));
+
+        return num_aux;
+    }
+}
+ 
+
+生成的程序集：
+
+
+
+运行结果：
+
+
+
+ 
+
+看到自己的编译器正确地编译源代码，是否觉得很有成就感呢？如果只想做一个托管编程语言，那么生成CIL就是最后一步了。但是CLR帮我们做的实在太多了，不能满足我们的求知欲。所以，下一阶段我们将亲手实现从中间语言到目标机器代码的编译器后端部分。从下一篇开始本系列的间隔时间会变得比较长而且不确定，因为我自己也需要一边学习一边实践。
+
+希望大家继续关注我的VBF项目：https://github.com/Ninputer/VBF 和我的微博：http://weibo.com/ninputer 多谢大家支持！
+
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+装配脑袋
+关注 - 8
+粉丝 - 626
+荣誉：推荐博客
++加关注
+23 0
+(请您对文章做出评价)
+« 博主上一篇：自己动手开发编译器（十一）语义分析
+» 博主下一篇：GPU并行计算版函数图像生成器
+« 首页上一篇：[SCM]源码管理 - 简介
+» 首页下一篇：挑战类Flash游戏测试用例设计
+ posted on 2011-08-02 14:57 装配脑袋 阅读(5213) 评论(38) 编辑 收藏
+
+
+评论
+#1楼    
+ 幸运草   | 2011-08-02 15:02
+来顶一个
+支持(0)反对(0)
+#2楼    
+ 专注的笑脸   | 2011-08-02 15:06
+好文必留言，不留言非好文。
+支持(0)反对(0)
+#3楼    
+ 天空海阔   | 2011-08-02 15:09
+顶一下
+支持(0)反对(0)
+#4楼    
+ 张志敏   | 2011-08-02 15:12
+前排占位
+支持(0)反对(0)
+#5楼    
+ 玉开   | 2011-08-02 15:19
+非常的佩服楼主的钻研精神
+支持(0)反对(0)
+#6楼    
+ 硪   | 2011-08-02 15:23
+假期正在做一个需要后台编译的程序，就来借鉴下楼主的成果啦。。
+支持(0)反对(0)
+#7楼    
+ Treenew Lyn   | 2011-08-02 15:57
+期待下篇巨作！
+支持(0)反对(0)
+#8楼    
+ 叶鹏   | 2011-08-02 16:05
+我有个想法，但是不知道行不行，现在的程序都是自己写程序编译，能不能编译器根据需要自己也能写程序，自己编译，简单的来说就是一个程序包含编译器和代码生成器、传感器，根据传感器的数据编译器会自动生成程序，自己编译再遇到同样的数据自己能出结果...貌似浮云
+支持(0)反对(0)
+#9楼    
+ iTech   | 2011-08-02 16:19
+支持！ 底层的哦!
+支持(0)反对(0)
+#10楼    
+ 老郭_霍山   | 2011-08-02 16:35
+谢谢楼主分享啊，看到了里面很多亮点啊。可惜我做www***还没多大的起色啊，各位能不能帮助呢？
+支持(0)反对(0)
+#11楼    
+ 代码超人三四五   | 2011-08-02 16:52
+楼主厉害呀
+支持(0)反对(0)
+#12楼    
+ 马宁   | 2011-08-02 17:14
+地球已经无法阻止脑袋了，加油！
+支持(0)反对(0)
+#13楼    
+ Zhenway   | 2011-08-02 17:29
+CIL->目标机器代码 这个就累啦。。。就算做个超简化版本的也涉及N多东西：计算栈->寄存器，内存分配，基础方法（那些类库中标记为InternalCall的方法），虚方法，等一堆东西，没有一群高手是很难搞起来的
+支持(0)反对(0)
+#14楼    
+ 近水楼台   | 2011-08-02 17:50
+脑袋你就是我的偶像阿。加油！
+支持(0)反对(0)
+#15楼    
+ helloworld2   | 2011-08-02 17:59
+牛b
+支持(0)反对(0)
+#16楼    
+ 直心眼   | 2011-08-02 18:41
+功力文章，感觉和15楼一样
+支持(0)反对(0)
+#17楼    
+ G yc {Son of VB.NET}   | 2011-08-02 18:54
+过来踩点了~
+支持(0)反对(0)
+#18楼    
+ 搏击的小船   | 2011-08-02 21:37
+脑袋强大！
+支持(0)反对(0)
+#19楼    
+ testzhangsan   | 2011-08-02 21:55
+佩服牛人，Anders hejlsberg 要下岗了，K# 就指望您来设计了！
+支持(0)反对(0)
+#20楼    
+ Juvy   | 2011-08-02 23:24
+我表示对这类文章完全不懂，IL，CIL一头雾水，不知从何开始哦。。。
+支持(0)反对(0)
+#21楼    
+ G yc {Son of VB.NET}   | 2011-08-03 01:32
+@马宁
+^_^， 脑袋要冲出地球了～～
+
+
+
+
+唉，感觉自己越来越迷茫了，
+
+应该弄个把知识直接输入到 大脑的装置， ^_^～
+支持(0)反对(0)
+#22楼    
+ 贼寇在何方   | 2011-08-03 08:09
+LZ写得太好了，长见识了
+支持(0)反对(0)
+#23楼    
+ 木+头   | 2011-08-03 08:33
+给力
+支持(0)反对(0)
+#24楼    
+ 鸽子飞扬   | 2011-08-03 09:16
+强大
+支持(0)反对(0)
+#25楼    
+ 空明流转   | 2011-08-03 09:40
+引用
+Zhenway：CIL->目标机器代码 这个就累啦。。。就算做个超简化版本的也涉及N多东西：计算栈->寄存器，内存分配，基础方法（那些类库中标记为InternalCall的方法），虚方法，等一堆东西，没有一群高手是很难搞起来的
+
+
+没那么夸张。编译器没多少技术可言，大多数都是些体力活，比方说Instruction Selection，Error tips，Semantic Analysis。
+
+寄存器分配什么的，如果你只想随便实现一个可运行的玩意儿是很简单的。
+支持(0)反对(0)
+#26楼    
+ Ridge Wong   | 2011-08-03 10:16
+引用
+空明流转：
+引用
+Zhenway：CIL->目标机器代码 这个就累啦。。。就算做个超简化版本的也涉及N多东西：计算栈->寄存器，内存分配，基础方法（那些类库中标记为InternalCall的方法），虚方法，等一堆东西，没有一群高手是很难搞起来的
+
+
+没那么夸张。编译器没多少技术可言，大多数都是些体力活，比方说Instruction Selection，Error tips，Semantic Analysis。
+
+寄存器分配什么的，如果你只想随便实现一个可运行的玩意儿是很简单的。
+
+
+可以参考下IL2CPU项目，转换IL到NASM，再编译到目标平台代码。
+http://www.gocosmos.org/Docs/Dev/IL2CPU/index.en.aspx
+http://cosmos.codeplex.com/
+支持(0)反对(0)
+#27楼    
+ 卡索   | 2011-08-03 11:37
+看了这文章，只懂得顶了...膜拜
+支持(0)反对(0)
+#28楼    
+ pulihe   | 2011-08-03 14:02
+引用
+testzhangsan：佩服牛人，Anders hejlsberg 要下岗了，K# 就指望您来设计了！
+
+
+- -＃ 你真扯，Anders就不会写编译器了？！看看下面的资料和官网的页面
+
+Borland/Turbo Pascal的高明之处便是由Anders使用汇编语言撰写的Pascal
+编译器不但编译快速，而且能够产出极为有效率的机器码。当时的Visual Basic只是
+解译器(Interpreter)，无法产生真正的执行机器码，因此在这一方面Borland决定要
+远远地超过VB，但是Borland的挑战是要开发出一个编译速度能够媲美解译器速度的
+新一代编译器。
+
+当时在这个项目中，各个
+重要的部分分别由下面的重要人员负责：
+● Anders Hejlsberg：编译器，Object Pascal程序语言，产品架构
+● Chuck Jazdzewski：Framework，组件架构设计/实现
+● Allen Bauer：集成开发环境的开发工具，Open Tools API
+● Danny Thorpe：RTL (Run-Time Library)
+● Zack Urlocker：产品开发方向，产品规划
+
+参考网页 http://community.borland.com/article/0,1410,20396,00.html
+支持(0)反对(0)
+#29楼    
+ testzhangsan   | 2011-08-03 14:17
+@pulihe
+你太认真了，缺乏幽默感。
+支持(0)反对(0)
+#30楼    
+ zhuangzhuang1988   | 2011-08-03 15:55
+老大NB
+支持(0)反对(0)
+#31楼    
+ royen   | 2011-08-04 10:27
+顶楼主
+支持(0)反对(0)
+#32楼    
+ toEverybody   | 2011-08-08 21:01
+在别人的基础上搞这些，。。。你累不累呀。。
+支持(0)反对(0)
+#33楼    
+ magicDict   | 2011-08-10 11:46
+下一阶段我们将亲手实现从中间语言到目标机器代码的编译器后端部分。
+O My LadyGaga
+支持(0)反对(0)
+#34楼    
+ 李宝亨   | 2011-09-08 13:52
+引用
+toEverybody：在别人的基础上搞这些，。。。你累不累呀。。
+
+
+你有哪些不是在别人的基础上搞的？麻烦列举下，咱也长长见识……
+支持(0)反对(0)
+#35楼    
+ Haven   | 2011-12-22 16:03
+好文章，感谢楼主分享，受益匪浅！
+支持(0)反对(0)
+#36楼    
+ 魔君六道   | 2012-02-08 10:45
+引用
+toEverybody：在别人的基础上搞这些，。。。你累不累呀。。
+
+兄弟啊，你写程序是不是要从挖硅开始呀？
+支持(0)反对(0)
+#37楼    
+ hellmonky   | 2012-02-17 11:08
+脑袋威武啊！这个可是一个大作啊，期待最终完成的样子
+支持(0)反对(0)
+#38楼    
+ kukudewo   | 2012-03-26 14:16
+我是想知道LZ在遇到编译不能通过的程序时，是怎样报错的~~请教啊
+支持(0)反对(0)
+刷新评论刷新页面返回顶部
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+博客园首页博问新闻闪存程序员招聘知识库
+
+最新IT新闻:
+· 裁员伤透了中兴员工的心！
+· LG收购WebOS资产
+· “百度第二司机”车祸离世 十五万网友微博悼念
+· 埃洛普：诺基亚不会推出WP8全键盘手机
+· iOS被批创新力不足：将成为苹果的Windows XP
+» 更多新闻...
+最新知识库文章:
+· 为什么很多人工作都不开心？
+· 不用IDE写C#的Hello World
+· 注重实效的架构师——大胆行前人未行之路
+· 走向“持续部署”
+· curl 网站开发指南
+» 更多知识库文章...
+
+公告
+
+昵称：装配脑袋
+园龄：8年2个月
+荣誉：推荐博客
+粉丝：626
+关注：8
++加关注
+<	2011年8月	>
+日	一	二	三	四	五	六
+31	1	2	3	4	5	6
+7	8	9	10	11	12	13
+14	15	16	17	18	19	20
+21	22	23	24	25	26	27
+28	29	30	31	1	2	3
+4	5	6	7	8	9	10
+搜索
+
+ 
+常用链接
+
+我的随笔
+我的评论
+我的参与
+最新评论
+我的标签
+我的标签
+
+Expression Tree(1)
+VB10 C#4 .NET4 泛型 协变 反变(1)
+随笔分类
+
+Visual Basic 9.0 前沿播报(10)
+随笔档案
+
+2012年1月 (1)
+2011年8月 (2)
+2011年7月 (3)
+2011年6月 (10)
+2009年12月 (2)
+2009年11月 (3)
+2009年9月 (1)
+2009年8月 (3)
+2009年4月 (1)
+2008年11月 (2)
+2007年11月 (2)
+2006年6月 (2)
+2006年4月 (2)
+2006年3月 (2)
+2006年2月 (2)
+2006年1月 (3)
+2005年11月 (3)
+2005年10月 (3)
+2005年9月 (9)
+2005年5月 (1)
+2005年4月 (1)
+2004年12月 (1)
+积分与排名
+
+积分 - 258093
+排名 - 314
+最新评论
+
+1. Re:Expression Tree上手指南 （一）
+@J-Pei引用Expression<Func<tWorkOrderDetail, int>> aaa = (tWorkOrderDetail a) => a.tWorkOrder.iDDBH; 怎样动态生成 class tWorkOrder { public int iDDBH { get; set; } } ...
+--吴东雷
+2. Re:Expression Tree上手指南 （一）
+我练习的代码： ParameterExpression expA_double = Expression.Parameter(typeof(double), "a"); ParameterExpression expB_double = Expression.Parameter(typeof(double), "b"); P...
+--吴东雷
+3. Re:Expression Tree 上手指南 （二）
+为什么图都坏掉了呢？
+--吴东雷
+4. Re:Expression Tree 上手指南 （三）
+精彩期待继续。
+--楚萧萧
+5. Re:自己动手开发编译器（三）有穷自动机
+看了下你的NFA转DFA代码，其实没必要直接翻译算法，因为每次都要求T'里所有状态能到达的状态集的并集。这个问题可以转换为图的遍历，下面是我写的伪代码：
+//输入: 原状态集org
+//输出: closure(org)
+Set<State> closure(Set<State> org)
+{ //存放结果 Set<State> res = new HashSet<State>(); ...
+--有来 有去
+阅读排行榜
+
+1. 自己动手开发编译器（零）序言(12673)
+2. VS2008亮点：用Lambda表达式进行函数式编程(10532)
+3. Expression Tree上手指南 （一）(10504)
+4. .NET 4.0中的泛型协变和反变(10500)
+5. 自己动手开发编译器（二）正则语言和正则表达式(9081)
+评论排行榜
+
+1. 自己动手开发编译器（零）序言(87)
+2. Expression Tree上手指南 （一）(73)
+3. VS2008亮点：用Lambda表达式进行函数式编程(50)
+4. 自己动手开发编译器（二）正则语言和正则表达式(49)
+5. 自己动手开发编译器（三）有穷自动机(48)
+推荐排行榜
+
+1. 自己动手开发编译器（零）序言(62)
+2. 自己动手开发编译器（一）编译器的模块化工程(28)
+3. Expression Tree上手指南 （一）(28)
+4. 自己动手开发编译器（十二）生成托管代码(23)
+5. 自己动手开发编译器（三）有穷自动机(21)

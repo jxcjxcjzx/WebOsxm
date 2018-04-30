@@ -1,0 +1,551 @@
+选
+ 
+
+
+编译全攻略－编译器处理及LNK错误的解决方法 
+
+2008-11-06 10:27178人阅读评论(0)收藏举报
+ 
+编译器mfcwindowsdll多线程library
+
+ 预处理器-编译器-汇编器-链接器
+预处理器会处理相关的预处理指令，一般是以"#"开头的指令。如：＃i nclude "xx.h" #define等。
+编译器把对应的*.cpp翻译成*.s文件(汇编语言)。 汇编器则处理*.s生成对应的*.o文件(obj目标文件)
+最后链接器把所有的*.o文件链接成一个可执行文件(?.exe)
+1.部件:
+首先要知道部件(可以暂且狭义地理解为一个类)一般分为头文件(我喜欢称为接口，如:*.h)及实现文件(如:*.cpp)。
+一般头文件会是放一些用来作声明的东东作为接口而存在的。而实现文件主要是实现的具体代码。
+2.编译单个文件:
+记住IDE在bulid文件时只编译实现文件(如*.cpp)来产生obj，在vc下你可以对某个?.cpp按下ctrl+f7单独编译它
+生成对应一个?.obj文件。在编译?.cpp时IDE会在?.cpp中按顺序处理用＃i nclude包括进来的头文件
+(如果该头文件中又＃i nclude有文件，同样会按顺序跟进处理各个头文件，如此递归。。)
+3.内部链接与外部链接:
+内、外链接是比较基础的东东，但是也是新手最容易错的地方,所以这里有必要祥细讨论一下。
+内部链接产生的符号只在本地?.obj中可见，而外部链接的符号是所有*.obj之间可见的。
+如:用inline的是内部链接，在文件头中直接声明的变量、不带inline的全局函数都是外部链接。
+在文件头中类的内部声明的函数(不带函数体)是外部链接，而带函数体一般会是内部链接(因为IDE会尽量把它作为内联函数)
+认识内部链接与外部链接有什么作用呢？下面用vc6举个例子：
+// 文件main.cpp内容:
+void main(){}
+// 文件t1.cpp内容:
+＃i nclude "a.h"
+void Test1(){ Foo(); }
+// 文件t2.cpp内容:
+＃i nclude "a.h"
+void Test2(){ Foo(); }
+// 文件a.h内容:
+void Foo( ){ }
+好，用vc生成一个空的console程序(File - new - projects - win32 console application)，并关掉预编译选项开关
+(project - setting - Cagegoryrecompiled Headers - Not using precompiled headers)
+现在你打开t1.cpp按ctrl+f7编译生成t1.obj通过   打开t2.cpp按ctrl+f7编译生成t2.obj通过
+而当你链接时会发现:
+Linking...
+t2.obj : error LNK2005: "void __cdecl Foo(void)" (?Foo@@YAXXZ) already defined in t1.obj
+这是因为:
+1. 编译t1.cpp在处理到＃i nclude "a.h"中的Foo时看到的Foo函数原型定义是外部链接的，所以在t1.obj中记录Foo符号是外部的。
+2. 编译t2.cpp在处理到＃i nclude "a.h"中的Foo时看到的Foo函数原型定义是外部链接的，所以在t2.obj中记录Foo符号是外部的。
+3. 最后在链接 t1.obj 及 t2.obj 时, vc发现有两处地方(t1.obj和t2.obj中)定义了相同的外部符号(注意：是定义，外部符号可以多处声明但不可多处定义，因为外部符号是全局可见的，假设这时有t3.cpp声明用到了这个符号就不知道应该调用t1.obj中的还是t2.obj中的了)，所以会报错。
+解决的办法有几种: 
+a.将a.h中的定义改写为声明，而用另一个文件a.cpp来存放函数体。(提示：把上述程序改来试试)
+(函数体放在其它任何一个cpp中如t1.cpp也可以，不过良好的习惯是用对应cpp文件来存放)。
+这时包括a.h的文件除了a.obj中有函数体代码外，其它包括a.h的cpp生成的obj文件都只有对应的符号而没有函数体，如t1.obj、t2.obj就只有符号，当最后链接时IDE会把a.obj的Foo()函数体链接进exe文件中，并把t1.obj、t2.obj中的Foo符号转换成对应在函数体exe文件中的地址。
+另外：当变量放在a.h中会变成全局变量的定义，如何让它变为声明呢?
+例如: 我们在a.h中加入:class CFoo{};CFoo* obj;
+这时按f7进行build时出现:
+Linking...
+t2.obj : error LNK2005: "class CFoo * obj" (?obj@@3PAVCFoo@@A) already defined in t1.obj
+一个好办法就是在a.cpp中定义此变量( CFoo* obj，然后拷贝此定义到a.h文件中并在前面加上extern(extern CFoo* obj如此就可通过了。当然extern也可以在任何调用此变量的位置之前声明，不过强烈建议不要这么作，因为到处作用extern，会导致接口不统一。良好的习惯是接口一般就放到对应的头文件。
+b. 将a.h中的定义修改成内部链接，即加上inline关键字，这时每个t1.obj和t2.obj都存放有一份Foo函数体，但它们不是外部符号，所以不会被别的obj文件引用到，故不存在冲突。(提示：把上述程序改来试试)
+另外我作了个实验来验证”vc是把是否是外部符号的标志记录在obj文件中的“(有点绕口)。可以看看，如下:
+(1)文件内容:
+// 文件main.cpp内容:
+void main(){}
+// 文件t1.cpp内容:
+＃i nclude "a.h"
+void Test1(){ Foo(); }
+// 文件t2.cpp内容:
+＃i nclude "a.h"
+void Test2(){ Foo(); }
+// 文件a.h内容:
+inline void Foo( ){ }
+(2) 选t1.cpp按ctrl+f7单独编译,并把编译后的t1.obj修改成t1.obj_inline
+(3) 选t2.cpp按ctrl+f7单独编译,并把编译后的t2.obj修改成t2.obj_inline
+(4) 把除了t1.obj_inline及t2.obj_inline外的其它编译生成的文件删除。
+(5) 修改a.h内容为:void Foo( ){ },使之变为非内联函数作测试
+(6) rebuild all所有文件。这时提示:
+Linking...
+t2.obj : error LNK2005: "void __cdecl Foo(void)" (?Foo@@YAXXZ) already defined in t1.obj
+Debug/cle.exe : fatal error LNK1169: one or more multiply defined symbols found
+(7) 好，看看工程目录下的debug目录中会看到新生成的obj文件。
+下面我们来手工链接看看，
+打开菜单中的project - setting - Link,拷贝Project options下的所有内容,如下:
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/cle.pdb" /debug /machine:I386 /out:"Debug/cle.exe" /pdbtype:sept 把它修改成:
+Link.exe kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/cle.pdb" /debug /machine:I386 /out:"Debug/cle.exe" /pdbtype:sept Debug/t1.obj Debug/t2.obj Debug/main.obj
+pause
+注意前面多了Link.exe，后面多了Debug/t1.obj Debug/t2.obj Debug/main.obj以及
+最后一个pause批处理命令，然后把它另存到工程目录(此目录下会看到debug目录)下起名为link.bat
+运行它，就会看到:
+t2.obj : error LNK2005: "void __cdecl Foo(void)" (?Foo@@YAXXZ) already defined in t1.obj
+Debug/cle.exe : fatal error LNK1169: one or more multiply defined symbols found
+很好，我们链接原来的obj文件得到的效果跟在vc中用rebuild all出来的效果一样。那么现在如果
+我们把备份出来的t1.obj_inline覆盖t1.obj而t2.obj_inline覆盖t2.obj再手动链接应该会是
+不会出错的，因为原t1.obj_inline及t2.obj_inline中存放的是内部链接符号。好运行Link.bat，果然
+不出所料，链接成功了，看看debug目录下多出了一个exe文件。这就说明了内或外符号在obj有标志标识!
+(提示：上述为什么不用vc的f7build链接呢,因为文件时间改变了，build会重新生成新的obj，
+所以我们用手动链接保证obj不变)[注bj信息可用dumpbin.exe查看]
+
+4.＃i nclude规则:
+有很多人不知道＃i nclude 文件该放在何处？
+1). 增强部件自身的完整性：
+为了保证部件完整，部件的cpp实现文件(如test.cpp)中第一个＃i nclude的应当是它自身对应的头文件(如test.h)。
+(除非你用预编译头文件, 预编译头必须放在第一个)。这样就保证了该部件头文件(test.h)所必须依赖的其它接口(如a.h等)要放到它对应的文件头中(test.h),而不是在cpp中(test.cpp)把所依赖的其它头文件(a.h等)移到其自身对应的头文件(test.h等)之前（因为这样强迫其它包括此部件的头文件(test.h)的文件(b.cpp)也必须再写一遍include(即b.cpp若要＃i nclude "test.h"也必须＃i nclude "a.h")”。另外我们一般会尽量减少文件头之间的依赖关系，看下面：
+2). 减少部件之间的依赖性：
+在1的基础上尽量把＃i nclude到的文件放在cpp中包括。
+这就要求我们一般不要在头文件中直接引用其它变量的实现，而是把此引用搬到实现文件中。
+例如: 
+// 文件foo.h:
+class CFoo{
+void Foo(){}
+};
+// 文件test.h:
+＃i nclude "foo.h"
+class CTest{
+CFoo* m_pFoo;
+public:
+CTest() : m_pFoo(NULL){}
+void Test(){ if(m_pFoo){ m_pFoo->Foo();}}
+...........
+};
+// 文件test.cpp:
+＃i nclude "test.h"
+.....
+如上文件test.h中我们其实可以＃i nclude "foo.h"移到test.cpp文件中。因为CFoo* m_pFoo我们只想在部件CTest中用到,而将来想用到CTest部件而包括test.h的其它部件没有必要见到foo.h接口，所以我们用前向声明修改原文件如下:
+// 文件foo.h:
+class CFoo{
+public:
+void Foo(){}
+};
+// 文件test.h:
+class CFoo;
+class CTest{
+CFoo* m_pFoo;
+public:
+CTest();
+void Test();
+//........
+};
+// 文件test.cpp:
+＃i nclude "test.h" // 这里第一个放该部件自身对应的接口头文件
+＃i nclude "foo.h" // 该部件用到了foo.h
+CTest::CTest() : m_pFoo(0){ 
+m_pFoo = new CFoo; 
+}
+void CTest::Test(){ 
+if(m_pFoo){ 
+m_pFoo->Foo();
+}
+}
+//.....
+// 再加上main.cpp来测试:
+＃i nclude "test.h" // 这里我们就不用见到＃i nclude "foo.h"了
+CTest test;
+void main(){
+test.Test();
+}
+3). 双重包含卫哨:
+在文件头中包括其它头文件时(如：＃i nclude "xx.h")建议也加上包含卫哨:
+// test.h文件内容:
+#ifndef __XX1_H_
+＃i nclude "xx1.h"
+#endif
+#ifndef __XX2_H_
+＃i nclude "xx2.h"
+#endif
+...... 
+虽然我们已经在xx.h文件中开头已经加过，但是因为编译器在打开＃i nclude文件也是需要时间的，如果在外部加上包含卫哨，对于很大的工程可以节省更多的编译时间。
+5.待续(还有很多相关的东东，比如不同dll工程之间符号导出问题等等，有空再写)
+转自http://www.donews.net/xzwenlan/archive/2004/12/23/211668.aspx 转载请注明. 
+－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+ 
+最近我抽空研究、整理了一下VC中几个以前比较模糊的问题，写成这篇短文，希望和碰到过类似问题的朋友共享。 如果我的理解有不正确的地方，欢迎大家指正。 
+文章的3、4小节参照了vcforever的专栏（http://blog.csdn.net/vcforever/archive/2004/12/14/215936.aspx）。其它信息来源于MSDN和自己的摸索。 
+
+1、Run-Time Library 
+Run-Time Library是编译器提供的标准库，提供一些基本的库函数和系统调用。 
+我们一般使用的Run-Time Library是C Run-Time Libraries。当然也有Standard C++ libraries。 
+C Run-Time Libraries实现ANSI C的标准库。VC安装目录的CRT目录有C Run-Time库的大部分源代码。 
+C Run-Time Libraries有静态库版本，也有动态链接库版本；有单线程版本，也有多线程版本；还有调试和非调试版本。 
+可以在"project"-"settings"-"C/C++"-"Code Generation"中选择Run-Time Library的版本。      
+动态链接库版本： 
+/MD Multithreaded DLL 使用导入库MSVCRT.LIB 
+/MDd Debug Multithreaded DLL 使用导入库MSVCRTD.LIB       
+静态库版本： 
+/ML Single-Threaded 使用静态库LIBC.LIB 
+/MLd Debug Single-Threaded 使用静态库LIBCD.LIB 
+/MT Multithreaded 使用静态库LIBCMT.LIB 
+/MTd Debug Multithreaded 使用静态库LIBCMTD.LIB       
+C Run-Time Library的标准io部分与操作系统的关系很密切，在Windows上，CRT的io部分代码只是一个包装，底层要用到操作系统内核kernel32.dll中的函数，在编译时使用导入库kernel32.lib。这也就是为什么在嵌入式环境中，我们一般不能直接使用C标准库。 
+在Linux环境当然也有C标准库，例如： 
+ld -o output /lib/crt0.o hello.o -lc 
+参数"-lc"就是在引用C标准库libc.a。猜一猜"-lm"引用哪个库文件？ 
+
+2、常见的编译参数 
+VC建立项目时总会定义"Win32"。控制台程序会定义"_CONSOLE"，否则会定义"_WINDOWS"。Debug版定义"_DEBUG"，Release版定义"NDEBUG"    。    
+与MFC DLL有关的编译常数包括： 
+_WINDLL 表示要做一个用到MFC的DLL 
+_USRDLL 表示做一个用户DLL（相对MFC扩展DLL而言） 
+_AFXDLL 表示使用MFC动态链接库 
+_AFXEXT 表示要做一个MFC扩展DLL 
+所以： 
+Regular, statically linked to MFC _WINDLL,_USRDLL 
+Regular, using the shared MFC DLL _WINDLL,_USRDLL,_AFXDLL 
+Extension DLL _WINDLL,_AFXDLL,_AFXEXT 
+
+CL.EXE编译所有源文件，LINK.EXE链接EXE和DLL，LIB.EXE产生静态库。 
+
+3、subsystem和可执行文件的启动 
+LINK的时候需要指定/subsystem，这个链接选项告诉Windows如何运行可执行文件。 
+控制台程序是/subsystem:"console" 
+其它程序一般都是/subsystem:"windows "       
+将 subsystem 选成"console"后，Windows在进入可执行文件的代码前（如mainCRTStartup），就会产生一个控制台窗口。                                                                                                                                                                            如果选择"windows"，操作系统就不产生console窗口,该类型应用程序的窗口由用户自己创建。     
+可执行文件都有一个Entry Point，LINK时可以用/entry指定。缺省情况下，如果subsystem是“console”，Entry Point是 mainCRTStartup(ANSI)或wmainCRTStartuup(UNICODE)，即： 
+/subsystem:"console" /entry:"mainCRTStartup" (ANSI) 
+/subsystem:"console" /entry:"wmainCRTStartuup" (UNICODE) 
+mainCRTStartup 或 wmainCRTStartuup 会调用main或wmain。 
+值得一提的是，在进入应用程序的Entry Point前，Windows的装载器已经做过C变量的初始化，有初值的全局变量拥有了它们的初值，没有初值的变量被设为0。       
+如果subsystem是“windows”，Entry Point是WinMain(ANSI)或wWinMain(UINCODE)，即： 
+/subsystem:"windows" /entry:"WinMainCRTStartup" (ANSI) 
+/sbusystem:"windows" /entry:"wWinMainCRTStartup" (UINCODE) 
+WinMainCRTStartup 或 wWinMainCRTStartup 会调用 WinMain 或 wWinMain。 
+
+如果使用MFC框架，WinMain也会被埋藏在MFC库中（APPMODUL.CPP）： 
+extern "C" int WINAPI 
+_tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, 
+LPTSTR lpCmdLine, int nCmdShow) 
+{ 
+// call shared/exported WinMain 
+return AfxWinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow); 
+} 
+"_t"是一个宏，对于ANSI版本，"_tWinMain"就是"WinMain"；对于UINCODE版本，"_tWinMain"就是"wWinMain"。       
+全局C++对象的构造函数是在什么地方调用的？答案是在进入应用程序的Entry Point后，在调用main函数前的初始化操作中。所以MFC的theApp的构造函数是在_tWinMain之前调用的。       
+    
+4、不显示Console窗口的Console程序 
+在默认情况下/subsystem 和/entry开关是匹配的,也就是： 
+"console"对应"mainCRTStartup"或者"wmainCRTStartup" 
+"windows"对应"WinMain"或者"wWinMain" 
+我们可以通过手动修改的方法使他们不匹配。例如：       
+＃i nclude "windows.h" 
+#pragma comment( linker, "/subsystem:/"windows/" /entry:/"mainCRTStartup/"" ) // 设置入口地址 
+void main(void) 
+{ 
+MessageBox(NULL, "hello", "Notice", MB_OK); 
+}       
+这个Console程序就不会显示Console窗口。如果选/MLd的话，这个程序只需要链接LIBCD.LIB user32.lib kernel32.lib。 
+
+5、VC中缺省库冲突的解决 
+VC的编译器在编译程序时有两个习惯： 
+a、在从头开始编译时，将源文件名按字母排序后，依次处理； 
+b、一边编译一边决定需要哪些缺省库。 
+它的这些习惯有时会造成奇怪的编译错误，例如项目中有两个文件： 
+charutil.c 
+gbnni.cpp 
+其中gbnni.cpp用到了MFC库。       
+它老兄当然是先处理charutil.c，然后觉得需要link一个C Runtime库，根据项目设置选择了LIBCMTD.lib。 
+然后又处理gbnni.cpp，因为要用MFC，又决定要link nafxcwd.lib。 
+最后link的时候，就会出现以下冲突： 
+nafxcwd.lib(afxmem.obj) : error LNK2005: "void __cdecl operator delete(void *)" (??3@YAXPAX@Z) already defined in LIBCMTD.lib(dbgdel.obj) 
+其实，如果先link了nafxcwd.lib，就没有必要再link LIBCMTD.lib，也就不会产生冲突。 
+
+解决这类问题有两个办法。 
+a、让项目的第一个文件包含MFC的头文件，这样编译器就不会想到找C Runtime库。这样就要把c文件改成cpp了。 
+b、将需要link C Runtime库的文件的名字改大一些，让它排在后面。 
+使用IDE当然很方便，但既然使用了别人写的工具，有时就不得不琢磨、迁就它的习性。   
+ 
+
+
+－－－
+ 
+上面有一处笔误，如果subsystem是“windows”，Entry Point应该是WinMainCRTStartup(ANSI)或wWinMainCRTStartup(UINCODE。       
+探讨这些问题的动机是想弄清楚我们的程序是如何装载、运行的。但是，由于Windows不是开源平台，我也只能查到PE文件（Windows上可执行文件的格式）。entry point、subsystem都是PE文件头的一部分。 
+
+Windows在进入PE文件的entry point之前做了些什么，就看不到了，只能大概推测：应该是创建一个进程，装载PE文件和所有需要的DLL，初始化C变量，然后从某个起点函数开始运行。不同的subsystem，应该有不同的起点。调用这个起点函数时应该传入PE文件的entry point地址。   
+转自http://topic.csdn.net/t/20050428/22/3974737.html
+ 
+------------------
+ 
+
+zz    关于LNK2005错误－－    
+编程中经常能遇到LNK2005错误——重复定义错误，其实LNK2005错误并不是一个很难解决的错误。弄清楚它形成的原因，就可以轻松解决它了。       
+造成LNK2005错误主要有以下几种情况： 
+1．重复定义全局变量。可能存在两种情况： 
+A、对于一些初学编程的程序员，有时候会以为需要使用全局变量的地方就可以使用定义申明一下。其实这是错误的，全局变量是针对整个工程的。正确的应该是在一个CPP文件中定义如下：int g_Test;那么在使用的CPP文件中就应该使用：extern int g_Test即可，如果还是使用int g_Test，那么就会产生LNK2005错误，一般错误错误信息类似：AAA.obj error LNK2005 int book c？book@@3HA already defined in BBB.obj。切记的就是不能给变量赋值否则还是会有LNK2005错误。 
+这里需要的是“声明”，不是“定义”！根据C++标准的规定，一个变量是声明，必须同时满足两个条件，否则就是定义： 
+(1)声明必须使用extern关键字；(2)不能给变量赋初值 
+所以，下面的是声明: 
+extern int a; 
+下面的是定义 
+int a; int a = 0; extern int a =0; 
+B、对于那么编程不是那么严谨的程序员，总是在需要使用变量的文件中随意定义一个全局变量，并且对于变量名也不予考虑，这也往往容易造成变量名重复，而造成LNK2005错误。  
+    
+2．头文件的包含重复。往往需要包含的头文件中含有变量、函数、类的定义，在其它使用的地方又不得不多次包含之，如果头文件中没有相关的宏等防止重复链接的措施，那么就会产生LNK2005错误。解决办法是在需要包含的头文件中做类似的处理：#ifndef MY_H_FILE //如果没有定义这个宏 
+#define MY_H_FILE //定义这个宏 
+……. //头文件主体内容 
+……. 
+#endif 
+上面是使用宏来做的，也可以使用预编译来做，在头文件中加入： 
+#pragma once 
+//头文件主体 
+3．使用第三方的库造成的。这种情况主要是C运行期函数库和MFC的库冲突造成的。具体的办法就是将那个提示出错的库放到另外一个库的前面。另外选择不同的C函数库，可能会引起这个错误。微软和C有两种C运行期函数库，一种是普通的函数库：LIBC.LIB，不支持多线程。另外一种是支持多线程的：msvcrt.lib。如果一个工程里，这两种函数库混合使用，可能会引起这个错误，一般情况下它需要MFC的库先于C运行期函数库被链接，因此建议使用支持多线程的msvcrt.lib。所以在使用第三方的库之前首先要知道它链接的是什么库，否则就可能造成LNK2005错误。如果不得不使用第三方的库，可以尝试按下面所说的方法修改，但不能保证一定能解决问题，前两种方法是微软提供的： 
+A、选择VC菜单Project->Settings->Link->Catagory选择Input，再在Ignore libraries 的Edit栏中填入你需要忽略的库，如：Nafxcwd.lib;Libcmtd.lib。然后在Object/library Modules的Edit栏中填入正确的库的顺序，这里需要你能确定什么是正确的顺序，呵呵，God bless you！ 
+B、选择VC菜单Project->Settings->Link页，然后在Project Options的Edit栏中输入/verbose:lib，这样就可以在编译链接程序过程中在输出窗口看到链接的顺序了。 
+C、选择VC菜单Project->Settings->C/C++页，Catagory选择Code Generation后再在User Runtime libraray中选择MultiThread DLL等其他库，逐一尝试。 
+关于编译器的相关处理过程，参考： 
+http://www.donews.net/xzwenlan/archive/2004/12/23/211668.aspx 
+
+这就是我所遇到过的LNK2005错误的几种情况，肯定还有其他的情况也可能造成这种错误，所以我不希望你在看完这篇文章以后，再遇到LNK2005错误时候，不动脑筋的想对号入座的排除错误。编程的过程就是一个思考的过程，所以还是多多开动你的头脑，那样收获会更多！   
+ 
+    －－－－－－－－－
+ 
+解决方案
+ 
+< type=text/java>loadTOCNode(1, 'resolution'); 
+该问题有两种解决方法。第一种方法是强制链接器按照正确的顺序链接库。第二种方法是由您亲自查找导致问题的模块并纠正它。
+
+注意：下列步骤基于 Visual C++ 6.0 进行。
+ 
+解决方案一：强制链接器按照正确的顺序链接库 < type=text/java>loadTOCNode(2, 'resolution');
+ 
+
+
+
+1.
+ 
+在“项目”菜单上，单击“设置”。
+
+ 
+
+2.
+ 
+在“项目设置”对话框的“以下项目的设置”视图中，单击以选中出现链接错误的项目配置。
+
+ 
+
+3.
+ 
+在“链接”选项卡上，单击以选中“类别”组合框中的“输入”。
+
+ 
+
+4.
+ 
+在“忽略库”框中，插入库名（例如，Nafxcwd.lib;Libcmtd.lib）。
+
+注意：等效的链接器命令行是：/NOD:<library name>。
+
+ 
+
+5.
+ 
+在“对象/库模块”框中，插入库名。必须确保这些库按顺序列出，而且是行中的前两个库（例如，Nafxcwd.lib 和 Libcmtd.lib）。
+
+ 
+要在 Visual C++ .NET 中设置该选项，请阅读“设置 Visual C++ 项目属性”联机帮助主题。
+ 
+
+解决方案二：找到并纠正出现问题的模块
+ 
+< type=text/java>loadTOCNode(2, 'resolution'); 要查看当前的库链接顺序，请按照下列步骤操作：
+ 
+
+
+
+1.
+ 
+在“项目”菜单上，单击“设置”。
+
+ 
+
+2.
+ 
+在“项目设置”对话框的“以下项目的设置”视图中，单击以选中出现链接错误的项目配置。
+
+ 
+
+3.
+ 
+在“链接”选项卡上的“项目选项”框中键入 /verbose:lib。
+
+ 
+
+4.
+ 
+重新生成项目。在链接过程中，这些库将在输出窗口中列出。
+
+ 
+
+－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+ 
+LNK2001错误： 有篇实力介绍http://blog.sina.com.cn/s/blog_56f098eb0100099m.html
+ 
+
+
+
+
+以上出现的错误是VC的BUG即是固有的错误，时有发生。解决如下：
+如果下面的不成 请自行上摆渡搜索相关知识，内容丰富，屡试不爽。
+error LNK2001: unresolved external symbol _main解决办法
+解决外部符号错误:_main,_WinMain@16,__beginthreadex ) 
+在创建MFC项目时, 不使用MFC AppWizard向导, 如果没有设置好项目参数,就会在编译时产生很多连接错误, 如error LNK2001错误, 典型的错误提示有:  
+libcmtd.lib(crt0.obj) : error LNK2001: unresolved external symbol _main  
+LIBCD.lib(wincrt0.obj) : error LNK2001: unresolved external symbol _WinMain@16  
+msvcrtd.lib(crtexew.obj) : error LNK2001: unresolved external symbol _WinMain@16  
+nafxcwd.lib(thrdcore.obj) : error LNK2001: unresolved external symbol __beginthreadex  
+nafxcwd.lib(thrdcore.obj) : error LNK2001: unresolved external symbol __endthreadex n  
+
+1. Windows子系统设置错误, 提示:  
+libcmtd.lib(crt0.obj) : error LNK2001: unresolved external symbol _main  
+Windows项目要使用Windows子系统, 而不是Console, 可以这样设置: 
+[Project] --> [Settings] --> 选择"Link"属性页, 
+在Project Options中将/subsystem:console改成/subsystem:windows   
+2. Console子系统设置错误, 提示: 
+LIBCD.lib(wincrt0.obj) : error LNK2001: unresolved external symbol _WinMain@16 
+控制台项目要使用Console子系统, 而不是Windows, 设置:  
+[Project] --> [Settings] --> 选择"Link"属性页,  
+在Project Options中将/subsystem:windows改成/subsystem:console  
+3. 程序入口设置错误, 提示:  
+msvcrtd.lib(crtexew.obj) : error LNK2001: unresolved external symbol _WinMain@16 
+通常, MFC项目的程序入口函数是WinMain, 如果编译项目的Unicode版本, 程序入口必须改为wWinMainCRTStartup, 所以需要重新设置程序入口: 
+[Project] --> [Settings] --> 选择"Link"属性页, 
+在Category中选择Output, 
+再在Entry-point symbol中填入wWinMainCRTStartup, 即可 
+4. 线程运行时库设置错误, 提示: @: kAF n 
+nafxcwd.lib(thrdcore.obj) : error LNK2001: unresolved external symbol __beginthreadex 
+nafxcwd.lib(thrdcore.obj) : error LNK2001: unresolved external symbol __endthreadex
+这是因为MFC要使用多线程时库, 需要更改设置: 
+[Project] --> [Settings] --> 选择"C/C++"属性页, ')
+在Category中选择Code Generation, 
+再在Use run-time library中选择Debug Multithreaded或者multithreaded 
+咸鱼游侠(75374355) 12:11:11 
+其中, 
+Single-Threaded                    单线程静态链接库(release版本) 
+Multithreaded                   多线程静态链接库(release版本) 
+multithreaded DLL                多线程动态链接库(release版本)  
+Debug Single-Threaded              单线程静态链接库(debug版本) 
+Debug Multithreaded             多线程静态链接库(debug版本) 
+Debug Multithreaded DLL          多线程动态链接库(debug版本) 
+
+单线程: 不需要多线程调用时, 多用在DOS环境下
+多线程: 可以并发运行 
+静态库: 直接将库与程序Link, 可以脱离MFC库运行 
+动态库: 需要相应的DLL动态库, 程序才能运行
+release版本: 正式发布时使用 
+debug版本: 调试阶段使用
+ 
+
+vc中编译、运行程序的小知识点
+1、run-time library
+run-time library是编译器提供的标准库，提供一些基本的库函数和系统调用。
+我们一般使用的run-time library是c run-time libraries。当然也有standard c++ libraries。 
+c run-time libraries实现ansi c的标准库。vc安装目录的crt目录有c run-time库的大部分源代码。 
+c run-time libraries有静态库版本，l?)h%we教xp也有动态链接库版本；有单线程版本，也有多线程版本；还有调试和非调试版本。
+可以在"project"-"settings"-"c/c++"-"code generation"中选择run-time library的版本。
+
+动态链接库版本：
+/md multithreaded dll 使用导入库msvcrt.lib
+/mdd debug multithreaded dll 使用导入库msvcrtd.lib
+
+静态库版本：
+/ml single-threaded 使用静态库libc.lib 
+/mld debug single-threaded 使用静态库libcd.lib
+/mt multithreaded 使用静态库libcmt.lib
+/mtd debug multithreaded 使用静态库libcmtd.lib
+
+c run-time library的标准io部分与操作系统的关系很密切， 
+
+vtf无育网软im-hjb教2|x
+
+e软v8,|*`:ycs在windows上，crt的io部分代码只是一个包装，底层要用到操作系统内核kernel32.dll中的函数，在编译时使用导入库kernel32.lib。这也就是为什么在嵌入式环境中，我们一般不能直接使用c标准库。
+在linux环境当然也有c标准库，例如：
+ld -o output /lib/crt0.o hello.o -lc
+参数"-lc"就是在引用c标准库libc.a。猜一猜"-lm"引用哪个库文件？ 
+
+2、常见的编译参数
+vc建立项目时总会定义"win32"。控制台程序会定义"_console"，否则会定义"_windows"。debug版定义"_debug"，release版定义"ndebug" 
+
+与mfc dll有关的编译常数包括：
+_windll 表示要做一个用到mfc的dll
+_usrdll 表示做一个用户dll（相对mfc扩展dll而言） 
+_afxdll 表示使用mfc动态链接库
+_afxext 表示要做一个mfc扩展dll
+所以：
+regular, statically linked to mfc _windll,_usrdll 
+regular, using the shared mfc dll _windll,_usrdll,_afxdll
+extension dll _windll,_afxdll,_afxext
+
+cl.exe编译所有源文件， 
+
+jv#gxh{网%njt*提b6o%理mkf管link.exe链接exe和dll，lib.exe产生静态库。 
+
+3、subsystem和可执行文件的启动
+link的时候需要指定/subsystem，这个链接选项告诉windows如何运行可执行文件。
+控制台程序是/subsystem:"console"
+其它程序一般都是/subsystem:"windows " 
+
+将 subsystem 选成"console"后，windows在进入可执行文件的代码前（如maincrtstartup），就会产生一个控制台窗口。
+如果选择"windows"，操作系统就不产生console窗口,该类型应用程序的窗口由用户自己创建。
+
+可执行文件都有一个entry point，link时可以用/entry指定。缺省情况下，如果subsystem是“console”，entry point是 maincrtstartup(ansi)或wmaincrtstartuup(unicode)，即：
+/subsystem:"console" /entry:"maincrtstartup" (ansi)
+/subsystem:"console" /entry:"wmaincrtstartuup" (unicode)
+maincrtstartup 或 wmaincrtstartuup 会调用main或wmain。
+值得一提的是，在进入应用程序的entry point前，windows的装载器已经做过c变量的初始化，o8x"*+wq1u有初值的全局变量拥有了它们的初值，没有初值的变量被设为0。
+
+如果subsystem是“windows”，entry point是winmain(ansi)或wwinmain(uincode)，即：
+/subsystem:"windows" /entry:"winmaincrtstartup" (ansi)
+/sbusystem:"windows" /entry:"wwinmaincrtstartup" (uincode)
+winmaincrtstartup 或 wwinmaincrtstartup 会调用 winmain 或 wwinmain。
+
+如果使用mfc框架，winmain也会被埋藏在mfc库中（appmodul.cpp）：
+extern "c" int winapi
+_twinmain(hinstance hinstance, hinstance hprevinstance,
+lptstr lpcmdline, int ncmdshow)
+{
+// call shared/exported winmain
+return afxwinmain(hinstance, hprevinstance, lpcmdline, ncmdshow);
+}
+"_t"是一个宏， 
+
+g+za)?h{vx.x_i网@
+
+v,1+垠y络mvv网crky供3qm对于ansi版本，"_twinmain"就是"winmain"；对于uincode版本，"_twinmain"就是"wwinmain"。 
+
+全局c++对象的构造函数是在什么地方调用的？答案是在进入应用程序的entry point后，在调用main函数前的初始化操作中。所以mfc的theapp的构造函数是在_twinmain之前调用的。
+
+4、不显示console窗口的console程序
+在默认情况下/subsystem 和/entry开关是匹配的,也就是：
+"console"对应"maincrtstartup"或者"wmaincrtstartup"
+"windows"对应"winmain"或者"wwinmain"
+我们可以通过手动修改的方法使他们不匹配。例如： 
+
+＃i nclude "windows.h"
+#pragma comment( linker, "/subsystem:/"windows/" /entry:/"maincrtstartup/"" ) // 设置入口地址 
+void main(void)
+{
+messagebox(null, "hello", "notice", mb_ok);
+}
+
+这个console程序就不会显示console窗口。如果选/mld的话，这个程序只需要链接libcd.lib user32.lib kernel32.lib。
+
+ 
+
+•上一篇：Directx报错02
+•下一篇：DirectX版本介绍
+ 
+
+
+查看评论
+ 
+
+
+
+* 以上用户言论只代表其个人观点，不

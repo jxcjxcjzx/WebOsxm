@@ -1,0 +1,26 @@
+import java.io.File;
+public class FileManager {
+ public static void main(String[] args) {
+  //获取根目录（window下是个个盘符）
+  File[] roots =File.listRoots();
+  for(File file : roots){
+   System.out.println(file.getAbsolutePath());
+  }
+  //.标识当前路径
+  String fileName =".";//或者"  fileName = "d:a.txt"    "
+  File currentFile =new File(fileName); 
+  //判断是目录还是文件
+  if(currentFile.isDirectory()){//文件夹
+   //获取文件下的所有文件或文件夹
+   File[] files = currentFile.listFiles();
+   for(File file : files){
+    System.out.println("文件："+file.getName());
+   }
+  }else{//文件
+   System.out.println("文件名："+currentFile.getName());
+   System.out.println("绝对路径："+currentFile.getAbsolutePath());
+   //还可以获取更多信息，如是不是只读的，隐藏的等等等
+  }
+ }
+}
+这是简单的操作文件的例子，要做管理系统，比较麻烦的是图形显示，有问题可以继续问我

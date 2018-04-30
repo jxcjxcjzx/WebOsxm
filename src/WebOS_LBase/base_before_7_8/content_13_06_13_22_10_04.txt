@@ -1,0 +1,107 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+caoxj0507的专栏
+目录视图摘要视图订阅
+有奖征集活动系列——【HTML5游戏编程之旅】        专访贺炘：软件测试应讲究策略和方法      低价抢购开源中国论坛门票      “2013年度中国优秀开源项目征集”活动最后一天      Intel Perceptual Camera 初体验
+ JSP中的Servlet编程
+分类： web开发 2012-03-02 20:17 197人阅读 评论(0) 收藏 举报
+servletjsphttp服务器web服务服务器java
+1、什么是servlet
+Servlet使用java语言编写服务器程序，用于服务器端的互联网应用，是sun公司回应CGI编程技术而产生的恶心技术。实际上，Servlet程序是应用标准Servlet  API的java程序，这些程序可以扩展WEB服务器的功能，实现强大的WEB应用，它所采用的模式为请求----响应模式。它具有独立于平台和协议的特性,可以生成动态的Web页面。 它担当客户请求（Web浏览器或其他HTTP客户程序）与服务器响应（HTTP服务器上的数据库或应用程序）的中间层。 Servlet是位于Web 服务器内部的服务器端的Java应用程序，与传统的从命令行启动的Java应用程序不同，Servlet由Web服务器进行加载，该Web服务器必须包含支持Servlet的Java虚拟机。
+2、Servlet的生命周期
+Servlet的生命周期表示从装载Servlet到Servlet终止之间的过程，可分为三个阶段：初始阶段、响应用户请求阶段和种植阶段。具体如下图：
+
+
+1.初始阶段：包含了两个过程：装载Servlet；初始化Servlet，Server创建一个Servlet的实例 ，Server调用Servlet的init()方法，并初始化Servlet，分配资源，配置相  关的参数。通常，装载Servlet有以下几种情况：
+(1)Servlet容器启动时，根据配置自动装载Servlet。一般，根据web.xml的<load-on-startup>属性，由该属性决定装载顺序。
+(2)Servlet接收到用户的第一次请求。
+(3)由管理员决定，如果如果管理员修改了Servlet容器，容器会重新装载Servlet。并创建一个Servlet对象。并调用该Servlet对象的init()方法初始化Servlet，分配资源，配置相关参数。
+2.响应用户请求阶段：Servlet容器会根据用户请求，生成ServletRequest对象和ServletResponse对象，分别封装用户请求的信息与相应请求结果。然后，调用Servet对象的service()方法，将生成的ServletRequest对象和ServletResponse对象，传递费service()方法。在service()中获取ServletRequst对象中的用户信息，并进行处理，通过ServletResponse对象将响应发送给用户（注意：如用户的请求是基于HTTP协议的Servlet，则Servlet容器会创建HttpServletRequest对象和HttpServletResponse对象来封装用户的请求好响应请求的结果）
+3.终止阶段：当Servlet被清除时，Servlet容器会调用Servlet的destroy()方法，释放Servlet占据的资源。
+3、Servlet的开发和部署
+开发一个Servlet类，它必须是javax.servlet.GenericServlet的子类或者javax.servlet.http.HttpServlet的子类。开发Servlet的最终目的是应用Servlet，Servlet不能直接被使用，必须先通过服务器部署。
+4、Servlet中的方法
+1.ninit()方法，负责初始化Servlet对象
+2.nservice()方法，负责响应客户的请求
+3.ndestory()方法，当Servlet对象退出生命周期时，负责释放占用的资源，多线程
+4.ngetServletConfig()方法，返回ServletConfig对象，包含Servlet的初始设置参数等
+5.ngetServletInfo()方法，获取Servlet的信息，例如作者、版本、版权等。
+5、Servlet的框架
+Servlet API是一个标准的java扩展API，主要包含了两个包：javax.servlet.和javax.servlet.http。这两个包构成了Servlet的基本框架。javax.servlet包主要定义了针对开发客户自定义协议应用的类和接口。而javax.servlet.http定义了大量的与应用于http协议及相关类和接口。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+分享到： 
+上一篇：优秀网页设计的技巧
+下一篇：生产者消费者问题
+
+ 
+查看评论
+
+  暂无评论
+
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+ 
+个人资料
+  
+caoxj0507
+ 
+访问：2237次
+积分：87分
+排名：千里之外
+原创：7篇转载：0篇译文：0篇评论：0条
+文章搜索
+
+文章分类
+java(3)
+linux(0)
+操作系统(1)
+数据结构(0)
+算法(0)
+web开发(3)
+网站设计(1)
+文章存档
+2013年01月(1)
+2012年03月(1)
+2012年02月(2)
+2011年11月(3)
+阅读排行
+java中管局布局的小程序(1487)
+<canvas> 标记和 SVG 以及 VML 之间的差异(237)
+JSP中的Servlet编程(197)
+Java中的集合类(63)
+2011年Web开发者需要掌握的技能(39)
+优秀网页设计的技巧(28)
+生产者消费者问题(22)
+评论排行
+Java中的集合类(0)
+java中管局布局的小程序(0)
+2011年Web开发者需要掌握的技能(0)
+优秀网页设计的技巧(0)
+<canvas> 标记和 SVG 以及 VML 之间的差异(0)
+JSP中的Servlet编程(0)
+生产者消费者问题(0)
+推荐文章
+
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+

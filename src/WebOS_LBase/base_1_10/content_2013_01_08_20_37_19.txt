@@ -1,0 +1,303 @@
+
+新浪博客
+博客首页
+登录注册
+飘雪季，你那下雪了吗
+[博文] 发博文
+博文
+象一缕清风抚过大地的伤痕
+http://blog.sina.com.cn/jandoo [订阅][手机订阅]
+首页 博文目录 图片 关于我
+个人资料
+悲酥清风三周年勋章
+悲酥清风
+Qing 微博
+
+加好友 发纸条
+
+写留言 加关注
+
+    博客等级：
+    博客积分：290
+
+    博客访问：5,474
+    关注人气：6
+
+精彩图文
+
+    其实爱不爱没那么重要
+
+    兔纸霸气打哈欠
+
+    兔纸霸气打哈欠
+
+    新浪Qing
+    手心里精彩世界
+
+    手心里精彩世界
+
+    新浪Qing
+    前苏联选美大赛
+
+    前苏联选美大赛
+
+    新浪Qing
+    佟丽娅生活写真
+
+    佟丽娅生活写真
+
+    新浪Qing
+    活在也许之间
+
+    活在也许之间
+
+    新浪Qing
+    3D美人鱼纹身
+
+    3D美人鱼纹身
+
+    新浪Qing
+
+查看更多>>
+相关博文
+
+    杨幂红唇浓妆化身午夜尤物
+
+    时尚-八爪鱼
+
+    四大美女之一【貂蝉】的真实模样
+
+    微三国
+
+    梅西让C罗欲哭无泪！
+
+    柳号
+
+    ５种“水”喝掉脸上斑点(供参
+
+    丫丫
+
+    捷豹放弃C-X75超跑量产计
+
+    Kevin_Lee
+
+    C2B，定制化的标准生产线
+
+    刘敏华
+
+    友元函数友元类【转载】
+
+    handsomefriend
+
+    【转载】食用南瓜的六个禁忌！
+
+    善缘
+
+    光棍节经典搞笑语录
+
+    红花生
+
+    怎样去除黄褐斑&nb
+
+    大同整形宋医生
+
+    详解希腊数字的具体用法[幽默
+
+    幽默悟性w69w雅野视界
+
+更多>>
+推荐博文
+
+    重庆女子特勤队消失背后的玄机
+
+    曾颖
+
+    怎样把灾难转化为智慧与共识
+
+    袁伟时
+
+    数字与历史——写给201212
+
+    李亚童
+
+    “金”字当选日本年度汉字的背后
+
+    日本新華僑報總編蔣豐
+
+    婚宴人情没公价
+
+    查小欣
+
+    过马路的坚持
+
+    闾丘露薇
+
+    为什么政府高层热读《旧制度与大
+
+    端宏斌
+
+    占海特
+
+    牛亚皓
+
+    40亿大楼没花政府一分钱，该如
+
+    皇甫天
+
+    中国人根本没有“末日情结”
+
+    李慧翔
+
+    在马尔代夫快乐的浮潜
+
+    在马尔代夫快乐的浮潜
+
+    雪人馒头餐桌上的童趣
+
+    雪人馒头餐桌上的童趣
+
+    新加坡：色彩哈芝巷
+
+    新加坡：色彩哈芝巷
+
+    图片博客摄影外拍花絮
+
+    图片博客摄影外拍花絮
+
+    李依晓何润东复古婚纱
+
+    李依晓何润东复古婚纱
+
+    最后的亚丁
+
+    最后的亚丁
+
+查看更多>>
+谁看过这篇博文
+加载中…
+正文 字体大小：大 中 小
+c++获取进程使用内存情况
+(2009-10-19 16:31:49)
+转载▼
+标签：
+c
+内存
+杂谈
+	
+//需要引入psapi.lib
+
+#include <windows.h>
+#include <stdio.h>
+#include "psapi.h"
+
+void PrintMemoryInfo( DWORD processID )
+{
+    HANDLE hProcess;
+    PROCESS_MEMORY_COUNTERS pmc;
+
+    // Print the process identifier.
+
+    printf( "\nProcess ID: %u\n", processID );
+
+    // Print information about the memory usage of the process.
+
+    hProcess = OpenProcess(  PROCESS_QUERY_INFORMATION |
+        PROCESS_VM_READ,
+        FALSE, processID );
+    if (NULL == hProcess)
+        return;
+
+    if ( GetProcessMemoryInfo( hProcess, &pmc, sizeof(pmc)) )
+    {
+        printf( "\tPageFaultCount: %d\n", pmc.PageFaultCount );
+        printf( "\tPageFaultCount: 0x%08X\n", pmc.PageFaultCount );
+        printf( "\tPeakWorkingSetSize: 0x%08X\n",
+            pmc.PeakWorkingSetSize );
+        //输出进程占用内存情况
+        printf( "\tWorkingSetSize: 0x%08X %dk\n", pmc.WorkingSetSize ,pmc.WorkingSetSize / 1024 );
+        printf( "\tQuotaPeakPagedPoolUsage: 0x%08X\n",
+            pmc.QuotaPeakPagedPoolUsage );
+        printf( "\tQuotaPagedPoolUsage: 0x%08X\n",
+            pmc.QuotaPagedPoolUsage );
+        printf( "\tQuotaPeakNonPagedPoolUsage: 0x%08X\n",
+            pmc.QuotaPeakNonPagedPoolUsage );
+        printf( "\tQuotaNonPagedPoolUsage: 0x%08X\n",
+            pmc.QuotaNonPagedPoolUsage );
+        printf( "\tPagefileUsage: 0x%08X\n", pmc.PagefileUsage );
+        printf( "\tPeakPagefileUsage: 0x%08X\n",
+            pmc.PeakPagefileUsage );
+    }
+
+    CloseHandle( hProcess );
+}
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+    // Get the list of process identifiers.
+
+    DWORD aProcesses[1024], cbNeeded, cProcesses;
+    unsigned int i;
+
+    if ( !EnumProcesses( aProcesses, sizeof(aProcesses), &cbNeeded ) )
+        return 0;
+
+    // Calculate how many process identifiers were returned.
+
+    cProcesses = cbNeeded / sizeof(DWORD);
+
+    // Print the memory usage for each process
+
+    for ( i = 0; i < cProcesses; i++ )
+        PrintMemoryInfo( aProcesses[i] );
+}
+分享： [分享到新浪Qing] 分享到新浪Qing
+
+0
+
+喜欢
+阅读(215)┊ 评论 (0)┊	收藏(0) ┊转载(0)	┊ 喜欢▼ ┊打印┊举报
+已投稿到： 	
+[排行榜] 排行榜 [圈子] 圈子	
+前一篇：Flash插件不能播放的问题
+后一篇：由中医热所想到的
+评论 重要提示：警惕虚假中奖信息|[商讯]我有明星气势签名
+[发评论]
+
+    当第一个评论者吧！ 抢沙发>>
+
+发评论 [商讯]爱心签名换梦想，天天派奖|[商讯]提高博客人气新方法
+热门表情小新小浪中粮美好生活管不着和了不起奇童梦乐兔斯基
+更多>>
+
+    春节
+    春节快乐
+    我爸是李刚
+    千年极寒
+    路过
+    灌水
+    无语
+    无聊
+
+登录名： 密码： 找回密码 注册	记住登录状态
+
+分享到微博 [新]    评论并转载此博文 [新]
+
+验证码： 请点击后输入验证码 收听验证码	
+匿名评论
+发评论
+
+以上网友发言只代表其个人观点，不代表新浪网的观点或立场。
+< 前一篇Flash插件不能播放的问题
+后一篇 >由中医热所想到的
+  
+
+新浪BLOG意见反馈留言板　不良信息反馈　电话：4006900000 提示音后按1键（按当地市话标准计费）　欢迎批评指正
+
+新浪简介 | About Sina | 广告服务 | 联系我们 | 招聘信息 | 网站律师 | SINA English | 会员注册 | 产品答疑
+
+Copyright © 1996 - 2012 SINA Corporation, All Rights Reserved
+
+新浪公司 版权所有
+幻灯播放
+关闭
+

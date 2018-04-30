@@ -1,0 +1,233 @@
+网易 新闻 微博 邮箱 相册 阅读 有道 摄影 爱拍 优惠券 云笔记 闪电邮 手机邮 印像派 网易识字  更多   博客 手机博客 博客搬家 博客VIP服务  LiveWriter写博 word写博 邮件写博 短信写博  群博客 博客油菜地 博客话题 博客热点 博客圈子 找朋友 发现小组风格   网易真人搭配社区iStyle
+下载最文艺的手机博客APP>
+下载最文艺的手机博客APP>.创建博客 登录    加关注..   显示下一条  |  关闭 温馨提示！由于新浪微博认证机制调整，您的新浪微博帐号绑定已过期，请重新绑定！立即重新绑定新浪微博》  |  关闭 
+Peigen Lee
+我住长江头，君住长江尾，日日思君不见君，共饮长江水
+
+导航
+首页 日志 相册 音乐 收藏 博友 关于我 .  
+   
+日志   peigen 
+在向梦想靠近
+   加博友    关注他 
+ 他的网易微博
+被推荐日志
+最新日志
+玩家恶搞视频：当PSP上加入我的新家peigen.info或lipei回袁老师的话搞定Dalgen在linux下执行 解决ubuntu的ssh慢的方法checkgmail的bug该作者的其他文章
+博主推荐
+相关日志
+随机阅读
+如何做一个讨厌的女人佛家的用人故事男人接受不了什么样的女人？魏震：8月13-17日黄金外汇喊单盈利240点理性看待传统文化开发1979北京机场vs.2012爱登堡机场：有的人就是少见多怪首页推荐
+敢打中央媒体记者的单位蔡澜：香港最懂鸡的老板血脖肉的危害远比腰子小女皇江青提拔帅哥当部长金枪鱼被人类吃灭绝(图)揭壮阳药让你不泄的真相更多>>
+
+
+  基于Xfire自带示例的安全校验   使用Apache-commons-email发送邮件.
+用 apache commons-email 轻松发送无乱码邮件  2007-12-20 09:30:25|  分类： apache组件 |  标签： |字号大中小 订阅 .
+
+原来项目中都是自己拿到 mail.jar 和 activation.jar 两个包编写发送Email的代码，虽然不难，但也有些麻烦。
+
+现在好了，在 apache 站点有一个 jarkata/commons/email 子项目，也为我们实现了发送 Email 的功能，在 http://jakarta.apache.org/commons/email/ 把包 commons-email-1.0.jar 下来，自己要写的代码就十分少了，并且非常明了。
+
+这个包的大小只有23K，也就是9个类而已，却能让您省不少事。
+还需要mail.jar&activation.jar(google去找o(∩_∩)o...)
+
+
+commons-email是apache提供的一个开源的API，是对javamail的封装，因此在使用时要将javamail.jar加 到 class path中，主要包括SimpleEmail,MultiPartEmail,HtmlEmail,EmailAttachment四个类。
+ 
+SimpleEmail:发送简单的email,不能添加附件
+MultiPartEmail:文本邮件，可以添加多个附件
+HtmlEmail:HTML格式邮件，同时具有MultiPartEmail类所有“功能”
+EmailAttchment:附件类，可以添加本地资源，也可以指定网络上资源，在发送时自动将网络上资源下载发送。
+ 
+发送基本文本格式邮件：
+==============
+SimpleEmail email = new SimpleEmail();
+//smtp host 
+email.setHostName("mail.test.com");
+//登陆邮件服务器的用户名和密码
+email.setAuthentication("test","testpassword");
+//接收人
+email.addTo("jdoe@somewhere.org", "John Doe");
+//发送人
+email.setFrom("me@apache.org", "Me");
+//标题
+email.setSubject("Test message");
+//邮件内容
+email.setMsg("This is a simple test of commons-email");
+//发送
+email.send();
+
+发送文本格式，带附件邮件：
+==================
+//附件，可以定义多个附件对象
+EmailAttachment attachment = new EmailAttachment();
+attachment.setPath("e:\\1.pdf");
+attachment.setDisposition(EmailAttachment.ATTACHMENT);
+attachment.setDescription("Picture of John");
+//
+MultiPartEmail email = new MultiPartEmail();
+//smtp host 
+email.setHostName("mail.test.com");
+//登陆邮件服务器的用户名和密码
+email.setAuthentication("test","testpassword");
+//接收人
+email.addTo("jdoe@somewhere.org", "John Doe");
+//发送人
+email.setFrom("me@apache.org", "Me");
+//标题
+email.setSubject("Test message");
+//邮件内容
+email.setMsg("This is a simple test of commons-email");
+//添加附件
+email.attach(attachment);
+//发送
+email.send();
+ 
+发送HTML格式带附件邮件：
+=================
+//附件，可以定义多个附件对象
+EmailAttachment attachment = new EmailAttachment();
+attachment.setPath("e:\\1.pdf");
+attachment.setDisposition(EmailAttachment.ATTACHMENT);
+attachment.setDescription("Picture of John");
+//
+HtmlEmail email = new HtmlEmail ();
+//smtp host 
+email.setHostName("mail.test.com");
+//登陆邮件服务器的用户名和密码
+email.setAuthentication("test","testpassword");
+//接收人
+email.addTo("jdoe@somewhere.org", "John Doe");
+//发送人
+email.setFrom("me@apache.org", "Me");
+//标题
+email.setSubject("Test message");
+//邮件内容
+email.setHtmlMsg("This is a simple test of commons-email");
+//添加附件
+email.attach(attachment);
+//发送
+ 
+
+ 
+下面提供一个完整的程序示例：
+package zieckey
+
+import org.apache.commons.mail.*;
+
+public class SendEMail
+{
+    public static void main ( String[] arg ) throws Exception
+    {
+        SimpleEmail email = new SimpleEmail ( );
+
+
+        // smtp host
+        email.setHostName ( "smtp.163.com" );
+        // 登陆邮件服务器的用户名和密码
+        email.setAuthentication ( "zieckey", "123456" );
+        // 接收人
+        email.addTo ( "zieckey@yahoo.com.cn", "Zieckey" );
+        // 发送人
+        email.setFrom ( "zieckey@163.com", "Me" );
+        // 标题
+        email.setSubject ( "Test message" );
+        // 邮件内容
+        email.setMsg ( "This is a simple test of commons-email" );
+        // 发送
+        email.send ( );
+        
+        System.out.println ( "Send email successful!" );
+
+    }
+}
+
+commons-email 提供了 SimpleEmail、MultiPartEmail、HtmlEmail、EmailAttachment 等类，只需要您按正常思维简单的写几行代码就能发各种类型的 Email，一般我们用 JavaMail 发送 Email 会碰到中文乱码问题，主要是出现在把代码放在英文系统中执行时，处理方法是主题和内容使用 GBK 或 UTF-8 字符集。
+
+在 http://jakarta.apache.org/commons/email/userguide.html 有 commons-email 的使用示例，如果直接用第一个例子放在英文环境中发送带中文主题或内容的邮件也会出现乱码，
+
+这里对第一个例子稍做改造，可以让发出的 Email 中文不出现乱码，如下：
+
+
+1.package com.unmi;   
+2.  
+3.import org.apache.commons.mail.SimpleEmail;   
+4.  
+5.public class MailTo   
+6.{   
+7.    /**   
+8.     * @Author Unmi   
+9.     * @param args   
+10.     * @throws Exception    
+11.     */  
+12.    public static void main(String[] args) throws Exception   
+13.    {   
+14.        //发送简单邮件   
+15.        SimpleEmail email = new SimpleEmail();   
+16.           
+17.        email.setHostName("mail.2911.net");   
+18.           
+19.        //需要邮件发送服务器验证,用户名/密码   
+20.        email.setAuthentication("broodwar", "xxxxxx");   
+21.        email.addTo("fantasia@sina.com", "fantasia");   
+22.        email.setFrom("broodwar@2911.net", "Broodwar");   
+23.           
+24.        //设置主题的字符集为UTF-8   
+25.        email.setCharset("UTF-8");    
+26.        email.setSubject("测试邮件主题");   
+27.           
+28.        email.buildMimeMessage();   
+29.           
+30.        //设置内容的字符集为UTF-8,先buildMimeMessage才能设置内容文本   
+31.        email.getMimeMessage().setText("测试邮件内容","UTF-8");   
+32.        email.sendMimeMessage();   
+33.    }   
+34.}  
+
+在以后在java中发邮件就用这个 commons-email 组件就好了，如果要发送 HTML 邮件或者带附件的邮件就学着 http://jakarta.apache.org/commons/email/userguide.html 中的例子做即可，出现中文乱码，跟到源代码中想想办法自己动动脑。
+  评论这张 
+ 转发至微博 
+ 转发至微博 
+ 0人  |  分享到：         阅读(1317)| 评论(0)| 转载 (1) |举报 .
+ 
+  基于Xfire自带示例的安全校验   使用Apache-commons-email发送邮件.
+历史上的今天
+与程立2008-12-20 23:25:36 一个离开了的故事2006-12-20 13:28:31 .相关文章
+伪造任何Email地址发送邮件：DeadFake2009-10-18 22:42:00 使用FileUpload和Email组件发送带附件的邮件2009-12-09 11:26:48 使用email类，发送SMTP邮件，己测试过(转)2010-01-29 08:49:03 用Email免费发送传真2010-06-17 14:20:41 Springdoo：语音邮件工具2007-02-12 20:04:47 .最近读者
+登录后，您可以在此留下足迹。. naruto_x  hxlkq  wangyi19  biyutong  ザ高山流  esbmb  MOMO_ROS  指匠 .
+评论
+点击登录|昵称： 
+   取消 
+验证码：换一张 
+ 
+上一页 1... -1-1-1-1-1-1-1... -1下一页..     .
+ 
+ 
+ 
+ 
+ 
+ 
+   
+页脚
+公司简介 - 联系方法 - 招聘信息 - 客户服务 - 隐私政策 - 博客风格 - 手机博客 - VIP博客 - 订阅此博客 
+网易公司版权所有 ©1997-2013
+×
+信息提示
+下应用装游戏超爽超方便
+房姐究竟哪来的那么大神通
+被刑事判决书掩盖掉的黑幕
+
+姚树洁：同学当官倒台后儿女老婆都被抓
+哪些单位敢打中央媒体记者
+习近平接安倍亲笔信时的话
+公务员险被劝酒逼人格分裂
+蔡澜：香港最懂鸡的女老板
+.
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

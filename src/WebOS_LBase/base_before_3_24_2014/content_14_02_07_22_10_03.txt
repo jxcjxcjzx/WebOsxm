@@ -1,0 +1,148 @@
+java 简单的TCP程序25
+
+服务器程序如下： 
+package wangluo; 
+import java.net.*; 
+import java.io.*; 
+public class Mytcp { 
+private BufferedReader reader; 
+private ServerSocket server; 
+private Socket socket; 
+void getserver(){  //服务器端程序 
+try { 
+server=new ServerSocket(8982); 
+System.out.println("服务器套接字创建成功"); 
+while(true){ 
+    System.out.println("等待客户机的连接"); 
+    socket=server.accept(); 
+    reader=new BufferedReader(new InputStreamReader(socket.getInputStream())); 
+getClientMessage(); 
+} 
+} catch (IOException e) { 
+// TODO Auto-generated catch block 
+e.printStackTrace(); 
+} 
+} 
+
+private void getClientMessage(){ 
+try{ 
+         while(true){ 
+        System.out.println("客户机："+reader.readLine()); 
+} 
+}catch(Exception e){ 
+e.printStackTrace(); 
+} 
+try{ 
+if(reader!=null){ 
+reader.close(); 
+} 
+         if(socket!=null){ 
+socket.close(); 
+} 
+}catch(IOException e){ 
+e.printStackTrace(); 
+} 
+} 
+/** 
+* @param args 
+*/ 
+public static void main(String[] args) { 
+// TODO Auto-generated method stub 
+Mytcp tcp=new Mytcp(); 
+tcp.getserver(); 
+} 
+} 
+
+
+客户端程序如下： 
+package wangluo; 
+import java.awt.*; 
+import java.awt.event.ActionEvent; 
+import java.awt.event.ActionListener; 
+import java.io.IOException; 
+import java.io.PrintWriter; 
+import java.net.*; 
+
+import javax.swing.*; 
+public class Myclien extends JFrame{//客户端程序 
+private PrintWriter writer; 
+Socket socket; 
+private JTextArea ta=new JTextArea(); 
+private JTextField tf=new JTextField(); 
+Container cc; 
+public Myclien(String title){ 
+super(title); 
+setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
+cc=this.getContentPane(); 
+final JScrollPane scrollpane=new JScrollPane(); 
+cc.add(scrollpane,BorderLayout.CENTER); 
+scrollpane.setViewportView(ta); 
+cc.add(tf,"South"); 
+tf.addActionListener(new ActionListener(){ 
+@Override 
+public void actionPerformed(ActionEvent e) { 
+// TODO Auto-generated method stub 
+writer.println(tf.getText()); 
+ta.append(tf.getText()+'\n'); 
+tf.setText(""); 
+} 
+}); 
+} 
+private void connect(){ 
+ta.append("尝试连接\n"); 
+try { 
+socket=new Socket("127.0.0.1",8982); 
+writer=new PrintWriter(socket.getOutputStream(),true); 
+ta.append("完成连接\n"); 
+} catch (UnknownHostException e) { 
+// TODO Auto-generated catch block 
+e.printStackTrace(); 
+} catch (IOException e) { 
+// TODO Auto-generated catch block 
+e.printStackTrace(); 
+} 
+} 
+/** 
+* @param args 
+*/ 
+public static void main(String[] args) { 
+// TODO Auto-generated method stub 
+Myclien clien=new Myclien("发送数据"); 
+clien.setSize(200,200); 
+clien.setVisible(true); 
+clien.connect(); 
+} 
+} 
+
+1.从客户端输入文字能显示，应该说是连接上了，就是有几个小地方不明白： 
+比如：while(true){ 
+System.out.println("客户机："+reader.readLine()); 
+} 
+这个循环不是无限循环么？按说应该无数次的输出“客户机”一直不停才对啊，可实际它只输出一次就就停了。而且下面的if语句貌似永远轮不到它啊。 
+
+
+
+2.还有个问题，每次退出客户端程序时，控制台会显示： 
+java.net.SocketException: Connection reset 
+at java.net.SocketInputStream.read(SocketInputStream.java:168) 
+at sun.nio.cs.StreamDecoder.readBytes(StreamDecoder.java:264) 
+at sun.nio.cs.StreamDecoder.implRead(StreamDecoder.java:306) 
+at sun.nio.cs.StreamDecoder.read(StreamDecoder.java:158) 
+at java.io.InputStreamReader.read(InputStreamReader.java:167) 
+at java.io.BufferedReader.fill(BufferedReader.java:136) 
+at java.io.BufferedReader.readLine(BufferedReader.java:299) 
+at java.io.BufferedReader.readLine(BufferedReader.java:362) 
+at wangluo.Mytcp.getClientMessage(Mytcp.java:28) 
+at wangluo.Mytcp.getserver(Mytcp.java:17) 
+at wangluo.Mytcp.main(Mytcp.java:52) 
+等待客户机的连接 
+
+
+请问这又是因为什么？ 
+
+
+--------------------------------------------------------------------------------
+问题补充：看了1楼回答还是不明白： 
+1.我不退出客户端，while也没有无限循环啊，当时JFrame并没有关闭 
+
+2.第二个问题是说正常情况么？不必理会了？ 

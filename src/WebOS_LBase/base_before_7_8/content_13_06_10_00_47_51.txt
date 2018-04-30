@@ -1,0 +1,119 @@
+
+ArsTechnica
+Home
+Main Menu
+My Stories: 2
+Forums
+Subscribe
+Video
+Log In
+Search
+TECHNOLOGY LAB / INFORMATION TECHNOLOGY
+Is it a good idea to impose uniform code format for all developers?
+Herding cats and preserving egos, one standard format at a time.
+
+by Stack Exchange - June 9 2013, 1:04am
+DEVELOPMENT
+61
+ 
+Stack Exchange
+This Q&A is part of a weekly series of posts highlighting common questions encountered by technophiles and answered by users at Stack Exchange, a free, community-powered network of 100+ Q&A sites.
+Java developer Stijn Geukens is working with 10 developers, and nearly every dev has his own style. That's about to change, as the company may soon impose a standard code format upon all developers. They'll be using Eclipse to help facilitate the change. But is forcing consistency upon the team more trouble than it's worth? See the original question here.
+
+How professional
+
+ZeroOne answers (39 votes):
+
+I currently work at a place where a standard code format is enforced and the code is automatically formatted when saving the file, just like you are about to do. As a new member of the company I found that the common formatting rules gave me the feeling that "these guys know what they are doing," which was assuring. In addition to the common formatting rules, we also enforce certain rather strict compiler warning settings in Eclipse, with most set to "Error," many set to "Warning," and almost none set to "Ignore."
+
+I'd say there are two main reasons to enforce a single code format in a project.
+
+First has to do with version control: with everybody formatting the code identically, all changes in the files are guaranteed to be meaningful. No more just adding or removing a space here or there, let alone reformatting an entire file as a "side effect" of actually changing just a line or two.
+
+The second reason is that it kind of takes the programmers' egos out of the equation. With everybody formatting their code the same way, you can no longer as easily tell who has written what. The code becomes more anonymous and common property, so nobody needs to feel uneasy about changing "somebody else's" code.
+
+There are other reasons why a single code format is optimal as well. I find it comforting that I don't have to bother thinking about the code formatting, as Eclipse will do it for me automatically when I save. It's care-free, like writing documents with LaTeX: it's formatted afterwards and you don't have to worry about it while writing. I have also worked on projects where everybody has had their own styles. Then you have to think about trivial issues such as whether it's OK to modify somebody else's code in your own style, or if you should try to imitate their style instead.
+
+The only argument against common code formatting settings that I can think of in your case is that it's an ongoing project, so it will cause numerous unnecessary changes in all the files, messing up the actual file histories. In the best case scenario, you'd start enforcing the consistent format right from the beginning of a project.
+
+Related: "Is a company order to switch to a certain IDE a red flag?"
+
+Consistency
+
+Baqueta answers (6 votes):
+Yes, consistency is a good idea, for reasons others have mentioned. I just wanted to add a couple of points which haven't been used elsewhere:
+
+Oracle has published a set of conventions for Java, which are the de facto standard.
+Using these should help you avoid arguments about which style to follow. A lot of public libraries and open source projects tend to use these conventions, so when you need to look at those the formatting should be familiar. Also, the Eclipse formatter has built-in rules to match these conventions, which should also help.
+You might want to consider building a hook into your source control setup so that code gets auto-formatted before it gets into the main branch.
+You can avoid battles with particularly stubborn programmers who refuse to follow the standard. They can even use their own formatting while they work, which will get standardized later! If you end up using custom formatting settings (e.g. a lot of people ignore the "max 80 chars per line" convention) you only have to make changes in one place.
+Get everyone involved
+
+rajah9 answers (6 votes):
+
+I was on a team that used the Checkstyle plugin. Rather than use the out-of-the-box features, we formed a small committee of interested developers. We debated over what seemed missing, what seemed excessive, and hammered things out. We all learned something in the process, and strengthened those developer muscles. (Examples of our decisions: 72 characters wide is too small, but 120 was better; it's better to use _ALLCAPS for static finals; enforcing single-exit from a function is a good idea.)
+
+When we had code reviews, one of the first questions was: "Have you run it through Checkstyle?" Complying with the coding standards was largely automated, and it drew the attention away from the reviewer being picky. It was wonderfully easy to have Checkstyle highlight a method signature, right-click, and change a variable to final. It could also fix the indentations and braces so that everyone's code had a similar look and feel. Missing a Javadoc for a public function? Checkstyle will flag the function. (Removing code smell is more important than consistent formatting. This is a benefit of automated tools.)
+
+I would place automated tools like Checkstyle less as imposing the same format and more on encouraging a similar look and feel. And when you're herding cats, an automated tool can help sharpen skills and reduce code smell without bruising fragile egos.
+
+Find more answers or leave your own at the original post. See more Q&A like this at Programmers, a site for conceptual programming questions at Stack Exchange. And of course, feel free to login and ask your own.
+
+READER COMMENTS 61
+Tweet
+← OLDER STORY
+YOU MAY ALSO LIKE
+
+TOP FEATURE STORY
+
+FEATURE STORY (2 PAGES)
+Google may not like it, but facial recognition is coming soon to Glass
+Startup founder outlines facial recognition for Glass, calls device a "car for the mind."
+WATCH ARS VIDEO
+
+I was struck by lightning yesterday—and boy am I sore
+Ars technical director: "I, I, I... think we need to call 911."
+STAY IN THE KNOW WITH
+LATEST NEWS
+
+Weird Science figures out why it lost its penis
+DEPT. OF INFLATION
+
+Prenda Law’s appeal bond rises to $237,584
+
+Call connected through the NSA: Ars readers react
+E-PACK YOUR BAGS
+
+Airbus smart baggage tracks itself on plane trips
+
+This week in Android apps: Facebook Home adds a dock and Gmail gets a new UI
+
+Out with the old: the best Ultrabooks and convertibles from Computex
+
+
+ 
+SITE LINKS
+About Us
+Advertise with us
+Contact Us
+Reprints
+SUBSCRIPTIONS
+Subscribe to Ars
+MORE READING
+RSS Feeds
+Newsletters
+CONDE NAST SITES
+Reddit
+Wired
+Vanity Fair
+Style
+Details
+
+
+VIEW MOBILE SITE
+© 2013 Condé Nast. All rights reserved
+Use of this Site constitutes acceptance of our User Agreement (effective 3/21/12) and Privacy Policy (effective 3/21/12), and Ars Technica Addendum (effective 5/17/2012)
+Your California Privacy Rights
+The material on this site may not be reproduced, distributed, transmitted, cached or otherwise used, except with the prior written permission of Condé Nast.
+
+Ad Choices

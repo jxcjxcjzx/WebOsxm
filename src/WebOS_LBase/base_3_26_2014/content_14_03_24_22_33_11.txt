@@ -1,0 +1,229 @@
+wine
+编辑
+
+wine，是一款优秀的Linux系统平台下的模拟器软件，用来将Windows系统下的软件在Linux系统下稳定运行，该软件更新频繁，日臻完善，可以运行许多大型Windows系统下的软件。另外英语单词wine是葡萄酒的意思。
+目录
+
+1概述
+
+2版本
+
+3其他版本
+
+4早期发展
+
+5编译安装
+
+6下载安装
+
+Step 1 添加PPA源
+Step 2 更新软件列表
+Step 3 安装wine
+7配置
+
+8中文乱码
+
+9官方介绍
+
+10简单方法
+
+11优点和不足
+
+可以做什么
+不能做什么
+12英语含义
+
+1概述
+
+刚刚步入Linux，难免要有时利用一下Windows的程序资源，Wine提供了一个用来运行Windows程序的平台。
+Wine (Wine Is Not an Emulator)[即Wine不是一个模拟器]是一个在Linux和UNIX之上的,Windows 3.x和 Windows APIs的实现。注意，Wine不是Windows模拟器，而是运用API转换技术实做出Linux对应到Windows相对应的函数来调用DLL以运行Windows程序。Wine可以工作在绝大多数的UNIX版本下,包括Linux, FreeBSD, 和 Solaris。另外，也有适用于Mac OS X的Wine程序。Wine不需要Microsoft Windows, 因为这是一个完全由百分之百的免费代码组成的。如果有可利用的副本的话，它也可以随意地使用本地系统的DLLs。Wine的发布是完全公开源代码的，并且是免费发行的。（基于LGPL发布：GNU宽通用公共许可证）
+Wine 仍处在发展阶段，但是较新的版本可以运行一些著名软件，甚至是 Photoshop CS3!（不过linux下有优秀的gimp）
+Wine的官方站点[1]见扩展阅读部分，你可以在它的官方站点[2]下载源代码，自己配置编译，不过这个过程可是比较繁琐的！对于大多数Linux发行版来说，获取Wine的最佳途径是经由本发行版的软件仓库。对于Ubuntu，还有额外的ppa源提供最新的Wine版本。[3]
+2版本
+
+版本
+版本类型
+发布日期
+开源实现DLL
+开源实现API
+1.0
+稳定版
+2008-05-27
+266个
+45个
+1.2
+稳定版
+2010-07-16
+368个
+58个
+1.4
+稳定版
+2012-03-07
+427个
+74个
+1.6
+稳定版
+2013-07-18
+464个
+79个
+1.7
+开发版
+2013-08-02
+
+
+3其他版本
+
+Wine虽然可运行大部份视窗程序，但只能有限度地运行以DirectX所编写的游戏，亦即是很多游戏不能在其运行。
+Wine的延伸计划主要有两大产品，一个是CodeWeavers开发的CrossOver，另一个是TransGaming Technologies的Cedega。
+CrossOver Office以提供应用软件支持为主，Cedega则锁定在游戏娱乐方面。CodeWeavers和Wine计划一直保有密切的合作关系。CodeWeavers亦雇用了Alexandre Juillard以将CrossOver Office的源代码回馈给Wine。在2005年6月22日，CodeWeavers 宣布支持基于英特尔处理器的苹果电脑。
+Transgaming的Cedega则是商业软件，以Wine为基础，在Wine更换授权后停止使用Wine的源代码，虽然有Cedega提供源代码下载（经由CVS），但在不包含专利技术的情形下，功能与可用性都不高。[4]
+4早期发展
+
+Wine计划是在1993年由Bob Amstadt及Eric Youngdale发起的，最初的目的是为了使16位的视窗3.1的程序可以在Linux上运行，但现在已将目的变为使32位的视窗程序在Linux上运行。
+Wine虽然是为Linux而制，但亦能支持FreeBSD、Mac OS X（Intel版） 与Solaris-x86。
+因为Windows的DLLs是封闭源代码的，所以程序员只能由最底层的设计开始，耗费大量的时间来编写和测试，最后达至兼容。但这个过程往往会有很多困难，而且亦可能会出现很多错误。
+当Corel参加这个计划后，Wine很快便能兼容WordPerfect Office，但Corel后来停止了支持这个计划。[5]
+5编译安装
+
+如果你安装了编译所需要的软件（如 gcc flex bison fontforge ），就可以进行编译了！
+首先，访问官方网站下载最新版本的 wine，解压到一个目录
+打开终端（"Terminal"），输入以下命令：
+cd <你解压的目录> #进入目录
+./configure # 检查编译环境
+make #若上一步成功的话，即可进行编译
+make install #安装
+即可完成 Wine 的编译。
+▲注意：编译 WINE 一般需要一个小时（视机器性能而定），若你是刚刚接触 Linux 不久的人，最好不要进行编译。
+6下载安装
+
+若你使用 Debian 或者 Ubuntu 之类的发行版，只需要一个命令即可完成安装：
+sudo apt-get install wine
+请注意：由这种方法安装的Wine通常不是最新版本。要获取最新版，请由官方网站上下载安装包、添加ppa源（针对Ubuntu用户）或直接编译安装。
+若你使用的为其他发行版，请访问官方网站下载区[1]查询安装方法
+这里是Ubuntu官方Wiki给的方法
+Step 1 添加PPA源
+
+sudo add-apt-repository ppa:ubuntu-wine/ppa     
+Step 2 更新软件列表
+
+sudo apt-get update       
+Step 3 安装wine
+
+sudo apt-get install wine
+7配置
+
+运行 winecfg 即可，里面有详尽的配置。
+注意：Wine 1.1.27以上版本的 winecfg 已经是中文界面了。
+8中文乱码
+
+Wine 1.1.4 以上版本的中文支持得到了极大改善。如果您在使用较低版本的WINE或者对WINE的中文支持不满意，可以把下面文字保存为 zh.reg 文件，运行 wine regedit 导入它即可
+REGEDIT4
+[HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\FontSubstitutes]
+"Arial"="WenQuanYi Zenhei"
+"Arial CE,238"="WenQuanYi Zenhei"
+"Arial CYR,204"="WenQuanYi Zenhei"
+"Arial Greek,161"="WenQuanYi Zenhei"
+"Arial TUR,162"="WenQuanYi Zenhei"
+"Courier New"="WenQuanYi Zenhei"
+"Courier New CE,238"="WenQuanYi Zenhei"
+"Courier New CYR,204"="WenQuanYi Zenhei"
+"Courier New Greek,161"="WenQuanYi Zenhei"
+"Courier New TUR,162"="WenQuanYi Zenhei"
+"FixedSys"="WenQuanYi Zenhei"
+"Helv"="WenQuanYi Zenhei"
+"Helvetica"="WenQuanYi Zenhei"
+"MS Sans Serif"="WenQuanYi Zenhei"
+"MS Shell Dlg"="WenQuanYi Zenhei"
+"MS Shell Dlg 2"="WenQuanYi Zenhei"
+"System"="WenQuanYi Zenhei"
+"Tahoma"="WenQuanYi Zenhei"
+"Times"="WenQuanYi Zenhei"
+"Times New Roman CE,238"="WenQuanYi Zenhei"
+"Times New Roman CYR,204"="WenQuanYi Zenhei"
+"Times New Roman Greek,161"="WenQuanYi Zenhei"
+"Times New Roman TUR,162"="WenQuanYi Zenhei"
+"Tms Rmn"="WenQuanYi Zenhei"
+字体路径：~/ .wine/drive_c/windows/Fonts/ #只留一个你想要显示的中文字体在这
+9官方介绍
+
+Wine is an Open Source implementation of the Windows API on top of X, OpenGL, and Unix.
+Think of Wine as a compatibility layer for running Windows programs. Wine does not require Microsoft Windows, as it is a completely free alternative implementation of the Windows API consisting of 100% non-Microsoft code, however Wine can optionally use native Windows DLLs if they are available. Wine provides both a development toolkit for porting Windows source code to Unix as well as a program loader, allowing many unmodified Windows programs to run on x86-based Unixes, including Linux, FreeBSD, Mac OS X, and Solaris.
+More information can be read in the articles Why Wine is so important, and Debunking Wine Myths. If you are wondering how well a particular application works in Wine, please examine the Applications Database. For installation instructions and step-by-step help with running Wine, take a look at the User Guide.
+Wine is free software. The licensing terms are the GNU Lesser General Public License.
+10简单方法
+
+Wine可以在绝大多数的Unix/Linux版本下工作，但其现在仍不能完全运行所有的Windows程序。不过由于几乎每个月都有新版本，越来越多的Windows程序已经能在Wine的帮助下在Linux中运行。
+1、直接运行程序
+使用命令 wine
+[root@localhost root]#wine <程序名>
+2、使用程序管理器
+[root@localhost root]#progman
+启动管理器窗口，从菜单中选择 文件(F)－执行(X)，就会弹出一个目录浏览器，选择程序即可。
+3、直接双击 EXE 程序
+一些发行版安装WINE时会自动关联EXE程序，这样直接双击可以运行。
+某些简单程序可直接运行，而不需要安装。大部分Windows软件的安装，请由Wine打开安装包（exe文件）然后和Windows下以同样的方法安装程序即可。这样安装的程序应当会在桌面环境的程序列表中自动添加快捷方式（和Windows下的快捷方式类似），选择即可运行程序。
+举例：Wine运行国泰君安股票软件
+如果大家经常用Linux桌面（如Ubuntu），可以用以下的方法把国泰君安股票软件安装到Ubuntu系统中。
+1. 安装Wine
+sudoapt-getinstall wine
+2. 下载国泰君安股票安装软件
+3. 把当前目录更换到有国泰君安股票软件的目录
+运行以下命令：
+wine setup_dzh5_fuyi.exe
+这时象在Microsoft Windows中一样的安装界面就会出现，按提示安装。
+注意：如果这时出现乱码，可能是由于Wine中的字体替换出了问题，请参考扩展阅读中对应的提示。
+4. 运行国泰君安股票软件
+运行以下命令：
+cd ~/.wine/drive_c/DZH5/internet/
+wine Hypmain.exe
+▲注意：Wine运行某些程序，如MS Office、迅雷、QQ、某些游戏等的兼容性仍不完善。要正常使用此类软件，可以以完全的虚拟机代替（如Virtualbox、VMWare），或者在网上搜索查找已知的解决方法或针对特定软件的安装包。
+11优点和不足
+
+可以做什么
+
+本文中，我们讨论的是 Wine 在纯 Linux 上的安装，没有任何 Windows 分区。
+1. Windows可执行文件：
+Wine 完全支持 Windows可执行文件（ .exe 和 DLL）的二进制加载。
+2. DLL：
+Wine 有几百个 Windows DLL 的内部实现 -- 不过，其中没有多少是完全的实现。例如，包含有用户界面相关函数的 userd32.dll 在开放源代码的 Wine 中实现了 92%。
+3. COM：
+这是一种几乎被所有的大型 Windows应用程序所使用的 Windows 技术，它支持诸如将一个 Excel 电子数据表嵌入到 Word 文档中等功能。这一技术得到了 Wine 的很好的支持。
+4. 注册表：
+这是另一个几乎任何一个 Windows应用程序都会使用的关键技术，Wine 实现了大约 90% 的 Windows 注册表管理 API。
+5. 核心功能：
+核心系统功能也得到了特别好的支持。如前面提到的，尽管 Linux 和 Windows 之间存在区别，但是基本的层次上还有很多类似之处，因此与进程、线程、文件和消息队列相关的核心系统 API 得到了近乎完美的支持。
+6. 音频和视频：
+Wine 支持 Windows 音频和视频文件的运行（还可以使用 Windows媒体播放器）。
+7. 打印：
+也得到了支持，可以从一个在 Wine 中运行的 Windows应用程序进行打印。
+8. ODBC：
+Wine 支持那些需要通过 ODBC 访问数据库的 Windows 应用程序。
+9. 调试：
+Wine 有一个非常健壮和强大的内置调试器，除了支持标准的调试功能外，它还为调试运行于 Linux 上的 Windows 二进制程序进行了定制。它是 Wine 为其开发者提供的最重要工具之一。Wine 还有一个设计完备的追踪和记录日志的模块，可以帮助调试。我们之所以强调这一点，原因在于，尽管框架是健壮的，但是，当在 Wine 中安装和运行 Windows应用程序时有很多不确定因素，在使用开放源代码的 Wine 时迟早会停下来进行调试。
+不能做什么
+
+不幸的是，很多用户发现 Wine 难于使用。诚然，在 Linux 上使用类似于 MS Office 这样的应用程序可能是困难的；在这里我们来看一些原因，为什么确实是这样。在开始之前，我们应该指出，CodeWeavers 提供的商用 Wine （CrossOver）已经解决了大部分此类问题（参阅参考资料以获得链接）。假以时日，这些问题将可能在开放源代码的 Wine 中同样得到解决。
+1. 使用命令行（早期版本）
+与大部分 Linux 中的应用程序一样，在开发早期 Wine 必须在命令行中安装。用户必须回到命令行中来在 Wine 下运行应用程序。例如，要运行Internet Explorer，用户通常需要在 shell 中输入 wine IEXPLORE.EXE 。尽管经验丰富的用户喜欢这样做，但初学者会发现这比较困难，而且不太可能懂得起别名等快捷方式。不过，在较新的版本中用户也可以直接双击EXE文件运行（如果进行了关联）。尽管这样会给查看错误信息带来困难，但这无疑极大地方便了用户的使用。
+2. 配置
+Wine 的配置较为复杂。除了命令行，较新的版本已经有了简体中文的界面，对于初学者来说，配置简单了不少。
+3. 取消对隐藏文件的隐藏
+如果挂载 CDROM 时没有使用专门的 unhide 选项，那么安装 CD 上的隐藏文件可能会无法找到，从而导致安装失败。
+4. 额外的调整过程
+Wine 安装很少能直接使用（对它来说也就是从 tarfile 解开）。通常需要进行全面的调整；例如，一个程序的安装可能与您在配置文件中设置的 Windows 版本不相容；而修改那个版本又可能会影响一些已安装的应用程序。对很多 DLL 来说也是如此。为此，Wine 提供了一个巧妙的修复，让您可以设置特定于应用程序的属性，不过，一般的用户可能不会像我们一样满意。
+5. 额外的安装步骤
+大部分应用程序的安装过程都不是标准的。例如当我们安装 Internet Explorer 6 时，必须跳过一些步骤，比如 DCOM98 的定位与安装。对用户来说，这类事情可能是最大的障碍。
+注意，这些并不是病症，而是举例说明了是哪些种类的事情导致对一般用户来说 Wine 看起来复杂而且困难。
+更多 Wine 所不能做的
+看完 Wine 的可用性问题后，让我们来总结在尝试使用 Wine 时一些常见的技术问题。
+1. 缺少 DLL
+这可能是最常见的问题：很多安装由于缺少 DLL 而失败，这时需要熟练使用调试器来决定下一步（稍后将深入讨论调试器）。解决问题的最佳方法是由错误信息寻找到所需的DLL，并进行安装。这些都可能难倒初学者。
+2. DLL 版本问题
+一些安装程序在开始之前会检查现有的系统 DLL。Wine 解决这一问题的方法是，创建假 DLL 以满足安装程序的需要。不过，有一些安装程序会更进一步并深入检查 DLL 以获得它们的版本。这对假的 DLL 来说要求太高了，会导致安装失败。
+3. DLL 加载次序
+Wine 有对很多 Windows DLL 的实现，而且如果可用，它还可以使用原始的 Windows DLL。如果两种 DLL 都可用，在初学者看来应该选择总是使用 Windows 自己的 DLL，但实际上 Windows DLL 有时会包含不能被满足的依赖。要确定是更应该使用 Wine 的 DLL 还是应该使用本机 DLL，惟一的方法是，基于各个应用程序反复进行试验。
+4. DLL 中的函数
+当一个 Wine DLL 没有实现 Windows 中相应的 DLL 的全部功能时，应用程序可能会遭遇函数调用失败。由于 DLL 是动态加载的，可能没有办法事先知道会发生这样的事情。这是一个复杂的问题，有一些可做的工作，但最终实际来说它只是取决于应用程序的代码如何编写。
+有一些因素会减轻这些问题。一方面，您可能会一个一个地遇到这些问题，而不是一次遇到全部问题，这样处理起来要容易些。另外，您遇到的那些问题可能其他人曾遇到过并已经解决（而且解决方案已经公布出来）。Wine 用户组非常活跃，会提供许多帮助，每周一次的 Wine 时事通讯（参阅 参考资料）是极好的信息资源。
+Wine 中还没有实现的 Win32 API
+在 Wine 中，很多 Win32 API5 的函数是残缺不全的。最常见的原因是，相当多的 Win32 API 并没有被文档化。这就意味着一个特别的应用程序可能会调用某个函数，而完全没有关于此函数的可用资料。例如，我们在运行一个简单的 RPC 程序时发现了 RtlAnsiCharToUnicodeChar 这个函数。在 MSDN 上的搜索结果显示没有关于这个函数的资料，而且没有关于所有 RtlXXXX 类别函数的资料。因此，如果它们在 Wine 中的实现对一些应用程序来说至关重要，那么人们可能只有去猜测它们的行为了。

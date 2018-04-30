@@ -1,0 +1,769 @@
+
+
+首页
+开源软件
+讨论区
+
+
+
+
+
+
+代码分享
+博客
+翻译
+资讯
+移动开发
+
+
+
+
+招聘
+
+你好2,您好 我的空间
+
+
+
+
+
+
+
+ |  添加软件 | 投递新闻 | 退出
+ 
+
+开源中国 
+代码分享
+ 当前位置：代码分享 » Java » 常规Java编程 » Java语言基础 
+搜 索 
+
+
+
+
+
+
+
+
+
+微信面试题的一种解法
+
+0x0001 发布于 2013年04月12日 23时, 2评/770阅
+
+
+ 
+
+
+分享到 
+
+新浪微博腾讯微博
+
+
+收藏+4
+
+踩顶0
+ 
+
+解决此文问题的一种方法  http://www.oschina.net/code/snippet_1029931_20208
+
+
+标签：<无> 
+
+
+
+
+代码片段(1)
+
+
+[代码] 实现一个栈，满足min() pop() push()方法的时间复杂度都为O(1).( min()返回栈中最小元素)
+
+
+
+
+
+
+
+
+
+
+01
+
+import java.util.EmptyStackException;
+
+
+
+
+
+02
+
+ 
+
+
+
+
+
+03
+
+ 
+
+
+
+
+
+04
+
+//实现一个栈，满足min() pop() push()方法的时间复杂度都为O(1).( min()返回栈中最小元素)
+
+
+
+
+
+05
+
+public class MinStack {
+
+
+
+
+
+06
+
+     
+
+
+
+
+
+07
+
+    private Entry current;
+
+
+
+
+
+08
+
+     
+
+
+
+
+
+09
+
+    public MinStack() {
+
+
+
+
+
+10
+
+        current = new Entry();
+
+
+
+
+
+11
+
+        current.min = Integer.MAX_VALUE;
+
+
+
+
+
+12
+
+        current.next = current;
+
+
+
+
+
+13
+
+    }
+
+
+
+
+
+14
+
+     
+
+
+
+
+
+15
+
+    public int min() {
+
+
+
+
+
+16
+
+        if(isEmpty()) {
+
+
+
+
+
+17
+
+            throw new EmptyStackException();
+
+
+
+
+
+18
+
+        }
+
+
+
+
+
+19
+
+        return current.min;
+
+
+
+
+
+20
+
+    }
+
+
+
+
+
+21
+
+     
+
+
+
+
+
+22
+
+    public int pop() {
+
+
+
+
+
+23
+
+        if(isEmpty()) {
+
+
+
+
+
+24
+
+            throw new EmptyStackException();
+
+
+
+
+
+25
+
+        }
+
+
+
+
+
+26
+
+        int val = current.value;
+
+
+
+
+
+27
+
+        current = current.next;
+
+
+
+
+
+28
+
+        return val;
+
+
+
+
+
+29
+
+    }
+
+
+
+
+
+30
+
+     
+
+
+
+
+
+31
+
+    public void push(int val) {
+
+
+
+
+
+32
+
+        Entry e = new Entry();
+
+
+
+
+
+33
+
+        e.value = val;
+
+
+
+
+
+34
+
+        e.min = Math.min(val, current.min);
+
+
+
+
+
+35
+
+        e.next = current;
+
+
+
+
+
+36
+
+        current = e;
+
+
+
+
+
+37
+
+    }
+
+
+
+
+
+38
+
+     
+
+
+
+
+
+39
+
+    public boolean isEmpty() {
+
+
+
+
+
+40
+
+        return current == current.next;
+
+
+
+
+
+41
+
+    }
+
+
+
+
+
+42
+
+     
+
+
+
+
+
+43
+
+    static class Entry {
+
+
+
+
+
+44
+
+        int value;
+
+
+
+
+
+45
+
+        int min;
+
+
+
+
+
+46
+
+        Entry next;
+
+
+
+
+
+47
+
+    }
+
+
+
+
+
+48
+
+     
+
+
+
+
+
+49
+
+     
+
+
+
+
+
+50
+
+    public static void main(String[] args) {
+
+
+
+
+
+51
+
+        MinStack stack = new MinStack();
+
+
+
+
+
+52
+
+         
+
+
+
+
+
+53
+
+        for(int i=0;i<10;i++) {
+
+
+
+
+
+54
+
+            int random = (int)(Math.random()  * 100);
+
+
+
+
+
+55
+
+            System.out.print(random + " ==== ");
+
+
+
+
+
+56
+
+            stack.push(random);
+
+
+
+
+
+57
+
+            System.out.println(stack.min());
+
+
+
+
+
+58
+
+        }
+
+
+
+
+
+59
+
+         
+
+
+
+
+
+60
+
+        System.out.println();
+
+
+
+
+
+61
+
+        System.out.println();
+
+
+
+
+
+62
+
+        System.out.println();
+
+
+
+
+
+63
+
+         
+
+
+
+
+
+64
+
+        while(!stack.isEmpty()) {
+
+
+
+
+
+65
+
+            System.out.print(stack.pop() + " ==== ");
+
+
+
+
+
+66
+
+            System.out.println(stack.min());
+
+
+
+
+
+67
+
+        }
+
+
+
+
+
+68
+
+    }
+
+
+
+
+
+69
+
+}
+
+
+
+举报
+
+
+
+开源中国-程序员在线工具：API文档大全(120+) JS在线编辑演示 二维码更多»
+
+ 
+
+
+相关的代码(1109)
+4回/84阅[Java]java实现命令行模式下员工管理系统4小时前 By 千里山南
+0回/166阅[Java]算法导论：整数的因子分解JAVA实现9小时前 By muyimee
+6回/328阅[Java]武松打虎11小时前 By qinyu
+0回/210阅[Java]Java多态练习12小时前 By 王若飞123
+1回/209阅[Java]使用线程每隔一小时创建一个CSV文件报表昨天(16:00) By 宋建勇
+0回/132阅[Java]minbox的使用例子昨天(14:02) By JavaTear
+0回/152阅[Java]JAVA POI 简单导出excel昨天(11:49) By vinseven1991
+5回/255阅[Java]TimeFormat3天前 By 九月
+0回/227阅[Java]Cursor3天前 By 九月
+2回/343阅[Java]Java单例模式的简单实现3天前 By Glogo
+显示所有 »
+
+发表评论回到顶部网友评论(2)
+
+
+
+
+
+
+
+ 1楼：李燕京 发表于 2013-04-14 15:34 回复此评论
+
+
+ 你这个不太对吧，pop的时候，如果把最小的pop了，就需要在剩下的集合里面找最小的！ 
+
+
+
+
+
+
+
+
+
+2楼：李燕京 发表于 2013-04-14 15:39 回复此评论
+
+
+ 看错了！应该是多的额！ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+回到顶部   回到评论列表
+
+开源从代码分享开始 分享代码
+
+
+
+0x0001的其他代码微信面试题的一种解法(2评/770阅,5天前)
+使用udp广播实现简单局域网群聊(6评/604阅,4个月前)
+将文本文件编码到图片和从图片解码到文本文件(3评/292阅,8个月前)
+使用java代码将金额转换成大写(5评/555阅,10个月前)
+全部(4)...
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+© 开源中国(OsChina.NET) | 关于我们 | 广告联系 | @新浪微博 | 开源中国手机版 | 粤ICP备12009483号-3
+ 
+开源中国手机客户端：AndroidiPhoneWP7 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2条新留言，查看留言»
+
+
+
+

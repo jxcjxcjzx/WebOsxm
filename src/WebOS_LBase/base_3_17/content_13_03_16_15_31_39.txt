@@ -1,0 +1,463 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+hqin6的专栏
+
+太乙
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+博客专家信息更新登记表        专访卜茂霞：嵌入式汽车开发潜力巨大      云计算最低优惠仅剩1天 
+专访陈勇： 敏捷开发现状及发展之路        “传统商家移动化之路”会议        下载频道3月领任务~赚下载分！ 
+
+
+
+linux多线程编程学习心得 
+.
+ 分类： c/c++2010-10-26 15:081663人阅读评论(3)收藏举报
+ 
+多线程编程linuxjoinasynchronousdestructor
+
+
+
+目录(?)[+]
+
+
+
+
+
+
+
+ 
+ 
+ 
+网上有一篇《Linux下的多线程编程》介绍的比较详细，细读了一遍，颇有收获！
+ 
+linux下的多线程模型：
+ 
+可用getconf -a | grep GNU_LIBPTHREAD_VERSION查看，我的机器用的是redhat公司研发的NPTL 2.3.4。
+ 
+ 
+ 
+pthread实现的简单说明：
+ 
+pthread的实现通过系统调用clone()来实现。顺便说一下fork/vfork/clone三者的区别（底层均调用do_fork函数）：
+ 
+ 
+ 
+<!--[if !supportLists]-->1. fork：完全复制，深度拷贝，使用copy-on-write技术。父子进程同时执行，均不阻塞。“是unix内核创建一个新进程的唯一方法（不包括交换进程、init进程和页精灵进程，这些进程是由内核作为自举过程的一部分以特殊方式创建的）。”----摘自《unix高级环境编程8.3节》
+ 
+ 
+ 
+2. vfork：共享地址空间，子进程先运行，直到它调用exit或者exec后父进程才运行。
+ 
+ 
+ 
+<!--[if !supportLists]-->3. clone：定制性创建进程（或线程）。linux下的pthread就是通过系统调用clone来实现的。共享内存(CLONE_VM)、文件系统访问计数(CLONE_FS)、文件描述符表(CLONE_FILES)、信号处理方式(CLONE_SIGHAND)。
+ 
+
+
+pthread函数族
+ 
+很多函数直接man看一下就知道函数是干嘛的，有什么用，这里我只拣几个说说：
+ 
+ 
+ 
+1.pthread_exit 和pthread_join合用，取得子线程的返回码：
+ 
+
+
+
+线程中止，可以：在线程函数中return；被同一进程中的另外线程cancel掉；线程调用pthread_exit函数。
+ 
+ 
+ 
+<!--[if !supportLists]-->1.1 线程函数return：
+ 
+
+
+
+[cpp] view plaincopy
+01.A* fun(){A* a = new A(); return a;}  
+02.A* a;  
+03.pthread_join(pthread,(void**)(&a));  
+ 
+ 
+<!--[if !supportLists]-->1.2 被cancel掉：
+ 
+调用pthread_cancel，非阻塞调用，应该是向内核一级发送cancel信号。如何处理cancel信号，则由目标线程自己决定：立即终止、忽略、继续运行至cancel_point（默认方式）。
+ 
+根 据POSIX标准，pthread_join()、pthread_testcancel()、pthread_cond_wait()、 pthread_cond_timedwait()、sem_wait()、sigwait()等函数以及read()、write()等会引起阻塞的系 统调用都是Cancelation-point，而其他pthread函数都不会引起Cancelation动作。但是pthread_cancel的手 册页声称，由于LinuxThread库与C库结合得不好，因而目前C库函数都不是Cancelation-point；但CANCEL信号会使线程从阻 塞的系统调用中退出，并置EINTR错误码，因此可以在需要作为Cancelation-point的系统调用前后调用 pthread_testcancel()，从而达到POSIX标准所要求的目标，即如下代码段：
+ 
+pthread_testcancel();    retcode = read(fd, buffer, length);    pthread_testcancel();
+ 
+
+
+
+如果被cancel掉，pthread_join得到的返回值就是PTHREAD_CANCELLED(-1)
+ 
+
+
+
+
+
+
+[cpp] view plaincopy
+01.void* fun(){pthread_testcancel();}  
+02.pthread_cancel(pth);  
+03.int* p = new int;  
+04.pthread_join(pth, (void**)(p));  
+ 
+ 
+<!--[if !supportLists]-->1.3 调用pthread_exit
+ 
+
+
+
+pthread_exit((void*)10);
+ 
+
+
+
+
+
+
+<!--[if !supportLists]-->2. 线程创建时的属性设置pthread_create第二个参数
+ 
+
+
+
+pthread_attr_t：主要包括作用域、是否分离、堆栈地址、堆栈大小、优先级等。
+ 
+ 
+ 
+
+
+
+[cpp] view plaincopy
+01.typedef struct  
+02.{  
+03.       int                detachstate;   线程的分离状态  
+04.       int                schedpolicy;   线程调度策略  
+05.       struct sched_param           schedparam;  线程的调度参数  
+06.       int                inheritsched;   线程的继承性  
+07.       int                scope;       线程的作用域  
+08.       size_t                   guardsize;     线程栈末尾的警戒缓冲区大小  
+09.       int                stackaddr_set; 堆栈的地址集  
+10.       void * stackaddr;    线程栈的位置  
+11.       size_t        stacksize;    线程栈的大小  
+12.}pthread_attr_t;  
+ （见多线程编程—线程属性）
+ 
+ 
+ 
+2.1 <!--[endif]-->作用域：
+ 
+ 
+ 
+pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM|PTHREAD_SCOPE_PROCESS);
+ 
+这里准确的理解，应该是定义线程争夺资源的scope（系统级or进程级）：The  contentionscope attribute may have the values PTHREAD_SCOPE_SYSTEM, signifying system scheduling contention scope, or PTHREAD_SCOPE_PROCESS, signifying process scheduling contention scope
+ 
+ 
+ 
+2.2 是否分离：
+ 
+ 
+ 
+线程的分离状态，决定一个线程以什么样的方式终止自己。默认的非分离状态(PTHREAD _CREATE_JOINABLE)下，只有当pthread_join函数返回以后，创建线程才算终止，才能释放自己占用的系统资源，否则会造成内存的泄露。分离状态(PTHREAD_CREATE_DETACHED)下，线程运行结束，立即释放系统资源，没有被其他线程等待。
+ 
+注意：在分离状态下，线程有可能在pthread_create函数返回前就结束，并且有可能将线程号和系统资源移交给其他线程，这样，pthread_create返回得到的线程id就是错误的。可以使用线程同步机制来避免这种情况！
+ 
+ 
+ 
+2.3 堆栈地址：
+ 
+ 
+ 
+可以设置线程的堆栈在用户自己申请的堆栈地址中运行。
+ 
+ 
+ 
+<!--[if !supportLists]-->2.4 堆栈大小：
+ 
+ 
+ 
+ulimit -a可以看到stack的大小限制，在线程属性里设置堆栈大小，可以突破这个限制。相应的，还有设置警戒缓冲区大小的pthread_attr_setguardsize函数。
+ 
+ 
+ 
+<!--[if !supportLists]-->2.5 <!--[endif]-->优先级（调度参数）:
+ 
+
+
+
+系统支持的最大和最小优先权值可以用sched_get_priority_max函数和sched_get_priority_min函数分别得到。如果不是编写实时程序，不建议修改。因为，调度策略是一件非常复杂的事情，如果不正确使用会导致程序错误，从而导致死锁等问题。如：在多线程应用程序中为线程设置不同的优先级别，有可能因为共享资源而导致优先级倒置。
+ 
+ 
+ 
+<!--[if !supportLists]-->3.pthread的TSD（线程特有数据）
+ 
+ 
+ 
+线程的私有全局变量（同名不同地址）。仅在某个线程中有效，但可以跨多个函数使用。比如常见的errno就是一个TSD。pthread_key_delete用来删除一个键，这个键占用的内存将被释放，但是，它并不释放该键关联的线程数据所占用的资源，也不会触发pthread_key_create中定义的destructor函数。详见：《posix线程编程指南》
+ 
+pthread实例分析
+ 
+<!--[if !supportLists]-->1、  <!--[endif]-->内存泄露：
+ 
+ 
+ 
+源码：
+ 
+
+
+
+[cpp] view plaincopy
+01.char* url = new char[100];  
+02.int ret = pthread_create(&pt, NULL, sendurl, url);  
+03.void* sendurl(void*url)  
+04.{  
+05.           char* purl = (char*) url;  
+06.           // do something  
+07.           delete [] purl;  
+08.           return NULL;  
+09.}  
+ 
+ 
+分析：很显然，有内存泄露，既没有设置线程的分离属性，也没有使用pthread_join等待线程结束。
+ 
+ 
+ 
+解决：
+ 
+ 
+ 
+可以设置线程的分离属性：
+ 
+
+
+
+[cpp] view plaincopy
+01.pthread_t pt;  
+02.pthread_attr_t attr;  
+03.pthread_attr_init(&attr);  
+04.pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);  
+05.int ret = pthread_create(&pt, &attr, CntServer::SendUrl, url);  
+06.pthread_attr_destroy (&attr);  
+ 
+ 
+ 
+ 
+或者实现自我分离：
+ 
+在线程函数中pthread_detach(pthread_self());
+ 
+注意：The effect of multiple pthread_detach() calls on the same target thread is       unspecified.
+ 
+ 
+ 
+或者使用pthread_join等待
+ 
+pthread_join(pt, NULL);
+ 
+
+
+
+<!--[if !supportLists]-->2、  <!--[endif]-->对死循环的子线程进行停止操作
+ 
+ 
+ 
+设置线程对cancel信号的处理方式
+ 
+pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);      //允许退出线程  
+ 
+
+
+
+设置立即取消或者延迟取消
+ 
+ pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);        //设置立即取消
+ 
+pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);             //设置延迟取消
+ 
+注意，延迟取消需要设置cancel_point(可增加pthread_testcancel)
+ 
+
+
+
+使用pthread_cancel发送cancel信号
+ 
+pthread_cancel(pthread);
+ 
+ 
+ 
+分享到： 
+
+上一篇：僵尸进程的基本介绍
+下一篇：google protocol buffers介绍（c++）
+ . 
+
+
+查看评论
+ 
+2楼 markman101 2011-12-02 16:42发表[回复] 老兄
+char* url = new char[100]; 
+int ret = pthread_create(&pt, NULL, sendurl, url); 
+void* sendurl(void*url) 
+{ 
+char* purl = (char*) url; 
+// do something 
+delete [] purl; 
+return NULL; 
+} 
+
+
+分析：很显然，有内存泄露，既没有设置线程的分离属性，
+你从哪很明显看到内存泄露了，还有设置分离属性 跟这个内存泄露有联系吗？Re: 太乙 2011-12-02 21:35发表[回复] 回复markman101：呵呵，当时是进程一直在创建线程，短短几分钟就把内存耗光了。线程也会占用进程的内存空间的，可能一两个没问题，但是压力测试几千万的数量级就有问题了1楼 hhj2009 2010-10-26 15:12发表[回复] [e01]
+学习了
+多谢
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+太乙
+ 
+
+
+
+访问：11548次
+积分：241分
+排名：千里之外
+.原创：11篇
+转载：0篇
+译文：0篇
+评论：12条
+. 
+文章搜索
+
+. 
+文章分类c/c++(7)
+其他(1)
+其他(1)
+python(2)
+linux 系统(1)
+ 
+文章存档
+2011年09月(1).
+2011年08月(3).
+2011年07月(1).
+2011年01月(1).
+2010年12月(1).
+.
+.
+.
+
+展开.
+ 
+阅读排行google protocol buffers介绍（c++）(1822)
+apache 模块编写（c++）(1686)
+linux多线程编程学习心得(1663)
+python+apache的服务器搭建问题(1404)
+也谈stl的allocator(1401)
+库冲突(835)
+IEEE浮点数表示--规格化/非规格化/无穷大/NaN(593)
+apache+python中对logging模块的使用问题(512)
+从堆栈布局看gcc不同版本的优化(302)
+僵尸进程的基本介绍(295)
+ 
+评论排行python+apache的服务器搭建问题(6)
+linux多线程编程学习心得(3)
+从堆栈布局看gcc不同版本的优化(2)
+库冲突(1)
+apache+python中对logging模块的使用问题(0)
+IEEE浮点数表示--规格化/非规格化/无穷大/NaN(0)
+apache 模块编写（c++）(0)
+google protocol buffers介绍（c++）(0)
+僵尸进程的基本介绍(0)
+也谈stl的allocator(0)
+ 
+推荐文章 
+最新评论 linux多线程编程学习心得
+太乙: @markman101:呵呵，当时是进程一直在创建线程，短短几分钟就把内存耗光了。线程也会占用进程的... 
+
+linux多线程编程学习心得
+markman101: 老兄char* url = new char; int ret = pthread_create(... 
+
+python+apache的服务器搭建问题
+太乙: @brfeng:修改index.pyreq.add_handler("PythonHandler",... 
+
+python+apache的服务器搭建问题
+brfeng: 还有个问题想请教一下，这样改了后，apache会把不同的http post 定位到不同的python... 
+
+python+apache的服务器搭建问题
+太乙: @brfeng:def handler(req): data=req.read(); r... 
+
+python+apache的服务器搭建问题
+brfeng: 谢谢，这个问题解决了。还想请教个问题，我的 client post是xml格式的，能从req参数得到... 
+
+python+apache的服务器搭建问题
+太乙: @brfeng:将配置文件中的 #SetHandler mod_python 注释掉，... 
+
+python+apache的服务器搭建问题
+brfeng: 你好，我也遇到了同样的问题。本来mod_python.publisher处理html是没有问题的，像... 
+
+从堆栈布局看gcc不同版本的优化
+太乙: @gohome520:其实不算bug，这是因为程序简单，如果你在main里取下地址试试，结果就不会有... 
+
+从堆栈布局看gcc不同版本的优化
+gohome520: 有趣的问题。不过，优化前后，函数参数的顺序变了，我感觉更像是一个bug吧。 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  
+
+
+
+
+
+
+
+
+
+

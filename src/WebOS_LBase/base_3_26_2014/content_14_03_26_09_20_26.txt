@@ -1,0 +1,144 @@
+关于Android 的内存泄露及分析（转）
+
+分类： android学习 2012-08-08 15:42 1674人阅读 评论(0) 收藏 举报
+androidlistvieweclipse插件eclipse工具java
+一、 Android的内存机制
+Android的程序由Java语言编写，所以Android的内存管理与Java的内存管理相似。程序员通过new为对象分配内存，所有对象在java堆内分配空间；然而对象的释放是由垃圾回收器来完成的.
+那么GC怎么能够确认某一个对象是不是已经被废弃了呢？Java采用了有向图的原理。Java将引用关系考虑为图的有向边，有向边从引用者指向引用对象。线程对象可以作为有向图的起始顶点，该图就是从起始顶点开始的一棵树，根顶点可以到达的对象都是有效对象，GC不会回收这些对象。如果某个对象 (连通子图)与这个根顶点不可达(注意，该图为有向图)，那么我们认为这个(这些)对象不再被引用，可以被GC回收。
+
+二、Android的内存溢出
+1、内存泄露导致
+由于我们程序的失误，长期保持某些资源（如Context）的引用，造成内存泄露，资源造成得不到释放。 
+Android 中常见就是Activity 被引用没有在调用finish之后却没有释放，第二次打开activity 又重新创建，这样的内存泄露则会导致内存的溢出。
+2、占用内存较多的对象
+ 保存了多个耗用内存过大的对象（如Bitmap）或加载单个超大的图片，造成内存超出限制。
+三、常见的内存泄漏
+1.万恶的static
+  static是Java中的一个关键字，当用它来修饰成员变量时，那么该变量就属于该类，而不是该类的实例。
+    private static Activity mContext;       //省略 
+ 如何才能有效的避免这种引用的发生呢？
+    第一，应该尽量避免static成员变量引用资源耗费过多的实例，比如Context。
+    第二、Context尽量使用Application Context，因为Application的Context的生命周期比较长，引用它不会出现内存泄露的问题。
+    第三、使用WeakReference代替强引用。比如可以使用WeakReference<Context> mContextRef;
+2.线程惹的祸
+线程也是造成内存泄露的一个重要的源头。线程产生内存泄露的主要原因在于线程生命周期的不可控。我们来考虑下面一段代码。
+public class MyActivity extends Activity {     
+@Override     
+public void onCreate(Bundle savedInstanceState) {         
+  super.onCreate(savedInstanceState);         
+  setContentView(R.layout.main);         
+  new MyThread().start();     
+}       
+private class MyThread extends Thread{         
+@Override         
+  public void run() {             
+  super.run();             
+  //do somthing         
+}     
+} 
+}  
+   我们思考一个问题：假设MyThread的run函数是一个很费时的操作，当调用finish的时候Activity 会销毁掉吗？
+   事实上由于我们的线程是Activity的内部类，所以MyThread中保存了Activity的一个引用，当MyThread的run函数没有结束时，MyThread是不会被销毁的，因此它所引用的老的Activity也不会被销毁，因此就出现了内存泄露的问题。
+ 
+解决方案
+
+    第一、将线程的内部类，改为静态内部类。
+    第二、如果需要引用Acitivity，使用弱引用。
+    
+    另外在使用handler 的时候， 尤其用到循环调用的时候，在Activity 退出的时候注意移除。否则也会导致泄露
+   
+public class ThreadDemo extends Activity {  
+    private static final String TAG = "ThreadDemo";  
+    private int count = 0;  
+    private Handler mHandler =  new Handler();  
+      
+    private Runnable mRunnable = new Runnable() {  
+          
+        public void run() {  
+            //为了方便 查看，我们用Log打印出来   
+            Log.e(TAG, Thread.currentThread().getName() + " " +count);    
+            //每2秒执行一次   
+            mHandler.postDelayed(mRunnable, 2000);  
+        }   
+    };  
+    @Override  
+    public void onCreate(Bundle savedInstanceState) {  
+        super.onCreate(savedInstanceState);  
+        setContentView(R.layout.main);   
+        //通过Handler启动线程   
+        mHandler.post(mRunnable);  
+    }  
+      
+}
+//所以我们在应用退出时，要将线程销毁，我们只要在Activity中的，onDestory()方法处理一下就OK了，如下代码所示:
+@Override  
+  protected void onDestroy() {  
+    mHandler.removeCallbacks(mRunnable);  
+    super.onDestroy();  
+  } 
+ 
+
+3.Bitmap
+可以说出现OutOfMemory问题的绝大多数人，都是因为Bitmap的问题。因为Bitmap占用的内存实在是太多了，特别是分辨率大的图片，如果要显示多张那问题就更显著了。
+
+    解决方案：
+    第一、及时的销毁。
+    虽然，系统能够确认Bitmap分配的内存最终会被销毁，但是由于它占用的内存过多，所以很可能会超过java堆的限制。因此，在用完Bitmap时，要及时的recycle掉。recycle并不能确定立即就会将Bitmap释放掉，但是会给虚拟机一个暗示：“该图片可以释放了”。
+    第二、设置一定的采样率。
+    有时候，我们要显示的区域很小，没有必要将整个图片都加载出来，而只需要记载一个缩小过的图片，这时候可以设置一定的采样率，那么就可以大大减小占用的内存。如下面的代码：
+private ImageView preview;  
+BitmapFactory.Options options = new BitmapFactory.Options();  
+options.inSampleSize = 2;//图片宽高都为原来的二分之一，即图片为原来的四分之一  
+Bitmap bitmap = BitmapFactory.decodeStream(cr.openInputStream(uri), null, options);  preview.setImageBitmap(bitmap); 
+第三、巧妙的运用软引用（SoftRefrence）
+    有些时候，我们使用Bitmap后没有保留对它的引用，因此就无法调用Recycle函数。这时候巧妙的运用软引用，可以使Bitmap在内存快不足时得到有效的释放。
+  
+4.行踪诡异的Cursor
+    Cursor是Android查询数据后得到的一个管理数据集合的类，正常情况下，如果查询得到的数据量较小时不会有内存问题，而且虚拟机能够保证Cusor最终会被释放掉。
+    然而如果Cursor的数据量特表大，特别是如果里面有Blob信息时，应该保证Cursor占用的内存被及时的释放掉，而不是等待GC来处理。并且Android明显是倾向于编程者手动的将Cursor close掉
+  而且android数据库中对Cursor资源的是又限制个数的，如果不及时close掉，会导致别的地方无法获得
+    
+5.构造Adapter时，没有使用缓存的 convertView 
+  以构造ListView的BaseAdapter为例，在BaseAdapter中提高了方法：
+   public View getView(int position, View convertView, ViewGroup parent)
+  AdapterView 在使用View会有一个循环的View队列的，把不显示的View重新投入使用，所以在convertView不为空的时候，不要直接创建新的View
+
+
+小结:
+static:引用了大对象如context
+线程：切屏时Activity因为线程引用而没有如期被销毁；handler有关，Activity意外终止但线程还在
+Bitmap:要及时recycle,降低采样率
+Cursor:要及时关闭
+Adapter:没有使用缓存的convertView
+ 
+四、内存泄漏调试:
+(1).内存监测工具 DDMS --> Heap
+ 用 Heap监测应用进程使用内存情况的步骤如下：
+      1. 切换到DDMS透视图，并确认Devices视图、Heap视图都是打开的；
+      2. 正常与手机链接成功后，在DDMS的Devices视图中将会显示手机设备的序列号，以及设备中正在运行的部分进程信息；
+      3. 点击选中想要监测的进程
+      4. 点击选中Devices视图界面中最上方一排图标中的“Update Heap”图标；
+      5. 点击Heap视图中的“Cause GC”按钮；
+      6. 此时在Heap视图中就会看到当前选中的进程的内存使用量的详细情况。
+   Heap视图界面会定时刷新，在对应用的不断的操作过程中就可以看到内存使用的变化；
+  如何才能知道我们的程序是否有内存泄漏的可能性呢。这里需要注意一个值：Heap视图中部有一个Type叫做data object，即数据对象，也就是我们的程序中大量存在的类类型的对象。在data object一行中有一列是“Total Size”，其值就是当前进程中所有Java数据对象的内存总量，一般情况下，这个值的大小决定了是否会有内存泄漏。可以这样判断：
+   a) 不断的操作当前应用，同时注意观察data object的Total Size值；
+   b) 正常情况下Total Size值都会稳定在一个有限的范围内，也就是说由于程序中的的代码良好，没有造成对象不被垃圾回收的情况，所以说  虽然我们不断的操作会不断的生成很多对象，而在虚拟机不断的进行GC的过程中，这些对象都被回收了，内存占用量会会落到一个稳定的水平；
+    c) 反之如果代码中存在没有释放对象引用的情况，则data object的Total Size值在每次GC后不会有明显的回落，随着操作次数的增多Total Size的值会越来越大，
+(2)内存分析工具 MAT(Memory Analyzer Tool)
+  这里介绍一个极好的内存分析工具 -- Memory Analyzer Tool(MAT)。
+  MAT是一个Eclipse插件，同时也有单独的RCP客户端。官方下载地址、MAT介绍和详细的使用教程请参见：www.eclipse.org/mat，在此不进行说明了。另外在MAT安装后的帮助文档里也有完备的使用教程。在此仅举例说明其使用方法。我自己使用的是MAT的eclipse插件，使用插件要比RCP稍微方便一些。插件安装成功后，分析步骤（安装方法有多重，大家随便）
+ 
+   (a) 生成.hprof文件
+  
+      1. 打开eclipse并切换到DDMS
+      2. 点击选中想要分析的应用的进程，在Devices视图上方的一行图标按钮中，选中“Update Heap”。
+      3. 当内存你感觉异常的时候，按下“Dump HPROF file”按钮，这个时候会提示设置hprof文件的保存路径。
+(二) 使用MAT导入.hprof文件
+     1. 通过/ANDROID_SDK/tools目录下的hprof-conv.exe工具（使用命令同adb），输入命令hprof-conv xxx.hprof yyy.hprof，其中xxx.hprof为原始文件，yyy.hprof为转换过后的文件。
+    2. 在Eclipse中点击Windows->Open Perspective->Other->Memory Analysis perspective界面。在MAT中点击File->Open File，浏览并导入刚刚 转换而得到的.hprof文件。
+(三) 使用MAT的视图工具分析内存
+  导入.hprof文件以后，MAT会自动解析并生成报告，报告中会列出使用内存过多或者初始化的实例过多的类。
+ 点击Dominator Tree，并按Package分组，选择报告中提到的可疑实例的类，在弹出菜单中选择List objects->With incoming references。这时会列出所有可疑类，右键点击某一项，并选择Path to GC Roots -> exclude weak/soft references，会进一步筛选出跟程序相关的所有有内存泄露的类。据此，可以追踪到代码中的某一个产生泄露的类。
+   主要是看可疑类的引用是因为什么代码的引用而导致无法释放的
+  总之使用MAT分析内存查找内存泄漏的根本思路，就是找到哪个类的对象的引用没有被释放，找到没有被释放的原因，也就可以很容易定位代码中的哪些片段的逻辑有问题了。

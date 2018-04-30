@@ -1,0 +1,228 @@
+小虎那些事儿
+博客园首页博问闪存新随笔联系订阅 管理 随笔-9  文章-0  评论-6 
+Android中Context
+
+Context字面意思上下文，位于framework package的android.content.Context中，其实该类为LONG型，类似Win32中的Handle句柄，很多方法需要通过 Context才能识别调用者的实例，比如说Toast的第一个参数就是Context，一般在Activity中我们直接用this代替，代表调用者的 实例为Activity，而到了一个button的onClick(View view)等方法时，我们用this时就会报错，所以我们可能使用ActivityName.this来解决，主要原因是因为实现Context的类主要有Android特有的几个模型，Activity、Service以及BroadcastReceiver。
+
+Context提供了关于应用环境全局信息的接口。它是一个抽象类，它的执行被Android系统所提供。它允许获取以应用为特征的资源和类型。同时启动应用级的操作，如启动Activity，broadcasting和接收intents。
+
+ 
+两种类型的Context
+在android中context可以作很多操作，但是最主要的功能是加载和访问资源。在android中有两种context，一种是 application context，一种是activity context，通常我们在各种类和方法间传递的是activity context。比如一个activity的onCreate
+protected void onCreate(Bundle state) {
+super.onCreate(state);
+ 
+TextView label = new TextView(this);
+//传递context给view control
+
+label.setText("Leaks are bad");
+ 
+setContentView(label);
+}
+把activity context传递给view，意味着view拥有一个指向activity的引用，进而引用activity占有的资源：view hierachy, resource等。
+ 
+内存泄露
+这样如果context发生内存泄露的话，就会泄露很多内存。这里泄露的意思是gc没有办法回收activity的内存。
+ 
+注释：为什么GC没有办法回收相应的内存，个人感觉是因为传递Context会增加对象指针的引用计数，所以基于智能指针技术的GC无法释放相应的内存。
+ 
+当屏幕旋转的时候，系统会销毁当前的activity，保存状态信息，再创建一个新的。比如我们写了一个应用程序，它需要加载一个很大的图片，我们不希望每次旋转屏幕的时候都销毁这个图片，重新加载。实现这个要求的简单想法就是定义一个静态的Drawable，这样Activity 类创建销毁它始终保存在内存中。实现类似：
+ 
+
+public class myactivity extends Activity {
+private static Drawable sBackground;
+protected void onCreate(Bundle state) {
+super.onCreate(state);
+ 
+TextView label = new TextView(this);
+label.setText("Leaks are bad");
+ 
+if (sBackground == null) {
+sBackground = getDrawable(R.drawable.large_bitmap);
+}
+label.setBackgroundDrawable(sBackground);//drawable attached to a view
+
+setContentView(label);
+}
+}
+ 
+
+这段程序看起来很简单，但是却问题很大。当屏幕旋转的时候会有leak（即gc没法销毁activity）。我们刚才说过，屏幕旋转的时候系统会销毁当前的activity。但是当drawable和view关联后，drawable保存了view的 reference，即sBackground保存了label的引用，而label保存了activity的引用。既然drawable不能销毁，它所引用和间接引用的都不能销毁，这样系统就没有办法销毁当前的activity，于是造成了内存泄露。gc对这种类型的内存泄露是无能为力的。避免这种内存泄露的方法是避免activity中的任何对象的生命周期长过activity，避免由于对象对 activity的引用导致activity不能正常被销毁。
+ 
+为了防止内存泄露，我们应该注意以下几点：
+不要让生命周期长的对象引用activity context，即保证引用activity的对象要与activity本身生命周期是一样的
+对于生命周期长的对象，可以使用application context
+避免非静态的内部类，尽量使用静态类，避免生命周期问题，注意内部类对外部对象引用导致的生命周期变化
+application context
+我们可以使用application context。application context伴随application的一生，与activity的生命周期无关。application context可以通过Context.getApplicationContext或者Activity.getApplication方法获取。
+而制造Application context的方法在这里可以找到
+http://stackoverflow.com/questions/708012/android-how-to-declare-global-variables/708317#708317
+ 
+Java里面通常是用一个static的变量（例如singleton之类的）来同步activity之间（程序里面类之间）的状态。在android里面比较靠谱的做法是用application context来关联这些状态。
+每个activity都是context，里面包含了运行时的状态。同样application也有一个context，android会保证这个context是唯一的实例。
+做一个你自己的application context需要继承android.app.Application，然后在app的manifest里面说明这个类。android会自动帮你创建你这个类的实例，接着你用Context.getApplicationContext()方法就能在各个activity里
+面获得这个application context了。
+ class MyApp extends Application {
+
+  private String myState;
+
+  public String getState(){
+    return myState;
+  }
+  public void setState(String s){
+    myState = s;
+  }
+}
+
+class Blah extends Activity {
+
+  @Override
+  public void onCreate(Bundle b){
+    ...
+    MyApp appState = ((MyApp)getApplicationContext());
+    String state = appState.getState();
+    ...
+  }
+} 
+
+下面介绍Context的一些get方法，通过这些get方法可以获取应用环境全局信息：
+
+1.public abstract Context getApplicationContext ()
+Return the context of the single, global Application object of the current process.
+
+2.public abstract ApplicationInfo getApplicationInfo ()
+Return the full application info for this context's package.
+
+3.public abstract ContentResolver getContentResolver ()
+Return a ContentResolver instance for your application's package.
+
+4.public abstract PackageManager getPackageManager ()
+Return PackageManager instance to find global package information.
+
+5.public abstract String getPackageName ()
+Return the name of this application's package.
+
+6.public abstract Resources getResources ()
+Return a Resources instance for your application's package.
+
+7.public abstract SharedPreferences getSharedPreferences (String name, int mode)
+Retrieve and hold the contents of the preferences file 'name', returning a SharedPreferences through which you can retrieve and modify its values. Only one instance of the SharedPreferences object is returned to any callers for the same name, meaning they will see each other's edits as soon as they are made.
+
+8.public final String getString (int resId)
+Return a localized string from the application's package's default string table.
+
+9.public abstract Object getSystemService (String name)
+Return the handle to a system-level service by name. The class of the returned object varies by the requested name. Currently available names are:
+
+参考博客：http://blog.chinaunix.net/space.php?uid=17102734&do=blog&id=2830227
+
+              http://blog.csdn.net/zhangqijie001/article/details/5891682
+
+标签: Android
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+小虎那些事儿
+关注 - 0
+粉丝 - 9
++加关注
+6 0
+(请您对文章做出评价)
+« 上一篇：Android数据的四种存储方式
+» 下一篇：C++程序中调用exe可执行文件
+posted @ 2011-11-10 12:52 小虎那些事儿 阅读(36741) 评论(2) 编辑 收藏
+评论列表
+   #1楼 2013-06-20 10:45 jianlangood  
+好文，好章
+支持(0)反对(0)
+   #2楼 2013-10-28 17:01 静至  
+Context.getApplicationContext或者Activity.getApplication方法获取
+
+真是神来一句，帮我解决大问题
+支持(0)反对(0)
+刷新评论刷新页面返回顶部
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+博客园首页博问新闻闪存程序员招聘知识库
+
+最新IT新闻:
+· 听厉哥谈黑产与互联网创业：商业模式比技术重要
+· 报告称Android中国市场份额增至78.1%
+· 专业扫盲帖：传闻的“腾讯竞业协议”规定合法有效吗？
+· 印度火星探测器成功进入地球火星转移轨道
+· 微软移动操作系统为何会出现碎片化？
+» 更多新闻...
+最新知识库文章:
+· 领域驱动设计和实践
+· 编码风格不是编码规范
+· 对于现代开发来说，Javascript就是一种垃圾语言
+· 教你一眼认出英语单词的意思
+· 数学之美
+» 更多知识库文章...
+公告
+昵称：小虎那些事儿
+园龄：2年1个月
+粉丝：9
+关注：0
++加关注
+<	2011年11月	>
+日	一	二	三	四	五	六
+30	31	1	2	3	4	5
+6	7	8	9	10	11	12
+13	14	15	16	17	18	19
+20	21	22	23	24	25	26
+27	28	29	30	1	2	3
+4	5	6	7	8	9	10
+搜索
+ 
+ 
+常用链接
+我的随笔
+我的评论
+我的参与
+最新评论
+我的标签
+我的标签
+Android(3)
+Linux(3)
+ThinkDifferent(1)
+C++(1)
+IOS开发(1)
+随笔档案
+2012年8月 (1)
+2012年6月 (1)
+2011年11月 (4)
+2011年10月 (3)
+相册
+无锡物联网产业研究院
+最新评论
+1. Re:Android中Context
+Context.getApplicationContext或者Activity.getApplication方法获取
+
+真是神来一句，帮我解决大问题
+--静至
+2. Re:数据结构C语言实现—队列操作
+大侠，你这代码，都不运行，没结果。。。还要自己调试。。。。。
+--conceptcon
+3. Re:Android中Context
+好文，好章
+--jianlangood
+4. Re:Android数据的四种存储方式
+写的非常详细  不过还有一种网络存储方式  楼主没写
+--TVT
+阅读排行榜
+1. Android中Context(36741)
+2. Android数据的四种存储方式(15458)
+3. C++程序中调用exe可执行文件(2670)
+4. 数据结构C语言实现—队列操作(750)
+5. 关于Nib文件(544)
+评论排行榜
+1. Android数据的四种存储方式(3)
+2. Android中Context(2)
+3. 数据结构C语言实现—队列操作(1)
+4. Segmentation Fault(0)
+5. C语言文件操作函数大全(0)
+推荐排行榜
+1. Android中Context(6)
+2. Android数据的四种存储方式(3)
+3. C++程序中调用exe可执行文件(2)
+4. 数据结构C语言实现—队列操作(1)
+5. C语言文件操作函数大全(1)
+Copyright ©2013 小虎那些事儿

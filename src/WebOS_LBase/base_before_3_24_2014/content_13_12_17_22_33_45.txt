@@ -1,0 +1,201 @@
+VC++调用库文件(dll,lib)2011-03-16 15:35:53
+
+
+
+分类： C/C++
+
+
+1.静态库
+静态库实例：
+
+step1.在VC++6.0中new一个名称为libTest的static library工程，并新建lib.h和			 lib.cpp两个文件，lib.h和lib.cpp的源代码如下：
+
+lib.h
+
+
+
+
+#ifndef LIB_H
+#define LIB_H
+    extern "C" int add(int x,int y);//声明为C编译、连接方式的外部函数
+#endif
+
+
+
+ 
+
+
+
+lib.cpp
+
+
+
+
+
+#include "stdafx.h"
+#include "lib.h"
+int add(int x,int y)
+{
+    return x + y;
+}
+
+
+ 
+
+
+
+编译这个工程在Debug目录下就得到了一个libTest.lib文件，这个文件就是一个函数库，它提供了add的功能。将头文件和.lib文件提交给用户后，用户就可以直接使用其中的add函数了。
+
+step2:下面来看看怎么使用这个库，在libTest工程所在的工作区内new一个libCall工程。新建libCall.cpp文件，它演示了静态链接库的调用方法，其源代码如下：
+
+
+
+
+
+
+
+// libCall.cpp : Defines the entry point for the console application.
+
+#include "stdafx.h"
+#include "stdio.h"
+#include "..\lib.h"
+#pragma comment( lib, "..\\Debug\\libTest.lib" )
+
+int main(int argc, char* argv[])
+{
+    printf( "2 + 3 = %d\n", add( 2, 3 ) );
+    return 0;
+}
+
+
+
+ 
+
+
+
+
+代码中#pragma comment( lib , "..\\debug\\libTest.lib" )的意思是指本文件生成的.obj文件应与libTest.lib一起连接。
+
+如果不用#pragma comment指定，则可以直接在VC++中设置，如图2，依次选择tools、options、directories、library files菜单或选项，填入库文件路径。图2中加红圈的部分为我们添加的libTest.lib文件的路径。(此部分经测试，发现编译无法通过)
+
+
+2.动态库 非MFC DLL
+
+	 Visual C++支持三种DLL，它们分别是Non-MFC DLL（非MFC动态库）、MFC Regular DLL（MFC规则DLL）、MFC Extension DLL（MFC扩展DLL）。
+　　非MFC动态库不采用MFC类库结构，其导出函数为标准的C接口，能被非MFC或MFC编写的应用程序所调用；MFC规则DLL 包含一个继承自CWinApp的类，但其无消息循环；MFC扩展DLL采用MFC的动态链接版本创建，它只能被用MFC类库所编写的应用程序所调用。
+2.1 新建dll
+
+在VC++中new一个Win32 Dynamic-Link Library工程dllTest。注意不要选择MFCAppWizard(dll)。在建立的工程中添加lib.h及lib.cpp文件，源代码如下：
+
+	 lib.h
+
+
+
+
+#ifndef LIB_H
+#define LIB_H
+    extern "C" int __declspec(dllexport) add(int x, int y);
+#endif
+
+
+ 
+
+
+
+lib.cpp
+
+
+
+
+
+#include "lib.h"
+int add(int x, int y)
+{
+    return x + y;
+}
+
+
+ 
+
+
+
+
+
+
+2.2 动态调用dll
+
+
+建立一个与DLL工程处于同一工作区的应用工程dllCall，它调用DLL中的函数add，dllCall.cpp其源代码如下：
+
+
+
+
+
+#include "stdafx.h"
+#include "stdio.h"
+
+#include <windows.h>
+
+typedef int(*lpAddFun)(int, int);
+
+int main(int argc, char* argv[])
+{
+    HINSTANCE hDll; //DLL&#190;&#228;±ú 
+
+    lpAddFun addFun; //oˉêy&#214;&#184;&#213;&#235;
+
+    hDll = LoadLibrary("..\\Debug\\dllTest.dll");
+    if (hDll != NULL)
+    {
+        addFun = (lpAddFun)GetProcAddress(hDll, "add");
+        if (addFun != NULL)
+        {
+            int result = addFun(2, 3);
+            printf("%d\n", result);
+        }
+
+        FreeLibrary(hDll);
+    }
+    return 0;
+}
+
+
+ 
+
+
+	
+
+说明1：动态调用方式的特点是完全由编程者用 API 函数加载和卸载 DLL，程序员可以决定 DLL 文件何时加载或不加载，显式链接在运行时决定加载哪个 DLL 文件。
+
+说明2：DLL的调用过程
+
+首先，语句typedef int ( * lpAddFun)(int,int)定义了一个与add函数接受参数类型和返回值均相同的函数指针类型。随后，在main函数中定义了lpAddFun的实例addFun；
+
+　　其次，在函数main中定义了一个DLL HINSTANCE句柄实例hDll，通过Win32 Api函数LoadLibrary动态加载了DLL模块并将DLL模块句柄赋给了hDll；　　再次，在函数main中通过Win32 Api函数GetProcAddress得到了所加载DLL模块中函数add的地址并赋给了addFun。经由函数指针addFun进行了对DLL中add函数的调用；　　最后，应用工程使用完DLL后，在函数main中通过Win32 Api函数FreeLibrary释放了已经加载的DLL模块。
+
+2.3 静态调用dll
+
+
+
+
+
+#include "stdafx.h"
+ #include "stdio.h"
+ #pragma comment(lib,"dllTest.lib")
+ 
+extern "C" __declspec(dllimport) add(int x,int y); 
+int main(int argc, char* argv[])
+ {
+     int result = add(2,3); 
+    printf("%d\n",result);
+     return 0;
+ }
+ 
+
+
+说明1：静态调用方式的特点是由编译系统完成对DLL的加载和应用程序结束时 DLL 的卸载。当调用某DLL的应用程序结束时，若系统中还有其它程序使用该 DLL，则Windows对DLL的应用记录减1，直到所有使用该DLL的程序都结束时才释放它。静态调用方式简单实用，但不如动态调用方式灵活。
+
+说明2：静态调用方式的顺利进行需要完成两个动作：
+　　(1)告诉编译器与DLL相对应的.lib文件所在的路径及文件名，#pragma comment(lib,"dllTest.lib")就是起这个作用。
+　　程序员在建立一个DLL文件时，连接器会自动为其生成一个对应的.lib文件，该文件包含了DLL 导出函数的符号名及序号（并不含有实际的代码）。在应用程序里，.lib文件将作为DLL的替代文件参与编译。
+　　(2)声明导入函数，extern "C" __declspec(dllimport) add(int x,int y)语句中的__declspec(dllimport)发挥这个作用。

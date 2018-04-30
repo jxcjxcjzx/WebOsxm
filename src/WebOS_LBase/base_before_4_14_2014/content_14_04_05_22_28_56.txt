@@ -1,0 +1,685 @@
+
+ 		
+10,503,957 members (71,907 online)    
+ 
+CodeProject::Workspaces
+
+Code. Collaborate. Organize.
+
+Workspaces Home
+Discuss Workspaces
+No Limits. Try it Today.
+
+Sign in
+Email
+
+Password
+
+  
+  Forgot your password?
+Sign in using   
+ 
+ 	
+ 
+
+home
+articles
+Chapters and Sections>
+
+Search
+Latest Articles
+Latest Tips/Tricks
+Top Articles
+Beginner Articles
+Technical Blogs
+Posting/Update Guidelines
+Article Help Forum
+Article Competition
+  Submit an article or tip
+  Post your Blog
+quick answers
+  Ask a Question about this article
+ Ask a Question
+View Unanswered Questions
+View All Questions...
+C# questions
+ASP.NET questions
+VB.NET questions
+C#4.0 questions
+SQL-Server questions
+discussions
+All Message Boards...
+Application Lifecycle>
+Running a Business
+Sales / Marketing
+Collaboration / Beta Testing
+Work & Training Issues
+Design and Architecture
+ASP.NET
+JavaScript
+C / C++ / MFC>
+ATL / WTL / STL
+Managed C++/CLI
+Adobe Technologies
+C#
+Free Tools
+Objective-C
+Ruby On Rails
+Database
+Hardware & Devices>
+System Admin
+Hosting and Servers
+Java
+.NET Framework
+Android
+Mobile
+Sharepoint
+Silverlight / WPF
+Visual Basic
+Web Development
+Site Bugs / Suggestions
+features
+CodeProject.TV
+Discuss CodeProject.TV
+Component & Service Catalog
+Competitions
+News
+The Insider Newsletter
+The Daily Build Newsletter
+Newsletter archive
+Surveys
+Product Showcase
+Research Library
+CodeProject Stuff
+community
+The Insider News
+The Lounge  
+The Weird & The Wonderful
+The Soapbox
+Press Releases
+Who's Who
+Most Valuable Professionals
+Company Listings
+Non-English Language >
+General Indian Topics
+General Chinese Topics
+help
+What is 'CodeProject'?
+General FAQ
+Ask a Question
+Bugs and Suggestions
+Article Help Forum
+Site Map
+Advertise with us
+Employment Opportunities
+About Us
+	
+Search within:
+ Articles
+Videos
+Quick Answers
+Messages
+Product Catalog
+Articles » General Reading » Hardware & System » Hardware programming
+ 
+Next 
+Article
+Browse Code
+Bugs / Suggestions
+Stats
+Revisions
+Alternatives
+Comments (895)
+
+View Workspace
+
+Connect with Git
+Share
+
+Serial library for C++
+
+By Ramon de Klein, 12 Nov 2003
+ 
+	    4.92 (476 votes)
+
+1	
+2	
+3	
+4	
+5
+4.92/5 - 476 votes
+10 removed
+μ 4.83, σa 1.06 [?]
+Rate this:	 	
+Please Sign up or sign in to vote.
+Download demo project (with source) - 81.2 Kb
+Introduction
+
+Serial communications is needed in several types of applications, but the Win32 API isn't a very easy to use API to implement it. Things get even more complicated when you want to use serial communication in an MFC based program. The classes provided in the library try to make life a little easier. Its documentation is extensive, because I want to give you a good background. Serial communication is hard and good knowledge of its implementation saves you a lot of work, both now and in the future...
+
+First I'll briefly discuss why serial communications is hard. After reading that chapter you'll probably be convinced as well that you need a class, which deals with serial communication. The classes provided in the library are not the only classes, which handle the serial communication. Many other programmers wrote their own classes, but I found many of them too inefficient or they weren't robust, scalable or suitable for non-MFC programs. I tried to make these classes as efficient, reliable and robust as possible, without sacrificing ease of use too much.
+
+The library has been developed as a public domain library some time ago, but it has been used in several commercial applications. I think most bugs have been solved, but unfortunately I cannot guarantee that there are no bugs left. If you find one (or correct a bug), please inform me so I can update the library.
+
+Why is serial communication that hard?
+
+Serial communication in Win32 uses the standard ReadFile/WriteFile functions to receive and transmit data, so why should serial communication be any harder then just plain file I/O? There are several reasons, which I'll try to explain. Some problems are solved in this library, but some others cannot be solved by a library.
+
+Baudrates, parity, databits, handshaking, etc...
+
+Serial communication uses different formats to transmit data on the wire. If both endpoints doesn't use the same setting you get garbled data. Unfortunately, no class can help you with these problems. The only way to cope with this is that you understand what these settings are all about. Baudrate, parity, databits and stopbits are often quite easy to find out, because when they match with the other endpoint, you won't have any problems (if your computer is fast enough to handle the amount of data at higher baudrates).
+
+Handshaking is much more difficult, because it's more difficult to detect problems in this area. Handshaking is being used to control the amount of data that can be transmitted. If the sending machine can send data more quickly then the receiving machine can process we get more and more data in the receiver's buffer, which will overflow at a certain time. It would be nice when the receiving machine could tell the sending machine to stop sending data for a while, so it won't overflow the receiver's buffers. This process of controlling the transmission of data is called handshaking and there are basically three forms of handshaking:
+
+No handshaking, so data is always send even if the receiver cannot handle the data anymore. This can lead to data loss, when the sender is able to transmit data faster then the receiver can handle. Of course this option isn't recommended, but it can be used for situations where only a few bytes are transmitted once in a while.
+Hardware handshaking, where the RTS/CTS lines are used to indicate if data can be sent. This mode requires that both ports and the cable support hardware handshaking. Hardware handshaking is the most reliable and efficient form of handshaking available, but is hardware dependant. Make sure you have a proper cable, which is fully wired. There are a lot of wrong cables around, so make sure you use the right one.
+Software handshaking, where the XOFF/XON characters are used to throttle the data. A major drawback of this method is that these characters cannot be used for data anymore. The XOFF/XON characters are the CTRL-S/CTRL-Q characters, which cannot be used in the data stream anymore. This makes software handshaking pretty useless, when you want to send binary data. For ASCII data it's pretty useful. It's being used on the old UNIX terminals as well. Scrolling starts and stops with CTRL-S/CTRL-Q on these, so the user provides its own handshaking there (without even knowing it perhaps).
+Problems with handshaking are pretty hard to find, because it will often only fail in cases where buffers overflow. These situations are hard to reproduce so make sure that you did setup handshaking correctly and that the used cable is working correct (if you're using hardware handshaking) before you continue.
+
+The Win32 API provides more handshaking options, which aren't directly supported by this library. These types of handshaking are rarely used, so it would probably only complicate the classes. If you do need these handshaking options, then you can use the Win32 API to do that and still use the classes provided by the library.
+
+Asynchronous I/O makes things more complex
+
+File I/O is relatively fast so if the call blocks for a while, this will probably only be a few milliseconds, which is acceptable for most programs. Serial I/O is much slower, which causes unacceptable delays in your program. Another problem is that you don't know when the data arrives and often you don't even know how much data will arrive.
+
+Win32 provides asynchronous function calls (also known as overlapped operations) to circumvent these problems. Asynchronous programming is often an excellent way to increase performance, but it certainly increases complexity as well. This complexity is the reason that a lot of programs have bugs in their serial communication routines. This library solves some asynchronous I/O problems by allowing the programmer to use overlapped and non-overlapped operations mixed throughout the code, which is often quite convenient.
+
+The event driven programming model doesn't fit
+
+Things get even more complex in GUI applications, which uses the event driven model that they're used to. This programming model is a heritage of the old 16-bit days and it isn't even that bad. The basic rule is simple... All events are send using a windows message, so you need at least one window to receive the events. Most GUI applications are single-threaded (which is often the best solution to avoid a lot of complexity) and they use the following piece of code in the WinMain function to process all messages:
+
+// Start the message-pump until a WM_QUIT is received
+MSG msg;
+while (::GetMessage(&msg,0,0,0))
+{
+    ::TranslateMessage(&msg);
+    ::DispatchMessage(&msg);
+}
+Because the GetMessage function blocks until there is a message in the message queue, there's no way to wake up when a serial event occurs. Of course you can set a timer and check the ports there, but this kind of polling is bad design and certainly doesn't scale well. Unfortunately the Win32 serial communication API doesn't fit in this event driven model. It would be easier for GUI applications that the Win32 API posted a message to a window when a communication event occurred (this is exactly what the 16-bit implementation looked like).
+
+If you implement your own message-pump, you can use the MsgWaitForMultipleObjects to wait for a windows message or a windows object to become signaled. The following piece of code demonstrates how to do this (it assumes that the event handle that is being used for asynchronous events is stored in the variable hevtCommEvent):
+
+bool fQuit = false;
+while (!fQuit)
+{
+    // Wait for a communication event or windows message
+    switch (::MsgWaitForMultipleObjects(1,&hevtCommEvent,FALSE,INFINITE,QS_ALLEVENTS))
+    {
+    case WAIT_OBJECT_0:
+        {
+            // There is a serial communication event, handle it...
+            HandleSerialEvent();
+        }
+        break;
+
+    case WAIT_OBJECT_0+1:
+        {
+            // There is a windows message, handle it...
+            MSG msg;
+            while (::PeekMessage(&msg,0,0,0,PM_REMOVE))
+            {
+                // Abort on a WM_QUIT message
+                if (msg.message == WM_QUIT) { fQuit = true; break; }
+
+                // Translate and dispatch the message
+                ::TranslateMessage(&msg);
+                ::DispatchMessage(&msg);
+            }
+        }
+        break;
+
+    default:
+        {
+            // Error handling...
+        }
+        break;
+    }
+}
+This code is much more complex then the simple message pump displayed above. This isn't that bad, but there is another problem with this code, which is much more serious. The message pump is normally in one of the main modules of your program. You don't want to pollute that piece of code with serial communication from a completely different module. The handle is probably not even valid at all times, which can cause problems of its own. This solution is therefore not recommended. MFC and OWL programmers cannot implement this at all, because these frameworks already their own message pumps. You might be able to override that message pump, but it probably requires a lot of tricky code and undocumented tricks.
+
+Using serial communications in a single-threaded event-driven program is difficult as I've just explained, but you probably found that out yourself. How can we solve this problem for these types of applications? The answer is in the CSerialWnd class, which posts a message to a window (both the message and window can be specified by the programmer) whenever a serial event occurs. This makes using a serial port in GUI based applications much easier. There is also a very thin MFC wrapper class, which is called CSerialMFC but it's that thin, that it's hardly worth mentioning.
+
+This library cannot perform magic, so how can it send messages without blocking the message pump? The answer is pretty simple. It uses a separate thread, which waits on communication events. If such an event occurs, it will notify the appropriate window. This is a very common approach, which is used by a lot of other (serial) libraries. It's not the best solution (in terms of performance), but it is suitable for 99% of the GUI based communication applications. The communication thread is entirely hidden for the programmer and doesn't need to affect your architecture in any way.
+
+Which class you should use in your code
+
+The current implementation contains four different classes, which all have their own purpose. The following three classes are available.
+
+CSerial is the base serial class, which provides a wrapper around the Win32 API. It is a lot easier to use, because it combines all relevant calls in one single class. It allows the programmer to mix overlapped and non-overlapped calls, provides reasonable default settings, better readability, etc, etc.
+CSerialEx adds an additional thread to the serial class, which can be used to handle the serial events. This releases the main GUI thread from the serial burden. The main disadvantage of this class is that it introduces threading to your architecture, which might be hard for some people.
+CSerialWnd fits in the Windows event driven model. Whenever a communication event occurs a message is posted to the owner window, which can process the event.
+CSerialMFC is an MFC wrapper around CSerialWnd, which make the serial classes fit better in MFC based programs.
+If you're not using a message pump in the thread that performs the serial communication, then you should use the CSerial or CSerialEx classes. You can use blocking calls (the easiest solution) or one of the synchronization functions (i.e. WaitForMultipleObjects) to wait for communication events. This approach is also used in most Unix programs, which has a similar function as WaitForMultipleObjects called 'select'. This approach is often the best solution in non-GUI applications, such as NT services.
+
+The CSerialEx adds another thread to the serial object. This frees the main thread from blocking, when waiting for serial events. These events are received in the context of this worker thread, so the programmer needs to know the impact of multi-threading. If all processing can be done in this thread, then this is a pretty efficient solution. You need some kind of thread synchronization, when you need to communicate with the main GUI thread (i.e. for progress indication). If you need to communicate a lot with the main GUI thread, then it is probably better to use the CSerialWnd class. However, if you don't communicate a lot with the main thread, then this class can be a good alternative.
+
+GUI applications, which want to use the event-driven programming model for serial communications should use CSerialWnd. It is a little less efficient, but the performance degradation is minimal if you read the port efficiently. Because it fits perfectly in the event-driven paradigm the slight performance degradation is a minimal sacrifice. Note that you can use CSerial in GUI based applications (even MFC/WTL based), but then you might block the message pump. This is, of course, bad practice in in a commercial application (blocking the message pump hangs the application from the user's point of view for a certain time). As long as you know what the impact is of blocking the message pump, you can decide for yourself if it is acceptable in your case (could be fine for testing).
+
+MFC application should use the CSerialMFC wrapper if they want to pass CWnd pointers instead of handles. Because this wrapper is very thin you can also choose to use CSerialWnd directly.
+
+Using the serial classes in your program
+
+Using the serial classes can be divided into several parts. First you need to open the serial port, then you set the appropriate baudrate, databits, handshaking, etc... This is pretty straightforward. The tricky part is actually transmitting and receiving the data, which will probably cause the most time to implement. At last you need to close the serial port and as a bonus if you don't then the library will do it for you.
+
+Sending data
+
+Let's start with a classic example from K&R and be polite and say hello. The implementation is very straightforward and looks like this (there is no error checking here for simplicity, it is there in the actual project):
+
+#define STRICT
+#include <tchar.h>
+#include <windows.h>
+#include "Serial.h"
+
+int WINAPI _tWinMain
+          (
+           HINSTANCE /*hInst*/, 
+           HINSTANCE /*hInstPrev*/, 
+           LPTSTR    /*lptszCmdLine*/, 
+           int       /*nCmdShow*/
+          )
+{
+    CSerial serial;
+
+    // Attempt to open the serial port (COM1)
+    serial.Open(_T("COM1"));
+
+    // Setup the serial port (9600,N81) using hardware handshaking
+    serial.Setup(CSerial::EBaud9600,CSerial::EData8,CSerial::EParNone,CSerial::EStop1);
+    serial.SetupHandshaking(CSerial::EHandshakeHardware);
+
+    // The serial port is now ready and we can send/receive data. If
+    // the following call blocks, then the other side doesn't support
+    // hardware handshaking.
+    serial.Write("Hello world");
+
+    // Close the port again
+    serial.Close();
+    return 0;
+}
+Of course you need to include the serial class' header-file. Make sure that the header-files of this library are in your compiler's include path. All classes depend on the Win32 API, so make sure that you have included them as well. I try to make all of my programs ANSI and Unicode compatible, so that's why the tchar stuff is in there. So far about the header-files.
+
+The interesting part is inside the main routine. At the top we declare the serial variable, which represents exactly one COM port. Before you can use it, you need to open the port. Of course there should be some error handling in the code, but that's left as an exercise for the reader. Besides specifying the COM port, you can also specify the input and output buffer sizes. If you don't specify anything, then the default OS buffer sizes are being used (older versions of the library used 2KB as the default buffer size, but this has been changed). If you need larger buffers, then specify them yourself.
+
+Setting up the serial port is also pretty straightforward. The settings from the control panel (or Device Manager) are being used as the port's default settings. Call Setup if these settings do not apply for your application. If you prefer to use integers instead of the enumerated types then just cast the integer to the required type. So the following two initializations are equivalent:
+
+Setup(CSerial::EBaud9600,CSerial::EData8,CSerial::EParNone,CSerial::EStop1);
+  
+Setup(CSerial::EBaudrate(9600),
+      CSerial::EDataBits(8),
+      CSerial::EParity(NOPARITY),
+      CSerial::EStopBits(ONESTOPBIT));
+In the latter case, the types are not validated. So make sure that you specify the appropriate values. Once you know which type of handshaking you need, then just call SetupHandshaking with one of the appropriate handshaking.
+
+Writing data is also very easy. Just call the Write method and supply a string. The Write routine will detect how long the string is and send these bytes across the cable. If you have written Unicode applications (like this one) then you might have noticed that I didn't send a Unicode string. I think that it's pretty useless to send Unicode strings, so you need to send them as binary or convert them back to ANSI yourself. Because we are using hardware handshaking and the operation is non-overlapped, the Write method won't return until all bytes have been sent to the receiver. If there is no other side, then you might block forever at this point.
+
+Finally, the port is closed and the program exits. This program is nice to display how easy it is to open and setup the serial communication, but it's not really useful. The more interesting programs will be discussed later.
+
+Receiving data
+
+Like in real life it's easier to tell something what to do then listening to another and take appropriate actions. The same holds for serial communication. As we saw in the Hello world example writing to the port is just as straightforward as writing to a file. Receiving data is a little more difficult. Reading the data is not that hard, but knowing that there is data and how much makes it more difficult. You'll have to wait until data arrives and when you're waiting you cannot do something else. That is exactly what causes problems in single-threaded applications. There are three common approaches to solve this.
+
+The first solution is easy. Just block until some data arrives on the serial port. Just call WaitEvent without specifying the overlapped structure. This function blocks until a communication event occurs (or an optional time-out expires). Easy, but the thread is blocked and only wakes up for communication events or a time-out.
+
+The second solution is to use the synchronization objects of Win32. Whenever something happens, the appropriate event handles are signaled and you can take appropriate action to handle the event. This method is available in most modern operating systems, but the details vary. Unix systems use the select call, where Win32 applications mostly use WaitForMultipleObjects or one of the related functions. The trick is to call the WaitEvent function asynchronously by supplying an overlapped structure, which contains a handle which will be signaled when an event occurred. Using WaitForMultipleObjects you can wait until one of the handles become signaled. I think this is the most suitable for most non-GUI applications. It's definitely the most efficient option available. When you choose to use this option, you'll notice that the serial classes are only a thin layer around the Win32 API.
+
+The last solution is one which will be appreciated by most Windows GUI programmers. Whenever something happens a message is posted to the application's message queue indicating what happened. Using the standard message dispatching this message will be processed eventually. This solution fits perfect in the event-driven programming environment and is therefore useful for most GUI (both non-MFC and MFC) applications. Unfortunately, the Win32 API offers no support to accomplish this, which is the primary reasons why the serial classes were created. The old Win16 API uses the SetCommEventMask and EnableCommNotification to do exactly this, but these were dropped from the Win32 API.
+
+Block until something happens
+
+Blocking is the easiest way to wait for data and will therefore be discussed first. The CSerial class exposes a method called WaitEvent, which will block until an event has been received. You can (optionally) specify a time-out for this call (if overlapped I/O is enabled), so it won't block forever if no data arrives anymore. The WaitEvent method can wait for several events, which must be registered during setup. The following events can occur on a COM port:
+
+EEventBreak is sent whenever a break was detected on input.
+EEventCTS means that the CTS (clear to sent) signal has changed.
+EEventDSR means that the DSR (data set ready) signal has changed.
+EEventError indicates that a line-status error has occurred.
+EEventRing indicates that the ring indicator was set high. Only transitions from low to high will generate this event.
+EEventRLSD means that the RLSD (receive line signal detect) signal has changed. Note that this signal is often called CD (carrier detect).
+EEventRecv is probably one of the most important events, because it signals that data has been received on the COM-port.
+EEventRcvEv indicates that a certain character (the event character) has been received. This character can be set using the SetEventChar method.
+EEventSend indicates that the entire output buffer has been sent to the other side.
+When a serial port is opened, then the EEventBreak, EEventError and EEventRecv are being registered. If you would like to receive the other events then you have to register them using the SetMask method.
+
+Now you can use the WaitEvent method to wait for an event. You can then call GetEventType to obtain the actual event. This function will reset the event, so make sure you call it only once after each WaitEvent call. Multiple events can be received simultaneously (i.e. when the event character is being received, then (EEventRecv|EEventRcvEv) is returned. Never use the == operator to check for events, but use the & operator instead.
+
+Reading can be done using the Read method, but reading is trickier then you might think at first. You get only an event that there is some data, but not how much. It could be a single byte, but it can also be several kilobytes. There is only one way to deal with this. Just read as much as you can handle (efficiently) and process it.
+
+First make sure that the port is in EReadTimeoutNonblocking mode by issuing the following call:
+
+    // Use 'non-blocking' reads, because we don't know how many bytes
+    // will be received. This is normally the most convenient mode
+    // (and also the default mode for reading data).
+    serial.SetupReadTimeouts(CSerial::EReadTimeoutNonblocking);
+The Read method will now read as much as possible, but will never block. If you would like Read to block, then specify EReadTimeoutBlocking. Read always returns the number of bytes read, so you can determine whether you have read the entire buffer. Make sure you always read the entire buffer after receiving the EEventRecv event to avoid you lose data. A typical EEventRecv will look something like this:
+
+    // Read data, until there is nothing left
+    DWORD dwBytesRead = 0;
+    BYTE  abBuffer[100];
+    do
+    {
+        // Read data from the COM-port
+        serial.Read(abBuffer,sizeof(abBuffer),&dwBytesRead);
+        if (dwBytesRead > 0)
+        {
+            // TODO: Process the data
+        }
+    }
+    while (dwBytesRead == sizeof(abBuffer));
+The Listener sample (included in the ZIP-file) demonstrates the technique as described above. The entire sample code isn't listed in this document, because it would take too much space.
+
+Using the Win32 synchronization objects
+
+In most cases, blocking for a single event (as described above) isn't appropriate. When the application blocks, then it is completely out of your control. Suppose you have created a service which listens on multiple COM-ports and also monitors a Win32 event (used to indicate that the service should stop). In such a case, you'll need multithreading, message queues or the Win32 function for synchronization. The synchronization objects are the most efficient method to implement this, so I'll try to explain them. Before you continue reading I assume you're a bit familiar with the use of the synchronization objects and overlapped operations. If you're not, then first read the section about Synchronization in the Win32 API.
+
+The only call that blocks for a fairly long time is the WaitEvent method. In the next paragraphs, I will show you how to implement this call using the Win32 synchronization objects (all other overlapped calls work identical). A complete implementation can be found in the Overlapped project, which is quite similar to the Listener project, but it now uses overlapped I/O.
+
+First the the COM-port needs to be initialized. This works identical as in the Listener sample. Then two events are created. The first event will be used in the overlapped structure. Note that it should be a manual reset event, which is initially not signaled. The second one is an external event, which is used to stop the program. The first event will be stored inside the OVERLAPPED structure.
+
+    // Create a handle for the overlapped operations
+    HANDLE hevtOverlapped = ::CreateEvent(0,TRUE,FALSE,0);;
+
+    // Open the "STOP" handle
+    HANDLE hevtStop = ::CreateEvent(0,TRUE,FALSE,_T("Overlapped_Stop_Event"));
+
+    // Setup the overlapped structure
+    OVERLAPPED ov = {0};
+    ov.hEvent = hevtOverlapped;
+All events have been setup correctly and the overlapped structure has been initialized. We can now call the WaitEvent method in overlapped mode.
+
+    // Wait for an event
+    serial.WaitEvent(&ov);
+The overlapped I/O operation is now in progress and whenever an event occurs, that would normally unblock this call, the event handle in the overlapped structure will become signalled. It is not allowed to perform an I/O operation on this port, before it has completed, so we will wait until the event arrives or the stop event has been set.
+
+    // Setup array of handles in which we are interested
+    HANDLE ahWait[2];
+    ahWait[0] = hevtOverlapped;
+    ahWait[1] = hevtStop;
+
+    // Wait until something happens
+    switch (::WaitForMultipleObjects(2,ahWait,FALSE,INFINITE))
+    {
+    case WAIT_OBJECT_0:
+        // Serial port event occurred
+        ...
+
+    case WAIT_OBJECT_0+1:
+        // Stop event raised
+        ...
+    }
+That's all you need to do, when you want to use the serial class in overlapped I/O mode. N
+
+Using Windows messages
+
+Most Windows developers are used to receive a Windows message, whenever a certain event occurs. This fits perfectly in the Windows event-driven model, but the Win32 API doesn't provide such a mechanism for serial communication. This library includes a class called CSerialWnd, which will send a special message whenever a serial event occurs. It is pretty simple, when you are already familiar with the event-driven programming model of Windows.
+
+Instead of using the CSerial class, you must use the CSerialWnd class (which is in fact derived from CSerial). CSerialWnd works just like CSerial, but there are some tiny differences in opening the port and waiting on its events. Note that the CSerialWnd doesn't have a window itself and neither should you derive from it, when you want to use it. Just define a member variable and use that from within your window.
+
+Because CSerialWnd posts its messages to a window, it requires additional information. Therefore the Open method accepts three additional parameters, which specify the window handle, message and optional argument. The prototype looks like:
+
+    LONG Open (
+               LPCTSTR lpszDevice, 
+               HWND    hwndDest, 
+               UINT    nComMsg    = WM_NULL,
+               LPARAM  lParam     = 0, 
+               DWORD   dwInQueue  = 0, 
+               DWORD   dwOutQueue = 0
+              )
+The lpszDevice, dwInQueue and dwOutQueue are used as in CSerial. The hwndDest argument specifies the window, where the message should be sent to. The library registers a default message during startup, which can be used in most cases. Simply pass WM_NULL to use this message. The value of this message is stored in the CSerialWnd::mg_nDefaultComMsg variable, which is a static member variable of CSerialWnd. If you prefer one of your own messages, then you can use that instead. The optional lParam argument is sent as the second parameter (lParam) in each message that is being sent by CSerial. The serial library doesn't do anything with this value, so be free to use it as you like.
+
+Sending data and setting up the serial port is exactly the same as with CSerial, so I won't discuss that again anymore. The biggest difference is the way you receive the events, but that is exactly why you want to use this class anyway.
+
+If everything is fine, then you have registered all interesting events with the SetMask method. Whenever one of these events occur, the specified message will be sent to the window you have registered before. The wParam will contain the event and error-code. The lParam contains whatever you passed to CSerialWnd::Open, when you have opened the port. A typical handler for these messages looks like:
+
+LRESULT CALLBACK MyWndProc (HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
+{
+   if (nMsg == CSerialWnd::mg_nDefaultComMsg)
+   {
+       // A serial message occurred
+       const CSerialWnd::EEvent eEvent = CSerialWnd::EEvent(LOWORD(wParam));
+       const CSerialWnd::EError eError = CSerialWnd::EError(HIWORD(wParam));
+
+       switch (eEvent)
+       {
+       case CSerialWnd::EEventRecv:
+           // TODO: Read data from the port
+           break;
+
+           ...
+       }
+         
+       // Return successful
+       return 0;
+   }
+
+   // Perform other window processing
+   ...
+}
+The methods WaitEvent, GetEventType and GetError from CSerial are hidden in the CSerialWnd class, because they cannot be used anymore. All the information is passed in the window message, so it shouldn't be necessary to use them anymore.
+
+Using the library with MFC
+
+Personally, I don't like MFC, but I know many people out there use it so there is also support in this library for MFC. Instead of using CSerialWnd, you can use CSerialMFC. It works exactly the same, but it can also handle a CWnd pointer and it provides a macro, which can be used in the message map for better readability. The message map of a window, which can receive events from CSerialMFC should look like this:
+
+    BEGIN_MESSAGE_MAP(CMyClass,CWnd)
+    //{{AFX_MSG_MAP(CMyClass)
+        ...
+    //}}AFX_MSG_MAP
+    ...
+        ON_WM_SERIAL(OnSerialMsg)
+        ...
+    END_MESSAGE_MAP()
+Note that the ON_WM_SERIAL macro is placed outside the AFX_MSG_MAP block, otherwise the MFC Class Wizard becomes confused. The handler itself looks something like this:
+
+afx_msg LRESULT CMyClass::OnSerialMsg (WPARAM wParam, LPARAM lParam)
+{
+    const CSerialMFC::EEvent eEvent = CSerialMFC::EEvent(LOWORD(wParam));
+    const CSerialMFC::EError eError = CSerialMFC::EError(HIWORD(wParam));
+
+    switch (eEvent)
+    {
+    case CSerialMFC::EEventRecv:
+        // TODO: Read data from the port
+        break;
+        ...
+    }
+   
+    // Return successful
+    return 0;
+}
+A complete sample, including property sheets for setting up the COM-port, is shipped with this library. Look for the SerialTestMFC project for an example how to use this library in your MFC programs.
+
+Integrating this library into your code.
+
+This library is very lightweight, so it can easily be integrated into your application without using a separate DLL. I used a static library for the CSerial (and derived) classes, because I think that is exactly where a library is meant for. Just insert the Serial project into your workspace and make a dependency to it. The linker will then automatically compile and link the serial classes to your application. Some people don't like libraries. In that case you can just add the Serial files to your project and recompile.
+
+If you use precompiled headers, then you need to remove the following lines from both Serial.cpp and SerialWnd.cpp:
+
+#define STRICT
+#include <crtdbg.h>
+#include <tchar.h>
+#include <windows.h>
+Replace these lines with the following line:
+
+#include "StdAfx.h"
+Sample programs
+
+The Serial library comes with some sample programs, which can all be compiled from the Serial.dsw workspace. Make sure that you always open the Serial.dsw file, when building the library and/or sample applications. Opening the individual .dsp files won't work, because these files don't have the dependencies, which results in unresolved externals.
+
+Note that all samples can be compiled as ANSI or Unicode versions. The Unicode versions don't run on the Windows 95/98/ME platforms, because they don't support Unicode. The SerialTestMFC sample uses the Unicode version of the MFC library (when compiled with Unicode enabled). The default installation options of Visual C++ v6.0 don't install the Unicode libraries of MFC, so you might get an error that mfc42ud.dll or mfc42u.dll cannot be found.
+
+Windows 95 support and CancelIo
+
+A lot of people still need to support the Windows 95 environment, which doesn't support the CancelIo function. When an overlapped operation times out, then the pending call need to be cancelled with the CancelIo call. Therefore time-outs (other then 0 and INFINTE) cannot be used when Windows 95 compatibility is enabled. Fortunately, the CSerialEx, CSerialWnd and CSerialMFC don't rely on this call, so these classes can be used on Windows 95 without any restrictions. If you define the SERIAL_NO_CANCELIO symbol, then I/O cancellation is disabled, so you should always define this symbol when you target Windows 95.
+
+Other problems, specific to Windows 95/98/ME are the queue sizes. If the buffer size is far too small then you might get a blue screen, when receiving or transmitting data. The default settings should be fine for normal serial communication.
+
+Windows CE support and the lack of overlapped I/O
+
+I have got a lot of requests to implement a windows CE version of the library. The old version of this library always used overlapped I/O, so it didn't work on Windows CE. Due to the huge amount of requests I started working on this issue. I have rewritten the CSerialEx class, so it doesn't rely on overlapped I/O internally. Canceling the WaitCommEvent now uses a documented trick, which sets the event mask to its current value. This effectively cancels the WaitCommEvent method and makes the use of overlapped I/O unnecessary in CSerialEx.
+
+<code>SetCommMask call blocks, when it is already waiting for an event (using WaitCommEvent). This would render this method useless on the Windows CE platform, because it doesn't support overlapped I/O. Fortunately, the serial driver is implemented as an overlapped driver internally on Windows CE, so it allows multiple calls (described in the KB, article Q175551). Using this Windows CE feature it is also possible to use all the classes on the Windows CE platform.
+
+To include this library into you Windows CE project, just add the Serial.dsp project file to your own workspace. If you use eMbedded Visual C++, then the project file is automatically converted. Make sure you define the SERIAL_NO_OVERLAPPED symbol to avoid the use of overlapped I/O.
+
+Porting issues
+
+This paragraph describes some porting issues that you should be aware of when porting from an older version to a newer version. Always retest your application, when using a different version of the serial library. I always try to keep the code source-level compatible, but if you use a new library version, then make sure you recompile your code completely with the same SERIAL_xxx symbols defined as were used to compile the library itself.
+
+[General] There is no effort made to make the libraries binary compatible, between different builds. Make sure you always use the same compiler settings and headerfiles for the library and your application to guarantee proper operation.
+[August 2002 and later] The default sizes of the input and output queues have been changed. Previously a size of 2KB was the default, but now the default OS size is being used.
+[August 2002 and later] The default communication settings have been changed. Previously the 9600,8N1 setting was used as the default setting. The new version uses the values from the control panel (or Device Manager).
+[August 2002 and later] The CSerialEx class has been added, which might better fit your needs.
+Virtual COM ports (USB dongles, Bluetooth dongles, ...)
+
+Some people use virtual COM-ports to emulate an ordinary serial port (i.e. USB serial dongle, Bluetooth dongle, ...). These so-called virtual COM ports use a different driver then ordinary serial ports. Unfortunately, most drivers are pretty buggy. In most cases normal communication using the default settings works pretty good, but you run into problems when you need more sophisticated communication.
+
+Most virtual COM ports have difficulties with the CancelIo function. In some cases the process freezes completely (and cannot even be killed by the task manager) and I have even seen Windows XP systems reboot after calling CancelIo. Some drivers can handle CancelIo for an overlapped ReadFile call, but fail when canceling a WaitCommEvent request. Terminating a thread with a pending I/O request also implies an implicit call of CancelIo, so if you have problems terminating a thread then you might have pending requests that cannot be cancelled. The CSerialEx (and derived classes) effectively cancels the pending WaitEvent, so you should be pretty safe when you use these classes.
+
+Receiving spurious events is another problem, which is quite common when using virtual COM ports. Even events that have been masked out can be sent by some virtual COM ports. For this reason the events are filtered inside the library, but you might get some empty events in your code (you can simply ignore these events).
+
+Some virtual COM ports also have problems when you don't use the common 8 databit, no parity and 1 stopbit settings. Sending a break is also problematical for some virtual COM ports. There is no standard workaround possible for these bugs, so make sure you test these features, when you intend to use your application with a virtual COM port.
+
+Some people claim that the dongle and its driver is fine, because HyperTerminal works fine. This isn't correct in most cases. HyperTerminal only uses a small subset of the Win32 API for serial communication and doesn't seem to use CancelIo very much. The most important lesson from the last few paragraphs is that you need to test your application very thorough with each driver that can be used. Although the Win32 API is the same for each (virtual) COM port, the implementation below the API might be completely different.
+
+This serial library utilizes the overlapped I/O mechanism, which should be supported by each Win32 driver. Unfortunately, a lot of drivers don't implement this feature correct. However, I keep trying to improve this library so if you have any suggestions, please contact me.
+
+References
+
+Of course the first place to look for information about serial communications is in the Platform SDK section "Windows Base Services, Files and I/O, Communications". There's probably enough in there to implement your own serial communications, but for a better explanation read Allen Denver's article called "Serial Communications in Win32", which is in the MSDN's Technical Articles.
+
+Changes
+
+November 7, 2003: Removed binaries from the file. This library is only useful for people that know how to compile it. If you don't succeed in compiling the library, then you probably don't know how to use the library at all. 
+November 7, 2003: Fixed issues that result in a "The Parameter is incorrect" error for the WaitCommEvent method when using CSerialEx (or derived class). Thanks to Mike_WX88 and Spainman for reporting the problem and pointing out where the problem was.
+November 2, 2003: The serial library is now released under LPGL, which makes integrating the code into commercial projects possible.
+November 2, 2003: Updated solution to Visual Studio .NET 2003.
+August 3, 2003: Use compiler settings to optimize to size instead of performance.
+August 3, 2003: Updated the documentation to discuss Windows CE support and the change to allow non-overlapped I/O in this library.
+August 3, 2003: Added the SERIAL_NO_OVERLAPPED symbol to disable overlapped I/O support. This reduces the memory footprint of the library on systems that don't support overlapped I/O (Windows CE).
+July 22, 2003: Allow to open the serial port in non-overlapped mode. This can be useful for situations where overlapped I/O is not useful. It's also the foundation for Windows CE support. Unfortunately, the CSerialEx cannot utilize this functionality on non-Windows CE platforms. It seems that there is no way to cancel the WaitEvent Win32 API call on these platforms, which is required for a proper termination of the CSerialEx worker thread.
+July 22, 2003: The CSerialEx (and derived) classes use an alternative way to indicate that the listener thread should be closed (setting the event mask forces the WaitCommEvent to return).
+July 22, 2003: The CSerialEx::Open method now accepts an additional parameter to automatically start the listener thread. The default is not to start the listener thread (this would break existing code).
+July 22, 2003: Updated copyrights and e-mail address.
+September 11, 2002: Added projectfiles and support for Visual Studio .NET.
+September 11, 2002: The SerialTestMFC application can now send an entire file (using memory mapped files).
+September 11, 2002: Added the CSerialEx class. This has simplified the CSerialWnd class, because all threading has been moved to the CSerialEx class.
+September 11, 2002: Added the SendBreak method to the CSerial class. The SerialTestMFC application can now also send a break.
+September 11, 2002: Added the EV_PERR, EV_RX80FULL, EV_EVENT1 and EV_EVENT2 events.
+September 11, 2002: Added Windows 95 support, when the SERIAL_NO_CANCELIO macro is defined. Now the library can be used on Windows 95 as well.
+September 11, 2002: Save the event mask, so incoming events can be checked if they fit the mask. Some drivers report events that are masked out. This will fix that (you'll get an empty event though).
+September 11, 2002: Use the default COM-port settings from the control panel instead of the default 9600,N81 setting.
+September 11, 2002: Changed the behavior for the queue sizes when opening the COM port. The OS defaults are now being used instead of 2048 bytes. A check has been added to make sure the buffers are at least 16 bytes large (otherwise Win95/Win98/WinME can cause blue screens).
+September 11, 2002: Removed hardware handshaking from the listener sample.
+Januari 30, 2002: Added ability to send an entire file using the MFC sample. I needed it for one of my own projects and it illustrates how you can use file mapping to efficiently send files.
+October 29, 2001: Close the thread handle after closing the serial port (only for CSerialWnd derived classes). This fixes a handle leak in the application.
+July 21, 2001: Renamed the Flush function to the name Purge, which is a better name for that function.
+July 21, 2001: Updated documentation to explain how the samples can be compiled (including Unicode information).
+July 21, 2001: Updated documentation to mention that the ON_WM_SERIAL macro should be outside the MFC comment blocks.
+May 28, 2001: Updated documentation to explain how to avoid unresolved externals during linkage of the sample code.
+May 2, 2001: Changed documentation a bit, because there was an error in the MsgWaitForMultipleObjects sample. It used an if instead of a while construction to dispatch messages from the message queue. This was wrong and has been corrected.
+April 6, 2001: Updated the SerialTestMFC application. The COM selection dialog now uses the CheckPort method to enable/disable the available ports. If a port cannot be opened, the user will now receive an error message.
+April 6, 2001: Replaced the FAILED macro in CSerialWnd.cpp and replaced it with a generic ERROR_SUCCESS comparison. The FAILED macro should only be used with COM functions. Thanks to Toni Bezjak for pointing this out.
+March 28, 2001: Made CheckPort a static method (as it was always intended to be).
+March 28, 2001: Changed documentation about XON/XOFF handling. It was confusing about which byte is XON and what byte is XOFF. This has been corrected.
+March 27, 2001: Added information in the documentation on how to use the library with precompiled headers. Source-code has been changed, so it is compatible with MFC.
+March 16, 2001: Changed DECLARE_MESSAGE_MAP to BEGIN_MESSAGE_MAP in the documentation.
+Future features
+
+Improved compatibility with third party drivers.
+Documentation made with DoxyGen.
+Windows .NET support (the .NET framework lacks serial I/O).
+TAPI support.
+Scripting support so complete handshakes can be programmed easily.
+Comments and disclaimer
+
+If you have any comments or questions about these classes, then you can reach me using email at Ramon.de.Klein@ict.nl. This library is free for both commercial and non-commercial use (if you insist, you can send me money though). Unfortunately, I cannot guarantee any support for these classes. I cannot test every situation and the use of these classes is at your own risk.
+
+Because this library is distributed with full source-code included, I cannot stop you from changing the code. I don't mind if you change the code, but I don't want to be blamed for your bugs. So please mark your changes and keep my name in the copyrights as well. If you added a cool feature, then please let me know so I might integrate it with a new version of this library. The library is released under the conditions of the Lesser GNU Public License (LGPL). The sample programs are distributed under the terms of the GNU Public License (GPL).
+
+Please don't mirror this code or documentation on another website or removable media (such as a CD-ROM) with the intent to redistribute it. I don't want to have old versions floating around, which might contain bugs that are solved in later versions. Just mention the URL where users can download the archive and documentation.
+
+I would like to thank my friend and ex-colleague Remon Spekreijse for pointing out some problems, adding some features in this library and encouraging me to put this library on the net. I also want to thank all other people who have shown their appreciation one way or another.
+
+License
+
+This article has no explicit license attached to it but may contain usage terms in the article text or the download files themselves. If in doubt please contact the author via the discussion board below.
+
+A list of licenses authors might use can be found here
+
+About the Author
+
+
+Ramon de Klein
+Web Developer 
+Netherlands 
+No Biography provided
+
+Article Top
+Comments and Discussions
+
+ 
+You must Sign In to use this message board.
+Search this forum  
+Profile popups    Spacing  Noise  Layout  Per page   
+First PrevNext
+
+	Update for CSerial to fix "Overlapped completed without result" when TX/RX from separate threads. [modified] 		Nathan Brown	19hrs 56mins ago 
+	Avoid possible reception data loss on busy transfer 		Kim Moung Soo	20-Mar-14 20:15 
+	CSerial::WaitEvent() - WaitForSingleObject() always returns WAIT_TIMEOUT 		Member 8225180	21-Jan-14 15:00 
+	Virtual COM port problems? Maybe it needs DTR! 		Michael Stammberger	21-Jan-14 1:47 
+	Overlapped IO structure not passed to Read and Write 		Member 10335754	14-Oct-13 9:17 
+	My vote of 5 		Member 10276674	16-Sep-13 3:08 
+	about configure 		Member 10267775	11-Sep-13 14:34 
+	Read sample code gets into a loop 		Vaclav_Sal	23-Aug-13 5:14 
+	Write, return ERROR_IO_INCOMPLETE 		cnmmd	9-Apr-13 23:30 
+	My vote of 5 		Ham_herc	23-Feb-13 22:25 
+	Re: My vote of 5 		Member 10267775	11-Sep-13 14:38 
+	It's the best library for serial communication! 		plgrm44	28-Jan-13 9:19 
+	Re: It's the best library for serial communication! 		Member 10267775	11-Sep-13 14:38 
+	Thanks 		moussafir92	20-Nov-12 8:04 
+	Re: Thanks 		plgrm44	28-Jan-13 9:20 
+	: fatal error C1189: #error : _WIN32_WINNT settings conflicts with _WIN32_IE setting 		ebuckbuck	8-Oct-12 10:11 
+	Receiving too slow, buffer gets full 		Member 9183014	18-Aug-12 8:15 
+	problem: fparity can't be set 		stephen_young	31-Jul-12 18:28 
+	warning C4789 		Member 8992124	22-Jun-12 5:19 
+	If I were to use multiple serialMFC class, how can we differentiate which serialMFC class it belongs to? 		Zsefv2	15-Jun-12 7:06 
+	Comm Port not supported 		macALEX	8-Jun-12 3:38 
+	Re: Comm Port not supported 		markoto	13-Jul-12 23:24 
+	Re: Comm Port not supported 		factoryGuy	3-Oct-13 3:41 
+	Re: Comm Port not supported 		CyberFox.cn	5-Oct-13 0:41 
+	My vote of 5 		jeremy.lauraire	3-May-12 13:33 
+
+Last Visit: 31-Dec-99 18:00     Last Update: 30-Mar-14 20:50	Refresh	1234567891011 Next »
+ General     News     Suggestion     Question     Bug     Answer     Joke     Rant     Admin   
+
+Use Ctrl+Left/Right to switch messages, Ctrl+Up/Down to switch threads, Ctrl+Shift+Left/Right to switch pages.
+
+About Article
+A high-performance, complete and compact serial library for C++
+Type 	Article
+Licence 	
+First Posted 	6 Mar 2001
+Views 	1,941,562
+Bookmarked 	803 times
+VC6VC7.1VS.NET2003
+WindowsDev, +
+   
+Top News
+Microsoft makes source code for MS-DOS and Word for Windows available to public
+
+Get the Insider News free each morning.
+Related Research
+
+In-The-Wild Testing: How to Ensure Your Apps Work in the Real World
+
+Protecting Android™ Applications with Secure Code Signing Certificates
+
+Fine-Tuning the Engines of SMB Growth: 4 strategies for growing your business
+
+Insider Secrets on API Security From Experts at Securosis [Webinar]
+Permalink | Advertise | Privacy | Mobile 
+Web01 | 2.8.140328.1 | Last Updated 13 Nov 2003
+Article Copyright 2001 by Ramon de Klein
+Everything else Copyright © CodeProject, 1999-2014 
+Terms of Use
+Layout: fixed | fluid
+

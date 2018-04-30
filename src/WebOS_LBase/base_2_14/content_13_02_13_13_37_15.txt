@@ -1,0 +1,101 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+
+首页论坛帮助论坛牛人论坛地图
+
+ 
+CSDN > CSDN论坛 > 多媒体/设计/Flash/Silverlight 开发 > 图象工具使用
+管理菜单 结帖发帖回复
+  收藏 如何用OpenGL实现汉字的显示？ [问题点数：0分]
+
+xinyu
+xinyu
+等级：
+结帖率：91.18%
+楼主 发表于： 2000-10-12 10:04:00
+ NT屏保--三维文字是用OpenGL实现的，那位高手知道汉字如何显示的？
+
+对我有用[0] 丢个板砖[0] 引用 | 举报 | 管理 | TOP 回复次数：6
+
+idiot
+idiot
+等级：
+#1 得分：0 回复于： 2000-11-16 14:36:00
+msdn 中有 sample
+我也可以发给你。
+对我有用[0] 丢个板砖[0] 引用 | 举报 | 管理 | TOP
+
+monkey79
+monkey79
+等级：
+#2 得分：0 回复于： 2000-12-23 21:21:00
+关注(E-mail to me )
+monkey5258@china.com
+OICQ:2385624
+对我有用[0] 丢个板砖[0] 引用 | 举报 | 管理 | TOP
+
+eyeclamp
+eyeclamp
+等级：
+#3 得分：0 回复于： 2000-12-24 22:23:00
+看一看共享软件中 “网站制作”中的MY3DTextControl
+实现了在网页中显示真三维的汉字
+送你一个我的3DText屏保吧
+对我有用[0] 丢个板砖[0] 引用 | 举报 | 管理 | TOP
+
+disney
+disney
+等级：
+#4 得分：0 回复于： 2000-12-25 18:13:00
+我正好遇到这个问题，自己想着也是靠Unicode解决，正好又见了一篇文章，转出来供参考。(格式没有调整，我也没有试呢:）
+
+姓名：c
+来自：=
+E-mail:chgeng@263.net
+HomePage:http://
+标题：Windows 下OpenGL 中文显示 日前为解决OpenGL的文字显示搅得日夜难眠，好不容易意熬过来了，现特意奉献给大家。并向致力于反对垄断的斗士们致以敬意。 1、OpenGL文字显示的原理 OpenGL本身不提供文字的显示和处理能力，如要显示文字的借助于第三方的扩展程序。OpenGL提供了BitMap的显示方式，由于单色BitMap仅仅包含轮廓信息，没有颜色信息，故存储方便，容易改变颜色，在OpenGL显示文字就是利用了OpenGL的这种功能。其实这个功能仅仅用于多边形的填充，线型的显示，文字其实一个变通而已。 2、Windows里常规文字的处理方法 获取当前DC，然后用CreateFont创建一字体，用SelectObject将该字体与DC绑定，然后用TextOut输出，在W98和NT，Win2000环境下用TextOutW输出，并用MultiByteToWideChar(936, MB_PRECOMPOSED, str, -1, dwChar, 256);将DBCS换成unicode,这样就可以享受国际编码的庞大字库以及，在英文环境（须936国际编码文件，Win2000下为c_936.nls）下显示中文的好处。 系统必须装有936代码页。怎么装？把cp_936.nls(VC++中有的)COPY到windows\system下，再在注册表的 \HKEY_LOCAL_MACHINE\System\CurrentControlSet\control\Nls\Codepage中，加上936 = "cp_936.nls" \HKEY_LOCAL_MACHINE_System\CurrentControlSet\control\Nls\Locale中，加上00000804 = "Chinese(PRC)" 3、中文字显示出现的问题及原因分析 由于SGI本身定义了国际化程序的规范，因此M$在1995年最先在Windows NT当中加入了OpenGL的支持。由于在Windows NT当中处理国际化文字的方式与W95是不同的。这就是unicode规范。于是出现了在OpenGL程序当中文字显示的问题。就是不能正常显示国际文字。不过 M$却从没有对此做出更正。（因为在unicode下工作是正常的）另一个原因，就是由于标准用法对于国际化文字的不适用，于是有了多种变通的使用方式，不过在wglusefontbitmaps当中不知什么回事，一直不能正确显示。（其实是要你强型提交）。造成这种原因主要是unicode和dbcs当中的转化问题由于wglusefontoutline下可以正常显示。说明M$作了一些两者转化的努力。不过有Bug.因此解决之道只有强制使用unicode得显示方式。即将要显示的文字转化为uncode然后调用wglusefontbitmapsW或wglusefontoutlineW显示.无论中英文都可以显示。 4、wglUseFontxxx的原理 wglusefontbitmaps: 提取字符的TextMetrics和ABC结构，以获取字符的显示大小，以此大小建立一BitMap(记住了是Windows里的）。然后使用ExTextOut输出文字。从这个BitMap上提取字符的轮廓。 wglusefontoutlines 使用WinApi函数提取字体顶点矩阵，然后使用该数组绘制文字。 5、用wglUseFontOutline显示中文的解决方法 wchar_t dwChar[256]; DWORD a; int ListNum; int i; HDC hDC=wglGetCurrentDC(); int nLength = MultiByteToWideChar(936, MB_PRECOMPOSED, str, -1, dwChar, 256); for(i=0;i[nLength-1;i++) { ListNum=glGenLists(1); wglUseFontOutlineW (hDC, dwChar[i], 1, ListNum); glCallList (ListNum); glFlush(); glDeleteLists(ListNum,1); } 6、用wglUseFontBitmap显示中文的解决方法 wchar_t dwChar[256]; DWORD a; int ListNum; int i; HDC hDC=wglGetCurrentDC(); int nLength = MultiByteToWideChar(936, MB_PRECOMPOSED, str, -1, dwChar, 256); for(i=0;i[nLength-1;i++) { ListNum=glGenLists(1); wglUseFontBitmapsW (hDC, dwChar[i], 1, ListNum); glCallList (ListNum); glFlush(); glDeleteLists(ListNum,1); } 7、windows语言与字体处理的原理(optional)
+at Mon Jun 5 15:50:42 2000 
+对我有用[0] 丢个板砖[0] 引用 | 举报 | 管理 | TOP
+
+Luo_Yong
+Luo_Yong
+等级：
+#5 得分：0 回复于： 2001-03-16 12:20:00
+程序员                                                (借点地盘哈)
+    你好!
+    当你在写软件时,写说明书时,做主页时,做多媒体课件时,想得到
+你所看到的图片或某部分,某窗口时你用什么抓图软件呢?试试[华众抓
+图精灵]吧,这个软件功能强大(详见软件简介),不如试试相信比 "DX-
+什么,什么"不会差得太多吧!支持,支持国产共享软件如何呀! 对了到
+CSDN.NET共享软件区去下载!
+    如果你使用了本软件,希望得到源程序,我可能免费提供给你的.
+    E-mail: Ly_yes@fm365.com  或  Ly_yes@163.net
+    OICQ: 34834835
+                                              你的朋友:罗勇
+                                                3月16日
+对我有用[0] 丢个板砖[0] 引用 | 举报 | 管理 | TOP
+
+zm_627
+zm_627
+等级：
+#6 得分：0 回复于： 2001-07-28 14:07:15
+怎么這里還做起廣告來了.
+对我有用[0] 丢个板砖[0] 引用 | 举报 | 管理 | TOP
+管理菜单 结帖发帖回复
+【热】应届生,入职年薪5-10万
+阿里云服务器 1元狂欢购
+英特尔嵌入式在线培训课堂
+首届携程大赛开始报名啦
+CSDN官方微信正式上线
+
+《程序员》杂志超值订阅
+全年iPad版《程序员》杂志超值套餐，只需60元噢！
+本帖子已过去太久远了，不再提供回复功能。
+[关闭][关闭]
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+ 联系邮箱：webmaster(at)csdn.net
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 

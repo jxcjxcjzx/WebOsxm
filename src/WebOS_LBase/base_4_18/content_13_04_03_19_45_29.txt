@@ -1,0 +1,237 @@
+u0101527420我的：收件箱资源博客空间设置|帮助|退出首页业界移动云计算研发论坛博客下载
+更多
+luoyeaijiao的专栏
+目录视图摘要视图订阅
+2013年7月微软MVP申请开始啦！        CSDN博客移动开发排行榜      写“书评”赢下载分！ 
+2013年4月微软MVP会员名单揭晓！      来极客头条，赢下载积分      专访关东升：将人文融入到科技产品中
+ C中const的实现机制
+分类： python、C 2012-09-15 16:02 628人阅读 评论(13) 收藏 举报
+c编译器汇编object语言
+同学去参加笔试，遇到一个关于const的问题，大致如下：
+
+有如下代码，问该段代码是否可以编译通过，是否可以运行，运行结果是什么。
+
+[cpp] view plaincopy
+const int a = 1;  
+  
+int* b = (int*)&a;  
+  
+*b = 31;  
+
+以上代码是可以编译通过并且能够成功运行的，运行后a b的值均为31。
+这道题的关键在于C语言中const的实现机制。在C中，const修饰的变量不能够被修改，在反汇编后，有const修饰的变量和没有const修饰的变量的结果是一样的。但是如果在程序中对const变量进行修改，编译时就会报错，如：
+
+[cpp] view plaincopy
+const int a = 1;  
+  
+a = 2;  
+
+这段代码编译时就会报错，error C2166: l-value specifies const object。
+那么，C到底是如何实现const的呢。
+
+
+在最初的C标准中，并没有const，只是在有了C++后，才将const加入C的标准中。而实际上C对const变量并没有做过多的处理，编译后const和普通变量没有区别，只是在编译的过程中，编译器会检查代码中是否有对const变量进行修改的代码，如果有则向用户报错。在编译过后，const变量就和普通变量相同了。而且，如果使用memset去修改const变量的内容，也完全没有问题，这就可以看出const修饰是属于编译层面的限制，一般不会涉及到运行层面。在C中，const是用于明确的标识出变量或者函数不能被修改，而且这种限制在编译层面进行约束。
+
+
+因此在最初那道题，a是const变量，整个代码段没有对a进行修改，因此编译可以通过，编译通过后a和普通变量相同，变量b做修改完全可以，因此该段代码编译可以通过，也可以成功运行。
+
+
+本人学识有限，若有理解不到位甚至错误之处，还请批评指正。
+
+分享到： 
+上一篇：知道创宇笔试题
+下一篇：MFC 变量未初始化，运行报异常
+顶
+5
+踩
+0
+
+查看评论
+7楼 wjx_0_2001 2012-11-20 11:34发表 [回复]
+
+一般人，是不会写这么怪僻的代码的
+
+最反感的一些人，写代码装：一层套一层
+
+生怕别人看出你的真相，写个代码不是写诗，不要整的
+
+这么朦胧
+Re: luoyeaijiao 2012-11-24 00:00发表 [回复]
+
+回复wjx_0_2001：。。。本篇文章重点在于探讨const的实现机制，一共就写了三五行代码吧。。。。如果能够理解实现机制，应该是利大于弊吧，而且const在实际项目中的使用频率是非常高的吧，如果不去理解内部机制，岂不总是迷糊迷糊，知其然不知其所以然？
+6楼 firendlys 2012-09-16 18:06发表 [回复]
+
+其实怎么用文字分析,都不如看汇编代码来的清晰和直接...
+[cpp] view plaincopy
+64:       const int a = 2;  
+00403B3D   mov         dword ptr [ebp-30h],2  
+65:       int *b = (int *)&a;  
+00403B44   lea         ecx,[ebp-30h]  
+00403B47   mov         dword ptr [ebp-34h],ecx  
+66:       int c=a;  
+00403B4A   mov         dword ptr [ebp-38h],2 // 这里,c=a,给的不是a的地址,而是直接是a的值.  
+//因此,即使 *b 的值变了, c 依然都是a最原始的值...  
+67:       cout << a ;  
+00403B51   push        2 // 这里也一样,只是a的原始值,而不是*b的值...  
+00403B53   mov         ecx,offset std::cout (0047eea8)  
+00403B58   call        @ILT+905(std::basic_ostream<char,std::char_traits<char> >::operator<<) (0040138e)  
+68:       cout << (*b) ;  
+00403B5D   mov         edx,dword ptr [ebp-34h]  
+00403B60   mov         eax,dword ptr [edx]  
+00403B62   push        eax  
+00403B63   mov         ecx,offset std::cout (0047eea8)  
+00403B68   call        @ILT+905(std::basic_ostream<char,std::char_traits<char> >::operator<<) (0040138e)  
+5楼 firendlys 2012-09-16 17:57发表 [回复]
+
+引用“bxyill”的评论：
+#include &lt;iostream&gt;
+using namespace std;
+
+vo...
+
+原因在于对const 类型,编译器有3种不同的处理.
+1. 对于直接已知值的int,long,short,char 类型以及其unsigned版本,即 const int a=2; 这种,编译器编译程序之后,程序中所有a出现的地方,全部自动替换成2. 所以,就出现了对于 *b=3 ,在 const int a=2 ;中不会修改a,而在 const int a=c; 中则会修改 a的情况.
+2.对于字符串. 类似 const char *a="abc"; 这种,同样是不能修改的,不过原因就不再是上面那个,而是因为这个 "abc" 在编译之后是放在程序的"常量段",这部分是执行文件的一部分,运行期间不可修改,如果强制修改,就会出现 内存读写错误:0x000005不可写 这种错误.
+3.就是文章提到的这种情况,会 *b=3 会修改const的限制,原因也如文章中所说一致,这个限制只是编译期间限制,运行期间不受影响.对于上面没有提到的类型(包括float,double,以及自定义类型),都会作这种处理.
+Re: luoyeaijiao 2012-09-25 15:49发表 [回复]
+
+回复firendlys：谢谢您的评论，从文字和汇编两个角度阐述了C++中const的相关机制，让我获益匪浅，谢谢
+4楼 bxyill 2012-09-16 08:28发表 [回复]
+
+#include <iostream>
+using namespace std;
+
+void main()
+{
+int c = 2;
+const int a = c;
+//const int a = 2;
+int *b = (int *)&a;
+*b = 3;
+cout << a <<endl;
+cout << (*b) <<endl;
+}
+
+这样就输出的是3,3了。。。。求原因啊？？
+Re: luoyeaijiao 2012-09-25 15:48发表 [回复]
+
+回复bxyill：具体C++中const的处理机制，firendlys使用文字和汇编进行了详细的描述，我就不再罗嗦了，谢谢您的评价
+3楼 bxyill 2012-09-16 08:15发表 [回复]
+
+#include <iostream>
+using namespace std;
+
+void main()
+{
+const int a = 2;
+int *b = (int *)&a;
+*b = 3;
+cout << a <<endl;
+cout << (*b) <<endl;
+}
+
+我这段程序运行出来，a 和 *b的值都没变啊，还是2和3啊。咋回事呢？
+Re: luoyeaijiao 2012-09-25 15:46发表 [回复]
+
+回复bxyill：C和C++在const上的处理机制是不同的，因为最开始的时候，C是没有const的，在有C++后，才把const引进到C中。
+这是我所认同的观点，如果有误，请批评指正
+2楼 iostream 2012-09-16 00:41发表 [回复]
+
+有点不对。代码改成如下：int iVal = 1;const int a = iVal; int *b = (int*)&a;*b = 31;结果才是: a = 31; b= 31;始终不能改变a的值。
+Re: luoyeaijiao 2012-09-25 15:44发表 [回复]
+
+回复xinfeng631：如果是C++的程序，我刚才的那段代码a的值为1，*b的值为31；改为您这样的C++代码后，a和*b的值才相同。但如果是C的程序，那么结果会是我文章中所描述的。C和C++在有些地方的处理机制还是不同的。
+1楼 fujiafeihudui 2012-09-15 20:05发表 [回复]
+
+第一个实例运行后在VC6.0环境下编译运行后，a为1，b为1245052。您能解释下吗？
+Re: luoyeaijiao 2012-09-25 15:40发表 [回复]
+
+回复fujiafeihudui：这段小代码编译运行应该是没问题的，你打印的是a 和 *b吗？b是指针。
+也可能是其他的问题，但我学识浅薄，无法从您的描述中推测出问题所在。
+发表评论
+用 户 名：
+u010152742
+评论内容：
+
+
+  
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+ 
+个人资料
+  
+luoyeaijiao
+ 
+
+访问：9709次
+积分：345分
+排名：千里之外
+原创：24篇转载：4篇译文：0篇评论：20条
+文章搜索
+
+文章分类
+MFC学习之路(15)
+我的java成长史(10)
+python、C(2)
+SA(0)
+Cloud(1)
+文章存档
+2013年01月(1)
+2012年11月(1)
+2012年09月(2)
+2012年03月(7)
+2012年02月(7)
+展开
+阅读排行
+MFC之socket创建失败(778)
+MFC之工厂模式(C++ & java)(734)
+MFC之CCommandLineInfo(723)
+MFC之Unicode编程(664)
+MFC之窗口的Z-order(657)
+C中const的实现机制(628)
+MFC之取得屏幕大小，设置对话框大小(612)
+MFC之CSingleDocTemplate构造函数(561)
+知道创宇笔试题(437)
+MFC之为对话框添加变量(362)
+评论排行
+C中const的实现机制(13)
+MFC之工厂模式(C++ & java)(2)
+MFC之CSingleDocTemplate构造函数(2)
+MFC之socket创建失败(2)
+MFC之Unicode编程(1)
+知道创宇笔试题(0)
+SAE求推荐(0)
+MFC之C++构造函数(0)
+MFC之命令更新(0)
+MFC之窗口的Z-order(0)
+推荐文章
+
+最新评论
+MFC之socket创建失败
+yayexing: 非常感谢，我也遇到了这样的问题，排查了好久
+MFC之Unicode编程
+淮河神: 绝世好文
+MFC之socket创建失败
+loveyou426: !!!
+C中const的实现机制
+luoyeaijiao: @wjx_0_2001:。。。本篇文章重点在于探讨const的实现机制，一共就写了三五行代码吧。。。...
+C中const的实现机制
+wjx_0_2001: 一般人，是不会写这么怪僻的代码的最反感的一些人，写代码装：一层套一层生怕别人看出你的真相，写个代码不...
+C中const的实现机制
+luoyeaijiao: @firendlys:谢谢您的评论，从文字和汇编两个角度阐述了C++中const的相关机制，让我获益...
+C中const的实现机制
+luoyeaijiao: @bxyill:具体C++中const的处理机制，firendlys使用文字和汇编进行了详细的描述，...
+C中const的实现机制
+luoyeaijiao: @bxyill:C和C++在const上的处理机制是不同的，因为最开始的时候，C是没有const的，...
+C中const的实现机制
+luoyeaijiao: @xinfeng631:如果是C++的程序，我刚才的那段代码a的值为1，*b的值为31；改为您这样的...
+C中const的实现机制
+luoyeaijiao: @fujiafeihudui:这段小代码编译运行应该是没问题的，你打印的是a 和 *b吗？b是指针。...
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+

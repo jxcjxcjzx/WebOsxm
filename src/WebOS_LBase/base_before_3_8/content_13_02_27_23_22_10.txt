@@ -1,0 +1,828 @@
+
+
+
+
+
+
+
+
+
+
+返回首页 返回IT168首页 登录 | 注册 
+
+最新 门户 论坛Channel9CIO-CTO俱乐部 文库 商店 专题 CTOCIO人才 图书 培训 知识库订阅投稿
+
+频道OracleDB2SQL ServerMySQLERPJava.NET开源移动管理SOA测试BISCM专区 IBM微软CUDA微软云计算 IT方案库
+
+互动 空间 blog 圈子 IXPUB 社区 数据库技术 信息化 开发技术 项目管理IBM软件技术 微软专区 CUDA编程技术移动开发
+
+ 
+
+
+
+当前位置：IT168首页 > 技术开发 > JavaSE 6之脚本引擎让程序如虎添翼 
+
+
+
+
+[收藏此页] [打印] [推荐] [评论]
+JavaSE 6之脚本引擎让程序如虎添翼
+
+责任编辑：cynthia作者：ITPUB论坛   2008-07-04   
+
+
+
+　　【IT168 技术文档】Java SE 6最引人注目的新功能之一就是内嵌了脚本支持。在默认情况下，Java SE 6只支持JavaScript，但这并不以为着Java SE 6只能支持JavaScript。在Java SE 6中提供了一些接口来定义一个脚本规范，也就是JSR223。通过实现这些接口，Java SE 6可以支持任意的脚本语言(如PHP或Ruby)。
+ 
+　　运行第一个脚本程序
+ 
+　　在使用Java SE 6运行脚本之前，必须要知道你的Java SE 6支持什么脚本语言。在javax.script包中有很多的类，但这些类中最主要的是ScriptEngineManager。可以通过这个类得到当前Java SE 6所支持的所有脚本。如下面例子将列出所有可以使用的脚本引擎工厂。
+ 　　import javax.script.*;
+　　import java.io.*;
+　　import java.util.*;
+　　import static java.lang.System.*;
+　　public class ListScriptEngines
+　　{
+　　public static void main(String args[]){
+　　ScriptEngineManager manager = new ScriptEngineManager();
+　　// 得到所有的脚本引擎工厂
+
+　　List factories = manager.getEngineFactories();
+　　// 这是Java SE 5 和Java SE 6的新For语句语法
+
+　　for (ScriptEngineFactory factory: factories){
+　　// 打印脚本信息
+
+　　out.printf("Name: %s%n" +
+　　"Version: %s%n" +
+　　"Language name: %s%n" +
+　　"Language version: %s%n" +
+　　"Extensions: %s%n" +
+　　"Mime types: %s%n" +
+　　"Names: %s%n",
+　　factory.getEngineName(),
+　　factory.getEngineVersion(),
+　　factory.getLanguageName(),
+　　factory.getLanguageVersion(),
+　　factory.getExtensions(),
+　　factory.getMimeTypes(),
+　　factory.getNames());
+　　// 得到当前的脚本引擎
+
+　　ScriptEngine engine = factory.getScriptEngine();
+　　} 　 } }
+ 
+　　上面的例子必须要在Java SE 6中编译。其中import static java.lang.System.*是新的语法，将System中的所有静态成员进行引用，以后就可以直接使用out、in或err了。
+ 
+　　通过运行java ListScriptEngines，将显示如下信息
+ 
+　　Name: Mozilla Rhino
+ 
+　　Version: 1.6 release 2
+ 
+　　Language name: ECMAScript
+ 
+　　Language version: 1.6
+ 
+　　Extensions: [js]
+ 
+　　Mime types: [application/javascript, application/ecmascript, text/javascript, text/ecmascript]
+ 
+　　Names: [js, rhino, JavaScript, javascript, ECMAScript, ecmascript]
+ 
+　　在最下面一行是脚本的别名，也就是使用它们中的任意一个都可以。得到一个具体的脚本引擎有3种方法。
+ 
+　　·根据扩展名得到脚本引擎
+ 
+　　ScriptEngine engine = manager.getEngineByExtension("js");
+ 
+　　getEngineByExtension的参数就是Extensions:[js]中[…]里的部分。
+ 
+　　·根据Mime类型得到脚本引擎
+ 
+　　ScriptEngine engine = manager.getEngineByMimeType("text/javascript");
+ 
+　　getEngineByMimeType的参数可以是Mime types: [application/javascript, application/ecmascript, text/javascript,
+ 
+　　text/ecmascript]中的任何一个，可以将text/javascript改成text/ecmascript。
+ 
+　　·根据名称得到脚本引擎
+ 
+　　ScriptEngine engine = manager.getEngineByName("javascript");
+ 
+　　getEngineByName后的参数可以是Names: [js, rhino, JavaScript, javascript, ECMAScript, ecmascript]中的任何一个，
+ 
+　　如可以将javascript改成ecmascript。
+ 
+　　上面已经讨论了执行脚本的第一步，就是得到一个可用的脚本引擎。在完成这项工作之 后就可以利用这个脚本引擎执行相应的脚本了。我们可以使用ScriptEngine的eval方法来执行脚本。eval方法被重载的多次，但最常用的是public Object eval(String script)。
+ 
+　　下面的例子演示了如何使用eval方法来执行javascript脚本。
+ 　　import javax.script.*;
+　　import java.io.*;
+　　import static java.lang.System.*;
+　　public class FirstJavaScript
+　　{
+　　public static void main(String args[])
+　　{
+　　ScriptEngineManager manager = new ScriptEngineManager();
+　　// 得到javascript脚本引擎
+
+　　ScriptEngine engine = manager.getEngineByName("javascript");
+　　try
+　　{
+　　// 开始运行脚本，并返回当前的小时
+
+　　Double hour = (Double)engine.eval("var date = new Date();" +"date.getHours();");
+　　String msg;
+　　// 将小时转换为问候信息
+
+　　if (hour < 10)
+　　{
+　　msg = "上午好";
+　　}
+　　else if (hour < 16)
+　　{
+　　msg = "下午好";
+　　}
+　　else if (hour < 20)
+　　{
+　　msg = "晚上好";
+　　}
+　　else
+　　{
+　　msg = "晚安";
+　　}
+　　out.printf("小时%s: %s%n", hour, msg);
+　　}
+　　catch (ScriptException e)
+　　{
+　　err.println(e);
+　　}
+　　}
+　　}
+ 
+　　上面的例子通过得到当前的小时，并将其转化为问候语。上面的程序的输出信息为：
+ 
+　　小时9.0：上午好
+ 
+　　这个例子最值得注意的是执行的2句脚本，最后一句是date.getHours()。并未将这个值赋给一个javascript变量。这时，eval方法就将这样的值返回。这有些类似C语言的(…)运算符。如(c=a+b, c + d),这个表达式的返回值是a+b+d。
+ 
+　　和脚本语言进行交互
+ 
+　　上面例子只是运行了一个非常简单的脚本。这个脚本是孤立的，并未通过Java向这脚本传递任何的值。虽然从这个脚本返回了一个值，但这种返回方式是隐式的。
+ 
+　　脚本引擎除了这些简单的功能，还为我们提供了更强大的功能。甚至可以通过Java向脚本语言中传递参数，还可以将脚本语言中的变量的值取出来。这些功能要依靠ScriptEngine中的两个方法put和get。
+ 
+　　put 有两个参数，一个是脚本变量名，另一个是变量的值，这个值是Object类型，因此，可以传递任何值。
+ 
+　　get 有一个参数，就是脚本变量的名。
+ 
+　　下面的代码通过javascript脚本将一个字符串翻转(这个字符串是通过java传给javascript的)，然后通过java得到这个被翻转后的字符后，然后输出。
+ 　　import javax.script.*;
+　　import java.io.*;
+　　import static java.lang.System.*;
+　　public class ReverseString
+　　{
+　　public static void main(String args[])
+　　{
+　　ScriptEngineManager manager = new ScriptEngineManager();
+　　// 建立javascript脚本引擎
+
+　　ScriptEngine engine = manager.getEngineByName("javascript");
+　　try
+　　{
+　　// 将变量name和变量值abcdefg传给javascript脚本
+
+　　engine.put("name", "abcdefg");
+　　// 开始执行脚本
+
+　　engine.eval("var output ='' ;" +
+　　"for (i = 0; i <= name.length; i++) {" +
+　　" output = name.charAt(i) + output" +
+　　"}");
+　　// 得到output变量的值
+
+　　String name = (String)engine.get("output");
+　　out.printf("被翻转后的字符串：%s", name);
+　　}
+　　catch (ScriptException e)
+　　{
+　　err.println(e);
+　　}
+　　}
+　　}
+ 
+　　以上代码的输出结果为：被翻转后的字符串：gfedcba
+ 
+　　让脚本运行得更快
+ 
+　　众所周知，解释运行方式是最慢的运行方式。上述的几个例子无一例外地都是以解释方式运行的。由于Java EE 6的脚本引擎可以支持任何实现脚本引擎接口的语言。有很多这样的语言提供了编译功能，也就是说，在运行脚本之前要先将这些脚本进行编译(这里的编译一般将不是生成可执行文件，而只是在内存中编译成更容易运行的方式)，然后再执行。如果某段脚本要运行之交多次的话，使用这种方式是非常快的。我们可以使用ScriptEngine的compile方法进行编译。并不是所有脚本引擎都支持编译，只有实现了Compilable接口的脚本引擎才可以使用compile进行编译，否则将抛出一个错误。下面的例子将演示如何使用compile方法编译并运行javascript脚本。
+ 　　import javax.script.*;
+　　import java.io.*;
+　　import static java.lang.System.*;
+　　public class CompileScript
+　　{
+　　public static void main(String args[])
+　　{
+　　ScriptEngineManager manager = new ScriptEngineManager();
+　　ScriptEngine engine = manager.getEngineByName("javascript");
+　　engine.put("counter", 0); // 向javascript传递一个参数
+　　// 判断这个脚本引擎是否支持编译功能
+
+　　if (engine instanceof Compilable)
+　　{
+　　Compilable compEngine = (Compilable)engine;
+　　try
+　　{
+　　// 进行编译
+
+　　CompiledScript script = compEngine.compile("function count() { " +
+　　" counter = counter +1; " +
+　　" return counter; " +
+　　"}; count();");
+　　out.printf("Counter: %s%n", script.eval());
+　　out.printf("Counter: %s%n", script.eval());
+　　out.printf("Counter: %s%n", script.eval());
+　　}
+　　catch (ScriptException e)
+　　{
+　　err.println(e);
+　　}
+　　}
+　　else
+　　{
+　　err.println("这个脚本引擎不支持编译!");
+　　}
+　　}
+　　}
+ 
+　　上面的代码运行后的显示信息如下：
+ 
+　　Counter: 1.0
+ 
+　　Counter: 2.0
+ 
+　　Counter: 3.0
+ 
+　　在这个例子中，先通过compile方法将脚本编译，然后通过eval方法多次进行调用。在这段代码中只有一个函数，因此，eval就返回了这个函数的值。
+ 
+　　动态调用脚本语言的方法
+ 
+　　上面的例子只有一个函数，可以通过eval进行调用并将它的值返回。但如果脚本中有多个函数或想通过用户的输入来决定调用哪个函数，这就需要使用invoke方法进行动态调用。和编译一样，脚本引擎必须实现Invocable接口才可以动态调用脚本语言中的方法。下面的例子将演示如何通过动态调用的方式来运行上面的翻转字符串的javascript脚本。
+ 　　import javax.script.*;
+　　import java.io.*;
+　　import static java.lang.System.*;
+　　public class InvocableTest
+　　{
+　　public static void main(String args[])
+　　{
+　　ScriptEngineManager manager = new ScriptEngineManager();
+　　ScriptEngine engine = manager.getEngineByName("javascript");
+　　String name="abcdefg";
+　　if (engine instanceof Invocable)
+　　{
+　　try
+　　{
+　　engine.eval("function reverse(name) {" +
+　　" var output =' ';" +
+　　" for (i = 0; i <= name.length; i++) {" +
+　　" output = name.charAt(i) + output" +
+　　" } return output;}");
+　　Invocable invokeEngine = (Invocable)engine;
+　　Object o = invokeEngine.invokeFunction("reverse", name);
+　　out.printf("翻转后的字符串：%s", o);
+　　}
+　　catch (NoSuchMethodException e)
+　　{
+　　err.println(e);
+　　}
+　　catch (ScriptException e)
+　　{
+　　err.println(e);
+　　}
+　　}
+　　else
+　　{
+　　err.println("这个脚本引擎不支持动态调用");
+　　}
+　　}
+ 
+　　动态实现接口
+ 
+　　脚本引擎还有一个更吸引的功能，那就是动态实现接口。如我们要想让脚本异步地执行，即通过多线程来执行，那InvokeEngine类必须实现Runnable接口才可以通过Thread启动多线程。因此，可以通过getInterface方法来使InvokeEngine动态地实现Runnable接口。这样一般可分为3步进行。
+ 
+　　1. 使用javascript编写一个run函数
+ 
+　　engine.eval("function run() {print(异步执行);}");
+ 
+　　2. 通过getInterface方法实现Runnable接口
+ 
+　　Runnable runner = invokeEngine.getInterface(Runnable.class);
+ 
+　　3. 使用Thread类启动多线程
+ 
+　　Thread t = new Thread(runner);
+ 
+　　t.start();
+ 
+　　下面是实现这个功能的详细代码。
+ 　　import javax.script.*;
+　　import static java.lang.System.*;
+　　public class InterfaceTest
+　　{
+　　public static void main(String args[])
+　　{
+　　ScriptEngineManager manager = new ScriptEngineManager();
+　　ScriptEngine engine = manager.getEngineByName("javascript");
+　　try
+　　{
+　　engine.eval("function run() {print(异步调用);}");
+　　Invocable invokeEngine = (Invocable)engine;
+　　Runnable runner = invokeEngine.getInterface(Runnable.class);
+　　Thread t = new Thread(runner);
+　　t.start();
+　　t.join();
+　　}
+　　catch (InterruptedException e)
+　　{
+　　err.println(e);
+　　}
+　　catch (ScriptException e)
+　　{
+　　System.err.println(e);
+　　}
+　　}
+　　}
+ 
+　　其实上面的代码是通过javascript实现了Runnable接口的run方法。
+
+点此发表你的看法>>【已有位网友发表了看法】
+
+
+
+
+
+
+
+
+
+
+收藏到：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+【内容导航】 
+第1页：JavaSE 6之脚本引擎让程序如虎添翼
+
+
+
+
+
+
+
+
+
+
+本文欢迎转载，转载请注明：转载自IT168 [ http://www.it168.com/ ]
+本文链接：http://tech.it168.com/jd/2008-07-04/200807041154728.shtml
+
+
+
+
+查看技术开发全部文章>>技术开发最新文章  
+
+全球软件案例研究峰会：议程已确定
+ CloudStack技术沙龙北京站第四期启动
+ 细数ASP.NET MVC框架的7大顶级功能
+ 云计算白皮书发布 应用落地仍急需解决
+ OOW2010专题主题演讲
+
+
+
+技术开发相关文章   
+
+暂无
+
+
+
+
+
+技术开发热点关注
+ 
+
+
+惠普微软双认证计划——惠普云认证
+ 
+
+
+惠普微软双认证 驱动企业及个人发展
+ 
+
+
+深耕华南加速布局 微软广东新址启用
+ 
+
+
+促进绿色创新 微软助力广州绿创会
+ 
+
+
+Windows 8应用开发马拉松正式启航
+ 
+
+
+QCon大会2012（杭州站）精彩回顾
+ 
+
+
+微软Office365和Windows Azure落户上海
+ 
+
+
+惠普微软联手打造精彩IT人
+ 
+
+
+“云”程万里 惠普与微软开启双重认证
+ 
+
+
+专访诺基亚开源总监Gunther Kottzieper
+ 
+
+
+
+技术开发热评文章
+ 
+
+
+展望Java未来 走进2010年 Java圆桌会议
+ 
+
+
+VS2010实战：发布一个自定义Web控件
+ 
+
+
+百度酝酿推手机操作系统 谷歌主导研发
+ 
+
+
+商业智能成为医疗机构神经系统
+ 
+
+
+Ovum称5年内Android应用下载量将超苹果
+ 
+
+
+软件设计：从对象创建和引用小议解耦
+ 
+
+
+被kin拖后腿 微软智能手机翻身寄望WP7
+ 
+
+
+微软PDC2010于10月召开 将发布顶级平台
+ 
+
+
+CUDA的Threading：Block和Grid设定 
+
+
+
+.NET、Mono与Java、C++性能测试大PK
+ 
+
+
+
+
+更多>>装机必备软件
+
+
+
+主页浏览
+IE 7.0
+Maxthon
+Firefox
+腾讯TT
+世界之窗
+
+
+下载工具
+快车
+迅雷
+电驴
+超级旋风
+Bitcomet
+
+
+聊天通讯
+MSN
+Skype
+腾讯QQ
+新浪UC
+腾讯TM
+
+
+音频播放
+Winamp
+Foobar
+千千静听
+酷狗音乐
+酷我音乐
+
+
+视频播放
+ABPlayer
+KmPlayer
+QQ影音
+暴风影音
+Realplay
+
+
+系统优化
+超级兔子
+优化大师
+完美卸载
+全能优化
+Vista优化
+
+
+输入法
+搜狗拼音
+QQ拼音
+万能五笔
+极品五笔
+谷歌拼音
+
+
+解压|还原
+WinRAR
+WinZIP
+一键还原
+一键恢复
+一键Ghost
+
+
+杀毒软件
+金山毒霸
+大蜘蛛
+卡巴斯基
+江民杀毒
+瑞星杀毒
+
+
+木马查杀
+清道夫
+瑞星卡卡
+金山专家
+木马克星
+木马专家
+
+
+网络电视
+皮皮电影
+风行电影
+PPlive
+QQ直播
+PPS
+
+
+图像处理
+彩影
+ACDSee
+美图秀秀
+光影魔术
+TurboPhot
+
+
+邮件|FTP
+Foxmail
+Koomail
+CuteFTP
+LeapFTP
+FlashFXP
+
+
+股票|理财
+大智慧
+同花顺
+操盘手
+手机炒股
+天天理财
+
+
+游戏娱乐
+联众大厅
+浩方平台
+腾讯游戏
+中国游戏
+V S竞技
+
+
+娱乐共享
+久尚视频
+Poco
+KuGoo
+魔幻盒子
+PP点点通
+
+
+
+
+
+技术开发精彩专题
+
+ 
+微软中国研发集团故事会
+ 
+
+Google2009年开发者日
+ 
+
+
+解读Windows Azure的企业应用 
+
+
+Windows嵌入式专家与你面对面
+
+ 
+Visual Studio 2010抢鲜体验 
+
+
+如何升级到SQL Server 2008
+
+ 
+寻找下一代CTO 向冠军冲刺
+
+ 
+SQL Server 2008数据挖掘指南 
+
+
+IE8开发特性面面观
+
+ 
+SQL Server 2008备份和恢复 
+
+
+SQL Server 2008性能优化 
+
+
+.NET平台2008年大事记
+
+
+
+
+
+
+
+
+ 
+视觉焦点
+ 
+
+团队兵法：深度解析VSTS
+ 
+
+活动：走进IBM中国实验室
+ 
+
+甲骨文74亿美元收购Sun
+ 
+
+《开源时代》第八期
+ 
+
+Azure云平台企业应用 
+
+
+VB.NET路在何方？
+ 
+
+
+
+编程开发下载月排行TOP10
+
+
+
+ 易语言 V5.0 简体中文正式版
+
+
+
+ 中文女声语音库 v3.5
+
+
+
+ TurboC V2.0 Build0703 汉化版
+
+
+
+ 动软.Net代码生成器 V2.41
+
+
+
+ TurboC/C++forWindows集成实验与学习环境..
+
+
+
+ 豪华网络商城购物网站管理系统破解版 V2..
+
+
+
+ 流程图制作工具 V1.2
+
+
+
+ 小颖JAVA源代码反编译超级引挚 V1.4 标准..
+
+
+
+ Access数据库密码破解
+
+
+
+ 学校网站全站源码正式下载版 V2008
+
+
+
+Linux软件下载月排行TOP10
+
+
+
+ 雨林木风 Ylmf OS CHS 2.0 简体中文版 |..
+
+
+
+ GRUB for DOS
+
+
+
+ wingrub V0.2 build 6 for Linux
+
+
+
+ 红旗linux桌面版4.1
+
+
+
+ 超小Linux发行版 Tiny Core Linux V1.2
+
+
+
+ gcc for Linux V4.0.1
+
+
+
+ LumaQQ for iPhone/iPod Touch 20080426..
+
+
+
+ Redhat linux 7.3 专业版
+
+
+
+ Redhat linux Fedora core 5简体中文版
+
+
+
+ Mac下的PhotoShop The GIMP V2.4.6
+
+
+
+友情推介
+
+
+
+
+ 
+
+
+
+
+盛拓传媒简介 | 关于IT168 | 合作伙伴 | 广告服务 | 使用条款 | 投稿指南 | 诚聘精英 | 联系我们 | 苹果论坛 | 网站导航 | 往日回顾 
+
+北京皓辰网域网络信息技术有限公司. 版权所有 京ICP证:060528号 北京市公安局海淀分局网监中心备案编号：1101082001
+ 广播电视节目制作经营许可证(京) 字第1234号 中国互联网协会会员 测绘资质证书（乙测资字11005067） 网络文化经营许可证 
+
+网络110 报警服务 国家备案 百度联盟-认证 
+

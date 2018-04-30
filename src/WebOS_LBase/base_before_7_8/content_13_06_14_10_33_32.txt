@@ -1,0 +1,982 @@
+
+   忘记密码   免费注册	查看新帖 | 论坛精华区
+
+
+  平台： 论坛 博客 问答 文库 沙龙 自测 下载 订阅 搜索 频道： 自动化运维 虚拟化 服务器 储存备份 C/C++ PHP MySQL 嵌入式 Linux系统	
+  
+·时代云主机，全国最低价，58元/月
+·突破云计算和虚拟化环境下的网络瓶颈
+·告别职场囧态 Linux面试题汇总
+·项目实施工程师与网站系统运维的区别
+›论坛›程序设计›C/C++›自己实现一个RTOS《实时操作系统揭秘》（附源码）
+123456789下一页
+最近访问板块 
+查看: 26206 | 回复: 85
+  
+自己实现一个RTOS《实时操作系统揭秘》（附源码） [复制链接] 0 0
+
+shmilylxx
+
+白手起家
+帖子162主题10精华1可用积分108 专家积分0 在线时间59 小时注册时间2004-07-28最后登录2012-03-05
+问答好友博客消息
+论坛徽章:0
+电梯直达1楼[收藏(0)][报告]
+ 发表于 2009-01-01 22:11:59 |只看该作者 |倒序浏览
+新年伊始， 
+将自己独立实现的一个比较小的RTOS源码贴上来， 
+顺便把原理都讲一讲，希望对在这块工作的朋友有些帮助或者启发 
+大家也给点改进的意见和建议。 
+
+本系列文章的标题叫做 
+《实时操作系统揭秘》 
+
+
+第一篇 前言 
+很多人对老美发明的操作系统顶礼膜拜，捧到了神的地步， 
+市面上也充斥着很多有关操作系统的劣质的译作 
+对其关键部分，大部都语焉不详，隔靴搔痒 
+让更多的人越看越糊涂 
+于是操作系统在人们心中更加高深了 
+
+其实，操作系统远没有这些人想象的那么神秘 
+任务切换，内存管理，文件系统，任务间通讯功能，引导程序等模块， 
+就形成了一个完整的操作系统内核 
+我们在这里就逐一剥一下操作系统的皮， 
+把各个模块的原理，以结合代码的形式，抖给大家看看 
+让大家看清操作系统的一些秘密 
+对某些模块，系统功能有兴趣的同学， 
+也可以发邮件给我，unix.lxx@gmail.com 
+我们一起研究，共同学习... 
+
+
+（注： 
+1，这系列文章， 
+都是按照目前工作中，手头项目的进度 
+以及涉及到的知识点所写出来的， 
+是个类笔记的东西，是业余时间的一个作品 
+
+2，附注的源码， 
+是个人的一个小作品， 
+自己给他取了个不响亮的名字：BenOS 
+并且该系统在自己的Cortex-M3平台测试通过并且运行自己的应用没有问题 
+
+3，BenOS是完全个人独立实现的
+没有抄袭任何其他OS的源码
+）
+
+[ 本帖最后由 shmilylxx 于 2009-1-12 23:09 编辑 ]
+ 
+BenOS.rar
+674.29 KB, 下载次数: 2005
+基于Cortex-M3平台源码
+ 
+BenOS实时操作系统解密.rar
+12.78 KB, 下载次数: 1304
+已有 1 人评分	可用积分	收起理由
+ prolj	 + 5	无论如何，还是要支持的。
+总评分: 可用积分 + 5   查看全部评分
+本版精华
+文库|博客
+自己实现一个RTOS《实时操作系统揭秘》（附源码）转一篇lighttpd1.4.18代码分析ANSI C标准，带索引炉边夜话---多核多线程杂谈以请求首页为例分析lighttpd处理HTTP请求的流程学习使用autotoolslighttpd-1.4.20源码分析[更新于2009-05-20 在第66楼]自己乱涂的 C++ 编程语言思维导图华为面试题(8分钟写出代码)
+不懂就问，
+不会就学。
+如何验证日期（数据）的完全性  |  求个sql  |  新copy client ，登录后无法运行事务，“您 ...  |  更改redolog大小后如何对比前后性能？  
+shmilylxx
+
+白手起家
+帖子162主题10精华1可用积分108 专家积分0 在线时间59 小时注册时间2004-07-28最后登录2012-03-05
+问答好友博客消息
+论坛徽章:0
+2楼[报告]
+ 发表于 2009-01-01 22:14:27 |只看该作者
+第二篇 任务切换，如何才能得到MM的青睐 
+
+操作系统最核心的功能就是任务切换 
+
+何为任务切换，为啥要任务切换 
+这个就简单说： 
+引入操作系统，就是为了让单个CPU可以运行多个任务 
+但是这些任务是并发运行的， 
+每个小猪吃一口奶，就让给另一个小猪吃一口 
+大家轮流来，宏观看起来就像所有的小猪都在同时吃奶一样 
+
+任务A正在运行，时间该任务B运行了， 
+这个时候，操作系统就需要做任务切换 
+于是，操作系统就保存 任务A目前跑到了哪一步，运行时候，所有的参数是啥子 
+然后在任务B恢复上次运行到的位置，并且恢复上次停止运行时间点的所有参数 
+再打任务B一鞭子，任务B就像没停止过一样，开始欢快的跑了。 
+
+这些，就是任务切换所需的全部步骤 
+针对目前我们使用的CORTEX-M3平台而言 
+任务切换就是， 
+首先 
+1，计算当前就绪态任务列表中，优先级最高的任务， 
+  再判断是否需要切换任务 
+2，保存当前任务运行相关的寄存器，大概十几个（入栈） 
+  保存当前任务运行地址（PC指针，其实在1里面保存了） 
+  保存当前的堆栈指针 
+3，递减各个任务等待的时间片计数器； 
+4，其他资源占用情况统计（死锁的解除） 
+5，然后将堆栈指针指向新任务的堆栈 
+6，恢复2中保存的所有寄存器和其他数据（出栈） 
+7，其他系统功能相关的东西 
+再给出例程代码： 
+        PUSH {R0-R15} ;(2) 
+        LDR    R4, =OSTCBCur          ; OSTCBCur->OSTCBStkPtr = SP; 
+        LDR    R4, [R4] 
+        STR    SP, [R4]                ; 
+
+        LDR    R6, =OSTCBHighRdy  ; SP=OSTCBHighRdy->OSTCBStkPtr 
+        LDR    SP, [R6] 
+
+        POP {R0-R15}            ; (6) 
+        BX      LR                      ; RET，此时堆栈恢复了，寄存器恢复了，PC指针也恢复了， 
+                                        ; 状态也恢复了，旧任务就可以继续欢乐的执行了。 
+
+注：这里的堆栈指针都是另外赋值操作的， 
+    绝对不能使用出栈入栈的方式保存恢复 
+    因为出栈入栈操作会自动修改堆栈指针... 
+
+这里主要是（2），（6）的代码，并且没有考虑模式切换和堆栈指针切换， 
+其他步骤，一般实现都是在这切换之前进行。 
+
+任务切换在很多时候都会进行，常说的任务切换就是在时间定时中断时候进行， 
+芯片（或者由外部时钟）会产生一个定时中断，可以设置每秒多少次， 
+就是在这个中断处理函数中进行任务切换。 
+其他的任务切换，发生在，等待消息，任务延时，或者手动强制任务切换等等时候 
+这些不同的切换时机都有些小差别，不过本质上是一样的。 
+
+够简单吧？ 
+其实实际上还有一些幕后工作并没有列出， 
+比如，内核要维护两个链表，其一是就绪态任务的表，其二是等待态任务的表 
+每个TICK中断的时候，等待态表中的每个等待TICKS计数器就减一， 
+当计数为0时，将其任务移动到就绪态表中来。 
+还是有其他一些繁琐的工作都要做，任务切换锁定检测，死锁检测，优先级反转的避免等； 
+并且死锁和优先级反转问题在实时系统中是个很深刻的课题，有兴趣的不妨自己做一做。 
+另外，指出一点：是依据时间片的操作系统，还是据优先级的抢占式操作系统， 
+还是混合多种切换算法的操作系统的根本区别就是其切换算法， 
+先进先出，后进先出，最短等待时间，最短平均等待时间，等等算法在这里都有用武之地！ 
+
+下面是自己的一个实现： 
+
+/*
+*时钟中断函数
+*/
+void SysTick_Handler()
+{
+        INT32        index;
+        TCB                *pTCB;
+        INT8U        flagFirstTask=0;
+        INT_Stat  stat = 0;
+
+        stat = BenOS_INT_Save();
+
+        if (BenOSScheLock != 0)
+        {
+                BenOS_INT_Restore(stat);
+                return;
+        }
+
+        /*在时钟中断中，必须将所有时延都--*/
+        for (index = 0;index < TaskNUM;index++)
+        {
+                pTCB = BenOSTCBTable+index;
+                /*该任务在睡眠状态，而当前的调用是在时钟中断中*/
+                if (pTCB->TCBDelay > 0)
+                {
+                        pTCB->TCBDelay--;
+                }
+                else
+                {
+                        if (flagFirstTask==0)
+                        {
+                                BenOSNewTCB = pTCB;
+                                flagFirstTask = 1;
+                        }
+                }
+                
+        }
+
+        if (BenOSNewTCB != BenOSCurTCB)
+        {
+                OSIntCtxSw();
+        }
+        BenOS_INT_Restore(stat);
+}
+
+/*
+*在非中断中 调度新的任务 并且切换
+*/
+void TaskSche()
+{
+        INT_Stat  stat = 0;
+
+        stat = BenOS_INT_Save();
+        if (BenOSScheLock != 0)
+        {
+                BenOS_INT_Restore(stat);
+                return;
+        }                
+
+        if (BenOSNewTCB != BenOSCurTCB)
+        {
+                OSIntCtxSw();
+        }
+        BenOS_INT_Restore(stat);
+}
+
+__asm void OSCtxSw() 
+{ 
+        LDR    R4, =NVIC_INT_CTRL    
+        LDR    R5, =NVIC_PENDSVSET 
+        STR    R5, [R4]          ;激活PENDSVC中断，开始切换任务 
+        BX      LR 
+        NOP 
+} 
+
+
+__asm void PendSV_Handler() 
+{ 
+        MRS    R0, PSP                ; PSP is process stack pointer 
+
+        SUB    R0, R0, #0x20          ; save remaining regs r4-11 on process stack 
+        STM    R0, {R4-R11} 
+
+        LDR    R4, =BenOSCurTCB        ; OSTCBCur->OSTCBStkPtr = SP; 
+        LDR    R4, [R4] 
+        STR    R0, [R4]                ; R0 is SP of process being switched out 
+
+        LDR    R4, =BenOSCurTCB        ; BenOSCurTCB  = BenOSNewTCB; 
+        LDR    R6, =BenOSNewTCB 
+        LDR    R6, [R6] 
+        STR    R6, [R4] 
+
+        LDR    R0, [R6]                ; R0 is new process SP; SP = OSTCBHighRdy->OSTCBStkPtr; 
+        LDM    R0, {R4-R11}            ; restore r4-11 from new process stack 
+        ADD    R0, R0, #0x20 
+        MSR    PSP, R0                ; load PSP with new process SP 
+        ORR    LR, LR, #0x04          ; ensure exception return uses process stack 
+        BX      LR                      ; exception return will restore remaining context 
+        NOP 
+} 
+
+事实上，这里只是实现的一部分，在后面展示的源码中，会有其他的部分。
+不懂就问，
+不会就学。
+安全技术大系:漏洞管理| Go语言将成未来十年最流行语言么 | 三种重复数据删除技术比较 | 研究 MySQL 5.6 查询问题
+shmilylxx
+
+白手起家
+帖子162主题10精华1可用积分108 专家积分0 在线时间59 小时注册时间2004-07-28最后登录2012-03-05
+问答好友博客消息
+论坛徽章:0
+3楼[报告]
+ 发表于 2009-01-01 22:15:27 |只看该作者
+第三篇 世界的起源 任务如何启动 
+
+其实绝大部分操作系统的实现步骤都是这样的： 
+先压点合适的东西进堆栈----堆栈的初始化 
+（这步放在任务初始化的时候----切记关任务切换和定时中断） 
+只要恢复寄存器和其他数据之后 
+SP指针正确，状态寄存器没异常， 
+直接将PC指向新任务的第一条指令，不就行了嘛。 
+看下我们CORTEX-M3平台上的实现：（堆栈生长方向是--，跟X86相反） 
+/*把堆栈初始化模块用汇编写一遍，但愿性能会高点*/ 
+__asm    STACK_TYPE *TaskStkInit (void (*task),STACK_TYPE *ptos) 
+{ 
+        PUSH    {R4-R6,LR} 
+        MOV      R4,R0 
+
+        MOV      R0,R1 
+        MOV      R5,#0x1000000 
+        STR      R5,[R0,#0] 
+
+        SUBS    R0,R0,#4 
+        STR      R4,[R0,#0] 
+        
+        MVN      R5,#1 
+        SUBS    R0,R0,#4 
+        STR      R5,[R0,#0] 
+        
+        MOV      R5,#0x2 
+        SUBS    R0,R0,#4 
+        STR      R5,[R0,#0] 
+        
+        MOV      R5,#0x3 
+        SUBS    R0,R0,#4 
+        STR      R5,[R0,#0] 
+        
+        MOV      R5,#0x4 
+        SUBS    R0,R0,#4 
+        STR      R5,[R0,#0] 
+
+        ASRS    R5,R5,#1 
+        SUBS    R0,R0,#4 
+        STR      R5,[R0,#0] 
+        
+        SUBS    R0,R0,#4 
+        STR      R1,[R0,#0] 
+        
+        MOV      R5,#0x5 
+        SUBS    R0,R0,#4 
+        STR      R5,[R0,#0] 
+
+        MOV      R5,#0x6 
+        SUBS    R6,R0,#4 
+        MOV      R0,R6 
+        STR      R5,[R6,#0] 
+        
+        MOV      R5,#0x7 
+        SUBS    R0,R0,#4 
+        STR      R5,[R0,#0] 
+        
+        MOV      R5,#0x8 
+        SUBS    R0,R0,#4 
+        STR      R5,[R0,#0] 
+
+        MOV      R5,#0x8 
+        SUBS    R0,R0,#4 
+        STR      R5,[R0,#0] 
+
+        MOV      R5,#0x10 
+        SUBS    R0,R0,#4 
+        STR      R5,[R0,#0] 
+
+        MOV      R5,#0x11 
+        SUBS    R0,R0,#4 
+        STR      R5,[R0,#0] 
+
+        MOV      R5,#0x12 
+        SUBS    R6,R0,#4 
+        MOV   R0,R6 
+        STR      R5,[R6,#0] 
+        POP      {R4-R6,PC} 
+
+}启动这个任务,就可以直接使用任务切换源码的后半部分(因为没有任务需要保存) 
+这样PC就指向了新任务的入口， 
+新任务可以开始运行啦！ 
+世界就这样形成了... 
+
+实际启动是使用SVC中断启动 
+代码如下： 
+
+__asm void StartTask() 
+{ 
+        LDR    R4, =NVIC_SYSPRI2      ; set the PendSV exception priority 
+        LDR    R5, =NVIC_PENDSV_PRI 
+        STR    R5, [R4] 
+
+        MOV    R4, #0                  ; set the PSP to 0 for initial context switch call 
+        MSR    PSP, R4 
+
+        LDR    R4, =SYS_TICKS  ；设置时钟节拍频率    
+        LDR    R5, =NVIC_SYSTICK_LOAD 
+        STR    R4, [R5] 
+
+        MOV    R4, #0x07      
+        LDR    R5, =NVIC_SYSTICK_CTRL 
+        STR    R4, [R5] 
+
+      SVC 0    ；呼叫SVC中断 
+      NOP 
+} 
+
+/*SVC中断入口*/ 
+__asm void SVC_Handler() 
+{ 
+      LDR R6,=BenOSCurTCB 
+        LDR    R0, [R6]                ; R0 is new process SP; SP = OSTCBHighRdy->OSTCBStkPtr; 
+        LDR    R0, [R0]                ; R0 is new process SP; SP = OSTCBHighRdy->OSTCBStkPtr; 
+
+        LDM    R0, {R4-R11}            ; restore r4-11 from new process stack 
+        ADD    R0, R0, #0x20 
+        MSR    PSP, R0                ; load PSP with new process SP 
+        ORR    LR, LR, #0x04          ; ensure exception return uses process stack 
+        BX      LR                      ; exception return will restore remaining context 
+}
+不懂就问，
+不会就学。
+安全技术大系:漏洞管理| Go语言将成未来十年最流行语言么 | 三种重复数据删除技术比较 | 研究 MySQL 5.6 查询问题
+shmilylxx
+
+白手起家
+帖子162主题10精华1可用积分108 专家积分0 在线时间59 小时注册时间2004-07-28最后登录2012-03-05
+问答好友博客消息
+论坛徽章:0
+4楼[报告]
+ 发表于 2009-01-01 22:17:04 |只看该作者
+第四篇 任务延时的实现 
+这次，我们开始关心一个具体的系统接口的实现 
+OSTimeDly (INT16U ticks) 
+
+其实任务延时的实现已经在前面节拍中断中有所体现 
+在任务运行的过程中，常常需要任务等待很短的时间，再干活 
+比如 
+while(1 ) 
+{ 
+  msg=GetMsg(); 
+  if (!msg) 
+     OSTimeDly(10);/*等待10个时钟*/ 
+  else 
+  { 
+    dosomething(); 
+    OSTimeDly(3);/*等待3个时钟*/ 
+  } 
+} 
+那么，任务如何知道自己该等待了？ 
+如何知道自己等待了多久？ 
+如何继续运行？ 
+sleepMS()又隐藏了哪些秘密呢？ 
+
+实现这些东西的原理是这样的 
+在每个任务TCB结构中， 
+都存在一个OSTCBDlyTicks元素 
+这个元素在每次定时中断切换的时候就减一 
+当减到0时，这个任务就可以继续运行了 
+具体的步骤如下： 
+1，OSTCBDlyTicks赋值为该等待的时钟次数 
+2，将该任务从就绪表中删除 
+3，将该任务添加到等待表中 
+4，在每次定时中断时，将所有等待表中任务的OSTCBDlyTicks减一， 
+  这样每个任务都知道自己还将等待多久 
+5，当某个任务的OSTCBDlyTicks减到了0，就将其在等待表中删除，添加到就绪表 
+这样，这个任务进入到了可运行的列表里面，时机到了，就会运行。 
+sleepMS的实现，其实很简单： 
+每个时钟中断的时间是固定的 
+计算就能得出sleepMS该等待的ticks次数啦 
+主要代码如下： 
+sleepMS(int ms) 
+{ 
+    ticks=ms*OS_TICKS_PER_SEC/1000; 
+    OSTimeDly(ticks); 
+} 
+
+源码如下： 
+
+/*目前设计是最大等待次数为255个时钟片*/
+void  BenOSTimeDly (INT32 ticks)
+{
+        INT_Stat  stat = 0;
+        INT32          index;
+        TCB                  *pTCB;
+        
+        stat = BenOS_INT_Save();
+        BenOSCurTCB->TCBDelay = ticks;
+
+        /*从当前任务向后遍历，第一最大的优先级就是需要调度进去的任务*/
+        for (index = 0/*(BenOSCurTCB- BenOSTCBTable)+1*/; index < TaskNUM;index++)
+        {
+                pTCB = BenOSTCBTable+index;
+                if ((pTCB->TCBDelay == 0) && (pTCB->TaskStat !=BenOS_Task_Pend)          )
+                {        
+                        BenOSNewTCB = pTCB;
+
+                        break;
+                }
+        }
+        BenOS_INT_Restore(stat);
+        TaskSche();        
+}
+不懂就问，
+不会就学。
+安全技术大系:漏洞管理| Go语言将成未来十年最流行语言么 | 三种重复数据删除技术比较 | 研究 MySQL 5.6 查询问题
+shmilylxx
+
+白手起家
+帖子162主题10精华1可用积分108 专家积分0 在线时间59 小时注册时间2004-07-28最后登录2012-03-05
+问答好友博客消息
+论坛徽章:0
+5楼[报告]
+ 发表于 2009-01-01 22:17:44 |只看该作者
+第五篇，信号量的实现 
+这里直接使用开关中断作为临界处理， 
+不值得推荐，但是比抄袭别人的方案要好点，哈哈~ 
+
+实现很直观，代码告诉你一切！ 
+
+#include "BenOSSemaphore.h"
+
+
+/*当前信号量列表*/
+SEMAPHORE_TYPE        BenOSSemaphore[MAX_SEM_NUM];                                
+/*
+* 创建信号量
+*/
+SEMAPHORE_TYPE*        CreateSemaphore(INT32 conuter)
+{
+        INT_Stat  stat = 0;
+        INT32U         index;
+
+        if (conuter < 0)
+        {
+                return 0;
+        }
+        
+        stat = BenOS_INT_Save();
+        for(index=0;index<MAX_SEM_NUM;index++)
+        {        
+                if (BenOSSemaphore[index]==-1)
+                {
+                        BenOSSemaphore[index] = conuter;
+                        BenOS_INT_Restore(stat);
+                        return &(BenOSSemaphore[index]);
+                }
+        }
+        
+        BenOS_INT_Restore(stat);
+        return        (SEMAPHORE_TYPE*)NULL;
+}
+
+INT8 DeleteSemaphore(SEMAPHORE_TYPE* pSem)
+{
+        INT_Stat  stat = 0;
+
+        stat = BenOS_INT_Save();
+
+        /*信号量不存在*/
+        if (pSem == NULL)
+        {
+                BenOS_INT_Restore(stat);
+                return 0;
+        }
+        /*当且仅当信号量计数为0的时候，才能释放该信号量*/
+        if ((*pSem) != 0)
+        {
+                BenOS_INT_Restore(stat);
+                return 0;
+        }
+        else
+        {
+                (*pSem) = (SEMAPHORE_TYPE)-1;
+                BenOS_INT_Restore(stat);
+                return 1;
+        }
+}
+
+
+/*这个是一个不完全精确的实现*/
+/*其超时时间不会非常精确*/
+INT8 WaitSemaphore(SEMAPHORE_TYPE* pSem,INT32U timeout)
+{
+        INT32U         index;
+        INT32U  stat = 0;
+        for (index = 0;index < timeout;index++)
+        {
+                stat = BenOS_INT_Save();
+                if ((*pSem) > 0)
+                {
+                        (*pSem)--;
+                        BenOS_INT_Restore(stat);
+                        return 1;/*获取到了信号量*/
+                }
+                else
+                {
+                        /*等待一个时间片*/
+                        BenOS_INT_Restore(stat);
+                        BenOSTimeDly(1);
+                }
+        }
+        
+        return 0;
+}
+
+/*不等待，立即返回是否信号量能否获取*/
+INT8 GetSemaphore(SEMAPHORE_TYPE* pSem)
+{
+        INT32U  stat = 0;
+
+        stat = BenOS_INT_Save();
+
+        if ((*pSem) > 0)
+        {
+                (*pSem)--;
+                BenOS_INT_Restore(stat);
+                return 1;/*获取到了信号量*/
+        }
+        BenOS_INT_Restore(stat);
+        return 0;
+}
+
+/*释放一个信号量*/
+INT8 PostSemaphore(SEMAPHORE_TYPE* pSem)
+{
+        INT_Stat  stat = 0;
+
+        stat = BenOS_INT_Save();
+        (*pSem)++;
+        BenOS_INT_Restore(stat);
+
+        return 1;
+}
+不懂就问，
+不会就学。
+安全技术大系:漏洞管理| Go语言将成未来十年最流行语言么 | 三种重复数据删除技术比较 | 研究 MySQL 5.6 查询问题
+shmilylxx
+
+白手起家
+帖子162主题10精华1可用积分108 专家积分0 在线时间59 小时注册时间2004-07-28最后登录2012-03-05
+问答好友博客消息
+论坛徽章:0
+6楼[报告]
+ 发表于 2009-01-01 22:18:50 |只看该作者
+第六篇 消息队列的实现 
+
+消息队列是嵌入式编程中常用的工具， 
+实现手段有很多，这里使用最直观，最简单的实现方式。 
+UCOS和RTX都使用了信号量的队列实现， 
+我这里也直接使用中断关闭的临界区来实现 
+（一般商用系统都不会使用这种方式， 
+以后考虑使用Cortex-M3的一些特殊指令来重新实现，
+包括信号量互斥量的实现也在考虑之列） 
+
+#include "BenOSQueue.h"
+
+/*用于对于的标记消息队列是否使用，将来考虑用位来标志*/
+INT8U        MsgQueueFlag[MAX_QUEUE_NUMBER]={0};
+
+/*实际的所有消息队列*/
+EventQ        MsgQueue[MAX_QUEUE_NUMBER];
+
+/*
+* 创建消息队列
+*/
+EventQ*        CreateQueue()
+{
+        INT_Stat  stat = 0;
+        INT32U         index;
+        
+        stat = BenOS_INT_Save();
+        for(index=0;index<MAX_QUEUE_NUMBER;index++)
+        {        
+                /*该消息队列未被使用*/
+                if (MsgQueueFlag[index]==0)
+                {
+                        /*该队列首尾初始化*/
+                        MsgQueue[index].front=0;
+                        MsgQueue[index].rear=0;
+                        BenOS_INT_Restore(stat);
+                        return &(MsgQueue[index]);
+                }
+        }
+        
+        BenOS_INT_Restore(stat);
+        return        (EventQ*)NULL;
+}
+
+INT8 DeleteQueue(EventQ* q)
+{
+        INT_Stat  stat = 0;
+        
+        stat = BenOS_INT_Save();
+
+        /*信号量不存在*/
+        if (q == NULL)
+        {
+                BenOS_INT_Restore(stat);
+                return 0;
+        }
+        /*队列指针越界*/
+        if ((( q-MsgQueue ) < 0)||(( q-MsgQueue ) > (MAX_QUEUE_NUMBER-1)))
+        {
+                BenOS_INT_Restore(stat);
+                return        0;
+        }
+        
+        /*将标记位置0*/
+        MsgQueueFlag[q-MsgQueue] =   (INT8U)0;
+
+        BenOS_INT_Restore(stat);
+        return        1;
+
+}
+
+/*发送一个消息*/
+INT8 SendMessage(EventQ* q,MSG_TYPE msg)
+{
+        INT_Stat  stat = 0;
+        
+        stat = BenOS_INT_Save();
+        /*队列不存在*/
+        if (q == NULL)
+        {
+                BenOS_INT_Restore(stat);
+                return 0;
+        }
+        /*队列指针越界*/
+        if ((( q-MsgQueue ) < 0)||(( q-MsgQueue ) > (MAX_QUEUE_NUMBER-1)))
+        {
+                BenOS_INT_Restore(stat);
+                return        0;
+        }
+
+
+        /*判断队列是否满*/
+        if((q->rear+1)%MAX_MSG_NUMBER==q->front)
+        {        
+                BenOS_INT_Restore(stat);
+                return 0;
+        }
+        else
+        {
+                /*加入一个新的数据*/
+                q->msgQueue[q->rear]=msg;
+                /*将队尾数加1*/
+                q->rear=(q->rear+1)%MAX_MSG_NUMBER;
+                BenOS_INT_Restore(stat);
+                return 1;        
+        }
+}
+
+MSG_TYPE WaitMessage(EventQ *q, INT32U timeout)
+{
+        INT32U         index;
+        INT32U  stat = 0;
+        MSG_TYPE msg;
+
+        
+        for (index = 0;index < timeout+1;index++)
+        {
+                stat = BenOS_INT_Save();
+
+                if (q->front==q->rear)//判断队列是否为空
+                {        
+                        BenOS_INT_Restore(stat);
+                        BenOSTimeDly(1);
+                }
+                else
+                {
+                        msg=q->msgQueue[q->front];//提出队首数据
+                        q->front=(q->front+1)%MAX_MSG_NUMBER;//改变队首
+
+                        BenOS_INT_Restore(stat);
+                        return msg;
+                }
+        }
+
+        BenOS_INT_Restore(stat);
+        return -1        ;
+}
+
+
+
+MSG_TYPE GetMessage(EventQ *q, INT32U timeout)
+{
+        MSG_TYPE msg;
+        INT32U  stat = 0;
+
+        stat = BenOS_INT_Save();
+        if (q->front==q->rear)//判断队列是否为空
+        {        
+                BenOS_INT_Restore(stat);
+                return 0;        
+        }
+        else
+        {
+                msg=q->msgQueue[q->front];//提出队首数据
+                q->front=(q->front+1)%MAX_MSG_NUMBER;//改变队首
+
+                BenOS_INT_Restore(stat);
+                return msg;
+        }
+}
+不懂就问，
+不会就学。
+安全技术大系:漏洞管理| Go语言将成未来十年最流行语言么 | 三种重复数据删除技术比较 | 研究 MySQL 5.6 查询问题
+shmilylxx
+
+白手起家
+帖子162主题10精华1可用积分108 专家积分0 在线时间59 小时注册时间2004-07-28最后登录2012-03-05
+问答好友博客消息
+论坛徽章:0
+7楼[报告]
+ 发表于 2009-01-01 22:19:51 |只看该作者
+第七章 实时性和优先级反转
+实时性和相关的优先级反转问题，
+在实时领域，是个很关键的问题
+
+首先说多任务，
+任务就是让一段“流程”，一般都是一遍又一遍的循环运行（死循环）。
+一次“流程”运行一遍之后，常常会等待一段时间，
+自己休息休息，也让其他任务也运行一下，
+这就是多任务并行。
+（大家都有房子住，这才是和谐社会嘛。）
+
+在多任务的系统之中，实时性，就是让当前最高优先级的任务优先运行；
+若当前最高优先级的任务不是当前正在运行的任务，那么就要给一个时机（时钟中断）,
+让高优先级的任务运行，正在运行的（低优先级）任务等下再运行。
+这就是实时系统中的抢占调度。
+
+实时操作系统的本质就是，
+让当前最高优先级的任务以最快的速度运行！
+（如果有同优先级的任务，则大家轮流运行）
+
+由此看来，实时的多任务设计，难度在于：
+要保证系统性能满足的需求，
+在硬性保证高优先级任务在deadline之前运行完的同时
+也要保证低优先级的任务顺利的完成自己的工作。
+
+当然，这里就提出了优先级反转的问题了
+典型情况如下：
+高优先级的任务A要请求的资源被低优先级任务C所占用，
+但是任务C的优先级比任务B的优先级低
+于是任务B一直运行，比A低优先级的其他任务也一直能运行，
+反而高优先级的任务A不能被运行了。
+
+从实时性上讲，若高优先级在等待一个某个资源，
+那么为了保证高优先级任务能顺利运行，
+则必须要让当前占用该资源的任务赶紧运行下去，直到把资源释放。
+再让高优先级的任务来占用这个资源。
+
+优先级反转在RTOS中是一个很深刻的课题，
+目前还没有非常好的解决方案。
+在这个问题上，目前业界比较典型的做法是VxWorks的做法
+原理如下：
+当任务A请求的资源被任务C所占用的时候
+则将C的优先级提升到任务A的级别，让占有资源的任务先运行，
+这样能在一定程度上解决优先级反转的问题。
+但是这样做，事实上破坏了实时系统里面运行优先级的意义...
+
+其他，有些商业RTOS也提出了一些解决方案
+比如常见的极限优先级方案：
+将使用资源的任务优先级提升到系统最高级别
+使得任何使用该资源的任务都能快速通过
+但是，对优先级意义的破坏性，比优先级继承方案更大！
+
+要是那位朋友有兴趣和勇气，提出了一个自己的好的解决方案，
+那么在实时操作系统的发展史上，定会记录下你的名字。
+
+[ 本帖最后由 shmilylxx 于 2009-1-1 22:22 编辑 ]
+不懂就问，
+不会就学。
+安全技术大系:漏洞管理| Go语言将成未来十年最流行语言么 | 三种重复数据删除技术比较 | 研究 MySQL 5.6 查询问题
+shmilylxx
+
+白手起家
+帖子162主题10精华1可用积分108 专家积分0 在线时间59 小时注册时间2004-07-28最后登录2012-03-05
+问答好友博客消息
+论坛徽章:0
+8楼[报告]
+ 发表于 2009-01-01 22:22:15 |只看该作者
+第八篇 总结 
+
+事实上，这种基础软件方面的工作，在国内，都只做理论， 
+或者说少有人关注，实践的工作很少，基本上都是被国外的UCOS,FREERTOS,RTX,ucLinux概全了 
+而这些又是软件开发方面最核心的内容， 
+我们不关心，那么我们国人的软件开发永远走在老美之后，。 
+这个BenOS尽管不到商用水平，离工业标准很有距离， 
+但是也算是一个尝试，若不尝试，永远不知道味道， 
+我的这个帖子是完全原创的作品，今天才拿出来放到网上 
+希望大家能理性的看到这种实验性质的OS 
+当然，这个BenOS完全自己写的，没有抄袭任何其他OS的源码。 
+
+BenOS目前支持基于优先级抢占式的任务切换， 
+我这边测试的结论显示：任务切换性能高于UCOS 
+因为任务切换运算的所有运算都分布放在系统调用之中， 
+（事实上，UCOS也是基于这种思想，但是没BenOS彻底） 
+
+内存使用量如下：（支持8个任务和8个信号量） 
+      Code (inc. data)  RO Data    RW Data    ZI Data      Debug  Object Name 
+      1100        32          0        32        192      4425  benoscore.o 
+      204        36          0          0          0        244  benoscpu.o 
+      268          6          0          0        32      4258  benossemaphore.o 
+内核代码约2K，OS的内存使用量小于300个字节
+比较适合RAM 10K数量级的实时系统
+
+以上不包括消息队列，消息队列是静态分配，大小可以自己根据应用调整 
+目前在 STM32f101RB 128K-rom 16K-ram 运行稳定。 
+任务的结构如下： 
+typedef struct taskControlBlock 
+{ 
+
+/*当前的栈顶指针*/ 
+STACK_TYPE *pStackTop; 
+
+/*当前优先级*/ 
+PRIORITY_TYPE CurPriority; 
+        
+      /*任务状态*/ 
+INT8U TaskStat; 
+
+/*等待时间片的个数*/ 
+INT32 TCBDelay; 
+
+
+} TCB, TASK_TYPE; 
+
+
+BenOS支持信号量和消息队列， 
+互斥量只是信号量的一个特例（原理上讲），所以没有支持； 
+优先级反转问题的解决没有实现，目前只能在应用中多考虑这点； 
+动态内存分配的接口，没有实现，目前业界有N多方案，可以直接拿来使用，跟平台无关 
+这里主要是考虑到不管那种方案，即考虑实时性，又考虑内存碎片，都不会非常好。 
+
+
+BenOS花了我上个月（08年12月份）所有的业余时间 
+从第一调试到能启动第一个任务，到后面的修修改改，到添加和测试各个模块 
+包括直接使用仿真器观察 任务切换，堆栈使用情况，测试信号量和消息队列 
+另外还移植了公司的一个小的应用项目到平台之上。 
+基本上运行稳定，在CPU高负荷的情况下，连续运行12个小时均正常（其中使用了信号量，消息队列等） 
+
+自己的测试结果： 
+高优先级任务抢占效果明显，比UCOS的抢占更好 
+同样的应用，6个任务同时运行（每个任务运行一圈，等待1个节拍）， 
+1，在UCOS上，6个任务均能运行， 
+低优先级的任务每100个节拍才能运行1次， 
+高优先级的任务越为一个节拍一次 
+
+2，在BenOS上，6个任务均启动了， 
+但是只有4个任务能运行，高优先级的任务为一个节拍一次， 
+而最低优先级的任务两个任务根本抢占不到时钟。
+
+[ 本帖最后由 shmilylxx 于 2009-1-1 22:27 编辑 ]
+不懂就问，
+不会就学。
+安全技术大系:漏洞管理| Go语言将成未来十年最流行语言么 | 三种重复数据删除技术比较 | 研究 MySQL 5.6 查询问题
+c/unix
+
+小富即安
+
+帖子2269主题234精华0可用积分4871 专家积分20 在线时间5539 小时注册时间2008-05-26最后登录2013-06-09
+问答好友博客消息
+论坛徽章:0
+9楼[报告]
+ 发表于 2009-01-01 22:28:15 |只看该作者
+沙发，
+楼主我对你的崇拜犹如
+滔滔江水连绵不绝，
+黄河泛滥一发而不可收拾。
+
+PS.楼主能否贡献源码和整理个chm文档出来。谢谢。
+
+[ 本帖最后由 c/unix 于 2009-1-1 22:29 编辑 ]
+安全技术大系:漏洞管理| Go语言将成未来十年最流行语言么 | 三种重复数据删除技术比较 | 研究 MySQL 5.6 查询问题
+nhuczp
+
+小富即安
+
+帖子2208主题51精华0可用积分4981 专家积分0 在线时间2370 小时注册时间2007-08-08最后登录2012-06-12
+问答好友博客消息
+论坛徽章:0
+10楼[报告]
+ 发表于 2009-01-01 23:01:52 |只看该作者
+原来有一本书叫自己动手写操作系统..
+
+
+支持LZ
+世上本没有最优的算法，只是用的人多了所以不好的也成好的！！
+安全技术大系:漏洞管理| Go语言将成未来十年最流行语言么 | 三种重复数据删除技术比较 | 研究 MySQL 5.6 查询问题
+    热门内容推荐
+  IT168产品库推荐：苹果 iPod touch4(8G)  摩托罗拉 XT615  三星 i9003  索尼爱立信 X8  华为 S8600 火花  现代博恩 XB-D04  
+123456789下一页返回列表
+ChinaUnix.net›论坛›程序设计›C/C++›自己实现一个RTOS《实时操作系统揭秘》（附源码）
+高级模式
+BColorImageLinkQuoteCodeSmilies
+您需要登录后才可以回帖 登录 | 注册  
+发表回复 回帖后跳转到最后一页
+北京皓辰网域网络信息技术有限公司. 版权所有 京ICP证:060528号 北京市公安局海淀分局网监中心备案编号：1101082001
+广播电视节目制作经营许可证(京) 字第1234号 中国互联网协会会员  联系我们： 
+感谢所有关心和支持过ChinaUnix的朋友们 转载本站内容请注明原作者名及出处
+清除 Cookies - ChinaUnix - Archiver - WAP - TOP
+  
+

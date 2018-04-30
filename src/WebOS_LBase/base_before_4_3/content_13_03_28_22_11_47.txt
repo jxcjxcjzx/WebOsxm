@@ -1,0 +1,316 @@
+ 蒋欣呈邮件99+个人中心好友消息退出蒋欣呈退出长腿妖姬魅惑写真 发博文  博文        ×推荐：悦博吴仁宝华西村传奇如何鉴赏美酒
+推荐：悦博吴仁宝华西村传奇如何鉴赏美酒Follow Kobe Bryant
+http://blog.sina.com.cn/rcplusplus [订阅][手机订阅]首页 博文目录 图片 关于我个人资料 
+ FollowKobeBryant 
+Qing 微博 
+加好友 发纸条 
+
+写留言 加关注 
+
+
+博客等级： 博客积分：1202 博客访问：28,202 关注人气：27 
+精彩图文 
+韩国泰迪熊艺术馆
+绍兴醉人夕阳
+
+新浪Qing
+
+柔情似水伊甸园
+
+新浪Qing
+
+沙滩比基尼盛宴
+
+新浪Qing
+
+日本八音盒殿堂
+
+新浪Qing
+
+香港美食攻略
+
+新浪Qing
+
+最美樱花校园
+
+新浪Qing
+
+
+查看更多>>
+相关博文 
+365原创：30岁的第一年
+博客365
+香港扫货攻略，教你如何宰商家
+silly
+C Programming Exercises(转)
+张扬_njupt
+更多>>
+推荐博文 
+我为什么要在课堂上教学生戴安全
+方刚
+呼伦贝尔三月暴风雪 积雪深度
+天下雨寒
+给女人拎包与国家形象
+章文的文章
+20130327唐师曾：季羡林
+唐师曾
+阿房宫，拆
+牛亚皓
+（时事快评）中国妈妈的美国房子
+春城时评
+奥巴马政府和伍德华兹的新闻战争
+袁晓明_彼岸随想
+文静的“俏皮”不大妥当
+潮白
+由"媳妇的美好时代&
+杨亚军
+中国政协的彷徨与尴尬
+秦前红
+
+
+经典麻辣川味水煮牛肉
+
+
+瘦西湖游人如织踏春赏景
+
+
+宅男女神苍井空私生活
+
+
+早春二月赏海棠
+
+
+雨后漫步西湖太子湾
+
+
+自制纯天然浓香花生酱
+
+查看更多>>
+谁看过这篇博文 
+
+蒋欣呈
+0分钟前
+
+xuyucool
+2月7日
+
+史锐
+9月7日
+
+草小花
+4月1日
+
+Joyce_…
+4月1日
+
+159***…
+3月19日
+
+蔺旭
+1月13日
+
+正文 字体大小：大 中 小 
+C/C++编程练习 - 二叉树转换为双向链表(2011-12-05 16:59:00)转载▼标签： c/c编程练习 分类： 【C/C＋＋】  
+现有一棵二元查找树，将该二元查找树转换成一个排序的双向链表。要求不能创建任何新的结点，只调整指针的指向。比如将二元查找树
+
+    10
+
+   / \
+
+   6 14
+
+  /\ /\
+
+4 8 12 16
+
+转换成双向链表4=6=8=10=12=14=16。
+
+ 
+
+
+#include <iostream>
+#include <stdlib.h>
+#include <time.h>
+#include <assert.h>
+
+using namespace std;
+
+typedef struct TreeNode
+{
+    struct TreeNode *left;
+    struct TreeNode *right;
+    int val;
+}TreeNode, *PTreeNode;
+
+PTreeNode AllocTreeNode(int val);
+void InsertNode(PTreeNode& root, int val);
+void MidVisit(PTreeNode root);
+int GetRand();
+void TreeToList(PTreeNode root, PTreeNode& first, PTreeNode& last);
+
+#define CNT 40
+
+int main()
+{
+    srand(static_cast<unsigned>(time(NULL)));
+    PTreeNode root = NULL;
+
+    for(int i=0;i<CNT;i++)
+    {
+        int val = GetRand();
+        cout<<val<<" ";
+        InsertNode(root, val);
+    }
+    cout<<"\n";
+
+    MidVisit(root);
+    cout<<"\n";
+
+    PTreeNode pfirst = NULL;
+    PTreeNode plast = NULL;
+    TreeToList(root, pfirst, plast);
+
+    while (pfirst)
+    {
+        cout<<pfirst->val<<" ";
+        pfirst = pfirst->right;
+    }
+    cout<<"\n";
+    while(plast)
+    {
+        cout<<plast->val<<" ";
+        plast = plast->left;
+    }
+    cout<<"\n";
+    return 0;
+}
+
+PTreeNode AllocTreeNode(int val)
+{
+    PTreeNode pNode = (PTreeNode)malloc(sizeof(TreeNode));
+    pNode->left = pNode->right = NULL;
+    pNode->val = val;
+    return pNode;
+}
+
+void InsertNode(PTreeNode& root, int val)
+{
+    if(root!=NULL)
+    {
+        if(val < root->val)
+            InsertNode(root->left, val);
+        else
+            InsertNode(root->right, val);
+    } else {
+        root = AllocTreeNode(val);
+    }
+}
+
+void MidVisit(PTreeNode root)
+{
+    if (root)
+    {
+        MidVisit(root->left);
+        cout<<root->val<<" ";
+        MidVisit(root->right);
+    }
+}
+
+int GetRand()
+{
+    return rand() % 100;
+}
+
+void TreeToList(PTreeNode root, PTreeNode& first, PTreeNode& last)
+{
+    if(root){
+        first = last = root; //首先将first,last 设置为root
+        if(root->left){ //存在左子树
+            PTreeNode firstOfLeftList = NULL;
+            PTreeNode lastOfLeftList = NULL;
+            TreeToList(root->left, firstOfLeftList, lastOfLeftList);
+            assert(firstOfLeftList!=NULL);
+            assert(lastOfLeftList!=NULL);
+            root->left = lastOfLeftList;
+            lastOfLeftList->right = root;
+            first = firstOfLeftList;
+        }
+        if(root->right){ //存在右子树
+            PTreeNode firstOfRightList = NULL;
+            PTreeNode lastOfRigthList = NULL;
+            TreeToList(root->right, firstOfRightList, lastOfRigthList);
+            assert(firstOfRightList!=NULL);
+            assert(lastOfRigthList!=NULL);
+            root->right = firstOfRightList;
+            firstOfRightList->left = root;
+            last = lastOfRigthList;
+        }
+    }
+    return;
+}
+
+分享： 分享到新浪Qing 0
+喜欢
+
+阅读(83)┊ 评论 (0)┊ 收藏(0) ┊转载(0) ┊ 喜欢▼ ┊打印┊举报 已投稿到：  排行榜  
+
+转载列表：
+转载 
+转载是分享博文的一种常用方式...
+
+前一篇：C/C++ 练习题 (改错题3例)后一篇：[转载]MyEclipse+Struts+Hibernate+Mysql开发环境配置
+评论 重要提示：警惕虚假中奖信息|[商讯]我有明星气势签名[发评论]当第一个评论者吧！  抢沙发>>
+
+发评论 [商讯]爱心签名换梦想，天天派奖|[商讯]提高博客人气新方法蒋欣呈 :
+  更多>>
+
+登录名： 密码： 找回密码 注册 记住登录状态
+昵   称：
+
+ 分享到微博    评论并转载此博文
+
+验证码： 请点击后输入验证码 收听验证码 
+匿名评论发评论 
+以上网友发言只代表其个人观点，不代表新浪网的观点或立场。
+< 前一篇
+C/C++ 练习题 (改错题3例)后一篇 >
+[转载]MyEclipse+Struts+Hibernate+Mysql开发环境配置
+  新浪BLOG意见反馈留言板　不良信息反馈　电话：4006900000 提示音后按1键（按当地市话标准计费）　欢迎批评指正
+
+新浪简介 | About Sina | 广告服务 | 联系我们 | 招聘信息 | 网站律师 | SINA English | 会员注册 | 产品答疑 
+
+Copyright © 1996 - 2013 SINA Corporation, All Rights Reserved
+
+新浪公司 版权所有
+
+
+X分享到...选择其他平台 >>
+
+博客[发博文]相册[发图片]播客[发视频][录视频]微博Qing关于我
+修改头像昵称
+
+修改登录密码
+
+账号安全设置
+
+
+[公告] 新浪邀你一起共度中秋活动>>[通知] 新浪2010邀你一起共度中秋活动...>>还没有消息全部消息评论留言好友邀请纸条邮箱系统消息写365
+长微博
+微语录
+九宫格
+发照片
+发视频
+发商品
+博文博主音乐视频播主 最近喜欢了的博主：
+加载中…分享到X
+腾讯微博一键通新浪微博QQ空间人人网天涯凤凰微博朋友网人民微博豆瓣网搜狐微博新华微博手机网易微博开心网百度空间QQ好友更多平台... (130)bShareQing博客转载原文采编长微博分享到新浪Qing分享到新浪微博为了您的账号安全，请绑定邮箱
+幻灯播放关闭消息
+查看全部忽略
+通知
+
+
+
+
+
+
+

@@ -1,0 +1,895 @@
+百度首页|手机知道|登录注册
+
+新闻网页贴吧知道音乐图片视频地图百科文库经验
+提问
+
+百度知道 > 电脑/网络 > 编程语言 > JAVA相关
+9人同问
+java反射机制的实现原理
+2010-05-04 22:20提问者： googler29 |浏览次数：27045次 | 该问题已经合并到>>
+我来帮他解答
+满意回答
+2010-05-04 22:26
+反射机制:所谓的反射机制就是java语言在运行时拥有一项自观的能力。通过这种能力可以彻底的了解自身的情况为下一步的动作做准备。下面具体介绍一下java的反射机制。这里你将颠覆原来对java的理解。 
+Java的反射机制的实现要借助于4个类：class，Constructor，Field，Method；其中class代表的时类对 象，Constructor－类的构造器对象，Field－类的属性对象，Method－类的方法对象。通过这四个对象我们可以粗略的看到一个类的各个组 成部分。
+
+Class：程序运行时，java运行时系统会对所有的对象进行运行时类型的处理。这项信息记录了每个对象所属的类，虚拟机通常使用运行时类型信息选择正 确的方法来执行（摘自：白皮书）。但是这些信息我们怎么得到啊，就要借助于class类对象了啊。在Object类中定义了getClass()方法。我 们可以通过这个方法获得指定对象的类对象。然后我们通过分析这个对象就可以得到我们要的信息了。
+
+比如：ArrayList arrayList;
+
+Class clazz = arrayList.getClass();
+
+然后我来处理这个对象clazz。
+
+当然了Class类具有很多的方法，这里重点将和Constructor，Field，Method类有关系的方法。
+
+Reflection 是 Java 程序开发语言的特征之一，它允许运行中的 Java 程序对自身进行检查，或者说“自审”，并能直接操作程序的内部属性。Java 的这一能力在实际应用中也许用得不是很多，但是个人认为要想对java有个更加深入的了解还是应该掌握的。
+
+1．检测类：
+
+reflection的工作机制
+
+考虑下面这个简单的例子，让我们看看 reflection 是如何工作的。
+
+import java.lang.reflect.*;
+
+public class DumpMethods {
+
+public static void main(String args[]) {
+
+try {
+
+Class c = Class.forName(args[0]);
+
+Method m[] = c.getDeclaredMethods();
+
+for (int i = 0; i < m.length; i++)
+
+System.out.println(m[i].toString());
+
+} catch (Throwable e) {
+
+System.err.println(e);
+
+}
+
+}
+
+}
+
+按如下语句执行：
+
+java DumpMethods java.util.ArrayList
+
+这个程序使用 Class.forName 载入指定的类，然后调用 getDeclaredMethods 来获取这个类中定义了的方法列表。java.lang.reflect.Methods 是用来描述某个类中单个方法的一个类。
+
+Java类反射中的主要方法
+
+对于以下三类组件中的任何一类来说 -- 构造函数、字段和方法 -- java.lang.Class 提供四种独立的反射调用，以不同的方式来获得信息。调用都遵循一种标准格式。以下是用于查找构造函数的一组反射调用：
+
+Constructor getConstructor(Class[] params) -- 获得使用特殊的参数类型的公共构造函数，
+
+Constructor[] getConstructors() -- 获得类的所有公共构造函数
+
+Constructor getDeclaredConstructor(Class[] params) -- 获得使用特定参数类型的构造函数(与接入级别无关)
+
+Constructor[] getDeclaredConstructors() -- 获得类的所有构造函数(与接入级别无关)
+
+获得字段信息的Class 反射调用不同于那些用于接入构造函数的调用，在参数类型数组中使用了字段名：
+
+Field getField(String name) -- 获得命名的公共字段
+
+Field[] getFields() -- 获得类的所有公共字段
+
+Field getDeclaredField(String name) -- 获得类声明的命名的字段
+
+Field[] getDeclaredFields() -- 获得类声明的所有字段
+
+用于获得方法信息函数：
+
+Method getMethod(String name, Class[] params) -- 使用特定的参数类型，获得命名的公共方法
+
+Method[] getMethods() -- 获得类的所有公共方法
+
+Method getDeclaredMethod(String name, Class[] params) -- 使用特写的参数类型，获得类声明的命名的方法
+
+Method[] getDeclaredMethods() -- 获得类声明的所有方法
+
+使用 Reflection：
+
+用于 reflection 的类，如 Method，可以在 java.lang.relfect 包中找到。使用这些类的时候必须要遵循三个步骤：第一步是获得你想操作的类的 java.lang.Class 对象。在运行中的 Java 程序中，用 java.lang.Class 类来描述类和接口等。
+
+下面就是获得一个 Class 对象的方法之一：
+
+Class c = Class.forName("java.lang.String");
+
+这条语句得到一个 String 类的类对象。还有另一种方法，如下面的语句：
+
+Class c = int.class;
+
+或者
+
+Class c = Integer.TYPE;
+
+它们可获得基本类型的类信息。其中后一种方法中访问的是基本类型的封装类 (如 Intege ) 中预先定义好的 TYPE 字段。
+
+第二步是调用诸如 getDeclaredMethods 的方法，以取得该类中定义的所有方法的列表。
+
+一旦取得这个信息，就可以进行第三步了——使用 reflection API 来操作这些信息，如下面这段代码：
+
+Class c = Class.forName("java.lang.String");
+
+Method m[] = c.getDeclaredMethods();
+
+System.out.println(m[0].toString());
+
+它将以文本方式打印出 String 中定义的第一个方法的原型。
+
+处理对象：
+
+a.创建一个Class对象
+
+b.通过getField 创建一个Field对象
+
+c.调用Field.getXXX(Object)方法(XXX是Int,Float等，如果是对象就省略；Object是指实例).
+
+例如：
+
+import java.lang.reflect.*;
+
+import java.awt.*;
+
+class SampleGet {
+
+public static void main(String[] args) {
+
+Rectangle r = new Rectangle(100, 325);
+
+printHeight(r);
+
+}
+
+static void printHeight(Rectangle r) {
+
+Field heightField;
+
+Integer heightValue;
+
+Class c = r.getClass();
+
+try {
+
+heightField = c.getField("height");
+
+heightValue = (Integer) heightField.get(r);
+
+System.out.println("Height: " + heightValue.toString());
+
+} catch (NoSuchFieldException e) {
+
+System.out.println(e);
+
+} catch (SecurityException e) {
+
+System.out.println(e);
+
+} catch (IllegalAccessException e) {
+
+System.out.println(e);
+
+}
+
+}
+
+}
+
+安全性和反射：
+
+在处理反射时安全性是一个较复杂的问题。反射经常由框架型代码使用，由于这一点，我们可能希望框架能够全面接入代码，无需考虑常规的接入限制。但是，在其它情况下，不受控制的接入会带来严重的安全性风险，例如当代码在不值得信任的代码共享的环境中运行时。
+
+由于这些互相矛盾的需求，Java编程语言定义一种多级别方法来处理反射的安全性。基本模式是对反射实施与应用于源代码接入相同的限制：
+
+从任意位置到类公共组件的接入
+
+类自身外部无任何到私有组件的接入
+
+受保护和打包（缺省接入）组件的有限接入
+
+不过至少有些时候，围绕这些限制还有一种简单的方法。我们可以在我们所写的类中，扩展一个普通的基本类 java.lang.reflect.AccessibleObject 类。这个类定义了一种setAccessible方法，使我们能够启动或关闭对这些类中其中一个类的实例的接入检测。唯一的问题在于如果使用了安全性管理 器，它将检测正在关闭接入检测的代码是否许可了这样做。如果未许可，安全性管理器抛出一个例外。
+
+下面是一段程序，在TwoString 类的一个实例上使用反射来显示安全性正在运行：
+
+public class ReflectSecurity {
+
+public static void main(String[] args) {
+
+try {
+
+TwoString ts = new TwoString("a", "b");
+
+Field field = clas.getDeclaredField("m_s1");
+
+// field.setAccessible(true);
+
+System.out.println("Retrieved value is " +
+
+field.get(inst));
+
+} catch (Exception ex) {
+
+ex.printStackTrace(System.out);
+
+}
+
+}
+
+}
+
+如果我们编译这一程序时，不使用任何特定参数直接从命令行运行，它将在field .get(inst)调用中抛出一个IllegalAccessException异常。如果我们不注释 field.setAccessible(true)代码行，那么重新编译并重新运行该代码，它将编译成功。最后，如果我们在命令行添加了JVM参数 -Djava.security.manager以实现安全性管理器，它仍然将不能通过编译，除非我们定义了ReflectSecurity类的许可权 限。
+
+反射性能：（转录别人的啊）
+
+反射是一种强大的工具，但也存在一些不足。一个主要的缺点是对性能有影响。使用反射基本上是一种解释操作，我们可以告诉JVM，我们希望做什么并且它满足我们的要求。这类操作总是慢于只直接执行相同的操作。
+
+下面的程序是字段接入性能测试的一个例子，包括基本的测试方法。每种方法测试字段接入的一种形式 -- accessSame 与同一对象的成员字段协作，accessOther 使用可直接接入的另一对象的字段，accessReflection 使用可通过反射接入的另一对象的字段。在每种情况下，方法执行相同的计算 -- 循环中简单的加/乘顺序。
+
+程序如下：
+
+public int accessSame(int loops) {
+
+m_value = 0;
+
+for (int index = 0; index < loops; index++) {
+
+m_value = (m_value + ADDITIVE_VALUE) *
+
+MULTIPLIER_VALUE;
+
+}
+
+return m_value;
+
+}
+
+public int acces
+
+sReference(int loops) {
+
+TimingClass timing = new TimingClass();
+
+for (int index = 0; index < loops; index++) {
+
+timing.m_value = (timing.m_value + ADDITIVE_VALUE) *
+
+MULTIPLIER_VALUE;
+
+}
+
+return timing.m_value;
+
+}
+
+public int accessReflection(int loops) throws Exception {
+
+TimingClass timing = new TimingClass();
+
+try {
+
+Field field = TimingClass.class.
+
+getDeclaredField("m_value");
+
+for (int index = 0; index < loops; index++) {
+
+int value = (field.getInt(timing) +
+
+ADDITIVE_VALUE) * MULTIPLIER_VALUE;
+
+field.setInt(timing, value);
+
+}
+
+return timing.m_value;
+
+} catch (Exception ex) {
+
+System.out.println("Error using reflection");
+
+throw ex;
+
+}
+
+}
+
+在上面的例子中，测试程序重复调用每种方法，使用一个大循环数，从而平均多次调用的时间衡量结果。平均值中不包括每种方法第一次调用的时间，因此初始化时间不是结果中的一个因素。下面的图清楚的向我们展示了每种方法字段接入的时间：
+
+图 1：字段接入时间 ：
+
+我们可以看出：在前两副图中(Sun JVM)，使用反射的执行时间超过使用直接接入的1000倍以上。通过比较，IBM JVM可能稍好一些，但反射方法仍旧需要比其它方法长700倍以上的时间。任何JVM上其它两种方法之间时间方面无任何显著差异，但IBM JVM几乎比Sun JVM快一倍。最有可能的是这种差异反映了Sun Hot Spot JVM的专业优化，它在简单基准方面表现得很糟糕。反射性能是Sun开发1.4 JVM时关注的一个方面，它在反射方法调用结果中显示。在这类操作的性能方面，Sun 1.4.1 JVM显示了比1.3.1版本很大的改进。
+
+如果为为创建使用反射的对象编写了类似的计时测试程序，我们会发现这种情况下的差异不象字段和方法调用情况下那么显著。使用newInstance()调 用创建一个简单的java.lang.Object实例耗用的时间大约是在Sun 1.3.1 JVM上使用new Object()的12倍，是在IBM 1.4.0 JVM的四倍，只是Sun 1.4.1 JVM上的两部。使用Array.newInstance(type, size)创建一个数组耗用的时间是任何测试的JVM上使用new type[size]的两倍，随着数组大小的增加，差异逐步缩小。随着jdk6.0的推出，反射机制的性能也有了很大的提升。期待中….
+
+总结：
+
+Java语言反射提供一种动态链接程序组件的多功能方法。它允许程序创建和控制任何类的对象(根据安全性限制)，无需提前硬编码目标类。这些特性使得反射 特别适用于创建以非常普通的方式与对象协作的库。例如，反射经常在持续存储对象为数据库、XML或其它外部格式的框架中使用。Java reflection 非常有用，它使类和数据结构能按名称动态检索相关信息，并允许在运行着的程序中操作这些信息。Java 的这一特性非常强大，并且是其它一些常用语言，如 C、C++、Fortran 或者 Pascal 等都不具备的。
+
+但反射有两个缺点。第一个是性能问题。用于字段和方法接入时反射要远慢于直接代码。性能问题的程度取决于程序中是如何使用反射的。如果它作为程序运行中相 对很少涉及的部分，缓慢的性能将不会是一个问题。即使测试中最坏情况下的计时图显示的反射操作只耗用几微秒。仅反射在性能关键的应用的核心逻辑中使用时性 能问题才变得至关重要。
+
+许多应用中更严重的一个缺点是使用反射会模糊程序内部实际要发生的事情。程序人员希望在源代码中看到程序的逻辑，反射等绕过了源代码的技术会带来维护问 题。反射代码比相应的直接代码更复杂，正如性能比较的代码实例中看到的一样。解决这些问题的最佳方案是保守地使用反射——仅在它可以真正增加灵活性的地方 ——记录其在目标类中的使用。
+
+一下是对应各个部分的例子：
+
+具体的应用：
+
+1、 模仿instanceof 运算符号
+
+class A {}
+
+public class instance1 {
+
+public static void main(String args[])
+
+{
+
+try {
+
+Class cls = Class.forName("A");
+
+boolean b1
+
+= cls.isInstance(new Integer(37));
+
+System.out.println(b1);
+
+boolean b2 = cls.isInstance(new A());
+
+System.out.println(b2);
+
+}
+
+catch (Throwable e) {
+
+System.err.println(e);
+
+}
+
+}
+
+}
+
+2、 在类中寻找指定的方法，同时获取该方法的参数列表，例外和返回值
+
+import java.lang.reflect.*;
+
+public class method1 {
+
+private int f1(
+
+Object p, int x) throws NullPointerException
+
+{
+
+if (p == null)
+
+throw new NullPointerException();
+
+return x;
+
+}
+
+public static void main(String args[])
+
+{
+
+try {
+
+Class cls = Class.forName("method1");
+
+Method methlist[]
+
+= cls.getDeclaredMethods();
+
+for (int i = 0; i < methlist.length;
+
+i++)
+
+Method m = methlist[i];
+
+System.out.println("name
+
+= " + m.getName());
+
+System.out.println("decl class = " +
+
+m.getDeclaringClass());
+
+Class pvec[] = m.getParameterTypes();
+
+for (int j = 0; j < pvec.length; j++)
+
+System.out.println("
+
+param #" + j + " " + pvec[j]);
+
+Class evec[] = m.getExceptionTypes();
+
+for (int j = 0; j < evec.length; j++)
+
+System.out.println("exc #" + j
+
++ " " + evec[j]);
+
+System.out.println("return type = " +
+
+m.getReturnType());
+
+System.out.println("-----");
+
+}
+
+}
+
+catch (Throwable e) {
+
+System.err.println(e);
+
+}
+
+}
+
+}
+
+3、 获取类的构造函数信息，基本上与获取方法的方式相同
+
+import java.lang.reflect.*;
+
+public class constructor1 {
+
+public constructor1()
+
+{
+
+}
+
+protected constructor1(int i, double d)
+
+{
+
+}
+
+public static void main(String args[])
+
+{
+
+try {
+
+Class cls = Class.forName("constructor1");
+
+Constructor ctorlist[]
+
+= cls.getDeclaredConstructors();
+
+for (int i = 0; i < ctorlist.length; i++) {
+
+Constructor ct = ctorlist[i];
+
+System.out.println("name
+
+= " + ct.getName());
+
+System.out.println("decl class = " +
+
+ct.getDeclaringClass());
+
+Class pvec[] = ct.getParameterTypes();
+
+for (int j = 0; j < pvec.length; j++)
+
+System.out.println("param #"
+
++ j + " " + pvec[j]);
+
+Class evec[] = ct.getExceptionTypes();
+
+for (int j = 0; j < evec.length; j++)
+
+System.out.println(
+
+"exc #" + j + " " + evec[j]);
+
+System.out.println("-----");
+
+}
+
+}
+
+catch (Throwable e) {
+
+System.err.println(e);
+
+}
+
+}
+
+}
+
+4、 获取类中的各个数据成员对象，包括名称。类型和访问修饰符号
+
+import java.lang.reflect.*;
+
+public class field1 {
+
+private double d;
+
+public static final int i = 37;
+
+String s = "testing";
+
+public static void main(String args[])
+
+{
+
+try {
+
+Class cls = Class.forName("field1");
+
+Field fieldlist[]
+
+= cls.getDeclaredFields();
+
+for (int i
+
+= 0; i < fieldlist.length; i++) {
+
+Field fld = fieldlist[i];
+
+System.out.println("name
+
+= " + fld.getName());
+
+System.out.println("decl class = " +
+
+fld.getDeclaringClass());
+
+System.out.println("type
+
+= " + fld.getType());
+
+int mod = fld.getModifiers();
+
+System.out.println("modifiers = " +
+
+Modifier.toString(mod));
+
+System.out.println("-----");
+
+}
+
+}
+
+catch (Throwable e) {
+
+System.err.println(e);
+
+}
+
+}
+
+}
+
+5、 通过使用方法的名字调用方法
+
+import java.lang.reflect.*;
+
+public class method2 {
+
+public int add(int a, int b)
+
+{
+
+return a + b;
+
+}
+
+public static void main(String args[])
+
+{
+
+try {
+
+Class cls = Class.forName("method2");
+
+Class partypes[] = new Class[2];
+
+partypes[0] = Integer.TYPE;
+
+partypes[1] = Integer.TYPE;
+
+Method meth = cls.getMethod(
+
+"add", partypes);
+
+method2 methobj = new method2();
+
+Object arglist[] = new Object[2];
+
+arglist[0] = new Integer(37);
+
+arglist[1] = new Integer(47);
+
+Object retobj
+
+= meth.invoke(methobj, arglist);
+
+Integer retval = (Integer)retobj;
+
+System.out.println(retval.intValue());
+
+}
+
+catch (Throwable e) {
+
+System.err.println(e);
+
+}
+
+}
+
+}
+
+6、 创建新的对象
+
+import java.lang.reflect.*;
+
+public class constructor2 {
+
+public constructor2()
+
+{
+
+}
+
+public constructor2(int a, int b)
+
+{
+
+System.out.println(
+
+"a = " + a + " b = " + b);
+
+}
+
+public static void main(String args[])
+
+{
+
+try {
+
+Class cls = Class.forName("constructor2");
+
+Class partypes[] = new Class[2];
+
+partypes[0] = Integer.TYPE;
+
+partypes[1] = Integer.TYPE;
+
+Constructor ct
+
+= cls.getConstructor(partypes);
+
+Object arglist[] = new Object[2];
+
+arglist[0] = new Integer(37);
+
+arglist[1] = new Integer(47);
+
+Object retobj = ct.newInstance(arglist);
+
+}
+
+catch (Throwable e) {
+
+System.err.println(e);
+
+}
+
+}
+
+}
+
+7、 变更类实例中的数据的值
+
+import java.lang.reflect.*;
+
+public class field2 {
+
+public double d;
+
+public static void main(String args[])
+
+{
+
+try {
+
+Class cls = Class.forName("field2");
+
+Field fld = cls.getField("d");
+
+field2 f2obj = new field2();
+
+System.out.println("d = " + f2obj.d);
+
+fld.setDouble(f2obj, 12.34);
+
+System.out.println("d = " + f2obj.d);
+
+}
+
+catch (Throwable e) {
+
+System.err.println(e);
+
+}
+
+}
+
+}
+
+使用反射创建可重用代码：
+
+1、 对象工厂
+
+Object factory(String p) {
+
+Class c;
+
+Object o=null;
+
+try {
+
+c = Class.forName(p);// get class def
+
+o = c.newInstance(); // make a new one
+
+} catch (Exception e) {
+
+System.err.println("Can't make a " + p);
+
+}
+
+return o;
+
+}
+
+public class ObjectFoundry {
+
+public static Object factory(String p)
+
+throws ClassNotFoundException,
+
+InstantiationException,
+
+IllegalAccessException {
+
+Class c = Class.forName(p);
+
+Object o = c.newInstance();
+
+return o;
+
+}
+
+}
+
+2、 动态检测对象的身份，替代instanceof
+
+public static boolean
+
+isKindOf(Object obj, String type)
+
+throws ClassNotFoundException {
+
+// get the class def for obj and type
+
+Class c = obj.getClass();
+
+Class tClass = Class.forName(type);
+
+while ( c!=null ) {
+
+if ( c==tClass ) return true;
+
+c = c.getSuperclass();
+
+}
+
+return false;
+
+}
+参考资料：http://www.114java.com/JAVApeixunbiji/2009/0812/546.html
+63|评论(32)
+
+求助知友
+aglx623 | 当前分类：17 级 排名：582
+擅长JAVA相关：17 级 排名：582
+提问者对回答的评价：
+多谢
+按默认排序|按时间排序
+ 其他回答 共1条
+2010-05-04 22:43YUXUERUI|当前分类：5 级
+反射就是拿面镜子自己照自己 自己有的东西 通过镜子可以全部显示出来
+24|评论(10)
+相关内容
+2008-08-16 java中的反射机制实现原理，会C/C++的用代码说明  55
+2011-04-16 java反射机制的原理是什么
+2011-07-03 java反射机制能实现依赖注入吗?  3
+2011-12-15 如何用反射机制访问继承自私有类的方法,最好用java 实现。  2
+2013-01-08 用JAVA实现发短信功能，都有哪些方法，再大概说下原理，和收费情况
+更多关于java反射机制的问题>>
+java反射机制:原理 java反射机制:动态 java反射机制:作用 java反射机制:视频
+2007-01-02 java的反射机制是什么？  84
+2008-08-14 java反射机制的作用 及其它的好处  38
+等待您来回答
+0回答 20 求E派（ebest）f5刷机包， 手贱ROOT后删除系统软件导致无法开机
+0回答我都把他拉黑删除了，他还天天来看我的qq名片 
+0回答昂达V701双核怎么ROOT？ 想删除一些自带软件
+2回答iphone4s把电脑上的歌用itunes同步到手机后,电脑上的歌想删除可以吗...
+0回答如何删除通知栏中图标，并没有删除程序，也让程序在后台中运行，就...
+2回答 20 我的内存卡在手机上显示损坏，用手机格式化后显示空SD卡，在电脑上...
+0回答lucene3.6.2 的恢复删除 undeleteAll() 已经过时了..
+0回答 30 Wp手机程序卸载后，就在手机里面的安装文件为什么删除不掉？怎么删... 
+更多等待您来回答的问题>>
+分享到：
+推广链接学java来达内 包工作还有政府补贴拿! 
+达内Java培训,学java好去处!校企合作,免费入学,高新包就业! www.njtarena.net
+如何学java//学java哪里好?java要如何学? 
+如何学java?苏州学java开发哪里有?学java开发费用多少?java就业如何?如何学java苏州.. www.szniit.com.cn/TEL:0512-69379871
+兄弟连Java培训0费用,4千名高薪就业学员,共同推荐! 
+1个月免费学习,所有就业信息皆为真实学生信息,兄弟连向IT培训潜规则宣战!中国Java培.. www.lampbrother.net
+普通登录
+手机登录
+帐号
+密码
+记住我的登录状态
+忘记密码？
+
+还没有百度账号？立即注册
+学java来达内 包工作还有政..
+达内Java培训,学java好去处!校企合作,免费入学,高新包就业!
+www.njtarena.net
+
+如何学java//学java哪里好?j..
+如何学java?苏州学java开发哪里有?学java开发费用多少?java就业如何?如何学java苏州..
+www.szniit.com.cn/TEL:0512-69379871
+
+兄弟连Java培训0费用,4千名..
+1个月免费学习,所有就业信息皆为真实学生信息,兄弟连向IT培训潜规则宣战!中国Java培..
+www.lampbrother.net
+
+java,java 120天 让你成为程..
+java学费,java就业,java课程登陆北大青鸟网站咨询.
+www.xtbenet.com
+
+java零基础,从入门到精通!
+苏州风云教育java,承诺不就业退学费,100%专业对口就业,java无后顾之忧!咨询热线:051..
+www.17education.com
+
+华御密盾java 加密
+智能java 加密,无须繁琐操作.专业,让安全更便捷.详情咨询:400 660 9128华御密盾智能..
+www.cinsec.com
+
+南京51Testing软件测试培训..
+中国软件测试培训的创始者和领航者,九年嵌入式培训经验,中国软件测试技术的黄埔军校
+www.51testing.net
+
+来百度推广JAVA相关
+
+
+
+精彩知识在知道
+知道助你应对“PM2.5”时代
+春节过后跳槽还是卧槽？向Mr.job提问！
+快来！这有回家车票！售票帝帮你买票！
+百度经验年终盘点，参与活动就有礼！
+帮助 | 反馈建议 | 投诉举报 | 百度知道免费代码
+©2013 Baidu   使用百度前必读 | 知道协议 | 百度知道开放平台

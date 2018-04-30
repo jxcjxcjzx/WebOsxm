@@ -1,0 +1,100 @@
+分享到一键分享QQ空间新浪微博百度搜藏人人网腾讯微博百度相册开心网腾讯朋友百度贴吧豆瓣网搜狐微博百度新首页QQ好友和讯微博更多...百度分享
+首页我的主页相册广场昵称搜索 消息 私信 模板 设置 退出 关注此空间追忆74
+追忆74的空间——zhuiyi74的空间——娱乐、影音、游戏、IT——大杂烩
+2010-12-08 21:58 求子数组的最大和,java版本3.求子数组的最大和
+题目：
+输入一个整形数组，数组里有正数也有负数。
+数组中连续的一个或多个整数组成一个子数组，每个子数组都有一个和。
+求所有子数组的和的最大值。要求时间复杂度为O(n)。
+例如输入的数组为1, -2, 3, 10, -4, 7, 2, -5，和最大的子数组为3, 10, -4, 7, 2，
+因此输出为该子数组的和18。
+
+ 
+
+ 
+
+/**
+ *
+ */
+package com.lhp;
+
+/**
+3.求子数组的最大和
+题目：
+输入一个整形数组，数组里有正数也有负数。
+数组中连续的一个或多个整数组成一个子数组，每个子数组都有一个和。
+求所有子数组的和的最大值。要求时间复杂度为O(n)。
+例如输入的数组为1, -2, 3, 10, -4, 7, 2, -5，和最大的子数组为3, 10, -4, 7, 2，
+因此输出为该子数组的和18。
+ */
+
+class GIntArrDispose {
+ 
+ /**
+  * 获得数组最大子数组的和
+  * @param 整形 数组
+  * @return 最大子数组的和
+  */
+ public static int getMaxChild(int[] intArr) {
+  if (null == intArr || 0 == intArr.length) {
+   throw new NullPointerException("GIntArrDispose.getMaxChild(int[]):传入没有内容的数组!");
+  }
+  int result = 0; // 最大和
+  int tempSum = 0; // 累加和
+  int maxNegative = intArr[0]; // 数组最大值
+
+  for (int i = 0; i < intArr.length; i++) {
+   if (tempSum <= 0) {
+    tempSum = intArr[i]; // 始终保持为正，可以理解为排除最大子数组左边所有数的和
+   } else {
+    tempSum += intArr[i];
+   }
+   if (tempSum > result) {
+    result = tempSum; // 始终保持最大，可以理解为排除最大子数组右边所有数的和
+   }
+   
+   if (intArr[i] > maxNegative) {
+    maxNegative = intArr[i];
+   }
+  }
+  
+  if (maxNegative < 0) {
+   return maxNegative; // 所有数都为负数，只返回最大的一个数
+  }
+  
+  return result;
+ }
+ 
+ public static synchronized void print(int[] intArr) {
+  if (null == intArr || 0 == intArr.length) {
+   throw new NullPointerException("GIntArrDispose.print(int[]):传入没有内容的数组!");
+  }
+  System.out.print("数组: ");
+  for (int v : intArr) {
+   System.out.print(v + " ");
+  }
+  System.out.println();
+ }
+}
+
+public class Three {
+ public static void main(String[] args) {
+  int[] intArr = {1, -2, 3, 10, -4, 7, 2, -5, 4};
+  try {
+   GIntArrDispose.print(intArr);
+   System.out.print("最大子数组和: " + GIntArrDispose.getMaxChild(intArr));
+  } catch (Exception e) {
+   e.printStackTrace();
+  }
+ }
+}
+#Java 分享到： 举报 浏览(121) 评论 转载 
+你可能也喜欢
+ 【黒バスR18腐】ログ詰め②  馒头の动漫铺开张喽 限时抢购还包邮哦！海贼迷不要错过啦！  【剧场动漫】虽然很短但留下却是最美的记忆  【KOTATU】東方Project  CD三文鱼发布的图片  【tsubo】作品一览  恢复视力的方法(飞行员都用） 为了你的眼睛请收藏吧 本文最近访客
+ 阉割的嗜好 11月24日评论
+
+ 同时评论给  
+ 同时评论给原文作者   发布 500/0
+收起|查看更多
+帮助中心 | 空间客服 | 投诉中心 | 空间协议©2013 Baiduabcdef投票给你喜欢的偶像，万张演唱会门票散给你！
+马上行动

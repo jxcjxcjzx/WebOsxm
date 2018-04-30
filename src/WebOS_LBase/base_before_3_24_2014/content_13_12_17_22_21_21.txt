@@ -1,0 +1,1435 @@
+Home | All Classes | Main Classes | Annotated | Grouped Classes | Functions   
+
+QString Class Reference
+The QString class provides an abstraction of Unicode text and the classic C null-terminated char array. More... 
+
+#include <qstring.h> 
+
+List of all member functions. 
+
+Public Members
+QString ()
+QString ( QChar ch )
+QString ( const QString & s )
+QString ( const QByteArray & ba )
+QString ( const QChar * unicode, uint length )
+QString ( const char * str )
+~QString ()
+QString & operator= ( const QString & s )
+QString & operator= ( const char * str )
+QString & operator= ( const QCString & cs )
+QString & operator= ( QChar c )
+QString & operator= ( char c )
+bool isNull () const
+bool isEmpty () const
+uint length () const
+void truncate ( uint newLen )
+QString & fill ( QChar c, int len = -1 )
+QString copy () const  (obsolete)
+QString arg ( long a, int fieldwidth = 0, int base = 10 ) const
+QString arg ( ulong a, int fieldwidth = 0, int base = 10 ) const
+QString arg ( int a, int fieldwidth = 0, int base = 10 ) const
+QString arg ( uint a, int fieldwidth = 0, int base = 10 ) const
+QString arg ( short a, int fieldwidth = 0, int base = 10 ) const
+QString arg ( ushort a, int fieldwidth = 0, int base = 10 ) const
+QString arg ( char a, int fieldwidth = 0 ) const
+QString arg ( QChar a, int fieldwidth = 0 ) const
+QString arg ( const QString & a, int fieldwidth = 0 ) const
+QString arg ( double a, int fieldwidth = 0, char fmt = 'g', int prec = -1 ) const
+QString & sprintf ( const char * cformat, ... )
+int find ( QChar c, int index = 0, bool cs = TRUE ) const
+int find ( char c, int index = 0, bool cs = TRUE ) const
+int find ( const QString & str, int index = 0, bool cs = TRUE ) const
+int find ( const QRegExp & rx, int index = 0 ) const
+int find ( const char * str, int index = 0 ) const
+int findRev ( QChar c, int index = -1, bool cs = TRUE ) const
+int findRev ( char c, int index = -1, bool cs = TRUE ) const
+int findRev ( const QString & str, int index = -1, bool cs = TRUE ) const
+int findRev ( const QRegExp & rx, int index = -1 ) const
+int findRev ( const char * str, int index = -1 ) const
+int contains ( QChar c, bool cs = TRUE ) const
+int contains ( char c, bool cs = TRUE ) const
+int contains ( const char * str, bool cs = TRUE ) const
+int contains ( const QString & str, bool cs = TRUE ) const
+int contains ( const QRegExp & rx ) const
+enum SectionFlags { SectionDefault = 0x00, SectionSkipEmpty = 0x01, SectionIncludeLeadingSep = 0x02, SectionIncludeTrailingSep = 0x04, SectionCaseInsensitiveSeps = 0x08 }
+QString section ( QChar sep, int start, int end = 0xffffffff, int flags = SectionDefault ) const
+QString section ( char sep, int start, int end = 0xffffffff, int flags = SectionDefault ) const
+QString section ( const char * sep, int start, int end = 0xffffffff, int flags = SectionDefault ) const
+QString section ( const QString & sep, int start, int end = 0xffffffff, int flags = SectionDefault ) const
+QString section ( const QRegExp & reg, int start, int end = 0xffffffff, int flags = SectionDefault ) const
+QString left ( uint len ) const
+QString right ( uint len ) const
+QString mid ( uint index, uint len = 0xffffffff ) const
+QString leftJustify ( uint width, QChar fill = ' ', bool truncate = FALSE ) const
+QString rightJustify ( uint width, QChar fill = ' ', bool truncate = FALSE ) const
+QString lower () const
+QString upper () const
+QString stripWhiteSpace () const
+QString simplifyWhiteSpace () const
+QString & insert ( uint index, const QString & s )
+QString & insert ( uint index, const QChar * s, uint len )
+QString & insert ( uint index, QChar c )
+QString & insert ( uint index, char c )
+QString & append ( char ch )
+QString & append ( QChar ch )
+QString & append ( const QString & str )
+QString & prepend ( char ch )
+QString & prepend ( QChar ch )
+QString & prepend ( const QString & s )
+QString & remove ( uint index, uint len )
+QString & replace ( uint index, uint len, const QString & s )
+QString & replace ( uint index, uint len, const QChar * s, uint slen )
+QString & replace ( const QRegExp & rx, const QString & str )
+short toShort ( bool * ok = 0, int base = 10 ) const
+ushort toUShort ( bool * ok = 0, int base = 10 ) const
+int toInt ( bool * ok = 0, int base = 10 ) const
+uint toUInt ( bool * ok = 0, int base = 10 ) const
+long toLong ( bool * ok = 0, int base = 10 ) const
+ulong toULong ( bool * ok = 0, int base = 10 ) const
+float toFloat ( bool * ok = 0 ) const
+double toDouble ( bool * ok = 0 ) const
+QString & setNum ( short n, int base = 10 )
+QString & setNum ( ushort n, int base = 10 )
+QString & setNum ( int n, int base = 10 )
+QString & setNum ( uint n, int base = 10 )
+QString & setNum ( long n, int base = 10 )
+QString & setNum ( ulong n, int base = 10 )
+QString & setNum ( float n, char f = 'g', int prec = 6 )
+QString & setNum ( double n, char f = 'g', int prec = 6 )
+void setExpand ( uint index, QChar c )  (obsolete)
+QString & operator+= ( const QString & str )
+QString & operator+= ( QChar c )
+QString & operator+= ( char c )
+QChar at ( uint i ) const
+QChar operator[] ( int i ) const
+QCharRef at ( uint i )
+QCharRef operator[] ( int i )
+QChar constref ( uint i ) const
+QChar & ref ( uint i )
+const QChar * unicode () const
+const char * ascii () const  (obsolete)
+const char * latin1 () const
+QCString utf8 () const
+QCString local8Bit () const
+bool operator! () const
+operator const char * () const
+QString & setUnicode ( const QChar * unicode, uint len )
+QString & setUnicodeCodes ( const ushort * unicode_as_ushorts, uint len )
+QString & setLatin1 ( const char * str, int len = -1 )
+int compare ( const QString & s ) const
+int localeAwareCompare ( const QString & s ) const
+void compose ()
+const char * data () const  (obsolete)
+bool startsWith ( const QString & s ) const
+bool endsWith ( const QString & s ) const
+void setLength ( uint newLen )
+Static Public Members
+QString number ( long n, int base = 10 )
+QString number ( ulong n, int base = 10 )
+QString number ( int n, int base = 10 )
+QString number ( uint n, int base = 10 )
+QString number ( double n, char f = 'g', int prec = 6 )
+QString fromLatin1 ( const char * chars, int len = -1 )
+QString fromUtf8 ( const char * utf8, int len = -1 )
+QString fromLocal8Bit ( const char * local8Bit, int len = -1 )
+int compare ( const QString & s1, const QString & s2 )
+int localeAwareCompare ( const QString & s1, const QString & s2 )
+Related Functions
+bool operator== ( const QString & s1, const QString & s2 )
+bool operator== ( const QString & s1, const char * s2 )
+bool operator== ( const char * s1, const QString & s2 )
+bool operator!= ( const QString & s1, const QString & s2 )
+bool operator!= ( const QString & s1, const char * s2 )
+bool operator!= ( const char * s1, const QString & s2 )
+bool operator< ( const QString & s1, const char * s2 )
+bool operator< ( const char * s1, const QString & s2 )
+bool operator<= ( const QString & s1, const char * s2 )
+bool operator<= ( const char * s1, const QString & s2 )
+bool operator> ( const QString & s1, const char * s2 )
+bool operator> ( const char * s1, const QString & s2 )
+bool operator>= ( const QString & s1, const char * s2 )
+bool operator>= ( const char * s1, const QString & s2 )
+const QString operator+ ( const QString & s1, const QString & s2 )
+const QString operator+ ( const QString & s1, const char * s2 )
+const QString operator+ ( const char * s1, const QString & s2 )
+const QString operator+ ( const QString & s, char c )
+const QString operator+ ( char c, const QString & s )
+QDataStream & operator<< ( QDataStream & s, const QString & str )
+QDataStream & operator>> ( QDataStream & s, QString & str )
+
+--------------------------------------------------------------------------------
+
+Detailed Description
+The QString class provides an abstraction of Unicode text and the classic C null-terminated char array. 
+
+
+QString uses implicit sharing, which makes it very efficient and easy to use. 
+
+In all of the QString methods that take const char * parameters, the const char * is interpreted as a classic C-style 0-terminated ASCII string. It is legal for the const char * parameter to be 0. If the const char * is not 0-terminated, the results are undefined. Functions that copy classic C strings into a QString will not copy the terminating 0 character. The QChar array of the QString (as returned by unicode()) is generally not terminated by a null. If you need to pass a QString to a function that requires a C null-terminated string use latin1(). 
+
+A QString that has not been assigned to anything is null, i.e. both the length and data pointer is 0. A QString that references the empty string ("", a single '\0' char) is empty. Both null and empty QStrings are legal parameters to the methods. Assigning (const char *) 0 to QString gives a null QString. For convenience, QString::null is a null QString. When sorting, empty strings come first, followed by non-empty strings, followed by null strings. We recommend using if ( !str.isNull() ) to check for a non-null string rather than if ( !str ); see operator!() for an explanation. 
+
+Note that if you find that you are mixing usage of QCString, QString, and QByteArray, this causes lots of unnecessary copying and might indicate that the true nature of the data you are dealing with is uncertain. If the data is 0-terminated 8-bit data, use QCString; if it is unterminated (i.e. contains 0s) 8-bit data, use QByteArray; if it is text, use QString. 
+
+Lists of strings are handled by the QStringList class. You can split a string into a list of strings using QStringList::split(), and join a list of strings into a single string with an optional separator using QStringList::join(). You can obtain a list of strings from a string list that contain a particular substring or that match a particular regex using QStringList::grep(). 
+
+Note for C programmers 
+
+Due to C++'s type system and the fact that QString is implicitly shared, QStrings may be treated like ints or other simple base types. For example: 
+
+
+    QString boolToString( bool b )
+    {
+        QString result;
+        if ( b )
+            result = "True";
+        else
+            result = "False";
+        return result;
+    }
+  
+The variable, result, is an auto variable allocated on the stack. When return is called, because we're returning by value, The copy constructor is called and a copy of the string is returned. (No actual copying takes place thanks to the implicit sharing, see below.) 
+
+Throughout Qt's source code you will encounter QString usages like this: 
+
+    QString func( const QString& input )
+    {
+        QString output = input;
+        // process output
+        return output;
+    }
+  
+The 'copying' of input to output is almost as fast as copying a pointer because behind the scenes copying is achieved by incrementing a reference count. QString operates on a copy-on-write basis, only copying if an instance is actually changed. 
+
+If you wish to create a deep copy of a QString without loosing any Unicode information then you should use the QString constructor that takes a QChar*. For example: 
+
+
+    QString a("abcd");
+    QString b( a.unicode(), b.length() );
+  
+Otherwise, using the QString constructor that takes a const char* will be sufficent. For example: 
+
+
+    QString a("abcd");
+    QString b( a.latin1() );
+  
+
+See also QChar, QCString, QByteArray, QConstString, Implicitly and Explicitly Shared Classes, Text Related Classes and Non-GUI Classes. 
+
+
+--------------------------------------------------------------------------------
+
+Member Type Documentation
+QString::SectionFlags
+QString::SectionDefault - Empty fields are counted, leading and trailing separators are not included, and the separator is compared case sensitively. 
+QString::SectionSkipEmpty - Treat empty fields as if they don't exist, i.e. they are not considered as far as start and end are oncerned. 
+QString::SectionIncludeLeadingSep - Include the leading separator (if any) in the result string. 
+QString::SectionIncludeTrailingSep - Include the trailing separator (if any) in the result string. 
+QString::SectionCaseInsensitiveSeps - Compare the separator case-insensitively. 
+Any of the last four values can be OR-ed together to form a flag. 
+
+
+See also section(). 
+
+
+--------------------------------------------------------------------------------
+
+Member Function Documentation
+QString::QString () 
+Constructs a null string. This is a string that has not been assigned to anything, i.e. both the length and data pointer is 0. 
+
+
+See also isNull(). 
+
+QString::QString ( QChar ch ) 
+Constructs a string giving it a length of one character, assigning it the character ch. 
+QString::QString ( const QString & s ) 
+Constructs an implicitly shared copy of s. This is instantaneous, since reference counting is used. 
+QString::QString ( const QByteArray & ba ) 
+Constructs a string that is a deep copy of ba interpreted as a classic C string. 
+QString::QString ( const QChar * unicode, uint length ) 
+Constructs a string that is a deep copy of the first length characters in the QChar array. 
+If unicode and length are 0, then a null string is created. 
+
+If only unicode is 0, the string is empty but has length characters of space preallocated - QString expands automatically anyway, but this may speed up some cases a little. We recommend using the plain constructor and setLength() for this purpose since it will result in more readable code. 
+
+
+See also isNull() and setLength(). 
+
+QString::QString ( const char * str ) 
+Constructs a string that is a deep copy of str, interpreted as a classic C string. 
+If str is 0, then a null string is created. 
+
+This is a cast constructor, but it is perfectly safe: converting a Latin1 const char* to QString preserves all the information. You can disable this constructor by defining QT_NO_CAST_ASCII when you compile your applications. You can also make QString objects by using setLatin1(), fromLatin1(), fromLocal8Bit(), and fromUtf8(). Or whatever encoding is appropriate for the 8-bit data you have. 
+
+
+See also isNull(). 
+
+QString::~QString () 
+Destroys the string and frees the "real" string if this is the last copy of that string. 
+
+QString & QString::append ( const QString & str ) 
+Appends str to the string and returns a reference to the result. 
+
+    string = "Test";
+    string.append( "ing" );        // string == "Testing"
+  
+Equivalent to operator+=(). 
+
+Example: dirview/dirview.cpp. 
+
+QString & QString::append ( char ch ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Appends character ch to the string and returns a reference to the result. 
+
+Equivalent to operator+=(). 
+
+QString & QString::append ( QChar ch ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Appends character ch to the string and returns a reference to the result. 
+
+Equivalent to operator+=(). 
+
+QString QString::arg ( const QString & a, int fieldwidth = 0 ) const 
+This function will return a string that replaces the lowest occurrence of %i (i being '1' or '2' or ... or '9') with a. 
+
+The fieldwidth value specifies the minimum amount of space that a is padded to. A positive value will produce right-aligned text, whereas a negative value will produce left-aligned text. 
+
+
+    QString firstName( "Joe" );
+    QString lastName( "Bloggs" );
+    QString fullName;
+    fullName = QString( "First name is '%1', last name is '%2'" )
+               .arg( firstName )
+               .arg( lastName );
+
+    // fullName == First name is 'Joe', last name is 'Bloggs'
+  
+Warning: If you use arg() to construct "real" sentences like the one shown in the examples above, then this may cause problems with translation (when you use the tr() function). 
+
+If there is no %i pattern, a warning message (qWarning()) is outputted and the text is appended at the end of the string. This is error recovery done by the function and should not occur in correct code. 
+
+
+See also QObject::tr(). 
+
+QString QString::arg ( long a, int fieldwidth = 0, int base = 10 ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+The fieldwidth value specifies the minimum amount of space that a is padded to. A positive value will produce a right-aligned number, whereas a negative value will produce a left-aligned number. 
+
+a is expressed in base base, which is 10 by default and must be between 2 and 36. 
+
+
+    QString str;
+    str = QString( "Decimal 63 is %1 in hexadecimal" )
+          .arg( 63, 0, 16 );
+    // str == "Decimal 63 is 3f in hexadecimal"
+  
+QString QString::arg ( ulong a, int fieldwidth = 0, int base = 10 ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+a is expressed in base base, which is 10 by default and must be between 2 and 36. 
+
+QString QString::arg ( int a, int fieldwidth = 0, int base = 10 ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+a is expressed in base base, which is 10 by default and must be between 2 and 36. 
+
+QString QString::arg ( uint a, int fieldwidth = 0, int base = 10 ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+a is expressed in base base, which is 10 by default and must be between 2 and 36. 
+
+QString QString::arg ( short a, int fieldwidth = 0, int base = 10 ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+a is expressed in base base, which is 10 by default and must be between 2 and 36. 
+
+QString QString::arg ( ushort a, int fieldwidth = 0, int base = 10 ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+a is expressed in base base, which is 10 by default and must be between 2 and 36. 
+
+QString QString::arg ( char a, int fieldwidth = 0 ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+a is assumed to be in the Latin1 character set. 
+
+QString QString::arg ( QChar a, int fieldwidth = 0 ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+
+QString QString::arg ( double a, int fieldwidth = 0, char fmt = 'g', int prec = -1 ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+
+Argument a is formatted according to the fmt format specified, which is g by default and can be any of the following: 
+
+
+e - format as [-]9.9e[+|-]999 
+E - format as [-]9.9E[+|-]999 
+f - format as [-]9.9 
+g - use e or f format, whichever is the most concise 
+G - use E or f format, whichever is the most concise 
+In all cases the number of digits after the decimal point is equal to the precision specified in prec. 
+
+
+    double d = 12.34;
+    QString ds = QString( "'E' format, precision 3, gives %1" )
+                 .arg( d, 0, 'E', 3 );
+    // ds == "1.234E+001"
+  
+const char * QString::ascii () const 
+This function is obsolete. It is provided to keep old source working. We strongly advise against using it in new code. 
+This function simply calls latin1() and returns the result. 
+
+Example: network/networkprotocol/nntp.cpp. 
+
+QChar QString::at ( uint i ) const 
+Returns the character at index i, or 0 if i is beyond the length of the string. 
+
+
+    const QString string( "abcdefgh" );
+    QChar ch = string.at( 4 );
+    // ch == 'e'
+  
+If the QString is not const (i.e. const QString) or const& (i.e. const QString &), then the non-const overload of at() will be used instead. 
+
+QCharRef QString::at ( uint i ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+The function returns a reference to the character at index i. The resulting reference can then be assigned to, or used immediately, but it will become invalid once further modifications are made to the original string. 
+
+If i is beyond the length of the string then the string is expanded with QChar::null. 
+
+int QString::compare ( const QString & s1, const QString & s2 ) [static] 
+Lexically compares s1 with s2 and returns an integer less than, equal to, or greater than zero if s1 is less than, equal to, or greater than s2. 
+
+The comparison is based exclusively on the numeric Unicode values of the characters and is very fast, but is not what a human would expect. Consider sorting user-interface strings with QString::localeAwareCompare(). 
+
+
+    int a = QString::compare( "def", "abc" );   // a > 0
+    int b = QString::compare( "abc", "def" );   // b < 0
+    int c = QString::compare(" abc", "abc" );   // c == 0
+  
+int QString::compare ( const QString & s ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Lexically compares this string with s and returns an integer less than, equal to, or greater than zero if it is less than, equal to, or greater than s. 
+
+void QString::compose () 
+Note that this function is not supported in Qt 3.0 and is merely for experimental and illustrative purposes. It is mainly of interest to those experimenting with Arabic and other composition-rich texts. 
+Applies possible ligatures to a QString. Useful when composition-rich text requires rendering with glyph-poor fonts, but it also makes compositions such as QChar(0x0041) ('A') and QChar(0x0308) (Unicode accent diaresis), giving QChar(0x00c4) (German A Umlaut). 
+
+QChar QString::constref ( uint i ) const 
+Returns the QChar at index i by value. 
+
+Equivalent to at(i). 
+
+
+See also ref(). 
+
+int QString::contains ( QChar c, bool cs = TRUE ) const 
+Returns the number of times the character c occurs in the string. 
+If cs is TRUE then the match is case sensitive. If cs is FALSE, then the match is case insensitive. 
+
+
+    QString string( "Trolltech and Qt" );
+    int i = string.contains( 't', FALSE );  // i == 3
+  
+Examples: fileiconview/qfileiconview.cpp and mdi/application.cpp. 
+
+int QString::contains ( char c, bool cs = TRUE ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+
+int QString::contains ( const char * str, bool cs = TRUE ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Returns the number of times the string str occurs in the string. 
+
+If cs is TRUE then the match is case sensitive. If cs is FALSE, then the match is case insensitive. 
+
+int QString::contains ( const QString & str, bool cs = TRUE ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Returns the number of times str occurs in the string. 
+
+The match is case sensitive if cs is TRUE or case insensitive if cs if FALSE. 
+
+This function counts overlapping strings, so in the example below, there are two instances of "ana" in "bananas". 
+
+
+    QString str( "bananas" );
+    int i = str.contains( "ana" );  // i == 2
+  
+
+See also findRev(). 
+
+int QString::contains ( const QRegExp & rx ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Returns the number of times the regexp, rx, occurs in the string. 
+
+This function counts overlapping occurrences, so in the example below, there are four instances of "ana" or "ama". 
+
+
+    QString str = "banana and panama";
+    QRegExp rxp = QRegExp( "a[nm]a", TRUE, FALSE );
+    int i = str.contains( rxp );    // i == 4
+  
+
+See also find() and findRev(). 
+
+QString QString::copy () const 
+This function is obsolete. It is provided to keep old source working. We strongly advise against using it in new code. 
+
+In Qt 2.0 and later, all calls to this function are needless. Just remove them. 
+
+const char * QString::data () const 
+This function is obsolete. It is provided to keep old source working. We strongly advise against using it in new code. 
+
+Returns a pointer to a 0-terminated classic C string. 
+
+In Qt 1.x, this returned a char* allowing direct manipulation of the string as a sequence of bytes. In Qt 2.x where QString is a Unicode string, char* conversion constructs a temporary string, and hence direct character operations are meaningless. 
+
+bool QString::endsWith ( const QString & s ) const 
+Returns TRUE if the string ends with s; otherwise it returns FALSE. 
+
+See also startsWith(). 
+
+Example: chart/main.cpp. 
+
+QString & QString::fill ( QChar c, int len = -1 ) 
+Fills the string with len characters of value c, and returns a reference to the string. 
+If len is negative (the default), the current string length is used. 
+
+
+    QString str;
+    str.fill( 'g', 5 );      // string == "ggggg"
+  
+int QString::find ( const QRegExp & rx, int index = 0 ) const 
+Finds the first occurrence of the constant regular expression rx, starting at position index. If index is -1, the search starts at the last character; if -2, at the next to last character and so on. (See findRev() for searching backwards.) 
+Returns the position of the first occurrence of rx or -1 if rx was not found. 
+
+
+    QString string( "bananas" );
+    int i = string.find( QRegExp("an"), 0 );    // i == 1
+  
+
+See also findRev(), replace() and contains(). 
+
+Example: network/mail/smtp.cpp. 
+
+int QString::find ( QChar c, int index = 0, bool cs = TRUE ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Finds the first occurrence of the character c, starting at position index. If index is -1, the search starts at the last character; if -2, at the next to last character and so on. (See findRev() for searching backwards.) 
+
+If cs is TRUE, then the search is case sensitive. If cs is FALSE, then the search is case insensitive. 
+
+Returns the position of c or -1 if c could not be found. 
+
+int QString::find ( char c, int index = 0, bool cs = TRUE ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Find character c starting from position index. If cs is TRUE then the match is case sensitive. If cs is FALSE, then the match is case insensitive. 
+
+int QString::find ( const QString & str, int index = 0, bool cs = TRUE ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Finds the first occurrence of the string str, starting at position index. If index is -1, the search starts at the last character, if it is -2, at the next to last character and so on. (See findRev() for searching backwards.) 
+
+The search is case sensitive if cs is TRUE or case insensitive if cs is FALSE. 
+
+Returns the position of str or -1 if str could not be found. 
+
+int QString::find ( const char * str, int index = 0 ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Equivalent to find(QString(str), index). 
+
+int QString::findRev ( const char * str, int index = -1 ) const 
+Equivalent to findRev(QString(str), index). 
+
+int QString::findRev ( QChar c, int index = -1, bool cs = TRUE ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Finds the first occurrence of the character c, starting at position index and searching backwards. If the index is -1, the search starts at the last character, if it is -2, at the next to last character and so on. 
+
+Returns the position of c or -1 if c could not be found. 
+
+If cs is TRUE then the search is case sensitive. If cs is FALSE then the search is case insensitive. 
+
+
+    QString string( "bananas" );
+    int i = string.findRev( 'a' );      // i == 5
+  
+int QString::findRev ( char c, int index = -1, bool cs = TRUE ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Find character c starting from position index and working backwards. If cs is TRUE then the match is case sensitive. If cs is FALSE, then the match is case insensitive. 
+
+int QString::findRev ( const QString & str, int index = -1, bool cs = TRUE ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Finds the first occurrence of the string str, starting at position index and searching backwards. If the index is -1, the search starts at the last character, if it is -2, at the next to last character and so on. 
+
+Returns the position of str or -1 if str could not be found. 
+
+If cs is TRUE then the search is case sensitive. If cs is FALSE then the search is case insensitive. 
+
+
+    QString string("bananas");
+    int i = string.findRev( "ana" );      // i == 3
+  
+int QString::findRev ( const QRegExp & rx, int index = -1 ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Finds the first occurrence of the regexp rx, starting at position index and searching backwards. If the index is -1, the search starts at the last character, if it is -2, at the next to last character and so on. (See findRev() for searching backwards.) 
+
+Returns the position of rx or -1 if rx could not be found. 
+
+
+    QString string( "bananas" );
+    int i = string.findRev( QRegExp("an") );      // i == 3
+  
+
+See also find(). 
+
+QString QString::fromLatin1 ( const char * chars, int len = -1 ) [static] 
+Returns the unicode string decoded from the first len characters of chars, ignoring the rest of chars. If len is -1 then the length of chars is used. If len is bigger than the length of chars then it will use the length of chars. 
+This is the same as the QString(const char*) constructor, but you can make that constructor invisible if you compile with the define QT_NO_CAST_ASCII, in which case you can explicitly create a QString from Latin-1 text using this function. 
+
+
+    QString str = QString::fromLatin1( "123456789", 5 );
+    // str == "12345"
+  
+
+Examples: listbox/listbox.cpp and network/mail/smtp.cpp. 
+
+QString QString::fromLocal8Bit ( const char * local8Bit, int len = -1 ) [static] 
+Returns the unicode string decoded from the first len characters of local8Bit, ignoring the rest of local8Bit. If len is -1 then the length of local8Bit is used. If len is bigger than the length of local8Bit then it will use the length of local8Bit. 
+
+    QString str = QString::fromLocal8Bit( "123456789", 5 );
+    // str == "12345"
+  
+local8Bit is assumed to be encoded in a locale-specific format. 
+
+See QTextCodec for more diverse coding/decoding of Unicode strings. 
+
+QString QString::fromUtf8 ( const char * utf8, int len = -1 ) [static] 
+Returns the unicode string decoded from the first len characters of utf8, ignoring the rest of utf8. If len is -1 then the length of utf8 is used. If len is bigger than the length of utf8 then it will use the length of utf8. 
+
+    QString str = QString::fromUtf8( "123456789", 5 );
+    // str == "12345"
+  
+See QTextCodec for more diverse coding/decoding of Unicode strings. 
+
+Example: fonts/simple-qfont-demo/viewer.cpp. 
+
+QString & QString::insert ( uint index, const QString & s ) 
+Inserts s into the string before position index. 
+If index is beyond the end of the string, the string is extended with spaces to length index and s is then appended and returns a reference to the string. 
+
+
+    QString string( "I like fish" );
+    str = string.insert( 2, "don't " );
+    // str == "I don't like fish"
+  
+
+See also remove() and replace(). 
+
+Examples: themes/themes.cpp and xform/xform.cpp. 
+
+QString & QString::insert ( uint index, const QChar * s, uint len ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Inserts the character in s into the string before the position index len number of times and returns a reference to the string. 
+
+
+QString & QString::insert ( uint index, QChar c ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Insert c into the string at (before) position index and returns a reference to the string. 
+
+If index is beyond the end of the string, the string is extended with spaces (ASCII 32) to length index and c is then appended. 
+
+
+QString & QString::insert ( uint index, char c ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Insert character c at position index. 
+
+bool QString::isEmpty () const 
+Returns TRUE if the string is empty, i.e., if length() == 0. Thus, null strings are empty strings. 
+
+
+    QString a( "" );
+    a.isEmpty();        // TRUE
+    a.isNull();         // FALSE
+
+    QString b;
+    b.isEmpty();        // TRUE
+    b.isNull();         // TRUE
+  
+
+See also isNull() and length(). 
+
+Examples: addressbook/mainwindow.cpp, chart/chartform.cpp, chart/chartform_canvas.cpp, network/networkprotocol/nntp.cpp, qmag/qmag.cpp and qwerty/qwerty.cpp. 
+
+bool QString::isNull () const 
+Returns TRUE if the string is null. A null string is always empty. 
+
+
+    QString a;          // a.unicode() == 0, a.length() == 0
+    a.isNull();         // TRUE, because a.unicode() == 0
+    a.isEmpty();        // TRUE
+  
+
+See also isEmpty() and length(). 
+
+Examples: i18n/main.cpp and qdir/qdir.cpp. 
+
+const char * QString::latin1 () const 
+Returns a Latin-1 representation of the string. Note that the returned value is undefined if the string contains non-Latin-1 characters. If you want to convert strings into formats other than Unicode, see the QTextCodec classes. 
+This function is mainly useful for boot-strapping legacy code to use Unicode. 
+
+The result remains valid so long as one unmodified copy of the source string exists. 
+
+
+See also utf8() and local8Bit(). 
+
+Examples: fileiconview/qfileiconview.cpp and network/networkprotocol/nntp.cpp. 
+
+QString QString::left ( uint len ) const 
+Returns a substring that contains the len leftmost characters of the string. 
+The whole string is returned if len exceeds the length of the string. 
+
+
+    QString s = "Pineapple";
+    QString t = s.left( 4 );    // t == "Pine"
+  
+
+See also right(), mid() and isEmpty(). 
+
+Example: themes/themes.cpp. 
+
+QString QString::leftJustify ( uint width, QChar fill = ' ', bool truncate = FALSE ) const 
+Returns a string of length width that contains this string padded by the fill character. 
+If truncate is FALSE and the length of the string is more than width, then the returned string is a copy of the string. 
+
+If truncate is TRUE and the length of the string is more than width, then any characters in a copy of the string after length width are removed, and the copy is returned. 
+
+
+    QString s( "apple" );
+    QString t = s.leftJustify( 8, '.' );        // t == "apple..."
+  
+
+See also rightJustify(). 
+
+uint QString::length () const 
+Returns the length of the string. 
+
+Null strings and empty strings have zero length. 
+
+
+See also isNull() and isEmpty(). 
+
+Examples: fileiconview/qfileiconview.cpp, network/networkprotocol/nntp.cpp, rot13/rot13.cpp and themes/themes.cpp. 
+
+QCString QString::local8Bit () const 
+Returns the string encoded in a locale-specific format. On X11, this is the QTextCodec::codecForLocale(). On Windows, it is a system-defined encoding. On Mac OS X, this always uses utf8 as the encoding. 
+See QTextCodec for more diverse coding/decoding of Unicode strings. 
+
+
+See also QString::fromLocal8Bit(), latin1() and utf8(). 
+
+int QString::localeAwareCompare ( const QString & s1, const QString & s2 ) [static] 
+Compares s1 with s2 and returns an integer less than, equal to, or greater than zero if s1 is less than, equal to, or greater than s2. 
+
+The comparison is performed in a locale- and also platform-dependent manner. Use this function to present sorted lists of strings to the user. 
+
+
+See also QString::compare() and QTextCodec::locale(). 
+
+int QString::localeAwareCompare ( const QString & s ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Compares this string with s. 
+
+QString QString::lower () const 
+Returns a string that is the string converted to lowercase. 
+
+    QString string( "TROlltECH" );
+    str = string.lower();   // str == "trolltech"
+  
+
+See also upper(). 
+
+Example: scribble/scribble.cpp. 
+
+QString QString::mid ( uint index, uint len = 0xffffffff ) const 
+Returns a string that contains the len characters of this string, starting at position index. 
+Returns a null string if the string is empty or index is out of range. Returns the whole string from index if index+len exceeds the length of the string. 
+
+
+    QString s( "Five pineapples" );
+    QString t = s.mid( 5, 4 );                  // t == "pine"
+  
+
+See also left() and right(). 
+
+Examples: network/mail/smtp.cpp, qmag/qmag.cpp and themes/themes.cpp. 
+
+QString QString::number ( long n, int base = 10 ) [static] 
+A convenience function that returns a string equivalent of the number n to base base, which is 10 by default and must be between 2 and 36. 
+
+    long a = 63;
+    QString str = QString::number( a, 16 );             // str == "3f"
+    QString str = QString::number( a, 16 ).upper();     // str == "3F"
+  
+
+See also setNum(). 
+
+Examples: action/application.cpp, application/application.cpp, chart/chartform.cpp, fonts/simple-qfont-demo/viewer.cpp, mdi/application.cpp and sql/overview/extract/main.cpp. 
+
+QString QString::number ( ulong n, int base = 10 ) [static] 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+
+See also setNum(). 
+
+QString QString::number ( int n, int base = 10 ) [static] 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+
+See also setNum(). 
+
+QString QString::number ( uint n, int base = 10 ) [static] 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+A convenience factory function that returns a string representation of the number n to the base base, which is 10 by default and must be between 2 and 36. 
+
+
+See also setNum(). 
+
+QString QString::number ( double n, char f = 'g', int prec = 6 ) [static] 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Argument n is formatted according to the f format specified, which is g by default, and can be any of the following: 
+
+
+e - format as [-]9.9e[+|-]999 
+E - format as [-]9.9E[+|-]999 
+f - format as [-]9.9 
+g - use e or f format, whichever is the most concise 
+G - use E or f format, whichever is the most concise 
+In all cases the number of digits after the decimal point is equal to the precision specified in prec. 
+
+
+    double d = 12.34;
+    QString ds = QString( "'E' format, precision 3, gives %1" )
+                 .arg( d, 0, 'E', 3 );
+    // ds == "1.234E+001"
+  
+
+See also setNum(). 
+
+QString::operator const char * () const 
+Returns latin1(). Be sure to see the warnings documented there. Note that for new code which you wish to be strictly Unicode-clean, you can define the macro QT_NO_ASCII_CAST when compiling your code to hide this function so that automatic casts are not done. This has the added advantage that you catch the programming error described under operator!(). 
+
+bool QString::operator! () const 
+Returns TRUE if it is a null string; otherwise FALSE. 
+
+    QString name = getName();
+    if ( !name )
+        name = "Rodney";
+  
+Note that if you say 
+
+
+    QString name = getName();
+    if ( name )
+        doSomethingWith(name);
+  
+It will call "operator const char*()", which is inefficent; you may wish to define the macro QT_NO_ASCII_CAST when writing code which you wish to remain Unicode-clean. 
+
+When you want the above semantics, use: 
+
+
+    QString name = getName();
+    if ( !name.isNull() )
+        doSomethingWith(name);
+  
+QString & QString::operator+= ( const QString & str ) 
+Appends str to the string and returns a reference to the string. 
+QString & QString::operator+= ( QChar c ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Appends c to the string and returns a reference to the string. 
+
+QString & QString::operator+= ( char c ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Appends c to the string and returns a reference to the string. 
+
+QString & QString::operator= ( QChar c ) 
+Sets the string to contain just the single character c. 
+QString & QString::operator= ( const QString & s ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Assigns a shallow copy of s to this string and returns a reference to this string. This is very fast because the string isn't actually copied. 
+
+QString & QString::operator= ( const char * str ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Assigns a deep copy of str, interpreted as a classic C string to this string and returns a reference to this string. 
+
+If str is 0, then a null string is created. 
+
+
+See also isNull(). 
+
+QString & QString::operator= ( const QCString & cs ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Assigns a deep copy of cs, interpreted as a classic C string, to this string and returns a reference to this string. 
+
+QString & QString::operator= ( char c ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Sets the string to contain just the single character c. 
+
+QChar QString::operator[] ( int i ) const 
+Returns the character at index i, or QChar::null if i is beyond the length of the string. 
+
+If the QString is not const (i.e., const QString) or const& (i.e., const QString&), then the non-const overload of operator[] will be used instead. 
+
+QCharRef QString::operator[] ( int i ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+The function returns a reference to the character at index i. The resulting reference can then be assigned to, or used immediately, but it will become invalid once further modifications are made to the original string. 
+
+If i is beyond the length of the string then the string is expanded with QChar::nulls, so that the QCharRef references a valid (null) character in the string. 
+
+The QCharRef internal class can be used much like a constant QChar, but if you assign to it, you change the original string (which will detach itself because of QString's copy-on-write semantics). You will get compilation errors if you try to use the result as anything but a QChar. 
+
+QString & QString::prepend ( const QString & s ) 
+Inserts s at the beginning of the string and returns a reference to the string. 
+
+Equivalent to insert(0, s). 
+
+
+    QString string = "42";
+    string.prepend( "The answer is " );
+    // string == "The answer is 42"
+  
+
+See also insert(). 
+
+QString & QString::prepend ( char ch ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Inserts ch at the beginning of the string and returns a reference to the string. 
+
+Equivalent to insert(0, ch). 
+
+
+See also insert(). 
+
+QString & QString::prepend ( QChar ch ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Inserts ch at the beginning of the string and returns a reference to the string. 
+
+Equivalent to insert(0, ch). 
+
+
+See also insert(). 
+
+QChar & QString::ref ( uint i ) 
+Returns the QChar at index i by reference, expanding the string with QChar::null if necessary. The resulting reference can be assigned to, or otherwise used immediately, but becomes invalid once furher modifications are made to the string. 
+
+
+    QString string("ABCDEF");
+    QChar ch = string.ref( 3 );         // ch == 'D'
+  
+
+See also constref(). 
+
+QString & QString::remove ( uint index, uint len ) 
+Removes len characters starting at position index from the string and returns a reference to the string. 
+If index is beyond the length of the string, nothing happens. If index is within the string, but index plus len is beyond the end of the string, the string is truncated at position index. 
+
+
+    QString string( "Montreal" );
+    string.remove( 1, 4 );      // string == "Meal"
+  
+
+See also insert() and replace(). 
+
+QString & QString::replace ( uint index, uint len, const QString & s ) 
+Replaces len characters starting at position index from the string with s, and returns a reference to the string. 
+If index is beyond the length of the string, nothing is deleted and s is appended at the end of the string. If index is valid, but index plus len is beyond the end of the string, the string is truncated at position index, then s is appended at the end. 
+
+
+    QString string( "Say yes!" );
+    string = string.replace( 4, 3, "NO" );
+    // string == "Say NO!"
+  
+
+See also insert() and remove(). 
+
+Examples: listviews/listviews.cpp, network/networkprotocol/nntp.cpp and qmag/qmag.cpp. 
+
+QString & QString::replace ( uint index, uint len, const QChar * s, uint slen ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Replaces len characters starting at position index by slen characters of QChar data from s, and returns a reference to the string. 
+
+
+See also insert() and remove(). 
+
+QString & QString::replace ( const QRegExp & rx, const QString & str ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Replaces every occurrence of the regexp rx in the string with str. Returns a reference to the string. 
+
+
+    QString string = "banana";
+    string = string.replace( QRegExp("an"), "" ); // string == "ba"
+  
+
+See also find() and findRev(). 
+
+QString QString::right ( uint len ) const 
+Returns a string that contains the len rightmost characters of the string. 
+If len is greater than the length of the string then the whole string is returned. 
+
+
+    QString string( "Pineapple" );
+    QString t = string.right( 5 );   // t == "apple"
+  
+
+See also left(), mid() and isEmpty(). 
+
+Example: fileiconview/qfileiconview.cpp. 
+
+QString QString::rightJustify ( uint width, QChar fill = ' ', bool truncate = FALSE ) const 
+Returns a string of length width that contains the fill character followed by the string. 
+If truncate is FALSE and the length of the string is more than width, then the returned string is a copy of the string. 
+
+If truncate is TRUE and the length of the string is more than width, then the resulting string is truncated at position width. 
+
+
+    QString string( "apple" );
+    QString t = string.rightJustify( 8, '.' );  // t == "...apple"
+  
+
+See also leftJustify(). 
+
+QString QString::section ( QChar sep, int start, int end = 0xffffffff, int flags = SectionDefault ) const 
+
+This function returns a section of the string. 
+
+This string is treated as a sequence of fields separated by the character, sep. The returned string consists of the fields from position start to position end inclusive. If end is not specified, all fields from position start to the end of the string are included. Fields are numbered 0, 1, 2, etc., counting from the left, and -1, -2, etc., counting from the right. 
+
+The flags argument can be used to affect some aspects of the function's behaviour, e.g. whether to be case sensitive, whether to skip empty fields and how to deal with leading and trailing separators; see SectionFlags. 
+
+
+    QString csv( "forename,middlename,surname,phone" );
+    QString s = csv.section( ',', 2, 2 );   // s == "surname"
+
+    QString path( "/usr/local/bin/myapp" ); // First field is empty
+    QString s = path.section( '/', 3, 4 );  // s == "bin/myapp"
+    QString s = path.section( '/', 3, 3, SectionSkipEmpty ); // s == "myapp"
+    
+If start or end is negative, we count fields from the right of the string, the right-most field being -1, the one from right-most field being -2, and so on. 
+
+
+    QString csv( "forename,middlename,surname,phone" );
+    QString s = csv.section( ',', -3, -2 );  // s == "middlename,surname"
+
+    QString path( "/usr/local/bin/myapp" ); // First field is empty
+    QString s = path.section( '/', -1 ); // s == "myapp"
+    
+
+See also QStringList::split(). 
+
+Example: chart/element.cpp. 
+
+QString QString::section ( char sep, int start, int end = 0xffffffff, int flags = SectionDefault ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+
+QString QString::section ( const char * sep, int start, int end = 0xffffffff, int flags = SectionDefault ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+
+QString QString::section ( const QString & sep, int start, int end = 0xffffffff, int flags = SectionDefault ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+This function returns a section of the string. 
+
+This string is treated as a sequence of fields separated by the string, sep. The returned string consists of the fields from position start to position end inclusive. If end is not specified, all fields from position start to the end of the string are included. Fields are numbered 0, 1, 2, etc., counting from the left, and -1, -2, etc., counting from the right. 
+
+The flags argument can be used to affect some aspects of the function's behaviour, e.g. whether to be case sensitive, whether to skip empty fields and how to deal with leading and trailing separators; see SectionFlags. 
+
+
+    QString data( "forename**middlename**surname**phone" );
+    QString s = data.section( "**", 2, 2 ); // s == "surname"
+    
+If start or end is negative, we count fields from the right of the string, the right-most field being -1, the one from right-most field being -2, and so on. 
+
+
+    QString data( "forename**middlename**surname**phone" );
+    QString s = data.section( "**", -3, -2 ); // s == "middlename**surname"
+    
+
+See also QStringList::split(). 
+
+QString QString::section ( const QRegExp & reg, int start, int end = 0xffffffff, int flags = SectionDefault ) const 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+This function returns a section of the string. 
+
+This string is treated as a sequence of fields separated by the regular expression, reg. The returned string consists of the fields from position start to position end inclusive. If end is not specified, all fields from position start to the end of the string are included. Fields are numbered 0, 1, 2, etc., counting from the left, and -1, -2, etc., counting from the right. 
+
+The flags argument can be used to affect some aspects of the function's behaviour, e.g. whether to be case sensitive, whether to skip empty fields and how to deal with leading and trailing separators; see SectionFlags. 
+
+
+    QString line( "forename\tmiddlename  surname \t \t phone" );
+    QRegExp sep( "\s+" );
+    QString s = line.section( sep, 2, 2 ); // s == "surname"
+    
+If start or end is negative, we count fields from the right of the string, the right-most field being -1, the one from right-most field being -2, and so on. 
+
+
+    QString line( "forename\tmiddlename  surname \t \t phone" );
+    QRegExp sep( "\\s+" );
+    QString s = line.section( sep, -3, -2 ); // s == "middlename  surname"
+    
+Warning: Section on QRegExp is much more expensive than the overloaded string and character versions. 
+
+
+See also QStringList::split() and simplifyWhiteSpace(). 
+
+void QString::setExpand ( uint index, QChar c ) 
+This function is obsolete. It is provided to keep old source working. We strongly advise against using it in new code. 
+Sets the character at position index to c and expands the string if necessary, filling with spaces. 
+
+This method is redundant in Qt 3.x, because operator[] will expand the string as necessary. 
+
+QString & QString::setLatin1 ( const char * str, int len = -1 ) 
+Sets this string to str, interpreted as a classic Latin1 C string. If len is -1 (the default), then it is set to strlen(str). 
+If str is 0 a null string is created. If str is "", an empty string is created. 
+
+
+See also isNull() and isEmpty(). 
+
+void QString::setLength ( uint newLen ) 
+Ensures that at least newLen characters are allocated to the string, and sets the length of the string to newLen. Any new space allocated contains arbitrary data. 
+If newLen is 0, then the string becomes empty, unless the string is null, in which case it remains null. 
+
+If it is not possible to allocate enough memory, the string remains unchanged. 
+
+This function always detaches the string from other references to the same data. 
+
+This function is useful for code that needs to build up a long string and wants to avoid repeated reallocation. In this example, we want to add to the string until some condition is true, and we're fairly sure that size is big enough: 
+
+    QString result;
+    int resultLength = 0;
+    result.setLength( newLen ) // allocate some space
+    while ( ... ) {
+        result[resultLength++] = ... // fill (part of) the space with data
+    }
+    result.truncate[resultLength]; // and get rid of the undefined junk
+  
+If newLen is an underestimate, the worst that will happen is that the loop will slow down. 
+
+
+See also truncate(), isNull(), isEmpty() and length(). 
+
+QString & QString::setNum ( long n, int base = 10 ) 
+Sets the string to the printed value of n in base base and returns a reference to the string. 
+The base is 10 by default and must be between 2 and 36. 
+
+
+    QString string;
+    string = string.setNum( 1234 );     // string == "1234"
+  
+QString & QString::setNum ( short n, int base = 10 ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Sets the string to the printed value of n in base base and returns a reference to the string. 
+
+The base is 10 by default and must be between 2 and 36. 
+
+QString & QString::setNum ( ushort n, int base = 10 ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Sets the string to the printed value of n in base base and returns a reference to the string. 
+
+The base is 10 by default and must be between 2 and 36. 
+
+QString & QString::setNum ( int n, int base = 10 ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Sets the string to the printed value of n in base base and returns a reference to the string. 
+
+The base is 10 by default and must be between 2 and 36. 
+
+QString & QString::setNum ( uint n, int base = 10 ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Sets the string to the printed value of n in base base and returns a reference to the string. 
+
+The base is 10 by default and must be between 2 and 36. 
+
+QString & QString::setNum ( ulong n, int base = 10 ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Sets the string to the printed value of n in base base and returns a reference to the string. 
+
+The base is 10 by default and must be between 2 and 36. 
+
+QString & QString::setNum ( float n, char f = 'g', int prec = 6 ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Sets the string to the printed value of n, formatted in format f with precision prec, and returns a reference to the string. 
+
+The format f can be 'f', 'F', 'e', 'E', 'g' or 'G'. See arg() for an explanation of the formats. 
+
+QString & QString::setNum ( double n, char f = 'g', int prec = 6 ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Sets the string to the printed value of n, formatted in format f with precision prec, and returns a reference to the string. 
+
+The format f can be 'f', 'F', 'e', 'E', 'g' or 'G'. See arg() for an explanation of the formats. 
+
+QString & QString::setUnicode ( const QChar * unicode, uint len ) 
+Resizes the string to len characters and copies unicode into the string. If unicode is null, nothing is copied, but the string is still resized to len. If len is zero, then the string becomes a null string. 
+
+See also setLatin1() and isNull(). 
+
+QString & QString::setUnicodeCodes ( const ushort * unicode_as_ushorts, uint len ) 
+Resizes the string to len characters and copies unicode_as_ushorts into the string (on some X11 client platforms this will involve a byte-swapping pass). 
+If unicode_as_ushorts is null, nothing is copied, but the string is still resized to len. If len is zero, the string becomes a null string. 
+
+
+See also setLatin1() and isNull(). 
+
+QString QString::simplifyWhiteSpace () const 
+Returns a string that has whitespace removed from the start and the end of the string, and any sequence of internal whitespace is replaced with a single space. 
+Whitespace means any character for which QChar::isSpace() returns TRUE. This includes UNICODE characters with decimal values 9 (TAB), 10 (LF), 11 (VT), 12 (FF), 13 (CR), and 32 (Space). 
+
+
+    QString string = "  lots\t of\nwhite    space ";
+    QString t = string.simplifyWhiteSpace();
+    // t == "lots of white space"
+  
+
+See also stripWhiteSpace(). 
+
+QString & QString::sprintf ( const char * cformat, ... ) 
+Safely builds a formatted string from the format string cformat and an arbitrary list of arguments. The format string supports all the escape sequences of printf() in the standard C library. 
+The %s escape sequence expects a utf8() encoded string. The format string cformat is expected to be in latin1. If you need a unicode format string, use arg() instead. For typesafe string building, with full Unicode support, you can use QTextOStream like this: 
+
+
+    QString str;
+    QString s = ...;
+    int x = ...;
+    QTextOStream( &str ) << s << " : " << x;
+  
+For translations, especially if the strings contains more than one escape sequence, you should consider using the arg() function instead. This allows the order of the replacements to be controlled by the translator, and has Unicode support. 
+
+
+See also arg(). 
+
+Examples: dclock/dclock.cpp, forever/forever.cpp, layout/layout.cpp, qmag/qmag.cpp, scrollview/scrollview.cpp, tooltip/tooltip.cpp and xform/xform.cpp. 
+
+bool QString::startsWith ( const QString & s ) const 
+Returns TRUE if the string starts with s; otherwise it returns FALSE. 
+
+    QString string("Bananas");
+    bool a = string.startsWith("Ban");      //  a == TRUE
+  
+
+See also endsWith(). 
+
+QString QString::stripWhiteSpace () const 
+Returns a string that has whitespace removed from the start and the end. 
+Whitespace means any character for which QChar::isSpace() returns TRUE. This includes UNICODE characters with decimal values 9 (TAB), 10 (LF), 11 (VT), 12 (FF), 13 (CR) and 32 (Space), and may also include other Unicode characters. 
+
+
+    QString string = "   white space   ";
+    QString s = string.stripWhiteSpace();       // s == "white space"
+  
+
+See also simplifyWhiteSpace(). 
+
+double QString::toDouble ( bool * ok = 0 ) const 
+Returns the string converted to a double value. 
+If a conversion error occurs, *ok is set to FALSE (unless ok is null, the default) and 0 is returned. Otherwise, *ok is set to true. 
+
+
+    QString string( "1234.56" );
+    double a = string.toDouble();   // a == 1234.56
+  
+
+See also number(). 
+
+float QString::toFloat ( bool * ok = 0 ) const 
+Returns the string converted to a float value. 
+If a conversion error occurs, *ok is set to FALSE (unless ok is null, the default) and 0 is returned. Otherwise, *ok is set to true. 
+
+
+See also number(). 
+
+int QString::toInt ( bool * ok = 0, int base = 10 ) const 
+Returns the string converted to an int value to the base base, which is 10 by default and must be between 2 and 36. 
+If *ok is nonnull, and is TRUE then there have been no errors in the conversion. If *ok is nonnull, and is FALSE, then the string is not a number at all or it has invalid characters at the end. 
+
+
+    QString str( "FF" );
+    bool ok;
+    int hex = str.toInt( &ok, 16 );     // hex == 255, ok == TRUE
+    int dec = str.toInt( &ok, 10 );     // dec == 0, ok == FALSE
+  
+
+See also number(). 
+
+long QString::toLong ( bool * ok = 0, int base = 10 ) const 
+Returns the string converted to a long value to the base base, which is 10 by default and must be between 2 and 36. 
+If a conversion error occurs, *ok is set to FALSE (unless ok is null, the default) and 0 is returned. Otherwise, *ok is set to true. 
+
+
+See also number(). 
+
+short QString::toShort ( bool * ok = 0, int base = 10 ) const 
+Returns the string converted to a short value to the base base, which is 10 by default and must be between 2 and 36. 
+If a conversion error occurs, *ok is set to FALSE (unless ok is null, the default) and 0 is returned. Otherwise, *ok is set to true. 
+
+uint QString::toUInt ( bool * ok = 0, int base = 10 ) const 
+Returns the string converted to an unsigned int value to the base base, which is 10 by default and must be between 2 and 36. 
+If a conversion error occurs, *ok is set to FALSE (unless ok is null, the default) and 0 is returned. Otherwise, *ok is set to true. 
+
+
+See also number(). 
+
+ulong QString::toULong ( bool * ok = 0, int base = 10 ) const 
+Returns the string converted to an unsigned long value to the base base, which is 10 by default and must be between 2 and 36. 
+If a conversion error occurs, *ok is set to FALSE (unless ok is null, the default) and 0 is returned. Otherwise, *ok is set to true. 
+
+
+See also number(). 
+
+ushort QString::toUShort ( bool * ok = 0, int base = 10 ) const 
+Returns the string converted to an unsigned short value to the base base, which is 10 by default and must be between 2 and 36. 
+If a conversion error occurs, *ok is set to FALSE (unless ok is null, the default) and 0 is returned. Otherwise, *ok is set to true. 
+
+void QString::truncate ( uint newLen ) 
+If newLen is less than the length of the string, then the string is truncated at position newLen. Otherwise nothing will happen. 
+
+    QString s = "truncate me";
+    s.truncate( 5 );            // s == "trunc"
+  
+
+See also setLength(). 
+
+Example: network/mail/smtp.cpp. 
+
+const QChar * QString::unicode () const 
+Returns the Unicode representation of the string. The result remains valid until the string is modified. 
+
+QString QString::upper () const 
+Returns a string that is the string converted to uppercase. 
+
+    QString string( "TeXt" );
+    str = string.upper();     // t == "TEXT"
+  
+
+See also lower(). 
+
+Examples: scribble/scribble.cpp and sql/overview/custom1/main.cpp. 
+
+QCString QString::utf8 () const 
+Returns the string encoded in UTF8 format. 
+See QTextCodec for more diverse coding/decoding of Unicode strings. 
+
+
+See also QString::fromUtf8(), local8Bit() and latin1(). 
+
+
+--------------------------------------------------------------------------------
+
+Related Functions
+bool operator!= ( const QString & s1, const QString & s2 ) 
+Returns TRUE if s1 is not equal to s2 or FALSE if they are equal. Note that a null string is not equal to an empty string which is nonnull. 
+Equivalent to compare(s1, s2) != 0. 
+
+bool operator!= ( const QString & s1, const char * s2 ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Returns TRUE if s1 is not equal to s2 or FALSE if they are equal. Note that a null string is not equal to an empty string which is nonnull. 
+
+Equivalent to compare(s1, s2) != 0. 
+
+bool operator!= ( const char * s1, const QString & s2 ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Returns TRUE if s1 is not equal to s2 or FALSE if they are equal. Note that a null string is not equal to an empty string which is nonnull. 
+
+Equivalent to compare(s1, s2) != 0. 
+
+const QString operator+ ( const QString & s1, const QString & s2 ) 
+Returns a string which is the result of concatenating the string s1 and the string s2. 
+Equivalent to s1.append(s2). 
+
+const QString operator+ ( const QString & s1, const char * s2 ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Returns a string which is the result of concatenating the string s1 and character s2. 
+
+Equivalent to s1.append(s2). 
+
+const QString operator+ ( const char * s1, const QString & s2 ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Returns a string which is the result of concatenating the character s1 and string s2. 
+
+
+const QString operator+ ( const QString & s, char c ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Returns a string which is the result of concatenating the string s and character c. 
+
+Equivalent to s.append(c). 
+
+const QString operator+ ( char c, const QString & s ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Returns a string which is the result of concatenating the character c and string s. 
+
+Equivalent to s.prepend(c). 
+
+bool operator< ( const QString & s1, const char * s2 ) 
+Returns TRUE if s1 is lexically less than s2 or FALSE if it is not. The comparison is case sensitive. Note that a null string is not equal to an empty string which is nonnull. 
+Equivalent to compare(s1, s2) < 0. 
+
+bool operator< ( const char * s1, const QString & s2 ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Returns TRUE if s1 is lexically less than s2 or FALSE if it is not. The comparison is case sensitive. Note that a null string is not equal to an empty string which is nonnull. 
+
+Equivalent to compare(s1, s2) < 0. 
+
+
+QDataStream & operator<< ( QDataStream & s, const QString & str ) 
+Writes the string str to the stream s. 
+See also Format of the QDataStream operators 
+
+bool operator<= ( const QString & s1, const char * s2 ) 
+Returns TRUE if s1 is lexically less than or equal to s2 or FALSE if it is not. The comparison is case sensitive. Note that a null string is not equal to an empty string which is nonnull. 
+Equivalent to compare(s1,s2) <= 0. 
+
+
+bool operator<= ( const char * s1, const QString & s2 ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Returns TRUE if s1 is lexically less than or equal to s2 or FALSE if it is not. The comparison is case sensitive. Note that a null string is not equal to an empty string which is nonnull. 
+
+Equivalent to compare(s1, s2) <= 0. 
+
+bool operator== ( const QString & s1, const QString & s2 ) 
+Returns TRUE if s1 is equal to s2 or FALSE if they are different. Note that a null string is not equal to a nonnull empty string. 
+Equivalent to compare(s1, s2) != 0. 
+
+bool operator== ( const QString & s1, const char * s2 ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Returns TRUE if s1 is equal to s2 or FALSE if they are different. Note that a null string is not equal to an empty string which is nonnull. 
+
+Equivalent to compare(s1, s2) == 0. 
+
+bool operator== ( const char * s1, const QString & s2 ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Returns TRUE if s1 is equal to s2 or FALSE if they are different. Note that a null string is not equal to an empty string which is nonnull. 
+
+Equivalent to compare(s1, s2) == 0. 
+
+bool operator> ( const QString & s1, const char * s2 ) 
+Returns TRUE if s1 is lexically greater than s2 or FALSE if it is not. The comparison is case sensitive. Note that a null string is not equal to an empty string which is nonnull. 
+Equivalent to compare(s1, s2) > 0. 
+
+bool operator> ( const char * s1, const QString & s2 ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Returns TRUE if s1 is lexically greater than s2 or FALSE if it is not. The comparison is case sensitive. Note that a null string is not equal to an empty string which is nonnull. 
+
+Equivalent to compare(s1, s2) > 0. 
+
+bool operator>= ( const QString & s1, const char * s2 ) 
+Returns TRUE if s1 is lexically greater than or equal to s2 or FALSE if it is not. The comparison is case sensitive. Note that a null string is not equal to an empty string which is nonnull. 
+Equivalent to compare(s1, s2) >= 0. 
+
+bool operator>= ( const char * s1, const QString & s2 ) 
+This is an overloaded member function, provided for convenience. It behaves essentially like the above function. 
+Returns TRUE if s1 is lexically greater than or equal to s2 or FALSE if it is not. The comparison is case sensitive. Note that a null string is not equal to an empty string which is nonnull. 
+
+Equivalent to compare(s1, s2) >= 0. 
+
+QDataStream & operator>> ( QDataStream & s, QString & str ) 
+Reads a string from the stream s into string str. 
+See also Format of the QDataStream operators 
+
+
+--------------------------------------------------------------------------------
+
+This file is part of the Qt toolkit. Copyright © 1995-2002 Trolltech. All Rights Reserved.
+
+
+
+--------------------------------------------------------------------------------
+
+Copyright © 2002 Trolltech Trademarks  Qt version 3.0.5 
+

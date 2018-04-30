@@ -1,0 +1,74 @@
+试分析linux中RamDisk工作原理
+
+分类： Linux系统管理 2008-10-24 14:19 2026人阅读 评论(0) 收藏 举报
+linux工作web服务数据库服务器imageext
+一 什么是RamDisk
+
+Ram：内存，Disk：磁盘，在Linux中可以将一部分内存当作分区来使用，称之为RamDisk。对于一 些经常被访问、并且不会被更改的文件，可以将它们通过RamDisk放在内存中，能够明显地提高系统性能。RamDisk工作于虚拟文件系统（VFS） 层，不能格式化，但可以创建多个RamDisk。虽然现在硬盘价钱越来越便宜，但对于一些我们想让其访问速度很高的情况下，RamDisk还是很好用的。
+
+如 果对计算速度要求很高，可以通过增加内存来实现，使用ramdisk技术。 一个A RamDisk就是把内存假设为一个硬盘驱动器，并且在它的上面存储文件。假设有几个文件要频繁的使用，如果将它们加到内存当中，程序运行速度会大幅度提 高，因为内存的读写速度远高于硬盘。划出部分内存提高整体性能，不亚于更换新的CPU。像Web服务器这样的计算机，需要大量读取和交换特定的文件。因 此，在Web服务器上建立RamDisk会大大提高网络读取速度。 
+
+
+
+
+二 如何使用RamDisk 
+格式化一个ramdisk并把他加到一个目录上。列出所有可用的ramdisk用“ls -al /dev/ram*”。这就会列出你现有可用的ramdisk。这些ramdisk并不抢夺内存，除非进行格式化的一类操作。这里有一个使用ramdisk的例子。 
+# create a mount point: 
+mkdir /tmp/ramdisk0 
+# create a filesystem: 
+mke2fs /dev/ram0 
+# mount the ramdisk: 
+mount /dev/ram0 /tmp/ramdisk0 
+这三个命令将为ramdisk创建一个目录，格式化ramdisk（创建文件系统），并且加载这个ramdisk到"/tmp/ramdisk0". 现在你可以将这个目录看成一个虚拟的分区。使用它就象使用其它的目录一样。 
+如果对ramdisk的格式化失败，那就是你的内核不支持ramdisk。其内核配置选项是 CONFIG_BLK_DEV_RAM . 
+ramdisk的默认大小是 4Mb=4096 blocks. 在你进行mke2fs的时候你可以看到你的ramdisk的大小。mke2fs /dev/ram0 将产生类适于以下的信息： 
+mke2fs 1.14, 9-Jan-1999 for EXT2 FS 0.5b, 95/08/09 
+Linux ext2 filesystem format 
+Filesystem label= 
+1024 inodes, 4096 blocks 
+204 blocks (4.98%) reserved for the super user 
+First data block=1 
+Block size=1024 (log=0) 
+Fragment size=1024 (log=0) 
+1 block group 
+8192 blocks per group, 8192 fragments per group 
+1024 inodes per group 
+执行df -k /dev/ram0 你实际用了多少空间： 
+>df -k /dev/ram0 
+Filesystem  1k-blocks  Used Available Use% Mounted on 
+/dev/ram0        3963    13      3746    0% /tmp/ramdisk0 
+那么麻烦是什么呢？在系统重新启动的时候，将刷新这个区域。不要将任何没有拷贝的数据放在这个区域。如果你对这个目录进行了修改，并且需要保留这些修改，采取一些办法进行备份。
+
+
+
+
+三 改变RamDisks 的大小 
+要想使用RamDisk你必须或是得到内核的支持或是以模块的形式将他加载到系统中。其中内核的配置选项是 CONFIG_BLK_DEV_RAM . 把ramdisk编译成一个可加载的模块的好处是你可以在加载是重新确定ramdisk的大小。 
+第一个办法。在lilo.conf文件中加入： 
+ramdisk_size=10000 (or ramdisk=10000 for old kernels) 
+这样在你使用lilo命令和重新启动计算机之后，ramdisk的默认大小将会是10M。这是一个/etc/lilo.conf文件的例子： 
+boot=/dev/hda 
+map=/boot/map 
+install=/boot/boot.b 
+prompt 
+timeout=50 
+image=/boot/vmlinuz 
+label=linux 
+root=/dev/hda2 
+read-only 
+ramdisk_size=10000 
+确切的说，我只是使用了9M多的空间，文件系统也将占用一定空间。 
+当你以模块的形式编译ramdisk时，你可以在加载的时候决定ramdisk的大小。这也可以通过修改/etc/conf.modules 的选项设置来做到。
+options rd rd_size=10000 
+或是在命令行中指定参数给ismod： 
+insmod rd rd_size=10000 
+以下是介绍如何使用这样的模块的例子： 
+卸载ramdisk，umount /tmp/ramdisk0 . 
+卸载模块(再上一节所提到的过程中自动加载), rmmod rd 
+加载ramdisk模块并且把它的大校设为20M，insmod rd rd_size=20000 
+创建一个文件系统, mke2fs /dev/ram0 
+加载ramdisk, mount /dev/ram0 /tmp/ramdisk0 
+
+四 RamDisk的优缺点
+
+RamDisk 就是将内存模拟为硬盘空间。无论什么时候你使用RamDisk，实际上你是在使用内存而不是硬盘。在这一点上既有优点又有缺点。最基本的，最大的优点是你 是在使用内存，你所做的一切都会快一些，因为硬盘的速度较内存慢。最大的缺点是如果你改变了数据库服务器的内容并且重新启动机器时，所做的一切改动都将丢 失。

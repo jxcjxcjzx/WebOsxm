@@ -1,0 +1,345 @@
+
+文章 课程 认证 文库 视频 iProcess 工具 交流
+会员   
+
+	
+ 
+ 	 	 
+ 	  	
+分享到
+深入浅出---unix多进程编程之wait()和waitpid()函数
+ 
+作者：wallwind，发布于2012-1-13
+
+ 
+Wait和waipid函数
+
+当一个进程正常或异常终止的时候，内核就像其父进程发送SIGCHLD信号，因为子进程是个一步事件，所以这种信号也是内核系那个父进程发的异步通知。父进程可以选择忽略该信号，或者提供一个该信号发生时即被调用执行的函数。对于这种信号的系统默认动作是忽略它。
+
+现在要知道调用wait或waitpid的进程可能会发生什么情况：
+
+如果其所有子进程都在运行，则阻塞。
+如果一个子进程已经终止，正在得带的父进程获取到终止状态，则取得该子进程的终止状态立即返回。
+如果他没有任何子进程，则立即出错返回。
+如果进程由于接收到SIGCHLD信号而调用wait，则可期望wait会立即返回。但是如果在任意时刻调用wait则进程可能会阻塞。
+
+两个函数原型
+
+#include <sys/wait.h>
+
+pid_t wait(int *status);
+
+pit_t wait(pid_t pid,int *status,int options);
+
+函数若成功，返回进程ID，若出错则返回-1；
+
+
+
+下面就来一个简单的例子来展示一下我们的wait函数
+
+#include "apue.h"
+
+#include <sys/wait.h>
+
+int main(void)
+
+{
+
+    pid_t pid1,pid2;
+
+    printf("before fork\n");
+
+    if((pid1=fork())<0){
+
+        printf("fork error");
+
+    }else if(pid1==0){
+
+        printf("child process 'spid=%d\n",getpid());
+
+        sleep(3);
+
+    }else{
+
+        pid2=wait(NULL);
+
+        printf("wait process 's pid=%d\n",pid2);
+
+    }
+
+    exit(0);
+
+}
+
+输出结果：
+
+
+
+当程序运行的时候明显的可以看到在输出最后一行 的时候等待了三秒钟。也就是父进程等待子进程的结束。父进程才能扑捉子进程，然后得到wait要得到的结果。
+
+参数status：
+
+参数status是一个整型指针。如果参数status的值不是NULL，wait就会把子进程退出时的状态取出并存入其中，这是一个整数值（int），指出了子进程是正常退出还是被非正常结束的（一个进程也可以被其他进程用信号结束，我们将在以后的文章中介绍），以及正常结束时的返回值，或被哪一个信号结束的等信息。由于这些信息被存放在一个整数的不同二进制位中，所以用常规的方法读取会非常麻烦，人们就设计了一套专门的宏（macro）来完成这项工作，下面我们来学习一下其中最常用的两个：
+
+1，WIFEXITED(status) 这个宏用来指出子进程是否为正常退出的，如果是，它会返回一个非零值。
+
+（请注意，虽然名字一样，这里的参数status并不同于wait唯一的参数--指向整数的指针status，而是那个指针所指向的整数，切记不要搞混了。）
+
+2， WEXITSTATUS(status) 当WIFEXITED返回非零值时，我们可以用这个宏来提取子进程的返回值，如果子进程调用exit(5)退出，WEXITSTATUS(status) 就会返回5；如果子进程调用exit(7)，WEXITSTATUS(status)就会返回7。请注意，如果进程不是正常退出的，也就是说， WIFEXITED返回0，这个值就毫无意义。
+
+详细的书中的表
+
+下面的例子就是获取到子进程的终止信号。然后进行输出。
+
+#include "apue.h"
+
+#include<sys/wait.h>
+
+void pr_exit(int);
+
+int main(void)
+
+{
+
+    pid_t pid;
+
+    int status;
+
+    if((pid=fork())<0){
+
+        err_sys("fork error");
+
+    }else if(pid==0){
+
+       exit(7);
+
+    }
+
+    if(wait(&status)!=pid)
+
+    err_sys("wait error");
+
+    pr_exit(status);
+
+    if((pid=fork())<0)
+
+    err_sys("fork error");
+
+    else if(pid==0)
+
+    // printf("child pid=%d\n",getpid());
+
+    //printf("child pid=%d\n",getppid());
+
+    abort();
+
+    if(wait(&status)!=pid)
+
+    err_sys("wait error");
+
+    pr_exit(status);
+
+    if((pid=fork())<0)
+
+    err_sys("fork error");
+
+    else if(pid==0)
+
+    //printf(" parent pid=%d\n",getppid());
+
+    //printf("child pid=%d\n",getpid());
+
+    status/=0;
+
+    if(wait(&status)!=pid)
+
+    err_sys("wait error");
+
+    pr_exit(status);
+
+    exit(0);
+
+}
+
+void pr_exit(int status)
+
+{
+
+    if(WIFEXITED(status))
+
+    printf("normal termination,exitstatus=%d\n",WEXITSTATUS(status));
+
+    elseif(WIFSIGNALED(status))
+
+    printf("abnormal termination,signalstatus=%d\n",WTERMSIG(status),
+
+    #ifdef WCOREDUMP
+
+    WCOREDUMP(status)?"(core file generated)":"");
+
+    #else
+
+    "");
+
+    #endif
+
+    elseif(WIFSTOPPED(status))
+
+    printf("child stopped ,signal number=%d\n",
+
+    WSTOPSIG(status));
+
+}
+
+输出结果：
+
+
+
+从结果我们看到了调用exit为正常终止函数。
+
+Waitpid函数。
+
+当我们需要等待一个特定进程的函数时候，我们这个时候就需要用到了waitpid函数了。从上文看到waitpid函数原型，我们也都了解到有个pid_t参数。
+
+解释如下：
+
+Pid=-1,等待任一个子进程。与wait等效。
+
+Pid>0.等待其进程ID与pid相等的子进程。
+
+Pid==0等待其组ID等于调用进程组ID的任一个子进程。
+
+Pid<-1等待其组ID等于pid绝对值的任一子进程。
+
+Waitpid返回终止子进程的进程ID。并将该子进程的终止状态存放在有status指向的存储单元中。
+
+Waitpid 函数提供了wait函数没有提供的三个功能。
+
+Waitpid可等待一个特定的进程，而wait则返回任一个终止子进程的状态。
+
+Waitpid提供了yigewait费阻塞版本。有时候用户希望取得一个子进程的状态，但不想阻塞。
+
+Waitpid支持作业控制。
+
+Waitpid返回值和错误
+
+waitpid的返回值比wait稍微复杂一些，一共有3种情况：
+
+当正常返回的时候，waitpid返回收集到的子进程的进程ID；
+
+如果设置了选项WNOHANG，而调用中waitpid发现没有已退出的子进程可收集，则返回0；
+
+如果调用中出错，则返回-1，这时errno会被设置成相应的值以指示错误所在；
+
+当pid所指示的子进程不存在，或此进程存在，但不是调用进程的子进程，waitpid就会出错返回，这时errno被设置为ECHILD；
+
+#include <sys/types.h>
+
+#include <sys/wait.h>
+
+#include <unistd.h>
+
+int main()
+
+{
+
+    pid_tpc, pr;
+
+    pc=fork();
+
+    if(pc<0){
+
+        /*如果fork出错 */
+
+        printf("Erroroccured on forking.\n");
+
+    }elseif(pc==0){
+
+        /*如果是子进程 */
+
+        sleep(10);
+
+        /*睡眠10秒 */
+
+        exit(0);
+
+    }
+
+    /*如果是父进程 */
+
+     do{
+
+         pr=waitpid(pc,NULL, WNOHANG);
+
+         /*使用了WNOHANG参数，waitpid不会在这里等待 */
+
+         if(pr==0){
+
+             /*如果没有收集到子进程 */
+
+             printf("Nochild exited\n");
+
+             sleep(1);
+
+         }
+
+     } while(pr==0);
+
+     /*没有收集到子进程，就回去继续尝试 */
+
+     if(pr==pc)
+
+     printf("successfullyget child %d\n", pr);
+
+     else
+
+     printf("someerror occured\n");
+
+}
+
+输出结果：
+
+
+
+结果中，我们看到父进程一直在等待子进程的结束。
+
+wait()和waitpid()就讲解到此。有什么疑问欢迎告知。
+
+
+
+相关文章
+Visual C++编程命名规则
+任何时候都适用的20个C++技巧
+C语言进阶
+串口驱动分析
+轻轻松松从C一路走到C++
+C++编程思想
+更多...
+
+相关培训课程
+C++并发处理+单元测试
+C++程序开发
+C++高级编程
+C/C++开发
+C++设计模式
+C/C++单元测试
+更多课程...
+
+成功案例
+北京 C++高级编程
+北京 C++高级编程
+丹佛斯 C++高级编程
+北大方正 C语言单元测试
+罗克韦尔 C++单元测试
+中国石油 C++单元测试
+诺基亚西门子 C++高级编程
+更多...
+
+ 	
+ 
+
+组织简介 | 联系我们 |   Copyright 2002 ®  UML软件工程组织 京ICP备10020922号
+
+京公海网安备110108001071号
+
+

@@ -1,0 +1,1375 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+qdujunjie的专栏
+
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+博客专家信息更新登记表        专访卜茂霞：嵌入式汽车开发潜力巨大      云计算最低优惠仅剩1天 
+专访陈勇： 敏捷开发现状及发展之路        “传统商家移动化之路”会议        下载频道3月领任务~赚下载分！ 
+
+
+
+LUA基本3D教程 
+.
+2009-09-15 09:38550人阅读评论(0)收藏举报
+ 
+luabuffer图形primitivematrix脚本
+
+ 
+<本文引用自 http://bbs.pspchina.net/thread-286132-1-1.html>
+ 
+ 
+ 
+本教程将教你如何在PSP上利用lua创建3D图形。在开始阅读本教程之前请确保你已经了解： 
+1.如何编写基本的LUA代码。 
+2.如何图形化一个3D的平面。
+ 
+当你结束本教程时你应该能够使用lua的3D函数画出基本的图形，以及如何旋转该图形，并为该图形添加色彩和纹理。我将使用随lua player一起发布的3D Cube演示版代码和安德鲁·卡朋特的图形快速库来解释如何在lua中使用3D函数。
+
+建立基本的 3D 脚本 
+
+要在lua中使用3D函数首先必须创建一些3D缓存。我们可以使用以下函数达到此目的：
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Gu.clear()  
+02.Gu.clearColor()  
+03.Gu.clearDepth()  
+04.Gu.clearStencil()  
+05.Gum.matrixMode()  
+06.Gum.perspective()  
+07.Gum.loadIdentity()  
+ 
+
+ 
+ 
+Gu.clear()函数将清空Color（色彩）、Depth（位深）和Stencil（模板）缓存，或总称为“绘制缓存（DrawBuffer）”，它们的值由Gu.clearColor()、Gu.clearDepth()和Gu.clearStencil()函数分别指定。Gu.clear()函数使用下述变量之一获取一个整数值：
+ 
+1.Gu.COLOR_BUFFER_BIT- 清空Color缓存为Gu.clearColor()函数设定的值。 
+2.Gu.DEPTH_BUFFER_BIT- 清空Depth缓存为Gu.clearDepth()函数设定的值。 
+3.Gu.STENCIL_BUFFER_BIT- 清空Stencil缓存为Gu.clearStencil()函数设定的值。
+ 
+
+要正确使用Gu.clear()函数你首先要将清空后需设定的值传递给它。使用下列函数达此目的：
+ 
+1.Gu.clearColor()-提取Color.new()函数设定的一个色彩参数。 
+2.Gu.clearDepth()-提取介于0至255之间的一个整数，0表示无位深，255表示最高位深。 
+3.Gu.clearStencil()-本教程不阐述，也可以从0至255之间取值。
+ 
+
+Gu.clearColor()函数将现有的绘制缓存清空为指定的色彩值，达到快速清屏至该色彩的目的。Gu.clearDepth()函数将绘制缓存清空为指定的位深，并告知PSP应将屏幕清空至什么级别。要创建一个绘制缓存可以使用下面的代码：
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Gu.clearColor(0) --Clears to black  
+02.Gu.clearDepth(0) --Clears to the upper most depth  
+03.Gu.clear(Gu.COLOR_BUFFER_BIT+Gu.DEPTH_BUFFER_BIT)  
+ 
+
+ 
+ 
+上述代码设置了一个基本的绘制缓存作为你绘图的基础。现在你需要建立起你的矩阵。要达此目的，你就得用如下函数： Gum.matrixMode()，Gum.perspective() 和 Gum.loadIdentity()。Gum.matirxMode() 函数切换到你要创建的矩阵，你可以传递下述矩阵之一给此函数：
+
+ 1.Gu.PROJECTION- 切换至一个矩阵，它告知PSP如何将你的图形绘制到屏幕上 
+2.Gu.VIEW-切换至一个矩阵，它让用户查看绘制命令的结果。这个矩阵有效地配置了你将要绘制的“画板”尺寸。 
+3.Gu.MODEL- 切换至一个矩阵，它让你创建3D图形。你创建的每一个3D图形都有自己的“model(型号)”，它告诉PSP如何创建对象，绘制的大小，以及需要时如何调整该对象的长宽。 
+4.Gu.TEXTURE- 切换至一个矩阵，它让你创建一个可以用于你的对象的纹理。
+ 
+用下述代码可以为3D图创建一个基础矩阵：
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Gum.matrixMode(Gu.PROJECTION)  
+02.Gum.loadIdentity()  
+03.Gum.perspective(75, 480/272, 0.5, 1000)  
+04.Gum.matrixMode (Gu.VIEW)  
+05.Gum.loadIdentity()  
+ 
+
+ 
+ 
+函数Gum.loadIdentity()把指定的参数传给当前矩阵，screen.flip()将以同样的方式切换onscreen 和offscreen的缓冲区。函数Gum.perspective()用来设定将用于绘图的“画板”的参数，函数原型如下：
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Gum.perspective (screenDepth, screenRatio, nearClipping, farClipping)  
+ 
+
+ 
+ 
+参数screenDepth告诉PSP在深入（或者移离）屏幕表面多远的位置画图，其取值范围是1～255，1为最小深入值，255为最大深入值。参数screenRatio表示3D屏幕的比例，比例越小屏幕越大，反之则屏幕越小。参数nearClipping和farClipping表示物体的“切边”。如果图形被截断了，那么请调整这个参数。现在用下面的代码来完成这个3D绘图脚本（不具备任何功能）。
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Gu.start3d()  
+02.  
+03.Gu.clearColor(0) --Clears to black  
+04.  
+05.Gu.clearDepth(0) --Clears to the upper most depth  
+06.  
+07.Gu.clear(Gu.COLOR_BUFFER_BIT+Gu.DEPTH_BUFFER_BIT)  
+08.  
+09.Gum.matrixMode(Gu.PROJECTION)  
+10.  
+11.Gum.loadIdentity()  
+12.  
+13.Gum.perspective(75, 480/272, 0.5, 1000)  
+14.  
+15.Gum.matrixMode (Gu.VIEW)  
+16.  
+17.Gum.loadIdentity()  
+18.  
+19.Gu.end3d()  
+ 
+
+ 
+ 
+ 
+ 
+函数Gu.start3d()和Gu.end3d()分别用于开始和结束3D画图引擎。
+ 
+ 
+ 
+ 
+ 
+创建简单的3D图
+
+我们来看一个例子：
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Red = Color.new (255, 0, 0)  
+02.Green = Color.new (0, 255, 0)  
+03.Blue = Color.new (0, 0, 255)  
+04.Black = Color.new (0, 0, 0)  
+05.  
+06.Points = {  
+07.{Black, 1, 0, 1},  
+08.  
+09.{Black, -1, 0, 1}  
+10.}  
+11.Lines = {  
+12.-- triangle's outline  
+13.{Black, 2, -1, 1},  
+14.{Black, 0, -1, 1},  
+15.  
+16.{Black, 0, -1, 1},  
+17.{Black, 1, 1, 1},  
+18.  
+19.{Black, 2, -1, 1},  
+20.{Black, 1, 1, 1},  
+21.  
+22.-- square's outline  
+23.{Black, -2, -1, 1},  
+24.{Black, -2, 1, 1},  
+25.  
+26.{Black, -2, 1, 1},  
+27.{Black, 0, 1, 1},  
+28.  
+29.{Black, 0, 1, 1},  
+30.{Black, 0, -1, 1},  
+31.  
+32.{Black, 0, -1, 1},  
+33.{Black, -2, -1, 1}  
+34.}  
+35.Triangle = {  
+36.{Red, 2, -1, 1},  
+37.{Red, 0, -1, 1},  
+38.{Red, 1, 1, 1}  
+39.}  
+40.Square = {  
+41.{Blue, -2, -1, 1},  
+42.{Blue, 0, 1, 1}  
+43.}  
+44.ClearSquare = {  
+45.{Green, -8, -3, 0},  
+46.{Black, 8, 3, 0},  
+47.{Green, 8, -3, 0},  
+48.{Black, 8, 3, 0},  
+49.{Green, -8, -3, 0},  
+50.{Black, -8, 3, 0}  
+51.}  
+52.while true do  
+53.Gu.start3d()  
+54.  
+55.Gu.clearColor (Green)  
+56.Gu.clearDepth(255);  
+57.Gu.clear(Gu.COLOR_BUFFER_BIT+Gu.DEPTH_BUFFER_BIT)  
+58.  
+59.Gum.matrixMode(Gu.PROJECTION)  
+60.Gum.loadIdentity()  
+61.Gum.perspective(75, 480/272, 0.5, 1000)  
+62.Gum.matrixMode(Gu.VIEW)  
+63.Gum.loadIdentity()  
+64.  
+65.Gum.matrixMode(Gu.MODEL)  
+66.Gum.loadIdentity()  
+67.Gum.translate(0, 0, -3)  
+68.  
+69.Gu.disable(Gu.TEXTURE_2D)  
+70.  
+71.Gum.drawArray(Gu.TRIANGLES, Gu.COLOR_8888+Gu.VERTEX_32BITF+Gu.TRANSFORM_3D, ClearSquare)  
+72.  
+73.Gum.drawArray(Gu.TRIANGLES, Gu.COLOR_8888+Gu.VERTEX_32BITF+Gu.TRANSFORM_3D, Triangle)  
+74.Gum.drawArray(Gu.SPRITES, Gu.COLOR_8888+Gu.VERTEX_32BITF+Gu.TRANSFORM_3D, Square)  
+75.  
+76.Gum.drawArray(Gu.POINTS, Gu.COLOR_8888+Gu.VERTEX_32BITF+Gu.TRANSFORM_3D, Points)  
+77.Gum.drawArray(Gu.LINES, Gu.COLOR_8888+Gu.VERTEX_32BITF+Gu.TRANSFORM_3D, Lines)  
+78.  
+79.Gu.end3d()  
+80.end  
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+在LUA Player中运行这个脚本可以看到：
+
+ 1.从绿色过渡到黑色的背景 
+2.带黑色边框的蓝色正方形 
+3.带黑色边框的红色三角形 
+4.两个图形中各有一个表示图形中心的黑点
+ 
+
+绘制基本的3D图形可以使用下列函数：
+ 1.Gu.translate() － 标记3D平面的中心。该函数有三个参数，依次指X坐标、Y坐标和Z坐标，缺省平面中心坐标是(0,0,0) 
+2.Gu.disable() － 使当前状态失效/关闭，与函数Gu.enable()功能正好相反。当需要绘制无纹理的物体时，就需要调用这个函数使Gu.TEXTURE_2D状态无效化。调用语句是 Gu.disable(Gu.TEXTURE_2D) 
+3.Gu.drawArray() － 根据位信息（bit information）、图坯（图形的基本形状）以及预先存储在数组中的顶点列表进行绘图
+ 
+
+3D平面被划分为若干“单位长度”。在X轴和Y轴，可见范围（即窗口大小）都是从-3到+3个单位长度，而Z轴的可见范围是从-2到-400个单位长度。【译注：结合实际观察，这个“单位长度”貌似就是坐标轴的单位长度。如果是的话，那么PSP屏幕的实际高度仅大致相当于-1.5到+1.5个单位长度。】与2D平面一样，负值表示相对于坐标原点沿坐标轴的反方向移动，正值表示沿正方向移动。比如，在3D平面中把一个点移动到(-1,1,1)的位置，那么可以创建这样一个顶点数组：
+ 
+ 
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.ExamplePoint = {  
+02.{Black, -1, 1, 1}  
+03.}  
+ 
+
+ 
+ 
+ 
+ 
+【译注：3D平面由3个坐标轴界定。X轴为沿屏幕水平方向（正方向向右），Y轴为沿屏幕垂直方向（正方向向上），Z轴垂直于屏幕（正方向向外）】
+要在3D平面绘图，必须先激活Gu.MODEL矩阵：
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Gum.matrixMode(Gu.MODEL)  
+02.Gum.loadIdentity()  
+ 
+
+ 
+ 
+接着还要调用Gu.translate()来设定3D平面的默认坐标中心：
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Gu.translate(0,0,-3)  
+ 
+
+ 
+ 
+3D平面的缺省位置是定在屏幕的正中心(0,0,0)。然而，为了绘制出各个深度的顶点，需要在平面的表面上下各预留大概1个单位长度的可见空间。
+设置完成，现在开始绘制平面。这里调用了函数Gu.drawArray()，其原型是：
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Gu.drawArray(Primitive, VertexType, Vertices)  
+ 
+
+ 
+ 
+ 
+ 
+参数Primitive是所画图形的基本型。可用的基本型有：
+ 1.Gu.POINTS － 画点 
+2.Gu.LINES － 顺次取点，每取出两个点画一条线段
+【译注：如果有奇数个点，则最后一个点被忽略。比如，数组
+LineStrip = {
+  {White, -2.0, -1.5, 1.0}, -- 线段1起点 
+  {White, -2.5, -1.0, 1.0}, -- 线段1终点
+  {White,  0.5, -1.0, 1.0}, -- 线段2起点
+  {White, -1.5,  0.5, 1.0}, -- 线段2终点
+  {White, -2.0,  0.5, 1.0} -- 无配对点不能画出线段，忽略
+  }
+含有两条线段】 
+3.Gu.LINE_STRIP － 画一组线段，前一条线段的终点作为下一条线段的起点
+【译注：⑴请注意名称是“LINE_STRIP”而不是原文中的“LINES_STRIP”（这个笔误害我郁闷了3天）
+              ⑵仍以上述数组为例，用该基本型可以画4条线段】 
+4.Gu.TRIANGLES － 画三角形 
+5.Gu.TRIANGLE_STRIP － 画一组三角形，其中前一个三角形的最后两个顶点与下一个顶点构成下一个三角形
+【译注：所画的一组三角形不能互相重叠，否则造成重叠的三角形将无法画出】 
+6.Gu.TRIANGLE_FAN － 画一组三角形，其中每个三角形的第一个点是数组中的第一个顶点，从第二个三角形开始，各图形的其余两个顶点依次是前一图形的最后一个顶点及其后的一个点
+【译注：不能造成图形重叠】 
+7.Gu.SPRITES － 画矩形
+ 
+
+参数VertexType传递这些信息：纹理/色彩的深度，顶点位置的尺寸，点的权重，点的索引色的位长，以及告诉PSP是用2D还是3D引擎。关于纹理/色彩的位深，可用值有：
+ 1.Gu.TEXTURE_8BIT － 使用8位纹理图（256色） 
+2.Gu.TEXTURE_16BIT － 使用16位纹理图（512色） 
+3.Gu.TEXTURE_32BITF － 使用32位纹理图（1024色） 
+4.Gu.COLOR_5650 － 使用16位色，其中
+     红：5位（160种红色调）
+     绿：6位（192种绿色调）
+     蓝：5位（160种蓝色调）
+    ALPHA：0位（0级透明度） 
+5.Gu.COLOR_5551 － 使用16位色，其中
+     红：5位（160种红色调）
+     绿：5位（160种绿色调）
+     蓝：5位（160种蓝色调）
+    ALPHA：1位（32级透明度） 
+6.Gu.COLOR_4444 － 使用16位色，其中
+     红：4位（128种红色调）
+     绿：4位（128种绿色调）
+     蓝：4位（128种蓝色调）
+    ALPHA：4位（128级透明度） 
+7.Gu.COLOR_8888 － 使用32位色，其中
+     红：8位（256种红色调）
+     绿：8位（256种绿色调）
+     蓝：8位（256种蓝色调）
+    ALPHA：8位（256级透明度）
+ 
+关于点的位置尺寸/一般尺寸，可用值有：
+ 1.Gu.NORMAL_8BIT 
+2.Gu.NORMAL_16BIT 
+3.Gu.NORMAL_32BITF 
+4.Gu.VERTEX_8BIT 
+5.Gu.VERTEX_16BIT 
+6.Gu.VERTEX_32BITF
+ 
+关于权重的可用值有：
+ 1.Gu.WEIGHT_8BIT 
+2.Gu.WEIGHT_16BIT 
+3.Gu.WEIGHT_32BITF
+ 
+关于点的索引色的可用值：
+ 1.Gu.INDEX_8BIT 
+2.Gu.INDEX_16BIT
+ 
+权重和点的函数可接受的参数范围：
+ 1.Gu.WEIGHT(n) － 1-8 
+2.Gu.VERTICIES(n) － 1-8
+ 
+转换2D/3D模式的可用值：
+ 1.Gu.TRANSFORM_2D 
+2.Gu.TRANSFORM_3D
+ 
+根据具体需要选用上述各参数，以详细描述纹理、色调、点的规模、位置、权或色彩索引。一般位深越小所耗的存储空间也越小。如果不知道什么是“位”，或者不清楚上述各项的含义，那么请使用下面的标准组合（本文不打算细讲）
+针对色调：
+ 
+ 
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Gu.drawArray(Primitive, Gu.COLOR_8888+Gu.VERTEX_32BITF+Gu.TRANSFORM_3D, Vertices)  
+ 
+
+ 
+ 
+针对纹理（教程稍后会作讨论）：
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Gu.drawArray(Primitive, Gu.TEXTURE_8888+Gu.VERTEX_32BITF+Gu.TRANSFORM_3D, Vertices)  
+ 
+
+ 
+ 
+ 
+ 
+函数Gu.drawArray()的最后一个参数是绘制物体所需的顶点。这些点的信息可以用多维数组传递。例如，使用如下的数组和图坯Gu.TRIANGLES就可以画一个三角形：
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Triangle = {  
+02.{Red, 2, -1, 1},  
+03.{Red, 0, -1, 1},  
+04.{Red, 1, 1, 1},  
+05.}  
+ 
+
+ 
+ 
+ 
+ 
+如果不使用纹理而仅用着色的方式画图，则该多维数组中各元素的参数及其顺序如下：
+ 1.填充顶点的颜色（其RGBA最大值取决于参数VertexType传入的位深） 
+2.以3D平面单位长度为计量的X轴坐标（-3 ~ +3 可见） 
+3.以3D平面单位长度为计量的Y轴坐标（-3 ~ +3 可见） 
+4.以3D平面单位长度为计量的Z轴坐标（-1 ~ +1 可见）
+ 
+每个顶点在多维数组中都对应一个数组元素，也就是说，
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Example = {  
+02.{Red, 2, -1, 1}  
+03.}  
+ 
+
+ 
+ 
+描述了一个点，而
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Example = {  
+02.{Red, 2, -1, 1},  
+03.{Red, 0, -1, 1}  
+04.}  
+ 
+
+ 
+ 
+ 
+ 
+描述了两个点，
+ 
+ 
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Example = {  
+02.{Red, 2, -1, 1},  
+03.{Red, 0, -1, 1},  
+04.{Red, 1, 1, 1}  
+05.}  
+ 
+
+ 
+ 
+ 
+ 
+则描述了三个点，等等。
+ 
+
+绘制各基本图形需要的顶点个数分别是：
+ 
+1. Gu.POINTS － 1个
+ 
+2. Gu.LINES － 2个（依次是画线的起点和终点）
+ 
+3. Gu.LINE_STRIP － 第一个物体的2个顶点，其它物体各需1个顶点（第一条线需要起始和终止点，其它线只需提供终止点）
+ 
+4. Gu.TRIANGLES － 3个（起始点、中间点、终止点）
+ 
+5. Gu.TRIANGLE_STRIP － 第一个物体3个顶点，其它各需1个顶点（第一个三角形需要3个点，其它三角形只需提供中间的那个顶点）
+ 
+6. Gu.TRIANGLE_FAN － 第一个物体3个顶点，其它各需2个顶点（第一个三角形需要3个点，其它三角形只需提供第2、3个顶点）
+ 
+7. Gu.SPRITES － 2个（左下和右上）
+ 
+
+如果想画一个着色的三角形（像上边完整示例中显示的那样），则需要一个包含三个顶点（或者说三个子数组）的多维数组：
+ 
+
+
+
+
+
+
+
+[c-sharp] view plaincopy
+01.Triangle = {  
+02.{Red, 2, -1, 1},  
+03.{Red, 0, -1, 1},  
+04.{Red, 1, 1, 1}  
+05.}  
+ 
+
+
+
+然后把这个顶点列表交给函数Gu.drawArray()（此处参数VertexType使用了标准组合）：
+ 
+
+
+
+
+
+
+
+[c-sharp] view plaincopy
+01.Gum.drawArray(Gu.TRIANGLES, Gu.COLOR_8888+Gu.VERTEX_32BITF+Gu.TRANSFORM_3D, Triangle)  
+ 
+
+
+
+
+
+完整的程序也许是这个样子：
+ 
+
+
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Red = Color.new (255, 0, 0)  
+02.Black = Color.new (0, 0, 0)  
+03.Triangle = {  
+04.{Red, 2, -1, 1},  
+05.{Red, 0, -1, 1},  
+06.{Red, 1, 1, 1}  
+07.}  
+08.while true do   
+09.Gu.start3d()  
+10.  
+11.Gu.clearColor (Black)  
+12.Gu.clearDepth(255);  
+13.Gu.clear(Gu.COLOR_BUFFER_BIT+Gu.DEPTH_BUFFER_BIT)  
+14.  
+15.Gum.matrixMode(Gu.PROJECTION)  
+16.Gum.loadIdentity()  
+17.Gum.perspective(75, 480/272, 0.5, 1000)  
+18.Gum.matrixMode(Gu.VIEW)  
+19.Gum.loadIdentity()  
+20.  
+21.Gum.matrixMode(Gu.MODEL)  
+22.Gum.loadIdentity()  
+23.Gum.translate(0, 0, -3)  
+24.  
+25.Gu.disable(Gu.TEXTURE_2D)  
+26.Gum.drawArray(Gu.TRIANGLE_FAN, Gu.COLOR_8888+Gu.VERTEX_32BITF+Gu.TRANSFORM_3D, TriangleStrip)  
+27.  
+28.Gu.end3d()  
+29.  
+30.screen.flip()  
+31.end  
+ 
+
+ 
+ 
+注意到需要函数screen.flip()来刷新屏幕没？为了显示完整的绘图，只能在语句块Gu.start3d()...Gu.end3d()的外部调用该函数。
+ 
+ 
+
+ 
+ 
+ 
+ 
+旋转3D物体
+ 
+ 
+ 
+函数Gum.rotateXYZ()能够实现3D平面中物体的旋转。该函数通过旋转整个3D平面使得所有平面中绘制的物体都随之旋转。我们先看看Lua Player 程序包里附带的3D方块示例
+ 
+ 
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.red = Color.new(255, 0, 0)  
+02.green = Color.new(0, 255, 0)  
+03.blue = Color.new(0, 0, 255)  
+04.black = Color.new(0, 0, 0)  
+05.white = Color.new(255, 255, 255)  
+06.gray = Color.new(128, 128, 128)  
+07.cyan = Color.new(100, 255, 255)  
+08.val = 0  
+09.cube = {  
+10.{red, -1, -1, 1}, -- 0  
+11.{red, -1, 1, 1}, -- 4  
+12.{red, 1, 1, 1}, -- 5  
+13.{red, -1, -1, 1}, -- 0  
+14.{red, 1, 1, 1}, -- 5  
+15.{red, 1, -1, 1}, -- 1  
+16.{red, -1, -1, -1}, -- 3  
+17.{red, 1, -1, -1}, -- 2  
+18.{red, 1, 1, -1}, -- 6  
+19.{red, -1, -1, -1}, -- 3  
+20.{red, 1, 1, -1}, -- 6  
+21.{red, -1, 1, -1}, -- 7  
+22.{green, 1, -1, -1}, -- 0  
+23.{green, 1, -1, 1}, -- 3  
+24.{green, 1, 1, 1}, -- 7  
+25.{green, 1, -1, -1}, -- 0  
+26.{green, 1, 1, 1}, -- 7  
+27.{green, 1, 1, -1}, -- 4  
+28.{green, -1, -1, -1}, -- 0  
+29.{green, -1, 1, -1}, -- 3  
+30.{green, -1, 1, 1}, -- 7  
+31.{green, -1, -1, -1}, -- 0  
+32.{green, -1, 1, 1}, -- 7  
+33.{green, -1, -1, 1}, -- 4  
+34.{blue, -1, 1, -1}, -- 0  
+35.{blue, 1, 1, -1}, -- 1  
+36.{blue, 1, 1, 1}, -- 2  
+37.{blue, -1, 1, -1}, -- 0  
+38.{blue, 1, 1, 1}, -- 2  
+39.{blue, -1, 1, 1}, -- 3  
+40.{blue, -1, -1, -1}, -- 4  
+41.{blue, -1, -1, 1}, -- 7  
+42.{blue, 1, -1, 1}, -- 6  
+43.{blue, -1, -1, -1}, -- 4  
+44.{blue, 1, -1, 1}, -- 6  
+45.{blue, 1, -1, -1}, -- 5  
+46.}  
+47.plane = {  
+48.{blue, -8, -3, 0},  
+49.{cyan, 8, 3, 0},  
+50.{blue, 8, -3, 0},  
+51.{cyan, 8, 3, 0},  
+52.{blue, -8, -3, 0},  
+53.{cyan, -8, 3, 0},  
+54.}  
+55.while true do  
+56.Gu.start3d()  
+57.-- clear screen  
+58.--Gu.clearColor (Color.new (0, 0, 0))  
+59.--Gu.clearDepth(255);  
+60.Gu.clear(Gu.COLOR_BUFFER_BIT+Gu.DEPTH_BUFFER_BIT)  
+61.-- setup projection and view matrices  
+62.Gum.matrixMode(Gu.PROJECTION)  
+63.Gum.loadIdentity()  
+64.Gum.perspective(75, 16/9, 0.5, 1000)  
+65.Gum.matrixMode(Gu.VIEW)  
+66.Gum.loadIdentity()  
+67.-- setup matrix for triangle  
+68.Gum.matrixMode(Gu.MODEL)  
+69.Gum.loadIdentity()  
+70.Gum.translate(0, 0, -3);  
+71.-- draw triangle without texture  
+72.Gu.disable(Gu.TEXTURE_2D)  
+73.Gum.drawArray(Gu.TRIANGLES, Gu.COLOR_8888+Gu.VERTEX_32BITF+Gu.TRANSFORM_3D, plane)  
+74.-- setup matrix for cube  
+75.Gum.matrixMode(Gu.MODEL)  
+76.Gum.loadIdentity()  
+77.Gum.translate(0, 0, -3.5);  
+78.Gum.rotateXYZ(val * 0.79 * (Gu.PI/180), val * 0.98 * (Gu.PI/180.0), val * 1.32 * (Gu.PI/180.0))  
+79.-- draw cube  
+80.Gum.drawArray(Gu.TRIANGLES, Gu.COLOR_8888+Gu.VERTEX_32BITF+Gu.TRANSFORM_3D, cube)  
+81.Gu.end3d()  
+82.val = val + 1  
+83.screen.waitVblankStart()  
+84.screen.flip()  
+85.end  
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+注意在主循环开始之前所有的顶点信息和变量都已经声明好了。第一组变量是颜色，接着是一个用于旋转物体的计数器，最后是顶点列表。注意有两组列表：立方体的和平面的。立方体是本例中将要旋转的“物体”，平面其实是装满屏幕的倾斜的盒子。
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+循环体的第一小段应该不难理解：
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.while true do  
+02.Gu.start3d()  
+03.-- clear screen  
+04.--Gu.clearColor (Color.new (0, 0, 0))  
+05.--Gu.clearDepth(255)  
+06.Gu.clear(Gu.COLOR_BUFFER_BIT+Gu.DEPTH_BUFFER_BIT)  
+07.-- setup projection and view matrices  
+08.Gum.matrixMode(Gu.PROJECTION)  
+09.Gum.loadIdentity()  
+10.Gum.perspective(75, 16/9, 0.5, 1000)  
+11.Gum.matrixMode(Gu.VIEW)  
+12.Gum.loadIdentity()  
+13.-- setup matrix for triangle  
+14.Gum.matrixMode(Gu.MODEL)  
+15.Gum.loadIdentity()  
+16.Gum.translate(0, 0, -3);  
+17.-- draw triangle without texture  
+18.Gu.disable(Gu.TEXTURE_2D)  
+19.Gum.drawArray(Gu.TRIANGLES, Gu.COLOR_8888+Gu.VERTEX_32BITF+Gu.TRANSFORM_3D, plane)  
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+这段代码建立了绘图缓存、矩阵、视图和模型点阵。然后在屏幕上画了一组无纹理的三角形顶点。接下来的一段也许有点复杂：
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.-- setup matrix for cube  
+02.Gum.matrixMode(Gu.MODEL)  
+03.Gum.loadIdentity()  
+04.Gum.translate(0, 0, -3.5)  
+05.Gum.rotateXYZ(val * 0.79 * (Gu.PI/180), val * 0.98 * (Gu.PI/180.0), val * 1.32 * (Gu.PI/180.0))  
+06.-- draw cube  
+07.Gum.drawArray(Gu.TRIANGLES, Gu.COLOR_8888+Gu.VERTEX_32BITF+Gu.TRANSFORM_3D, cube)  
+08.Gu.end3d()  
+09.val = val + 1  
+10.screen.waitVblankStart()  
+11.screen.flip()  
+12.end  
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+为了实现平面旋转，要另建模型矩阵。首先，告诉PSP切换模型矩阵：
+ 
+ 
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Gum.matrixMode(Gu.MODEL)  
+02.Gum.loadIdentity()  
+ 
+
+ 
+ 
+ 
+ 
+然后设定新矩阵中3D平面的中心：
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Gum.translate(0, 0, -3.5)  
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+最后是调用函数Gum.rotateXYZ()，传入适当的参数，从而让3D平面转起来：
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Gum.rotateXYZ(val * 0.79 * (Gu.PI/180), val * 0.98 * (Gu.PI/180.0), val * 1.32 * (Gu.PI/180.0))  
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+注意这里用到的一个变量：Gu.PI 。这个变量相当于Lua的数学函数库中的变量math.pi 。在本例中，各个点的旋转量是由算式确定的。算式的计算结果就是对应坐标轴的旋转量。算式不是必须的，用三个具体值就可以。
+ 
+ 
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Gum.rotateXYZ (X, Y, Z)  
+ 
+
+ 
+ 
+ 
+ 
+不过，用算式的好处是可以通过一个值来控制整个旋转效果。
+
+
+ 
+
+
+建好平面就该画具体内容了：
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.-- draw cube  
+02.Gum.drawArray(Gu.TRIANGLES, Gu.COLOR_8888+Gu.VERTEX_32BITF+Gu.TRANSFORM_3D, cube)  
+ 
+
+
+ 
+ 
+ 
+ 
+然后只需结束代码并将计数器增加1：
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Gu.end3d()  
+02.val = val + 1  
+03.screen.waitVblankStart()  
+04.screen.flip()  
+05.End  
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+
+
+
+在3D物体上实现色彩渐变
+
+在设定顶点列表的时候可以为每个顶点设置其颜色。如果各个点的颜色不同，那么就能看到颜色的渐变效果。看一个例子：
+ 
+ 
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Red = Color.new (255, 0, 0)  
+02.Green = Color.new (0, 255, 0)  
+03.Blue = Color.new (0, 0, 255)  
+04.Black = Color.new (0, 0, 0)  
+05.Purple = Color.new (255, 0, 255)  
+06.GradientSquare = {  
+07.{Green, -1, -1, 1},  
+08.{Red, -1, 1, 1},  
+09.{Green, 1, 1, 1},  
+10.  
+11.{Green, -1, -1, 1},  
+12.{Green, 1, 1, 1},  
+13.{Blue, 1, -1, 1}  
+14.}  
+15.ClearSquare = {  
+16.{Purple, -8, -3, 0},  
+17.{Blue, 8, 3, 0},  
+18.{Purple, 8, -3, 0},  
+19.{Blue, 8, 3, 0},  
+20.{Purple, -8, -3, 0},  
+21.{Blue, -8, 3, 0}  
+22.}  
+23.while true do   
+24.Gu.start3d()  
+25.  
+26.Gu.clearColor (Black)  
+27.Gu.clearDepth(255);  
+28.Gu.clear(Gu.COLOR_BUFFER_BIT+Gu.DEPTH_BUFFER_BIT)  
+29.  
+30.Gum.matrixMode(Gu.PROJECTION)  
+31.Gum.loadIdentity()  
+32.Gum.perspective(75, 480/272, 0.5, 1000)  
+33.Gum.matrixMode(Gu.VIEW)  
+34.Gum.loadIdentity()  
+35.  
+36.Gum.matrixMode(Gu.MODEL)  
+37.Gum.loadIdentity()  
+38.Gum.translate(0, 0, -3)  
+39.  
+40.Gu.disable(Gu.TEXTURE_2D)  
+41.  
+42.Gum.drawArray(Gu.TRIANGLES, Gu.COLOR_8888+Gu.VERTEX_32BITF+Gu.TRANSFORM_3D, ClearSquare)  
+43.  
+44.Gum.drawArray(Gu.TRIANGLES, Gu.COLOR_8888+Gu.VERTEX_32BITF+Gu.TRANSFORM_3D, GradientSquare)  
+45.  
+46.Gu.end3d()  
+47.  
+48.screen.flip()  
+49.End  
+ 
+
+
+
+ 
+ 
+ 
+ 
+这段代码建立了一个蓝色渐变为紫色（或者紫色渐变为蓝色）的背景，并画了一个矩形，矩形的颜色渐变是 红→绿→蓝（或 蓝→绿→红）。如前所述，本例通过给顶点赋予不同的颜色实现了渐变。
+ 
+ 
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.GradientSquare = {  
+02.{Green, -1, -1, 1},  
+03.{Red, -1, 1, 1},  
+04.{Green, 1, 1, 1},  
+05.  
+06.{Green, -1, -1, 1},  
+07.{Green, 1, 1, 1},  
+08.{Blue, 1, -1, 1}  
+09.}  
+10.ClearSquare = {  
+11.{Purple, -8, -3, 0},  
+12.{Blue, 8, 3, 0},  
+13.{Purple, 8, -3, 0},  
+14.{Blue, 8, 3, 0},  
+15.{Purple, -8, -3, 0},  
+16.{Blue, -8, 3, 0}  
+17.}  
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+GradientSquare的顶点列表描述了一个红→绿→蓝（或 蓝→绿→红）渐变的矩形，ClearSquare描述了蓝色渐变为紫色（或紫色渐变为蓝色）的背景。二者都是基于三角形的顶点列表（参见主循环中的函数Gu.drawArray()）。需要提醒的是如果一个三角形从一种颜色渐变到另一种颜色，则与它邻接的三角形需要反过来渐变。如果每个顶点的颜色都不同，则3D绘图引擎会把这些颜色混合在一起进行渐变处理。例如，下边这个代码描述了包含红、蓝、黄三色的渐变：
+ 
+ 
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.Example = {  
+02.{Red, -1, -1, 1},  
+03.{Blue, 1, 1, 1},  
+04.{Yellow, 1, -1, 1}  
+05.}  
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+这些颜色会彼此混合从而形成不规则的渐变效果。要使用两种颜色实现水平的渐变色，应把一个三角形（甲）的顶部两个点设为颜色一，另一个三角形（乙）的底部两点设为颜色二，然后给甲和乙剩下的那个顶点分别设为颜色二和颜色一：
+ 
+ 
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.ClearSquare = {  
+02.{Purple, -8, -3, 0}, --Bottom left  
+03.{Blue, 8, 3, 0}, --Top right  
+04.{Purple, 8, -3, 0}, --Bottom right  
+05.  
+06.{Blue, 8, 3, 0}, --Top right  
+07.{Purple, -8, -3, 0}, --Bottom left  
+08.{Blue, -8, 3, 0} --Top left  
+09.}  
+ 
+
+ 
+ 
+ 
+ 
+如果想画垂直渐变色，那么只需从左向右赋色：
+ 
+ 
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.ClearSquare = {  
+02.{Purple, -8, -3, 0}, --Bottom left  
+03.{Blue, 8, 3, 0}, --Top right  
+04.{Blue, 8, -3, 0}, --Bottom right  
+05.  
+06.{Blue, 8, 3, 0}, --Top right  
+07.{Purple, -8, -3, 0}, --Bottom left  
+08.{Purple, -8, 3, 0} --Top left  
+09.}  
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+如果想画斜向的渐变，那么应将三角形相接的斜边的两个顶点设为同一颜色：
+ 
+ 
+ 
+ 
+ 
+
+
+
+[c-sharp] view plaincopy
+01.ClearSquare = {  
+02.{Purple, -8, -3, 0}, --Bottom left  
+03.{Purple, 8, 3, 0}, --Top right  
+04.{Blue, 8, -3, 0}, --Bottom right  
+05.  
+06.{Purple, 8, 3, 0}, --Top right  
+07.{Purple, -8, -3, 0}, --Bottom left  
+08.{Blue, -8, 3, 0} --Top left  
+09.}  
+ 
+
+ 
+ 
+ 
+ 
+挑战
+ 
+ 
+ 
+1. 编写一个程序，调用函数画出下列图形：正方形，等边三角形，八边形，梯形
+ 
+ 
+ 
+2. 编写一个函数，可以接受任意数量的坐标点（以像素点的形式），把这些点画在屏幕上，并用一条连续的线将它们串起来，最后一个点要与第一个点相连。
+ 
+ 
+ 
+3. 任意绘制图形，使用等量的下列颜色：红色、蓝色和黄色
+ 
+ 
+ 
+4. 任意绘制图形，必须用上全部四种色深。（提示：画4个图形）
+ 
+ 
+ 
+5. 绘制等边的下列图形并着色：三角形，平行四边形，五边形，八边形，十边形
+ 
+ 
+ 
+6. 画一个实心圆
+ 
+ 
+ 
+7. 编写一个程序，调用函数画出下列图形：底部为正方形的金字塔，三角柱，底部为不规则四边形的锥体
+ 
+ 
+ 
+8. 画一个从绿色渐变到紫色再到橙色的背景
+ 
+ 
+ 
+9. 编写一个函数，画任意一个图，实现如下图所示的三色渐变效果
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+后记
+ 
+ 
+ 
+你大概已经发现，本文没有涉及纹理。我正在写关于纹理的章节，不过还没完成。当然，其它的3D概念（比如光照、阴影、透视等）也将在后续“进阶”教程中讲解。
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+分享到： 
+
+上一篇：OGRE框架分析（一）
+下一篇：在VS2008命令行编译Lua
+ . 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+qdujunjie
+ 
+
+
+
+
+访问：14224次
+积分：688分
+排名：第15292名
+.原创：49篇
+转载：11篇
+译文：0篇
+评论：0条
+. 
+文章搜索
+
+. 
+文章分类.NET(2)
+ASP.NET(1)
+LUA(3)
+OGRE(0)
+PHP(5)
+汇编语言(MASM)(22)
+mysql(2)
+linux(1)
+工具(1)
+netbeans(1)
+apache2(1)
+fanli(0)
+经验(1)
+全文搜索(1)
+web(2)
+javascript(2)
+方向(1)
+SQL(2)
+互联网(1)
+计算机(0)
+计算机基础(1)
+招聘简历(1)
+ubuntu(3)
+ 
+文章存档
+2013年03月(5).
+2013年02月(12).
+2013年01月(12).
+2010年03月(3).
+2010年02月(1).
+.
+.
+.
+
+展开.
+ 
+阅读排行汇编语言冒泡排序算法代码分析(12)(1255)
+在VS2008命令行编译Lua(946)
+汇编语言AAA指令多字节加法代码分析(5)(819)
+汇编语言数组求和代码分析(1)(665)
+汇编语言写文件读文件代码分析(18)(584)
+OCCI基础教程（一）(583)
+汇编语言醉汉走路代码分析(15)(569)
+LUA基本3D教程(550)
+汇编语言显示系统时间代码分析(14)(539)
+扩展Lua库(514)
+ 
+评论排行Ubuntu配置Wine教程(0)
+web(0)
+ThinkPHP中的分组~~(0)
+关于PCRE的初级入门(0)
+sphinx 全文搜索 软件 工具 的安装使用(0)
+一些东西(0)
+apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1 for(0)
+ctrl+左键点击一个函数名，跳转到另一个文件，如何返回原位置？(0)
+源目录已是 NetBeans 项目目录可能仅在内存中(0)
+VMware Workstation上安装Ubuntu Server 12.04 窗口显示太小，如何变大？(0)
+ 
+推荐文章 
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

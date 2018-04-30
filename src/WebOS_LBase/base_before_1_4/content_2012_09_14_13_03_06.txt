@@ -1,0 +1,40 @@
+02./*
+ 
+03.Arduino 的連線程式碼
+ 
+04.用來把類比或數位資料送到串列埠(COM PORT)
+ 
+05.*/
+ 
+06.const int analogInPin = A5;      // 設定要輸入信號的接腳
+ 
+07.int sensorValue = 0;             // 設定儲存輸入資料的變數
+ 
+08.int outputValue = 0;             // 設定儲存要送出資料的變數
+ 
+09.
+ 
+10.void setup()
+ 
+11.{                               // 設定程式段
+ 
+12.  Serial.begin(9600);           // 啟動 9600bps 速度的串列通訊
+ 
+13.}
+ 
+14.
+ 
+15.void loop()          //主程式段
+ 
+16.{
+ 
+17.    sensorValue = analogRead(analogInPin);                 // 儲存收到的類比信號值  
+ 
+18.    outputValue = map(sensorValue, 0, 1023, 0, 255);           // 將信號值對映到 0 ~ 255
+ 
+19.    Serial.print(outputValue,BYTE);                        // 送出 1 BYTE 資料到 Processing
+ 
+20.    delay(100);                                             // 延遲 0.1 秒
+ 
+21.}
+

@@ -1,0 +1,544 @@
+
+
+首页
+开源软件
+讨论区
+
+
+
+
+
+
+代码分享
+博客
+翻译
+资讯
+移动开发
+
+
+
+
+招聘
+
+你好2,您好 我的空间
+
+
+
+
+
+
+
+ |  添加软件 | 投递新闻 | 退出
+ 
+
+开源中国 
+代码分享
+ 当前位置：代码分享 » Shell/批处理 » Linux常用脚本 
+搜 索 
+
+
+
+
+
+
+
+
+
+安全的rm
+
+baizhongwei 发布于 2013年02月02日 0时, 0评/246阅
+
+
+ 
+
+
+分享到 
+
+新浪微博腾讯微博
+
+
+收藏+5
+
+踩顶0
+ 
+
+
+
+一个不小心rm掉文件了吧？ 
+
+后悔莫及了吧！ 
+
+把这段代码加入你的home目录的.bashrc或者.zshrc就可以了 
+
+工作原理： 
+
+在你的home目录会创建一个.trash文件夹 
+
+里面会按照删除时间 年-月-日/小时/ 进行归档已删除的文件 
+
+然后会删除一个月以前的文件夹 
+
+就是这样！
+ 
+From : http://3haku.net/2013/02/01/%E5%AE%89%E5%85%A8%E7%9A%84rm.html 
+
+
+标签：<无> 
+
+
+
+
+代码片段(1)
+
+
+[代码] [Shell/批处理]代码
+
+
+
+view source
+
+print?
+
+
+
+
+01
+
+### by 3haku.net
+
+
+
+
+
+02
+
+function saferm() {
+
+
+
+
+
+03
+
+    ops_array=($*)
+
+
+
+
+
+04
+
+    if [[ -z $1 ]] ;then
+
+
+
+
+
+05
+
+        echo 'Missing Args'
+
+
+
+
+
+06
+
+        return
+
+
+
+
+
+07
+
+    fi
+
+
+
+
+
+08
+
+    J=0
+
+
+
+
+
+09
+
+    offset=0
+
+
+
+
+
+10
+
+    # for zsh
+
+
+
+
+
+11
+
+    if [[ -z ${ops_array[0]} ]] ; then
+
+
+
+
+
+12
+
+        offset=1
+
+
+
+
+
+13
+
+    fi
+
+
+
+
+
+14
+
+    while [[ $J -lt $# ]] ; do
+
+
+
+
+
+15
+
+          p_posi=$(($J + $offset))
+
+
+
+
+
+16
+
+          dst_name=${ops_array[$p_posi]}
+
+
+
+
+
+17
+
+          if [[ `echo ${dst_name} | cut -c 1` == '-' ]] ; then
+
+
+
+
+
+18
+
+                continue
+
+
+
+
+
+19
+
+          fi
+
+
+
+
+
+20
+
+        # garbage collect
+
+
+
+
+
+21
+
+        now=$(date +%s)
+
+
+
+
+
+22
+
+        for s in $(ls --indicator-style=none $HOME/.trash/) ;do
+
+
+
+
+
+23
+
+            dir_name=${s//_/-}
+
+
+
+
+
+24
+
+            dir_time=$(date +%s -d $dir_name)
+
+
+
+
+
+25
+
+            # if big than one month then delete
+
+
+
+
+
+26
+
+            if [[ 0 -eq dir_time || $(($now - $dir_time)) -gt 2592000 ]] ;then
+
+
+
+
+
+27
+
+                echo "Trash " $dir_name " has Gone "
+
+
+
+
+
+28
+
+                /bin/rm $HOME/.trash/$dir_name -rf
+
+
+
+
+
+29
+
+            fi
+
+
+
+
+
+30
+
+        done
+
+
+
+
+
+31
+
+     
+
+
+
+
+
+32
+
+        # add new folder
+
+
+
+
+
+33
+
+        prefix=$(date +%Y_%m_%d)
+
+
+
+
+
+34
+
+        hour=$(date +%H)
+
+
+
+
+
+35
+
+        mkdir -p $HOME/.trash/$prefix/$hour
+
+
+
+
+
+36
+
+        echo "Trashing " $dst_name
+
+
+
+
+
+37
+
+        mv ./$dst_name $HOME/.trash/$prefix/$hour
+
+
+
+
+
+38
+
+          J=$(($J+1))
+
+
+
+
+
+39
+
+    done
+
+
+
+
+
+40
+
+}
+
+
+
+
+
+41
+
+ 
+
+
+
+
+
+42
+
+alias rm=saferm
+
+
+
+举报
+
+
+
+开源中国-程序员在线工具：API文档大全(120+) JS在线编辑演示 二维码更多»
+
+ 
+
+
+相关的代码(327)
+5回/116阅[SHELL]Qt目标文件执行脚本8天前 By 李_尹
+0回/147阅[SHELL]shell自动安装sublime-text-212天前 By 小廖
+2回/147阅[SHELL]linux下ipv4 ipv6无关性的socket编程17天前 By sundaqing
+0回/288阅[SHELL]bash shell学习18天前 By 红星闪闪
+1回/310阅[SHELL]第一个shell18天前 By 红星闪闪
+1回/231阅[SHELL]gcc 简单用例20天前 By 红星闪闪
+2回/213阅[SHELL]makefile 简单用例20天前 By 红星闪闪
+2回/111阅[SHELL]linux c代码批量宏展开20天前 By sundaqing
+0回/117阅[SHELL]lamp21天前 By mickelfeng
+0回/174阅[SHELL]linux 下 文件更新&回滚脚本21天前 By 逍遥的心
+显示所有 »
+
+发表评论回到顶部网友评论(0)
+
+
+暂无网友评论
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+回到顶部   回到评论列表
+
+开源从代码分享开始 分享代码
+
+
+
+baizhongwei的其他代码安全的rm(0评/246阅,2个月前)
+全部(1)...
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+© 开源中国(OsChina.NET) | 关于我们 | 广告联系 | @新浪微博 | 开源中国手机版 | 粤ICP备12009483号-3
+ 
+开源中国手机客户端：AndroidiPhoneWP7 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2条新留言，查看留言»
+
+
+
+

@@ -1,0 +1,258 @@
+HTML5中国
+帐号		自动登录	 找回密码
+密码		登录	 立即注册
+QQ登录
+只需一步，快速开始
+快捷导航
+首页HTML5资讯移动互联网应用推荐教程视频资源下载开发工具HTML5论坛
+	
+本版
+搜索	
+热搜: CanvasWebGLCSS3WebSocket离线存储工具
+HTML5中国›HTML5论坛›HTML5论坛›JavaScript交流›JavaScript中的原型和对象机制
+返回列表发新帖
+查看: 2597|回复: 1
+打印 上一主题 下一主题
+JavaScript中的原型和对象机制 [复制链接]
+liqian
+
+版主
+Rank: 7Rank: 7Rank: 7
+已累计签到148次
+主题1066精华34积分6744金钱4862 威望-65 贡献746 在线时间317 小时
+优秀版主 推广达人
+串个门加好友打招呼发消息	
+电梯直达跳转到指定楼层 楼主
+ 发表于 2012-2-17 15:27:23 |只看该作者 |倒序浏览
+JavaScript里所有的东西都是对象。 对象是属性的集合。 数字， 字符串， 布尔值等原始值是“伪对象”， 它们同样拥有属性， 但是是在栈上分配并按值传递。 而其他的对象是堆上分配并按引用传递。
+
+1 对象相关的一些语言特性
+1.1 一切皆为对象
+JavaScript里所有的东西都是对象。 对象是属性的集合。 数字， 字符串， 布尔值等原始值是“伪对象”， 它们同样拥有属性， 但是是在栈上分配并按值传递。 而其他的对象是堆上分配并按引用传递。
+一个很重要的概念是， 函数也是对象， 能够作为变量的值， 返回值， 参数或者属性的值。 函数对象特殊的地方是能通过“xxx（）”语法执行包含在xxx函数对象内的代码。 因为这一特殊性， typeof xxx 将会返回function， 但这只是一种便利设施。
+1.2 对象的属性可以动态添加和删除
+
+以下为引用的内容：var foo = new Object();
+// 为foo对象添加bar属性
+foo.bar = "foobar";
+alert(foo.bar); //foobar
+// 删除foo对象的bar属性
+delete foo.bar;
+alert(foo.bar); //undefined
+
+
+1.3 除了宿主对象， 其它对象皆由构造函数创建
+要有对象， 就先要有创建对象的方法。
+在C++/Java等语言， 这个方法就是实例化XXX类的一个实例xxx.
+而在JavaScript的世界里实际没有类的东西， 当然仍然可以用“类”和“实例”等惯用语来描述JavaScript中类似的行为， 但其机制是完全不同的。 JavaScript的对象是由构造函数创建的， 每个对象都有constructor属性表示创建该对象的构造函数：
+
+以下为引用的内容：function Test() { this.a = "hello"; }
+var test = new Test(); // 由Test构造函数创建
+alert(test.constructor);
+
+var o = { a: "hello" };
+//实际相当于
+var o_ = new Object();
+o_.a = "hello"; // 由Object构造函数创建
+alert(o.constructor);
+
+
+构造函数也是对象, 那构造函数是由什么创建? 内建的Function函数: 
+
+以下为引用的内容：function Test(a, b)
+{
+    alert(a+b);
+}
+// 相当于:
+Test = new Function(["a", "b"], "alert(a+b);");
+
+
+Function函数又是由什么创建? 实际上Function是本机代码实现的固有对象. 不过为了一致性, Function也有constructor属性, 该属性指向它自己. 接上面的代码: 
+
+以下为引用的内容：/* 输出 function Function(){
+            [native code]
+        }
+*/
+alert(Test.constructor);
+
+alert(Test.constructor.constructor === Test.constructor); // true
+alert(Test.constructor === Object.constructor); // true
+
+
+2 原型prototype
+2.1 prototype的概念
+prototype是构造函数的一个属性， 该属性指向一个对象。 而这个对象将作为该构造函数所创建的所有实例的基引用（base reference）， 可以把对象的基引用想像成一个自动创建的隐藏属性。 当访问对象的一个属性时， 首先查找对象本身， 找到则返回; 若不， 则查找基引用指向的对象的属性（如果还找不到实际上还会沿着原型链向上查找， 直至到根）。 只要没有被覆盖的话， 对象原型的属性就能在所有的实例中找到。
+原型默认为Object的新实例， 由于仍是对象， 故可以给该对象添加新的属性：
+
+以下为引用的内容：// prototype默认为new Object(); 为了方便, 记为p_obj
+function Person(name) {
+    this.name = name;
+}
+
+// 为 p_obj 增加 sayName 属性
+Person.prototype.sayName = function(){
+    alert(this.name);
+}
+
+var john = new Person("John"); // john 的 base reference指向p_obj
+var eric = new Person("Eric");  // eric 的 base reference也是指向p_obj
+
+// 注意sayName代码中的this将指向实例化后的对象(this绑定)
+john.sayName(); // john对象本身没有sayName属性, 于是访问原型对象p_obj的sayName属性
+eric.sayName(); // 访问同一个原型对象p_obj的sayName属性
+
+
+var tmp = Person.prototype;
+tmp.boss = "David";
+// 于这个运行点, p_obj已经被修改
+// 根据上述属性访问流程, 新的修改(boss属性)能反映到所有的实例, 包括已经创建和即将创建的
+alert("John's boss is " + john.boss);
+alert("Eric's boss is " + eric.boss);
+
+
+// hisCar和sayCar属性将增加到john对象而不是p_obj对象..
+john.hisCar = "Audi";
+john.sayCar = function(){
+    alert(this.name + " has a car of " + this.hisCar);
+}
+john.sayCar();
+// ..因此下一句将错误, 因为eric对象本身和原型p_obj都没有sayName属性
+/* eric.sayCar(); */
+
+
+2.2 原型链
+除了能修改prototype指向的对象， 还能修改prototype指向哪一个对象， 即为prototype赋予一个不同的对象。 这可以实现一种简单的继承：
+
+以下为引用的内容：function Superman() {}
+Superman.prototype.sayHello = function(){
+    alert("I'm a superman.");
+}
+
+function SupermanCan(skill){
+    this.skill = skill;
+}
+// 为prototype赋予Superman的实例..
+SupermanCan.prototype = new Superman();
+// ..再动态添加新的属性
+SupermanCan.prototype.sayMore = function(){
+    this.sayHello(); // 调用"父类"的方法
+    alert("I can " + this.skill);
+}
+
+var david = new SupermanCan("fly");
+// output: I'm a superman. I can fly
+david.sayMore();
+
+
+如果先实例化出一个对象, 再为构造函数prototype赋予一个不同的对象, 将会: 已经创建的对象的基引用不变, 将来创建的对象的基引用为新的原型对象：
+
+以下为引用的内容：var f1 = {echo: function() { alert("sound"); } };
+function Foo() {};
+var foo = new Foo(); // foo的基引用指向Object实例
+Foo.prototype = f1;
+/* 未定义, 因为这是"foo对象自己或者基引用指向的对象有echo属性吗?"
+   而不是"foo对象自己或者Foo.prototype指向的对象有echo属性吗?" */
+alert(foo.echo);
+
+var foo2 = new Foo(); // foo2的基引用指f1对象
+foo2.echo(); // output: sound
+
+
+所有的构造函数的prototype都不能为空， 就是说Superman.prototype = null 会被解释引擎无视; 另一方面， Object构造函数也有prototype属性（该属性是只读的， 可以为原型增加属性，但不能赋予不同的对象）， 故因此可以有多层的原型链， 但原型链的根必定会是Object.prototype 。 这意味着给Object.prototype增加属性影响到所有对象：
+
+以下为引用的内容：Object.prototype.echo = function() {
+    alert("hello");
+}
+
+// echo属性将增加到所有对象固有对象和自定义对象
+
+var arr = new Array();
+arr.echo();
+Array.echo();
+
+function ObjCons()    {
+    this.dummy = "d";
+}
+var obj = new ObjCons();
+obj.echo();
+ObjCons.echo();
+
+
+3. 构造函数和new的实质
+构造函数是一个地地道道的函数， 一个函数之所以能成为构造函数， 是因为new运算符：
+
+以下为引用的内容：this.msg = "window";
+
+function Test()
+{
+    alert(this.msg);
+}
+
+Test(); // window
+var test = new Test(); // undefined. 因为test对象没有定义msg属性
+
+
+二者区别在于如何切入对象： Test（） 在某个对象（例子中为window）的上下文上执行代码， 即this指向这个对象; new Test（）创建一个新对象， 并以这个新的对象为上下文（this指向新对象）执行代码， 然后返回这个新对象。
+假如有个函数：
+
+以下为引用的内容：function Test() {
+    var dummy = "have money";
+    this.wish = dummy;
+    doSomeThing();
+    
+}
+
+
+结合以上的所有论述, 可以推测new Test()行为的伪代码表示为:
+
+以下为引用的内容：      创建一个新对象temp;
+      temp.constructor = Test;
+      temp.(base reference) = Test.prototype; // 这一句先于代码体执行, 意味着构造函数里的this.xxx能访问原型对象的属性xxx
+      bind: this = temp; // 将this绑定到temp对象
+      // 开始执行函数代码
+      var dummy = "have money";
+      this.wish = dummy; // 为temp对象添加wish属性
+      doSomeThing();
+      ....
+      // 结束执行函数代码
+      return temp;
+
+这个未必会符合内部的二进制实现, 但却能很好地解释了JavaScript的特性. 
+
+原文地址：http://www.cnblogs.com/FlyingCat/archive/2009/09/21/1570656.html
+分享到:
+QQ空间QQ空间
+腾讯微博腾讯微博
+腾讯朋友腾讯朋友
+收藏收藏4
+4
+您可能也喜欢：
+JavaScript的继承机制
+浅析JavaScript的垃圾回收机制
+JavaScript垃圾回收机制
+phonegap 路由机制
+无觅关联推荐[?]
+使用道具 举报
+Te_amo
+
+金牌会员
+Rank: 6Rank: 6
+升级  14.3%
+主题0精华0积分1286金钱1149 威望18 贡献44 在线时间43 小时
+串个门加好友打招呼发消息	
+沙发
+ 发表于 2012-7-11 10:48:17 |只看该作者
+JavaScript中的原型和对象机制
+屈子泪，离歌起，力拔山兮
+使用道具 举报
+返回列表发新帖
+高级模式
+BColorImageLinkQuoteCodeSmilies
+您需要登录后才可以回帖 登录 | 立即注册  
+发表回复 回帖后跳转到最后一页
+﻿
+ 无觅相关文章插件
+关于我们|HTML5论坛|友情链接|手机版|站长统计
+Copyright @HTML5中国 All Right Reserved. Powered by Discuz! X2.
+京ICP备11006447号-7 京公网安备:110105011387 京公网安备：11010802010583号
+回顶部

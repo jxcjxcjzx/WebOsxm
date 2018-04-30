@@ -1,0 +1,128 @@
+【白话经典算法系列之十一】一道有趣的GOOGLE面试题 --【解法2】
+
+分类： 白话经典算法系列 2012-11-23 07:57 6672人阅读 评论(41) 收藏 举报
+GOOGLE面试题基数排序数组白话经典算法谷歌面试题
+微博http://weibo.com/MoreWindows已开通，欢迎关注。
+
+本系列文章地址：http://blog.csdn.net/MoreWindows/article/category/859207
+
+ 上一篇《白话经典算法系列之十一道有趣的GOOGLE面试题》中对一道有趣的GOOGLE面试题进行了详细的讲解，使用了类似于基数排序的做法在O(N)的时间复杂度和O(1)的空间复杂度完成了题目的要求，文章发表后，网友fengchaokobe在评论中给出了另一种解法，见下图。
+
+
+
+文字版：
+
+int Repeat(int *a, int n)
+{
+	for(int i = 0; i < n; i++)
+	{
+		if(a[i] > 0) //判断条件
+		{
+			if(a[ a[i] ] < 0)
+			{
+				return a[i];//已经被标上负值了，有重复
+			}
+			else 
+			{
+				a[ a[i] ]= -a[a[i]]; //记为负
+			}
+
+		}
+		else // 此时|a[i]|代表的值已经出现过一次了
+		{
+			if(a[-a[i]] < 0)
+			{
+				return -a[i];//有重复找到
+			}
+			else 
+			{
+				a[ -a[i] ] = -a[ -a[i] ];
+			}
+		}
+	}
+	return -1;//数组中没有重复的数
+}
+下面对这种以取负为访问标志的方法用个实例来说明下：
+
+    设int a[] = {1, 2, 1}
+
+    第一步：由于a[0]等于1大于0，因此先判断下a[a[0]]即a[1]是否小于0，如果小于，说明这是第二次访问下标为1的元素，表明我们已经找到了重复元素。不是则将a[a[0]]取负，a[1]=-a[1]=-2。
+
+    第二步：由于a[1]等于-2，因此先判断下a[-a[1]]取出a[2]是否小于0，如果小于，说明这是第二次访问下标为2的元素，表明我们已经找到了重复元素。不是则将a[-a[1]]取负，a[2]=-a[2]=-1。
+
+    第三步：由于a[2]等于-1，因此判断下a[-a[2]]即a[1]是否小于0，由于a[1]在第一步中被取反过了，因此证明这是第二次访问下标为1的元素，直接返回-a[2]即可。
+
+ 
+
+这种通过取负来判断元素是否重复访问的方法正如网友jwfeng002所言，当数组第0个元素为0且数据中只有0重复时是无法找出正确解的。只要用：
+
+       const int MAXN = 5;
+
+       int a[MAXN] = {0, 1, 2, 3, 0};
+
+这组数据来测试，就会发现该方法无法判断0是个重复出现的元素。运行结果如下图所示：
+
+
+
+ 
+
+这个算法虽然有缺陷，但我们可以沿着这个算法的思路——这个算法之所以用到了取负，是因此根据题目条件，数组中数据范围为[0，n-1]，因此可以通过判断元素是否大于0来决定这个元素是未访问过的数据还是已访问过的数据。但也正因为对0的取负是无效操作决定了这个算法存在着缺陷。要改进一下也很简单——不用取负，而用加n。这样通过判断元素是否大于等于n就能决定这个元素是未访问过的数据还是已访问过的数据。完整代码如下：
+
+//GOOGLE面试题
+//一个大小为n的数组，里面的数都属于范围[0, n-1]，有不确定的重复元素，找到至少一个重复元素，要求O(1)空间和O(n)时间。
+//By MoreWindows (http://blog.csdn.net/MoreWindows)
+#include <stdio.h>
+const int NO_REPEAT_FLAG = -1;
+int FindRepeatNumberInArray(int *a, int n)
+{
+	for(int i = 0; i < n; i++)
+	{
+		int nRealIndex = a[i] >= n ? a[i] - n : a[i];
+		if (a[nRealIndex] >= n) //这个位置上的值大于n说明已经是第二次访问这个位置了
+			return nRealIndex;
+		else
+			a[nRealIndex] += n;
+	}
+	return NO_REPEAT_FLAG; //数组中没有重复的数
+}
+void PrintfArray(int a[], int n)
+{
+	for (int i = 0; i < n; i++)
+		printf("%d ", a[i]);
+	putchar('\n');
+}
+int main()
+{
+	printf("    白话经典算法系列之十一 一道有趣的GOOGLE面试题解法2\n");      
+	printf(" -- by MoreWindows( http://blog.csdn.net/MoreWindows ) --\n\n"); 
+
+	const int MAXN = 10;
+	//int a[MAXN] = {2, 4, 1, 5, 7,  6, 1, 9, 0, 2};
+	int a[MAXN] = {0, 1, 2, 3, 4,  5, 6, 7, 8, 0};
+	
+	printf("数组为: \n");
+	PrintfArray(a, MAXN);
+
+	int nRepeatNumber = FindRepeatNumberInArray(a, MAXN);
+	if (nRepeatNumber != NO_REPEAT_FLAG)
+		printf("该数组有重复元素，此元素为%d\n", nRepeatNumber);
+	else
+		printf("该数组没有重复元素\n");
+	return 0;
+}
+运行结果如图所示：
+
+
+
+
+如同上一篇《白话经典算法系列之十一道有趣的GOOGLE面试题》一样，算法的核心代码依然只有短短5行左右。在时间空间复杂度上也同样满足题目要求。
+
+ 
+
+ 
+
+相信由这篇文章可以看出，思维的转换性对寻找一个合适算法是非常有用的。
+
+ 
+
+另外，代码的书写也要注意一下，对比一下文章中的Repeat()函数与FindRepeatNumberInArray()就能发现对代码进行一下简洁是非常有必要的。如果真在GOOGLE的面试中，虽然都完成了面试题，但面试官对这二份代码的感觉会是如何了？这也正是很多童鞋在面试后感觉困惑，为什么答的还不错怎么就面挂了。

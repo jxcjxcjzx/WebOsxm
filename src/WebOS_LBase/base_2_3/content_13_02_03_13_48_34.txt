@@ -1,0 +1,193 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+宝记宝宝学技术之笔记
+目录视图摘要视图订阅
+CSDN客服工作问卷调查        智能开发框架 JEECG 作者张代浩专访 
+2012CSDN博客之星火热出炉！        2013年全国百所高校巡讲讲师招募
+ 学Quixote 一
+分类： 我最怕蛇 2006-07-22 19:02 2056人阅读 评论(1) 收藏 举报
+目录(?)[+]
+ 我不会读Quixote，金山词霸的发音也让我严重怀疑，音标读起来也拗口得很，我的烂英文水平啊。。。但手译一下会有好处的。
+原文地址：http://quixote.ca/overview/paper.html
+ 
+ 
+White Paper: Quixote for Web Development
+白皮书：Quixote用于网站开发
+Introduction
+简介
+Quixote is a framework for developing Web applications in Python. Quixote is based on a simple, flexible design, making it possible to write applications quickly and to benefit from the wide range of available third-party Python modules. Deployed appropriately, Quixote has excellent performance that allows you to put Quixote-based applications into large-scale production use.
+Quixote是一个用python写的框架，用来开发web程序。由于它是基于简单灵活的方案设计，这让你可以快速地开发项目，而且使用很多python第三方模块（我的疑问:我不是本来就可以用第三方模块的吗？）。通过恰当地配置，你可以让Quixote发挥它巨大能量，这使得它可以被用于大规模系统当中。
+Architecture
+架构
+A Quixote application is typically a Python package, a collection of modules grouped into a single directory tree. Quixote then maps a URL to a function or method inside the Python package; the function is then called with the contents of the HTTP request, and the results are returned to the client.
+一组Quixote程序一般被组织成python模块，一组模块被安排在单独的文件目录里。Quixote会把URL请求转换成python模块中对应的函数或者方法；这样函数就被HTTP请求所调用，结果会被反馈给客户端。
+Quixote can be connected to the Web in several ways:
+Quixote可以按照若干种方式被连接到web服务器：
+Using an HTTP server written in Python code. This provides ease of configuration and is quite suitable for intranet or small-scale Internet deployments.
+用python开发的HTTP服务器。因为配置方便，这样很适合在局域网内部使用或者小规模的项目
+
+Using SCGI as implemented by the Apache module mod_scgi. Quixote-based applications run as a daemon process, and the Apache server sends HTTP requests to the daemon as they're received. The SCGI daemon can be started and stopped independently of Apache, making it easy to upgrade application code without affecting other operations on the Web site. We believe this is the architecture with the highest performance. (FastCGI employs a similar architecture, but the FastCGI protocol's greater complexity makes it less reliable.)
+使用SCGI，实现用apache的mod_scgi模块。Quixote本身以daemon进程形式运行，而apache会给它老实转发接受到的HTTP请求。由于SCGI daemon进程可以独立于apache自由地开始、停止工作，所以我们升级脚本并不会影响站点的其他操作。我们相信这种架构是相对最高效的。（fastcgi使用的也是类似架构，但它的协议太过于复杂，这让它不可靠。）（我的问题：fastcgi的那个deamon不可以自己start/stop?或者这样说，重启用quixote写的项目不需要restart apache?）
+
+Using mod_python, which embeds a Python interpreter in the Apache server.
+使用mod_python，它是把python解释器内嵌进了apache服务器。
+
+Through regular CGI. This is not recommended because it's the architecture with the worst performance, creating a new process on every HTTP request. SCGI isn't much more difficult to configure and it's much faster than regular CGI, making SCGI a far better choice.
+作为一般的传统的CGI。这样是不推荐的（我说这是找死。。。），因为这样的架构太慢了，每次响应请求就要创建一个新进程（哦，no）。SCGI配置不难，而且远快于传统CGI，使用SCGI是个明智的选择。
+
+HTML Templating
+HTML模板
+Quixote provides its own solution for HTML generation called Python Template Language (PTL). (Using PTL in Quixote applications is optional.)
+Quixote自己也提供HTML模板方案，它叫作Python Template Language(PTL)。（使用PTL是可选的。）
+PTL applies Python's syntax to generating HTML. In a PTL template, expression results and literal strings are automatically assembled into a function's output. Here is an example PTL function:
+PTL使用python的语法去产生HTML。在PTL模板中，表达式结果和字符串被自动地组装成函数输出。这是个PTL函数地例子：
+def format_row [html] (head, value):
+    "<tr valign=top align=left>/n"
+    "  <th align=left>%s</th>/n" % head
+    "  <td>%s</td>/n" % value
+    "</tr>/n"
+The function is marked as being written in PTL by the [html] annotation in the function's definition. This function can be written and saved in a file whose name ends in ".ptl". Such ".ptl" files can then be imported using Python's import statement, and the template can be invoked just like a regular Python function. For example, you might code:
+在函数定义中的"[html]"记号标志了这个函数是按照PTL来写的。这个函数可以被记录在“.ptl”文件当中。这类的“.ptl”文件可以用python语句import被导入进程序，这样模板就可以像一般python函数一样被调用了。（我的话：废话？）例如，你可以这样写：
+import util_templates
+
+def output [html] (request):
+    ...
+    "<table>"
+    for heading, value in data:
+        util_templates.format_row(heading, value)
+    "</table>"
+PTL's HTML templating can automatically escape special characters such as '<' and '&' in strings originating from the client browser or from a database. Proper use of this feature can avoid a class of security vulnerability called "cross-site scripting attacks". In a cross-site scripting attack, a hostile user can insert arbitrary HTML in a web application's output that can link to other sites or contain harmful JavaScript code.
+PTL的HTML模板机制能自动地转义掉像“<”和“&”之类字符，它们也许来自客户端浏览器或者db。这种特性能避免一类叫作“跨站点教本攻击(cross-site scripting attacks)”的安全隐患。在“跨站点脚本攻击”中，坏人在我们的程序输出中加入自己的html，目的就是转向某个邪恶站点，或者执行一段他写的javascript代码。（我想：就是防止sql注入吧。）
+Alternative templating syntaxes can also be used. Several different syntaxes have been implemented as Python packages; because Quixote makes it easy to use third-party Python packages, you can support any templating syntax you wish.
+当然，其它种类的模板技术也是可以使用的。很多不同的语法被不同的python模块实现了；因为Quixote可以方便地使用其它第三方模块，你可以使用你喜欢地模板技术。
+Quixote's Advantages
+优点
+Simplicity
+简单
+Quixote is not a large framework that tries to subsume every conceivable Web development task, instead striving for flexibility. Quixote handles the details of interfacing with the web server such as parsing form request variables and processing uploaded files, and provides mechanism through which new features such as session tracking can be implemented.
+Quixote并不是被设计成涵盖任何web开发任务的，我们努力想做到的是：弹性。Quixote会处理与web服务器交互的细节，例如，解析请求的变量（我猜：环境变量？），处理上传的文件，提供实现新功能的机制。（又例如session tracking。）
+This makes Quixote easy to learn for experienced Python programmers because their existing skills, acquired by writing Python programs and scripts, can also be applied to writing Web applications with Quixote. Novice programmers can also learn Quixote and once learned, their new-found skills can be applied to other Python programming tasks.
+有经验的python程序员是很容易学会Quixote的，因为他们写python代码所掌握的技巧也可以适用于用Quixote来编写web程序。新手也可以学会Quixote，而且一旦学会，这些技巧也还可以用于其他python编程当中。
+(A series of Quixote tutorials can be found at http://www.quixote.ca/learn/.)
+教程可以参考这里。
+By staying within the main stream of Python design practice, Quixote makes it easy to use third-party modules in Quixote-based applications. External packages such as the Reportlab Toolkit (PDF file generation), ZODB (an object database), or mxODBC (access to relational databases) can be used from Quixote without difficulty.
+按照python的主流设计经验，Quixote设计成很容易使用第三方模块。扩展包例如XXX可以自如地在Quixote项目中使用。
+Existing Python tools such as the Distribution Utilities can be used to package and install Quixote-based applications. We hope that Quixote users will begin to release their own add-ons and applications built on top of Quixote, leading to the formation of a user community.
+像the Distribution Utilities 这样已有的python工具也可以用来打包和安装基于Quixote开发的程序。我们希望Quixote的用户愿意发布新添加的功能和程序，以形成用户社区。
+Performance
+高效
+Quixote imposes very low overhead on each HTTP transaction, meaning that performance can be quite good even on inexpensive hardware. For example, one benchmark found that Quixote and SCGI can achieve 75 requests/second on a lowly Pentium 200! On a more current machine with an Athlon XP 1700+ processor, this combination has been measured at 425 requests/second.
+Quixote对于每次HTTP响应只需很低的成本，也就是说即使在低端配置机器上性能也是不错的。例如，有一组基于Pentium 200机器上面的测试表明，Quixote与SCGI的组合可以达到每秒75次的响应请求。在一台高端一点的Athlon XP 1700+机器上，这个组合取得的成绩是425次请求每秒。
+Security
+安全
+Quixote is relatively small, consisting of almost 7,000 lines of Python code. Only 2,500 lines of this contains the core publishing code; that's relatively small, making it possible to carefully read through the code and audit it for security vulnerabilities.
+Quixote是一个相对小的项目，大约7000行代码，其中核心代码大概是2500行。这真的相对的小，你可以通读代码，看看是不是真的存在潜在的安全隐患。
+The automatic HTML quoting feature in PTL, if used diligently, can avoid a class of security vulnerability called "cross-site scripting attacks". In a cross-site scripting attack, a hostile user can insert arbitrary HTML in a web application's output that can link to other sites or contain harmful JavaScript code. Quixote can provide automatic protection from bugs that expose a Web-based application to such attacks.
+（我懒了。又在说上面提过的关于防范"cross-site scripting attacks"的功能.)
+Quixote also requires the developer to explicitly specify which Python functions can be accessed from the web browser. This makes it unlikely that private functions will be accidentally made available.
+Quixote要求开发者显示地指明哪些函数是可以被浏览器所访问到的。这样就不会让那些私有函数不小心被曝露出去了。
+Freedom
+开源
+Quixote is free software, available under a license identical to that used by Python itself. There's no cost to acquire the Quixote code, and no fees are required to write or run Quixote applications. You can also modify the Quixote code and redistribute your modified version.
+开源的好处嘛。。。我就不说了。（懒）
+（我说：你也告诉我点缺点有啥。。。）
+Quixote Availability
+Quixote runs on several Unix variants (Linux, FreeBSD, Apple MacOS X) and on Microsoft Windows.
+A partial list of the HTTP servers supported by Quixote includes Apache (optionally using SCGI, mod_python, or mod_fastcgi), Microsoft IIS, AOLServer, Medusa, and Twisted Python.
+Resources for Learning More
+The main distribution site for Quixote is http://www.mems-exchange.org/software/quixote/.
+http://www.quixote.ca collects tutorials and other resources for Quixote users.
+Quixote is written in the Python programming language. More information on Python is available at http://www.python.org.
+Legal
+AOLserver is a trademark of America Online.
+Apache is a trademark of The Apache Software Foundation, and is used with permission.
+The Reportlab Toolkit is a trademark of ReportLab.
+mxODBC is a trademark of eGenix.com.
+Apple and Mac OS are trademarks of Apple Computer, Inc., registered in the U.S. and other countries.
+Microsoft Windows and Internet Information Server are either registered trademarks or trademarks of Microsoft Corporation in the United States and/or other countries.
+ 
+ 
+ps：累～译得应该不好，勿用：）
+分享到： 
+上一篇：学Quixote 零
+下一篇：Pygame之Tutorials － Import and Initialize
+
+查看评论
+1楼 vincent 2006-08-10 21:56发表 [回复]
+
+支持！ <br> <br>我也在学，先搭一个论坛，现在只能用PHP，希望能用QUIXOTE（我把它读作‘奇柯德’，好象来源是don quixote-堂&#183;吉柯德）。 <br> <br>欢迎多交流！
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+ 
+个人资料
+  
+jaxiinofea
+ 
+访问：23647次
+积分：388分
+排名：千里之外
+原创：14篇转载：1篇译文：3篇评论：6条
+文章搜索
+
+文章分类
+unix fan(4)
+好好学习c++(5)
+开悟(1)
+我最怕蛇(5)
+月亮女神(0)
+游戏(0)
+游戏编程(2)
+程序设计(1)
+文章存档
+2007年05月(1)
+2007年04月(1)
+2006年12月(2)
+2006年10月(2)
+2006年09月(1)
+展开
+阅读排行
+vs2005抱怨找不着libc.lib的问题(11954)
+学Quixote 一(2055)
+在debian下轻松升级kernel(955)
+Pygame之Tutorials － Import and Initialize(870)
+Pygame之Tutorials － Windows Executables(855)
+python的static class method and member(785)
+从const_cast引出的一个问题(670)
+who?(576)
+学Quixote 零(473)
+让core file出现吧(459)
+评论排行
+vs2005抱怨找不着libc.lib的问题(5)
+学Quixote 一(1)
+写个内存分配函数吧(0)
+Network Protocol for Online Games by Michael Butler/Jennifer Louie/Jorge Pombar(0)
+svn简单配置以及使用(0)
+《opengl distilled》第一章读后(0)
+让core file出现吧(0)
+在debian下轻松升级kernel(0)
+Pygame之Tutorials － Windows Executables(0)
+Pygame之Tutorials － Import and Initialize(0)
+推荐文章
+
+最新评论
+vs2005抱怨找不着libc.lib的问题
+神的门徒: 很好，很有用！
+vs2005抱怨找不着libc.lib的问题
+laoyingyzp: 相同的境遇。。
+vs2005抱怨找不着libc.lib的问题
+bluehousedahui: 非常有用，版主很厉害！
+vs2005抱怨找不着libc.lib的问题
+qq344269956: 我相也一样。。
+vs2005抱怨找不着libc.lib的问题
+smartlean: 相同的境遇。。
+学Quixote 一
+vincent: 支持！ 我也在学，先搭一个论坛，现在只能用PHP，希望能用QUIXOTE（我把它读作‘奇柯德’，好...
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+ 联系邮箱：webmaster(at)csdn.net
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+

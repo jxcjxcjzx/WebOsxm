@@ -1,0 +1,1383 @@
+
+
+首页
+开源软件
+讨论区
+
+
+
+
+
+
+代码分享
+博客
+翻译
+资讯
+移动开发
+
+
+
+
+招聘
+
+你好2,您好 我的空间
+
+
+
+
+
+
+
+ |  添加软件 | 投递新闻 | 退出
+ 
+
+开源中国 
+代码分享
+ 当前位置：代码分享 » C/C++ » 常规C/C++编程 » C/C++网络编程 
+搜 索 
+
+
+
+
+
+
+
+
+
+TCP与UDP多连接实例
+
+DDT 发布于 2013年02月27日 7时, 0评/769阅
+
+
+ 
+
+
+分享到 
+
+新浪微博腾讯微博
+
+
+收藏+2
+
+踩顶0
+ 
+
+1、02_tcp.cpp    tcp socket 源码 
+
+2、02_udps.cpp   udp socket 服务端源码 
+
+3、02_udpc.cpp   udp socket 客户端源码
+
+标签：<无> 
+
+
+
+
+代码片段(3)
+
+
+[文件] 02_tcp.cpp ~ 1KB    下载(19)
+
+
+
+
+
+
+
+
+
+
+01
+
+#pragma comment(lib, "ws2_32.lib")
+
+
+
+
+
+02
+
+#include <winsock2.h>
+
+
+
+
+
+03
+
+#include <stdio.h>
+
+
+
+
+
+04
+
+int main()
+
+
+
+
+
+05
+
+{
+
+
+
+
+
+06
+
+     SOCKET mysock,tsock;              // �����׽���
+
+
+
+
+
+07
+
+     struct sockaddr_in my_addr;       // ���ص�ַ��Ϣ
+
+
+
+
+
+08
+
+     struct sockaddr_in their_addr;     // �����ߵ�ַ��Ϣ
+
+
+
+
+
+09
+
+     int sin_size;
+
+
+
+
+
+10
+
+     WSADATA wsa;
+
+
+
+
+
+11
+
+     WSAStartup(MAKEWORD(2,2),&wsa);       //��ʼ��Windows Socket 
+
+
+
+
+
+12
+
+     //����socket
+
+
+
+
+
+13
+
+     mysock = socket(AF_INET, SOCK_STREAM, 0);
+
+
+
+
+
+14
+
+     //bind����Ķ˿�
+
+
+
+
+
+15
+
+     my_addr.sin_family = AF_INET;               // Э��������INET
+
+
+
+
+
+16
+
+     my_addr.sin_port = htons(1234);           // �󶨶˿�1234
+
+
+
+
+
+17
+
+     my_addr.sin_addr.s_addr = INADDR_ANY;   // ����IP
+
+
+
+
+
+18
+
+     bind(mysock, (struct sockaddr *)&my_addr, sizeof(struct sockaddr));
+
+
+
+
+
+19
+
+      //listen������˿�
+
+
+
+
+
+20
+
+     listen(mysock, 10); // �ȴ�������Ŀ
+
+
+
+
+
+21
+
+     printf("listen......");    
+
+
+
+
+
+22
+
+     //�ȴ�ͻ�������
+
+
+
+
+
+23
+
+     sin_size = sizeof(struct sockaddr_in);
+
+
+
+
+
+24
+
+     tsock = accept(mysock, (struct sockaddr *)&their_addr, &sin_size);
+
+
+
+
+
+25
+
+     //�����Ӿͷ���Hello!�ַ��ȥ
+
+
+
+
+
+26
+
+     send(tsock, "Hello!\n", sizeof("Hello!\n"), 0);
+
+
+
+
+
+27
+
+     printf("send ok!\n");
+
+
+
+
+
+28
+
+      //�ɹ����ر��׽���
+
+
+
+
+
+29
+
+     closesocket(mysock);
+
+
+
+
+
+30
+
+     closesocket(tsock);
+
+
+
+
+
+31
+
+     return 0;
+
+
+
+
+
+32
+
+}
+
+
+
+[文件] 02_udpc.cpp ~ 1KB    下载(12)
+
+
+
+
+
+
+
+
+
+
+01
+
+#include <winsock2.h>
+
+
+
+
+
+02
+
+#include <stdio.h>
+
+
+
+
+
+03
+
+BOOL InitWinsock();
+
+
+
+
+
+04
+
+void main()
+
+
+
+
+
+05
+
+{
+
+
+
+
+
+06
+
+    SOCKET socket1;
+
+
+
+
+
+07
+
+ 
+
+
+
+
+
+08
+
+    InitWinsock();
+
+
+
+
+
+09
+
+    struct sockaddr_in server;
+
+
+
+
+
+10
+
+    int len =sizeof(server);
+
+
+
+
+
+11
+
+    server.sin_family=AF_INET;
+
+
+
+
+
+12
+
+    server.sin_port=htons(1000);                      ///server�ļ���˿�
+
+
+
+
+
+13
+
+    server.sin_addr.s_addr=inet_addr("12.1.34.217"); ///server�ĵ�ַ 
+
+
+
+
+
+14
+
+ 
+
+
+
+
+
+15
+
+    socket1=socket(AF_INET,SOCK_DGRAM,0);
+
+
+
+
+
+16
+
+    while (1)
+
+
+
+
+
+17
+
+    {
+
+
+
+
+
+18
+
+ 
+
+
+
+
+
+19
+
+        char buffer[1024]="\0";
+
+
+
+
+
+20
+
+        printf("input message\n");
+
+
+
+
+
+21
+
+        scanf("%s",buffer);
+
+
+
+
+
+22
+
+        if (strcmp(buffer,"bye")==0)
+
+
+
+
+
+23
+
+            break;
+
+
+
+
+
+24
+
+        if (sendto(socket1,buffer,sizeof buffer,0,(struct sockaddr*)&server,len)!=SOCKET_ERROR)
+
+
+
+
+
+25
+
+        {   
+
+
+
+
+
+26
+
+            if (recvfrom(socket1,buffer,sizeof buffer,0,(struct sockaddr*)&server,&len)!=SOCKET_ERROR)
+
+
+
+
+
+27
+
+                printf("rece from server:%s\n",buffer);
+
+
+
+
+
+28
+
+        }       
+
+
+
+
+
+29
+
+    }
+
+
+
+
+
+30
+
+    closesocket(socket1);
+
+
+
+
+
+31
+
+}
+
+
+
+
+
+32
+
+ 
+
+
+
+
+
+33
+
+BOOL InitWinsock()
+
+
+
+
+
+34
+
+{
+
+
+
+
+
+35
+
+    int Error;
+
+
+
+
+
+36
+
+    WORD VersionRequested;
+
+
+
+
+
+37
+
+    WSADATA WsaData;
+
+
+
+
+
+38
+
+    VersionRequested=MAKEWORD(2,2);
+
+
+
+
+
+39
+
+    Error=WSAStartup(VersionRequested,&WsaData); //����WinSock2
+
+
+
+
+
+40
+
+    if(Error!=0)
+
+
+
+
+
+41
+
+    {
+
+
+
+
+
+42
+
+        return FALSE;
+
+
+
+
+
+43
+
+    }
+
+
+
+
+
+44
+
+    else
+
+
+
+
+
+45
+
+    {
+
+
+
+
+
+46
+
+        if(LOBYTE(WsaData.wVersion)!=2||HIBYTE(WsaData.wHighVersion)!=2)
+
+
+
+
+
+47
+
+        {
+
+
+
+
+
+48
+
+            WSACleanup();
+
+
+
+
+
+49
+
+            return FALSE;
+
+
+
+
+
+50
+
+        }
+
+
+
+
+
+51
+
+         
+
+
+
+
+
+52
+
+    }
+
+
+
+
+
+53
+
+    return TRUE;
+
+
+
+
+
+54
+
+}
+
+
+
+[文件] 02_udps.cpp ~ 1KB    下载(11)
+
+
+
+view source
+
+print?
+
+
+
+
+01
+
+#include <winsock2.h>
+
+
+
+
+
+02
+
+#include <stdio.h>
+
+
+
+
+
+03
+
+BOOL InitWinsock();
+
+
+
+
+
+04
+
+void main()
+
+
+
+
+
+05
+
+{
+
+
+
+
+
+06
+
+    SOCKET socket1;
+
+
+
+
+
+07
+
+ 
+
+
+
+
+
+08
+
+    InitWinsock();
+
+
+
+
+
+09
+
+    struct sockaddr_in local;
+
+
+
+
+
+10
+
+    struct sockaddr_in from;
+
+
+
+
+
+11
+
+    int fromlen =sizeof(from);
+
+
+
+
+
+12
+
+    local.sin_family=AF_INET;
+
+
+
+
+
+13
+
+    local.sin_port=htons(1000);             ///����˿�
+
+
+
+
+
+14
+
+    local.sin_addr.s_addr=INADDR_ANY;       ///����
+
+
+
+
+
+15
+
+ 
+
+
+
+
+
+16
+
+    socket1=socket(AF_INET,SOCK_DGRAM,0);
+
+
+
+
+
+17
+
+ 
+
+
+
+
+
+18
+
+    bind(socket1,(struct sockaddr*)&local,sizeof local);
+
+
+
+
+
+19
+
+ 
+
+
+
+
+
+20
+
+    while (1)
+
+
+
+
+
+21
+
+    {
+
+
+
+
+
+22
+
+        char buffer[1024]="\0";
+
+
+
+
+
+23
+
+        printf("waiting for message from others-------------\n");
+
+
+
+
+
+24
+
+        if (recvfrom(socket1,buffer,sizeof buffer,0,(struct sockaddr*)&from,&fromlen)!=SOCKET_ERROR)
+
+
+
+
+
+25
+
+        {
+
+
+
+
+
+26
+
+            printf("Received datagram from %s--%s\n",inet_ntoa(from.sin_addr),buffer);
+
+
+
+
+
+27
+
+            ////��cilent����Ϣ
+
+
+
+
+
+28
+
+            sendto(socket1,buffer,sizeof buffer,0,(struct sockaddr*)&from,fromlen);
+
+
+
+
+
+29
+
+ 
+
+
+
+
+
+30
+
+        }
+
+
+
+
+
+31
+
+        Sleep(500);
+
+
+
+
+
+32
+
+    }
+
+
+
+
+
+33
+
+ 
+
+
+
+
+
+34
+
+    closesocket(socket1);
+
+
+
+
+
+35
+
+ 
+
+
+
+
+
+36
+
+ 
+
+
+
+
+
+37
+
+}
+
+
+
+
+
+38
+
+ 
+
+
+
+
+
+39
+
+BOOL InitWinsock()
+
+
+
+
+
+40
+
+{
+
+
+
+
+
+41
+
+    int Error;
+
+
+
+
+
+42
+
+    WORD VersionRequested;
+
+
+
+
+
+43
+
+    WSADATA WsaData;
+
+
+
+
+
+44
+
+    VersionRequested=MAKEWORD(2,2);
+
+
+
+
+
+45
+
+    Error=WSAStartup(VersionRequested,&WsaData); //����WinSock2
+
+
+
+
+
+46
+
+    if(Error!=0)
+
+
+
+
+
+47
+
+    {
+
+
+
+
+
+48
+
+        return FALSE;
+
+
+
+
+
+49
+
+    }
+
+
+
+
+
+50
+
+    else
+
+
+
+
+
+51
+
+    {
+
+
+
+
+
+52
+
+        if(LOBYTE(WsaData.wVersion)!=2||HIBYTE(WsaData.wHighVersion)!=2)
+
+
+
+
+
+53
+
+        {
+
+
+
+
+
+54
+
+            WSACleanup();
+
+
+
+
+
+55
+
+            return FALSE;
+
+
+
+
+
+56
+
+        }
+
+
+
+
+
+57
+
+         
+
+
+
+
+
+58
+
+    }
+
+
+
+
+
+59
+
+    return TRUE;
+
+
+
+
+
+60
+
+}
+
+
+
+举报
+
+
+
+开源中国-程序员在线工具：API文档大全(120+) JS在线编辑演示 二维码更多»
+
+ 
+
+
+相关的代码(147)
+4回/178阅[C/C++]《原创》Win32/Linux虚拟文件系统通信5天前 By 戚继光
+0回/340阅[C/C++]IO多路复用（select）多线程实现点对点聊天8天前 By xinspace
+0回/310阅[C/C++]更改MAC地址13天前 By DDT
+1回/473阅[C/C++]UDP NAT穿透，实现p2p14天前 By 无脸程序员
+1回/376阅[C/C++]IP Helper API24天前 By DDT
+5回/878阅[C/C++]socket 简单例子28天前 By 庄小龙
+2回/658阅[C/C++]监听发往本机和从本机发出的数据包1个月前 By 纳兰清风
+0回/312阅[C/C++]TCP Echo Server and CLient1个月前 By sbzhouhao
+0回/311阅[C/C++]ip地址正则表达式测试是否正确1个月前 By 胡漾
+1回/235阅[C/C++]Get IP by Hostname [Using C]1个月前 By sbzhouhao
+显示所有 »
+
+发表评论回到顶部网友评论(0)
+
+
+暂无网友评论
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+回到顶部   回到评论列表
+
+开源从代码分享开始 分享代码
+
+
+
+DDT的其他代码向系统服务进程注入DLL(0评/70阅,13小时前)
+Oracle统计表的数据行和数据块信息(0评/52阅,4天前)
+远程创建Windows Shell服务(0评/119阅,6天前)
+按指定数量字节分块读取文件(0评/37阅,6天前)
+远程安装卸载服务(0评/118阅,9天前)
+全部(837)...
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+© 开源中国(OsChina.NET) | 关于我们 | 广告联系 | @新浪微博 | 开源中国手机版 | 粤ICP备12009483号-3
+ 
+开源中国手机客户端：AndroidiPhoneWP7 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2条新留言，查看留言»
+
+
+
+

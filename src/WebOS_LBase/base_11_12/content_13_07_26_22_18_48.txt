@@ -1,0 +1,218 @@
+Chinaunix首页　| 　论坛　| 　问答　| 　博客 登录 | 注册
+    
+挂画
+暂无签名
+2013第二季度“ChinaUnix博客之星”评选活动
+五周年特别奉献：《IT架构实录》征文活动
+【原创评选】2013年6-7月原创博文评选开始啦！
+首页　| 　博文目录　| 　关于我
+
+fanfan136
+博客访问： 5397
+博文数量： 7
+博客积分： 280
+博客等级： 二等列兵
+技术积分： 75
+用 户 组： 普通用户
+注册时间： 2010-04-20 17:25
+
+文章分类
+全部博文（7）
+
+apache（0）
+oracle（2）
+linux（2）
+mysql（1）
+算法（1）
+DNS（1）
+未分配的博文（0）
+文章存档
+2011年（1）
+
+2010年（6）
+
+我的朋友
+最近访客
+订阅
+推荐博文
+·[PowerVM]通过IVM在VIOS中创...
+·SystemCenter2012SP1实践(33)...
+·HAProxy 研究笔记 -- HTTP请...
+·Sybase ASA数据库自动备份的...
+·Java程序员从笨鸟到菜鸟之（...
+热词专题
+·c++枚举系统安装的硬盘...
+·red5视频服务器
+·libnet发包源码
+·linux iowait process
+·linux系统 office2003
+友情链接
+ [算法]交换回溯算法求一维数组的全排列的算法 2010-04-24 11:51:31
+分类： Java
+
+
+ 
+求一维数组的全排列组合，相比昨天的二维数组，算法相对
+要简单得多，运用数据交换和简单的回溯算法即可实现要求，原题为CG最近JAVA考
+试题。
+原题如下：
+求一维数组char a[] = {’1′,’2′,’2′,’3′,’4′,’5′}的所有排列组合，如122345
+234512等，要求4不在第三位，5、3不能连在一起，JAVA语言实现算法，写出main
+函数即可。
+解体思路，任意两个字符交换即可得到新的数组，拼接输出即可，最后还原到原来
+的数组，还原的过程即回溯过程。
+参考算法(JAVA语言)
+
+public static void main(String[] args) {
+
+    char a[] = {'1','2','2','3','4','5'};
+    int i , j;
+    //双重循环，交换数据
+
+    for(i = 0 ; i < a.length ; i ++){ //第一个数下标
+
+        for(j = 0 ; j < a.length ; j ++) { //第二个数下标
+
+            //交换
+
+            char temp = a[i] ;
+            a[i] = a[j];
+            a[j] = temp;
+            String s = String.valueOf(a);
+            //判断输出
+
+            if( s.charAt(2) != '4' //4不出现在第三位
+
+             && s.indexOf("53") == -1 //不存在53
+
+             && s.indexOf("35") == -1) { //不存在35
+
+             //输出
+
+                System.out.println(s);
+            }
+            //还原
+
+            temp = a[i] ;
+            a[i] = a[j];
+            a[j] = temp;
+        }
+    }
+}
+
+
+
+
+1. package com.sw.suanfa.first.ten; 
+   2. 
+   3. import java.util.ArrayList; 
+   4. import java.util.List; 
+   5. 
+   6. /** 
+   7. * 用java语言实现，一个组数：122345这6个数，打印出它所有可能的组合；要求4不能在第3位，3和5不能相连。 
+   8. * 我的做法：首先，我确定用递归实现。 
+   9. * 其次，不排除任何条件，打出所有的组合。 
+  10. * 在递归中增加了preNum，和level参数，可方便的对条件【4不能在第3位，3和5不能相连】进行过滤。 
+  11. * 在递归正增加了intList，便于排除重复。比如122345这个串中有2个2.则按照以上的算法会出现重复的情况。 
+  12. * 这里用了一个intList主要是利用其方法indexOf,实际也可以通过数组循环的方式来查找，这里为了方便就用了list。 
+  13. * 
+  14. * @author songwei 
+  15. * @date 2010.3.24 
+  16. * 
+  17. */ 
+  18. public class ComposeArray { 
+  19. 
+  20. public static void main(String[] args) { 
+  21. int len = 6; 
+  22. int[] numArray = {1,2,2,3,4,5}; 
+  23. int[] currentArray = new int[len]; 
+  24. getNextNumber(0,1,numArray,currentArray); 
+  25. 
+  26. } 
+  27. 
+  28. /** 
+  29. * 
+  30. * @param preNum 前一个数值 
+  31. * @param level 当前层数 
+  32. * @param numArray 当前层中能够选择的数值集合 
+  33. * @param currentArray 正在操作的数组，当这个数组中的所有值均覆值后，则为条件允许情况下的一个数值集合。 
+  34. */ 
+  35. private static void getNextNumber(int preNum,int level,int[] numArray,int[] currentArray){ 
+  36. List<Integer> intList = new ArrayList<Integer>(); 
+  37. for(int i=0;i<numArray.length;i++){ 
+  38. int currentNum = numArray[i]; 
+  39. if(intList.indexOf(Integer.valueOf(currentNum))>-1) continue ; 
+  40. intList.add(currentNum); 
+  41. 
+  42. //4不能在第3位出现 
+
+  43. if(level == 3 && currentNum == 4) continue ; 
+  44. if(level != 1){ 
+  45. //3和5不能相连 
+
+  46. if((currentNum ==5 && preNum == 3) || (currentNum ==3 && preNum == 5)){ 
+  47. continue ; 
+  48. } 
+  49. } 
+  50. currentArray[level-1] = currentNum ; 
+  51. int nextLevel = level +1 ; 
+  52. if(level == currentArray.length){ 
+  53. OutArray(currentArray); 
+  54. return ; 
+  55. }else{ 
+  56. getNextNumber(currentNum,nextLevel,createNewArray(numArray,i),currentArray); 
+  57. } 
+  58. } 
+  59. } 
+  60. 
+  61. /** 
+  62. * 创建一个新的数组，这个数组为该次排列中，下一个level可以出现的数值集合。 
+  63. * @param oldArray 
+  64. * @param orderNumber 
+  65. * @return 
+  66. */ 
+  67. private static int[] createNewArray(int[] oldArray,int orderNumber){ 
+  68. if(oldArray.length<=1) return null ; 
+  69. int newLen = oldArray.length-1 ; 
+  70. int[] newArray =new int[newLen]; 
+  71. int newOrderNumber = 0 ; 
+  72. for(int i=0;i<oldArray.length;i++){ 
+  73. if(i == orderNumber) continue ; 
+  74. newArray[newOrderNumber] = oldArray[i]; 
+  75. newOrderNumber ++ ; 
+  76. } 
+  77. return newArray; 
+  78. } 
+  79. 
+  80. private static void OutArray(int[] array){ 
+  81. for(int i=0;i<array.length;i++){ 
+  82. System.out.print(array[i]); 
+  83. } 
+  84. System.out.println(""); 
+  85. } 
+  86. }
+
+阅读(1104) | 评论(0) | 转发(0) |
+0
+上一篇：reht4 bind 配置1 例子
+下一篇：mysql: mysqldump import SQL script
+相关热门文章
+JDK1.6官方下载_JDK6官方下载_...
+MyEclipse6.5下载及注册码...
+Eclipse+MyEclipse的配置
+Eclipse 插件安装、升级和卸载...
+最新版SWT Designer 6.0 安装,...
+ C++ 拷贝一个对象是什么意思...
+innodb_max_dirty_pages_pct一...
+latin1字符集能使用汉字吗？...
+ Headers already send by PHP...
+PHP 中什么时候用self vs $thi...
+给主人留下些什么吧！~~
+评论热议
+请登录后评论。
+登录 注册
+关于我们 | 关于IT168 | 联系方式 | 广告合作 | 法律声明 | 免费注册
+Copyright 2001-2010 ChinaUnix.net All Rights Reserved 北京皓辰网域网络信息技术有限公司. 版权所有
+感谢所有关心和支持过ChinaUnix的朋友们
+京ICP证041476号 京ICP证060528号
+

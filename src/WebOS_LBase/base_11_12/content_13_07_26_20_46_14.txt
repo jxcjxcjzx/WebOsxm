@@ -1,0 +1,233 @@
+djdhbjqdbwhjb0我的：收件箱资源博客空间设置|帮助|退出首页业界移动云计算研发论坛博客下载
+更多
+vrix的专栏
+目录视图摘要视图订阅
+公告：博客新增直接引用代码功能        专访谭海燕：移动互联网开发的那些事      CSDN博客频道自定义摘要、图片水印、热门标签等功能上线啦      CSDN博客第二期云计算最佳博主评选     
+ Linux MMU summary
+分类： linux/unix 2009-06-26 17:17 1024人阅读 评论(0) 收藏 举报
+linuxlistcacheasynchronousdiskallocation
+1. 物理页申请(allocation)
+  核心算法是：Binary Buddy Allocator.
+  1. 空闲块管理
+    每个zone有一个free_area数组, 第0个元素表示的块大小是1个页, 第1个元素表示的块大小是2个页...最大的块大小是512个页.
+    每个区有一个bitmap, 每一位用来记载一对buddy的使用状态, 如果bit是0, 表示那对page(两页)都是full or free. 如果bit是1, 表示只有其中一页是在用.
+ 
+  2. 申请页
+    页申请的核心调用是: __alloc_pages(). 页申请顺序如下：
+    首先找最大能符合的块, 如果一个空闲块不能满足, 更高一级的块将分割成2个buddy, 一个被占用, 一个放入低一级的freelist.
+    当块被释放时, 检查每对buddy, 如果两者都空闲, 把他们合并到更高一级的块数组里去, 同时放入更高一级的freelist. 如果一个buddy还在被用, 那此块将加入到当前级的freelist.
+    如果一个zone已经没有足够空闲页，而且又需要分配，那申请将退到下一级，一般顺序是：ZONE_HIGHMEM --> ZONE_NORMAL --> ZONE_DMA. 如果空闲页击中pages_low门限，kswapd将开始释放页。
+ 
+  3. 释放页
+    核心调用是: __free_pages_ok(). 当一个buddy释放时，尽可能立即合并buddy。有一种不理想的情况是，在最坏的情况下，在很多合并发生之后，立即有发生切割，在相同的块上面。
+ 
+  4. Get Free Page(GFP) Flags
+    GFP标志决定了VM分配器和kswapd对页的申请和释放的工作方式。
+    __GFP_DMA, __GFP_HIGHMEM, __GFP_WAIT, __GFP_HIGH, __GFP_IO, __GFP_HIGHIO, __GFP_FS.
+ 
+  5. 进程Flags
+    进程可以设置标志，来决定分配器的行为方式。
+    GFP_ATOMIC, GFP_NOIO, GFP_NOHIGHIO, GFP_NOFS, GFP_KERNEL, GFP_USER, GFP_HIGHUSER, GFP_NFS, GFP_KSWAPD.
+ 
+  6. 避免碎片
+    外部碎片: 因为所有可用的内存只存在于小块，分配器无力满足分配请求。
+    内部碎片: 是指所浪费的空间，由于大的块用于分配满足小的内存请求。
+    内部碎片的容易出现，而且破坏力严重，可以看到的是，单靠buddy系统来解决，没有明显的效果，可以解决这个问题的方法是综合slab分配器的使用。
+2. 非连续内存分配
+  vmalloc()是内核可以用来分配连续虚存，但非连续物理内存的方法。
+  对于内核，可以用来分配的虚存介于VMALLOC_START和VMALLOC_END之间。VMALLOC_START的起始位置取决于可用的物理l内 存总量。因为是给不连续物理内存分配，所以每块物理单元都是用：vm_struct来描述。此结构很简单，包括单元块使用标志，起始地址，长度，及至向 next的指针。
+  一个有意思的地方是，每一个离散的被分配的块之间至少会有一页的间隔，以此来避免overrun。
+ 
+  1. 分配/释放非连续区域
+    首先找到可以满足分配的足够大的一块区，再分配PGD条目，PMD条目，PTE条目，最后才分配页。释放的顺序正好相反，先释放PGD条目，PMD条目，PTE条目，最后是页
+ 
+3. MMU系统初始化
+ 
+  1. Paging启动
+ 
+    在bootloader过程中，内核会被调入到物理地址0x100000（1M），开始执行的是head.S, 在这段指令的执行中，Paging会被激活，之后内核跳到PAGE_OFFSET+some_address，开始执行start_kernel （start_kernel()将不会执行，直到Paging被激活??）。start_kernel()会初始化所有的内核数据，并且开始init内核 线程的运行。对MMU的初始化，是在setup_arch()里完成的，这个函数是平台相关的，主要完成底层的初始化，首先，此函数会计算总共的Low- memory和High-memory的页数（在setup_memory()里完成），接下来，setup_arch()调用init_bootmem ()来初始化boot-time内存分配器（也称之为bootmem分配器），此分配器的工作是为内核的初始化和永久数据提供内存页，在boot之后，这 些页是不参与MMU的管理的。 (如果这些页是固定地址的，地址是如何分配的??)
+ 
+  2. 初始化内核页表
+ 
+    在setup_arch()里，内核页表的初始化是调用paging_init()完成的。首先，内核尽可能地将所有的物理内存影射到 PAGE_OFFSET(3G)与4G之间。内核页表是存在于swapper_pg_dir，是表示一种影射关系，也称之为内核页目录。目录里的页主要用 于初始化Paging，在系统启动的时候。
+    接一下来，内核调用fixrange_init()来分配一些页表给预编译阶段就所需的虚存，其方法是set_fixmap(). 这些fixmap表会在运行时被影射到物理页上。
+    初始化fixmaps后，如果CONFIG_HIGHMEM被设置，内核会分配一些页表给kmap()分配器。kmap()分配器可以让内核映射任意物理页到内核虚拟地址空间，作为临时使用。
+    fixmap和kmap页表占据了内核虚拟空间里最顶端的部分，有最大128M在内核虚空间的顶部将为此保留。所以，所有物理页其被映射后的虚存地址如果 高于4G-128M（即如果访问大于896M的物理内存），将会当作HIGHMEM zone的操作来处理（当然，前提是CONFIG_HIGMEM开关被打开）。内核访问HIGHMEM的页，需要通过kmap()来存取。如果 CONFIG_HIGMEM开关未打开，这部分物理页将访问不到，只是浪费而已，对2.4的最近版本，此开关是缺省打开的。
+    最后，对kmap/zone分配器进行初始化，然后是调用free_area_init()建立mem_map和Buddy free_lists, 此时，所有的free_list项都被初始化成空，并且标记为保留（即暂时VM还不能存取??）
+ 
+  3. setup_arch()是在start_kernel()里被调用的，paging_init()是在setup_arch()被调用，当 paging_init()结束后，其他的一些内核子系统会继续用bootmem分配器申请一些内核内存段...，之后，Buddy free_lists的保留状态标记将被清除，并释放所有可用的内存页在他们相应的Zone里，最后，free_all_bootmem()被调用，所有 被bootmem分配器申请的虚拟页将释放到他们相应的Zone里去。
+4. Page Swap and Cache
+ 
+A user process page is kept in either the page cache or the swap cache, the kernel tries to keep as much as pages remain in the memory, so that page faults can be serviced quickly, but, physical memory is always limited resources, thus, swap cache can be a better-than-none replacement.
+ 
+Logically, the cache is a layer between the kernel memory management code and the disk I/O code. Practically, the cache here means, only freeing the memory has to be necessary, we swap the pages to disk, otherwize, keeping the pages as long as they can.
+ 
+The kernel maintains several page lists which comprise the whole page cache:
+1. active_list: pages on the list have page->age > 0, may be clean or dirty, and may be mapped by process page-table entries.
+2. inactive_dirty_list: pages on the list have page->age == 0, may be clean or dirty, and are not mapped by any process PTE.
+3. inactive_clean_list: each zone has its own inactive_clean_list, which contains clean pages whose age == 0, not mapped by any process PTE.
+ 
+When a page fault is occurred, the kernel first looks for the fault page in the page cache, if found, it can be moved directly to the active_list.
+ 
+Overall, the kernel performs the page replacement more like "not recently used", rather than strict LRU. Furthermore, each page either for an executable image or mmap()ed file is associated with a per-inode cache, allowing the disk file to be used as backing storage for the page. For those anonymous pages(i.e. the pages like malloc()ed memory) are assigned an entry in the system swap file, and those pages are maintained in the swap cache.
+ 
+The life cycle of a user page:
+ 
+1. Page loading, there are three ways that can lead to a page loaded from the disk.
+    a. The process attempts to access the page, it is then read in by the page-fault handler and added to the page cache and to the process page table.
+    b. The page is read in during a swap read-ahead operation. The reason is simple as a cluster of blocks on disk is easy to read sequentially.
+    c. The page is read in during a mmap cluster read-ahead operation, in which case a sequential of adjacent pages following the fault page in a mmaped file is read.
+ 
+2. when the page is written by the process, it becomes dirty. At this point, the page is still on the active_list.
+ 
+3. suppose the page is not used for a while, thus the page->age count is gradually reduced by the periodic invocations(actually, the prime is refill_inactive()) of the kernel swap daemon kswapd(). The frequence of kswapd() invocations will increase as the memory pressure increases.
+ 
+4. if the physical memory is tight, kswapd() will call swap_out() to try to evict pages from the process's virtual address space.Since the page hasn't been referenced and has age 0, the PTE will be dropped, and the only remaining reference to the page is the one resulting from its presence in the page cache (assuming, of course, that no other process has mapped the file in the meantime). swap_out() does not actually swap the page out; rather, it simply removes the process's reference to the page, and depends upon the page cache and swap machinery to ensure the page gets written to disk if necessary. (If a PTE has been referenced when swap_out() examines it, the mapped page is aged up - made younger - rather than being unmapped.) 
+ 
+5. Time passes... a little or a lot, depending on memory demand.
+ 
+6. refill_inactive_scan() comes along, trying to find pages that can be moved to the inactive_dirty list. Since the page is not mapped by any process and has age 0, it is moved from the active_list to the inactive_dirty list.
+ 
+7. Process A attempts to access the page, but it's not present in the process VM since the PTE has been cleared by swap_out(). The fault handler calls __find_page_nolock() to try to locate the page in the page cache, and lo and behold, it's there, so the PTE can be immediately restored, and the page is moved to the active_list, where it remains as long as it is actively used by the process.
+ 
+8. More time passes... swap_out() clears the process 's PTE for the page, refill_inactive_scan() deactivates the page, moving it to the inactive_dirty list.
+ 
+9. More time passes... memory gets low.
+ 
+10. page_launder() is invoked to clean some dirty pages. It finds P on the inactive_dirty_list, notices that it's actually dirty, and attempts to write it out to the disk. When the page has been written, it can then be moved to the inactive_clean_list. The following sequence of events occurs when page_launder() actually decides to write out a page:
+ 
+    * Lock the page.
+    * We determine the page needs to be written, so we call the writepage method of the page's mapping. That call invokes some filesystem-specific code to perform an asynchronous write to disk with the page locked. At that point, page_launder() is finished with the page: it remains on the inactive_dirty_list, and will be unlocked once the async write completes.
+
+    * Next time page_launder() is called it will find the page clean and move it to the inactive_clean_list, assuming no process has found it in the pagecache and started using it in the meantime.     
+
+ 
+
+11. page_launder() runs again, finds the page unused and clean, and moves it to the inactive_clean_list of the page's zone.
+
+ 
+
+12. An attempt is made by someone to allocate a single free page from the page's zone. Since the request is for a single page, it can be satisfied by reclaiming an inactive_clean page; The page is chosen for reclamation. reclaim_page() removes the page from the page cache (thereby ensuring that no other process will be able to gain a reference to it during page fault handling), and it is given to the caller as a free page.
+
+Or:
+
+kreclaimd comes along trying to create free memory. It reclaims the page and then frees it.
+
+ 
+
+Note that this is only one possible sequence of events: a page can live in the page cache for a long time, aging, being deactivated, being recovered by processes during page fault handling and thereby reactivated, aging, being deactivated, being laundered, being recovered and reactivated...
+
+Pages can be recovered from the inactive_clean and active lists as well as from the inactive_dirty list. Read-only pages, naturally, are never dirty, so page_launder() can move them from the inactive_dirty_list to the inactive_clean_list "for free," so to speak.
+
+Pages on the inactive_clean list are periodically examined by the kreclaimd kernel thread and freed. The purpose of this is to try to produce larger contiguous free memory blocks, which are needed in some situations.
+
+Finally, note that the page is in essence a logic page, though of course it is instantiated by some particular physical page.
+
+分享到： 
+上一篇：linux设备模型深探（2）
+下一篇：Linux 初始 RAM 磁盘（initrd）概述--摘自IBM
+
+查看评论
+
+  暂无评论
+
+发表评论
+用 户 名：
+u011520465
+评论内容：
+
+
+  
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+ 
+个人资料
+  
+vrix
+ 
+
+访问：498586次
+积分：7455分
+排名：第456名
+原创：133篇转载：498篇译文：4篇评论：234条
+
+文章搜索
+
+编程技术
+mailbomb的专栏 (RSS)
+Odin.Yang的主页 (RSS)
+dk123的专栏 (RSS)
+文章分类
+Android(272)
+iphone(47)
+JAVA(55)
+linux/unix(110)
+WinCE(6)
+windows编程(PC)(82)
+嵌入式系统(43)
+工作感悟(3)
+游戏开发(1)
+生活感悟随笔(6)
+网站建设(0)
+音视频(2)
+WP8(0)
+文章存档
+2013年06月(3)
+2013年05月(2)
+2013年04月(1)
+2013年03月(3)
+2013年01月(1)
+展开
+阅读排行
+jbytearray转c++byte数组(10115)
+图文并茂 在ML OS X 10.8 + XCode4.4/4.4.1下实现无证书真机调试IOS5.1.1(亲测，附调试截图)(7831)
+USB虚拟串口(6739)
+SVN安装配置摘要(6143)
+Android下修改SeekBar样式(5317)
+让Expat支持中文XML(4723)
+pp列表之分组ListView(4516)
+Android 之采用execSQL和rawQuery方法完成数据的添删改查操作(4468)
+采用MonkeyRunner自动化测试（一）(4287)
+android工程创建的jar包使用proguard进行混淆(4086)
+评论排行
+真正CM9全局透明教程(12)
+图文并茂 在ML OS X 10.8 + XCode4.4/4.4.1下实现无证书真机调试IOS5.1.1(亲测，附调试截图)(12)
+donut版本的android编译生成的out目录结构(8)
+采用MonkeyRunner自动化测试（二）(6)
+jbytearray转c++byte数组(5)
+完全仿QQ好友列表，自定义ExpandableListView！(5)
+SDL-我的爱(5)
+C#自动登录DiscuzNT论坛并发帖 (4)
+Android下修改SeekBar样式(4)
+多屏幕多分辨率的支持和一些概念(4)
+推荐文章
+
+最新评论
+图文并茂 在ML OS X 10.8 + XCode4.4/4.4.1下实现无证书真机调试IOS5.1.1(亲测，附调试截图)
+gongyuan0517: 按照你的步骤 老是报以下错误怎么办啊？？？/Users/yons/Library/Developer...
+在Android中通过jni方式使用编译好的FFmpeg库-Android中使用FFmpeg媒体库(二)
+drongrn: 试了一下，使用LOCAL_SHARED_LIBRARIES := libffmpeg代替LOCAL_...
+libcurl在android下的移植、编译与测试
+u010252185: 留下联系方式，详细问你下好么
+libcurl在android下的移植、编译与测试
+u010252185: 你好
+android加载本地图片
+qyf563109520: 楼下，在下初学者，不懂的啊，给个完整的代码吧？
+ubuntu 12.10 上 android 编译环境搭建
+cwj1112: 我按你的步骤做完了，编译后发现cannot find -llzo2和cannot find -luu...
+图文并茂 在ML OS X 10.8 + XCode4.4/4.4.1下实现无证书真机调试IOS5.1.1(亲测，附调试截图)
+jt6542: 出现No code signature found.是怎么回事？求解？？
+采用MonkeyRunner自动化测试（二）
+ABAO64187276: @tangshan_zbs:点击最上面的“Export Actions”，将脚本导出，存放在D:\p...
+Android静默方式实现批量安装卸载应用程序
+csh159: 4.0以上的版本测试过啦么？可以么？
+JNI 返回结构体参数
+zh1201: 你好，我使用JNI返回一个对象数组时出现了问题，代码如下：JNIEXPORT jobjectArra...
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+  

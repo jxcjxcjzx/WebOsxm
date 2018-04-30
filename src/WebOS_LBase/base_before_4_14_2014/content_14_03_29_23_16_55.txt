@@ -1,0 +1,60 @@
+[摘抄]matlab一小结
+
+关键词： matlab                                          
+Matlab程序文件,扩展名为'.m'。如果程序文件由文字处理器及文本编辑器创建，则在matlab命令窗口中输入不带扩展名的文件名即可执行。 
+type *.m 显示*.m内容。
+
+format ：format compact 剔除了显示中多余的空行或空格。
+format longe将系统默认的5位数字的显示格式转换为16位数字加3位指数的显示格式。
+format shot系统默认设置。 format rat分数显示
+基本语法：在表达式后面加;可省略系统响应信息。
+一行可输入多个表达式，中间以逗号或分号分隔。
+exp(x)-ex pow2(x):2的指数 sqrt (x)-开根号 log(x)--ln(x) log2(x)：以2为底的对数 log10(x)：以10为底的对数 abs(x)-绝对值 angle(z):复数z的相角(Phase angle) real(z):复数z的实部 imag(z):复数z的虚部 conj(z):复数z的共轭复数 round(x):四舍五入至最近整数 fix(x):无论正负,舍去小数至最近整数 floor(x):地板函数,即舍去正小数至最近整数 ceil(x):天花板函数,即加入正小数至最近整数 rat(x):将实数x化为分数表示 rats(x):将实数x化为多项分数展开 sign(x):符号函数 (Signum function) 当x<0时，sign(x)=-1;当x=0时,sign(x)=0; 当x>0时,sign(x)=1。 rem(x,y):求x除以y的馀数 gcd(x,y):整数x和y的最大公因数 lcm(x,y):整数x和y的最小公倍数
+MATRIX： size(a)或[m,n]=size(a)--矩阵a大小
+diag(a)--对角矩阵；当a是列或行矩阵，成对角矩阵；多列多行，取对角的值成列矩阵。
+eye(n)--单位矩阵。 
+(a)'--矩阵转置。
+length(a)--a的长度。对多列多行，取大值。
+max(a)--矩阵a的最大值 min(x)--最小值
+创建向量：1)x=s:d:f s=其始值。d=增量值。f=结束值。d默认值为1。
+2）x=linspace(s,f,n) n=长度。n默认100。
+x=logspace(s,f,n) 对数间隔。n默认50。
+修改向量中的元素：a =1 2 3 4。b=a(2)/2--b=1； a(2)=a(2)/2--a=1 1 3 4；a(4)=a(2)/2--a=1 2 3 1。
+b=a([1,4])或b=[a(1) a(3)]--b=1 4；
+mean(x): 向量x的元素的平均值 
+median(x): 对向量x的元素进行排序（Sorting） 
+norm(x): 向量x的欧氏（Euclidean）长度，（a12+a22+a32)^(1/2)
+prod(x): 向量x的元素总乘积 
+cumprod(x): 向量x的累计元素总乘积 
+dot(x, y): 向量x和y的内积。内积：即点乘。 a12+a22+a32
+cross(x, y): 向量x和y的外积向量x的元素的中位数 
+std(x): 向量x的元素的标准差 
+diff(x): 向量x的相邻元素的差 
+sort ：sort(y)或[m,n]=sort(y)--把y按升序排列。m--重新排列y后的向量。n--一个由元素位置构成的向量，表示排列后向量y中元素的原始位置号。
+y=5 4 3 2。z= 4 5 6 7。[m,n]=sort(y)--m=2 3 4 5 ；n=4 3 2 1(原序列)。x=z(n)--x=7 6 5 4。
+要从大到小排列则：-sort(-y)或filplr(sort(r))
+find ：找到满足用户指定条件或表达式的向量矩阵元素的位置(不是元素值)。y=[-1 2 -3 4]。s=y[find(y<0)]--s=-1 -3。
+ones：one=ones(r,c)。创建元素为1的(rXc)阶矩阵。
+zeros：zer=zeros(r,c)。创建元素为0的(rXc)阶矩阵。
+magic：magic(n)。产生特殊矩阵，即矩阵中任意行或任意列中元素之和，及对角线上的元素之和相等。
+rempat：创建重复的行列向量。rempat(x,r,c)，x=要重复的矩阵。r=行数。c=列数。
+meshgrid：[u,v]=meshgrid(s,t) u=rempat(s,length(t),1) v=rempat(t`,1,length(s))
+fliplr：矩阵行旋转操作。filrud：矩阵列旋转操作。
+sum：cum(a)当a是向量时，计算所有元素之和。当a是矩阵，元素按列相加。
+cumsum：同上，但累加。
+矩阵的逆：inv(a)或a^-1 
+行列式：det(a)
+|a-λb|=0的特征值λ：lambda=eig(a,b)
+数据输入输出：字符串定义是把字符串放在单引号内。
+str2mat：建立字符串矩阵，不足部分自动有空格填充。str2mat('first','last','middle')
+num2str：将数值转换为字符串。num2str(a,N) ：a=转换的数值,N=数值的位数
+disp：将转换的数值与一些相关的文本关联起来。disp('product weight =' num2str(11 22 33) 'kg')--product weight =11 22 33kg
+fprintf (1,'&x.yf',variables)：1=表示在Matlab命令窗口中输出。引号内参数是变量格式的附加说明。x=给定数值整数部分的位数，y=小数点后位数。f=格式类型中一种。做列显示则：fprintf(1,'&x.yf\n',variables)
+input：标量、向量、矩阵输入：inputdata=input('enter the degress:')*pi/180 字符串输入：inputdata=input('enter the degress:','s')who 列出工作空间的变数
+save * x y z：以二进制储存变数x,y,z为*.mat （不能用文书软件打开）
+save filename x -ascii：将变数x以八位数存到名为filename的 ASCII档案。 （可以）
+save filename x -ascii -double：将变数x以十六位数存到名为 filename的ASCII档案
+load filename：寻找名称为filename.mat的档案，并以二进制格式载入。若找不到filename.mat，则寻找filename的档案，并以ASCII 格式载入。 
+load filename -ascii：寻找名称为filename的档案，并以 ASCII格式载入。 若以ASCII格式载入，则变数名称即为档案名称（但不包含副档名）。若以二进制载入，则可保留原有的变数名称
+dir：列出当前目录下的文件 
+delete *：删除*文件

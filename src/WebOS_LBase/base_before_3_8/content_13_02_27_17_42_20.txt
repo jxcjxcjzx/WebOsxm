@@ -1,0 +1,393 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+热门栏目  Flash动画  图像设计  设计赏析
+酷站  网页特效  免费空间  模板插件  热词榜
+
+网络学院  Windows  Linux  MySql  SQL Server
+软件编程  安全防护  Office办公教学  网络技术
+
+网站运营  SEO  分析  心得  推广
+
+ 
+
+
+.
+ 
+
+网站首页 | 互联网资讯 | 站长之家 | 设计在线 | Web前端 | 网络编程 | 建站程序 | 网络技术 | 免费资源 | 电脑应用 | 手机学院 | 资源下载
+ 
+
+
+
+弹窗联盟　　　　　站长快速赚钱
+ 
+
+
+
+
+
+
+
+
+
+
+
+  站长推荐：最好用的绿色浏览器下载(New~~) 
+会员投稿 匿名投稿 投稿指南 RSS订阅 
+
+
+
+
+推荐 揪错 烈火学院 > 网络编程 > 编程综合 > 阅读文章正文
+
+
+
+
+
+ 
+Perl 实现在网页自动下载资源
+
+http://www.veryhuo.com 2011-08-29 烈火学院 投递稿件 我有话说
+
+
+
+ 
+
+打开CMD，cd到脚本所在路径，运行脚本，所指定的资源会写在picture_files.txt文件里，我把要添加的资源写在程序里。 
+
+#!/usr/bin/perl 
+use strict; 
+use warnings; 
+#use Encode ; 
+use LWP::UserAgent; 
+use HTML::TokeParser; 
+use LWP::Simple ; 
+
+my $picture_in = "picture_files.txt" ; 
+open OUT,">$picture_in"; 
+print OUT "Koeh-232.jpg"; 
+close OUT; 
+our $counter = 0; 
+our $picture_file ; 
+our ($url ,$agent,$request,$response,$document,$ua) ; 
+my $mypic ; 
+
+open "PICTURE_IN", "<", $picture_in || &Abort ("Input file " . $picture_in . " could not be opened.") ; 
+my @picture_array = <PICTURE_IN>; 
+foreach $mypic (@picture_array) 
+
+{ chomp ($mypic) ; 
+print "Downloading..." . $mypic . "\n" ; 
+&GetPictture($mypic); 
+print "\n" ; 
+} 
+close PICTURE_IN ; 
+
+sub GetPictture 
+
+
+{ 
+my $picture_name = shift ; 
+$url='http://zh.wikipedia.org/wiki/File:' . $picture_name; 
+$agent=new LWP::UserAgent(); 
+$request=new HTTP::Request('GET'=>$url); 
+$response=$agent->request($request); 
+$document=$response->content()||die "get the page failed!\n"; 
+
+my $file =''; 
+$url =~ s/.*\/([^\/]+)$/($a=$1 , $a =~ s^file\:^^i,$file = $a )/eo ; 
+
+#<a href="http://upload.wikimedia.org/wikipedia/commons/f/f0/Koeh-232.jpg"> 
+my (@pictures ,$picture) ; 
+$document =~ s/<a\s+href\=\"([^\"]+)\">/(push @pictures ,$1)/geo ; 
+
+foreach $picture (@pictures) 
+{ 
+
+if($picture =~ m/http/ &&$picture =~ m/$file/) 
+{ 
+
+#my $title_utf8_gb = decode("utf8", $picture); 
+#$title_utf8_gb = encode("gbk", $title_utf8_gb); 
+#print "\n$title_utf8_gb\n" ; 
+print "\n$picture\n" ; 
+$url = $picture ; 
+my @header = head($url); vｅryhｕo.com 
+our $size = $header[1]; 
+@header=(); 
+$picture =~ s/.*\/([^\/]+)$/($file = $1 )/eo ; 
+$ua = LWP::UserAgent->new; 
+$request = HTTP::Request->new('GET',$url); 
+$response = $ua->request($request); 
+$response = $ua->request($request,$file); 
+$response = $ua->request($request,\&callback); 
+last ; 
+} 
+
+} 
+
+return ; 
+
+} 
+
+sub callback { 
+my ($data,$resp,$proto) = @_; 
+our $size; 
+print "#"; 
+my $len = length $data; 
+our $counter = $counter+$len; 
+#my $percent = $counter/$size; 
+#print "Percent = ",$percent*100,"%","\t\t\t\r"; 
+} 
+
+1; 
+
+以上脚本保存为.pl即可。 
+
+
+分享到：
+ 
+百度搜藏 新浪微博 腾讯微博 开心网 人人网 百度贴吧 QQ空间 更多 
+
+
+
+
+
+
+　　本站提倡内容互联，欢迎复制转载！严禁恶意/批量采集本站文章，严禁以水印涂改本站的图像，转载时请您以超级链接的形式注明出自本站，否则我们必将追究法律责任！详情请查看本站免责与声明。 
+
+
+
+
+
+
+
+100.00% (4)
+
+
+0.00% (0)
+
+Tag标签：PERL 网页自动下载 
+本文编辑：柳絮随风
+上一篇：为什么要关闭数据库连接，可以不关闭吗？ 
+下一篇：暂无文档 
+
+
+相关文章
+ perl论坛程序CCB v20110627 简体中文 GBK
+ xampp 1.7.1 beta3 优秀的php+apache+mysql+perl
+ Perl语言参考手册中文html,CHM版
+ HTML到JavaScript,ASP,PHP,JSP,Perl转换器,绿色版
+ VB关于prjHyperList与ListView列表控件
+ PERL脚本与IIS4.0、5.0、5.1和 6.0的配置和测试
+ HyperLinkField和 DataNavigateUrlFields的使用方
+ Perl的基本语法和功能、使用详细介绍
+ 坏运连连 红帽RHEL自带Perl再爆重大bug
+ Perl,Php,python等各种脚本语言现状
+ Perl操作mysql数据库的方法
+ Perl处理日期时间的技巧
+ 基于Sendmail和Perl的邮件附件过滤系统
+ 了解操控日期和时间的10个Perl CPAN模块
+ mod_perl编程的简单应用实例介绍
+ 进行加密与认证的最有用的10个Perl模块
+ .
+ 
+
+更多..
+网友评论
+ 
+
+
+
+
+
+发表评论(超过327 人围观，欢迎您发表自己滴看法)
+ 
+验证码：
+
+
+
+栏目导航
+ASP教程
+ MySQL
+ PHP教程
+ SQL SERVER
+ ASP.NET
+ Oracle
+ JSP教程
+编程综合
+
+
+精彩图文：1 2 3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+60个我们应该看到的简单和创意的广
+
+
+令人拍手叫绝的环境媒体广告设计欣
+
+
+Painter与数码板合作：绘制艳丽的
+
+
+分享30多个以照片为主的网页设计
+
+
+Photoshop让暗淡的美女图片恢复水
+
+
+Flash AS 从入门到精通教程
+
+
+
+最近更新
+Perl 实现在网页自动下载资源
+ 为什么要关闭数据库连接，可以不关闭吗
+ SQLite入门教程一：基本控制台（终端）
+ 每天写出好代码的5个建议
+ 使MySQLdb的SQL查询中支持?及:xxx的查
+ 在VIM中使用GOOGLE进行搜索或者翻译
+ 15个编程好习惯（译）
+ msflxgrd.ocx或其附件之一不能正确注册
+ NSIS创建快捷方式增加起始位置的解决教
+ MFC 支持弹出UAC对话框获取系统权限
+ MFC base-Dialog 自定义消息映射
+ C++ 的字符串格式化库:cpptempl
+ 
+
+
+
+
+推荐内容
+每天写出好代码的5个建议
+ SQLite入门教程一：基本控制台（终端）
+ 为什么要关闭数据库连接，可以不关闭吗
+ 使MySQLdb的SQL查询中支持?及:xxx的查
+ Perl 实现在网页自动下载资源
+
+
+ 
+
+
+关于我们 - 联系方式 - 广告服务 - 归档目录 - 网站合作 - 免责声明 - rss订阅 - 网站地图 - 反馈意见 
+CopyRight © 2006-2011 www.veryhuo.com all rights reserved. 
+烈火网崇尚互联，欢迎转载，请注明出处!
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+ 
+ 
+
+文章源自：烈火网，原文：http://www.veryhuo.com/a/view/38336.html

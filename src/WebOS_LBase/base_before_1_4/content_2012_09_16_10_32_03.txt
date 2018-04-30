@@ -1,0 +1,13 @@
+PWD = $(shell pwd)  
+    KERNEL_SRC = /usr/src/linux-source-2.6.15/  
+       
+    obj-m := test.o  
+    module-objs := test.o  
+       
+    all:  
+           $(MAKE) -C $(KERNEL_SRC) M=$(PWD) modules  
+      
+             
+    clean:  
+           rm *.ko  
+           rm *.o

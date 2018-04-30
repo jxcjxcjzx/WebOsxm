@@ -1,0 +1,120 @@
+首页 资讯 精华 论坛 问答 博客 专栏 群组 更多 ▼ 您还未登录 ! 登录 注册
+点点滴滴的积累
+博客微博相册收藏留言关于我
+  
+perl 处理文件路径的一些模块
+
+博客分类： perl
+Perl正则表达式CC++C# 
+原帖地址：http://yesho.blogbus.com/c1615293/index_3.html 
+
+perl有句格言：There is more than one way to do it。意思就是任何问题用perl都有好几种解决方法。以前处理文件路径的时候都是自己写正则表达式，而用perl的模块来解决则更加迅速、准确。 
+
+1). File::Basename 
+
+有3个方法：fileparse、basename、dirname。 
+用法： 
+       ($name,$path,$suffix) = fileparse($fullname,@suffixlist); 
+        $basename = basename($fullname,@suffixlist); 
+        $dirname = dirname($fullname); 
+
+说明： 
+a) 方法fileparse是将一个文件的全路径拆成三部分，文件名、目录名和后缀，@suffixlist是给一个后缀的集合。例如 
+($base,$path,$type) = fileparse('\\virgil\\aeneid\\draft.book7', qr{\.book\d+}); 
+则输出 $base ==> draft; $path ==> \virgil\aeneid\; $type ==> book7。 
+b) 方法basename和fileparse的输入格式一样，返回的是文件名加后缀。 
+c) 方法dirname返回文件目录名。 
+注意，dirname和fileparse第二个返回值的比较： 
+i) 目录结尾有无\； 
+dirname('\\virgil\\aeneid\\draft.book7') ==> \virgil\aeneid 
+fileparse('\\virgil\\aeneid\\draft.book7') ==> \virgil\aeneid\ 
+ii) 输入参数为目录； 
+dirname('virgil\\') ==> . 
+fileparse('virgil\\') ==> virgil\ 
+
+2). File::Spec::Functions 
+
+这个模块输出File::Spec类的方法，分为两类： 
+(1) 可直接调用： 
+canonpath||catdir||catfile||curdir||rootdir||updir||no_upwards||file_name_is_absolute||path 
+(2) 以 File::Spec->方法名的形式调用： 
+devnull||tmpdir||splitpath||splitdir||catpath||abs2rel||rel2abs||case_toleran 
+
+这里举几个常用的方法说明一下： 
+a) 方法catdir：将目录合并， 
+catfile('a','b','c') ==> a\b\c 
+b) 方法splitdir：与catdir相反，拆分目录 
+File::Spec->splitdir('a\\b\\c\\') ==>('a','b','c',' ') #注意最后有个空格 
+
+3). File::Path 
+
+有2个方法：mkpath和rmtree，分别为创建目录和删除目录。 
+
+perl语言本身自带了mkdir和rmdir，那为什么还要选用 mkpath和rmtree呢？自带的mkdir只能一次创建一级目录，而mkpath则可以一次创建多级；rmdir必须要求目录为空，而rmtree 则任意。总之，File::Path为我们提供了另一种创建和删除目录的机制，由用户自己选用。 
+
+说明： 
+a) mkpath(directory, 1, 0711); 
+第一个参数为目录名，第二个参数为一个bool值，为真的时候打印每次创建的目录，默认为假，最后一个参数为目录的权限。 
+b) rmtree(directory, 1, 1); 
+第一个参数为目录名，第二个参数为一个bool值，为真的时候打印删除文件时的一些信息，默认为假，最后一个参数也是一个bool值，为真的时候对没有删除权限的文件直接跳过。
+
+分享到：    
+perl中do的用法,do sys.cfg便可以将配置文 ... | 进了外企再学英语-最常用的100个句型
+2010-07-14 16:17浏览 1599评论(0)分类:非技术相关推荐
+评论
+发表评论
+  您还没有登录,请您登录后再发表评论
+
+kankan1218
+浏览: 90291 次
+性别: 
+来自: 大连
+
+最近访客 更多访客>>
+寂寞秋江dylinshi126lihuaiyuan84peakailcf
+文章分类
+全部博客 (120)
+生活 (1)
+java基础 (19)
+js jquery ajax (11)
+spring (3)
+数据库 (9)
+工作总结 (4)
+html css div (4)
+hibernate (1)
+struts2 (2)
+其他JSP JSTL (2)
+json (0)
+flex (1)
+perl (29)
+linux (19)
+English (1)
+笔试面试 (2)
+电脑常识 (1)
+lucene (3)
+ajax (1)
+设计模式 (3)
+好玩 (4)
+社区版块
+我的资讯 (0)
+我的论坛 (10)
+我的问答 (0)
+存档分类
+2012-10 (1)
+2012-06 (1)
+2012-05 (1)
+更多存档...
+最新评论
+CoderDream： 不错，感谢分享！
+为绿色版NOTEPAD++添加右键菜单
+t382159355： 谢谢分享..感激不尽.
+java中this用法
+風一樣的男子： kankan1218 写道風一樣的男子 写道出乎意料？？ 菜B ...
+结果出乎大部分人的意料
+feipigzi： 引用java教程中的一段话：我们可以这样理解子类创建的对象：1 ...
+结果出乎大部分人的意料
+wubo.wb： tiandp007 写道结果在意料之中！ ++
+结果出乎大部分人的意料
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ]
+

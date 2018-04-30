@@ -1,0 +1,216 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+vanbreaker的专栏谨以此记录下自己的每一点、每一滴、每一步
+目录视图摘要视图订阅
+博客专家信息更新登记表        社区专家谈 12306      CSDN社区程序员回乡见闻活动火爆开始！ 
+专访周家安：我的十年编程自学之路        2013年全国百所高校巡讲讲师招募
+ Linux Input子系统--概述
+分类： Linux驱动程序 2012-07-04 19:54 441人阅读 评论(1) 收藏 举报
+水平有限，描述不当之处还请指出，转载请注明出处http://blog.csdn.net/vanbreaker/article/details/7714188 
+      输入设备总类繁杂，包括按键，键盘，触摸屏，鼠标，摇杆等等，它们本身都是字符设备，不过内核为了能将这些设备的共性抽象出来，简化驱动的开发，建立了一个Input子系统。Input子系统分为三层，从下至上分别是输入设备驱动层，输入核心层以及输入事件驱动层。这三层中的输入核心层和输入事件驱动层都是内核已经完成了的，因此需要我们完成的只有输入设备驱动层。考虑输入设备主要的工作过程都是 动作产生(按键，触屏……)-->产生中断-->读取数值(键值，坐标……)-->将数值传递给应用程序。最后一个步骤就属于事件的处理，对于同一类设备，他们的处理方式都是相同的，因此内核已在事件驱动层为我们做好了，不需我们操心，而产生中断-->读取数值是因设备而异的，需要我们根据具体的设备来编写驱动。一个大致的工作流程就是，input device向上层报告-->input core接收报告，并根据在注册input device时建立好的连接选择哪一类handler来处理事件-->通过handler将数据存放在相应的dev(evdev,mousedev…)实例的缓冲区中，等待应用程序来读取。当然，有时候也需要从应用层向设备层逆向传递，比如控制一些和设备相关的LED，蜂鸣器等。设备驱动层，输入核心层和事件处理层之间的关系可以用下图来阐释:
+
+      下面来看看Input子系统的关键数据结构
+[cpp] view plaincopy
+struct input_dev {  
+    const char *name;  
+    const char *phys;  
+    const char *uniq;  
+    struct input_id id;//与input_handler匹配用的id，包括  
+  
+    unsigned long evbit[BITS_TO_LONGS(EV_CNT)];    //设备支持的事件类型  
+    unsigned long keybit[BITS_TO_LONGS(KEY_CNT)];  //按键事件支持的子事件类型  
+    unsigned long relbit[BITS_TO_LONGS(REL_CNT)];  //相对坐标事件支持的子事件类型  
+    unsigned long absbit[BITS_TO_LONGS(ABS_CNT)];  //绝对坐标事件支持的子事件类型  
+    unsigned long mscbit[BITS_TO_LONGS(MSC_CNT)];    
+    unsigned long ledbit[BITS_TO_LONGS(LED_CNT)];    
+    unsigned long sndbit[BITS_TO_LONGS(SND_CNT)];    
+    unsigned long ffbit[BITS_TO_LONGS(FF_CNT)];       
+    unsigned long swbit[BITS_TO_LONGS(SW_CNT)];  
+  
+    unsigned int keycodemax;  
+    unsigned int keycodesize;  
+    void *keycode;  
+    int (*setkeycode)(struct input_dev *dev, int scancode, int keycode);  
+    int (*getkeycode)(struct input_dev *dev, int scancode, int *keycode);  
+  
+    struct ff_device *ff;  
+  
+    unsigned int repeat_key; //最近一次的按键值  
+    struct timer_list timer;  
+  
+    int sync;  
+  
+    int abs[ABS_MAX + 1];  
+    int rep[REP_MAX + 1];  
+  
+    unsigned long key[BITS_TO_LONGS(KEY_CNT)];//反应设备当前的按键状态  
+    unsigned long led[BITS_TO_LONGS(LED_CNT)];//反应设备当前的led状态  
+    unsigned long snd[BITS_TO_LONGS(SND_CNT)];//反应设备当前的声音输入状态  
+    unsigned long sw[BITS_TO_LONGS(SW_CNT)];  //反应设备当前的开关状态  
+  
+    int absmax[ABS_MAX + 1];//来自绝对坐标事件的最大键值  
+    int absmin[ABS_MAX + 1];//来自绝对坐标事件的最小键值  
+    int absfuzz[ABS_MAX + 1];  
+    int absflat[ABS_MAX + 1];  
+  
+    int (*open)(struct input_dev *dev);  //第一次打开设备时调用，初始化设备用  
+    void (*close)(struct input_dev *dev);//最后一个应用程序释放设备时用，关闭设备  
+    int (*flush)(struct input_dev *dev, struct file *file);  
+    /*用于处理传递给设备的事件，如LED事件和声音事件*/  
+    int (*event)(struct input_dev *dev, unsigned int type, unsigned int code, int value);  
+  
+    struct input_handle *grab;//当前占有该设备的input_handle  
+  
+    spinlock_t event_lock;  
+    struct mutex mutex;  
+  
+    unsigned int users;//打开该设备的用户数量(input handlers)  
+    int going_away;  
+  
+    struct device dev;  
+  
+    struct list_head    h_list;//该链表头用于链接此设备所关联的input_handle  
+    struct list_head    node;  //用于将此设备链接到input_dev_list  
+};  
+
+ 
+[cpp] view plaincopy
+struct input_handler {  
+  
+    void *private;  
+  
+    /*event用于处理事件*/  
+    void (*event)(struct input_handle *handle, unsigned int type, unsigned int code, int value);  
+    /*connect用于建立handler和device的联系*/  
+    int (*connect)(struct input_handler *handler, struct input_dev *dev, const struct input_device_id *id);  
+    /*disconnect用于解除handler和device的联系*/  
+    void (*disconnect)(struct input_handle *handle);  
+    void (*start)(struct input_handle *handle);  
+  
+    const struct file_operations *fops;//handler的一些处理函数  
+    int minor;//次设备号  
+    const char *name;  
+  
+    const struct input_device_id *id_table;//用于和device匹配  
+    const struct input_device_id *blacklist;//匹配黑名单  
+  
+    struct list_head    h_list;//用于链接和此handler相关的handle  
+    struct list_head    node;  //用于将该handler链入input_handler_list  
+};  
+ 
+[cpp] view plaincopy
+struct input_handle {  
+  
+    void *private;  
+  
+    int open;//记录设备的打开次数(有多少个应用程序访问设备)  
+    const char *name;  
+  
+    struct input_dev *dev;//指向所属的device  
+    struct input_handler *handler;//指向所属的handler  
+  
+    struct list_head    d_node;//用于链入所属device的handle链表  
+    struct list_head    h_node;//用于链入所属handler的handle链表  
+};  
+
+ 
+我们可以看到，input_device和input_handler中都有一个h_list,而input_handle拥有指向input_dev和input_handler的指针，也就是说input_handle是用来关联input_dev和input_handler的，那么为什么一个input_device和input_handler
+中拥有的是h_list而不是一个handle呢？因为一个device可能对应多个handler,而一个handler也不能只处理一个device,比如说一个鼠标，它可以对应even handler，也可以对应mouse handler,因此当其注册时与系统中的handler进行匹配，就有可能产生两个实例，一个是evdev,另一个是mousedev,而任何一个实例中都只有一个handle。至于以何种方式来传递事件，就由用户程序打开哪个实例来决定。后面一个情况很容易理解，一个事件驱动不能只为一个甚至一种设备服务，系统中可能有多种设备都能使用这类handler,比如event handler就可以匹配所有的设备。在input子系统中，有8种事件驱动，每种事件驱动最多可以对应32个设备，因此dev实例总数最多可以达到256个。下一节将以even handler为例介绍设备注册以及打开的过程。
+分享到： 
+上一篇：第一个Linux驱动-流水灯
+下一篇：Linux Input子系统--设备的注册和打开
+顶
+1
+踩
+0
+
+查看评论
+1楼 zi77642475 2012-07-05 10:50发表 [回复]
+
+沙发依然在！
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+ 
+个人资料
+  
+橙色逆流
+ 
+
+访问：42125次
+积分：1125分
+排名：第8173名
+原创：59篇转载：0篇译文：0篇评论：104条
+文章搜索
+
+博客专栏
+	Linux内存管理
+文章：28篇
+阅读：26196
+文章分类
+Linux内存管理(35)
+Linux驱动程序(14)
+Linux文件系统(5)
+文章存档
+2012年12月(6)
+2012年11月(5)
+2012年09月(1)
+2012年08月(4)
+2012年07月(8)
+展开
+阅读排行
+Linux伙伴系统(五)--通过迁移类型分组来实现反碎片(1768)
+Linux Slub分配器(六)--slab的分配与释放(1478)
+Linux高端内存映射(上)(1326)
+Linux页表机制初始化(1261)
+Linux Slab分配器(一)--概述(1192)
+Linux Slub分配器(五)--释放对象(1146)
+Linux伙伴系统(四)--释放页(1135)
+Linux Slab分配器(五)--释放对象(1133)
+Linux Slob分配器(三)--释放对象(1102)
+Linux伙伴系统(一)--伙伴系统的概述(1056)
+评论排行
+Linux Slub分配器(三)--创建缓存(14)
+用户空间缺页异常pte_handle_fault()分析--(下)--写时复制(7)
+Linux节点和内存管理区的初始化(5)
+从硬件的系统结构开始(4)
+Linux Slab分配器(六)--创建slab和销毁slab(4)
+用户空间缺页异常pte_handle_fault()分析--(上)(3)
+Linux页表机制初始化(3)
+Linux Slab分配器(二)--初始化(3)
+Linux Slub分配器(一)--概述(3)
+Linux伙伴系统(一)--伙伴系统的概述(3)
+推荐文章
+
+最新评论
+CPU cache(上)
+GreatLiu2009: 绝对是好文章！！！
+从硬件的系统结构开始
+zhengg21: 以前看了多次NUMA的文章都不明白，看博主的文章才真正明白了。
+用户空间缺页异常pte_handle_fault()分析--(下)--写时复制
+a254373829: @vanbreaker:我湖南科大的。。。像你这种水平的，如果有点项目经验的话，在上海1W+也就一两...
+Linux IO Scheduler--CFQ(下)
+zi77642475: 沙发依然在！
+用户空间缺页异常pte_handle_fault()分析--(下)--写时复制
+橙色逆流: @a254373829:我也是二本，湖南理工。。明年毕业，加油！
+用户空间缺页异常pte_handle_fault()分析--(下)--写时复制
+a254373829: @vanbreaker:楼主什么学校，我11年湖南一个二本毕业，刚开始学校可能重要，有经验后学校就是...
+从硬件的系统结构开始
+g_salamander: 博主写的blog太好了，呵呵，大牛啊。
+Linux I/O Scheduler--CFQ(上)
+zi77642475: 沙发依然在！
+Linux I/O Scheduler--Deadline
+zi77642475: 沙发依然在！
+Linux Slub分配器(三)--创建缓存
+d5_5d: @d5_5d:我如果再试试呢？会不会出错呢，很期待结果。。
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+ 联系邮箱：webmaster(at)csdn.net
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+
+
+
+

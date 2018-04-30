@@ -1,0 +1,139 @@
+网易 
+博客 
+发现
+小组
+风格
+ 
+下载最文艺的手机博客APP>
+创建博客登录  加关注
+L
+Life is a long lesson in humility.
+首页
+日志
+相册
+音乐
+收藏
+博友
+关于我
+  
+  
+ 
+日志
+  
+首页推荐
+方舟子：美国都吃转基因
+外媒为何关注'薄熙来案' 
+英国王室用小王子赚钞票
+书记跪气功大师哀嚎救我
+战犯东条英机的自杀始末
+楼市寒冬中的地产大佬们
+更多>>
+
+
+
+ Appendix D: Java Programming Cheatsheet 常用java date 方法集合
+让TextView 自带滚动条  
+
+2011-08-19 22:35:23|  分类： 电脑 |字号 订阅
+让TextView 自带滚动条
+2010-07-12 16:01
+文字左右滚动三个属性： 
+android:singleLine="true" 
+android:ellipsize="marquee" 
+android:marqueeRepeatLimit="marquee_forever"
+
+Android中我们为了实现文本的滚动可以在ScrollView中嵌入一个TextView，其实TextView自己也可以实现多行滚动的，毕竟 ScrollView必须只能有一个直接的子类布局。只要在layout中简单设置几个属性就可以轻松实现。
+
+<TextView 
+    android:id="@+id/tvCWJ" 
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    android:scrollbars="vertical" <!--垂直滚动条 -->
+    android:singleLine="false"      <!--实现多行 -->
+    android:maxLines="15"            <!--最多不超过15行 -->
+    android:textColor="#FF0000"
+    />
+
+<TextView  
+            android:id="@+id/app_shortcontent"  
+            android:layout_width="wrap_content"  
+            android:layout_height="wrap_content"  
+            android:singleLine="true"  
+            android:textColor="#FFFFFFFF"  
+            android:scrollHorizontally="true"  
+            android:focusable="true"  
+            android:ellipsize="marquee"  
+            android:marqueeRepeatLimit="marquee_forever"/>  
+当然我们为了让TextView动起来，还需要用到TextView的setMovementMethod方法设置一个滚动实例，代码如下
+
+TextView tv = (TextView)findViewById(R.id.tvCWJ); 
+tv.setMovementMethod(ScrollingMovementMethod.getInstance()); // Android开发网提示相关的可以查看SDK中android.text.method分支了解更多
+
+附：
+
+顺便讲下 TextView 自动滚动的实现方法，下面介绍两种方法：
+
+一、在代码中实现：
+
+      textView .setEllipsize(TextUtils.TruncateAt.MARQUEE);
+      textView .setSingleLine(true);
+    textView .setMarqueeRepeatLimit(6);
+
+二、在XML中实现：
+
+<TextView android:id="@+id/TextView01" android:layout_width="wrap_content"
+   android:layout_height="wrap_content" android:singleLine="true"
+   android:text="dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+   android:marqueeRepeatLimit="marquee_forever" android:ellipsize="marquee"
+   android:scrollHorizontally="true" android:width="150dip"></TextView>
+
+一切OK，当 textView 获取焦点后，就会自动滚动。
+
+补充==============================
+
+不管是手动还是自动 你要实现滚动就得加scrollview
+到时候可以通过handle来调用scrollview的scrollTo方法实现滚动
+
+Handler mHandler = new Handler();
+
+private Runnable mScrollToBottom = new Runnable() {
+        public void run() {
+                mScrollView.scrollTo(0, offset);
+        }
+};
+
+onTouch里面
+mHandler.post(mScrollToBottom);
+
+补充====================
+
+补充：
+1，把 textview的 Ellipsize 设置成 marquee（上面有说）
+2，把 Deprecated的 Single line 设置成 true
+3，设置textview的Marquee repeat limit 属性（滚动回数，默认是无数回）
+
+贴个代码吧.
+       textview.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+       textview.setSingleLine(true);
+       textview.setMarqueeRepeatLimit(6);
+
+分享到：        阅读(425)| 评论(0)| 转载 (0) |举报
+ Appendix D: Java Programming Cheatsheet 常用java date 方法集合
+最近读者
+评论
+点击登录|昵称：
+
+ 
+  
+公司简介 - 联系方法 - 招聘信息 - 客户服务 - 隐私政策 - 博客风格 - 手机博客 - VIP博客 - 订阅此博客
+网易公司版权所有 ©1997-2013
+
+
+地方官陪同下吃中华鲟
+网易博客新版iPhone客户端
+俞天任  东条英机自杀始末
+杨恒均：市委书记跪气功大师哀嚎'救我'
+各国媒体为何关注薄熙来案
+中国该不该学韩解散文工团
+冯仑：寒冬中的地产大佬们
+雷默：练气功当好莱坞超人

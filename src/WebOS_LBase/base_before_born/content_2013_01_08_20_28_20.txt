@@ -1,0 +1,224 @@
+    下载2频道	
+    秀才　二级
+    |
+    我的百科
+    |
+    百度首页
+
+到百科首页
+
+新闻网页贴吧知道音乐图片视频地图百科文库
+帮助
+
+    首页
+    自然
+    文化
+    地理
+    历史
+    生活
+    社会
+    艺术
+    人物
+    经济
+    科技
+    体育
+    图片
+    数字博物馆
+    核心用户
+    百科商城
+
+smss.exe
+百科名片
+
+smss.exe(Session Manager Subsystem)，该进程为会话管理子系统用以初始化系统变量，MS-DOS驱动名称类似LPT1以及COM，调用Win32壳子系统和运行在Windows登陆过程。这是一个会话管理子系统，负责启动用户会话。这个进程是通过系统进程初始化的并且对许多活动的，包括已经正在运行的Windows登录程序(winlogon.exe)，Win32子系统（csrss.exe）线程和设定的系统变量作出反映。
+
+目录
+
+    简介
+    处理方式
+    判断是否感染smss.exe病毒的的重要依据
+
+简介
+　　由于Smss.exe[1]所有基于Win NT的系统都存在此进程，所以有众多病毒都盯上了这个进程，这些木马病毒有些采用完全相同的名称来迷惑用户。
+　　SMSS病毒
+　　Q尾巴，Trojan/PSW.MiFeng蜜蜂大盗等木马病毒：
+　　进程文件: smss.exe
+　　进程名称: PWSteal.Wowcraft.b木马病毒
+　　英文描述: N/A
+　　进程分析: QQ尾巴，Trojan/PSW.MiFeng蜜蜂大盗等木马病毒。主要通过浏览恶意网页传播。该病毒修改注册表创建Run/Tok-Cirrhatus项实现自启动。新变种也通过修改注册表Winlogon项下的Userinit实现自启动，并将病毒模块regsvr.dll，cn_spi.dll注入进程运行。
+　　安全等级 (0-5): 0 (N/A无危险 5最危险)
+　　间谍软件: 是
+　　广告软件: 是
+　　病毒: 是
+　　木马: 是
+　　系统进程: 否
+　　应用程序: 否
+　　后台程序: 是
+　　使用访问: 是
+　　访问互联网: 否
+处理方式
+　　清除方法：
+　　1. 运行Procexp.exe和SREng.exe
+　　2. 用ProceXP结束%Windows%\SMSS.EXE进程，注意路径和图标
+　　3. 用SREng恢复EXE文件关联（1,2,3步要注意顺序，不要颠倒。）
+　　4. 可以删除文件和启动项了……
+　　①结束病毒的进程%Windows%\smss.exe（用进程管理软件可以结束，如：Process viewer）
+　　② 删除相关文件：
+　　C:\MSCONFIG.SYS
+　　%Windows%\1.com
+　　%Windows%\ExERoute.exe
+　　%Windows%\explorer.com
+　　%Windows%\finder.com
+　　%Windows%\smss.exe
+　　%Windows%\Debug\DebugProgram.exe
+　　%System%\command.pif
+　　%System%\dxdiag.com
+　　%System%\finder.com
+　　%System%\MSCONFIG.COM
+　　%System%\regedit.com
+　　%System%\rundll32.com
+　　%ProgramFiles%\Internet Explorer\iexplore.com
+　　%ProgramFiles%\Common Files\iexplore.pif
+　　③ 恢复EXE文件关联
+　　删除[HKEY_CLASSES_ROOT\winfiles]项
+　　④ 删除病毒启动项：
+　　[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run]
+　　“Torjan Program”=“%Windows%\smss.exe”
+　　修改[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon]下
+　　“shell”=“Explorer.exe 1”
+　　为
+　　“shell”=“Explorer.exe”
+　　⑤ 恢复病毒修改的注册表信息：
+　　（1）分别查找“command.pif”、“finder.com”、“rundll32.com”的信息，将“command.pif”、“finder.com”、“rundll32.com”修改为“rundll32.exe”
+　　（2）查找“explorer.com”的信息，将“explorer.com”修改为“explorer.exe”
+　　（3）查找“iexplore.com”的信息，将“iexplore.com”修改为“iexplore.exe”
+　　（4）查找“iexplore.pif”的信息，将找到的“%ProgramFiles%\Common Files\iexplore.pif”修改为“%ProgramFiles%\Internet Explorer\iexplore.exe”
+　　⑥ 在command模式下写入assoc .exe=exefile
+　　修复exe关联，这样exe文件才可以打的开
+　　删除的启动项：
+　　[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run]
+　　“TProgram”=“%Windows%\SMSS.EXE”
+　　[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Runservices]
+　　“TProgram”=“%Windows%\SMSS.EXE”
+　　[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon]
+　　“Shell”=“Explorer.exe 1”
+　　修改为：
+　　“Shell”=“Explorer.exe”
+　　删除的文件就是一开始说的那些，别删错就行
+　　5. 最后打开注册表编辑器，恢复被修改的信息：
+　　查找“explorer.com”，把找到的“explorer.com”修改为“explorer.exe”；
+　　查找“finder.com”、“command.pif”、“rundll32.com”，把找到的“finder.com”、“command.pif”、“rundll32.com”修改为“rundll32.exe”；
+　　查找“iexplore.com”，把找到的“iexplore.com”修改为“iexplore.exe”；
+　　查找“iexplore.pif”，把找到的“iexplore.pif”，连同路径一起修改为正常的IE路径和文件名，比如“C:\Program Files\Internet Explorer\iexplore.exe”。
+　　英文版本
+　　进程文件: smss.exe or smss
+　　进程名称: Session Manager Subsystem
+　　描述:
+　　smss.exe is a process which is a part of the Microsoft Windows Operating System. It is called the Session Manager Subsystem and is responsible for handling sessions on your system. This program is important for the stable and secure running of your computer and should not be terminated.
+　　Note: smss.exe is a process which is registered as a trojan. This 木马 allows attackers to access your computer from remote locations, stealing passwords, Internet banking and personal data. This process is a security risk and should be removed from your system.
+　　Determining whether smss.exe is a virus or a legitimate Windows process depends on the directory location it executes or runs from in WinTasks.
+　　Recommendation for smss.exe:
+　　smss.exe should not be disabled, required for essential applications to work properly.
+　　Author: Microsoft Corp.
+　　Part Of: Microsoft Windows Operating System
+　　安全等级 (0-5): 0
+　　间谍软件: No
+　　病毒: No ( Remove smss.exe )
+　　木马: No ( Remove smss.exe )
+　　Memory Usage: N/A
+　　System Process: Yes
+　　Background Process: Yes
+　　Uses Network: No
+　　Hardware Related: No
+　　Common smss.exe Errors: N/A
+　　中文描述：
+　　smss.exe是一个进程，这是一种部分的微软视窗操作系统。这就是所谓的会话管理子系统和负责处理会在您的系统。这项计划是重要的稳定和安全运行的计算机，而不应被终止。
+　　注意： smss.exe是一个进程，这是注册为木马。这木马允许黑客访问您的计算机从遥远的地点，窃取密码，网上银行和个人数据。这是一个安全风险，应删除您的系统。
+　　确定是否是一个smss.exe病毒或合法的Windows进程取决于它的位置目录执行或执行从WinTasks 。
+　　建议smss.exe ：
+　　smss.exe不应该被禁用，应该修复以便支持基本应用的进行。
+　　作者：微软公司
+　　部分：微软Windows操作系统
+　　安全等级（ 0-5 ） ： 0
+　　间谍软件：否
+　　病毒：否（删除smss.exe ）
+　　木马：否（删除smss.exe ）
+　　内存使用情况：无/阿
+　　系统进程：是
+　　后台进程：是
+　　利用网络：无
+　　硬件相关：无
+　　共同smss.exe错误：N/A
+　　注释: 文件 smss.exe 是存放在目录 C:\Windows\System32。已知的 Windows XP 文件大小为 50,688 字节 (占总出现比率 90% )，45,568 字节，62,976 字节，64,000 字节。
+　　这是 Windows 系统文件。 程序没有可视窗口。 这个文件是由 Microsoft 所签发。 总结在技术上威胁危险度是 4% , 但是也可以参考 用户意见。
+　　如果 smss.exe 位于在目录 C:\Windows下，那么威胁危险度是 75% 。文件大小是 229,621 字节 (占总出现比率 15% )，122,880 字节，34,816 字节，159,841 字节，51,712 字节，65,664 字节，45,866 字节，163,840 字节，229,888 字节，69,632 字节，53,249 字节，15,872 字节，106,496 字节，50,767 字节，55,296 字节。这个不是 Windows 核心文件。 文件没有发行者的资料。 应用程序是不可见的。 这是个不知名的文件存放于 Windows 目录。 这个进程在 Windows 启动时自动载入 (参看注册表项： HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run，HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run，HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\Shell，C:\Windows\win.ini，HKEY_USERS\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Run，HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\RunServices，HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\Userinit，HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders，HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders)。 smss.exe 是有能力可以 监控应用程序，操纵其他程序，纪录输入。
+　　如果 smss.exe 位于在 C:\Windows\System32\drivers 下的子目录下，那么威胁危险度是 71% 。文件大小是 86,016 字节 (占总出现比率 81% )，13,312 字节。这个程序没有备注。 程序是不可见的。 这是个不知名的文件存放于 Windows 目录。 这个不是 Windows 系统文件。 smss.exe 是有能力可以 监控应用程序。
+　　7，联想传奇电子教室程序安装后，学生机的执行程序也为smss.exe。
+判断是否感染smss.exe病毒的的重要依据
+　　文件 smss.exe 是存放在目录 C:\Windows\System32。已知的 Windows XP 文件大小为 50,688 字节 （占总出现比率 90% ），45,568 字节，62,976 字节，64,000 字节。
+　　这是 Windows 系统文件。 程序没有可视窗口。 这个文件是由 Microsoft 所签发。 总结在技术上威胁的危险度是 4% , 但是也可以参考 用户意见。
+　　如果 smss.exe 位于在目录 C:\Windows下，那么威胁的危险度是 75% 。文件大小是 229,621 字节 （占总出现比率 15% ），122,880 字节，34,816 字节，159,841 字节，51,712 字节，65,664 字节，45,866 字节，163,840 字节，229,888 字节，69,632 字节，53,249 字节，15,872 字节，106,496 字节，50,767 字节，55,296 字节。这个不是 Windows 核心文件。 文件没有发行者的资料。 应用程序是不可见的。 这是个不知名的文件存放于 Windows 目录。 这个进程在 Windows 启动时自动载入 （参看注册表项： HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Run，HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run，HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\Shell，C:\Windows\win.ini，HKEY_USERS\.DEFAULT\Software\Microsoft\Windows\CurrentVersion\Run，HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\RunServices，HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\Userinit，HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders，HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders）。 smss.exe 是有能力可以 监控应用程序，操纵其他程序，纪录输入。
+　　如果 smss.exe 位于在 C:\Windows\System32\drivers 下的子目录下，那么威胁的危险度是 71% 。文件大小是 86,016 字节 （占总出现比率 81% ），13,312 字节。这个程序没有备注。 程序是不可见的。 这是个不知名的文件存放于 Windows 目录。 这个不是 Windows 系统文件。 smss.exe 是有能力可以 监控应用程序。
+　　如果 smss.exe 位于在 C:\Windows 下的子目录下，那么威胁的危险度是 73% 。文件大小是 245,760 字节 （占总出现比率 21% ），1,159,680 字节，45,126 字节，18,498 字节，32,768 字节，176,128 字节，225,280 字节，1,284,419 字节，172,032 字节，29,184 字节，344,116 字节。
+　　如果 smss.exe 位于在 C:\Windows\System32 下的子目录下，那么威胁的危险度是 75% 。文件大小是 223,232 字节 （占总出现比率 22% ），9,525 字节，9,497 字节，10,752 字节，385,024 字节，227,328 字节，76,800 字节。
+　　如果 smss.exe 位于在 “C:\Program Files” 下的子目录下，那么威胁的危险度是 58% 。文件大小是 3,428,352 字节 （占总出现比率 33% ），36,352 字节，363,952 字节，1,884,160 字节，700,416 字节。
+　　如果 smss.exe 位于在目录 C:\Windows\System32\drivers下，那么威胁的危险度是 52% 。文件大小是 94,208 字节。
+　　如果 smss.exe 位于在 of C:\ 下的子目录下，那么威胁的危险度是 65% 。文件大小是 1,146,880 字节 （占总出现比率 50% ），420,864 字节。
+　　如果 smss.exe 位于在目录 “C:\Program Files\Common Files” 下的子目录下，那么威胁的危险度是 56% 。文件大小是 21,538 字节 （占总出现比率 50% ），13,650 字节。
+　　如果 smss.exe 位于在目录 C:\下，那么威胁的危险度是 65% 。文件大小是 110,592 字节 （占总出现比率 50% ），130,690 字节。
+　　如果 smss.exe 位于在目录 “C:\Program Files\Common Files”下，那么威胁的危险度是 100% 。文件大小是 130,690 字节。
+　　如果 smss.exe 位于在 “C:\Documents and Settings” 下的子目录下，那么威胁的危险度是 36% 。文件大小是 42,065 字节。
+　　切记： smss.exe 也可能是恶意软件所伪装，尤其是当它们存在于 c:\windows 或 c:\windows\system32 目录。我们建议使用 Security Task Manager 来检查电脑的安全状况，以便进一步查看 smss.exe 进程是否真的有害。
+
+参考资料
+
+        1．  有关smss.exe是什么进程的功能详解  ．明天博客 [引用日期2012-12-21] ．
+
+开放分类：
+    进程信息 进程 系统进程 进程管理 
+
+百度百科中的词条正文与判断内容均由用户提供，不代表百度百科立场。如果您需要解决具体问题（如法律、医学等领域），建议您咨询相关领域专业人士。
+本词条对我有帮助
+添加到搜藏
+分享到:
+更多
+
+合作编辑者
+    mtoou ， w_ou ， 百科ROBOT ， jsjjchm281900 ， 4809281 ， selfeel ， jyf2698579 ， 金钻世家 ， 350741604 ， vegetazz ，
+    如果您认为本词条还需进一步完善，百科欢迎您也来参与 编辑词条 在开始编辑前，您还可以先学习如何编辑词条
+
+如想投诉，请到百度百科投诉中心；如想提出意见、建议，请到百度百科吧。
+下载2频道
+
+00
+去兑换>>您尚无道具可使用
+成长任务
+
+    加速升级，快速成长。我要去参加>>
+
+日常任务
+
+    本月累计点亮0天。今日笑脸还没点亮哦。
+    名符图实：参加任务，拿点亮任务日历获得财富值
+
+热词推送
+
+词条动态
+
+进入我的百科
+
+词条统计
+    浏览次数：约 次
+    编辑次数：26次 历史版本
+    最近更新：2012-12-21
+    创建者：起跑线做梦
+
+更多贡献光荣榜
+    辛勤贡献者：
+    	变幻莫测v	用户等级 	为词条改进贡献了复杂版本的用户，被称为辛勤贡献者 版本
+    	andymoller	用户等级 	为词条改进贡献了复杂版本的用户，被称为辛勤贡献者 版本
+    	350741604	用户等级 	为词条改进贡献了复杂版本的用户，被称为辛勤贡献者 版本
+    	金钻世家	用户等级 	为词条改进贡献了复杂版本的用户，被称为辛勤贡献者 版本
+
+© 2013 Baidu 使用百度前必读 | 百科协议 | 百度百科合作平台
+

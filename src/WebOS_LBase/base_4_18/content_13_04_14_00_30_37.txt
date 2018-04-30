@@ -1,0 +1,56 @@
+分享到一键分享QQ空间新浪微博百度搜藏人人网腾讯微博百度相册开心网腾讯朋友百度贴吧豆瓣网搜狐微博百度新首页QQ好友和讯微博更多...百度分享
+首页我的主页相册广场昵称搜索 消息 私信 模板 设置 退出 关注此空间海阔天空
+2010-05-16 14:40 基于MATLAB的局域网集群的构建（二）软件安装和MDCE配置
+根据上节介绍的软硬件平台构架，在32位Windows 操作系统上采用网络安装方式（Network Installation），先主节点机（Head Node）后从节点机（Worker Node），在主节点机上安装License Manager，如图3.7所示。因为本文主要运用MathWorks提供的Job Manager作业调度器，因此每台机子上都安装MATLAB® Distributed Computing Server™ (MDCS) software，其中作为客户机上安装并行计算工具箱。另外在Windows平台上MATLAB R2008b安装应满足相应的操作系统版本、处理器、磁盘空间和内存大小等要求[55]。
+
+
+    安装之前确保有安装许可文件（License File），按提示一步一步安装，主节点安装时选择自定义安装，选择必要的产品和工具箱（MDCS，License Manager，Parallel Computing Toolbox等），如下图所示
+
+
+                             MATLAB产品及工具箱
+
+
+安装完毕后在双击主节点机的matlabroot\flexlm文件夹下的lmtool.exe（matlabroot表示matlab软件的安装目录，下面不再作说明），开启Matlab License Server。
+
+
+                                                                FLEXnet license manager
+
+其他节点机除了无须再安装License Manager外，其他步骤大致与主节点机相同，整个详细安装步骤不再赘述，可参考MATLAB® & Simulink® Release 2008b Installation Guide for Windows®和Installing MATLAB® Distributed Computing Server™ 4.0 on a Windows® Operating System Cluster，如果出现错误，仔细排查并认真查看文档和在线支持。成功在不同机器上安装好MATLAB相关产品和工具箱并配置分布计算环境是重要的一步也是必不可少的一步，网络机群本身无法进行分布并行计算，并行程序开发和应用很大程度上依赖软件和算法的支持。
+
+MDCE配置 如果存在旧的mdce服务，则要先停止，打开DOS命令窗口，输入cd oldmatlabroot\toolbox\distcomp\bin\win32，输入命令mdce uninstall，并删除相应日志和检查文件C:\TEMP\MDCE，其它机器上如果存在旧的安装同样方法移除。安装并开启新的mdce服务，同样在DOS命令窗口输入cd matlabroot\toolbox\distcomp\bin\win32，切换到新的mdce目录，输入命令mdce uninstall即安装mdce服务，mdce start启动服务，其他机子上重复这个过程这样所有机器上都启动了mdce服务，以后每次重启开机都会随系统自动运行。
+
+     首先在任一台机器上开启调度管理器（Job Manager），进入DOS命令窗口，用cd 命令切换到matlabroot\toolbox\distcomp\bin\win32，启动JobManager语句格式为：startjobmanager –flags ，flags为操作标记，如表3.3所示
+
+     
+如startjobmanager -name MyJobManager 即在本地机器上开启一个名为MyJobManager的作业管理器，startjobmanager -name myjm -remotehost SQY 则是在主机SQY上开启一个名为myjm的作业管理器。这个过程要保证网络畅通互连，并各机器运行mdce服务。在集群上可开启多个Job Manager，但名称要唯一，不能重复。如果要停止一个作业管理器，则用stopjobmanager –flags 格式与上基本相同，不同重述。查看其运行状态可用语句nodestatus -remotehost <job manager hostname>，然后再开启worker，语句格式为start worker –flags ，flags为操作标记，如表3.4所示
+
+
+
+
+如startworker -name worker1 -remotehost bug -jobmanager myjm -jobmanagerhost SQY 即在节点机bug上开启一个名为worker1由主节点机SQY上名为的myjm调度器进行管理，一台机器上可开启多少worker，一个较好的原则是其个数不应超过这台机器处理器内核个数，多了无益，性能也不会有多大提升。如果要停止某一台机子上的worker，则用语句stopworker –flags，flags标记同表3.4。
+
+    只要保持各台机器网络互连、解除防火墙相应程序和端口的阻止及mdce服务的正常运行，这些命令可在任一台机器上执行，完成整个的集群配置工作。用nodestatus -flags命令可查看各机器上Job Manager和worker的运行状态。下图3.8所示，在主节点（服务器节点）SQY的主机上有一个名为myjm的作业管理器，管理局域网8个worker，且在主节点机上运行有2个worker。
+
+
+
+
+
+MATLAB还提供了图形用户界面Admin Center 来管理集群机器，点击MATLAB主菜单“parallel”下的“Admin Center”，即可进入管理中心图形用户界面，可以载入建立好的局域网集群，查看、编辑和添加节点机，如图3.9所示，进行客户端机器、节点机之间的连接、端口及主机名一致性等测试，最后给出测试结果，如图3.10所示。在测试前注意先关闭防火或设置相应的例外程序和端口，不然可能会出现各节点机连接测试失败的情况。
+
+
+
+#编程应用 分享到： 举报 浏览(337) 评论(4) 转载(3) 
+你可能也喜欢
+ 揭太阳风加速能量起源之谜：可打造光压飞船  春运不再难买票，只叹买不起  【安倍晋三质疑东京审判？！】  日本人对中韩美三国列年好感度对比  李天一被曝已19岁 梦鸽：儿子17岁是未成年人  政协委员:学英语使中国教育质量遭毁灭性打击  有一种感情叫无缘，有一种爱叫成全 本文最近访客
+ 秦光照 12月2日 jstxlxj 11月2日评论
+
+ 同时评论给  
+ 同时评论给原文作者   发布 500/0
+X070207106没有在线安装是不是也可以设置，这个没得关系吧》？还有就是我没看到lmtool.exe这个可执行文件啊？ 2013-04-10 15:06回复
+X070207106不知道博主可在线？ 2013-04-10 10:53回复
+chunyz68请问下，这个matlab可以实现一台机器上模拟集群的服务么？ 2013-03-04 19:48回复
+zihuocc这个正是需要的，谢谢啦 2013-01-11 16:24回复
+收起|查看更多
+帮助中心 | 空间客服 | 投诉中心 | 空间协议©2013 Baiduabcdef想看林俊杰、周杰伦、王力宏、张靓颖 等超级巨星现场PK飙歌吗？赶快参加抢票活动！
+点击浏览
+

@@ -1,0 +1,1399 @@
+音乐播放器
+
+遗落的荒漠 发布于 2011年09月20日 10时, 1评/1807阅
+分享到 新浪微博腾讯微博收藏+6 踩顶0
+简单的音乐播放器
+标签：	 Spring
+代码片段(20) [全屏查看所有代码]
+
+1. [文件] 简单的音乐播放器 ~ 3KB     下载(130)     
+
+/*
+ * [程序名称] Android 音乐播放器
+ * [参考资料] http://code.google.com/p/rockon-android/ 
+ * [开源协议] Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.xmobileapp.rockplayer;
+
+import com.xmobileapp.rockplayer.R;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.drawable.TransitionDrawable;
+import android.os.Handler;
+import android.os.Message;
+import android.os.RemoteException;
+import android.provider.MediaStore;
+import android.util.Log;
+
+
+public class AlbumChangedIntentReceiver	extends BroadcastReceiver{
+	@Override
+	public void onReceive(Context context, Intent intent) {
+		Log.i("ALBUMINTENT", "albumChanged");
+		RockPlayer filex =((RockPlayer) context);
+		try {
+			/*
+			 * Destroy song Progress Dialog if on screen
+			 */
+			try{
+				if(filex.songProgressAlertDialog != null){
+					filex.dismissDialog(R.layout.song_progress_dialog);
+					filex.removeDialog(R.layout.song_progress_dialog);
+					filex.songProgressAlertDialog = null;
+					filex.songProgressView = null;
+				}
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+			
+			filex.albumCursor.moveToPosition(
+					filex.playerServiceIface.getAlbumCursorPosition());
+    		filex.albumCursorPositionPlaying = filex.playerServiceIface.getAlbumCursorPosition();
+
+			filex.songCursor = filex.initializeSongCursor(filex.albumCursor.getString(
+												filex.albumCursor.getColumnIndexOrThrow(
+														MediaStore.Audio.Albums.ALBUM)));
+			filex.songCursor.moveToPosition(
+					filex.playerServiceIface.getSongCursorPosition());
+
+			filex.songProgressBar.setProgress(0);
+			filex.songProgressBar.setMax((int) filex.songCursor.getDouble(
+												filex.songCursor.getColumnIndexOrThrow(
+														MediaStore.Audio.Media.DURATION)));
+			
+			filex.calledByService = true;
+			
+			Message msg = new Message();
+			msg.obj = filex;
+//			animationStarterHandler.sendMessageDelayed(msg, 100);
+    		filex.currentAlbumPlayingLayoutOuter.startAnimation(filex.fadeAlbumOut);
+    		filex.invalidateCurrentPlayingImageView.sendEmptyMessageDelayed(0, 50);
+    		filex.invalidateCurrentPlayingImageView.sendEmptyMessageDelayed(0, 100);
+    		filex.invalidateCurrentPlayingImageView.sendEmptyMessageDelayed(0, 150);
+    		filex.invalidateCurrentPlayingImageView.sendEmptyMessageDelayed(0, 200);
+    		filex.invalidateCurrentPlayingImageView.sendEmptyMessageDelayed(0, 250);
+    		filex.invalidateCurrentPlayingImageView.sendEmptyMessageDelayed(0, 300);
+    		filex.invalidateCurrentPlayingImageView.sendEmptyMessageDelayed(0, 350);
+			filex.triggerSongProgress();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	Handler animationStarterHandler = new Handler(){
+		@Override
+		public void handleMessage(Message msg){
+			RockPlayer filex = (RockPlayer) msg.obj;
+    		filex.currentAlbumPlayingLayoutOuter.startAnimation(filex.fadeAlbumOut);
+    		//msg.recycle();
+		}
+	};
+	
+}
+2. [文件] 简单的音乐播放器 ~ 26KB     下载(63)     
+
+3. [文件] 简单的音乐播放器 ~ 1KB     下载(34)     
+
+/*
+ * [程序名称] Android 音乐播放器
+ * [参考资料] http://code.google.com/p/rockon-android/ 
+ * [开源协议] Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.xmobileapp.rockplayer;
+
+public class AlbumSearch{
+	public String artistName = null;
+	public String albumName = null;
+	public String smallAlbumArt = null;
+	public String mediumAlbumArt = null;
+	public String largeAlbumArt = null;
+	public String xlargeAlbumArt = null;
+	
+	public AlbumSearch(){
+		
+	}
+}
+4. [文件] 简单的音乐播放器 ~ 1KB     下载(28)     
+
+/*
+ * [程序名称] Android 音乐播放器
+ * [参考资料] http://code.google.com/p/rockon-android/ 
+ * [开源协议] Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.xmobileapp.rockplayer;
+
+public class ArtistEvent{
+	public String venue = null;
+	public String city = null;
+	public String country = null;
+	public String date = null;
+	public double dateInMillis = System.currentTimeMillis();
+	public String time = null;
+	public String artist = null;
+	public double latitude = 0;
+	public double longitude = 0;
+	
+	public ArtistEvent(){
+		
+	}
+}
+5. [文件] 简单的音乐播放器 ~ 4KB     下载(32)     
+
+/*
+ * [程序名称] Android 音乐播放器
+ * [参考资料] http://code.google.com/p/rockon-android/ 
+ * [开源协议] Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.xmobileapp.rockplayer;
+
+import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+
+import com.xmobileapp.rockplayer.R;
+
+import android.content.Context;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.BitmapFactory.Options;
+import android.graphics.drawable.GradientDrawable;
+import android.os.RemoteException;
+import android.provider.MediaStore;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
+import android.widget.ImageView.ScaleType;
+import android.widget.RelativeLayout.LayoutParams;
+
+
+
+public class EventLinkedListAdapter extends ArrayAdapter{
+	private LinkedList<ArtistEvent>	artistEventList;
+    private Context 				context;
+    private int						layoutId;
+    private LayoutInflater			inflater;
+    private Date					date;
+    private DateFormat				dayFormat = new SimpleDateFormat("dd");
+    private DateFormat				yearFormat = new SimpleDateFormat("MMM");
+    ArtistEvent 					artistEvent;
+    
+    private TextView				dayText = null;
+    private TextView				yearText = null;
+    private TextView				artistText = null;
+    private TextView				cityText = null;
+    private TextView				countryText = null;
+    
+    public EventLinkedListAdapter(Context context, 
+    							int layout, 
+    							List<ArtistEvent> artistEventList) 
+    {
+    	//init(context, layout, 0, artistEventList);
+    	super(context, layout, artistEventList);
+    	this.context = context;
+    	this.artistEventList = (LinkedList<ArtistEvent>) artistEventList;
+    	this.layoutId = layout;
+    	this.inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    	//super(context, layout, artistEventList);
+        //this.artistEventList = (LinkedList<ArtistEvent>) artistEventList;
+        //this.context = context;
+    }
+
+    /* (non-Javadoc)
+     * This is where you actually create the item view of the list
+     */
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent){
+    	View view;
+    	
+    	if(convertView != null)
+    		view = convertView;
+    	else
+    		view = inflater.inflate(R.layout.eventlist_item, parent, false);
+    	
+    	dayText = (TextView) view.findViewById(R.id.eventlist_day);
+    	yearText = (TextView) view.findViewById(R.id.eventlist_year);
+    	artistText = (TextView) view.findViewById(R.id.eventlist_artist);
+    	cityText = (TextView) view.findViewById(R.id.eventlist_city);
+    	countryText = (TextView) view.findViewById(R.id.eventlist_country);
+ 
+    	artistEvent = this.artistEventList.get(position);
+
+    	date = new Date((long) artistEvent.dateInMillis);
+    	yearText.setText(yearFormat.format(date));
+    	dayText.setText(dayFormat.format(date));
+    	artistText.setText(artistEvent.artist);
+    	cityText.setText(artistEvent.city);
+    	countryText.setText(artistEvent.country);
+    	
+//    	LayoutParams params = new LayoutParams(LayoutParams.FILL_PARENT,
+//    											LayoutParams.FILL_PARENT);
+//    	TextView field= new TextView(context);
+//    	field.setLayoutParams(params);
+//    	field.setText("Comer castanhas!");
+//    	parent.addView(field);
+    	
+    	return view;
+    }
+    
+    
+}
+6. [文件] FilexDefaultExceptionHandler.java ~ 5KB     下载(28)     
+
+/*
+ * [程序名称] Android 音乐播放器
+ * [参考资料] http://code.google.com/p/rockon-android/ 
+ * [开源协议] Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.xmobileapp.rockplayer;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.Thread.UncaughtExceptionHandler;
+
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.os.Build;
+import android.util.Log;
+
+	class FilexDefaultExceptionHandler implements Thread.UncaughtExceptionHandler {
+
+		private UncaughtExceptionHandler oldDefaultExceptionHandler;
+		private final String TAG = "FilexDefaultExceptionHandler";
+		private Context context;
+	
+		FilexDefaultExceptionHandler(Context context) {
+			Log.d(TAG, "Default Exception Handler=" + Thread.getDefaultUncaughtExceptionHandler());
+			oldDefaultExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
+			
+			Thread.setDefaultUncaughtExceptionHandler(this);
+			
+			this.context = context; 
+		}
+
+		public void destroy(){
+			this.context = null;
+			Thread.setDefaultUncaughtExceptionHandler(null);
+		}
+		
+		public void uncaughtException(Thread t, Throwable e) {
+			Log.e("RockOn", "Caught the following exception: ", e);
+
+			StringBuilder message = new StringBuilder(
+				"Sorry!\n\nRockOn "+
+				"v1.3.2 "+
+				"crashed! Please send this mail, so that we " +
+				"can analyze/fix the issue.\n");
+			message.append(String.format("-- Android Version: sdk=%s, release=%s, inc=%s\n",
+				Build.VERSION.SDK, Build.VERSION.RELEASE, Build.VERSION.INCREMENTAL));
+			
+			Runtime rt = Runtime.getRuntime();
+			message.append(String.format("-- Memory free: %4.2fMB total: %4.2fMB max: %4.2fMB",
+					rt.freeMemory() / 1024 / 1024.0, 
+					rt.totalMemory() / 1024 / 1024.0,
+					rt.maxMemory() / 1024 / 1024.0));
+			message.append(String.format("-- Thread State: %s\n", t.getState()));
+			
+//			EntryManager entryManager = null;
+//
+//	try {
+//
+//	entryManager = EntryManager.getInstance(NewsRob.this);
+//
+//	} catch (Throwable throwable) {
+//
+//	// ignored
+//
+//	Log
+//
+//	.e(
+//
+//	TAG,
+//
+//	"Oh, Throwable during creation of EntryManager when trying to create a bug report ;-(.",
+//
+//	throwable);
+//
+//	}
+//
+//	if (entryManager != null) {
+//
+//	message.append(String.format("-- NewsRob Version: %s/%s\n", entryManager.getMyVersionName(),
+//
+//	entryManager.getMyVersionCode()));
+//
+//
+//	Job j = entryManager.getCurrentRunningJob();
+//
+//	if (j != null)
+//
+//	message.append(String.format("-- Job: %s\n", j.getJobDescription()));
+//
+//
+//	if (entryManager.runningThread != null)
+//
+//	message.append(String.format("-- Running Thread: %s\n", entryManager.runningThread));
+//
+//
+//	}
+
+			// Add stacktrace
+
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			
+			e.printStackTrace(pw);
+			pw.close();
+			
+			message.append("-- Stacktrace:\n");
+			message.append(sw.getBuffer());
+			
+			String messageBody = message.toString();
+			
+			// ignore certain exceptions
+//			if (Pattern.compile("CacheManager.java:391").matcher(messageBody).find())
+//				return;
+
+			// Prepare Mail
+	
+			final Intent sendIntent = new Intent(Intent.ACTION_SEND);
+			sendIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			sendIntent.setType("message/rfc822");
+			sendIntent.putExtra(Intent.EXTRA_EMAIL, new String[] { "filipe.abrantes@gmail.com" });
+			sendIntent.putExtra(Intent.EXTRA_SUBJECT, "BugReport: " + e.getClass().getSimpleName() + ": "
+					+ e.getMessage());
+			sendIntent.putExtra(Intent.EXTRA_TEXT, messageBody);
+			Log.e(TAG, "Exception handled. Email activity should be initiated now.");
+	
+			// Send Mail
+	
+			new Thread(new Runnable() {
+				public void run() {
+					//NewsRob.this.startActivity(sendIntent);
+					context.startActivity(sendIntent);
+					//sendBroadcast(sendIntent);
+				}
+			}).start();
+	
+			Log.e(TAG, "Exception handled. Email should be sent by now.");
+	
+			// Use default exception mechanism
+	
+			if (oldDefaultExceptionHandler != null)
+				oldDefaultExceptionHandler.uncaughtException(t, e);
+		}
+
+	}
+7. [文件] ImageCursorAdapter.java ~ 4KB     下载(28)     
+
+/*
+ * [程序名称] Android 音乐播放器
+ * [参考资料] http://code.google.com/p/rockon-android/ 
+ * [开源协议] Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.xmobileapp.rockplayer;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import com.xmobileapp.rockplayer.R;
+
+import android.content.Context;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.BitmapShader;
+import android.graphics.BlurMaskFilter;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.LinearGradient;
+import android.graphics.MaskFilter;
+import android.graphics.Paint;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.RectF;
+import android.graphics.Shader;
+import android.graphics.BitmapFactory.Options;
+import android.graphics.PorterDuff.Mode;
+import android.graphics.Shader.TileMode;
+import android.graphics.drawable.GradientDrawable;
+import android.provider.MediaStore;
+import android.util.Log;
+import android.view.Display;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
+import android.widget.ImageView.ScaleType;
+import android.widget.RelativeLayout.LayoutParams;
+
+
+public class ImageCursorAdapter extends SimpleCursorAdapter{
+	
+	Cursor cursor;
+	Context context;
+	
+    public ImageCursorAdapter(Context context, 
+    							int layout, 
+    							Cursor c,
+    							String[] from,
+    							int[] to){
+        super(context, layout, c, from, to);
+        this.cursor = c;
+        this.context = context;        
+
+    }
+
+    
+    ImageView im;
+    TextView imTitle;
+    int	IMAGE_VIEW_SIZE = 120;
+    /* (non-Javadoc)
+     * This is where you actually create the item view of the list
+     */
+    @Override
+    public void bindView(View view, Context context, Cursor cursor) {
+	    	/*
+	    	 * Get the item list image component set its height right
+	    	 */
+    		im = (ImageView)
+    			view.findViewById(R.id.image);
+    		imTitle = (TextView)
+    			view.findViewById(R.id.image_title);
+    		
+    		/*
+    		 * set the image
+    		 */
+    		BitmapFactory.Options opts = new BitmapFactory.Options();
+    		opts.inJustDecodeBounds = true;
+    		BitmapFactory.decodeFile(
+    				cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)),
+    				opts);
+    		opts.inSampleSize = (int) Math.floor(opts.outHeight / IMAGE_VIEW_SIZE);
+    		opts.inJustDecodeBounds = false;
+    		im.setImageBitmap(BitmapFactory.decodeFile(
+    				cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)),
+    				opts));
+    		
+    		/*
+    		 * set the image title
+    		 */
+    		imTitle.setText(cursor.getString(
+    				cursor.getColumnIndexOrThrow(
+    						MediaStore.Images.Thumbnails.DATA)));
+
+    }
+
+}
+8. [文件] LastFmEventImporter.java ~ 27KB     下载(30)     
+
+9. [文件] LastFmEventImporter.java ~ 27KB     下载(30)     
+
+10. [文件] MediaButtonIntentReceiver.java ~ 10KB     下载(29)     
+
+/*
+ * [程序名称] Android 音乐播放器
+ * [参考资料] http://code.google.com/p/rockon-android/ 
+ * [开源协议] Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.xmobileapp.rockplayer;
+
+import android.content.Context;
+import android.content.Intent;
+import android.content.BroadcastReceiver;
+import android.content.SharedPreferences;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.os.Handler;
+import android.os.Message;
+
+
+
+
+
+public class MediaButtonIntentReceiver extends BroadcastReceiver {
+
+	/***********************************
+	 * 
+	 * MISSING KEY CODES IN THIS SDK
+	 * 
+	 ***********************************/
+	public final int KEYCODE_PLAYPAUSE       = 85;
+	public final int KEYCODE_STOP            = 86;
+	public final int KEYCODE_NEXTSONG        = 87;
+	public final int KEYCODE_PREVIOUSSONG    = 88;
+	public final int KEYCODE_REWIND          = 89;
+	public final int KEYCODE_FORWARD         = 90;
+	
+
+    private static final String SERVICECMD = "org.abrantes.filex.playerservicecmd";
+    private static final String CMDNAME = "command";
+    private static final String CMDTOGGLEPAUSE = "togglepause";
+    public final String CMDPAUSE = "pause";
+    public final String CMDPREVIOUS = "previous";
+    public final String CMDNEXT = "next";
+    
+    	private static final int MSG_LONGPRESS_TIMEOUT = 1;
+    	private static final int LONG_PRESS_DELAY = 1500;
+    	private static final int MSG_SINGLEPRESS_TIMEOUT = 2;
+    	private static final int SINGLE_PRESS_DELAY = 1000;
+    	private static final int MSG_DOUBLEPRESS_TIMEOUT = 3;
+    	private static final int DOUBLE_PRESS_DELAY = 1000;
+
+        private static long mLastClickTime = 0;
+        private static boolean mDown = false;
+        private static boolean mFirst = false;
+        private static boolean mLaunched = false;
+
+        private static Handler mHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                switch (msg.what) {
+                    case MSG_LONGPRESS_TIMEOUT:
+                    	Log.i("HDL", "trying to launch rock on");
+                        if (!mLaunched && mDown) {
+                        	//if(true) return;
+                        	Log.i("HDL", "launching rockon");
+                                Context context = (Context)msg.obj;
+                            Intent i = new Intent();
+                            i.putExtra("autoshuffle", "true");
+                            i.setClass(context, RockPlayer.class);
+                            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            context.startActivity(i);
+                            mLaunched = true;
+                        }
+                        break;
+                    case MSG_SINGLEPRESS_TIMEOUT:
+                    	Log.i("HDL", "trying to toggle pause");
+                        if (mLaunched && !mDown) {
+                        	Log.i("HDL", "toggling pause");                            
+                            Context context = (Context)msg.obj;
+                        	Intent i = new Intent(context, PlayerService.class);
+                            i.setAction(SERVICECMD);
+                            i.putExtra(CMDNAME, CMDTOGGLEPAUSE);
+                            //context.bindService(i, null, 0);	
+                            context.startService(i);
+                            mHandler.removeMessages(MSG_LONGPRESS_TIMEOUT);
+                            //context.sendBroadcast(i);
+                        }
+                        break;
+                }
+            }
+        };
+        
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            KeyEvent event = (KeyEvent)
+                    intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+            
+            Log.i("MDBUTTON", "Received button");
+            
+            if (event == null) {
+            	abortBroadcast();
+                return;
+            }
+
+            Log.i("MDBUTTON", "Event not null");
+            
+            
+            int keycode = event.getKeyCode();
+            int action = event.getAction();
+            long eventtime = event.getEventTime();
+            
+            /*
+             * 'First' press
+             */
+            if(event.getEventTime() - mLastClickTime > SINGLE_PRESS_DELAY){
+            	mFirst = false;
+            	mLaunched = false;
+            }
+            
+            mLastClickTime = event.getEventTime();
+
+            // single quick press: pause/resume. 
+            // double press: next track
+            // long press: start auto-shuffle mode.
+            
+            Log.i("MEDIABTN", "received event "+keycode);
+            String command = null;
+            switch (keycode) {
+                case KeyEvent.KEYCODE_HEADSETHOOK:
+                	command = CMDNAME; // bogus - does nothing
+                	break;
+//                case KEYCODE_PLAYPAUSE:
+//                    command = CMDTOGGLEPAUSE;
+//                    break;
+//                case KEYCODE_NEXTSONG:
+//                    command = CMDNEXT;
+//                    break;
+//                case KEYCODE_PREVIOUSSONG:
+//                    command = CMDPREVIOUS;
+//                    break;
+                default:
+                	command = CMDNAME;
+                	break;
+            }
+
+            if (command != null) {
+                if (action == KeyEvent.ACTION_DOWN) {
+                	Log.i("HDL", "BTN DOWN");
+                    
+                	if(mDown){
+                		abortBroadcast();
+                		return;
+                	}
+                	mDown = true;
+                    if (!mFirst) {
+                    	Log.i("HDL", "First button press");
+                        
+                    	mFirst = true;
+                    	
+                    	Log.i("HDL", "schedule toggle play");
+                        
+                    	/*
+                    	 * Schedule app play/pause
+                    	 */
+                    	mHandler.sendMessageDelayed(
+                                mHandler.obtainMessage(MSG_SINGLEPRESS_TIMEOUT, context),
+                                SINGLE_PRESS_DELAY);
+                    	
+                    	Log.i("HDL", "schedule app start");
+                        
+                    	/*
+                    	 * Schedule app start-up
+                    	 */
+                    	mHandler.sendMessageDelayed(
+                                mHandler.obtainMessage(MSG_LONGPRESS_TIMEOUT, context),
+                                LONG_PRESS_DELAY);
+                    	
+                    } else {
+                    	Log.i("HDL", "second button press");
+                    	
+                    	/* Second Click */
+                    	
+                       	mHandler.removeMessages(MSG_SINGLEPRESS_TIMEOUT);   
+                       	mHandler.removeMessages(MSG_LONGPRESS_TIMEOUT);   
+                                           	
+                    	command = CMDNEXT;
+                    	
+                    	Log.i("HDL", "sending intent for next song");
+                        
+                    	Intent i = new Intent(context, PlayerService.class);
+                        i.setAction(SERVICECMD);
+                        i.putExtra(CMDNAME, CMDNEXT);
+                        context.startService(i);
+                        //context.sendBroadcast(i);
+                        //context.startService(i);
+                        //mLastClickTime = 0;
+                        
+                     
+                    }
+//                        
+//                    	// only if this isn't a repeat event
+//                        
+//                        if (PlayerService.CMDTOGGLEPAUSE.equals(command)) {
+//                            // We're not using the original time of the event as the
+//                            // base here, because in some cases it can take more than
+//                            // one second for us to receive the event, in which case
+//                            // we would go immediately to auto shuffle mode, even if
+//                            // the user didn't long press.
+//                            mHandler.sendMessageDelayed(
+//                                    mHandler.obtainMessage(MSG_LONGPRESS_TIMEOUT, context),
+//                                    LONG_PRESS_DELAY);
+//                        }
+//                        
+//                        SharedPreferences pref = context.getSharedPreferences("Music", 
+//                                Context.MODE_WORLD_READABLE | Context.MODE_WORLD_WRITEABLE);
+//                        String q = pref.getString("queue", "");
+//                        // The service may or may not be running, but we need to send it
+//                        // a command.
+//                        Intent i = new Intent(context, PlayerService.class);
+//                        i.setAction(PlayerService.SERVICECMD);
+//                        if (keycode == KeyEvent.KEYCODE_HEADSETHOOK && eventtime - mLastClickTime < 300) {
+//                            i.putExtra(PlayerService.CMDNAME, PlayerService.CMDNEXT);
+//                            context.startService(i);
+//                            mLastClickTime = 0;
+//                        } else {
+//                            i.putExtra(PlayerService.CMDNAME, command);
+//                            context.startService(i);
+//                            mLastClickTime = eventtime;
+//                        }
+//
+//                        mLaunched = false;
+//                        mDown = true;
+//                    }
+                } else  if(action == KeyEvent.ACTION_UP){
+                	Log.i("HDL", "BTN UP");
+                    
+                	mDown = false;
+                	mHandler.removeMessages(MSG_LONGPRESS_TIMEOUT);
+                }
+                abortBroadcast();
+            }
+        }
+}
+11. [文件] MediaButtonPauseIntentReceiver.java ~ 2KB     下载(27)     
+
+/*
+ * [程序名称] Android 音乐播放器
+ * [参考资料] http://code.google.com/p/rockon-android/ 
+ * [开源协议] Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.xmobileapp.rockplayer;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.drawable.TransitionDrawable;
+import android.os.RemoteException;
+import android.provider.MediaStore;
+import android.util.Log;
+
+
+public class MediaButtonPauseIntentReceiver	extends BroadcastReceiver{
+
+	@Override
+	public void onReceive(Context context, Intent intent) {
+		Log.i("MEDIABUTTONPAUSE", "pausetriggered");
+		RockPlayer filex =((RockPlayer) context);
+		try {
+			TransitionDrawable playPauseTDrawable = (TransitionDrawable) filex.playPauseImage.getDrawable();
+			playPauseTDrawable.setCrossFadeEnabled(true);
+			playPauseTDrawable.reverseTransition(500);
+			playPauseTDrawable.invalidateSelf();
+			
+			filex.invalidateCurrentSongLayout.sendEmptyMessageDelayed(0, 150);
+			filex.invalidateCurrentSongLayout.sendEmptyMessageDelayed(0, 300);
+			filex.invalidateCurrentSongLayout.sendEmptyMessageDelayed(0, 450);
+			filex.invalidateCurrentSongLayout.sendEmptyMessageDelayed(0, 600);
+			filex.invalidateCurrentSongLayout.sendEmptyMessageDelayed(0, 750);
+			
+			filex.stopSongProgress();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+}
+12. [文件] MediaButtonPlayIntentReceiver.java ~ 2KB     下载(24)     
+
+/*
+ * [程序名称] Android 音乐播放器
+ * [参考资料] http://code.google.com/p/rockon-android/ 
+ * [开源协议] Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.xmobileapp.rockplayer;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.drawable.TransitionDrawable;
+import android.os.RemoteException;
+import android.provider.MediaStore;
+import android.util.Log;
+
+
+public class MediaButtonPlayIntentReceiver	extends BroadcastReceiver{
+
+	@Override
+	public void onReceive(Context context, Intent intent) {
+		Log.i("MEDIABUTTONPLAY", "playtriggered");
+		RockPlayer filex =((RockPlayer) context);
+		try {
+			TransitionDrawable playPauseTDrawable = (TransitionDrawable) filex.playPauseImage.getDrawable();
+			playPauseTDrawable.setCrossFadeEnabled(true);
+			playPauseTDrawable.startTransition(500);
+			playPauseTDrawable.invalidateSelf();
+			
+			filex.invalidateCurrentSongLayout.sendEmptyMessageDelayed(0, 150);
+			filex.invalidateCurrentSongLayout.sendEmptyMessageDelayed(0, 300);
+			filex.invalidateCurrentSongLayout.sendEmptyMessageDelayed(0, 450);
+			filex.invalidateCurrentSongLayout.sendEmptyMessageDelayed(0, 600);
+			filex.invalidateCurrentSongLayout.sendEmptyMessageDelayed(0, 750);
+			
+			filex.triggerSongProgress();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+}
+13. [文件] MusicChangedIntentReceiver.java ~ 3KB     下载(33)     
+
+/*
+ * [程序名称] Android 音乐播放器
+ * [参考资料] http://code.google.com/p/rockon-android/ 
+ * [开源协议] Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.xmobileapp.rockplayer;
+
+import com.xmobileapp.rockplayer.R;
+
+import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.database.CursorIndexOutOfBoundsException;
+import android.graphics.drawable.TransitionDrawable;
+import android.os.RemoteException;
+import android.provider.MediaStore;
+import android.util.Log;
+
+
+public class MusicChangedIntentReceiver	extends BroadcastReceiver{
+
+	@Override
+	public void onReceive(Context context, Intent intent) {
+		Log.i("MUSICINTENT", "musicChanged");
+		RockPlayer filex =((RockPlayer) context);
+		
+		
+		try {
+			/*
+			 * Destroy song Progress Dialog if on screen
+			 */
+			try{
+				if(filex.songProgressAlertDialog != null){
+					/*
+					 * dismiss (And remove) the song progress dialog
+					 */
+					filex.dismissDialog(R.layout.song_progress_dialog);
+					filex.removeDialog(R.layout.song_progress_dialog);
+					filex.songProgressAlertDialog = null;
+					filex.songProgressView = null;
+				}
+			} catch(Exception e){
+				e.printStackTrace();
+			}
+			
+			/*
+			 * UpdateAlbumCursor
+			 */
+			filex.albumCursor.moveToPosition(
+					filex.playerServiceIface.getAlbumCursorPosition());
+			
+			/*
+			 * Update Song Cursor
+			 */
+			filex.songCursor = filex.initializeSongCursor(
+					filex.albumCursor.getString(
+							filex.albumCursor.getColumnIndexOrThrow(
+									MediaStore.Audio.Albums.ALBUM)));
+			filex.songCursor.moveToPosition(
+					filex.playerServiceIface.getSongCursorPosition());
+			
+			/*
+			 * Update Song UI
+			 */
+			filex.songProgressBar.setProgress(0);
+			filex.songProgressBar.setMax((int) filex.songCursor.getDouble(
+												filex.songCursor.getColumnIndex(
+														MediaStore.Audio.Media.DURATION)));
+			filex.updateSongTextUI();
+			filex.triggerSongProgress();
+			
+			/*
+			 * playPauseButton
+			 */
+//			TransitionDrawable playPauseTDrawable = (TransitionDrawable) filex.playPauseImage.getDrawable();
+//			playPauseTDrawable.setCrossFadeEnabled(true);
+//			playPauseTDrawable.startTransition(1);
+//			playPauseTDrawable.invalidateSelf();
+		
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (CursorIndexOutOfBoundsException e){
+			e.printStackTrace();
+			
+			// TODO: Maybe resync service and frontend cursors....
+			
+			try{
+				filex.initializeAlbumCursor();
+				filex.albumCursor.moveToNext();
+				filex.initializeSongCursor(
+						filex.albumCursor.getString(
+								filex.albumCursor.getColumnIndexOrThrow(
+										MediaStore.Audio.Albums.ALBUM)));
+			}catch(Exception ee){
+				ee.printStackTrace();
+			}
+		} catch (NullPointerException e){
+			e.printStackTrace();
+		}
+	}
+	
+}
+14. [文件] NumberPicker.java ~ 798B     下载(25)     
+
+/*
+ * [程序名称] Android 音乐播放器
+ * [参考资料] http://code.google.com/p/rockon-android/ 
+ * [开源协议] Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.xmobileapp.rockplayer;
+15. [文件] NumberPicker.java ~ 798B     下载(19)     
+
+/*
+ * [程序名称] Android 音乐播放器
+ * [参考资料] http://code.google.com/p/rockon-android/ 
+ * [开源协议] Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.xmobileapp.rockplayer;
+16. [文件] PlayerService.java ~ 51KB     下载(26)     
+
+17. [文件] PlayerServiceConnection.java ~ 3KB     下载(31)     
+
+/*
+ * [程序名称] Android 音乐播放器
+ * [参考资料] http://code.google.com/p/rockon-android/ 
+ * [开源协议] Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.xmobileapp.rockplayer;
+
+import com.xmobileapp.rockplayer.PlayerServiceInterface;
+
+import com.xmobileapp.rockplayer.utils.Constants;
+import com.xmobileapp.rockplayer.utils.RockOnPreferenceManager;
+
+import android.content.ComponentName;
+import android.content.ServiceConnection;
+import android.os.IBinder;
+import android.os.RemoteException;
+import android.util.Log;
+
+public class PlayerServiceConnection implements ServiceConnection{
+
+	RockPlayer filex;
+	PlayerServiceConnection(RockPlayer filex){
+		this.filex = filex;
+	}
+	
+	@Override
+	public void onServiceConnected(ComponentName name, IBinder service) {
+		Log.i("SCONN", "Service connected");
+		
+		if(filex == null || service == null){
+			Log.i("SCONN", "But failed to get service interface for some reason");
+			return;
+		}
+		
+		filex.playerServiceIface = PlayerServiceInterface.
+										Stub.
+											asInterface(service);
+		/*
+		 * Set some preferences
+		 */
+		RockOnPreferenceManager prefs = (new RockOnPreferenceManager(filex.FILEX_PREFERENCES_PATH));
+		try{
+			filex.playerServiceIface.setRecentPeriod(
+					prefs
+						.getInt(filex.constants.PREF_KEY_RECENT_PERIOD, filex.constants.RECENT_PERIOD_DEFAULT_IN_DAYS));
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		/*
+		 * Set Shuffle
+		 */
+		try{
+			filex.playerServiceIface.setShuffle(filex.SHUFFLE);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		/*
+		 * Set Scrobbling
+		 */
+		try{
+//			Log.i("SCRBLREADING", ""+filex.getSharedPreferences(Filex.PREFS_NAME, 0)
+			Log.i("SCRBLREADING", ""+prefs
+									.getBoolean(RockPlayer.PREFS_SCROBBLE_DROID, false));
+			filex.playerServiceIface.setScrobbleDroid((boolean)
+//					filex.getSharedPreferences(Filex.PREFS_NAME, 0)
+					prefs
+					.getBoolean(RockPlayer.PREFS_SCROBBLE_DROID, false));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		/*
+		 * Set the playlist of the service
+		 */
+		try {
+			filex.playerServiceIface.setPlaylist(filex.playlist);
+		} catch (RemoteException e1) {
+			e1.printStackTrace();
+		}
+		
+		/*
+		 * Reset albumCursor of the Service
+		 */
+		try {
+			filex.playerServiceIface.resetAlbumCursor();
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+		
+		/*
+		 * Get whatever the service is playing
+		 */
+		filex.getCurrentPlaying();
+	}
+
+	@Override
+	public void onServiceDisconnected(ComponentName name) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+}
+18. [文件] Playlist.java ~ 828B     下载(24)     
+
+/*
+ * [程序名称] Android 音乐播放器
+ * [参考资料] http://code.google.com/p/rockon-android/ 
+ * [开源协议] Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.xmobileapp.rockplayer;
+
+public class Playlist{
+	long	id;
+	String	name;
+}
+19. [文件] PlaylistArrayAdapter.java ~ 2KB     下载(22)     
+
+/*
+ * [程序名称] Android 音乐播放器
+ * [参考资料] http://code.google.com/p/rockon-android/ 
+ * [开源协议] Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.xmobileapp.rockplayer;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.xmobileapp.rockplayer.R;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.TextView;
+
+
+
+public class PlaylistArrayAdapter extends ArrayAdapter{
+
+	Context context;
+	ArrayList<Playlist> playlistArray;
+	
+	public PlaylistArrayAdapter(Context context, 
+								int layoutResourceId,
+								List playlists) {
+		super(context, layoutResourceId, playlists);
+		this.context = context;
+		this.playlistArray = (ArrayList<Playlist>) playlists;
+	}
+
+    /* (non-Javadoc)
+     * This is where you actually create the item view of the list
+     */
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent){
+		View view;
+    	if(convertView != null)
+    		view = convertView;
+    	else
+    		view = ((LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE))
+    									.inflate(R.layout.playlist_item, parent, false);
+    	
+    	((TextView) view.findViewById(R.id.playlist_name)).setText(playlistArray.get(position).name);
+    	
+    	return view;
+    }
+}
+20. [文件] PlaylistArrayAdapter.java ~ 2KB     下载(31)     
+
+/*
+ * [程序名称] Android 音乐播放器
+ * [参考资料] http://code.google.com/p/rockon-android/ 
+ * [开源协议] Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.xmobileapp.rockplayer;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.xmobileapp.rockplayer.R;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.TextView;
+
+
+
+public class PlaylistArrayAdapter extends ArrayAdapter{
+
+	Context context;
+	ArrayList<Playlist> playlistArray;
+	
+	public PlaylistArrayAdapter(Context context, 
+								int layoutResourceId,
+								List playlists) {
+		super(context, layoutResourceId, playlists);
+		this.context = context;
+		this.playlistArray = (ArrayList<Playlist>) playlists;
+	}
+
+    /* (non-Javadoc)
+     * This is where you actually create the item view of the list
+     */
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent){
+		View view;
+    	if(convertView != null)
+    		view = convertView;
+    	else
+    		view = ((LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE))
+    									.inflate(R.layout.playlist_item, parent, false);
+    	
+    	((TextView) view.findViewById(R.id.playlist_name)).setText(playlistArray.get(position).name);
+    	
+    	return view;
+    }
+}
+举报

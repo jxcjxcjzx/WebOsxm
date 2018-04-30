@@ -1,0 +1,161 @@
+J2EE开源相关
+    工作一年了，学到了很多东西，但也知道自己有更多的东西要学，继续努力。
+ 
+
+  
+
+公告
+本Blog提供了有关JavaEE流行开发工具的配置及应用，希望大家能涌跃投稿及提供宝贵意见。
+ 
+联系邮箱:lihaiyancarter@163.com
+QQ:416255401
+分类
+首页 相册 标签
+Struts(8)
+Hibernate(30)
+Spring(21)
+Struts+Hibernate+Spring(17)
+Ajax(26)
+DWR(14)
+JSON(2)
+Junit(5)
+Lucene(30)
+Compass(16)
+EJB(1)
+Tomcat(jsp)(13)
+MYSql(12)
+JavaScript(12)
+Html(7)
+UML(3)
+Log4j(7)
+Ant(4)
+Acegi(2)
+(My) Eclipse(6)
+java2(27)
+Aglet(0)
+Jboss(0)
+Orcle(0)
+Jakarta Commons(25)
+java Web(9)
+Ruby(6)
+Ruby  On Rails(2)
+IBatis(4)
+版本控制(7)
+eXtremeComponents(4)
+SiteMesh(3)
+IT相关(1)
+电子商务(2)
+随笔(5)
+正则表达式(8)
+测试资料(3)
+设计模式(0)
+个人收藏(13)
+开发经验(12)
+名词解释(java,j2ee)(4)
+英语(1)
+java规则引擎(15)
+CMS系统(1)
+XML操作(3)
+secureCRT(0)
+模板引擎(0)
+jvm(7)
+开源工具收集(3)
+行业新闻(1)
+工作流(11)
+Maven(1)
+nutch(1)
+webwork(6)
+文章
+Eclipse-jee tomcat
+struts2中form提交到act
+linux 下javamail发送邮
+Spring中使用Job Sched
+spring+ibatis 事务管理
+WebWork深入浅出(5)
+WebWork深入浅出(6)
+WebWork深入浅出(4)
+WebWork深入浅出(3)
+WebWork深入浅出(2)
+评论
+Re:使用IndexReader.r
+Re:Spring+hibernat
+Re:在msql中,text类型呆以
+Re:Spring框架介绍(轻量级容
+我想要一双温暖可靠的手,
+看了文章,真的很感动!
+烦~~~~~~~~~~~
+Re:Compass结合Struts
+留言
+签写留言
+连接
+httpJava开源大全
+ 
+信息
+详细信息站内订阅(0)加为好友发送短信日志:421评论:8留言:0访问:44527登陆
+用户名：  
+密　码：  
+　　　　记住密码  
+ 用户注册 忘记密码  
+
+搜索
+ 日志标题 日志内容 
+ 
+
+
+2008-4-25 14:47:00
+Lucene搜索优化技巧 - 索引篇
+
+
+0
+推荐索引 
+1、t.termText()替换为new String(t.termBuffer(),0,t.termLength()) 
+2、StringReader 和TokenStream对象都需要close 
+3、索引时Document只用一个、Field只用几个 
+一个Document对象对应多个Field实例 
+Field有新的setValue方法，动态改变属性 
+不能只有一个Field实例 
+例如：idField, bodyField 
+必须等Document都到索引中之后，才可以重新设置值 
+4、索引中Field的命名只使用2个字符表示 
+5、有些索引字段可以考虑使用0，1替代字符串，排序采用整数来排 
+6、减少索引的存储字段，一般只存ID 
+7、索引的时候只用一个IndexWriter对象 
+8、3.1版本有个新的方法writer.ramSizeInBytes() 
+根据RAM的使用情况，来决定是不需要刷新到磁盘。 
+之前：setMaxBufferedDocs 
+9、批量索引的时候，尽可能多使用一些内存，采用非复合的文件方式，完成后集中优化合并索引文件 
+fsWriter.addIndexesNoOptimize 
+fsWriter.setUseCompoundFile(false); 
+需要注意不要超过系统的允许打开文件数 
+10、重复使用单一的Token实例，在analyzer中。 
+11、Turn off auto-commit if there are stored fields and term vectors 
+设置autoCommit=false，直到writer close之后才会生效 
+默认是true 
+12、如果总是同时在多个分词的字段中查询，可以考虑将多个Field合并到一个Field中 
+13、增加mergeFactor，但是不要太大 
+反复调试获取经验值 
+14、关闭一些实际上没用的功能（不要存储一些不必要的字段，尽量不要打开term vectors） 
+15、使用更快的analyzer 
+16、加快获得document数据的速度 
+比如：从数据库、文件获取数据的速度 
+17、索引的时候可以考虑使用多线程 
+使用多线程addDocuments 
+需要测试，然后确定线程数 
+18、可以分开索引，然后合并 
+并行索引机制 
+
+
+阅读全文(358) | 回复(0) |反映问题 | 引用通告(0) | 编辑
+
+
+标签：lucene 
+上一篇：lucene索引参数优化 
+下一篇：lucene索引参数优化 
+发表评论：
+昵称：
+密码： 
+主页：
+标题：
+      
+
+

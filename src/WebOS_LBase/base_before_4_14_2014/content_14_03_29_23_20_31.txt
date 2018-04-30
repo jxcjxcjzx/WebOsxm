@@ -1,0 +1,12 @@
+【转】linux防火墙ufw简单操作命令
+
+以ubuntu10.04为例
+
+安装‍ufw
+
+#apt-get install ufw（ubuntu自带的有）
+
+开启/关闭防火墙 (默认设置是’disable’)
+
+# ufw enable|disable转换日志状态# ufw logging on|off设置默认策略 (比如 “mostly open” vs “mostly closed”)# ufw default allow|deny许 可或者屏蔽某些入埠的包 (可以在“status” 中查看到服务列表［见后文］)。可以用“协议：端口”的方式指定一个存在于/etc/services中的服务名称，也可以通过包的meta-data。 ‘allow’ 参数将把条目加入 /etc/ufw/maps ，而 ‘deny’ 则相反。基本语法如下：# ufw allow|deny [service]显示防火墙和端口的侦听状态，参见 /var/lib/ufw/maps。括号中的数字将不会被显示出来。# ufw status［注意：上文中虽然没有使用 sudo，但是命令提示符号都是“#”。所以……你知道啥意思了哈。原文如此。──译者注］UFW 使用范例：允许 53 端口$ sudo ufw allow 53禁用 53 端口$ sudo ufw delete allow 53允许 80 端口$ sudo ufw allow 80/tcp禁用 80 端口$ sudo ufw delete allow 80/tcp允许 smtp 端口$ sudo ufw allow smtp删除 smtp 端口的许可$ sudo ufw delete allow smtp允许某特定 IP$ sudo ufw allow from 192.168.254.254删除上面的规则$ sudo ufw delete allow from 192.168.254.254
+分享到：

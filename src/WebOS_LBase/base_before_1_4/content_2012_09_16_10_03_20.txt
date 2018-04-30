@@ -1,0 +1,85 @@
+下面是代码：
+
+#include <glcd.h>
+#include <Time.h> 
+#include "fonts/allFonts.h"         // system and arial14 fonts are used
+#include "bitmaps/allBitmaps.h"       // all images in the bitmap dir 
+Image_t icon;
+gText textArea;              // a text area to be defined later in the sketch
+gText textAreaArray[3];      // an array of text areas  
+gText countdownArea =  gText(GLCD.CenterX, GLCD.CenterY,1,1,Arial_14); // text area for countdown digits
+
+
+void setup()
+{
+  GLCD.Init();   // initialise the library, non inverted writes pixels onto a clear screen
+  setTime(10,51,50,16,2,12); // set time to 4:37 am Jan 2 2010  
+    icon = iloveu;  // the 64 pixel high icon
+//    icon = zhongwen;  // the 64 pixel high icon
+  GLCD.ClearScreen(); 
+  
+    GLCD.ClearScreen(); 
+  GLCD.DrawBitmap(elsiehappytime, 0,  0); 
+//  GLCD.DrawBitmap(icon, 64, 0);
+  
+}
+void  loop()
+{  
+  switch (weekday()) {
+    case 1:
+     icon = week7;
+      break;
+    case 2:
+     icon = week1;
+      break;
+    case 3:
+     icon = week2;
+      break;
+    case 4:
+     icon = week3;
+      break;
+    case 5:
+     icon = week4;
+      break;
+    case 6:
+     icon = week5;
+      break;
+    case 7:
+     icon = week6;
+      break;
+    default: 
+      icon = iloveu;
+      // if nothing else matches, do the default
+      // default is optional
+  }
+  if (second() < 30 ) GLCD.DrawBitmap(iloveu, 63,  0);
+  if (second() > 30 ) GLCD.DrawBitmap(icon, 63,  0);
+  GLCD.CursorToXY(66, 36);
+  GLCD.SelectFont(launica);
+  if(hour() < 10)
+  GLCD.print('0');
+  GLCD.print(hour());
+  printDigits(minute());
+  printDigits(second());
+    GLCD.print(' ');     //去除字符后面未消除的拖尾
+  GLCD.CursorToXY(72,50 );
+  if(month() < 10) GLCD.print('0');GLCD.print(month());   GLCD.print("-");
+  if(day() < 10) GLCD.print('0');GLCD.print(day());
+}
+
+void printDigits(int digits){
+  // utility function for digital clock display: prints preceding colon and leading 0
+  GLCD.print(":");
+  if(digits < 10)
+    GLCD.print('0');
+  GLCD.print(digits);
+}
+
+
+void countdown(int count){
+  while(count--){  // do countdown  
+    countdownArea.ClearArea(); 
+    countdownArea.print(count);
+    delay(1000);  
+  }  
+}

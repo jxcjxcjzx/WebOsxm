@@ -1,0 +1,587 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+学习记录
+
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年1月当选微软MVP名单揭晓！    智能开发框架 JEECG 作者张代浩专访
+ 2012CSDN博客之星火热出炉！      2013年全国百所高校巡讲讲师招募 
+
+
+
+matlab中结构体使用方法 
+.
+2012-05-14 13:562410人阅读评论(0)收藏举报
+
+
+ 转自http://hi.baidu.com/dess2211/blog/item/bb9b80185a7f940334fa417c.html
+ 
+
+
+
+
+matlab中使用结构体
+ 
+2008-01-15 14:23
+ 
+
+
+
+结构(struct)数组
+ 
+要在MALTAB中实现比较复杂的编程，就不能不用struct类型。而且在MATLAB中实现struct比C中更为方便。
+ 
+4. 3.1 结构数组的创建
+ MATLAB提供了两种定义结构的方式：直接应用和使用struct函数。
+ 1. 使用直接引用方式定义结构
+ 与建立数值型数组一样，建立新struct对象不需要事先申明，可以直接引用，而且可以动态扩充。比如建立一个复数变量x：
+ x.real = 0; % 创建字段名为real，并为该字段赋值为0
+ x.imag = 0 % 为x创建一个新的字段imag，并为该字段赋值为0 
+ x = 
+ real: 0
+ imag: 0 
+ 然后可以将旗动态扩充为数组：
+ x(2).real = 0; % 将x扩充为1×2的结构数组
+ x(2).imag = 0; 
+ 在任何需要的时候，也可以为数组动态扩充字段，如增加字段scale：
+ x(1).scale = 0; 
+ 这样，所有x都增加了一个scale字段，而x(1)之外的其他变量的scale字段为空：
+ x(1) % 查看结构数组的第一个元素的各个字段的内容 
+ ans = 
+ real: 0
+ imag: 0
+ scale: 0 
+ x(2) % 查看结构数组的第二个元素的各个字段的内容，注意没有赋值的字段为空
+ ans = 
+ real: 0
+ imag: 0
+ scale: [] 
+ 应该注意的是，x的real、imag、scale字段不一定是单个数据元素，它们可以是任意数据类型，可以是向量、数组、矩阵甚至是其他结构变量或元胞数组，而且不同字段之间其数据类型不需要相同。例如：
+ clear x; x.real = [1 2 3 4 5]; x.imag = ones(10,10); 
+ 
+数组中不同元素的同一字段的数据类型也不要求一样：
+ x(2).real = '123';
+ x(2).imag = rand(5,1); 
+ 甚至还可以通过引用数组字段来定义结构数据类型的某字段：
+ x(3).real = x(1); x(3).imag = 3; x(3) 
+ ans = 
+ real: [1x1 struct]
+ imag: 3 
+ 下面看一个实际的例子来熟悉直接引用方式定义与显示结构。
+ 【例4.3.1-1】 温室数据（包括温室名、容量、温度、湿度等）的创建与显示。
+ （1） 直接对域赋值法产生结构变量  
+ green_house.name = '一号温室'; % 创建温室名字段 
+ green_house.volume = '2000立方米'; % 创建温室容量字段
+ green_house.parameter.temperature = [31.2 30.4 31.6 28.7 % 创建温室温度字段
+ 29.7 31.1 30.9 29.6];
+ green_house.parameter.humidity = [62.1 59.5 57.7 61.5; % 创建温室湿度字段
+ 62.0 61.9 59.2 57.5]; 
+ （2）显示结构变量的内容
+ green_house % 显示结构变量结构 
+ green_house = 
+ name: '一号温室'
+ volume: '2000立方米'
+ parameter: [1x1 struct] 
+ green_house.parameter % 用域作用符号. 显示指定域（parameter）中内容 
+ ans = 
+ temperature: [2x4 double]
+ humidity: [2x4 double] 
+ green_house.parameter.temperature % 显示temperature域中的内容 
+ ans =
+ 31.2000 30.4000 31.6000 28.7000
+ 29.7000 31.1000 30.9000 29.6000 
+ 
+【例4.3.1-2】在上例的基础上，创建结构数组用以保存一个温室群的数据。
+ green_house(2,3).name = '六号温室'; %产生2×3结构数组
+ green_house % 显示结构数组的结构 
+ green_house = 
+ 2x3 struct array with fields:
+ name
+ volume
+ parameter 
+ green_house(2,3) % 显示结构数组元素的结构 
+ ans = 
+ name: '六号温室'
+ volume: []
+ parameter: [] 
+ 
+2. 使用struct函数创建结构
+ 使用struct函数也可以创建结构，该函数产生或吧其他形式的数据转换为结构数组。
+ struct的使用格式为：
+ s = sturct('field1',values1,'field2',values2,…);
+ 该函数将生成一个具有指定字段名和相应数据的结构数组，其包含的数据values1、valuese2等必须为具有相同维数的数据，数据的存放位置域其他结构位置一一对应的。对于struct的赋值用到了元胞数组。数组values1、values2等可以是元胞数组、标量元胞单元或者单个数值。每个values的数据被赋值给相应的field字段。
+ 当valuesx为元胞数组的时候，生成的结构数组的维数与元胞数组的维数相同。而在数据中不包含元胞的时候，得到的结构数组的维数是1×1的。例如：
+ s = struct('type',{'big','little'},'color',{'blue','red'},'x',{3,4}) 
+ s = 
+ 1x2 struct array with fields:
+ type
+ color
+ x 
+ 得到维数为1×2的结构数组s，包含了type、color和x共3个字段。这是因为在struct函数中{'big','little'}、{'blue','red'}和{3,4}都是1×2的元胞数组，可以看到两个数据成分分别为：
+ s(1,1) 
+ ans = 
+ type: 'big'
+ color: 'blue'
+ x: 3 
+    s(1,2) 
+ ans = 
+ type: 'little'
+ color: 'red'
+ x: 4 
+ 相应的，如果将struct函数写成下面的形式：
+ s = struct('type',{'big';'little'},'color',{'blue';'red'},'x',{3;4}) 
+ s = 
+ 2x1 struct array with fields:
+ type
+ color
+ x 
+ 则会得到一个2×1的结构数组。
+ 下面给出利用struct构建结构数组的具体实例。
+ 【例4.3.1-3】利用函数struct，建立温室群的数据库。
+ （1） struct预建立空结构数组方法之一
+ a = cell(2,3); % 创建2×3的元胞数组
+ green_house_1=struct('name',a,'volume',a,'parameter',a(1,2))
+ green_house_1 = 
+ 2x3 struct array with fields:
+ name
+ volume
+ parameter 
+ （2）struct预建空结构数组方法之二
+ green_house_2=struct('name',a,'volume',[],'parameter',[])     
+ green_house_2 = 
+ 2x3 struct array with fields:
+ name
+ volume
+ parameter 
+ （3）struct预建空结构数组方法之三
+ green_hopuse_3(2,3)=struct('name',[],'volume',[],'parameter',[]) 
+ green_hopuse_3 = 
+ 2x3 struct array with fields:
+ name
+ volume
+ parameter 
+ （4）struct创建结构数组方法之四
+ a1={'六号房'};a2={'3200立方米'};
+ green_house_4(2,3)=struct('name',a1,'volume',a2,'parameter',[]);
+ T6=[31.2,30.4,31.6,28.7;29.7,31.1,30.9,29.6];             green_house_4(2,3).parameter.temperature=T6;            
+ green_house_4 
+ ans = 
+ 2x3 struct array with fields:
+ name
+ volume
+ parameter 
+ 
+4. 3.2 结构数组的操作
+ 
+MATLAB中专门用于对结构数组的操作的函数并不多，通过 help datatypes获取数据类型列表，可以看到其中的结构数据类型的有关的函数，主要如表4.3.1所示。
+ 表4.3.1 结构数组的操作函数
+ 函数名   功能描述   函数名   功能描述
+ deal   把输入处理成输出   fieldnames   获取结构的字段名
+ getfield   获取结构中指定字段的值   rmfield   删除结构的字段(不是字段内容)
+ setfield   设置结构数组中指定的字段的值   struct   创建结构数组
+ struct2cell   结构数组转化成元胞数组   isfield   判断是否存在该字段
+ isstruct   判断某变量是否是结构类型    
+ 下面举一些具体的例子说明如果对结构数组加以操作。
+ 
+【例4.3.2-1】 本例目的：一，演示函数fieldnames , getfield , setfield的使用方法；二，让读者感受到结构数组对应用工具包的影响；三，演示struct函数把“对象”转换为结构的应用。本例为获得一个演练的结构，借助Toolbox control 工具包中的tf函数，先产生一个用传递函数描写的LTI线性时不变2输入2输出系统 。
+ （1）产生2输入2输出系统的传递函数阵“对象”
+ Stf=tf({3,2;[4 1],1},{[1 3 2],[1 1 1];[1 2 2 1],[1 0]}) 
+ 
+Transfer function from input 1 to output...
+ 3
+ #1: -------------
+ s^2 + 3 s + 2
+ 
+4 s + 1
+ #2: ---------------------
+ s^3 + 2 s^2 + 2 s + 1
+ Transfer function from input 2 to output...
+ 2
+ #1: -----------
+ s^2 + s + 1
+ 1
+ #2: -
+ s 
+ （2）为本例演示，把上述的LTI对象Stf转换为结构
+ SSTF=struct(Stf)       % 把对象转换成结构，并显示结构的组成 
+ SSTF = 
+ num: {2x2 cell}
+ den: {2x2 cell}
+ Variable: 's'
+ lti: [1x1 lti] 
+ （3）获得结构数组SSTF的域名
+ FN=fieldnames(SSTF) % 获得域名元胞数组FN
+ class(FN)     % 检查FN的类别 
+ FN = 
+ 'num'
+ 'den'
+ 'Variable'
+ 'lti'
+ ans =
+ cell 
+ （4）获取SSTF.den(2,1)域的内容
+ FC=getfield(SSTF,'den',{2,1})     % 相当于FC=SSFT.den(2,1)
+ FC{1}                   % 与celldisp(FC)的作用大致相当
+ poly2str(FC{1},'s'),         % 为了把多项式显示成习惯的形式 
+ FC = 
+ [1x4 double]
+ ans =
+ 1 2 2 1
+ ans =
+ s^3 + 2 s^2 + 2 s + 1 
+ （5）重新设置SSTF.num(2,1)域的内容
+ SSTF.num{2,1}                 % 显示原始情况
+ SSTF=setfield(SSTF,'num',{2,1},{[1 3 1]}); %   注意“花括号”的使用
+ SSTF.num{2,1}                     % 显示被重新设置后的情况 
+ ans =
+ 0 0 4 1
+ ans =
+ 1 3 1 
+ 
+【例4.3.2-2】本例演示结构数组SSTF的扩充和收缩。（本例以例4.3.2-1的运行为基础。）
+ （1）原结构是一个“单结构”
+ size(SSTF) 
+ ans =
+ 1 1 
+ （2）演示结构的扩充
+ SSTF(2,2)=struct(tf(1,[1 1]))     % 把1/(s+1)放在第2行第2列结构中
+ size(SSTF) 
+ SSTF = 
+ 2x2 struct array with fields:
+ num
+ den
+ Variable
+ lti
+ ans =
+ 2 2 
+ （3）演示结构数组的收缩：删除结构数组的第1行
+ SSTF(1,=[]                   % 收缩成为 的结构
+ S22n=SSTF(1,2).num,S22d=SSTF(1,2).den   % 取出第2结构num域和den域的内容
+ printsys(S22n{1},S22d{1})           % 显示成习惯的表达形式 
+ SSTF = 
+ 1x2 struct array with fields:
+ num
+ den
+ Variable
+ lti
+ S22n = 
+ [1x2 double]
+ S22d = 
+ [1x2 double]
+ num/den = 
+ 1
+ -----
+ s + 1 
+ 
+【例4.3.2-3】对结构数组进行域的增添和删减操作。
+ （1）创建结构数组
+ clear,for k=1:10;department(k).number=['No.',int2str(k)];end
+ department 
+ department = 
+ 1x10 struct array with fields:
+ number 
+ （2）增添域：在数组中任何一个结构上进行的域增添操作，其影响遍及整个结构数组
+ department(1).teacher=40;department(1).student=300;
+ department(1).PC_computer=40;
+ department 
+ department = 
+ 1x10 struct array with fields:
+ number
+ teacher
+ student
+ PC_computer 
+ （3）增添子域的操作只影响被操作的那个具体结构，而不是影响整个结构数组
+ department(2).teacher.male=35;department(2).teacher.female=13;
+ D2T=department(2).teacher     % 第2结构teacher域包含两个子域
+ D1T=department(1).teacher     % 第1结构teacher域仅是一个数 
+ D2T = 
+ male: 35
+ female: 13
+ D1T =
+ 40 
+ （4）删除子域的操作也只影响被操作的那个具体结构
+ department(2).teacher=rmfield(department(2).teacher,'male');
+ department(2).teacher 
+ ans = 
+ female: 13 
+ （5）删除域的操作是对整个结构数组实施的
+ department=rmfield(department,'student')   % 删除一个域 
+ department = 
+ 1x10 struct array with fields:
+ number
+ teacher
+ PC_computer 
+ department=rmfield(department,{'teacher';'PC_computer'})% 删除2个域 
+ department = 
+ 1x10 struct array with fields:
+ number 
+ 
+【例4.3.2-4】数值运算操作和函数在结构域上的作用。
+ n_ex = 5; % 结构数组的长度
+ for k = 1:n_ex,   % 创建1×5结构数组
+ ex(k).f = (k-1)*n_ex + [1:5];
+ end;
+ ex                           % 显示结构数组的结构 
+ ex = 
+ 1x5 struct array with fields:
+ f 
+ %显示结构数组的域中内容
+ disp([blanks(10) '结构域中内容'])
+ for k=1:n_ex,disp(ex(k).f),end 
+ 结构域中内容
+ 1 2 3 4 5
+ 6 7 8 9 10
+ 11 12 13 14 15
+ 16 17 18 19 20
+ 21 22 23 24 25 
+ class(ex(1).f)                   % 检查域中内容的类型 
+ ans =
+ double 
+ % 对各结构域中数值数组相应位置的数据相加求和
+ sum_f=zeros(1,5)
+ for k=1:n_ex,sum_f=sum_f+ex(k).f;end,sum_f 
+ sum_f =
+ 55 60 65 70 75 
+ % 对结构数组域中各元素分别求平方根
+ disp([blanks(20) 'ex.f的平方根值'])
+ for k=1:n_ex,
+ disp(sqrt(ex(k).f)),
+ end 
+ ex.f的平方根值
+ 1.0000 1.4142 1.7321 2.0000 2.2361
+ 2.4495 2.6458 2.8284 3.0000 3.1623
+ 3.3166 3.4641 3.6056 3.7417 3.8730
+ 4.0000 4.1231 4.2426 4.3589 4.4721
+ 4.5826 4.6904 4.7958 4.8990 5.0000 
+ 
+【例4.3.2-5】   指令struct2cell和cell2struct的使用。
+ （1）创建“带2个域的 结构数组”
+ for k=1:5,
+ ex(k).s=['No.' int2str(k)];
+ ex(k).f=(k-1)*5+[1:5];
+ end 
+ （2）显示结构数组的内容
+ fprintf('%s\n','ex.s域的内容 ');fprintf('%s\',blanks(4))
+ for k=1:5;fprintf('%s\\',[ex(k).s blanks(1)]);end
+ fprintf('%s\n',blanks(1)),fprintf('%s\n','ex.f域的内容 ')
+ for k=1:5;disp(ex(k).f);end     %显示ex.f域内容 
+ ex.s域的内容 
+ No.1 \No.2 \No.3 \No.4 \No.5 \ 
+ ex.f域的内容 
+ 1 2 3 4 5
+ 6 7 8 9 10
+ 11 12 13 14 15
+ 16 17 18 19 20
+ 21 22 23 24 25 
+ （3）把ex结构数组转换为元胞数组
+ C_ex=struct2cell(ex); % 带2个域的（1×5）结构数组转换为（2×1×5）元胞数组
+ size(C_ex)
+ fprintf('%s\',[C_ex{1,1,1},blanks(3)])   % 显示C_ex第1页第1行第1列内容
+ fprintf('%5g\',C_ex{2,1,1})         % 显示C_ex第2页第1行第1列内容 
+ ans =
+ 2 1 5
+ No.1 1 2 3 4 5 
+ （4）把元胞数组转换为结构数组之一
+ FS={'S_char';'F_num'};        % 用元胞数组预建域名字符串
+ EX1=cell2struct(C_ex,FS,1)      % 元胞数组向结构数组转换 
+ EX1 = 
+ 1x5 struct array with fields:
+ S_char
+ F_numric 
+ EX1(1)                   % 观察新结构EX1第一结构的情况 
+ ans = 
+ S_char: 'No.1'
+ F_numric: [1 2 3 4 5] 
+ 
+（5）把元胞数组转换为结构数组之二
+ EX2=cell2struct(C_ex,'xx',2) 
+ EX2 = 
+ 2x5 struct array with fields:
+ xx 
+ （6）把元胞数组转换为结构数组之三
+ YY=strvcat('y1','y2','y3','y4','y5');EX3=cell2struct(C_ex,YY,3) 
+ EX3 = 
+ 2x1 struct array with fields:
+ y1
+ y2
+ y3
+ y4
+ y5 
+ EX3(1)                   % 观察第一结构情况 
+ ans = 
+ y1: 'No.1'
+ y2: 'No.2'
+ y3: 'No.3'
+ y4: 'No.4'
+ y5: 'No.5' 
+ EX3(2)                   % 观察第二结构情况 
+ ans = 
+ y1: [1 2 3 4 5]
+ y2: [6 7 8 9 10]
+ y3: [11 12 13 14 15]
+ y4: [16 17 18 19 20]
+ y5: [21 22 23 24 25] 
+ 
+【例4.3.2-6】   带子域的结构数组转换为元胞数组。本例中的ex结构数组由例4.2.2-5生成，然后再运行以下程序。
+ ex(1,1).s                 % 原结构ex(1,1).s中的内容 
+ ans =
+ No.1 
+ % 增设子域，并把ex结构数组扩充为（3×5）。
+ ex(1,1).s.sub='SUB 1';         % 原ex(1,1).s中的字符串将因本指令而消失
+ ex(3,1).s.sub='SUB 3';
+ ex(3,1).s.num=1/3; 
+ ex(1,1).s                 % 经新赋值后，ex(1,1).s中的内容 
+ ans = 
+ sub: 'SUB 1' 
+ ex(3,1).s                 % 经新赋值后，ex(3,1).s中的内容 
+ ans = 
+ sub: 'SUB 3'
+ num: 0.3333 
+ C_ex_sub=struct2cell(ex)       % 把结构转换为元胞数组 
+ C_ex_sub(:,:,1) = 
+ [1x1 struct] [] [1x1 struct]
+ [1x5 double] [] []
+ C_ex_sub(:,:,2) = 
+ 'No.2' [] []
+ [1x5 double] [] []
+ C_ex_sub(:,:,3) = 
+ 'No.3' [] []
+ [1x5 double] [] []
+ C_ex_sub(:,:,4) = 
+ 'No.4' [] []
+ [1x5 double] [] []
+ C_ex_sub(:,:,5) = 
+ 'No.5' [] []
+ [1x5 double] [] [] 
+ size(C_ex_sub)             % 观察新元胞数组的大小 
+ ans =
+ 2 3 5 
+ C_ex_sub{1,1,1}             % 观察第一元胞中的内容 
+ ans = 
+ sub: 'SUB 1' 
+ C_ex_sub{1,3,1}             % 观察(1,3,1)元胞中的内容 
+ ans = 
+ sub: 'SUB 3'
+ num: 0.3333
+ 
+
+分享到： 
+
+上一篇：层次聚类分析 代码
+下一篇：关于自相关和互相关
+ . 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+littlestonelj
+ 
+
+
+
+
+访问：10913次
+积分：256分
+排名：千里之外
+.原创：13篇
+转载：17篇
+译文：0篇
+评论：1条
+. 
+文章搜索
+
+. 
+文章分类论文(6)
+源代码(1)
+学习(15)
+ 
+文章存档
+2012年08月(3).
+2012年07月(1).
+2012年06月(2).
+2012年05月(14).
+2012年04月(2).
+.
+.
+
+展开.
+ 
+阅读排行计算机视觉领域的一些牛人博客，超有实力的研究机构等的网站链接---个人整理(3041)
+matlab中结构体使用方法(2410)
+双向反射分布函数(1091)
+计算机视觉的会议与专家(759)
+关于自相关和互相关(535)
+[转]大牛博士是如何进行文献检索和阅读的(426)
+isomap 资料(396)
+CVPapers - Computer Vision Resource(239)
+层次聚类分析 代码(183)
+Tamura texture features(171)
+ 
+评论排行层次聚类分析 代码(1)
+激活博客(0)
+多维标度分析(0)
+双向反射分布函数(0)
+计算机视觉领域稍微容易中的期刊（第一版(0)
+推荐一些计算机视觉相关的书籍(0)
+计算机视觉领域的一些牛人博客，超有实力的研究机构等的网站链接---个人整理(0)
+一些重要的算法源码(0)
+三维重建的方法---大类别分类(0)
+Tamura texture features(0)
+ 
+推荐文章 
+最新评论 层次聚类分析 代码
+lingweifengqi: 攒 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

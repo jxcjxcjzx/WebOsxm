@@ -1,0 +1,72 @@
+Linux /proc第一篇---->/proc/pid记录了什么
+
+[日期：2012-09-21]	来源：Linux社区  作者：zbszhangbosen	[字体：大 中 小]
+
+
+ 
+由于自己Linux系统知识基础比较薄弱，准备比较全面学习，准备从/proc这个目录开始。实际上这个目录也基本上记录所有系统运行时和内核的一些信息，所以如果想对linux系统有一个比较全面的了解，从/proc入手应该是个不错的选择。准备将自己学习的过程记录下来，分享给同样需要的朋友，也便于以后查阅。今天准备介绍一下/proc/pid这个目录到底是做什么用的，它到底记录了哪些信息。
+
+cd /proc/之后，你会发现很多的目录和文件，今天首先来介绍的就是那些以数字命名的目录--它们就是linux中的进程号，每当你创建一个进程时，里面就会动态更新多出一个名称为pid的目录，然后你ls -l /proc/pid会发现如下信息：
+
+dr-xr-xr-x  2 user group 0 Sep 19 16:17 attr
+
+-r--------  1 user group 0 Sep 19 16:17 auxv
+-r--r--r--  1 user group 0 Sep 19 16:17 cgroup
+--w-------  1 user group 0 Sep 19 16:17 clear_refs
+-r--r--r--  1 user group 0 Sep 18 14:18 cmdline
+-rw-r--r--  1 user group 0 Sep 19 16:17 coredump_filter
+-r--r--r--  1 user group 0 Sep 19 16:17 cpuset
+lrwxrwxrwx  1 user group 0 Sep 19 16:17 cwd -> /home/user/zbs/mysql/node-2
+-r--------  1 user group 0 Sep 19 16:17 environ
+lrwxrwxrwx  1 user group 0 Sep 19 16:17 exe -> /home/user/zbs/xtradb-5.1.47_group/libexec/mysqld
+dr-x------  2 user group 0 Sep 18 14:38 fd
+dr-x------  2 user group 0 Sep 19 16:17 fdinfo
+-r--------  1 user group 0 Sep 19 16:17 io
+-r--------  1 user group 0 Sep 19 16:17 limits
+-rw-r--r--  1 user group 0 Sep 19 16:17 loginuid
+-r--r--r--  1 user group 0 Sep 19 16:17 maps
+-rw-------  1 user group 0 Sep 19 16:17 mem
+-r--r--r--  1 user group 0 Sep 19 16:17 mountinfo
+-r--r--r--  1 user group 0 Sep 19 16:17 mounts
+-r--------  1 user group 0 Sep 19 16:17 mountstats
+dr-xr-xr-x 10 user group 0 Sep 19 16:17 net
+-r--r--r--  1 user group 0 Sep 19 16:17 numa_maps
+-rw-r--r--  1 user group 0 Sep 19 16:17 oom_adj
+-r--r--r--  1 user group 0 Sep 19 16:17 oom_score
+-r--r--r--  1 user group 0 Sep 19 16:17 pagemap
+-r--r--r--  1 user group 0 Sep 19 16:17 personality
+lrwxrwxrwx  1 user group 0 Sep 19 16:17 root -> /
+-rw-r--r--  1 user group 0 Sep 19 16:17 sched
+-r--r--r--  1 user group 0 Sep 19 16:17 sessionid
+-r--r--r--  1 user group 0 Sep 19 16:17 smaps
+-r--r--r--  1 user group 0 Sep 19 16:17 stack
+-r--r--r--  1 user group 0 Sep 18 14:18 stat
+-r--r--r--  1 user group 0 Sep 18 14:18 statm
+-r--r--r--  1 user group 0 Sep 18 14:18 status
+-r--r--r--  1 user group 0 Sep 19 16:17 syscall
+
+dr-xr-xr-x 20 user group 0 Sep 19 16:17 task
+
+下面我们挑常用的来解释（用红色标注出）
+
+cmdline:这个主要是当前这个进程被运行时的command line，里面包括了运行时指定的一些参数，比如如果是mysqld的话就包括basedir==,datadir==，port=,socket=等等信息，你可以自己尝试一下。
+
+cwd:current working directory，当前的工作目录
+
+environ：这是个比较有用的文件，里面记录了当前进程的一些环境变量，比如一台机器上对同一个系统起多个实例（当然是不同端口、不同数据目录），而你想知道哪个进程对应的是在哪个数据目录起来的（可能是因为你想kill-9其中一个实例，因为你怕弄错，所以的确定哪个进程是对应哪个数据目录），那么此时你该怎么办呢？两者方法：1.strings /proc/pid/environ | grep PWD 2.tr \\0 \\n < /proc/pid/envrion | grep PWD 即可。当然里面还有很多的信息，你可以自己尝试。
+
+exe:这个就是气这个进程的执行文件
+
+fd:进程打开的文件描述符，我记得以前有人使用mysql遇到过two many openfiles的错误，这个就是打开太多的文件导致的，当然你如果只修改mysql里面的参数可能不会起作用，因为可能os上设置了一个比较小的数，所以要两者都调大。
+
+fdinfo：跟上面一个一样，只不过只有文件描述符的值，没有表示这个文件描述符是对应打开的哪个文件。在/proc很多时候都是这样维护的：可能两个文件里面要表示的信息是一样的，但是有一个一般是以人能容易读懂的格式给出。
+
+limits：这个跟fd有一点关联，因为这个里面限制了进程对系统资源的使用额度，比如前面说的你可以打开多少文件，具体的设定你可以修改这个文件/etc/securiry/limits.conf，里面也对每一项说得很清楚，只要会点E文，理解应该没问题
+
+oom_adj/oom_score:这两个与linux的OOM机制有关的文件（关于OOM请看这里），oom_adj相当于一个因子，它值越大，在OOM时更容易被系统kill掉，但最终决定是否被kill的是oom_score，其实计算这个oom_score时，就是根据oom_adj来的，oom_adj更大，计算出来的oom_score就更大，也能容易在OOM时被系统kill掉。当然如果是很重要的服务现场，为了避免出现这种情况设置oom_adj=0就行，表示永远不会因为OOM被kill。
+
+stat/status:这两者要表示的信息都是一样的，进程的基本状态，但是后一个是以人容易读懂的格式给出，怎么分析前者stat的内容-->见这里。
+
+这里顺便提一个问题？我们遇到过通过查看stat里面的CPU time spent in user code（第14个值）这个值是0，不知道是什么原因导致的，有谁知道请留个言告诉一下
+
+当然你会发现我还有很多的项没介绍？最主要的原因是有些我也不懂，其次，对于新手了解这些最常用的应该暂时足够了，等以后自己对它了解了再慢慢更新上来。当然如果你了解那些我没提到的目录、文件，欢迎大家留言互相交流~

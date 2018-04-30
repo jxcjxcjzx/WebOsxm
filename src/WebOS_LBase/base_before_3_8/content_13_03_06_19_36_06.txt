@@ -1,0 +1,522 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+vanbreaker的专栏谨以此记录下自己的每一点、每一滴、每一步
+目录视图摘要视图订阅
+博客专家信息更新登记表        社区专家谈 12306      CSDN社区程序员回乡见闻活动火爆开始！ 
+专访周家安：我的十年编程自学之路        2013年全国百所高校巡讲讲师招募
+ Linux Input子系统--设备的注册和打开
+分类： Linux驱动程序 2012-07-05 15:51 506人阅读 评论(1) 收藏 举报
+inputlinuxstructtablefilelist
+水平有限，描述不当之处还请指出，转载请注明出处http://blog.csdn.net/vanbreaker/article/details/7718158
+        这节结合even handler来分析设备的注册和打开的过程，在设备注册之前，必须先初始化INPUT子系统，由input_init()函数来完成
+[cpp] view plaincopy
+static int __init input_init(void)  
+{  
+    int err;  
+  
+    input_init_abs_bypass();  
+  
+    err = class_register(&input_class);//注册input类  
+    if (err) {  
+        printk(KERN_ERR "input: unable to register input_dev class\n");  
+        return err;  
+    }  
+  
+    err = input_proc_init();//创建/proc中的项  
+    if (err)  
+        goto fail1;  
+  
+    /*注册设备，设备号为INPUT_MAJOR(13),后面注册的输入设备都使用该主设备号*/  
+    err = register_chrdev(INPUT_MAJOR, "input", &input_fops);  
+    if (err) {  
+        printk(KERN_ERR "input: unable to register char major %d", INPUT_MAJOR);  
+        goto fail2;  
+    }  
+  
+    return 0;  
+  
+ fail2: input_proc_exit();  
+ fail1: class_unregister(&input_class);  
+    return err;  
+}  
+
+
+input_fops中只定义了open函数。
+[csharp] view plaincopy
+static const struct file_operations input_fops = {  
+    .owner = THIS_MODULE,  
+    .open = input_open_file,  
+};  
+ 
+我们需要在设备驱动层中完成输入设备的注册，通过调用input_register_device()函数来完成，该函数的一个重要任务就是完成设备与事件驱动的匹配。
+[cpp] view plaincopy
+<span style="font-size:12px;">int input_register_device(struct input_dev *dev)  
+{  
+    static atomic_t input_no = ATOMIC_INIT(0);  
+    struct input_handler *handler;  
+    const char *path;  
+    int error;  
+  
+    __set_bit(EV_SYN, dev->evbit);  
+  
+    /* 
+     * If delay and period are pre-set by the driver, then autorepeating 
+     * is handled by the driver itself and we don't do it in input.c. 
+     */  
+  
+    init_timer(&dev->timer);  
+    if (!dev->rep[REP_DELAY] && !dev->rep[REP_PERIOD]) {  
+        dev->timer.data = (long) dev;  
+        dev->timer.function = input_repeat_key;  
+        dev->rep[REP_DELAY] = 250;  
+        dev->rep[REP_PERIOD] = 33;  
+    }  
+  
+    /*没有定义设备的getkeycode函数，则使用默认的获取键值函数*/  
+    if (!dev->getkeycode)  
+        dev->getkeycode = input_default_getkeycode;  
+  
+    /*没有定义设备的setkeycode函数，则使用默认的设定键值函数*/  
+    if (!dev->setkeycode)  
+        dev->setkeycode = input_default_setkeycode;  
+  
+    /*设定dev的名字*/  
+    dev_set_name(&dev->dev, "input%ld",  
+             (unsigned long) atomic_inc_return(&input_no) - 1);  
+  
+    /*添加设备*/  
+    error = device_add(&dev->dev);  
+    if (error)  
+        return error;  
+  
+    path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);  
+    printk(KERN_INFO "input: %s as %s\n",  
+        dev->name ? dev->name : "Unspecified device", path ? path : "N/A");  
+    kfree(path);  
+  
+    error = mutex_lock_interruptible(&input_mutex);  
+    if (error) {  
+        device_del(&dev->dev);  
+        return error;  
+    }  
+  
+    /*将设备添加到input_dev_list设备链表*/  
+    list_add_tail(&dev->node, &input_dev_list);  
+  
+    /*遍历input_handler_list，试图与每一个handler进行匹配*/  
+    list_for_each_entry(handler, &input_handler_list, node)  
+        input_attach_handler(dev, handler);  
+  
+    input_wakeup_procfs_readers();  
+  
+    mutex_unlock(&input_mutex);  
+  
+    return 0;  
+}</span>  
+ 
+[cpp] view plaincopy
+static int input_attach_handler(struct input_dev *dev, struct input_handler *handler)  
+{  
+    const struct input_device_id *id;  
+    int error;  
+  
+    /*如果定义了handler的黑名单，并且设备和黑名单中的id匹配了，则该设备不能和handler匹配*/  
+    if (handler->blacklist && input_match_device(handler->blacklist, dev))  
+        return -ENODEV;  
+  
+    id = input_match_device(handler->id_table, dev);  
+    if (!id)  
+        return -ENODEV;  
+  
+    /*执行handler的connect,建立handler与设备之间的联系*/  
+    error = handler->connect(handler, dev, id);  
+    if (error && error != -ENODEV)  
+        printk(KERN_ERR  
+            "input: failed to attach handler %s to device %s, "  
+            "error: %d\n",  
+            handler->name, kobject_name(&dev->dev.kobj), error);  
+  
+    return error;  
+}  
+
+ 
+匹配的具体过程：
+[cpp] view plaincopy
+static const struct input_device_id *input_match_device(const struct input_device_id *id,  
+                            struct input_dev *dev)  
+{  
+    int i;  
+  
+    /*遍历handler的id_table与device进行匹配*/  
+    for (; id->flags || id->driver_info; id++) {  
+  
+        /*根据flags的标志位，按需要匹配相应的字段*/  
+        if (id->flags & INPUT_DEVICE_ID_MATCH_BUS)  
+            if (id->bustype != dev->id.bustype)//总线类型不匹配  
+                continue;  
+  
+        if (id->flags & INPUT_DEVICE_ID_MATCH_VENDOR)//生产厂商不匹配  
+            if (id->vendor != dev->id.vendor)  
+                continue;  
+  
+        if (id->flags & INPUT_DEVICE_ID_MATCH_PRODUCT)//产品不匹配  
+            if (id->product != dev->id.product)  
+                continue;  
+  
+        if (id->flags & INPUT_DEVICE_ID_MATCH_VERSION)//版本不匹配  
+            if (id->version != dev->id.version)  
+                continue;  
+          
+        MATCH_BIT(evbit,  EV_MAX);//匹配所有的事件类型  
+  
+        /*匹配所有事件的子事件*/  
+        MATCH_BIT(keybit, KEY_MAX);  
+        MATCH_BIT(relbit, REL_MAX);  
+        MATCH_BIT(absbit, ABS_MAX);  
+        MATCH_BIT(mscbit, MSC_MAX);  
+        MATCH_BIT(ledbit, LED_MAX);  
+        MATCH_BIT(sndbit, SND_MAX);  
+        MATCH_BIT(ffbit,  FF_MAX);  
+        MATCH_BIT(swbit,  SW_MAX);  
+  
+        return id;//匹配成功，返回id  
+    }  
+  
+    return NULL;  
+}  
+
+MATCH_BIT是将device的相应字段和handler的相应字段逐位对比，都一样的话表示成功，否则continue
+[cpp] view plaincopy
+#define MATCH_BIT(bit, max) \  
+        for (i = 0; i < BITS_TO_LONGS(max); i++) \  
+            if ((id->bit[i] & dev->bit[i]) != id->bit[i]) \  
+                break; \  
+        if (i != BITS_TO_LONGS(max)) \  
+            continue;  
+
+以event handler为例，看connect函数做了什么：
+[cpp] view plaincopy
+static int evdev_connect(struct input_handler *handler, struct input_dev *dev,  
+             const struct input_device_id *id)  
+{  
+    struct evdev *evdev;  
+    int minor;  
+    int error;  
+  
+    /*在evdev_table中找到空闲块，其对应的数组下标再加上EVDEV_MINOR_BASE(64)就是次设备号 
+      每个handler都拥有32个此设备号，也就是最多可以对应32个设备*/  
+    for (minor = 0; minor < EVDEV_MINORS; minor++)  
+        if (!evdev_table[minor])  
+            break;  
+  
+    if (minor == EVDEV_MINORS) {  
+        printk(KERN_ERR "evdev: no more free evdev devices\n");  
+        return -ENFILE;  
+    }  
+  
+    evdev = kzalloc(sizeof(struct evdev), GFP_KERNEL);  
+    if (!evdev)  
+        return -ENOMEM;  
+  
+    INIT_LIST_HEAD(&evdev->client_list);  
+    spin_lock_init(&evdev->client_lock);  
+    mutex_init(&evdev->mutex);  
+    init_waitqueue_head(&evdev->wait);  
+  
+    /*初始化evdev的内部变量*/  
+    snprintf(evdev->name, sizeof(evdev->name), "event%d", minor);  
+    evdev->exist = 1;  
+    evdev->minor = minor;  
+  
+    /*初始化handle,每个evdev中都有一个handle*/  
+    evdev->handle.dev = input_get_device(dev);  
+    evdev->handle.name = evdev->name;  
+    evdev->handle.handler = handler;  
+    evdev->handle.private = evdev;  
+  
+    /*初始化evdev中的内嵌device*/  
+    dev_set_name(&evdev->dev, evdev->name);  
+    evdev->dev.devt = MKDEV(INPUT_MAJOR, EVDEV_MINOR_BASE + minor);  
+    evdev->dev.class = &input_class;  
+    evdev->dev.parent = &dev->dev;  
+    evdev->dev.release = evdev_free;  
+    device_initialize(&evdev->dev);  
+  
+    /*注册handle,主要将handle链接到input_dev和handler的h_list链表中去*/  
+    error = input_register_handle(&evdev->handle);  
+    if (error)  
+        goto err_free_evdev;  
+  
+    /*将evdev存入evdev_table数组*/  
+    error = evdev_install_chrdev(evdev);  
+    if (error)  
+        goto err_unregister_handle;  
+  
+    error = device_add(&evdev->dev);  
+    if (error)  
+        goto err_cleanup_evdev;  
+  
+    return 0;  
+  
+ err_cleanup_evdev:  
+    evdev_cleanup(evdev);  
+ err_unregister_handle:  
+    input_unregister_handle(&evdev->handle);  
+ err_free_evdev:  
+    put_device(&evdev->dev);  
+    return error;  
+}  
+
+至此设备的注册完成！对应event handler,在/dev中将多出一个event(x)设备文件，对应一个evdev实例，应用程序打开它的话也就意味着通过event handler来和设备驱动层传递事件。
+
+再来看打开设备的过程，还是以event handler为例，假如打开一个event(x),则先执行：
+[cpp] view plaincopy
+static int input_open_file(struct inode *inode, struct file *file)  
+{  
+    struct input_handler *handler;  
+    const struct file_operations *old_fops, *new_fops = NULL;  
+    int err;  
+  
+    lock_kernel();  
+    /* No load-on-demand here? */  
+      
+    /*32个设备是共用一个handler的,通过此设备号得到设备对应的handler*/  
+    handler = input_table[iminor(inode) >> 5];  
+    if (!handler || !(new_fops = fops_get(handler->fops))) {  
+        err = -ENODEV;  
+        goto out;  
+    }  
+  
+    /* 
+     * That's _really_ odd. Usually NULL ->open means "nothing special", 
+     * not "no device". Oh, well... 
+     */  
+    if (!new_fops->open) {  
+        fops_put(new_fops);  
+        err = -ENODEV;  
+        goto out;  
+    }  
+    old_fops = file->f_op;  
+    /*定位fops*/  
+    file->f_op = new_fops;  
+  
+    err = new_fops->open(inode, file);  
+  
+    if (err) {  
+        fops_put(file->f_op);  
+        file->f_op = fops_get(old_fops);  
+    }  
+    fops_put(old_fops);  
+out:  
+    unlock_kernel();  
+    return err;  
+}  
+
+通过此设备号所在的组(0~31)，(32~63),(64~95)……就可以找到相应的handler，所有的handler都保存在input_table中，对于次设备号在64~95范围的设备，将定位到下标为2的handler,，也就是event handler，然后将用handler中的open函数替代之前的open函数，并执行新的open函数，这样就以handler本身定义的open来打开设备完成相应的初始化了。
+ 
+event handler中的open函数：
+[cpp] view plaincopy
+static int evdev_open(struct inode *inode, struct file *file)  
+{  
+    struct evdev *evdev;  
+    struct evdev_client *client;  
+    int i = iminor(inode) - EVDEV_MINOR_BASE;  
+    int error;  
+  
+    if (i >= EVDEV_MINORS)  
+        return -ENODEV;  
+  
+    error = mutex_lock_interruptible(&evdev_table_mutex);  
+    if (error)  
+        return error;  
+    /*从evdev_table中取出和此设备号对应的evdev实例*/  
+    evdev = evdev_table[i];  
+    if (evdev)  
+        get_device(&evdev->dev);  
+    mutex_unlock(&evdev_table_mutex);  
+  
+    if (!evdev)  
+        return -ENODEV;  
+  
+    /*每当一个应用程序打开该文件都会生成一个client*/  
+    client = kzalloc(sizeof(struct evdev_client), GFP_KERNEL);  
+    if (!client) {  
+        error = -ENOMEM;  
+        goto err_put_evdev;  
+    }  
+  
+    spin_lock_init(&client->buffer_lock);  
+    client->evdev = evdev;  
+    /*将client链入evdev的client_list中*/  
+    evdev_attach_client(evdev, client);  
+  
+    error = evdev_open_device(evdev);  
+    if (error)  
+        goto err_free_client;  
+  
+    file->private_data = client;  
+    return 0;  
+  
+ err_free_client:  
+    evdev_detach_client(evdev, client);  
+    kfree(client);  
+ err_put_evdev:  
+    put_device(&evdev->dev);  
+    return error;  
+}  
+
+ 
+[cpp] view plaincopy
+static int evdev_open_device(struct evdev *evdev)  
+{  
+    int retval;  
+  
+    retval = mutex_lock_interruptible(&evdev->mutex);  
+    if (retval)  
+        return retval;  
+  
+    if (!evdev->exist)  
+        retval = -ENODEV;  
+    else if (!evdev->open++) {/*如果是第一次打开该设备，则要执行设备中定义的open*/  
+        retval = input_open_device(&evdev->handle);  
+        if (retval)  
+            evdev->open--;  
+    }  
+  
+    mutex_unlock(&evdev->mutex);  
+    return retval;  
+}  
+
+ 
+[cpp] view plaincopy
+int input_open_device(struct input_handle *handle)  
+{  
+    struct input_dev *dev = handle->dev;  
+    int retval;  
+  
+    retval = mutex_lock_interruptible(&dev->mutex);  
+    if (retval)  
+        return retval;  
+  
+    if (dev->going_away) {  
+        retval = -ENODEV;  
+        goto out;  
+    }  
+  
+    handle->open++;  
+  
+    if (!dev->users++ && dev->open)  
+        retval = dev->open(dev);//执行input_dev中定义的open，完成设备的初始化  
+  
+    if (retval) {  
+        dev->users--;  
+        if (!--handle->open) {  
+            /* 
+             * Make sure we are not delivering any more events 
+             * through this handle 
+             */  
+            synchronize_rcu();  
+        }  
+    }  
+  
+ out:  
+    mutex_unlock(&dev->mutex);  
+    return retval;  
+}  
+
+ 
+分享到： 
+上一篇：Linux Input子系统--概述
+下一篇：Linux SPI框架(上)
+顶
+1
+踩
+0
+
+查看评论
+1楼 zi77642475 2012-07-06 08:59发表 [回复]
+
+依然在！
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+ 
+个人资料
+  
+橙色逆流
+ 
+
+访问：42125次
+积分：1125分
+排名：第8173名
+原创：59篇转载：0篇译文：0篇评论：104条
+文章搜索
+
+博客专栏
+	Linux内存管理
+文章：28篇
+阅读：26196
+文章分类
+Linux内存管理(35)
+Linux驱动程序(14)
+Linux文件系统(5)
+文章存档
+2012年12月(6)
+2012年11月(5)
+2012年09月(1)
+2012年08月(4)
+2012年07月(8)
+展开
+阅读排行
+Linux伙伴系统(五)--通过迁移类型分组来实现反碎片(1768)
+Linux Slub分配器(六)--slab的分配与释放(1478)
+Linux高端内存映射(上)(1326)
+Linux页表机制初始化(1261)
+Linux Slab分配器(一)--概述(1192)
+Linux Slub分配器(五)--释放对象(1146)
+Linux伙伴系统(四)--释放页(1135)
+Linux Slab分配器(五)--释放对象(1133)
+Linux Slob分配器(三)--释放对象(1102)
+Linux伙伴系统(一)--伙伴系统的概述(1056)
+评论排行
+Linux Slub分配器(三)--创建缓存(14)
+用户空间缺页异常pte_handle_fault()分析--(下)--写时复制(7)
+Linux节点和内存管理区的初始化(5)
+从硬件的系统结构开始(4)
+Linux Slab分配器(六)--创建slab和销毁slab(4)
+用户空间缺页异常pte_handle_fault()分析--(上)(3)
+Linux页表机制初始化(3)
+Linux Slab分配器(二)--初始化(3)
+Linux Slub分配器(一)--概述(3)
+Linux伙伴系统(一)--伙伴系统的概述(3)
+推荐文章
+
+最新评论
+CPU cache(上)
+GreatLiu2009: 绝对是好文章！！！
+从硬件的系统结构开始
+zhengg21: 以前看了多次NUMA的文章都不明白，看博主的文章才真正明白了。
+用户空间缺页异常pte_handle_fault()分析--(下)--写时复制
+a254373829: @vanbreaker:我湖南科大的。。。像你这种水平的，如果有点项目经验的话，在上海1W+也就一两...
+Linux IO Scheduler--CFQ(下)
+zi77642475: 沙发依然在！
+用户空间缺页异常pte_handle_fault()分析--(下)--写时复制
+橙色逆流: @a254373829:我也是二本，湖南理工。。明年毕业，加油！
+用户空间缺页异常pte_handle_fault()分析--(下)--写时复制
+a254373829: @vanbreaker:楼主什么学校，我11年湖南一个二本毕业，刚开始学校可能重要，有经验后学校就是...
+从硬件的系统结构开始
+g_salamander: 博主写的blog太好了，呵呵，大牛啊。
+Linux I/O Scheduler--CFQ(上)
+zi77642475: 沙发依然在！
+Linux I/O Scheduler--Deadline
+zi77642475: 沙发依然在！
+Linux Slub分配器(三)--创建缓存
+d5_5d: @d5_5d:我如果再试试呢？会不会出错呢，很期待结果。。
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+ 联系邮箱：webmaster(at)csdn.net
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+

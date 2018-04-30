@@ -1,0 +1,507 @@
+HTML5中国
+帐号		自动登录	 找回密码
+密码		登录	 立即注册
+QQ登录
+只需一步，快速开始
+快捷导航
+首页HTML5资讯移动互联网应用推荐教程视频资源下载开发工具HTML5论坛
+	
+文章
+搜索	
+热搜: CanvasWebGLCSS3WebSocket离线存储工具
+HTML5中国›首页›教程视频›实例代码› 查看内容
+分享30个开发人员有用的CSS代码片段
+2012-11-26 10:59| 发布者: html5cn | 评论: 0
+摘要: CSS 是我们使用的功能强大和最常用 web 语言，可以兼容新旧不同的浏览器，兼容跨度确实够大的，分享收藏的 30 个CSS 代码段，无论是经验丰富的 web 设计师还是新手，都是非常值得借鉴的。 ...
+         CSS 是我们使用的功能强大和最常用 web 语言。他可以兼容新旧不同的浏览器，他的兼容跨度确实够大的，从微软的IE到火狐再到谷歌浏览器。在设计的时候我们总是想创建更有创意和风格的网站，无论创建怎么样的网站，有些CSS代码是必须要掌握的，可以说这是核心，掌握这样的一些CSS代码，前端布局方面基本上再不成问题，什么边框圆角，工具提示，浏览器hacks等等都不是问题
+
+         在今天的文章中分享我收藏的 30 个CSS 代码段，无论您是经验丰富的 web 设计师还是新手，他们都是非常值得借鉴的；
+
+Css Reset by Eric Meyer
+复制代码
+ 1 html, body, div, span, applet, object, iframe,
+ 2 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+ 3 a, abbr, acronym, address, big, cite, code,
+ 4 del, dfn, em, font, img, ins, kbd, q, s, samp,
+ 5 small, strike, strong, sub, sup, tt, var,
+ 6 b, u, i, center,
+ 7 dl, dt, dd, ol, ul, li,
+ 8 fieldset, form, label, legend,
+ 9 table, caption, tbody, tfoot, thead, tr, th, td {
+10     margin: 0;
+11     padding: 0;
+12     border: 0;
+13     outline: 0;
+14     font-size: 100%;
+15     vertical-align: baseline;
+16     background: transparent;
+17 }
+18 
+19 body {
+20     line-height: 1;
+21 }
+22 
+23 ol, ul {
+24     list-style: none;
+25 }
+26 
+27 blockquote, q {
+28     quotes: none;
+29 }
+30 
+31 blockquote:before, blockquote:after,
+32 q:before, q:after {
+33     content: '';
+34     content: none;
+35 }
+36 
+37 /* remember to define focus styles! */
+38 :focus {
+39     outline: 0;
+40 }
+41 
+42 /* remember to highlight inserts somehow! */
+43 ins {
+44     text-decoration: none;
+45 }
+46 
+47 del {
+48     text-decoration: line-through;
+49 }
+50 
+51 /* tables still need 'cellspacing="0"' in the markup */
+52 table {
+53     border-collapse: collapse;
+54     border-spacing: 0;
+55 }
+复制代码
+根据文件格式显示不同的链接样式
+复制代码
+ 1 /* external links */
+ 2 a[href^="http://"]{
+ 3     padding-right: 20px;
+ 4     background: url(external.gif) no-repeat center right;
+ 5 }
+ 6 
+ 7 /* emails */
+ 8 a[href^="mailto:"]{
+ 9     padding-right: 20px;
+10     background: url(email.png) no-repeat center right;
+11 }
+12 
+13 /* pdfs */
+14 a[href$=".pdf"]{
+15     padding-right: 20px;
+16     background: url(pdf.png) no-repeat center right;
+17 }
+复制代码
+在IE浏览器删除textarea的滚动条
+1 textarea{
+2     overflow:auto;
+3 }
+浏览器特定的 hacks
+复制代码
+ 1 /* IE 6 */
+ 2 * html .yourclass { }
+ 3 
+ 4 /* IE 7 */
+ 5 *+html .yourclass{ }
+ 6 
+ 7 /* IE 7 and modern browsers */
+ 8 html>body .yourclass { }
+ 9 
+10 /* Modern browsers (not IE 7) */
+11 html>/**/body .yourclass { }
+12 
+13 /* Opera 9.27 and below */
+14 html:first-child .yourclass { }
+15 
+16 /* Safari */
+17 html[xmlns*=""] body:last-child .yourclass { }
+18 
+19 /* Safari 3+, Chrome 1+, Opera 9+, Fx 3.5+ */
+20 body:nth-of-type(1) .yourclass { }
+21 
+22 /* Safari 3+, Chrome 1+, Opera 9+, Fx 3.5+ */
+23 body:first-of-type .yourclass {  }
+24 
+25 /* Safari 3+, Chrome 1+ */
+26 @media screen and (-webkit-min-device-pixel-ratio:0) {
+27  .yourclass  {  }
+28 }
+复制代码
+Clearfix
+复制代码
+ 1 .clearfix:after {
+ 2     visibility: hidden;
+ 3     display: block;
+ 4     font-size: 0;
+ 5     content: " ";
+ 6     clear: both;
+ 7     height: 0;
+ 8 }
+ 9 
+10 .clearfix { display: inline-block; }
+11 
+12 /* start commented backslash hack \*/
+13 * html .clearfix { height: 1%; }
+14 .clearfix { display: block; }
+15 /* close commented backslash hack */
+复制代码
+固定宽度且居中
+1 .wrapper {
+2     width:960px;
+3     margin:0 auto;
+4 }
+Rounded corners – border-radius
+1 .round{
+2    -moz-border-radius: 10px;
+3    -webkit-border-radius: 10px;
+4    border-radius: 10px; /* future proofing */
+5    -khtml-border-radius: 10px; /* for old Konqueror browsers */
+6 }
+伪元素向文本的第一个字母添加特殊样式
+复制代码
+1 p:first-letter{
+2    display:block;
+3    margin:5px 0 0 5px;
+4    float:left;
+5    color:#000;
+6    font-size:60px;
+7    font-family:Georgia;
+8 }
+复制代码
+使用 @fontface
+复制代码
+1 @font-face {
+2     font-family: 'MyFontFamily';
+3     src: url('myfont-webfont.eot?') format('eot'),
+4          url('myfont-webfont.woff') format('woff'),
+5          url('myfont-webfont.ttf')  format('truetype'),
+6          url('myfont-webfont.svg#svgFontName') format('svg');
+7     }
+复制代码
+跨浏览器的inline-block
+复制代码
+ 1 li {
+ 2         width: 200px;
+ 3         min-height: 250px;
+ 4         border: 1px solid #000;
+ 5         display: -moz-inline-stack;
+ 6         display: inline-block;
+ 7         vertical-align: top;
+ 8         margin: 5px;
+ 9         zoom: 1;
+10         *display: inline;
+11         _height: 250px;
+12 }
+复制代码
+Fixed Footer
+复制代码
+ 1 #footer {
+ 2    position:fixed;
+ 3    left:0px;
+ 4    bottom:0px;
+ 5    height:30px;
+ 6    width:100%;
+ 7    background:#999;
+ 8 }
+ 9 
+10 /* IE 6 */
+11 * html #footer {
+12    position:absolute;
+13    top:expression((0-(footer.offsetHeight)+(document.documentElement.clientHeight ? document.documentElement.clientHeight : document.body.clientHeight)+(ignoreMe = document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop))+'px');
+14 }
+复制代码
+ 
+更改内容区域的大小
+1 #content {
+2     width: 100%;
+3     margin: 0;
+4     float: none;
+5 }
+CSS3 Media Queries （这个不常用主要用于智能设备的判断显示不同的媒体）
+复制代码
+ 1 /* Smartphones (portrait and landscape) ----------- */
+ 2 @media only screen
+ 3 and (min-device-width : 320px)
+ 4 and (max-device-width : 480px) {
+ 5 /* Styles */
+ 6 }
+ 7  
+ 8 /* Smartphones (landscape) ----------- */
+ 9 @media only screen
+10 and (min-width : 321px) {
+11 /* Styles */
+12 }
+13  
+14 /* Smartphones (portrait) ----------- */
+15 @media only screen
+16 and (max-width : 320px) {
+17 /* Styles */
+18 }
+19  
+20 /* iPads (portrait and landscape) ----------- */
+21 @media only screen
+22 and (min-device-width : 768px)
+23 and (max-device-width : 1024px) {
+24 /* Styles */
+25 }
+26  
+27 /* iPads (landscape) ----------- */
+28 @media only screen
+29 and (min-device-width : 768px)
+30 and (max-device-width : 1024px)
+31 and (orientation : landscape) {
+32 /* Styles */
+33 }
+34  
+35 /* iPads (portrait) ----------- */
+36 @media only screen
+37 and (min-device-width : 768px)
+38 and (max-device-width : 1024px)
+39 and (orientation : portrait) {
+40 /* Styles */
+41 }
+42  
+43 /* Desktops and laptops ----------- */
+44 @media only screen
+45 and (min-width : 1224px) {
+46 /* Styles */
+47 }
+48  
+49 /* Large screens ----------- */
+50 @media only screen
+51 and (min-width : 1824px) {
+52 /* Styles */
+53 }
+54  
+55 /* iPhone 4 ----------- */
+56 @media
+57 only screen and (-webkit-min-device-pixel-ratio : 1.5),
+58 only screen and (min-device-pixel-ratio : 1.5) {
+59 /* Styles */
+60 }
+复制代码
+多背景图片
+1 #multiple-images {
+2    background: url(image_1.png) top left no-repeat,
+3    url(image_2.png) bottom left no-repeat,
+4    url(image_3.png) bottom right no-repeat;
+5 }
+多列
+复制代码
+1 #columns-3 {
+2    text-align: justify;
+3    -moz-column-count: 3;
+4    -moz-column-gap: 12px;
+5    -moz-column-rule: 1px solid #c4c8cc;
+6    -webkit-column-count: 3;
+7    -webkit-column-gap: 12px;
+8    -webkit-column-rule: 1px solid #c4c8cc;
+9 }
+复制代码
+在IE的最小高度
+1 .box {
+2    min-height:500px;
+3    height:auto !important;
+4    height:500px;
+5 }
+突出显示文本样式
+复制代码
+1 ::selection {
+2    color: #000000;
+3    background-color: #FF0000;
+4 }
+5 
+6 ::-moz-selection {
+7    color: #000000;
+8    background: #FF0000;
+9 }
+复制代码
+Box Shadow
+1 box-shadow: 0px 3px 3px rgba(0,0,0,0.2);
+2 -moz-box-shadow: 0px 3px 3px rgba(0,0,0,0.2);
+3 -webkit-box-shadow: 0px 3px 3px rgba(0,0,0,0.2);
+占位符文本样式
+1 ::-webkit-input-placeholder { color: #ccc; font-style:italic }
+2 :-moz-placeholder           { color: #ccc; font-style:italic }
+CSS3 3D文字效果
+复制代码
+ 1 h1 {
+ 2   text-shadow: 0 1px 0 #ccc,
+ 3                0 2px 0 #c9c9c9,
+ 4                0 3px 0 #bbb,
+ 5                0 4px 0 #b9b9b9,
+ 6                0 5px 0 #aaa,
+ 7                0 6px 1px rgba(0,0,0,.1),
+ 8                0 0 5px rgba(0,0,0,.1),
+ 9                0 1px 3px rgba(0,0,0,.3),
+10                0 3px 5px rgba(0,0,0,.2),
+11                0 5px 10px rgba(0,0,0,.25),
+12                0 10px 10px rgba(0,0,0,.2),
+13                0 20px 20px rgba(0,0,0,.15);
+14 }
+复制代码
+WebKit的边界半径修正
+1 -webkit-background-clip: padding-box;
+XBrowser的border-radius（CSS3PIE）
+复制代码
+1 .roundbox {
+2 -moz-border-radius:8px;
+3 -webkit-border-radius:8px;
+4 -khtml-border-radius:8px;
+5 border-radius:8px;
+6 behavior: url(/PIE.htc);
+7 }
+复制代码
+更好的兼容IE浏览器的
+1 <!--[if IE]>
+2 <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+3 <![endif]-->
+CSS3工具提示（这个很实用，看我网站的导航工具提示效果)
+复制代码
+ 1 a {
+ 2   color: #900;
+ 3   text-decoration: none;
+ 4 }
+ 5   
+ 6 a:hover {
+ 7   color: red;
+ 8   position: relative;
+ 9 }
+10   
+11 a[title]:hover:after {
+12   content: attr(title);
+13   padding: 4px 8px;
+14   color: #333;
+15   position: absolute;
+16   left: 0;
+17   top: 100%;
+18   white-space: nowrap;
+19   z-index: 20px;
+20   -moz-border-radius: 5px;
+21   -webkit-border-radius: 5px;
+22   border-radius: 5px;
+23   -moz-box-shadow: 0px 0px 4px #222;
+24   -webkit-box-shadow: 0px 0px 4px #222;
+25   box-shadow: 0px 0px 4px #222;
+26   background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);
+27   background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #eeeeee),color-stop(1, #cccccc));
+28 }
+复制代码
+CSS3背景大小
+复制代码
+ 1 body {
+ 2   background: #000 url(http://birdoflight.files.wordpress.com/2009/10/frida-kahlo-1.jpg) center center fixed no-repeat;
+ 3   -moz-background-size: cover;
+ 4   background-size: cover;
+ 5 }
+ 6   
+ 7 @media only all and (max-width: 1024px) and (max-height: 768px) {
+ 8   body {   
+ 9     -moz-background-size: 1024px 768px;
+10     background-size: 1024px 768px;
+11   }
+12 }
+复制代码
+跨浏览器的CSS页面卷曲阴影
+复制代码
+ 1 .page-curl {
+ 2 position: relative;
+ 3 background: #ffffff;
+ 4 background: -moz-linear-gradient(top, #ffffff 0%, #e5e5e5 100%);
+ 5 background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(100%,#e5e5e5));
+ 6 filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e5e5e5',GradientType=0 );
+ 7 -webkit-box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3);
+ 8 -moz-box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.3); }
+ 9  
+10 .page-curl:after {
+11 z-index: -1;
+12 position: absolute;
+13 background: transparent;
+14 width: 70%;
+15 height: 55%;
+16 content: '';
+17 right: 10px;
+18 bottom: 10px;
+19 -webkit-transform: skew(15deg) rotate(5deg);
+20 -webkit-box-shadow: 8px 12px 10px rgba(0, 0, 0, 0.3);
+21 -moz-transform: skew(15deg) rotate(5deg);
+22 -moz-box-shadow: 8px 12px 10px rgba(0, 0, 0, 0.3); }
+23  
+24 .page-curl:before {
+25 z-index: -2;
+26 position: absolute;
+27 background: transparent;
+28 width: 70%;
+29 height: 55%;
+30 content: '';
+31 left: 10px;
+32 bottom: 10px;
+33 -webkit-transform: skew(-15deg) rotate(-5deg);
+34 -webkit-box-shadow: -8px 12px 10px rgba(0, 0, 0, 0.3);
+35 -moz-transform: skew(-15deg) rotate(-5deg);
+36 -moz-box-shadow: -8px 12px 10px rgba(0, 0, 0, 0.3); }
+复制代码
+更多 38
+7
+鲜花
+
+握手
+
+雷人
+1
+路过
+
+鸡蛋
+刚表态过的朋友 (8 人)
+
+
+0温文尔雅0
+
+Te_amo
+
+503663975
+
+╘＞﹏葱
+
+麦田守望者
+
+occhio
+
+ooooo
+
+微笑ッ
+收藏分享
+相关阅读
+• 十个好用的iOS开发辅助工具与资源• css伪类元素:after绘制三角图形
+相关分类
+HTML5教程CSS3教程实例代码学习视频HTML5在线手册JavaScript手册CSS3在线手册phonegap教程
+热门代码
+Canvas的画线技巧
+使用 HTML 5 开启移动 Web 应用程序的本地
+前端制作必备：CSS全局样式基础代码
+JavaScript实现自适应宽度的瀑布流
+用HTML 5打造斯诺克桌球俱乐部
+使用HTML 5/CSS3五步快速制作便签贴特效
+html5 loading 效果来了
+用JavaScript绘制雪花
+jQuery跟随屏幕滚动代码
+使用html5的canvas写一个简单的画板程序
+jQuery模拟百度新闻不间断滚动效果
+HTML5+CSS3打造Twitter登陆页面效果
+JavaScript五种继承方式
+HTML5时代：实战PHP之Web页面表单设计
+当前页居中分页效果的JS实现
+JavaScript模版深度解析
+分享个表格的漂亮css展示
+html5的监控功能
+可以直接拿来用的15个jQuery代码片段
+HTML5与jQuery实现渐变绚丽网页图片效果
+﻿
+ 无觅相关文章插件
+关于我们|HTML5论坛|友情链接|手机版|站长统计
+Copyright @HTML5中国 All Right Reserved. Powered by Discuz! X2.
+京ICP备11006447号-7 京公网安备:110105011387 京公网安备：11010802010583号
+回顶部

@@ -1,0 +1,1161 @@
+
+
+首页
+开源软件
+讨论区
+
+
+
+
+
+
+代码分享
+博客
+翻译
+资讯
+移动开发
+
+
+
+
+招聘
+
+你好2,您好 我的空间
+
+
+
+
+
+
+
+ |  添加软件 | 投递新闻 | 退出
+ 
+
+开源中国 
+代码分享
+ 当前位置：代码分享 » C/C++ » Qt 图形界面开发 
+搜 索 
+
+
+
+
+
+
+
+
+
+qt中数据存储方法（接口）的思路
+
+鉴客 发布于 2010年11月02日 15时, 0评/757阅
+
+
+ 
+
+
+分享到 
+
+新浪微博腾讯微博
+
+
+收藏+1
+
+踩顶0
+ 
+
+声明：由于其它原因，只谈思路，具体实现还要靠自己在实际开发中总结
+ 在写这个之前，一直在想叫什么标题比较合适
+ 在写这个之前，在qtcn论坛查了“数据”关键字，大概只要35条左右记录，提到的与我想要说的无关
+ 
+
+     先说一下现象。以前自己写过程序，也看过别人写的程序，感觉代码比较长（个人觉得代码多维护比较麻烦，当然代码多少与业务逻辑有关），我说的长是指：在实 现同样功能的情况下，它本身有很大的精简空间。由于对数据存储的认识不同，造成的大量精力在为数据存储,数据同步及数据显示写很多逻辑。
+ 
+由于不同的数据打过多年的交道，特别欣赏数据库精简的接口调用，常用的大概就select, update, delete, insert, commit。自己也想实现这样的类似的接口，以便写程序时不要为数据花太多精力。
+ 
+自己在刚接触QT时，也是先看MVC模式，感觉QT把MVC发挥得淋漓尽致。随着时间的推移，发现MVC结构还是比较俗套，有点按步就班的感觉，在这种 模式下代码精简下来也不是一件容易的事。后来就把MVC模式改成xxTable(xxWidget)模式，不再理会其中的Model、View怎么结合的 了。但这样也有一个问题， 就数据传递、同步问题。当存在多个xxTable(xxWidget)时，它们之间需要数据同步显示，于是写了个itemList。这个itemList 类似一栋大厦，可以自由向上增加（记录Item数量），每层也能水平自由增加（Item中的字段），不用关心每层需要对齐问题，说得通俗一点就类似 Table结构，只是每条记录Item中的字段不受约束，可自己更改。记录中的每个节点是parent->self->children关 系，也就说每个节点都可以向上找到root_node节点，由root_node可以遍历所有的节点。大概就这样的一个立体结构。
+ 
+这个类提供了常用接口setData,getData,setItemData, getItemData还有其它的呢，当然还有，不过个人常用的就setData,getData,setItemData, getItemData（代名词）,可能是以前用java用习惯了而采用这样的命名
+ 前两个用于key->value结构，后两个用于List结构。
+ 
+
+全图地址：http://hi.csdn.net/space-4870011-do-album-picid-668727.html
+ 结合图例看一下在实现thinkvd video effect中的Combox的部分代码(有关数据存储):
+
+标签：<无> 
+
+
+
+
+代码片段(1)
+
+
+[代码] cpp代码
+
+
+
+
+
+
+
+
+
+
+001
+
+void ImEffectWidget::slotComBox(int index)  //slot 处理
+
+
+
+
+
+002
+
+{
+
+
+
+
+
+003
+
+QString text;
+
+
+
+
+
+004
+
+QColor color;
+
+
+
+
+
+005
+
+QFont font;
+
+
+
+
+
+006
+
+QObject *obj = sender();
+
+
+
+
+
+007
+
+/* 1. for crop  ***************************/
+
+
+
+
+
+008
+
+if (obj->objectName() == "comboxZoom"){
+
+
+
+
+
+009
+
+  doComboxValue(m_ui.comboxZoom, "effect_crop_aspect_name", index);
+
+
+
+
+
+010
+
+}
+
+
+
+
+
+011
+
+/* 2. for effect  ***************************/
+
+
+
+
+
+012
+
+else if (obj->objectName() == "comboxEffect"){
+
+
+
+
+
+013
+
+  doComboxValue(m_ui.comboxEffect, "filter_effect_name", index);
+
+
+
+
+
+014
+
+  m_treeItem->setMediaData("filter_effect_index", index); //for player
+
+
+
+
+
+015
+
+}
+
+
+
+
+
+016
+
+/* 3. for watermark  ***************************/
+
+
+
+
+
+017
+
+else if (obj->objectName() == "comboxFont"){
+
+
+
+
+
+018
+
+  doComboxValue(m_ui.comboxFont, "effect_item_font_family", index, true);
+
+
+
+
+
+019
+
+}else if (obj->objectName() == "comboxColor"){
+
+
+
+
+
+020
+
+  doComboxValue(m_ui.comboxColor, "effect_item_color", index, true);
+
+
+
+
+
+021
+
+}else if (obj->objectName() == "comboxSize"){
+
+
+
+
+
+022
+
+  doComboxValue(m_ui.comboxFont, "effect_item_font_size", index, true);
+
+
+
+
+
+023
+
+}else if (obj->objectName() == "comboxStyle"){
+
+
+
+
+
+024
+
+  slotChangeStyle(index);
+
+
+
+
+
+025
+
+}
+
+
+
+
+
+026
+
+/* 5. for subtitle  ***************************/
+
+
+
+
+
+027
+
+else if (obj->objectName() == "comboxSTCodec"){
+
+
+
+
+
+028
+
+  text = m_ui.comboxSTCodec->itemText(index);
+
+
+
+
+
+029
+
+  m_treeItem->setMediaData("effect_subtitle_codec", text);
+
+
+
+
+
+030
+
+}else if (obj->objectName() == "comboxSTFrontColor"){
+
+
+
+
+
+031
+
+  doComboxValue(m_ui.comboxSTFrontColor, "effect_subtitle_front_color", index);
+
+
+
+
+
+032
+
+}else if (obj->objectName() == "comboxSTBackColor"){
+
+
+
+
+
+033
+
+  doComboxValue(m_ui.comboxSTBackColor, "effect_subtitle_back_color", index);
+
+
+
+
+
+034
+
+}else if (obj->objectName() == "comboxSTOutlineColor"){
+
+
+
+
+
+035
+
+  doComboxValue(m_ui.comboxSTOutlineColor, "effect_subtitle_outline_color", index);
+
+
+
+
+
+036
+
+}else if (obj->objectName() == "comboxSTScaleX"){
+
+
+
+
+
+037
+
+  doComboxValue(m_ui.comboxSTScaleX, "effect_subtitle_scalex", index);  
+
+
+
+
+
+038
+
+}else if (obj->objectName() == "comboxSTScaleY"){
+
+
+
+
+
+039
+
+  doComboxValue(m_ui.comboxSTScaleY, "effect_subtitle_scaley", index);
+
+
+
+
+
+040
+
+}else if (obj->objectName() == "comboxSTFont"){
+
+
+
+
+
+041
+
+  doComboxValue(m_ui.comboxSTFont, "effect_subtitle_font_family", index);
+
+
+
+
+
+042
+
+}else if (obj->objectName() == "comboxSTSize"){
+
+
+
+
+
+043
+
+  doComboxValue(m_ui.comboxSTSize, "effect_subtitle_font_size", index);
+
+
+
+
+
+044
+
+}else if (obj->objectName() == "comboxSTStyle"){
+
+
+
+
+
+045
+
+  slotChangeStyle(index);
+
+
+
+
+
+046
+
+}else if (obj->objectName() == "comboxSTSpacing"){
+
+
+
+
+
+047
+
+  doComboxValue(m_ui.comboxSTSpacing, "effect_subtitle_spacing", index);
+
+
+
+
+
+048
+
+}else if (obj->objectName() == "comboxSTTimer"){
+
+
+
+
+
+049
+
+  doComboxValue(m_ui.comboxSTTimer, "effect_subtitle_spacing", index);
+
+
+
+
+
+050
+
+}
+
+
+
+
+
+051
+
+ 
+
+
+
+
+
+052
+
+sendEffectEvent(); //for sdl event
+
+
+
+
+
+053
+
+}
+
+
+
+
+
+054
+
+ 
+
+
+
+
+
+055
+
+#define COLORVAL() \
+
+
+
+
+
+056
+
+if (comboxIndex < 0) return; \
+
+
+
+
+
+057
+
+ImColorComboBox *oc = qobject_cast<ImColorComboBox *>(o); \
+
+
+
+
+
+058
+
+color = oc->color(comboxIndex); \
+
+
+
+
+
+059
+
+ 
+
+
+
+
+
+060
+
+#define FONTVAL() \
+
+
+
+
+
+061
+
+if (saveKey.indexOf("subtitle") != -1) \
+
+
+
+
+
+062
+
+  fontKey = "effect_subtitle_font"; \
+
+
+
+
+
+063
+
+else \
+
+
+
+
+
+064
+
+  fontKey = "effect_item_font"; \
+
+
+
+
+
+065
+
+if (bSaveList==true) { \
+
+
+
+
+
+066
+
+  font = qVariantValue<QFont>(m_treeItem->mdata(fontKey)); \
+
+
+
+
+
+067
+
+}else{ \
+
+
+
+
+
+068
+
+  font = qVariantValue<QFont>(m_treeItem->getDataItem(fontKey)); \
+
+
+
+
+
+069
+
+}
+
+
+
+
+
+070
+
+ 
+
+
+
+
+
+071
+
+void ImEffectWidget::doComboxValue(QComboBox *o, const QString &saveKey, int comboxIndex, bool bSaveList)
+
+
+
+
+
+072
+
+{
+
+
+
+
+
+073
+
+QString text, dataKey, fontKey;
+
+
+
+
+
+074
+
+QFont font;
+
+
+
+
+
+075
+
+QColor color;
+
+
+
+
+
+076
+
+if (comboxIndex > -1)
+
+
+
+
+
+077
+
+  text = o->itemText(comboxIndex);
+
+
+
+
+
+078
+
+else
+
+
+
+
+
+079
+
+  text = o->currentText();
+
+
+
+
+
+080
+
+ 
+
+
+
+
+
+081
+
+bool bFont  = o->property("font").toBool();
+
+
+
+
+
+082
+
+bool bColor = o->property("color").toBool();
+
+
+
+
+
+083
+
+if (bFont || bColor) dataKey=QString("%1_data").arg(saveKey);
+
+
+
+
+
+084
+
+ 
+
+
+
+
+
+085
+
+if (bFont)
+
+
+
+
+
+086
+
+{
+
+
+
+
+
+087
+
+  FONTVAL();
+
+
+
+
+
+088
+
+ 
+
+
+
+
+
+089
+
+  if (text == "effect_item_font_family")
+
+
+
+
+
+090
+
+   font.setFamily(text);
+
+
+
+
+
+091
+
+  else if(text == "effect_item_font_size")
+
+
+
+
+
+092
+
+   font.setPointSize(text.toInt());
+
+
+
+
+
+093
+
+}
+
+
+
+
+
+094
+
+ 
+
+
+
+
+
+095
+
+if (bSaveList)
+
+
+
+
+
+096
+
+{
+
+
+
+
+
+097
+
+  if (bFont){  // font
+
+
+
+
+
+098
+
+   m_treeItem->setDataItem(saveKey, text);
+
+
+
+
+
+099
+
+   m_treeItem->setDataItem(fontKey, qVariantFromValue<QFont>(font));
+
+
+
+
+
+100
+
+  }else if(bColor){ //color
+
+
+
+
+
+101
+
+   COLORVAL();
+
+
+
+
+
+102
+
+ 
+
+
+
+
+
+103
+
+   m_treeItem->setDataItem(saveKey, text);
+
+
+
+
+
+104
+
+   m_treeItem->setDataItem(dataKey, qVariantFromValue(color));
+
+
+
+
+
+105
+
+  }else   //other
+
+
+
+
+
+106
+
+   m_treeItem->setDataItem(saveKey, text);
+
+
+
+
+
+107
+
+}else{
+
+
+
+
+
+108
+
+  if (bFont){
+
+
+
+
+
+109
+
+   m_treeItem->setMediaData(saveKey, text);
+
+
+
+
+
+110
+
+   m_treeItem->setMediaData(fontKey, qVariantFromValue<QFont>(font));
+
+
+
+
+
+111
+
+  }else if(bColor){
+
+
+
+
+
+112
+
+   COLORVAL();
+
+
+
+
+
+113
+
+ 
+
+
+
+
+
+114
+
+   m_treeItem->setMediaData(saveKey, text);
+
+
+
+
+
+115
+
+   m_treeItem->setMediaData(dataKey, qVariantFromValue(color));
+
+
+
+
+
+116
+
+  }else
+
+
+
+
+
+117
+
+   m_treeItem->setMediaData(saveKey, text);
+
+
+
+
+
+118
+
+}
+
+
+
+
+
+119
+
+}
+
+
+
+举报
+
+
+
+开源中国-程序员在线工具：API文档大全(120+) JS在线编辑演示 二维码更多»
+
+ 
+
+
+相关的代码(83)
+1回/353阅[C/C++]GUI电子表格3天前 By Bephax*
+0回/206阅[C/C++]硬盘文件备份工具2.03天前 By pingdan32
+0回/112阅[C/C++]将一个源目录下的所有文件备份到目的目录下，只备份目标目录中不存在的文件。6天前 By pingdan32
+0回/82阅[C/C++]正则表达式简易测试8天前 By 稀饭桶子
+1回/674阅[C/C++]Qt显示网络图片23天前 By 无脸程序员
+1回/740阅[C/C++]贪吃蛇游戏1个月前 By cool609
+6回/384阅[C/C++]linux下的图形化串口调试工具1个月前 By 飞扬青云
+0回/674阅[C/C++]QT获取网页内容1个月前 By solookin
+10回/2011阅[C/C++]蛇年中小企业用抽奖程序2个月前 By 龍禳
+3回/749阅[C/C++]做了一个qt版的计算器，并能在ARM6410上运行！3个月前 By 蒯翔
+显示所有 »
+
+发表评论回到顶部网友评论(0)
+
+
+暂无网友评论
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+回到顶部   回到评论列表
+
+开源从代码分享开始 分享代码
+
+
+
+鉴客的其他代码PHP 检测是否 Ajax 请求(9评/1047阅,3个月前)
+使用 PHP 限制下载速度(5评/857阅,4个月前)
+JavaScript 获取当前页面的 URL 地址(1评/1007阅,4个月前)
+httpclient 设置user-agent(0评/569阅,5个月前)
+c# 获取 httponly cookie(0评/548阅,6个月前)
+全部(608)...
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+© 开源中国(OsChina.NET) | 关于我们 | 广告联系 | @新浪微博 | 开源中国手机版 | 粤ICP备12009483号-3
+ 
+开源中国手机客户端：AndroidiPhoneWP7 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2条新留言，查看留言»
+
+
+
+

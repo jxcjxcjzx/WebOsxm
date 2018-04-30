@@ -1,0 +1,466 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+我的程序世界Python 脚本 C++ C 游戏 系统
+目录视图摘要视图订阅
+亲，“社区之星”已经一周岁了！        WebApp实时开源框架Clouda---认识心得      Tag功能介绍—我们为什么打Tag      订阅CSDN社区周刊，及时了解社区精华内容
+ 金山卫士界面源码解读及界面库分离(2)
+分类： 界面 C++语言 2011-03-20 23:15 22802人阅读 评论(23) 收藏 举报
+金山notificationscommandmfcwinapixml
+前面已经发布了分离后的Kui代码,我们继续,下面来解释该代码库的使用.
+
+ 
+
+首先要说下Kui框架的一些基础概念:
+
+ 一、
+
+金山界面库不使用Windows的窗口布局,只是使用Windows的窗口作为一个载体,整个窗口都只是作为一个绘制面,
+
+ 
+
+而Kui对窗口实行重新布局,取消了原窗口非客户区和客户区的概念.而自己对窗口划分为上中下三个部分.
+
+ 
+
+上部分为Header,一般作为窗口标题栏,可以放置缩小,最大化,关闭按钮,
+
+中部分为Body,是窗口主要功能操作区域,
+
+下部分为Footer,一般作为状态显示.
+
+ 
+
+这部分说明主要是为了以后写XML时使用. 
+
+ 
+
+ 二、
+
+Kui将使用到的诸如图片，布局定义xml等文件使用zip打包，并按资源名"kuires.dat",资源类别为"SKIN"，保存到运行程序的资源里
+
+ 
+
+ 三、
+
+Kui库使用xml格式定义控件及资源的布局，这也是通常DirectUI的做法（xml布局，脚本控制[Kui里面没使用]，windowless）。
+
+ 
+
+有了以上的概念就可以使用Kui来进行界面开发了。
+
+ 
+
+同学们可以参考第一个样例程序----该程序在客户区显示经典的hello world.并且对窗口外框进行了美化。
+
+ 
+
+一、建立工程
+
+首先使用向导建立一个Win32程序，对！是Win32程序，选择了Kui，你将不能使用MFC编程了，因为没有了MFC的窗口概念。
+
+ 
+
+你将应用微软的另一个库进行程序开发----WTL。
+
+ 
+
+好处就是开发出来的程序不会那么臃肿了，缺点嘛，就是没有MFC那么方便了。
+
+ 
+
+不过习惯了也没什么的。都是同一家公司的技术，所以肯定各有好处。
+
+ 
+
+二、编写入口程序
+
+首先当然是包含库文件，在stdafx.h中定义
+
+// 界面库
+#include "../../include/KUILib.h"
+
+ 
+
+然后写入口函数
+
+WTL的程序都有一个程序实例，与MFC的CWinApp对应，但Kui对它进行了继承以完成了一些初始化操作，你可以直接使用该类来定义实例。如Sample1所示：
+
+HINSTANCE g_hInstance; // 定义实例句柄，必须的。
+CKuiApp<CMainWnd> _Module;//用Kui的默认类，其中CMainWnd是模版参数，是使用的主窗口类，后面会解释，定义一个实例，你也可以继承新的类。
+
+CAppModule* _ModulePtr = &_Module;// 定义实例指针，必须的。
+
+完整代码：
+
+[cpp] view plaincopy
+#include "stdafx.h"  
+#include "./mainwnd.h"  
+  
+  
+//  
+HINSTANCE g_hInstance;   
+//  
+CKuiApp<CMainWnd> _Module;  
+CAppModule* _ModulePtr = &_Module;  
+//  
+//  
+  
+int WINAPI _tWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,  
+    LPTSTR lpCmdLine, int nCmdShow)  
+{  
+    g_hInstance = hInstance;  
+  
+  
+    _Module.Init( hInstance );  
+    _Module.Main();  
+    _Module.UnInit();  
+  
+      
+    return 0;  
+}  
+
+ 
+
+三、窗口函数定义
+
+下面接着要编写主窗口类了
+
+其中头文件MainWnd.h如下：
+
+[cpp] view plaincopy
+#pragma once  
+#include "stdafx.h"  
+class CMainWnd : public CKuiDialogImpl<CMainWnd>  
+    , public CWHRoundRectFrameHelper<CMainWnd>  
+{  
+public:  
+    CMainWnd(void);  
+    virtual ~CMainWnd(void);  
+    void OnDestroy();  
+  
+    void OnBkBtnClose();  
+    void OnBkBtnMax();  
+    void OnBkBtnMin();  
+      
+  
+    KUI_NOTIFY_MAP(IDC_RICHVIEW_WIN)  
+        KUI_NOTIFY_ID_COMMAND(60001, OnBkBtnClose)  
+        KUI_NOTIFY_ID_COMMAND(60002, OnBkBtnMax)  
+        KUI_NOTIFY_ID_COMMAND(60003, OnBkBtnMin)  
+        //KUI_NOTIFY_TAB_SELCHANGE(IDC_TAB_MAIN, OnBkTabMainSelChange)  
+    KUI_NOTIFY_MAP_END()  
+  
+    BEGIN_MSG_MAP_EX(CMainWnd)  
+        MSG_KUI_NOTIFY(IDC_RICHVIEW_WIN)  
+        CHAIN_MSG_MAP(CKuiDialogImpl<CMainWnd>)  
+        CHAIN_MSG_MAP(CWHRoundRectFrameHelper<CMainWnd>)  
+  
+        //MSG_WM_INITDIALOG(OnInitDialog)  
+        //MSG_WM_SYSCOMMAND(OnSysCommand)  
+        MSG_WM_DESTROY(OnDestroy)  
+          
+        REFLECT_NOTIFICATIONS_EX()  
+    END_MSG_MAP()  
+};  
+
+实现文件MainWnd.cpp如下：
+
+[cpp] view plaincopy
+#include "stdafx.h"  
+#include "./mainwnd.h"  
+  
+  
+CMainWnd::CMainWnd(void) : CKuiDialogImpl<CMainWnd>( "IDR_DLG_MAIN" )  
+{  
+}  
+  
+CMainWnd::~CMainWnd(void)  
+{  
+}  
+  
+void CMainWnd::OnDestroy()  
+{  
+    PostQuitMessage(0);  
+}  
+  
+  
+void CMainWnd::OnBkBtnMax()  
+{  
+    if (WS_MAXIMIZE == (GetStyle() & WS_MAXIMIZE))  
+    {  
+        SendMessage(WM_SYSCOMMAND, SC_RESTORE | HTCAPTION, 0);  
+    }  
+    else  
+    {  
+        SendMessage(WM_SYSCOMMAND, SC_MAXIMIZE | HTCAPTION, 0);  
+    }  
+}  
+  
+void CMainWnd::OnBkBtnMin()  
+{  
+    SendMessage(WM_SYSCOMMAND, SC_MINIMIZE | HTCAPTION, 0);  
+}  
+  
+void CMainWnd::OnBkBtnClose()  
+{  
+    DestroyWindow();  
+}  
+
+ 
+
+下面对代码关键部分进行说明：
+
+主窗口继承自两个类
+
+CKuiDialogImpl<CMainWnd> 是对话框窗口实现模版，主窗口继承自该类，没有接触模版的同学可能对该写法有些奇怪，看看模版介绍就可以了。
+
+CWHRoundRectFrameHelper<CMainWnd> 是一个异型窗口辅助，实现了圆角窗口。
+
+ 
+
+[cpp] view plaincopy
+KUI_NOTIFY_MAP(IDC_RICHVIEW_WIN)  
+        KUI_NOTIFY_ID_COMMAND(60001, OnBkBtnClose)  
+        KUI_NOTIFY_ID_COMMAND(60002, OnBkBtnMax)  
+        KUI_NOTIFY_ID_COMMAND(60003, OnBkBtnMin)  
+    KUI_NOTIFY_MAP_END()  
+
+上面这些宏映射了控件通知到相应的函数
+
+ 
+
+[cpp] view plaincopy
+BEGIN_MSG_MAP_EX(CMainWnd)  
+  MSG_KUI_NOTIFY(IDC_RICHVIEW_WIN)  
+  CHAIN_MSG_MAP(CKuiDialogImpl<CMainWnd>)  
+  CHAIN_MSG_MAP(CWHRoundRectFrameHelper<CMainWnd>)  
+  
+  //MSG_WM_INITDIALOG(OnInitDialog)  
+  //MSG_WM_SYSCOMMAND(OnSysCommand)  
+  MSG_WM_DESTROY(OnDestroy)  
+    
+  REFLECT_NOTIFICATIONS_EX()  
+ END_MSG_MAP()  
+
+ 
+
+上面这些宏映射了窗口消息到对应函数。
+
+ 
+
+这些代码作用跟MFC的消息映射作用是一样的，但实作手法有些差异。其实WTL的更原始。
+
+ 
+
+实现部分的代码就比较简单了。
+
+ 
+
+四、最后就是资源的添加了。
+
+可以参考Sample1.rc文件，直接在相应位置添加一行
+
+kuires.dat    SKIN     "res//sample1.kui"
+
+ 
+
+至此Kui库整个使用过程就是如此简单。
+
+你需要做的就是定义主窗口的消息处理及函数而已。
+
+ 
+
+ 
+
+本项目已经在GOOGLE的开源项目里创建了工程，如果你有兴趣加入可以联系我。
+
+svn https://openkui.googlecode.com/svn/trunk
+
+ 
+
+本程序代码可以在第一篇里下载
+
+金山卫士界面源码解读及界面库分离(1)
+
+更多 0
+上一篇：金山卫士界面源码解读及界面库分离(1)
+下一篇：金山卫士界面源码解读及界面库分离(3)
+
+查看评论
+22楼 毛飞扬___It跑路男 2011-11-20 21:35发表 [回复]
+
+已经 包含 wddk lib i386
+21楼 毛飞扬___It跑路男 2011-11-20 21:35发表 [回复]
+
+错误	14	error LNK2019: 无法解析的外部符号 "void __stdcall ATL::__FreeStdCallThunk(void *)" (?__FreeStdCallThunk@ATL@@YGXPAX@Z)，该符号在函数 "public: static void __cdecl ATL::_stdcallthunk::operator delete(void *)" (??3_stdcallthunk@ATL@@SAXPAX@Z) 中被引用	E:\源码参考类\界面库\Kui\Kui\Samples\Sample1\MainWnd.obj	Sample1
+20楼 zl59503020 2011-07-20 11:36发表 [回复]
+
+很强.但我不知道为什么我在vs2008编译.四个一个都没成功过...
+Re: b2b160 2011-07-20 15:20发表 [回复]
+
+回复zl59503020：我是vs2003编译的,所以如果要在其它编译器编译,请先编译ksclib,具体见后面的你问我答
+19楼 netbear 2011-04-14 09:59发表 [回复]
+
+svn打不开啊
+18楼 Zen_Yue 2011-03-31 16:06发表 [回复]
+
+迅雷的bolt功能要强大些，可惜不是开源的
+17楼 b2b160 2011-03-30 18:05发表 [回复]
+
+可以用任何支持打包zip文件的软件
+16楼 sjcode 2011-03-30 16:10发表 [回复]
+
+请教,把修改过的资源放回zip包时,用什么软件压缩?[e07]
+15楼 b2b160 2011-03-25 23:35发表 [回复]
+
+To esue181:这个,我直接手写的[e08]
+等我以后有时间写一个编辑器吧
+14楼 esue181 2011-03-25 03:17发表 [回复]
+
+[e01] vs2005编译成功，请问界面布局是怎么设计出来的，有什么工具吗？
+13楼 ytfrdfiw 2011-03-24 20:00发表 [回复]
+
+[e01]
+12楼 enic 2011-03-24 10:21发表 [回复]
+
+偶要加入
+
+ErrorCpp@gmail.com
+神仙收下我吧
+11楼 enic 2011-03-24 10:15发表 [回复]
+
+偶要加入
+10楼 caocheng8230 2011-03-24 08:55发表 [回复]
+
+mark
+9楼 silencemiss 2011-03-23 22:25发表 [回复]
+
+收藏
+8楼 好好学习_天天向上 2011-03-23 18:41发表 [回复]
+
+[e01]
+7楼 wei632546046 2011-03-23 18:24发表 [回复]
+
+[e01][e02][e03][e05]
+6楼 Waiting4you 2011-03-23 14:25发表 [回复]
+
+不错，已经成功在VS2008上编译成功了。要是有界面生成工具就好了。
+5楼 lanzhengpeng2 2011-03-23 10:16发表 [回复]
+
+不会编译,乱七八糟的东西.
+4楼 lanzhengpeng2 2011-03-23 10:15发表 [回复]
+
+不会编译.乱七八糟的.
+3楼 我是苦力 2011-03-22 14:10发表 [回复]
+
+不错！
+期待LZ讲讲它的界面布局，资源等是怎么编辑的。
+2楼 virtualcode 2011-03-21 23:17发表 [回复]
+
+[e01]
+1楼 无幻 2011-03-21 18:45发表 [回复]
+
+[e03]厉害 先收藏起来
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+ TOP
+核心技术类目
+全部主题 数据挖掘 SOA UML 开放平台 HTML5 开源 移动开发 iOS Android 移动游戏 Windows Phone JavaScript CSS 游戏引擎 云计算 大数据 Hadoop OpenStack 云平台 PHP MongoDB JSON Xcode Node.js 前端开发 神经网络 安全 Java .NET MySQL textview BigTable web框架 SQL Redis CouchDB Linux 可穿戴计算 NoSQL Ruby API GPL XAML ASP.NET 前端开发 虚拟化 框架 机器学习 数据中心 IE10 敏捷 集群
+个人资料
+ 访问我的空间 
+b2b160
+ 
+访问：392510次
+积分：5162分
+排名：第994名
+原创：63篇转载：197篇译文：3篇评论：731条
+文章搜索
+
+文章分类
+2D游戏(19)
+3D游戏世界(15)
+C++(15)
+C++语言(46)
+GDI开发游戏系列(5)
+LINUX(1)
+SilverLight(1)
+Small Basic(0)
+The New C Standard(0)
+WINDOWS API(4)
+国学(3)
+投资(1)
+搜索引擎(4)
+杂项(6)
+汇编及系统(44)
+理论(11)
+理论(1)
+界面(28)
+移动开发(3)
+算法(9)
+综合类(15)
+网络编程(26)
+脚本(35)
+深夜梦话(0)
+文章存档
+2012年05月(1)
+2012年02月(1)
+2011年07月(3)
+2011年04月(2)
+2011年03月(4)
+展开
+阅读排行
+金山卫士界面源码解读及界面库分离(1)(27275)
+金山卫士界面源码解读及界面库分离(2) (22801)
+非常好的理解遗传算法的例子(22517)
+金山卫士界面源码解读及界面库分离(5) (14929)
+开源游戏引擎介绍(13009)
+金山卫士界面源码解读及界面库分离(4) (12652)
+金山卫士界面库界面编辑器KuiDesigner V1.0 Alpha 基本完成了(9876)
+金山卫士界面源码解读及界面库分离(3) (9132)
+金山卫士界面源码解读及界面库分离(附录) --你问我答(8912)
+分析C++方式构造函数调用虚函数的问题(7886)
+评论排行
+金山卫士界面源码解读及界面库分离(附录) --你问我答(110)
+金山卫士界面源码解读及界面库分离(5) (95)
+金山卫士界面源码解读及界面库分离(1)(75)
+金山卫士界面库界面编辑器KuiDesigner V1.0 Alpha 基本完成了(54)
+金山卫士界面源码解读及界面库分离(4) (48)
+分析C++方式构造函数调用虚函数的问题(46)
+小小的蚂蚁很强大(蚂蚁算法MFC实现)(44)
+XP下开机回答问题才让使用的解决办法(42)
+金山卫士界面源码解读及界面库分离(2) (23)
+金山卫士界面源码解读及界面库分离(3) (22)
+推荐文章
+
+最新评论
+在CListCtrl之间及CListCtrl内部实现拖放
+omxian: 0 0,代码在哪
+小小的蚂蚁很强大(蚂蚁算法MFC实现)
+jiezhukk: 求源码，509819531@qq.com.谢谢楼主！
+FAT12文件系统基本格式
+翼飞: 1 + 0 + 2*9 + 14 -2=31
+小小的蚂蚁很强大(蚂蚁算法MFC实现)
+enpain: 楼主求源码enpainduan@163.com
+非常好的理解遗传算法的例子
+Charles_Wenchy: 目前看到的讲解GA，讲解得最浅显易懂~
+非常好的理解遗传算法的例子
+sailorconan: 我也不明白选择结果怎么出来的？还有选择次数怎么出来的？
+QQ协议HTTP
+wuxiping101: 很古老的一种协议了.大家一起交流一下QQ协议吧www.10qf.com
+非常好的理解遗传算法的例子
+kevin1181: 交叉的结果好像不对吧！
+非常好的理解遗传算法的例子
+netmouse2008: 标记 后面学习一下确实很想学做些这类高水准的东西
+小小的蚂蚁很强大(蚂蚁算法MFC实现)
+iwillmoon: iwillmoon@qq.com求源码交流学习。
+Game
+宠物部落
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved GongshangLogo
+  

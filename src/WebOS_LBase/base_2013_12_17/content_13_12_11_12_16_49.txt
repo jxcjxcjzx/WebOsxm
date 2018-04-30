@@ -1,0 +1,278 @@
+
+
+Chinaunix首页　| 　论坛　| 　问答　| 　博客登录 | 注册
+
+
+
+博文博主
+
+
+
+
+
+
+
+
+
+
+spengdong
+
+为未来呐喊
+
+
+•【原创评选】12-02月原创博文评选
+•2013第三季度“ChinaUnix博客之星”评选
+•2013 Hadoop中国技术峰会（11.22-11.23，北京） 
+
+首页　| 　博文目录　| 　关于我
+ 
+
+
+
+
+spengdong
+•博客访问： 90983 
+•博文数量： 153 
+•博客积分： 1302 
+•博客等级： 中尉 
+•技术积分： 1467 
+•用 户 组： 普通用户
+•注册时间： 2006-03-07 16:00 
+•
+
+•
+•
+•
+•
+
+
+文章分类
+
+
+全部博文（157）
+•网络（3） 
+•android（2） 
+•流媒体（3） 
+•QT（13） 
+•随笔（4） 
+•硬件（1） 
+•开发平台（27） 
+•嵌入式linux（70） 
+•未分配的博文（34） 
+
+
+文章存档
+
+
+2013年（71）
+
+
+
+
+
+
+
+
+
+
+2012年（37）
+
+
+
+
+
+
+
+
+
+
+
+2011年（39）
+
+
+
+
+
+
+
+
+
+
+2009年（1）
+
+
+2007年（2）
+
+
+
+2006年（3）
+
+
+
+我的朋友
+•
+longjiac
+
+•
+小雅贝贝
+
+
+
+最近访客
+•
+yanyao32
+
+•
+aiminke
+
+•
+Crazy_bu
+
+•
+wowoqi20
+
+•
+lubing52
+
+•
+honglian
+
+•
+luosijin
+
+•
+yihuage
+
+•
+tiydy
+
+
+
+订阅
+•
+•
+
+
+推荐博文
+•·自动化测试之控件点击...
+•·linux打补丁和git打patch方法...
+•·华为的一道机试题及答案（压...
+•·存储网络协议
+•·用cscope和vim读源码；
+
+
+热词专题
+•·Win7系统如何自动拨号...
+•·如何查看jdk 位数
+•·linux内核驱动模块写文件...
+•·Linux 多核下绑定硬件中断到...
+•·linux下格式化和分区命令...
+ 
+
+
+
+linux中ramdisk的使用2013-04-16 15:52:32
+
+
+
+分类： LINUX
+
+
+
+
+             内存盘的存取速度要远快于目前的物理硬盘，可以被用作需要高速读写的文件。像WEB服务器这样的计算机，需要大量的读取和交换特定的文件，因此，在WEB服务器上建立RamDisk会大大提高网络读取速度。注意：在2.6版本后，Ramdisk的这一作用开始被tmpfs(Virtual memory file system support)取代。tmpfs 就像虚拟磁盘（RamDisk），但不一样。像虚拟磁盘一样，tmpfs 可以使用 RAM，但也可以使用交换分区来存储。
+ 而传统的虚拟磁盘是个块设备，并且需要格式化才能真正地使用，tmpfs 是一个文件系统，而不是块设备，只要安装，它就可以使用了。   
+
+                为了能够使用RAMdisk你的内核必须要支持RAM disk，即：在编译内核时，要选中RAM disk support这一选项，会在配置文件中定义CONFIG_BLK_DEV_RAM。为了让内核有能力在内核加载阶段就能装入RAMDISK，并运行其中的内容，要选中initial RAM disk(initrd) support选项，会在配置文件中定义CONFIG_BLK_DEV_INITRD。
+
+ 系统中已有的“内存盘”
+  查看系统中有那些“内存盘”      Linux内核默认创建了16个ramdisks。它们目前是未启用的，不占用任何内存空间。这16个设备分别是/dev/ram0 -- /dev/ram15。虽然我们可以看到还有/dev/ram16 -- 19，但是它们默认是不可用的。 通过更改rd.c的配置，可以使系统支持的RAM disk的数量增加到255个。为了使用更多的RAM disk，我们可以使用“mknod  /dev/ramX b 1 X”命令创建更多的RAM disk设备文件，并且通过chmod命令将他们的访问权限改成我们想要的。
+ 使用下面的命令查看：
+
+[root]# ls -l /dev/ram*
+ 
+
+查看系统中内存盘的大小 [root]# dmesg | grep RAMDISK
+ RAMDISK driver initialized: 16 RAM disks of 4096K size 1024 blocksize
+ RAMDISK: Compressed image found at block 0
+ 也就是说，默认的 RamDisk 是4MB的。  格式化RamDisk     #一般是使用ext2文件系统格式化RANdisk，而在此之前，即使我们的电脑中有ramdisk*设备文件，他们是不占空间，没有用处的，必须进行格式化之后才能使用。 接下来就需要做文件系统了，也就是格式化。RamDisk是临时性的，所以没有带日志的文件系统的必要，所以我们一般做ext2就可以了：[root]# mke2fs -m 0 /dev/ram0 //使用ext2文件系统格式化ram0
+
+
+
+mke2fs 的-m<百分比值>选项：指定给管理员保留扇区的比例。在这里，-m 0，即：不为管理员保留任何扇区，任何普通用户都可以使用所有可用的空间。
+
+ 创建挂载点并挂载RamDisk
+  现在，我们的 RamDisk 已经可以使用了，只需要再将它挂接到一个可访问的目录点：[root]# mkdir /mnt/rd
+ [root]# mount /dev/ram0 /mnt/rd //将/dev/ram0挂载到/mnt/rd目录下
+ 我们来验证一下，RamDisk是否已经挂在成功了：[root]# mount | grep ram0
+ /dev/ram0 on /mnt/rd type ext2 (rw)
+ [root]# df -h | grep ram0
+ /dev/ram0              16M   13K   16M   1
+ % /mnt/rd
+ 使用RamDisk Now that it has been created, you can copy, move, delete, edit, and list files on the ramdisk exactly as if they were on a physical disk partiton.To unmount the ramdisk, simply enter the following：[root]# umount -v /mnt/rd
+
+/dev/ram0 umounted
+
+关于RAMdisk的使用的例子，这里给出一个很常见的用法：使用RamDisk做/tmp目录.如果你的内存太多，那么可以将其中一部分做为/tmp目录，这样将大大提高你的系统执行速度。而且，/tmp将会在系统重新启动时被删除，多么惬意呀。
+ 与RAMdisk有关的命令行参数： ramdisk_size=N  这个参数告诉RAM磁盘驱动将RAM磁盘的大小设置为N k，默认是4096（4 MB）。  RAM磁盘的大小会根据需要动态的增长，因此其大小有个上限加以限制以免它用光所有可用的内存而坏事。ramdisk_size这个参数实际是设置这个上限值的。我们可以通过命令：dmesg | grep RAMDISK来查看这个上限值。要注意的是，这个值在系统运行阶段是不能再被修改的。尽管RAM磁盘的大小有个最大值，但我们可以指定需要使用的RAM磁盘的容量。比如，在本例中我们设为2MB。通过写入RAM磁盘设备来创建。命令为dd if=/dev/zero of=/dev/ram0 bs=1k count=2048。当我们没有指定需要使用的RAM磁盘的容量，而直接在其上挂载文件系统时，它的容量是其上限值。load_ramdisk=N 这个参数告诉内核是否要载入一个RAMDISK映像。load_ramdisk =1时指定核心将软盘载入内存。默认值是0，表示内核不要去载入RAMDISK映像。prompt_ramdisk=N此参数告诉内核是否要给你个提示要求插入含RAMDISK映像的软盘。在只用一张软盘的配置下RAMDISK映像与刚刚载入／启动的核心在相同的软盘上，故不需要提示，这种情况可以用 `prompt_ramdisk=0'。
+在使用两张软盘的配置下你需要交换软盘，故可以使用 `prompt_ramdisk=1'。因为这是预设值，所以不必真的去指定它。
+
+ramdisk_start=NNN
+ 为了使内核映像能够与压缩的RAMDISK映像放在一张软盘内，所以加入这个 `ramdisk_start=<offset>' 指令。 内核不能够放在压缩过的RAMDISK磁盘的文件系统映像里，因为它得从最开始的第零磁区开始放置，这样基本输出入系统(BIOS)才能载入启动磁区而内核也才能够开始启动执行。(参考Documentation/ramdisk.txt，但是我不太明白)?????????注意：如果你使用的是没有压缩的RAMDISK磁盘映像，那么内核可以是要载入的RAMDISK磁盘的文件统映像的一部份，且该软盘可以由 LILO 启动，两者也可以如同压缩的映像那样为分开的两部份。 如果你使用启动／根(boot/root)两张磁盘的方式（内核一张，RAMDISK映像放第二张）那么RAMDISK磁盘会由第零磁区开始，并使用零作为偏移值(offset)。因为这是预设值，你根本不必真的去使用这个指令。 使用"rdev -r"  命令“rdev –r”设置内核镜像文件中的两个字节(32bit)，这两个字节中各个位的含义如下：低11位(0 -> 10)指定了一个偏移量(以1K的块为单位)，最到能寻址到2M，用以指定到何处去寻找RAM磁盘。第14位指示RAM磁盘是否被加载。第15位指示是否在加载RAM磁盘之前给出一个提示并等待用户指令。 如果随着数据被写入RAM磁盘，RAM磁盘的大小是动态增长的，那么指定RAM磁盘的大小的域将被忽略。11到13位没有被使用，所以可以为0。 上面所列的数据并非什么秘密，可以在参照下列地方：
+  进入内核源码所在目录：./arch/i386/kernel/setup.c:#define RAMDISK_IMAGE_START_MASK 0x07FF./arch/i386/kernel/setup.c:#define RAMDISK_PROMPT_FLAG 0x8000./arch/i386/kernel/setup.c:#define RAMDISK_LOAD_FLAG 0x4000 考察一个典型的"两张软盘启动"，内核在第一张软盘上，并且已经将一个RAM磁盘镜像文件放到了第二张软盘上。 所以你希望将0到13位设置为0，这将意为着你的RAM磁盘处于从软盘起始地址偏移量为0KB的地方。相同功能的命令行参数为："ramdisk_start=0" 你希望第14位为1，即声明加载RAM磁盘。相同功能的命令行参数为："load_ramdisk=1 你希望第15位为1，这是声明希望显示一个提示并等待用户的按键以得到一个提示机会来更换软盘。形同功能的命令行参数为："prompt_ramdisk=1" 将上述的标志位综合在一起得到：2^15 + 2^14 + 0 = 49152作为参数传递给rdev用来设置内核镜像里的两个字节。所以如果创建上述的第一个磁盘，你需要进行如下操作：/usr/src/linux# cat arch/i386/boot/zImage > /dev/fd0/usr/src/linux# rdev /dev/fd0 /dev/fd0/usr/src/linux# rdev -r /dev/fd0 49152 如果你创建一个使用了lilo的启动磁盘，为了得到上面说明的那些效果，你需要使用下列lilo的参数：append = "ramdisk_start=0 load_ramdisk=1prompt_ramdisk=1"考虑到默认的start = 0和prompt = 1，你可以简化lilo的命令行参数为：append = "load_ramdisk=1" 一个创建压缩RAM磁盘的例子： 为了创建一个RAM磁盘的镜像，你需要你一个单独的块设备。这个块设备可以是一个RAM磁盘设备本身，也可以是一个未使用的磁盘分区(比如一个没有被挂载的交换分区)。在这个例子中，我们将使用RAM磁盘设备："/dev/ram0"。
+  a)确定你希望使用的RAM磁盘的容量 比如，在本例中我们设为2MB。通过写入RAM磁盘设备来创建。最好写入0，这样下一步创建镜像时进行最大比例压缩的时候比较方便压缩未使用的块。命令为：dd if=/dev/zero of=/dev/ram0 bs=1k count=2048 
+ b)创建一个文件系统。在本例中使用ext2fs。命令为：mke2fs -vm0 /dev/ram0 2048 
+ c)挂载这个磁盘设备 无论是一个RAM磁盘设备，还是一个单独的分区，向里面拷贝你需要的文件(比如：/etc/* /dev/* ...)。然后卸载这个设备(umount)。
+ d)压缩这个RAM磁盘镜像。 压缩之后，被实际使用的空间大约能压缩到原来的50%，并且未被使用的空间几乎被完全压缩到0。命令为：dd if=/dev/ram0 bs=1k count=2048 | gzip -v9 > /tmp/ram_image.gz 
+ e)将内核放入软盘。 命令为：dd if=zImage of=/dev/fd0 bs=1k 
+ f)将RAM磁盘镜像放入软盘。 使用一个比内核所占空间略大的偏移量。之所以要有一个略大的偏移量，可以方便以后更换内核，而不会覆盖到RAM磁盘的镜像。比如，如果内核占用了350KB，那么写入RAM磁盘镜像的时候使用400KB的偏移量是比较合理的。注意：确定"偏移量+RAM磁盘镜像的体积"不会超出软盘的容量(通常是1440KB)。命令为：dd if=/tmp/ram_image.gz of=/dev/fd0 bs=1k seek=400 g)使用rdev命令设置启动设备，RAM磁盘偏移量，是否提示换磁盘标志，等等。 比如设置：prompt_ramdisk=1, load_ramdisk=1,ramdisk_start=400,这些标志时，可以计算出来：2^15 + 2^14 + 400 = 49552，使用的命令可能为：rdev /dev/fd0 /dev/fd0rdev -r /dev/fd0 49552 到此为止，你已经获得了你自己的启动/根压缩RAM磁盘(软盘)，你也可以将步骤d和步骤f通过管道一步执行。
+ 
+
+
+阅读(225) | 评论(0) | 转发(0) | 
+
+
+0
+
+上一篇：嵌入式Linux常用文件系统
+
+下一篇：谈谈Linux内核驱动的coding style
+
+
+相关热门文章
+•迅捷PDF阅读器免费小说阅读器...
+•迅捷PDF阅读器免费小说阅读器...
+•迅捷PDF阅读器免费小说阅读器...
+•使用SmartUpload组件实现文件...
+•迅捷PDF阅读器免费小说阅读器...
+•linux 常见服务端口
+•【ROOTFS搭建】busybox的httpd...
+•什么是shell
+•linux socket的bug??
+•linux的线程是否受到了保护？...
+•通过什么方式可以知道对方在什...
+•iphone5微信聊天记录怎样能查...
+•关于ubuntu root 的求助
+•下面的调用为何可以成功？ 为...
+•ChinaUnix问答平台12月排行榜...
+
+
+
+给主人留下些什么吧！~~
+
+
+
+
+评论热议
+
+
+ 请登录后评论。 
+登录 注册
+ 
+
+关于我们 | 关于IT168 | 联系方式 | 广告合作 | 法律声明 | 免费注册
+Copyright 2001-2010 ChinaUnix.net All Rights Reserved 北京皓辰网域网络信息技术有限公司. 版权所有 
+
+感谢所有关心和支持过ChinaUnix的朋友们 
+京ICP证041476号 京ICP证060528号
+ 

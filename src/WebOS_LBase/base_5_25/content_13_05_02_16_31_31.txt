@@ -1,0 +1,65 @@
+分享到一键分享QQ空间新浪微博百度搜藏人人网腾讯微博百度相册开心网腾讯朋友百度贴吧豆瓣网搜狐微博百度新首页QQ好友和讯微博更多...百度分享
+首页 论坛 问答 博客  登录 注册  
+茶爽的空间 主页| 博客| 相册| 个人档案|    查看文章    
+标题：CRC循环编码的Verilog实现2010-05-04 18:05:36        迷茫了几天，痛苦了几天，今天终于把CRC循环编码的Verilog代码搞定了，也许是心情好转的缘故吧，不管怎么说，终究是做出来了，之前写的代码，也没找出是什么原因，不管输入什么，编码输出总是同一码元，郁闷~~今天重新写了一遍，原理还是一样，结果却是意料之中的，不管了，以后有时间再找原因吧，现在把写好的代码分享一下，希望大家提出意见
+      Verilog代码如下：
+module code_crc(clk,reset,data,out);
+input clk,reset;
+input[7:0] data;
+output[15:0] out;
+reg[15:0] out;
+//变量声明
+reg[16:0] s;
+integer i;
+
+always@(posedge clk)
+begin
+ if(!reset)
+  begin
+ s=17'b0;
+ out=16'b0;
+  end
+ else
+  begin
+   s={data[7:0],9'b0};
+ begin
+    for(i=7;i>0;i=i-1)
+   begin
+    if(s[16]==0)              //若第一位为0，左移一位；
+     s=s<<1; 
+  else begin
+    s=s^17'b11000000000000101;/*若第一位为1，则与生成多项式进行异或操作；*/
+  s=s<<1;        //左移一位；
+       end
+   end
+   out=s[15:0];               //s的后16位即为校验位；
+ end
+  end
+end
+endmodule
+       上代码中，只是实现输出了校验位，编码结果如何计算就不再啰嗦，相信大家都会了~~附上仿真图，如下：
+
+ 
+ 
+
+本文引用通告地址：http://fondkobe1987.spaces.eepw.com.cn/articles/trackback/item/78459 类别：FPGA | 浏览(3093) 引用(0)   如果您想出现在此位置，请您先【登录】！
+徐涛 
+jdpeng6202 
+我不是神 
+fishmars 
+wanghao_0910 
+renzaijianghu1 
+roger_shan 
+yjt98765 
+飞的更高8 
+fanta23  网友评论：   发表评论：姓　名：  [ 登陆 ]*姓名最长为50字节   
+   
+内　容：    
+ 
+验证码：   看不清?  
+ 
+   
+     
+
+      
+ ©2007 eepw.com.cn流量统计  

@@ -1,0 +1,186 @@
+分享到QQ空间新浪微博百度搜藏人人网腾讯微博开心网腾讯朋友百度空间豆瓣网搜狐微博百度新首页QQ收藏和讯微博我的淘宝百度贴吧更多...百度分享
+首页我的主页相册广场消息 私信(1) 模板 设置 退出 关注此空间明日帝国
+尽人事而听天命,人与人并非都平等，我们要做的是改善自己，消除差距，追求幸福！
+2011-11-19 17:20 SVM(支持向量机)SVM:什么是SVM，它能为我们做什么?
+
+SVM, Support Vector Machine , 简而言之它是个起源与人工神经网络有点像的东西，现今最常拿来就是做分类。也就是说，如果我有一堆已经分好类的东西（可是分类的依据是未知的），那当收到新的东西时，SVM可以预测新的数据要分到哪一堆去。听起来是很神奇的事（如果你觉得不神奇，请重想一想这句话代表什么：分类的依据是未知的！，还是不神奇的话就请你写个程序，解解上面的问题），不过 SVM 基于统计学习理论的，可以在合理的时间内漂亮的解决这个问题。
+
+以图形化的例子来说明,假定我在空间中标了一堆用颜色分类的点, 点的颜色就是它的类别, 位置就是它的数据, 那 SVM 就可以找出区隔这些点的程序, 依此就可以分出一个个的区域; 拿到新的点(数据) 时, 只要对照该位置在哪一区就可以找出它应该是哪一颜色(类别)了。当然 SVM 不是真的只有分区那么简单, 不过看上面的例子应该可以了解 SVM 大概在作什么. 要对 SVM 再多懂一点点，可以参考 cjlin 在 data mining 课的 slides: pdf 或 ps 。我们可以把 SVM 当个黑盒子, 数据丢进去让他处理然后我们再来用就好了.
+
+哪里得到SVM?
+
+libsvm 当然是最完美的工具.下载处: libsvm.zip 或者 libsvm.tar.gz
+
+.zip 跟 .tar.gz 基本上是一样的, 只是看你的操作系统; 习惯上 Windows 用 .zip 比较方便 (因为有WinZIP, 也有WinRAR), UNIX 则是用 .tar.gz
+
+编译libsvm
+
+解开来后, 假定是UNIX 系统, 直接打 make 就可以了; 编不出来的话请详读说明和运用常识. 因为这是指南, 所以我不花时间细谈, 而且编不出来的情形真是少之又少, 通常一定是你的系统有问题。其他的子目录可以不管, 只要 svm-train, svm-scale, svm-predict 三个执行文件有就可以了. Windows 的用户要自己重编当然也是可以, 不过已经有编好的执行文件在里面了: 请检查 windows 子目录, 应该会有 svmtrain.exe, svmscale.exe, svmpredict.exe, svmtoy.exe.
+
+SVM的使用
+
+libsvm 有很多种用法, 这篇指南只打算讲简单的部分.
+
+程序
+
+svmtrain
+
+训练数据. 跑SVM被戏称为 “开火车” 也是由于这个程序名而来. train会接受特定格式的输入, 产生一个 “Model” 文件. 这个 model 你可以想像成SVM的内部数据,因为预测要model才能预测, 不能直接吃原始数据.想想也很合理,假定 train 本身是很耗时的动作, 而 train可以以某种形式存起内部数据,那下次要预测时直接把那些内部数据载入就快多了.
+
+svmpredict
+
+依照已经训练好的 model, 再加上给定的输入(新值), 输出预测新值所对应的类别.
+
+svmscale
+
+扫描数据. 因为原始数据可能范围过大或过小, svmscale 可以先将数据重新 scale (缩放) 到适当范围使训练与预测速度更快。
+
+文件格式
+
+文件格式要先交代一下. 你可以参考 libsvm 里面附的 “heart_scale”: 这是SVM 的输入文件格式.
+
+[label] [index1]:[value1] [index2]:[value2] …
+
+[label] [index1]:[value1] [index2]:[value2] …
+
+一行一条记录数据，如:
+
++1 1:0.708 2:1 3:1 4:-0.320 5:-0.105 6:-1
+
+label
+
+或说是class, 就是你要分类的种类，通常是一些整数。
+
+index
+
+是有顺序的索引，通常是连续的整数。
+
+value
+
+就是用来 train 的数据，通常是一堆实数。
+
+每一行都是如上的结构, 意思就是: 我有一排数据, 分别是 value1, value2, …. value, (而且它们的顺序已由 index 分别指定)，这排数据的分类结果就是label。
+
+或许你会不太懂，为什么会是 value1,value2,…. 这样一排呢？ 这牵涉到 SVM 的原理。你可以这样想（我没说这是正确的）， 它的名字就叫 Support “Vector” Machine， 所以输入的训练数据是 “Vector”(向量), 也就是一排的 x1, x2, x3, … 这些值就是 value，而 x[n] 的n就是由index 指定。这些东西又称为 “（属性）attribute”。
+
+真实的情况是，大部份时候我们给定的数据可能有很多 “特征(feature)” 或说 “属性(attribute)”，所以输入会是一组的。举例来说，以前面点分区的例子 来说，我们不是每个点都有 X 跟 Y 的坐标吗？所以它就有两种属性。假定我有两个点： (0,3) 跟 (5,8) 分别在 label(class) 1 跟 2 ，那就会写成
+
+1 1:0 2:3
+2 1:5 2:8
+同理，空间中的三维坐标就等于有三组属性。这种文件格式最大的好处就是可以使用稀疏矩阵（sparse matrix）， 或说有些 数据的属性可以有缺失。
+
+运行libsvm
+
+下来解释一下libsvm 的程序怎么用。 你可以先拿 libsvm 附的heart_scale 来做输入，底下也以它为例：
+
+看到这里你应该也了解，使用 SVM 的流程大概就是：
+
+1.?准备数据并做成指定格式 (有必要时需 svmscale)
+
+2.?用svmtrain 来训练成 model
+
+对新的输入，使用 svmpredic来预测新数据的类别. 
+svmtrain
+
+svmtrain 的语法大致就是:
+
+svmtrain [options] training_set_file [model_file]
+
+training_set_file 就是之前的格式，而 model_file 如果不给就会 叫 [training_set_file].model。 options 可以先不要给。
+
+下列程序执行结果会产生 heart_scale.model 文件：(萤幕输出不是很重要，没有错误就好了)
+
+./svmtrain heart_scale
+
+optimization finished, #iter = 219
+
+nu = 0.431030
+
+obj = -100.877286, rho = 0.424632
+nSV = 132, nBSV = 107
+
+Total nSV = 132
+
+svmpredict
+
+svmpredict 的语法是 :
+
+svmpredict ?test_file ??model_file ??output_file
+
+test_file 就是我们要预测的数据。它的格式跟 svmtrain 的输入，也就是 training_set_file 是一样的，不过每行最前面的 label 可以省略 (因为预测就是要预测那个 label)。 但如果 test_file 有 label 的值的话， predict 完会顺便拿 predict 出来的值跟 test_file 里面写的值去做比对，这代表： test_file 写的label是真正的分类结果，拿来跟我们预测的结果比对就可以知道预测的效果。所以，我们可以拿原 training set 当做 test_file再丢给 svmpredict 去预测(因为格式一样)，看看正确率有多高，方便后面调参数。其它参数就很好理解了： model_file就是 svmtrain 出来的文件， output_file是存输出结果的文件案。 输出的格式很简单，每行一个 label，对应到你的 test_file 里面的各行。下列程序执行结果会产生 heart_scale.out：
+
+./svm-predict heart_scale heart_scale.model heart_scale.out
+
+Accuracy = 86.6667% (234/270) (classification)
+
+Mean squared error = 0.533333 (regression)
+
+Squared correlation coefficient = 0.532639(regression)
+
+我们把原输入丢回去 predict， 第一行的 Accuracy 就是预测的正确率了。如果输入没有label 的话，那就是真的预测了。看到这里，基本上你应该已经可以利用 svm 来作事了：你只要写程序输出正确格式的数据，交给 svm 去 train， 后来再 predict 并读入结果即可。
+
+Advanced Topics
+
+后面可以说是一些稍微进阶的部份，我可能不会讲的很清楚，因为我的重点是想表达一些观念和解释一些你看相关文件时很容易碰到的名词。
+
+Scaling
+
+svm-scale 目前不太好用，不过它有其必要性。因为适当的扫描有助于参数的选择，还有解svm的速度。svmscale 会对每个属性做扫描。 范围用 -l, -u 指定，通常是[0,1]或是[-1,1]。输出在 stdout。另外要注意的(常常会忘记)是 testing data 和 training data要一起扫描。而 svm-scale 最难用的地方就是没办法指定 testing data/training data(不同文件) 然后一起扫描。
+
+Arguments
+
+前面提到，在train的时候可以使用一些参数。(直接执行 svm-train 不指定输入文件与参数会列出所有参数及语法说明) 这些参数对应到原始 SVM 公式的一些参数，所以会影响预测的正确与否。
+
+举例来说，改个 c=10:
+./svm-train -c 10 heart_scale
+再来预测 ，正确率马上变成 92.2% (249/270)。
+
+Cross Validation
+
+一般而言， SVM 使用的方式(在决定参数时)常是这样：
+
+1.?先有已分好类的一堆数据
+
+2.?随机拆成好几组训练集
+
+用某组参数去训练并预测别组，看正确率 
+正确率不够的话，换参数再重复训练/预测 
+等找到一组不错的参数后，就拿这组参数来建model并用来做最后对未知数据的预测。这整个过程叫cross validation ， 也就是交叉比对。在我们找参数的过程中，可以利用 svmtrain 的内建交叉比对功能来帮忙：
+
+-v n: n-fold cross validation
+n 就是要拆成几组，像 n=3 就会拆成三组，然后先拿 1跟2来训练并预测 3 以得到正确率；再来拿 2跟 3 训练并预测1，最后 1,3 训练并预测2。其它以此类推。如果没有交叉比对的话，很容易找到只在特定输入时好的参数。像前面我们 c=10 得到 92.2%，不过拿 -v 5 来看看：
+
+?./svm-train -v 5 -c 10 heart_scale
+
+Cross Validation Accuracy = 80.3704%
+
+平均之后才只有 80.37%，比一开始的 86 还差。
+
+What arguments rules?
+
+通常而言，比较重要的参数是 gamma (-g) 跟 cost (-c) 。而交叉比对 (-v) 的参数常用 5。cost 预设值是 1, gamma 预设值是 1/k ，k 等于输入数据条数。那我们怎么知道要用多少来当参数呢？
+
+?TRY就是尝试找比较好的参数值。 Try 参数的过程是用指数增长的方式来增加与减少参数的数值，也就是 2^n (2 的 n 次方)。因为有两组参数，所以等于要尝试 n*n=n^2 次。这个过程是不连续的成长，所以可以想象成我们在一个 X-Y 平面上指定的范围内找一群格子点 (grid，如果你不太明白，想成方格纸或我们把平面上所有整数交点都打个点，就是 那样)，每个格子点的 X 跟 Y 经过换算 (如 2^x, 2^y) 就拿去当 cost 跟 gamma 的值来交叉比对。所以现在你应该懂得 libsvm 的 python 子目录下面有个 grid.py 是做啥的了：它把上面的过程自动化，在你给定的范围内呼叫svm-train 去尝试所有的参数值。grid.py 还会把结果绘制出来，方便你寻找参数。 libsvm 有很多跟 python 结合的部份，由此可见 python 是强大方便的工具。很多神奇的功能，像自动登入多台机器去平行跑 grid等等都是python帮忙的。不过 SVM 本身可以完全不需要python，只是会比较方便。跑 grid (基本上用 grid.py 跑当然是最方便，不过如果你不懂python而且觉得很难搞，那你要自己产生参数来跑也是可以的)通常好的范围是 [c,g]=[2^-10,2^10]*[2^-10,2^10]另外其实 grid用 [-8,8] 也很够了。
+
+Regression（衰减）
+
+另一个值得一提的是regression（衰减）。简单来说，前面都是拿 SVM 来做分类,所以label的值都是离散的数据、或说已知的固定值。而 regression 则是求连续的值、或说未知的值。你也可以说，一般是二分类问题, 而 regression是可以预测一个实数。
+
+比如说我知道股市指数受到某些因素影响, 然后我想预测股市。股市的指数就是我们的 label, 那些因素量化以后变成属性。 以后收集那些属性给 SVM 它就会预测出指数(可能是没出现过的数字)，这就要用 regression。那对于开奖的号码呢？因为都是固定已知的数字，很明显我们应该用一般SVM的分类来预测。 (注这是真实的例子 –llwang就写过这样的东西) 所以说 label 也要扫描, 用 svm-scale -y lower upper但是比较糟糕的情况是grid.py不支持regression，而且较差对比对 regression 也常常不是很有效。
+
+总而言之，regression 是非常有趣的东西，不过也是比较高级的用法。在这里我们不细谈了，有兴趣的人请再参考SVM与libsvm的其它文件。
+
+尾声
+
+到此我已经简单的说明了 libsvm 的使用方式，更完整的用法请参考 libsvm 的说明跟 cjlin 的网站、。对于 SVM 的新手来说， libsvmtools 有很多好东西。像 SVM for dummies 就是很方便观察 libsvm 流程的东西。
+
+转 自：http://hi.baidu.com/zzf378139208/blog/item/95e8f939a9f0e22ab9998fd5.html
+分享到： 举报 浏览(317) 评论 转载 
+你可能也喜欢
+ 红梅花儿开  河道的冬日景象  留念夏日——荷塘拾趣  自驾丽江行（二）  【岁月的暖色】  疯狂的昆虫  【转载】OPENCV中混合高斯背景模型的实现 本文最近访客
+ lovelovepeipei 1月19日 莫多卡 12月7日 fox_cui 12月6日 独立苍茫 10月24日 星夜落尘 10月23日评论
+
+ 同时评论给  
+ 同时评论给原文作者   发布 500/0
+收起|查看更多
+帮助中心 | 空间客服 | 投诉中心 | 空间协议©2013 Baiduabcdef

@@ -1,0 +1,414 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+yakoo5的专栏
+
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年1月当选微软MVP名单揭晓！    智能开发框架 JEECG 作者张代浩专访
+ 2012CSDN博客之星火热出炉！      2013年全国百所高校巡讲讲师招募 
+
+
+
+提取网页的图片链接的Java程序 
+.
+ 分类： Java2010-02-01 11:25384人阅读评论(0)收藏举报
+
+ 
+输入网页文件名，和资源列表文件名
+输出资源列表文件供迅雷下载。
+适用于批量下载图片。
+由两个文件组成。
+没有提供网页下载功能，因为我没有时间写，相关的代码以后再贴。
+ 
+ 1 // AnalizeIMG.java
+ 2 
+ 3 // 主程序 
+ 4 
+ 5 import  java.io.BufferedReader;
+ 6 import  java.io.File;
+ 7 import  java.io.FileReader;
+ 8 import  java.io.FileWriter;
+ 9 import  java.io.IOException;
+10 
+11 
+12 public   class  AnalizeIMG  {
+13 
+14 public   void  p(String s)
+15 {
+16    System.out.println(s);
+17 } 
+18 
+19 public   void  analizeFile(String infile,String outfile)  throws  Exception
+20 {
+21    File file  =   new  File(infile);
+22     if  (file  ==   null   ||   ! file.exists())  {
+23     p( " File  "   +  infile  +   "  not exits ! " );
+24    } 
+25 
+26     if  ( ! file.canRead())  {
+27     p( " File  "   +  infile  +   "  can't read ! " );
+28 
+29    } 
+30   
+31    String strLine  =   null ;
+32    FileReader frd  =   new  FileReader(infile);
+33    BufferedReader bufferedReader  =   new  BufferedReader(frd);
+34     try   {
+35     AnalizeWebParse parse  =   new  AnalizeWebParse();
+36     String s  =  parse.parse(bufferedReader);
+37    
+38     createFile(outfile,s);
+39    
+40    }   catch  (Exception ex)  {
+41      throw  ex;
+42    }   finally   {
+43     frd.close();
+44     bufferedReader.close();
+45    } 
+46 } 
+47 
+48 private   void  createFile(String filename, String content)  {
+49    FileWriter f  =   null ;
+50     try   {
+51     f  =   new  FileWriter(filename);
+52      if  (f  ==   null   ||  content  ==   null )  {
+53       return ;
+54     } 
+55 
+56     f.write(content);
+57     f.flush();
+58     f.close();
+59 
+60    }   catch  (Exception e)  {
+61 
+62    }   finally   {
+63      if  (f  !=   null )  {
+64       try   {
+65       f.close();
+66      }   catch  (Exception e)  {
+67 
+68      } 
+69     } 
+70    } 
+71 } 
+72 
+73 public   static   void  main(String arg[])
+74 {
+75    AnalizeIMG ana  =   new  AnalizeIMG();
+76     try {
+77     ana.analizeFile( " E://1.txt " , " E://out.lst " );
+78    } catch  (Exception ex)  {
+79     ex.printStackTrace();
+80    } 
+81 } 
+82 } 
+83 
+84 
+
+
+第二个文件时解析文件
+ 
+ 1 // AnalizeWebParse.java
+ 2 
+ 3 // 网页分析代码，需要用户根据自己需要做适当修改 
+ 4 
+ 5 import  java.io.BufferedReader;
+ 6 import  java.io.StringReader;
+ 7 import  java.util.regex.Pattern;
+ 8 
+ 9 import  javax.swing.text.MutableAttributeSet;
+10 import  javax.swing.text.html.HTML;
+11 import  javax.swing.text.html.HTMLEditorKit.ParserCallback;
+12 import  javax.swing.text.html.parser.ParserDelegator;
+13 
+14 public   class  AnalizeWebParse  extends  ParserCallback  {
+15 
+16 StringBuffer sb  =   new  StringBuffer();
+17 
+18 boolean  start  =   false ;
+19 boolean  finished  =   false ;
+20 
+21 public   void  p(String s)
+22 {
+23    System.out.println(s);
+24 } 
+25 
+26 public   void  handleStartTag(HTML.Tag tag, MutableAttributeSet attribs,
+27      int  pos)  {
+28   
+29     if (finished  ==   true )
+30     {
+31      return ;
+32    } 
+33   
+34     if  (start  ==   false )  {
+35      if  (tag  ==  HTML.Tag.DIV)  {
+36      String cla  =  (String) attribs
+37        .getAttribute(HTML.Attribute.CLASS);
+38       if  (cla  ==   null )  {
+39        return ;
+40      } 
+41 
+42       if  (cla.indexOf( " body " )  !=   - 1 )  {
+43        //  Start 
+44       start  =   true ;
+45      } 
+46     } 
+47    } 
+48 } 
+49 
+50 public   void  handleEndTag(HTML.Tag tag,  int  pos)  {
+51     if  (tag  ==  HTML.Tag.DIV  &&  start  ==   true   &&  finished  ==   false )  {
+52     finished  =   true ; 
+53    } 
+54 } 
+55 
+56 public   void  handleText( char [] text,  int  pos)  {
+57 
+58 } 
+59 
+60 public   void  handleSimpleTag(HTML.Tag t, MutableAttributeSet a,  int  pos)  {
+61     if  (t  ==  HTML.Tag.IMG)  {
+62      //  get a src 
+63     String src  =  (String) a.getAttribute(HTML.Attribute.SRC);
+64      if  (src  ==   null )  {
+65       return ;
+66     } 
+67    
+68      if  (Pattern.matches( " ^(http://.+) " , src))  {
+69      sb.append(src).append( " /n " );
+70     } 
+71    } 
+72 } 
+73 
+74 public  String parse(BufferedReader file)  throws  Exception  {
+75     if (file == null )
+76     {
+77      return   null ;
+78    } 
+79   
+80    ParserDelegator pd  =   new  ParserDelegator();
+81     try   {
+82     pd.parse(file,  this ,  true );
+83    }   catch  (Exception e)  {
+84      throw  e;
+85    } 
+86   
+87     return  sb.toString();
+88 } 
+89 } 
+90 
+
+原文链接地址：http://www.cnblogs.com/xiaoyz/archive/2008/06/09/1216271.html 
+
+
+分享到： 
+
+上一篇：一条JavaScript语句获取当前网页所有图片的url
+下一篇：JavaScript入门学习书籍的阶段选择 
+. 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+yakoo5
+ 
+
+
+
+访问：117945次
+积分：1830分
+排名：第3945名
+.原创：26篇
+转载：174篇
+译文：4篇
+评论：57条
+. 
+文章搜索
+
+. 
+文章分类Other(3)
+Linux(32)
+Java(57)
+SSH(11)
+Spring(3)
+Struts(3)
+Hibernate(2)
+IBATIS(1)
+JPA(1)
+MySQL(4)
+JFreeChart(8)
+JavaScript(15)
+DB2(7)
+WebSphere(6)
+Version Control(4)
+电脑使用小技巧(12)
+搜索引擎使用技巧(3)
+学习之路(2)
+VB.NET(2)
+Hacker技术(6)
+软件工程(2)
+求职(5)
+NCRE(1)
+jQuery(2)
+UML(1)
+Visio(1)
+J2E(0)
+J2EE(3)
+quartz(1)
+ 
+文章存档
+2012年12月(1).
+2012年11月(6).
+2012年10月(4).
+2012年09月(1).
+2012年08月(2).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+阅读排行ubuntu下修改grub的引导顺序（windows和ubuntu双系统）(5051)
+was not found on the java.library.path(4963)
+Ubuntu下的jdk5.0安装过程和jdk环境变量的设置(3724)
+eclipse 无法解析导入 javax.servlet 的解决方法(3364)
+●●教你如何在鼠标右键中添加excel,word,ppt的快捷方式 (3259)
+如何连接网络打印机(2965)
+Eclipse 3.7 SVN1.6.x 插件links方式安装(2907)
+MyEclipse中修改默认JSP编辑器的方法.txt(2475)
+ie浏览器图标没了不见了怎么办？最全还原ie浏览器图标修复方法！(2344)
+谈谈有关各数据库Blob、Clob类型字段的读取、保存更新(2246)
+ 
+评论排行●●教你如何在鼠标右键中添加excel,word,ppt的快捷方式 (8)
+eclipse 无法解析导入 javax.servlet 的解决方法(6)
+struts2 (# % $)井号，百分号,美圆号的含义和使用举例(3)
+悼念一个伟大的公司——Sun(3)
+JSTL的安装(3)
+Ubuntu8.04虚拟机中使用USB无线网卡上网(3)
+Struts2 JFreeChart 实例整合教程(2)
+JavaScript 创建数组的方法和基本操作(2)
+关于计算机四级和软件设计师(2)
+有趣现象：同一个java文件中有2个类,一个public,一个无类修饰符，各有一个main函数，谁在前先执行谁！(2)
+ 
+推荐文章 
+最新评论 Hibernate将Enum枚举类型映射为Int类型（补充VARCHAR类型配置）
+yanglynn24: 正在找把Enum映射成字串的方法，存数字在Hibernate4.1.7版本以后直接按枚举搜索会出错，... 
+
+JSTL的安装
+snowjlz: 呵呵。谢谢 
+
+JSTL的安装
+yakoo5: @snowjlz:正确配置方式： http://java.sun.com/jsp/js... 
+
+JSTL的安装
+snowjlz: 这里报错。怎么办？http://java.sun.com/jsp/jstl/functions/WE... 
+
+eclipse 无法解析导入 javax.servlet 的解决方法
+mfkinfo: 没有Apache Tomcat 的话，点击“外部jars”一样可以导入 
+
+ognl.MethodFailedExceptiond异常的解决办法(Struts2)
+yzsunlight: 求原因 
+
+eclipse 无法解析导入 javax.servlet 的解决方法
+GUNNER_10: 单机“下一步”，我的里面没有Apache Tomcat 怎么办啊？！请各位大虾解答啊 
+
+谈谈有关各数据库Blob、Clob类型字段的读取、保存更新
+Devil26: 感谢分享！ 
+
+configure: error: C++ preprocessor "/lib/cpp" fails sanity check
+bea5yeah: 我的错误提示是C，不是C++，我试过安装上面说的C++,结果还没解决问题，要是C的话安装什么包啊？？... 
+
+Ubuntu下的jdk5.0安装过程和jdk环境变量的设置
+Gongqingshuai: 问一下如果我之前安装了jdk6 不需现在卸载吗？怎么卸载 
+
+
+JAVA www.sun.com 
+www.apache.org 
+www.sourceforge.net 
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

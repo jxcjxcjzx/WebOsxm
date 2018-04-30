@@ -1,0 +1,42 @@
+ PUTTY设置不用密码直接登录linux服务器
+分类： 【Linux备忘】 2011-11-24 14:24 547人阅读 评论(0) 收藏 举报
+linuxauthentication服务器filesshc
+目录(?)[+]
+目录(?)[+]
+Linux设置
+
+1、Linux下生成密钥
+运行：#ssh-keygen -t rsa
+Generating public/private rsa key pair.
+Enter file in which to save the key (/root/.ssh/id_rsa):  
+
+直接回车直到程序运行结束
+
+2、把公钥信息写入authorized_keys文件中
+运行：
+# cd ~/.ssh
+# cat id_rsa.pub >> authorized_keys
+
+3、生成putty的私钥
+由于SSH的标准中，并没有固定密钥文件的格式。而Putty使用的私钥格式和OpenSSH生成的有点不同，需要转换一下。
+a）把~/.ssh/id_rsa传到本地系统机器上
+b）使用puttygen（下载地址http://the.earth.li/~sgtatham/putty/latest/x86/puttygen.exe ）的“Load”读取id_rsa文件
+
+
+c）点击“Save private key”保留私钥，假设保存的文件名为 private.ppk
+
+Putty设置
+
+对putty进行一些简单设置，即可使用密钥登陆Linux服务器。
+
+选择Connection－SSH－Auth，在“Private key file for authentication”输入密钥的路径：
+
+
+然后在Connection的“Auth-login username”（有的putty版本为链接-数据-自动登录用户名）输入登陆的用户名，例如root：
+
+
+或者
+
+ 
+
+将该会话保存即可。

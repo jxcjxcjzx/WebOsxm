@@ -1,0 +1,242 @@
+
+
+
+
+ugg的专栏
+
+逸学堂-专注移动互联网
+
+
+ 
+
+
+•目录视图
+•摘要视图
+•订阅
+ 
+
+
+
+CSDN个性阅读，订阅你想看的博客文章       专访李铁军：从医生到金山首席安全专家的转变      独一无二的职位：开源社区经理        CSDN博客第三期云计算最佳博主评选
+ 
+
+
+IE（微软）浏览器扩展开发初探 
+
+分类： 扩展javascriptxmlhttprequest2011-09-08 17:151470人阅读评论(1)收藏举报
+ 
+浏览器扩展ie微软microsoftie插件
+
+
+         最近开发浏览器插件有点上瘾，先开发了一个FF（火狐）浏览器插件，后来又开发了一个谷歌浏览器的插件，还是不觉得不过瘾，这次要尝试开发一个粗糙的IE浏览器插件，最终实现在一键实现订餐，一键取消订餐操作。
+          凡事知道就好做了，只是这次走了些弯路。网上只要提到IE插件开发的无不提到Com，BHO等等概念，为此我还下载了vs2010，安装platform sdk，并到codeproject下载N个例子进行研究，虽然已经好几年不用vs2010了，也不曾在写com了，还好有点底子，基本能看懂，了解了下BHO的原理，同时了解了com的一些东西，也算有些收获。不过越看越觉得我的不需要这么麻烦，不需要BHO处理各种消息状态。我只需要在IE上增加一个按钮，点击这个按钮，调用我写的js触发一个操作，并给出提示即可。走点弯路没关系，下次也许用的到。
+ 
+         现在改变策略，既然要增加按钮，触发操作。那到internet explorer development上找帮助就可以了，还真找到一篇文章，关于如何add menu items。仔细阅读了解到，IE上的按钮是通过增加注册表项来完成了，随即生成了两个注册表项
+ [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\InternetExplorer\Extensions\{5D78A592-AA1A-4E6F-A808-9214B4A7222A}]
+"CLSID"="{5D78A592-AA1A-4E6F-A808-9214B4A7222A}"
+"MenuText"="我要订餐"
+"MenuCustomize"="我要订餐"
+"MenuStatusBar"="我要订餐"
+"ClsidExtension"=""
+
+[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\InternetExplorer\Extensions\{BA6C7C63-9EFC-4DA1-B5D9-666A624F4831}]
+"CLSID"="{5D78A592-AA1A-4E6F-A808-9214B4A7222A}"
+"MenuText"="取消订餐"
+"MenuCustomize"="取消订餐"
+"MenuStatusBar"="取消订餐"
+"ClsidExtension"=""          导入注册表项，重启IE，在工具中看到这两个选项，我要订饭和取消订饭。只是点击这两个menu item没有任何响应，原因是我们没有给这两个menu item增加增加响应事件。很简单在注册表项中增加一个exec即可，我们要使用之前的js，那就需要写一个页面来执行这个js，比如写如下代码
+ <html>
+<head>
+<metahttp-equiv="Content-Type" content="text/html;charset=utf-8">
+<title>订餐系统</title>
+<meta name="keywords"content="">
+<scriptsrc="./dingcan.js"></script>
+</head>
+<bodyonload="DingCan.loginAndDingCan()">
+<span id="dcdingcan">正在订餐中...</span>
+</body>
+ 
+如果我们的exec这样写
+ 
+"Exec"="file:///D:/Program%20Files/dingcan/dingcan.html"IE会重新打开一个窗口，用户体验不好，这里我们用点小技巧，把.html修改成.hta后缀，整个事件清净了，这样设置之后，点击按钮后，是这个样子的有点大，
+ 
+在html增加如下代码，设置窗口大小，
+ <scriptlanguage="javascript">
+window.resizeTo(200,100)
+</script>这次是这样的，完美了
+ 
+
+Hta内容补充：HTA 全名为 HTMLApplication ( HTML 全名为 Hyper Text Markup Language )，HTA 为 HTML 应用程序。HTA格式的文件不需要在浏览器中执行，windows可以直接执行此程序。更详细的内容可以参考HTML Applications: http://msdn.microsoft.com/en-us/library/ms536471%28v=VS.85%29.aspx
+ 
+IE插件实现的很猥琐，只不过他实现了我要的功能。这几个扩展都是皮毛，没有什么高深技术含量，只是希望对大家有所帮助，也希望消除做浏览器扩展的不自信。
+ 
+参考资料
+ Add menu items http://msdn.microsoft.com/en-us/library/aa753591(v=VS.85).aspx
+ Internet Explorer Development http://msdn.microsoft.com/en-us/library/bb188743.aspx
+ 
+
+
+•上一篇：Chrome（谷歌）浏览器扩展开发初探
+•下一篇：获取当前经纬度方法
+ 
+
+
+查看评论
+ 
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+个人资料 
+
+ugg 
+
+
+
+
+◦访问：266360次
+◦积分：3797分
+◦排名：第1556名
+ ◦原创：93篇
+◦转载：35篇
+◦译文：1篇
+◦评论：297条
+ 
+
+文章搜索
+
+ 
+文章分类 • iPhone问题(12) 
+• iPhone资料(8) 
+• 插件(1) 
+• lighttpd(2) 
+• 业界(2) 
+• 人生(11) 
+• 工作...(5) 
+• 模板相关(3) 
+• 设计(4) 
+• 设计，软件，工作...(0) 
+• 软件(4) 
+• 面试题(2) 
+• Firefox(1) 
+• 扩展(3) 
+• javascript(4) 
+• xmlhttprequest(2) 
+• 谷歌浏览器(1) 
+• iphone(6) 
+
+文章存档 
+•2013年07月(2)
+•2013年06月(3)
+•2013年05月(1)
+•2013年04月(2)
+•2013年03月(1)
+•2012年11月(2)
+•2012年05月(1)
+•2012年03月(7)
+•2012年02月(8)
+•2012年01月(4)
+•2011年09月(3)
+•2010年09月(2)
+•2010年08月(3)
+•2010年07月(2)
+•2010年02月(1)
+•2010年01月(1)
+•2009年12月(2)
+•2009年09月(1)
+•2009年08月(1)
+•2009年07月(6)
+•2009年06月(3)
+•2009年05月(1)
+•2009年03月(3)
+•2009年02月(1)
+•2008年12月(1)
+•2008年11月(1)
+•2008年10月(1)
+•2008年08月(1)
+•2008年07月(5)
+•2008年06月(5)
+•2008年01月(1)
+•2007年11月(1)
+•2007年10月(1)
+•2007年06月(2)
+•2007年05月(4)
+•2007年04月(5)
+•2007年03月(9)
+•2007年02月(3)
+•2007年01月(9)
+•2006年12月(1)
+•2006年10月(1)
+•2006年09月(1)
+•2006年08月(2)
+•2006年06月(1)
+•2006年05月(3)
+•2006年03月(1)
+•2006年02月(6)
+•2006年01月(2)
+•2005年03月(1)
+ 
+阅读排行 • php实现验证码的识别(中级篇)(14997) 
+• php实现验证码的识别(初级篇)(14396) 
+• 关于静态函数的一些思考(11767) 
+• Windows时间函数大全(9815) 
+• Applications are expected to have a root view controller at the end of application launch(9231)
+ • 跟我一起写 Makefile(9189) 
+• brk和sbrk及内存分配函数相关(7335) 
+• 从iOS应用被拒看苹果的审核。(7198) 
+• 基于C语言的内存池的设计与实现(6067) 
+• WinNT+JDK+TomCat+AXIS+MySQL+MYSQLAdministrator+WinTookit详细配置(4779) 
+
+评论排行 • php实现验证码的识别(中级篇)(64) 
+• php实现验证码的识别(初级篇)(36) 
+• 从iOS应用被拒看苹果的审核。(17) 
+• 跟我一起写 Makefile(17) 
+• C++流实现内幕---由boost::lexical_cast引发的一个问题(11) 
+• 工作6年的感悟(11) 
+• 深入探讨this指针(9) 
+• 老生常谈：微博，QQ，淘宝三种开放平台对比(9) 
+• windows2003下配置IIS服务，使其支持Server.CreateObject("WScript.Shell") (8) 
+• 面试问题之 按单词反转字符串(8) 
+
+推荐文章 
+最新评论 •Glibc 的malloc源代码分析
+xiaoaoqing: 太牛掰了，新手，最近调程序报错，堆坏了，就看看vs2010下的malloc函数怎么写的，一头扎进去就... 
+
+•为 iPhone 和 iPad 自定义网站的主屏幕图标
+kevinGam: 请教楼主，如何解决https下这个icon不生效的问题呢？ 
+
+•BigDecimal 的那些坑事儿
+sevenshal: 为什么不直接 d1 = new BigDecimal(s);d2= new BigDecimal("... 
+
+•UITableViewCell的重绘机制导致的列状态问题
+u010335966: 我这边就没用呀 
+
+•从iOS应用被拒看苹果的审核。
+melode111: 哥们，这些条款都是有原因的，比如document 目录会和icloud同步，你的这些可以重新下载的图... 
+
+• php实现验证码的识别(初级篇)
+hi_5461: 字模里的数据怎么取出来的呢？我换了几张图片，与例子图片无大差别，只是字体不太一样，所以识别率不高，所... 
+
+•老生常谈：微博，QQ，淘宝三种开放平台对比
+ShanShuioak: 导购网站(aizher.com)用微博登入，失败，提示“页面错误！请稍后再试～” 
+
+• php实现验证码的识别(中级篇)
+k_soyking: @display_002:你知道这个是怎么做的了吗？你说的a的样子，可是代码根本不是你说的这样呀 
+
+•触摸非输入区(背景)使UITextField(UISearchBar)键盘消失的方法
+micro_cai: 能分享下有道具体怎么做的吗？ 
+
+• php实现验证码的识别(中级篇)
+shenyulv: 表示对 设置添加验证码库不是很懂呀？那些key，value 是怎么得到的？'010101101101... 
+
+
+
+

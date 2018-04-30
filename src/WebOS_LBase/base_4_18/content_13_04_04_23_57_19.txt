@@ -1,0 +1,139 @@
+
+每日博报 精彩不止一点
+51cto博客
+
+大数据峰会
+你，真的需要跳槽吗？
+思杰技术峰会，浦东香格里拉之旅
+7月MVP开始申请[截止：4月10日]
+2013年4月最有价值专家(MVP)名单
+【有奖门诊】iOS 2D游戏开发之我见
+51CTO首页51CTO博客我的博客 搜索 每日博报 社区：论坛博客下载读书更多 登录注册
+凉冰
+http://liangbing8612.blog.51cto.com 【复制】 【订阅】
+原创:87翻译:0转载:6
+博 客|图库|写博文|帮 助
+首页|C/C++|QT|Ubuntu|求职经历之实习|android|笔试and面试|mine|linux|java|职业|business|人生|android|驱动
+远东FarEast 的BLOG
+
+写留言邀请进圈子发消息加友情链接进家园 加好友
+博客统计信息
+用户名：远东FarEast
+文章数：101
+评论数：24
+访问量：151454
+无忧币：641
+博客积分：898
+博客等级：5
+注册日期：2011-01-04
+距离博客No.1争夺赛结束还有 47 天
+热门文章
+linux中ll命令详解
+Linux下安装QT之版本qt-4..
+在VS2008中使用Qt编程
+android之Goldfish介绍
+memcpy函数的实现+应用--..
+Linux下QT编程之使用QVFB
+在VS2008中使用Qt编程之..
+ubuntu10.4开机如何进入G..
+搜索BLOG文章
+ 
+我的技术圈(2)更多>>
+linux-北京圈    
+嵌入式系统开发  
+最近访客
+
+zheng..
+
+南宫绝峰
+
+一个学生
+
+lys66066
+
+jiayo..
+
+deyou020
+
+xreins
+
+天暖人和
+
+newji..
+
+yes_but
+
+jimieaaa
+
+hanajujo
+最新评论
+远东FarEast：回复 yijingru: 是不是用的版本不..
+远东FarEast：回复 z5355270: 根据提示大概是..
+z5355270：你好，我用的是vs2005，根据你的方..
+tacccai：哎~~~
+[匿名]yijingru：首先这步没有找到：(1) “常规”：..
+51CTO推荐博文更多>>
+图解网络虚拟化之概念篇
+Windows Server 2012 从入门到精..
+思科教程之访问控制列表ACL
+mydns+mysql+myconfig实现可视化..
+Haproxy+keepalived （Web负载均..
+【268期门诊集锦】成功的虚拟化系..
+DNS详解之重新认识DNS一
+MDaemon v13新增特色功能
+中小企业开源存储方案演变详解
+以小见大：探寻DNS在企业域环境中..
+VMware vCenter Operations Enter..
+友情链接
+51CTO博客开发 
+2013年7月MVP开始申请[截止时间：4月10日]《开发月刊》副刊专题：敏捷开发（附全部月刊）博主的更多文章>>
+ Linux下安装QT之版本qt-4.7.3
+2011-06-25 10:08:27
+标签：linux qt opensource qt-4.7.3 PC版
+原创作品，允许转载，转载时请务必以超链接形式标明文章 原始出处 、作者信息和本声明。否则将追究法律责任。http://liangbing8612.blog.51cto.com/2633208/595995
+本篇主要讲述的内容是：
+    在Linux中分别安装应用于不同平台的QT：PC；嵌入式X86；ARM。
+    这三者PC版、嵌入式X86版和ARM版的区别主要体现在：当configure时分别加了不同的参数，具体区别是： 
+        PC平台：在linux中全安装qt，用它编译好程序后，直接用“./”就可运行。
+        嵌入式X86平台：带有qvfb功能，在PC机上可以模拟应用程序在arm开发板上的运行情况。用此编译好的程序，只用“./”命令不可以运行，必须加上参数 -qvfb -qws，详见我的另一篇博文：《Linux下QT编程之使用QVFB》
+        ARM平台：编译好的程序，用于在arm平台上运行。
+1. 系统环境及软件准备
+    主机操作系统：Red Hat Enterprise Linux 5.2 (我用的是red hat os，用其它操作系统的也可，如：ubuntu,fedora。
+    主机编译器：gcc-4.1.1
+     qt软件包：qt-everywhere-opensource-src-4.7.3.tar.gz（较新版本）
+2. 获得qt软件包
+    然后，解压：tar zxvf qt-everywhere-opensource-src-4.7.3.tar.gz，默认安装到此目录下：/usr/local/Trolltech/Qt-4.7.3
+   
+3. 分别安装不同平台下的QT
+    A. 安装PC平台的QT
+         1) 配置：进入解压后的文件夹里，运行./configure -prefix /usr/local/Trolltech/Qt-4.7.3-pc
+         2) 编译：make   (时间比较长，好几个小时)
+         3) 安装：make install  （由于在配置时指定了安装目录，这样将被安装到目录下：/usr/local/Trolltech/Qt-4.7.3-pc）
+    B. 安装嵌入式X86平台的QT
+         1) 配置：运行的命令，./configure -prefix /usr/local/Trolltech/Qt-4.7.3-x86-qvfb -embedded x86 -qt-gfx-qvfb -qt-kbd-qvfb -qt-mouse-qvfb 如下图
+ 
+       2) 编译：make
+       3) 安装：make install
+    C. 安装ARM平台的QT/E
+         暂时没有使用到，用到时再补充。
+4. 完成安装
+  
+本文出自 “凉冰” 博客，请务必保留此出处http://liangbing8612.blog.51cto.com/2633208/595995
+	 更多 5	
+ 远东FarEast	1人	了这篇文章
+类别：QT┆技术圈(0)┆阅读(10497)┆评论(0) ┆ 推送到技术圈┆返回首页
+上一篇 qt各安装版本介绍 下一篇 Linux下QT编程之使用QVFB
+相关文章
+在Linux上安装QT4“完全用linux工作——清华退学博士王垠作品”linux系统Qt实现简单的任务管理器Red Hat Enterprice Linux 5测试 Qt 4.7 & Q..Red Hat Enterprice Linux 5测试 Qt 4.7 & Q..Linux必学的系统安全命令在linux系统下搭建FTP服务器关于虚拟机下linux到一些问题到解决方案linux下mysql字符集的修改
+
+文章评论
+ 
+ 
+发表评论            【有奖门诊】iOS游戏开发—2D游戏编程之我见
+昵  称：登录  快速注册
+验证码：请点击后输入验证码博客过2级，无需填写验证码
+内  容：
+返回顶部
+Copyright By 51CTO.COM 版权所有
+
+

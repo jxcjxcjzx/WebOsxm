@@ -1,0 +1,254 @@
+CU首页 CU论坛首页 CU博客首页 ┊ 登录 注册 ┊ 随便看看    博文 博主 相册 投票 活动  发博文 CU论坛首页 
+CU博客首页 
+公告：【征集年度人物】2012留下些什么吧！呆板与linux http://blog.chinaunix.net/space.php?uid=26696487 
+选择比努力重要，选择前请三思，选择后请努力！！！！ 呆板    
+     首页 | 博文目录 | 相册 | 博客圈 | 关于我 | 留言 个人资料
+
+ 
+呆板与linux 
+微博 论坛 发纸条 打招呼 加关注 加好友 
+博客访问：25494 
+博文数量：106 
+博客积分：2178 
+博客等级：大尉 
+关注人气： 2 
+注册时间：2012-02-13 19:44:50 
+文章分类
+全部博文(106)
+呆板与硬件(5)
+呆板与stm8(4)
+linux基础知识(5)
+呆板与android_error(1)
+呆板与C＋＋(6)
+呆板与qt(9)
+呆板与html(1)
+呆板与驱动(6)
+呆板与应用程序(8)
+呆板与作品(1)
+呆板与C:error(9)
+呆板与命令(5)
+呆板与C语言(11)
+呆板与Ubuntu(22)
+呆板与网络(6)
+0与1的生活(2)
+未分类博文(5)订阅我的博客
+ 
+ 
+ 
+ 
+字体大小：大 中 小博文ubuntu中文乱码问题（转） (2012-02-16 00:19) 
+标签:  ubuntu  local  中文  分类： 呆板与Ubuntu 
+
+
+
+
+添加中文字符编码：
+
+$sudo vim /var/lib/locales/supported.d/local
+
+#添加下面的中文字符集
+
+zh_CN.GBK GBK
+
+zh_CN.GB2312 GB2312
+
+zh_CN.GB18030 GB18030
+
+使其生效：
+
+$sudo dpkg-reconfigure locales
+
+vim:
+
+打开vim的配置文件，位置在/etc/vim/vimrc
+
+在其中加入
+
+set fileencodings=utf-8,gb2312,gbk,gb18030
+
+set termencoding=utf-8
+
+set encoding=prc
+
+保存退出
+
+source /etc/vim/vimrc
+
+
+此时vim就能正确显示中文了。
+
+--------------------------------------------------------------'
+
+pdf:
+
+$sudo apt-get install xpdf-chinese-simplified xpdf-chinese-traditional #安装pdf的中文字体
+
+$sudo apt-get install poppler-data #安装解决pdf中文显示乱码的软件
+
+$cd /etc/fonts/conf.d 
+
+$sudo cp 49-sansserif.conf 49-sansserif.conf_backup #先备份下
+
+$sudo rm 49-sansserif.conf #删除
+
+在打开pdf文件，就能呢个正常显示中文了
+
+ 
+
+gedit：
+
+ 
+
+gedit修改默认显示字符集
+
+$sudo gconf-editor
+
+打开的界面中选择apps->gedit2->preferences->encodings,添加需要的字符集并移动到最上方，保存就可以了。
+
+以上是gedit2版本的，补充下gedit3的设置方法：
+终端输入dconf-editor
+展开org/gnome/gedit/preferences/encodings
+auto-detected的value中加入’GB18030′，加在uft8后面；
+show-in-menu的value中加入’GB18030′
+
+ 
+
+设置默认的字符集
+
+ 
+
+$sudo gedit /etc/environment
+
+#第二行是默认字符集,设为zh_CH.UTF-8
+
+LANG=zh_CH.UTF-8
+
+LANGUAGAE="zh_CN:zh:en_US:en"
+
+LANG=zh_CN.UTF-8 #不能选择GBK或GB2312,终端界面中文会乱码
+
+LC_CTYLE=zh_CN.GB2312
+
+GST_ID3_TAG_ENCODING=GB2312
+
+$source /etc/environment使其生效
+
+ 
+
+所有的字符集在/usr/share/i18n/charmaps目录下
+
+locale的书写格式为：语言[_地域[.字符集][@修正值]]
+
+
+
+
+方法2：
+
+由于在新项目里有到了一点点国际化的配置,用于在出错提示,操作提示等方面的,发现在windows下能正常显示出中文,但到了linux就不能显示中文了.搜索一翻后说是linux的中文环境变量的问题故更改之: 
+
+
+在终端里输入:set 
+
+Java代码  <img src="http://tcrct.iteye.com/images/icon_star.png" alt="收藏代码" style="border-style: initial; border-color: initial; max-width: 650px;" title="ubuntu vim中文乱码问题">
+...  
+LANG=C  
+LANGUAGE=C  
+...  
+
+这是默认的语言编码,如果要显示中文的话就更将其更改为LANG=zh_CN,首先第一步: 
+
+Java代码  <img src="http://tcrct.iteye.com/images/icon_star.png" alt="收藏代码" style="border-style: initial; border-color: initial; max-width: 650px;" title="ubuntu vim中文乱码问题">
+#:~ cp /usr/share/i18n/SUPPORTED /var/lib/locales/supported.d/local  
+
+第二步: 
+
+Java代码  <img src="http://tcrct.iteye.com/images/icon_star.png" alt="收藏代码" style="border-style: initial; border-color: initial; max-width: 650px;" title="ubuntu vim中文乱码问题">
+vi /var/lib/locales/supported.d/local  
+
+编辑文件,删除你不想要的语言系列.如我的只留en及zh系的 
+
+第三步：重新生成locale支持文件 
+
+Java代码  <img src="http://tcrct.iteye.com/images/icon_star.png" alt="收藏代码" style="border-style: initial; border-color: initial; max-width: 650px;" title="ubuntu vim中文乱码问题">
+sudo locale-gen --purge  
+
+此时会重新生成locale文件,慢慢等待一下至运行完成. 
+
+第四步:设置locale文件,在终端里输入locale命令后回车,将显示出来的内容复制,然后再打开/etc/environment文件,将内容粘贴末尾.保存退出.如我的是这样的: 
+
+Java代码  <img src="http://tcrct.iteye.com/images/icon_star.png" alt="收藏代码" style="border-style: initial; border-color: initial; max-width: 650px;" title="ubuntu vim中文乱码问题">
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games"  
+LANGUAGE="zh_CN:zh:en_US:en"  
+LC_ALL=zh_CN.UTF-8  
+LANG=zh_CN.UTF-8  
+GST_ID3_TAG_ENCODING=UTF-8  
+   
+LANG=zh_CN  
+LANGUAGE=zh_CN  
+LC_CTYPE="zh_CN"  
+LC_NUMERIC="zh_CN"  
+LC_TIME="zh_CN"  
+LC_COLLATE="zh_CN"  
+LC_MONETARY="zh_CN"  
+LC_MESSAGES="zh_CN"  
+LC_PAPER="zh_CN"  
+LC_NAME="zh_CN"  
+LC_ADDRESS="zh_CN"  
+LC_TELEPHONE="zh_CN"  
+LC_MEASUREMENT="zh_CN"  
+LC_IDENTIFICATION="zh_CN"  
+   
+LC_CTYPE=zh_CN.UTF-8  
+
+
+
+
+然后退出重新登录,在终端里再输入locale,会发现LANG=C已经更改为LANG=zh_CN.再查看下网站就可以成功显示到中文了. 
+
+另,由于vi编辑器不太会用,在ubuntu servcr下还可以用pico这个编辑器来代替,至于最后发现,可能前面的一二三步都不需要做,只需要第四步即可完成.但这没经测试的.<img src="http://tcrct.iteye.com/images/smiles/icon_smile.gif" style="border-style: initial; border-color: initial; max-width: 650px;" alt="ubuntu vim中文乱码问题" title="ubuntu vim中文乱码问题"> 
+
+
+
+==================================================================== 
+
+
+Java代码  <img src="http://tcrct.iteye.com/images/icon_star.png" alt="收藏代码" style="border-style: initial; border-color: initial; max-width: 650px;" title="ubuntu vim中文乱码问题">
+linux 中文显示乱码解决办法, 其实是有多种情况的, 有一部分是由于终端默认的设置造成的  
+  
+vi /etc/sysconfig/i18n  
+  
+将内容改为  
+LANG=”zh_CN.GB18030″  
+LANGUAGE=”zh_CN.GB18030:zh_CN.GB2312:zh_CN”  
+SUPPORTED=”zh_CN.GB18030:zh_CN:zh:en_US.UTF-8:en_US:en”  
+SYSFONT=”lat0-sun16″  
+  
+这样中文在SSH,telnet终端一般可以正常显示了。  
+  
+如果还是不行，可以这么做：  
+  
+1、console终端乱码  
+  
+在/etc/profile文件的最后一行添加如下内容：  
+  
+export LC_ALL="zh_CN.GB18030"  
+  
+2、xwindow终端乱码  
+  
+在/etc/sysconfig/i18n文件的最后一行添加如下内容：  
+  
+export LC_ALL="zh_CN.GB18030"  
+
+博客推荐文章
+Ubuntu (2012-07-08 21:02:30) ubuntu (2012-04-26 17:58:42) Ubuntu (2012-01-04 21:05:39) ubuntu使用 (2012-03-07 16:47:23) ubuntu频繁掉线 (2012-02-22 20:52:28) 分享到： 新浪微博 QQ空间 开心网 豆瓣 人人网 twitter fb 0 
+   顶 热门推荐IBM System x3650 M3(...戴尔 PowerEdge T410(Xeo...戴尔 PowerEdge R310(Xeo...惠普 ProLiant DL380 G...gns3配置spi mosi每次传输数据centos ipv6sqlserver FROMUNIXTI...
+阅读(875)┊ 评论 (0)┊收藏(0)┊举报┊打印 
+前一篇：exit(1); 与 return 1;的区别
+[发评论] 评论 重要提示：警惕虚假中奖信息! 
+
+亲，您还没有登录,请[登录]或[注册]后再进行评论关于我们 | 关于IT168 | 联系方式 | 广告合作 | 法律声明 | 免费注册 
+Copyright © 2001-2010 ChinaUnix.net All Rights Reserved 北京皓辰网域网络信息技术有限公司. 版权所有 
+感谢所有关心和支持过ChinaUnix的朋友们
+京ICP证041476号 京ICP证060528号 
+
+ 

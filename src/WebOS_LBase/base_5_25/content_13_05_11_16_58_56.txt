@@ -1,0 +1,1790 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+结构之法 算法之道
+
+Google或baidu搜索：“结构之法”，进入本博客
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+【免费有礼】欧美最新网络营销技巧分享        博客导入工具      【限时优惠】第五届云计算大会社区门票抢购 
+探究云计算数据中心节能增效之道      专访邓凡平：Android开发路上的快速学习之道      CSDN博客第二期最佳移动开发博主评选 
+
+
+
+程序员编程艺术第一章、左旋转字符串 
+.
+ 分类： 08.MS 100' one Keys11.TAOPP（编程艺术）06.MS 100' answers12.TAOPP string2011-04-14 13:1455053人阅读评论(203)收藏举报
+ 
+算法编程distanceiteratorstring面试
+
+ 
+
+
+                   第一章、左旋转字符串
+
+
+作者：July，yansha。
+时间：二零一一年四月十四日。
+微博：http://weibo.com/julyweibo。
+出处：http://blog.csdn.net/v_JULY_v。
+-------------------------------------------
+
+目录
+
+序
+
+前言
+
+第一节、左旋转字符串
+
+第二节、两个指针逐步翻转
+
+第三节、通过递归转换，缩小问题之规模
+
+第四节、stl::rotate 算法的步步深入
+
+第五节、总结
+
+ 
+
+前言
+    本人整理微软等公司面试100题系列，包括原题整理，资源上传，帖子维护，答案整理，勘误，修正与优化工作，包括后续全新整理的80道，总计180道面试题，已有半年的时间了。
+
+    关于这180道面试题的一切详情，请参见：横空出世，席卷Csdn [评微软等数据结构+算法面试180题]。
+
+    一直觉得，这180道题中的任何一题都值得自己反复思考，反复研究，不断修正，不断优化。之前的答案整理由于时间仓促，加之受最开始的认识局限，更兼水平有限，所以，这180道面试题的答案，有很多问题都值得进一步商榷与完善。
+
+    特此，想针对这180道面试题，再写一个系列，叫做：程序员编程艺术系列。如你所见，我一般确定要写成一个系列的东西，一般都会永久写下去的。
+
+    “他似风儿一般奔跑，很多人渐渐的停下来了，而只有他一直在飞，一直在飞....”
+    
+    ok，本次程序员编程艺术系列以之前本人最初整理的微软面试100题中的第26题、左旋转字符串，为开篇，希望就此问题进行彻底而深入的阐述。然以下所有任何代码仅仅只是全部测试正确了而已，还有很多的优化工作要做。欢迎任何人，不吝赐教。谢谢。
+
+ 
+
+第一节、左旋转字符串
+题目描述：
+
+定义字符串的左旋转操作：把字符串前面的若干个字符移动到字符串的尾部。
+如把字符串abcdef左旋转2位得到字符串cdefab。
+请实现字符串左旋转的函数，要求对长度为n的字符串操作的时间复杂度为O(n)，空间复杂度为O(1)。 
+
+编程之美上有这样一个类似的问题，咱们先来看一下：
+
+
+设计一个算法，把一个含有N个元素的数组循环右移K位，要求时间复杂度为O（N），
+且只允许使用两个附加变量。
+
+分析：
+
+我们先试验简单的办法，可以每次将数组中的元素右移一位，循环K次。
+abcd1234→4abcd123→34abcd12→234abcd1→1234abcd。
+RightShift(int* arr, int N, int K)
+{
+     while(K--)
+     {
+          int t = arr[N - 1];
+          for(int i = N - 1; i > 0; i --)
+               arr[i] = arr[i - 1];
+          arr[0] = t;
+     }
+}
+
+虽然这个算法可以实现数组的循环右移，但是算法复杂度为O（K * N），不符合题目的要求，要继续探索。
+
+假如数组为abcd1234，循环右移4位的话，我们希望到达的状态是1234abcd。
+不妨设K是一个非负的整数，当K为负整数的时候，右移K位，相当于左移（-K）位。
+左移和右移在本质上是一样的。
+
+解法一：
+大家开始可能会有这样的潜在假设，K<N。事实上，很多时候也的确是这样的。但严格来说，我们不能用这样的“惯性思维”来思考问题。
+尤其在编程的时候，全面地考虑问题是很重要的，K可能是一个远大于N的整数，在这个时候，上面的解法是需要改进的。
+仔细观察循环右移的特点，不难发现：每个元素右移N位后都会回到自己的位置上。因此，如果K > N，右移K-N之后的数组序列跟右移K位的结果是一样的。
+
+进而可得出一条通用的规律：
+右移K位之后的情形，跟右移K’= K % N位之后的情形一样，如代码清单2-34所示。
+//代码清单2-34
+RightShift(int* arr, int N, int K)
+{
+     K %= N;
+     while(K--)
+     {
+          int t = arr[N - 1];
+          for(int i = N - 1; i > 0; i --)
+               arr[i] = arr[i - 1];
+          arr[0] = t;
+     }
+}
+可见，增加考虑循环右移的特点之后，算法复杂度降为O（N^２），这跟K无关，与题目的要求又接近了一步。但时间复杂度还不够低，接下来让我们继续挖掘循环右移前后，数组之间的关联。
+
+
+解法二：
+假设原数组序列为abcd1234，要求变换成的数组序列为1234abcd，即循环右移了4位。比较之后，不难看出，其中有两段的顺序是不变的：1234和abcd，可把这两段看成两个整体。右移K位的过程就是把数组的两部分交换一下。
+变换的过程通过以下步骤完成：
+ 逆序排列abcd：abcd1234 → dcba1234；
+ 逆序排列1234：dcba1234 → dcba4321；
+ 全部逆序：dcba4321 → 1234abcd。
+伪代码可以参考清单2-35。
+//代码清单2-35
+Reverse(int* arr, int b, int e)
+{
+     for(; b < e; b++, e--)
+     {
+          int temp = arr[e];
+          arr[e] = arr[b];
+          arr[b] = temp;
+     }
+}
+
+RightShift(int* arr, int N, int k)
+{
+     K %= N;
+     Reverse(arr, 0, N – K - 1);
+     Reverse(arr, N - K, N - 1);
+     Reverse(arr, 0, N - 1);
+}
+
+这样，我们就可以在线性时间内实现右移操作了。
+
+稍微总结下：
+编程之美上，
+（限制书中思路的根本原因是，题目要求：“且只允许使用两个附加变量”，去掉这个限制，思路便可如泉喷涌）
+1、第一个想法 ，是一个字符一个字符的右移，所以，复杂度为O（N*K）
+2、后来，它改进了，通过这条规律：右移K位之后的情形，跟右移K’= K % N位之后的情形一样
+复杂度为O（N^2）
+3、直到最后，它才提出三次翻转的算法，得到线性复杂度。
+
+下面，你将看到，本章里我们的做法是：
+1、三次翻转，直接线性
+2、两个指针逐步翻转，线性
+3、stl的rotate算法，线性
+
+好的，现在，回到咱们的左旋转字符串的问题中来，对于这个左旋转字符串的问题，咱们可以如下这样考虑：
+1.1、思路一：
+
+对于这个问题，咱们换一个角度，可以这么做：
+将一个字符串分成两部分，X和Y两个部分，在字符串上定义反转的操作X^T，即把X的所有字符反转（如，X="abc"，那么X^T="cba"），那么我们可以得到下面的结论：(X^TY^T)^T=YX。显然我们这就可以转化为字符串的反转的问题了。
+
+不是么?ok,就拿abcdef 这个例子来说（非常简短的三句，请细看，一看就懂）：
+1、首先分为俩部分，X:abc，Y:def；
+2、X->X^T，abc->cba， Y->Y^T，def->fed。
+3、(X^TY^T)^T=YX，cbafed->defabc，即整个翻转。
+
+我想，这下，你应该了然了。
+然后，代码可以这么写（已测试正确）：
+
+
+
+
+
+01.//Copyright@ 小桥流水 && July  
+02.//c代码实现，已测试正确。  
+03.//http://www.smallbridge.co.cc/2011/03/13/100%E9%A2%98  
+04.//_21-%E5%B7%A6%E6%97%8B%E8%BD%AC%E5%AD%97%E7%AC%A6%E4%B8%B2.html  
+05.//July、updated，2011.04.17。  
+06.#include <stdio.h>  
+07.#include <string.h>  
+08.  
+09.char * invert(char *start, char *end)  
+10.{     
+11.    char tmp, *ptmp = start;      
+12.    while (start != NULL && end != NULL && start < end)    
+13.    {     
+14.        tmp = *start;     
+15.        *start = *end;        
+16.        *end = tmp;       
+17.        start ++;     
+18.        end --;   
+19.    }  
+20.    return ptmp;  
+21.}  
+22.  
+23.char *left(char *s, int pos)   //pos为要旋转的字符个数，或长度，下面主函数测试中，pos=3。  
+24.{  
+25.    int len = strlen(s);  
+26.    invert(s, s + (pos - 1));  //如上，X->X^T，即 abc->cba  
+27.    invert(s + pos, s + (len - 1)); //如上，Y->Y^T，即 def->fed  
+28.    invert(s, s + (len - 1));  //如上，整个翻转，(X^TY^T)^T=YX，即 cbafed->defabc。  
+29.    return s;  
+30.}  
+31.  
+32.int main()  
+33.{     
+34.    char s[] = "abcdefghij";      
+35.    puts(left(s, 3));  
+36.    return 0;  
+37.}  
+ 
+
+1.2、答案V0.3版中，第26题勘误：
+
+
+    之前的答案V0.3版[第21-40题答案]中，第26题、贴的答案有误，那段代码的问题，最早是被网友Sorehead给指出来的：
+
+第二十六题：
+楼主的思路确实很巧妙，我真没想到还有这种方法，学习了。
+不过楼主代码中存在问题，主要是条件判断部分：
+函数LeftRotateString中 if (nLength > 0 || n == 0 || n > nLength)
+函数ReverseString中 if (pStart == NULL || pEnd == NULL)
+
+    当时，以答案整理因时间仓促，及最开始考虑问题不够周全为由，没有深入细看下去。后来，朋友达摩流浪者再次指出了上述代码的问题：
+
+  26题 这句 if(nLength > 0 || n == 0 || n > nLength)，有问题吧?
+  还有一句，应该是if(!(pStart == NULL || pEnd == NULL))，吧。
+
+    而后，修改如下（已测试正确）
+
+
+
+
+
+01.//zhedahht  
+02.//July、k，updated  
+03.//copyright @2011.04.14，by July。  
+04.//引用，请注明原作者，出处。  
+05.#include <string.h>  
+06.#include <iostream>  
+07.using namespace std;  
+08.  
+09.void Swap(char* a,char* b)  //特此把交换函数，独立抽取出来。当然，不排除会有人认为，此为多此一举。  
+10.{  
+11.    char temp =*a;  
+12.    *a = *b;  
+13.    *b = temp;  
+14.}  
+15.  
+16.// Reverse the string between pStart and pEnd  
+17.void ReverseString(char* pStart, char* pEnd)  
+18.{  
+19.    if(*pStart != '/0' && *pEnd != '/0')     
+20.        //这句也可以是：if(pStart != NULL && pEnd != NULL)。  
+21.    {  
+22.        while(pStart <= pEnd)  
+23.        {  
+24.            Swap(pStart,pEnd);   //交换  
+25.  
+26.            pStart++;  
+27.            pEnd--;  
+28.        }  
+29.    }  
+30.}  
+31.  
+32.// Move the first n chars in a string to its end   
+33.char* LeftRotateString(char* pStr, unsigned int n)  
+34.{  
+35.    if(pStr != NULL)  
+36.    {  
+37.        int nLength = static_cast<int>(strlen(pStr));  
+38.        if(nLength >0 && n != 0 && n<nLength)   //n可以=0,也可以说不该=0。  
+39.            //nLength是整个字符串的长度，n是左边的一部分，所以应该是n<nLength。  
+40.            //之前上传的答案（代码），就错在这里，最初的为n>nLength,当然，就是错的了。July、k，updated。  
+41.        {  
+42.            char* pFirstStart = pStr;  
+43.            char* pFirstEnd = pStr + n - 1;  
+44.            char* pSecondStart = pStr + n;  
+45.            char* pSecondEnd = pStr + nLength - 1;  
+46.              
+47.            // reverse the first part of the string  
+48.            ReverseString(pFirstStart, pFirstEnd);  
+49.            // reverse the second part of the strint  
+50.            ReverseString(pSecondStart, pSecondEnd);  
+51.            // reverse the whole string  
+52.            ReverseString(pFirstStart, pSecondEnd);  
+53.        }  
+54.    }  
+55.    return pStr;  
+56.}  
+57.  
+58.int main()  
+59.{  
+60.    char a[11]="hello July";   //2、修正，以一个数组实现存储整个字符串  
+61.    char *ps=a;  
+62.    LeftRotateString(ps, 6);  
+63.    for(;*ps!='/0';ps++)  
+64.        cout<<*ps;  
+65.    cout<<endl;  
+66.    ps=NULL;   //代码规范  
+67.    return 0;  
+68.}  
+ 上述，修正的俩处错误，如下所示：
+1、如上注释中所述：        
+if(nLength >0 && n<nLength)  
+//nLength是整个字符串的长度吧，n是左边的一部分，所以应该是n<nLength。
+
+2、至于之前的主函数为什么编写错误，请看下面的注释：
+int main()
+{
+    char *ps="hello July";  //本身没错，但你不能对ps所指的字符串做任何修改。
+    //这句其实等价于：const char *ps = "hello July"
+    LeftShiftString( ps, 4 );  //而在这里，试图修改ps所指的字符串常量，所以将出现错误。
+    puts( ps );
+    return 0;
+}
+
+当然，上面的解释也不是完全正确的，正如ivan所说：从编程实践来说，不完全对。
+如果在一个大的工程里面，你怎么知道ps指向的是""字符串，还是malloc出来的东西？  
+那么如何决定要不要对ps进行delete?
+
+不过，至少第26题的思路一的代码，最终完整修正完全了。
+
+1.3、updated:
+    可能你还是感觉上述代码，有点不好理解，ok，下面再给出一段c实现的代码。
+然后，我们可以看到c的高效与简洁。
+
+
+
+
+
+
+01.//copyright@ yiyibupt&&July  
+02.//已测试正确，July、updated，2011.04.17.  
+03.//不要小看每一段程序，July。  
+04.#include <cstdio>  
+05.#include <cstring>  
+06.  
+07.void rotate(char *start, char *end)  
+08.{  
+09.    while(start != NULL && end !=NULL && start<end)  
+10.    {  
+11.        char temp=*start;  
+12.        *start=*end;  
+13.        *end=temp;  
+14.        start++;  
+15.        end--;  
+16.    }  
+17.      
+18.}  
+19.  
+20.void leftrotate(char *p,int m)  
+21.{  
+22.    if(p==NULL)  
+23.        return ;  
+24.    int len=strlen(p);  
+25.    if(m>0&&m<=len)  
+26.    {  
+27.        char *xfirst,*xend;  
+28.        char *yfirst,*yend;  
+29.        xfirst=p;  
+30.        xend=p+m-1;  
+31.        yfirst=p+m;  
+32.        yend=p+len-1;  
+33.        rotate(xfirst,xend);  
+34.        rotate(yfirst,yend);  
+35.        rotate(p,p+len-1);  
+36.    }  
+37.}  
+38.  
+39.int main(void)  
+40.{     
+41.    char str[]="abcdefghij";  
+42.    leftrotate(str,3);  
+43.    printf("%s/n",str);  
+44.    return 0;  
+45.}  
+
+
+
+第二节、两指针逐步翻转
+    先看下网友litaoye 的回复：26.左旋转字符串跟panda所想，是一样的，即，
+以abcdef为例
+1. ab->ba
+2. cdef->fedc
+原字符串变为bafedc
+3. 整个翻转：cdefab  
+  //只要俩次翻转，且时间复杂度也为O（n）。
+
+2.1、在此，本人再奉献另外一种思路，即为本思路二：
+abc defghi，要abc移动至最后
+abc defghi->def abcghi->def ghiabc
+
+定义俩指针，p1指向ch[0]，p2指向ch[m]；
+一下过程循环m次，交换p1和p2所指元素，然后p1++, p2++；。
+
+第一步，交换abc 和def ，
+abc defghi->def abcghi
+第二步，交换abc 和 ghi，
+def abcghi->def ghiabc
+
+整个过程，看起来，就是abc 一步一步 向后移动
+abc defghi
+def abcghi
+def ghi abc  
+  //最后的 复杂度是O（m+n）  
+
+以下是朋友颜沙针对上述过程给出的图解：
+
+
+
+2.2、各位读者注意了：
+
+    由上述例子九个元素的序列abcdefghi，您已经看到，m=3时，p2恰好指到了数组最后一个元素，于是，上述思路没有问题。但如果上面例子中i 的后面还有元素列?
+
+    即，如果是要左旋十个元素的序列：abcdefghij，ok，下面，就举这个例子，对abcdefghij序列进行左旋转操作：
+
+如果abcdef ghij要变成defghij abc：
+  abcdef ghij
+1. def abc ghij
+2. def ghi abc j      //接下来，j 步步前移
+3. def ghi ab jc
+4. def ghi a j bc
+5. def ghi j abc  
+
+ 下面，再针对上述过程，画个图清晰说明下，如下所示：
+
+
+
+  ok，咱们来好好彻底总结一下此思路二：（就4点，请仔细阅读）：
+
+1、首先让p1=ch[0]，p2=ch[m]，即让p1，p2相隔m的距离；
+
+2、判断p2+m-1是否越界，如果没有越界转到3，否则转到4（abcdefgh这8个字母的字符串，以4左旋，那么初始时p2指向e，p2+4越界了，但事实上p2至p2+m-1是m个字符，可以再做一个交换）。
+
+3、不断交换*p1与*p2，然后p1++，p2++，循环m次，然后转到2。
+
+4、此时p2+m-1 已经越界，在此只需处理尾巴。过程如下：
+
+   4.1 通过n-p2得到p2与尾部之间元素个数r，即我们要前移的元素个数。
+
+   4.2 以下过程执行r次：
+
+       ch[p2]<->ch[p2-1]，ch[p2-1]<->ch[p2-2]，....，ch[p1+1]<->ch[p1]；p1++；p2++；
+
+（特别感谢tctop组成员big的指正，tctop组的修订wiki页面为：http://tctop.wikispaces.com/）
+
+ 
+
+    所以，之前最初的那个左旋转九个元素abcdefghi的思路在末尾会出现问题的（如果p2后面有元素就不能这么变，例如，如果是处理十个元素，abcdefghij 列?对的，就是这个意思），解决办法有两个：
+
+方法一（即如上述思路总结所述）：
+def ghi abc jk
+当p1指向a，p2指向j时，由于p2+m越界，那么此时p1，p2不要变
+这里p1之后（abcjk)就是尾巴，处理尾巴只需将j,k移到abc之前，得到最终序列，代码编写如下：
+
+
+
+
+
+01.//copyright@July、颜沙  
+02.//最终代码，July，updated again，2011.04.17。  
+03.#include <iostream>  
+04.#include <string>  
+05.using namespace std;  
+06.  
+07.void rotate(string &str, int m)  
+08.{  
+09.      
+10.    if (str.length() == 0 || m <= 0)  
+11.        return;  
+12.      
+13.    int n = str.length();  
+14.      
+15.    if (m % n <= 0)  
+16.        return;  
+17.      
+18.    int p1 = 0, p2 = m;  
+19.    int k = (n - m) - n % m;  
+20.      
+21.    // 交换p1，p2指向的元素，然后移动p1，p2  
+22.    while (k --)   
+23.    {  
+24.        swap(str[p1], str[p2]);  
+25.        p1++;  
+26.        p2++;  
+27.    }  
+28.      
+29.    // 重点，都在下述几行。  
+30.    // 处理尾部，r为尾部左移次数  
+31.    int r = n - p2;  
+32.    while (r--)  
+33.    {  
+34.        int i = p2;  
+35.        while (i > p1)  
+36.        {  
+37.            swap(str[i], str[i-1]);  
+38.            i--;  
+39.        }  
+40.        p2++;  
+41.        p1++;  
+42.    }  
+43.    //比如一个例子，abcdefghijk  
+44.    //                    p1    p2  
+45.    //当执行到这里时，defghi a b c j k  
+46.    //p2+m出界 了，  
+47.    //r=n-p2=2，所以以下过程，要执行循环俩次。  
+48.      
+49.    //第一次：j 步步前移，abcjk->abjck->ajbck->jabck  
+50.    //然后，p1++，p2++，p1指a，p2指k。  
+51.    //               p1    p2  
+52.    //第二次：defghi j a b c k  
+53.    //同理，此后，k步步前移，abck->abkc->akbc->kabc。  
+54.}  
+55.  
+56.int main()     
+57.{     
+58.    string ch="abcdefghijk";     
+59.    rotate(ch,3);     
+60.    cout<<ch<<endl;     
+61.    return 0;        
+62.}    
+  方法二：
+def ghi abc jk
+当p1指向a，p2指向j时，那么交换p1和p2，
+此时为:
+def ghi jbc ak
+
+p1++，p2++,p1指向b，p2指向k，继续上面步骤得:
+def ghi jkc ab
+
+p1++，p2不动,p1指向c，p2指向b，p1和p2之间（cab)也就是尾巴，
+那么处理尾巴（cab)需要循环左移一定次数（而后的具体操作步骤已在下述程序的注释中已详细给出）。
+
+    根据方案二，不难写出下述代码（已测试正确）：
+
+
+
+
+
+01.#include <iostream>  
+02.#include <string>  
+03.using namespace std;  
+04.  
+05.//颜沙，思路二之方案二，  
+06.//July、updated，2011.04.16。  
+07.void rotate(string &str, int m)  
+08.{  
+09.    if (str.length() == 0 || m < 0)  
+10.        return;  
+11.  
+12.    //初始化p1，p2  
+13.    int p1 = 0, p2 = m;     
+14.    int n = str.length();  
+15.  
+16.    // 处理m大于n  
+17.    if (m % n == 0)  
+18.        return;  
+19.      
+20.    // 循环直至p2到达字符串末尾  
+21.    while(true)  
+22.    {    
+23.        swap(str[p1], str[p2]);  
+24.        p1++;  
+25.        if (p2 < n - 1)  
+26.            p2++;  
+27.        else  
+28.            break;  
+29.    }  
+30.      
+31.    // 处理尾部，r为尾部循环左移次数  
+32.    int r = m - n % m;  // r = 1.  
+33.    while (r--)  //外循环执行一次  
+34.    {  
+35.        int i = p1;  
+36.        char temp = str[p1];  
+37.        while (i < p2)  //内循环执行俩次  
+38.        {  
+39.            str[i] = str[i+1];  
+40.            i++;  
+41.        }     
+42.        str[p2] = temp;  
+43.    }  
+44.    //举一个例子  
+45.    //abcdefghijk  
+46.    //当执行到这里的时候，defghiabcjk  
+47.    //      p1    p2  
+48.    //defghi a b c j k，a 与 j交换，jbcak，然后，p1++，p2++  
+49.    //        p1    p2  
+50.    //       j b c a k，b 与 k交换，jkcab，然后，p1++，p2不动，  
+51.      
+52.    //r = m - n % m= 3-11%3=1，即循环移位1次。  
+53.    //          p1  p2  
+54.    //       j k c a b  
+55.    //p1所指元素c实现保存在temp里，  
+56.    //然后执行此条语句：str[i] = str[i+1]; 即a跑到c的位置处，a_b  
+57.    //i++，再次执行：str[i] = str[i+1]，ab_  
+58.    //最后，保存好的c 填入，为abc，所以，最终序列为defghi jk abc。  
+59.    //July、updated，2011.04.17晚，送走了她。  
+60.}  
+61.  
+62.int main()  
+63.{  
+64.    string ch="abcdefghijk";  
+65.    rotate(ch,3);  
+66.    cout<<ch<<endl;  
+67.    return 0;     
+68.}  
+
+
+注意：上文中都是假设m<n，且如果鲁棒点的话令m=m%n，这样m允许大于n。另外，各位要记得处理指针为空的情况。      
+
+
+ 还可以看下这段代码：
+
+
+
+
+
+01./* 
+02. * myinvert2.cpp 
+03. * 
+04. *  Created on: 2011-5-11 
+05. *      Author: BigPotato 
+06. */  
+07.#include<iostream>  
+08.#include<string>  
+09.#define positiveMod(m,n) ((m) % (n) + (n)) % (n)  
+10.  
+11./* 
+12. *左旋字符串str，m为负数时表示右旋abs（m）个字母 
+13. */  
+14.void rotate(std::string &str, int m) {  
+15.    if (str.length() == 0)  
+16.        return;  
+17.    int n = str.length();  
+18.    //处理大于str长度及m为负数的情况,positiveMod可以取得m为负数时对n取余得到正数  
+19.    m = positiveMod(m,n);  
+20.    if (m == 0)  
+21.        return;  
+22.    //    if (m % n <= 0)  
+23.    //        return;  
+24.    int p1 = 0, p2 = m;  
+25.    int round;  
+26.    //p2当前所指和之后的m-1个字母共m个字母，就可以和p2前面的m个字母交换。  
+27.    while (p2 + m - 1 < n) {  
+28.        round = m;  
+29.        while (round--) {  
+30.            std::swap(str[p1], str[p2]);  
+31.            p1++;  
+32.            p2++;  
+33.        }  
+34.    }  
+35.    //剩下的不足m个字母逐个交换  
+36.    int r = n - p2;  
+37.    while (r--) {  
+38.        int i = p2;  
+39.        while (i > p1) {  
+40.            std::swap(str[i], str[i - 1]);  
+41.            i--;  
+42.        }  
+43.        p2++;  
+44.        p1++;  
+45.    }  
+46.}  
+47.  
+48.//测试  
+49.int main(int argc, char **argv) {  
+50.    //    std::cout << ((-15) % 7 + 7) % 7 << std::endl;  
+51.    //    std::cout << (-15) % 7 << std::endl;  
+52.    std::string ch = "abcdefg";  
+53.    int len = ch.length();  
+54.    for (int m = -2 * len; m <= len * 2; m++) {  
+55.        //由于传给rotate的是string的引用，所以这里每次调用都用了一个新的字符串  
+56.        std::string s = "abcdefg";  
+57.        rotate(s, m);  
+58.        std::cout << positiveMod(m,len) << ": " << s << std::endl;  
+59.    }  
+60.   
+61.    return 0;  
+62.}  
+ 
+
+ 
+
+第三节、通过递归转换，缩小问题之规模
+
+    本文最初发布时，网友留言bluesmic说：楼主，谢谢你提出的研讨主题，很有学术和实践价值。关于思路二，本人提一个建议：思路二的代码，如果用递归的思想去简化，无论代码还是逻辑都会更加简单明了。
+
+    就是说，把一个规模为N的问题化解为规模为M(M<N)的问题。
+    举例来说，设字符串总长度为L，左侧要旋转的部分长度为s1，那么当从左向右循环交换长度为s1的小段，直到最后，由于剩余的部分长度为s2(s2==L%s1)而不能直接交换。
+
+    该问题可以递归转化成规模为s1+s2的，方向相反(从右向左)的同一个问题。随着递归的进行，左右反复回荡，直到某一次满足条件L%s1==0而交换结束。
+
+     举例解释一下：
+    设原始问题为：将“123abcdefg”左旋转为“abcdefg123”，即总长度为10，旋转部("123")长度为3的左旋转。按照思路二的运算，演变过程为“123abcdefg”->"abc123defg"->"abcdef123g"。这时，"123"无法和"g"作对调，该问题递归转化为：将“123g”右旋转为"g123"，即总长度为4，旋转部("g")长度为1的右旋转。
+
+updated：
+
+Ys：
+
+Bluesmic的思路没有问题，他的思路以前很少有人提出。思路是通过递归将问题规模变小。当字符串总长度为n，左侧要旋转的部分长度为m，那么当从左向右循环交换长度为m的小段直到剩余部分为m’(n % m)，此时m’ < m，已不能直接交换了。
+
+此后，我们换一个思路，把该问题递归转化成规模大小为m’ +m，方向相反的同一问题。随着递归的进行，直到满足结束条件n % m==0。
+
+ 
+
+  举个具体事例说明，如下：
+
+1、对于字符串abc def ghi gk，
+
+将abc右移到def ghi gk后面，此时n = 11，m = 3，m’ = n % m = 2;
+
+abc def ghi gk -> def ghi abc gk
+
+2、问题变成gk左移到abc前面，此时n = m’ + m = 5，m = 2，m’ = n % m 1;
+
+abc gk -> a gk bc
+
+3、问题变成a右移到gk后面，此时n = m’ + m = 3，m = 1，m’ = n % m = 0;
+
+a gk bc-> gk a bc。 由于此刻，n % m = 0，满足结束条件，返回结果。
+
+ 
+
+    即从左至右，后从右至左，再从左至右，如此反反复复，直到满足条件，返回退出。
+
+    代码如下，已测试正确（有待优化）：
+
+
+
+
+
+01.//递归，  
+02.//感谢网友Bluesmic提供的思路  
+03.  
+04.//copyright@ yansha 2011.04.19  
+05.//July，updated，2011.04.20.  
+06.#include <iostream>  
+07.using namespace std;  
+08.  
+09.void rotate(string &str, int n, int m, int head, int tail, bool flag)  
+10.{  
+11.    //n 待处理部分的字符串长度，m：待处理部分的旋转长度  
+12.    //head：待处理部分的头指针，tail：待处理部分的尾指针  
+13.    //flag = true进行左旋，flag = false进行右旋  
+14.      
+15.    // 返回条件  
+16.    if (head == tail || m <= 0)  
+17.        return;  
+18.      
+19.    if (flag == true)  
+20.    {  
+21.        int p1 = head;  
+22.        int p2 = head + m;  //初始化p1，p2  
+23.          
+24.        //1、左旋：对于字符串abc def ghi gk，  
+25.        //将abc右移到def ghi gk后面，此时n = 11，m = 3，m’ = n % m = 2;  
+26.        //abc def ghi gk -> def ghi abc gk  
+27.        //（相信，经过上文中那么多繁杂的叙述，此类的转换过程，你应该是了如指掌了。）  
+28.          
+29.        int k = (n - m) - n % m;   //p1，p2移动距离，向右移六步  
+30.  
+31.        /*--------------------- 
+32.        解释下上面的k = (n - m) - n % m的由来： 
+33.        yansha： 
+34.        以p2为移动的参照系： 
+35.        n-m 是开始时p2到末尾的长度，n%m是尾巴长度 
+36.        (n-m)-n%m就是p2移动的距离 
+37.        比如 abc def efg hi 
+38.        开始时p2->d,那么n-m 为def efg hi的长度8， 
+39.        n%m 为尾巴hi的长度2， 
+40.        因为我知道abc要移动到hi的前面，所以移动长度是 
+41.        (n-m)-n%m = 8-2 = 6。 
+42.        */  
+43.          
+44.        for (int i = 0; i < k; i++, p1++, p2++)  
+45.            swap(str[p1], str[p2]);  
+46.          
+47.        rotate(str, n - k, n % m, p1, tail, false);  //flag标志变为false，结束左旋，下面，进入右旋  
+48.    }  
+49.    else  
+50.    {  
+51.        //2、右旋：问题变成gk左移到abc前面，此时n = m’ + m = 5，m = 2，m’ = n % m 1;  
+52.        //abc gk -> a gk bc  
+53.          
+54.        int p1 = tail;  
+55.        int p2 = tail - m;  
+56.          
+57.        // p1，p2移动距离，向左移俩步  
+58.        int k = (n - m) - n % m;  
+59.          
+60.        for (int i = 0; i < k; i++, p1--, p2--)  
+61.            swap(str[p1], str[p2]);  
+62.          
+63.        rotate(str, n - k, n % m, head, p1, true);  //再次进入上面的左旋部分，  
+64.        //3、左旋：问题变成a右移到gk后面，此时n = m’ + m = 3，m = 1，m’ = n % m = 0;  
+65.        //a gk bc-> gk a bc。 由于此刻，n % m = 0，满足结束条件，返回结果。  
+66.  
+67.    }  
+68.}  
+69.  
+70.int main()  
+71.{  
+72.    int i=3;  
+73.    string str = "abcdefghijk";  
+74.    int len = str.length();  
+75.    rotate(str, len, i % len, 0, len - 1, true);  
+76.    cout << str.c_str() << endl;   //转化成字符数组的形式输出  
+77.    return 0;  
+78.}  
+      
+
+非常感谢。
+
+    稍后，由下文，您将看到，其实上述思路二的本质即是下文将要阐述的stl rotate算法，详情，请继续往下阅读。
+
+ 
+
+第四节、stl::rotate 算法的步步深入
+思路三：
+
+3.1、数组循环移位
+    下面，我将再具体深入阐述下此STL 里的rotate算法，由于stl里的rotate算法，用到了gcd的原理，下面，我将先介绍此辗转相除法，或欧几里得算法，gcd的算法思路及原理。
+
+    gcd，即辗转相除法，又称欧几里得算法，是求最大公约数的算法，即求两个正整数之最大公因子的算法。此算法作为TAOCP第一个算法被阐述，足见此算法被重视的程度。
+
+    gcd算法：给定俩个正整数m，n（m>=n），求它们的最大公约数。（注意，一般要求m>=n，若m<n，则要先交换m<->n。下文，会具体解释）。以下，是此算法的具体流程：
+    1、[求余数]，令r=m%n，r为n除m所得余数（0<=r<n）；
+    2、[余数为0?]，若r=0，算法结束，此刻，n即为所求答案，否则，继续，转到3；
+    3、[重置]，置m<-n，n<-r，返回步骤1.
+
+    此算法的证明，可参考计算机程序设计艺术第一卷：基本算法。证明，此处略。
+
+    ok，下面，举一个例子，你可能看的更明朗点。
+    比如，给定m=544，n=119，
+      则余数r=m%n=544%119=68; 因r!=0，所以跳过上述步骤2，执行步骤3。；
+      置m<-119，n<-68，=>r=m%n=119%68=51;
+      置m<-68，n<-51，=>r=m%n=68%51=17；
+      置m<-51，n<-17，=>r=m%n=51%17=0，算法结束，
+
+    此时的n=17，即为m=544，n=119所求的俩个数的最大公约数。
+
+    再解释下上述gcd(m，n)算法开头处的，要求m>=n 的原因：举这样一个例子，如m<n，即m=119，n=544的话，那么r=m%n=119%544=119,
+    因为r!=0,所以执行上述步骤3，注意，看清楚了：m<-544，n<-119。看到了没，尽管刚开始给的m<n，但最终执行gcd算法时，还是会把m，n的值交换过来，以保证m>=n。
+
+    ok，我想，现在，你已经彻底明白了此gcd算法，下面，咱们进入主题，stl里的rotate算法的具体实现。//待续。
+
+    熟悉stl里的rotate算法的人知道，对长度为n的数组(ab)左移m位，可以用stl的rotate函数（stl针对三种不同的迭代器，提供了三个版本的rotate）。但在某些情况下，用stl的rotate效率极差。
+
+    对数组循环移位，可以采用的方法有（也算是对上文思路一，和思路二的总结）：
+
+
+      flyinghearts：
+      ① 动态分配一个同样长度的数组，将数据复制到该数组并改变次序，再复制回原数组。（最最普通的方法）
+      ② 利用ba=(br)^T(ar)^T=(arbr)^T，通过三次反转字符串。（即上述思路一，首先对序列前部分逆序，再对序列后部分逆序，再对整个序列全部逆序）
+      ③ 分组交换（尽可能使数组的前面连续几个数为所要结果）：
+      若a长度大于b，将ab分成a0a1b，交换a0和b，得ba1a0，只需再交换a1 和a0。
+      若a长度小于b，将ab分成ab0b1，交换a和b0，得b0ab1，只需再交换a 和b0。
+      通过不断将数组划分，和交换，直到不能再划分为止。分组过程与求最大公约数很相似。
+      ④ 所有序号为 (j+i *m) % n (j 表示每个循环链起始位置，i 为计数变量，m表示左旋转位数，n表示字符串长度)，会构成一个循环链（共有gcd(n,m)个，gcd为n、m的最大公约数），每个循环链上的元素只要移动一个位置即可，最后整个过程总共交换了n次（每一次循环链，是交换n/gcd(n,m)次，总共gcd(n,m)个循环链。所以，总共交换n次）。
+
+    stl的rotate的三种迭代器，即是，分别采用了后三种方法。
+
+    在给出stl rotate的源码之前，先来看下我的朋友ys对上述第④ 种方法的评论：
+    ys：这条思路个人认为绝妙，也正好说明了数学对算法的重要影响。
+
+    通过前面思路的阐述，我们知道对于循环移位，最重要的是指针所指单元不能重复。例如要使abcd循环移位变成dabc(这里m=3,n=4)，经过以下一系列眼花缭乱的赋值过程就可以实现：
+    ch[0]->temp, ch[3]->ch[0], ch[2]->ch[3], ch[1]->ch[2], temp->ch[1];  （*）
+    字符串变化为：abcd->_bcd->dbc_->db_c->d_bc->dabc;
+是不是很神奇？其实这是有规律可循的。
+
+    请先看下面的说明再回过头来看。
+ 对于左旋转字符串，我们知道每个单元都需要且只需要赋值一次，什么样的序列能保证每个单元都只赋值一次呢？
+
+      1、对于正整数m、n互为质数的情况，通过以下过程得到序列的满足上面的要求：
+ for i = 0: n-1
+      k = i * m % n;
+ end
+
+    举个例子来说明一下，例如对于m=3,n=4的情况，
+        1、我们得到的序列：即通过上述式子求出来的k序列，是0, 3, 2, 1。
+        2、然后，你只要只需按这个顺序赋值一遍就达到左旋3的目的了：
+    ch[0]->temp, ch[3]->ch[0], ch[2]->ch[3], ch[1]->ch[2], temp->ch[1];   （*） 
+
+    ok，这是不是就是按上面（*）式子的顺序所依次赋值的序列阿?哈哈，很巧妙吧。当然，以上只是特例，作为一个循环链，相当于rotate算法的一次内循环。
+
+     2、对于正整数m、n不是互为质数的情况（因为不可能所有的m，n都是互质整数对），那么我们把它分成一个个互不影响的循环链，正如flyinghearts所言，所有序号为 (j + i * m) % n（j为0到gcd(n, m)-1之间的某一整数，i = 0:n-1）会构成一个循环链，一共有gcd(n, m)个循环链，对每个循环链分别进行一次内循环就行了。
+
+    综合上述两种情况，可简单编写代码如下：
+
+
+
+
+
+01.//④ 所有序号为 (j+i *m) % n (j 表示每个循环链起始位置，i 为计数变量，m表示左旋转位数，n表示字符串长度)，  
+02.//会构成一个循环链（共有gcd(n,m)个，gcd为n、m的最大公约数），  
+03.  
+04.//每个循环链上的元素只要移动一个位置即可，最后整个过程总共交换了n次  
+05.//（每一次循环链，是交换n/gcd(n,m)次，共有gcd(n,m)个循环链，所以，总共交换n次）。  
+06.  
+07.void rotate(string &str, int m)   
+08.{   
+09.    int lenOfStr = str.length();   
+10.    int numOfGroup = gcd(lenOfStr, m);   
+11.    int elemInSub = lenOfStr / numOfGroup;    
+12.      
+13.    for(int j = 0; j < numOfGroup; j++)      
+14.        //对应上面的文字描述，外循环次数j为循环链的个数，即gcd(n, m)个循环链  
+15.    {   
+16.        char tmp = str[j];   
+17.  
+18.        for (int i = 0; i < elemInSub - 1; i++)      
+19.            //内循环次数i为，每个循环链上的元素个数，n/gcd(m,n)次  
+20.            str[(j + i * m) % lenOfStr] = str[(j + (i + 1) * m) % lenOfStr];  
+21.        str[(j + i * m) % lenOfStr] = tmp;   
+22.    }   
+23.}  
+
+
+后来有网友针对上述的思路④，给出了下述的证明：
+    1、首先，直观的看肯定是有循环链，关键是有几条以及每条有多长，根据(i+j *m) % n这个表达式可以推出一些东东，一个j对应一条循环链，现在要证明(i+j *m) % n有n/gcd(n,m)个不同的数。
+    2、假设j和k对应的数字是相同的， 即(i+j*m)%n = (i+k*m)%n， 可以推出n|(j-k)*m，m=m’*gcd(n.m), n=n’*gcd(n,m), 可以推出n’|(j-k)*m’，而m’和n’互素，于是n’|(j-k)，即(n/gcd(n,m))|(j-k)，
+    3、所以(i+j*m) % n有n/gcd(n,m)个不同的数。则总共有gcd(n，m)个循环链。符号“|”是整除的意思。
+以上的3点关于为什么一共有gcd(n, m)个循环链的证明，应该是来自qq3128739xx的，非常感谢这位朋友。
+
+3.2、以下，便是摘自sgi stl v3.3版中的stl_algo_h文件里，有关rotate的实现的代码：
+
+
+
+
+
+
+01.// rotate and rotate_copy, and their auxiliary functions  
+02.template <class _EuclideanRingElement>  
+03._EuclideanRingElement __gcd(_EuclideanRingElement __m,  
+04.                            _EuclideanRingElement __n)  
+05.{  //gcd(m,n)实现  
+06.    while (__n != 0) {  
+07.        _EuclideanRingElement __t = __m % __n;  
+08.        __m = __n;  
+09.        __n = __t;  
+10.    }  
+11.    return __m;   //....  
+12.}  
+13.  
+14.//③ 分组交换（尽可能使数组的前面连续几个数为所要结果）：  
+15.//若a长度大于b，将ab分成a0a1b，交换a0和b，得ba1a0，只需再交换a1 和a0。  
+16.//若a长度小于b，将ab分成ab0b1，交换a和b0，得b0ab1，只需再交换a 和b0。  
+17.//通过不断将数组划分，和交换，直到不能再划分为止。分组过程与求最大公约数很相似。  
+18.template <class _ForwardIter, class _Distance>  
+19._ForwardIter __rotate(_ForwardIter __first,  
+20.                      _ForwardIter __middle,  
+21.                      _ForwardIter __last,  
+22.                      _Distance*,  
+23.                      forward_iterator_tag)   
+24.{  
+25.    if (__first == __middle)  
+26.        return __last;  
+27.    if (__last  == __middle)  
+28.        return __first;  
+29.      
+30.    _ForwardIter __first2 = __middle;  
+31.    do {  
+32.        swap(*__first++, *__first2++);  //  
+33.        if (__first == __middle)  
+34.            __middle = __first2;  
+35.    } while (__first2 != __last);  
+36.      
+37.    _ForwardIter __new_middle = __first;  
+38.    __first2 = __middle;  
+39.      
+40.    while (__first2 != __last)   
+41.    {  
+42.        swap (*__first++, *__first2++);  //  
+43.        if (__first == __middle)  
+44.            __middle = __first2;  
+45.        else if (__first2 == __last)  
+46.            __first2 = __middle;  
+47.    }  
+48.      
+49.    return __new_middle;  
+50.}  
+51.  
+52.//②利用ba=(br)^T(ar)^T=(arbr)^T，通过三次反转字符串。  
+53.//（即上述思路一，首先对序列前部分逆序，再对序列后部分逆序，再对整个序列全部逆序）  
+54.template <class _BidirectionalIter, class _Distance>  
+55._BidirectionalIter __rotate(_BidirectionalIter __first,  
+56.                            _BidirectionalIter __middle,  
+57.                            _BidirectionalIter __last,  
+58.                            _Distance*,  
+59.                            bidirectional_iterator_tag)   
+60.{  
+61.    __STL_REQUIRES(_BidirectionalIter, _Mutable_BidirectionalIterator);  
+62.    if (__first == __middle)  
+63.        return __last;  
+64.    if (__last  == __middle)  
+65.        return __first;  
+66.      
+67.    __reverse(__first,  __middle, bidirectional_iterator_tag());  //交换序列前半部分  
+68.    __reverse(__middle, __last,   bidirectional_iterator_tag());  //交换序列后半部分  
+69.      
+70.    while (__first != __middle && __middle != __last)  
+71.        swap (*__first++, *--__last);   //整个序列全部交换  
+72.      
+73.    if (__first == __middle)  //  
+74.    {  
+75.        __reverse(__middle, __last,   bidirectional_iterator_tag());  
+76.        return __last;  
+77.    }  
+78.    else {  
+79.        __reverse(__first,  __middle, bidirectional_iterator_tag());  
+80.        return __first;  
+81.    }  
+82.}  
+83.  
+84.//④ 所有序号为 (i+t*k) % n (i为指定整数，t为任意整数)，  
+85.//会构成一个循环链（共有gcd(n,k)个，gcd为n、k的最大公约数），  
+86.//每个循环链上的元素只要移动一个位置即可，总共交换了n次。  
+87.template <class _RandomAccessIter, class _Distance, class _Tp>  
+88._RandomAccessIter __rotate(_RandomAccessIter __first,  
+89.                           _RandomAccessIter __middle,  
+90.                           _RandomAccessIter __last,  
+91.                           _Distance *, _Tp *)   
+92.{  
+93.    __STL_REQUIRES(_RandomAccessIter, _Mutable_RandomAccessIterator);  
+94.    _Distance __n = __last   - __first;  
+95.    _Distance __k = __middle - __first;  
+96.    _Distance __l = __n - __k;  
+97.    _RandomAccessIter __result = __first + (__last - __middle);  
+98.      
+99.    if (__k == 0)  
+100.        return __last;  
+101.      
+102.    else if (__k == __l) {  
+103.        swap_ranges(__first, __middle, __middle);  
+104.        return __result;  
+105.    }  
+106.      
+107.    _Distance __d = __gcd(__n, __k);    //令d为gcd(n,k)  
+108.      
+109.    for (_Distance __i = 0; __i < __d; __i++) {  
+110.        _Tp __tmp = *__first;  
+111.        _RandomAccessIter __p = __first;  
+112.          
+113.        if (__k < __l) {  
+114.            for (_Distance __j = 0; __j < __l/__d; __j++) {  
+115.                if (__p > __first + __l) {  
+116.                    *__p = *(__p - __l);  
+117.                    __p -= __l;  
+118.                }  
+119.                  
+120.                *__p = *(__p + __k);  
+121.                __p += __k;  
+122.            }  
+123.        }     
+124.        else {  
+125.            for (_Distance __j = 0; __j < __k/__d - 1; __j ++) {  
+126.                if (__p < __last - __k) {  
+127.                    *__p = *(__p + __k);  
+128.                    __p += __k;  
+129.                }  
+130.                  
+131.                *__p = * (__p - __l);  
+132.                __p -= __l;  
+133.            }  
+134.        }  
+135.          
+136.        *__p = __tmp;  
+137.        ++__first;  
+138.    }  
+139.      
+140.    return __result;  
+141.}  
+
+
+
+由于上述stl rotate源码中，方案④ 的代码，较复杂，难以阅读，下面是对上述第④ 方案的简单改写：
+
+
+
+01.//对上述方案4的改写。  
+02.//④ 所有序号为 (i+t*k) % n (i为指定整数，t为任意整数)，....  
+03.//copyright@ hplonline && July 2011.04.18。  
+04.//July、sahala、yansha，updated，2011.06.02。  
+05.void my_rotate(char *begin, char *mid, char *end)  
+06.{     
+07.    int n = end - begin;     
+08.    int k = mid - begin;     
+09.    int d = gcd(n, k);     
+10.    int i, j;     
+11.    for (i = 0; i < d; i ++)     
+12.    {     
+13.        int tmp = begin[i];     
+14.        int last = i;     
+15.          
+16.        //i+k为i右移k的位置，%n是当i+k>n时从左重新开始。  
+17.        for (j = (i + k) % n; j != i; j = (j + k) % n)    //多谢laocpp指正。     
+18.        {     
+19.            begin[last] = begin[j];         
+20.            last = j;     
+21.        }         
+22.        begin[last] = tmp;     
+23.    }     
+24.}   
+
+
+    对上述程序的解释：关于第二个for循环中，j初始化为（i+）%n，程序注释中已经说了，i+k为i右移k的位置，%n是当i+k>n时从左重新开始。为什么要这么做呢?很简单，n个数的数组不管循环左移多少位，用上述程序的方法一共需要交换n次。当i+k>=n时i+k表示的位置在数组中不存在了，所以又从左边开始的(i+k)%n是下一个交换的位置。
+1.好比5个学生,，编号从0开始，即0 1 2 3 4，老师说报数，规则是从第一个学生开始，中间隔一个学生报数。报数的学生编号肯定是0 2 4 1 3。这里就相当于i为0，k为2，n为5  
+2.然后老师又说，编号为0的学生出列，其他学生到在他前一个报数的学生位置上去，那么学生从0 1 2 3 4=》2 3 4 _ 1，最后老师说，编号0到剩余空位去，得到最终排位2 3 4 0 1。此时的结果，实际上就是相当于上述程序中左移k=2个位置了。而至于为什么让 编号为0 的学生 出列。实际是这句：int last = i; 因为要达到这样的效果0 1 2 3 4 => 2 3 4 0 1，那么2 3 4 必须要移到前面去。怎么样，明白了么?。
+
+关于本题，不少网友也给出了他们的意见，具体请参见此帖子微软100题，维护地址。 
+
+第五节、总结 
+     如nossiac所说，对于这个数组循环移位的问题，真正最靠谱的其实只有俩种：一种是上文的思路一，前后部分逆置翻转法，第二种是思路三，即stl 里的rotate算法，其它的思路或方法，都是或多或少在向这俩种方法靠拢。
+
+    下期更新：程序员面试题狂想曲：第二章。时间：本周周日04.24晚。非常感谢各位朋友的，支持与关注。本人宣告：本程序员面试题狂想曲系列，永久更新。
+本章完。
+
+--------------------------------------------------------------------------------
+
+版权声明：转载本BLOG内任何文章和内容，务必以超链接形式注明出处。
+ 
+分享到： 
+
+上一篇：全新整理：微软、Google等公司的面试题及解答、第161-170题
+下一篇：程序员编程艺术：第二章、字符串是否包含及匹配/查找/转换/拷贝问题
+ . 
+
+
+查看评论
+ 
+147楼 dusx1981 昨天 10:58发表[回复] void RightShift4(string &str, int k)
+{
+ int len = str.length();
+ int left = 0;
+ int right = left + k;
+
+ while(right < len)
+ {
+ if (right + k < len+1)
+ {
+ for (int i = 0; i < k; i++)
+ {
+ Swap(str[left++], str[right++]);
+ }
+ }
+ else
+ {
+ int round = len - right;
+ while(round--)
+ {
+int curIndex = right++;
+ while(curIndex > left)
+ {
+ Swap(str[curIndex], str[curIndex-1]);
+ curIndex--;
+ }
+ }
+ }
+ }
+}
+我自己实现的第三种思路，没有用到模运算，与之相比有点笨拙，不过功能还算完整146楼 lovelanjuan 2013-04-25 13:13发表[回复] void rotate(string &str, int m) 
+{ 
+int lenOfStr = str.length(); 
+int numOfGroup = gcd(lenOfStr, m); 
+int elemInSub = lenOfStr / numOfGroup; 
+
+for(int j = 0; j < numOfGroup; j++) 
+{ 
+char tmp = str[j]; 
+
+for (int i = 0; i < elemInSub - 1; i++) 
+str[(j + i * m) % lenOfStr] = str[(j + (i + 1) * m) % lenOfStr]; 
+str[(j + i * m) % lenOfStr] = tmp; //这里应该更改为str[(j+(elemInSub -1)*m)%lenOfStr] =tmp; i访问不到的
+} 
+}145楼 programming_hard 2013-03-07 17:27发表[回复] 各种崇拜佩服！ 仔细学习中！144楼 wangjiejay 2013-02-12 17:23发表[回复] 最后面的那个STL有点不懂,求大神指点Re: kaluDaxia 2013-04-24 16:03发表[回复] 回复wangjiejay：简单的将，可以将字符串理解成顺时针一个环，环上n个元素，左旋m实际上就是把环上所有元素逆时针移动m个位置。移动n次，就能把所有元素移动到正确的位置，并且达到空间复杂度O(1)。
+在m,n互质的情况下，拿出第一个元素，并逐一将后续元素调补到正确位置后，所有元素都会被遍历到，并移动到正确位置，但是当m，n不互质，如m=4,n=2,字符串0123，(0+2*k)%n,由位置0，如何叠加n都不会选中1和3的位置，以为2,4公约数为2，所以有两个循环链。每个链重元素分别交换2次，还是交换4次，达到左旋完成。143楼 t496036222 2013-01-20 10:59发表[回复] 无论是思想还是代码的严密性都对我有很大的启发，谢谢LZ的辛苦整理142楼 lastdanc 2012-12-27 19:51发表[回复] 方法四：
+
+对于正整数m、n，那么我们把它分成一个个互不影响的循环链，
+当 j 固定所有序号为 (j + i * m) % n会构成一个循环链，
+一共有gcd(n, m)个循环链，对每个循环链分别进行一次内循环就行了。
+范围：
+j=0:gcd(n, m)-1
+i = 0 : （n/gcd(n, m)）-1
+例如：
+其中gcd(n, m)为m、n的最大公约数
+
+证明 i 的范围：
+令：
+n = K*gcd(n, m)
+m = L*gcd(n, m)
+K 和 L没有公约数
+
+设经过 i 轮后重合则：
+i*m = f*n
+i = (f*n)/m = {f*K*gcd(n, m)}/{ L*gcd(n, m)} = {f*K} / L 
+K 和 L没有公约数，要使 i 最小，则 f = L 
+所以 i = K = n/gcd(n, m)
+
+可证j的范围为：
+j = n/i141楼 lipeng08 2012-12-24 00:05发表[回复] 首先很感谢博主的热心奉献。
+针对本文说的第二种方法，我不是很确定这个叫不叫作O(n)级别。例如现在有1100个数据，以400个单位向右推移，那也就是说尾巴有300个数据，对尾巴的300个向左移动的话，那就是需要300*400个移动，对于这种情况我不太认为是O(n)级别的。140楼 kk1946n 2012-12-21 10:16发表[回复] 貌似循环一遍即可
+public static void ls3(char[] c, int k) {
+ k %= c.length;
+ char tmp;
+ for (int i = c.length - 1; i - k >= 0; i--) {
+tmp = c[i];
+ c[i] = c[i - k];
+ c[i - k] = tmp;
+ }
+ System.out.println(c);
+ }
+java代码（没指针，不过数组交换部分应该能提现算法）139楼 KingEasternSun 2012-12-14 14:04发表[回复] 感谢楼主的优秀博文。
+楼主提到：
+ 右移K位之后的情形，跟右移K’= K % N位之后的情形一样
+不知有没有考虑
+K' > N/2,的话 左移K' 等于右移 N-K'，右移K' 等于左移 N-K';138楼 eagleatustb 2012-10-19 15:25发表[回复] 看这能算最好的解法吗？
+http://blog.csdn.net/eagleatustb/article/details/8089915
+
+
+
+
+01.void rotate_left_string(char * src, int m)  
+02.{  
+03.    int n = strlen(src);  
+04.    if ( n && (m = (m%n+n)%n) )  
+05.    {  
+06.        //m为负值的情况也已经考虑    
+07.        char t = src[0];  
+08.        int k = 0;  
+09.        int i = 0;  
+10.        int l = n-1;//最后一个值单独填回t值,所以要少一次循环  
+11.        while (l--)  
+12.        {  
+13.            k = (i+m)%n;//迭代找目前i位置应该填的值  
+14.            src[i]=src[k];  
+15.            i = k;  
+16.        }  
+17.        src[i] = t;//填充最后一个值  
+18.    }  
+19.}  
+Re: v_JULY_v 2012-10-19 15:46发表[回复] 回复eagleatustb：（跟上文的最后一种解法思路3，原理一致）
+欢迎朋友你继续做这些题目哈：http://blog.csdn.net/v_july_v/article/details/7974418，同时，邀请你入群，84399243（欢迎Q上单独联系下我）。137楼 wumuzi 2012-10-16 23:15发表[回复] 左旋字符串三次翻转需要遍历两边，下面链接新思路，只需要遍历字符串一遍即可。
+http://blog.csdn.net/wumuzi520/article/details/7928697
+代码贴上：
+
+
+
+
+01.void LeftRotateStr(char* pSrc, int m)  
+02.{  
+03.    if(pSrc == NULL)  
+04.        return;  
+05.  
+06.    m = m%strlen(pSrc);  
+07.    if(m == 0)  
+08.        return;  
+09.  
+10.    char* p = pSrc+m-1;  
+11.    char* q = pSrc+strlen(pSrc)-1;  
+12.    while(q > p)  
+13.    {  
+14.        swap(*p--,*q--);  
+15.        if(p < pSrc)  
+16.        {  
+17.            m = m%(q-p);  
+18.            if(m==0)  
+19.                break;  
+20.            p = pSrc+m-1;  
+21.        }  
+22.    }  
+23.}  
+136楼 v_JULY_v 2012-09-17 15:33发表[回复] 也有一朋友写了此题：http://www.cnblogs.com/bakari/archive/2012/09/09/2677155.html。135楼 liubird 2012-08-12 22:22发表[回复] 看到题目第一个想到的就是第四种算法，感觉非常的直观，有一两个例子就能想出来。不过，要证明却很麻烦。134楼 wzwjustdoit 2012-07-26 20:50发表[回复] 刚完第一题，发现三次番转算法，可以用线性代数的方法来证明正确性。Re: v_JULY_v 2012-07-26 21:05发表[回复] 回复wzwjustdoit：你能证明么？Re: wzwjustdoit 2012-08-03 19:19发表[回复] 回复v_JULY_v：当时看文章的时候在草稿纸上证明过。不过真要严谨地写证明过程却有点难。因为都忘的差不多了。。。133楼 tjliupeng 2012-07-01 17:56发表[回复] 楼主，有一点不明白：
+关于网友对于3.1思路4的证明，特别是第2点证明了(n/gcd(n,m))|(j-k)，为什么就得到第3点开头所说的(i+j*m) % n有n/gcd(n,m)个不同的数。则总共有gcd(n，m)个循环链。
+
+我始终没有想明白。132楼 qiongqiong421122 2012-06-29 22:26发表[回复] 顶！！！131楼 xuxijie8 2012-06-10 23:22发表[回复] 非常感谢楼主分享130楼 tsingtsingsister 2012-04-29 22:21发表[回复] 对于方法四，以前我看编程之美就想为什么不用取模运算。我们可以试想观众坐在一排座位上，要求大家循环右移k位，那么大家都可以估算自己右移k位后的位置，但是关键是空间复杂度只能是O（1），那么可以从我开始，我找到自己的位置（取模运算），要求坐我位置的人离开，让他自己按同样方法去找自己的位置，如此循环，直至n次操作，每个人都找到自己的位置。但是问题确在于如果a找到位置b，b找到a，那么另外一轮找位置就难以开始，即使从起始位置开始，那么又有多少个这样的轮回呢？看了楼主最后一个程序，真是把我的问题很好解决，同时很好的实现了我的想法，非常感谢楼主~129楼 limengxiong 2012-04-29 10:14发表[回复] 以1.3、updated为例，代码中if(m>0&&m<=len)这一块，是不想优化以免丢掉原来版本的痕迹吗？
+为什么不在判断完len>0后执行一下m=%len，然后条件改为if(m>0&&m<len)？感觉更好点，请指教128楼 raoeize 2012-04-05 20:09发表[回复] /对上述方案4的改写。 
+//④ 所有序号为 (i+t*k) % n (i为指定整数，t为任意整数)，.... 
+//copyright@ hplonline && July 2011.04.18。 
+//July、sahala、yansha，updated，2011.06.02。 
+void my_rotate(char *begin, char *mid, char *end) 
+{ 
+int n = end - begin; 
+int k = mid - begin; 
+int d = gcd(n, k); 
+int i, j; 
+for (i = 0; i < d; i ++) 
+{ 
+int tmp = begin[i]; 
+int last = i; 
+
+//i+k为i右移k的位置，%n是当i+k>n时从左重新开始。 
+for (j = (i + k) % n; j != i; j = (j + k) % n) //多谢laocpp指正。 
+{ 
+begin[last] = begin[j]; 
+last = j; 
+} 
+begin[last] = tmp; 
+} 
+} 
+
+其中j的初始化条件j = (i + k) % n 这个%n是不是多余的啊，貌似不会出现大于n的情况吧。127楼 panshoup 2012-03-31 15:02发表[回复] 又来了Re: v_JULY_v 2012-03-31 15:03发表[回复] 回复panshoup：永远欢迎126楼 qingjingjiayuan 2012-03-31 10:04发表[回复] 很好值得学习125楼 rakehellj 2012-03-19 23:18发表[回复] 我的解法如下:
+#include <stdio.h>
+
+void RolStr(char *str, int n);
+
+int main(int argc, char *argv)
+{
+ char str[] = "abcdef";
+ int n = 8;
+
+ RolStr(str, n);
+
+ printf("%s \n", str);
+
+ return 0;
+}
+
+void RolStr(char *str, int n)
+{
+ int len = strlen(str);
+ int k = 0;
+ int i = 0;
+ int v = 0;
+ char m = 0;
+
+ if(n > len)
+ k = n % len;
+ else
+ k = n;
+
+ v = len - k;
+
+ for(i = 0; i < v; i++)
+ {
+ if(i < k)
+ {
+ m = str[v + i];
+ str[v + i] = str[i];
+ str[i] = m;
+ }
+ else
+ {
+ m = str[i - k];
+ str[i - k] = str[i];
+ str[i] = m;
+ }
+ }
+
+ return;
+}124楼 Qingbizhu 2012-03-17 00:19发表[回复] 真是太感谢楼主了，对这数组旋转操作的各种算法做了这么详尽的描述。
+顺带提一下，第二节中的算法，无论是方法一还是方法二对尾部的处理应该可以说是算法的一大败笔。平均复杂度计算太过复杂了，我没去计算，但至少那样的尾部处理，使得最坏情况的时间复杂度变成了 O(n^2)，譬如，当 m = (n / 2) + 1 时，就有着 O(n^2)的时间复杂度。还好，在后面的第三节中的交替左右旋转递归的处理 和 第四节中提到的分组交换 弥补了这一缺陷，使时间复杂度又回归了 O(n)。
+
+另外，发现一处笔误：
+第四节 flyinghearts：③ 分组交换 的第3行末尾“只需再交换a 和b0”，应该是“只需再交换a 和b1”。123楼 lazycat007 2012-03-10 13:25发表[回复] 看博主的代码，有一种赏心悦目的感觉，博主的编程习惯一定非常好。122楼 奔跑的火车 2012-03-07 17:13发表[回复] 太长了，先Mark，留着以后慢慢看121楼 J812773326 2012-02-10 21:26发表[回复] 楼主，你好。再看这个问题的时候，我想到的是下面的方法。因为，给定的字符串序列，左（右）旋转的时候，它的位置其实是可以确定的。算法负责度为O(N)，不过空间复杂度也为O(N)。
+void LeftShift(string &str, int k) {
+ int size = str.size();
+ k %= size;
+ string tmp;
+ for (int i = 0; i < size; ++i) {
+ tmp.push_back(str[(i + size - k) % size]);
+ }
+ str = tmp;
+}
+int main() {
+ string str = "abcd1234";
+ LeftShift(str, 4);
+ cout << str << endl;
+ return 0;
+}120楼 yinjunshishui 2011-12-27 16:43发表[回复] 谢谢楼主119楼 stevemarbo 2011-12-11 17:43发表[回复] 向博主致敬！！！
+假期就打算学习这个博客了！！！
+我大致浏览了您的博客，发现每篇文章都写得非常非常好！希望博主能继续写出好的文章！118楼 qzwxecrvfdsa 2011-12-05 10:53发表[回复] 楼主好，我看到这题时有个想法，即对于一个字符串移位K位后，其中每个字符移动后的位置就固定下来了，即可以通过适当的数学计算求解出移动后的位置，因此代码如下：
+package Project.Java.LeftString;
+
+public class LeftString {
+
+ /**
+ * @param args
+ */
+ 
+public static void main(String[] args) {
+ // TODO Auto-generated method stub
+ int K = 4;
+ int N = 9;
+ int Loop = 0;
+ char TempNew = 0; 
+char TempOld = 0;
+ int I = 0;
+ char[] A = {'a','b','c','d','e','f','g','h','i'};
+ K = K%N; //重置k
+ TempOld = A[0]; //初始化TempOld
+ while(Loop<N) 
+{
+ I = (I+K)%N; //将I的位置移动K位
+TempNew = A[I]; //记录移动K位后的值
+A[I] = TempOld; //将此位设置为I-K位的值，即实现I-K位移动K位到I位
+TempOld = TempNew; //更新TempOld
+ Loop++;
+ }
+ System.out.println(A);
+ }
+}117楼 haoni123321 2011-12-02 09:25发表[回复] 学习，学习，楼主真的很牛，很强大。116楼 baibaichen 2011-12-02 01:11发表[回复] 呵呵，我实现的楼主的算法2，楼主有没有做speed的测试？下面三个，那个更快？
+1 三次invert
+2 stl rotate
+3 楼主的算法2115楼 JeffersonWang 2011-11-27 00:03发表[回复] 拜读，受益匪浅，谢谢！114楼 zzuJimmy 2011-10-17 16:43发表[回复] 发现了一个小小的问题，请博主看下
+
+
+
+
+01.//④ 所有序号为 (j+i *m) % n (j 表示每个循环链起始位置，i 为计数变量，m表示左旋转位数，n表示字符串长度)，    
+02.//会构成一个循环链（共有gcd(n,m)个，gcd为n、m的最大公约数），    
+03.    
+04.//每个循环链上的元素只要移动一个位置即可，最后整个过程总共交换了n次    
+05.//（每一次循环链，是交换n/gcd(n,m)次，共有gcd(n,m)个循环链，所以，总共交换n次）。    
+06.    
+07.void rotate(string &str, int m)     
+08.{     
+09.    int lenOfStr = str.length();     
+10.    int numOfGroup = gcd(lenOfStr, m);     
+11.    int elemInSub = lenOfStr / numOfGroup;      
+12.        
+13.    for(int j = 0; j < numOfGroup; j++)        
+14.        //对应上面的文字描述，外循环次数j为循环链的个数，即gcd(n, m)个循环链    
+15.    {     
+16.        char tmp = str[j];     
+17.    
+18.        for (int i = 0; i < elemInSub - 1; i++)        
+19.            //内循环次数i为，每个循环链上的元素个数，n/gcd(m,n)次    
+20.            str[(j + i * m) % lenOfStr] = str[(j + (i + 1) * m) % lenOfStr];    
+21.        str[(j + i * m) % lenOfStr] = tmp;     
+22.    }     
+23.}   
+
+代码中的int i；需要定义到for循环的上边吧。 要不然最后一句话str[(j + i * m) % lenOfStr] = tmp; 的i就没有定义了。Re: v_JULY_v 2011-12-07 23:15发表[回复] 回复zzuJimmy：是的，多谢，明日改下。113楼 Thirty 2011-10-09 22:23发表[回复] 写点我刚看函数时判断move_num较大时的处理，不过继续往下看楼主也说明了要注意这种情况。呵呵
+
+void RightMove1(char *array,int array_len,int move_num)
+{
+ int i,t,tmp;
+
+ //如：移动位数为负（-2），相当于左移2位，也相当于右移数组长度-2位
+ if(move_num<0)
+ { 
+tmp=abs(move_num);
+
+ if(tmp<=array_len)
+ {
+ move_num=array_len+move_num;//右移位数计算1
+ }
+ else //参数为负且绝对值大于数组长度时的处理
+{
+move_num=array_len-tmp%array_len;//右移位数计算2 
+}
+ }
+
+ move_num%=array_len; 
+//下面是楼主的
+ while(move_num--)
+ {
+t=array[array_len-1];
+
+ for(i=array_len-1;i>0;i--)
+ {
+array[i]=array[i-1];
+ }
+
+ array[0]=t;
+ }
+}112楼 WORM004 2011-10-08 19:40发表[回复] 1.2、答案V0.3版中，第26题勘误： 后面的代码中主函数的输出中: for(;*ps!='/0';ps++) 应该是 for(;*ps!='\0';ps++) ^_^111楼 newairair 2011-10-04 04:23发表[回复] 不知道有没有兄弟已经提到过了，最后的算法当然还可以进一步作一个简单的改善。
+虽然说计算gcd不是特别复杂，但是实际上我们不需要计算它，这样程序更加简单易懂。
+为什么不用计算gcd呢，以为我们已经知道总交换次数了。代码如下(in c#):
+ public static void LeftShift(this char[] str, int shiftCount)
+ {
+ if (str == null || str.Count() < 2 || shiftCount==0) return;
+ int size = str.Count();
+ int start = 0;
+ int current = start;
+ char buf = str[start];
+ for (int i = 0; i < size; i++)
+ {
+ int next = (current + size + shiftCount) % size;
+ if (next != start)
+ {
+ str[current] = str[next];
+ current = next;
+ }
+ else
+ {
+ str[current] = buf;
+ start++; //
+ current = start;
+ buf = str[start];
+ }
+ }
+ }110楼 liangkeyi2 2011-09-24 01:25发表[回复] 关于第一节、左旋转字符串
+不是看得很明白空间复杂度为O(1)。 
+
+如果算时间复杂度，应该是恒定2
+PHP版：
+FUNCTION A(){
+$K = $N<$K ? $K%$N : $K;
+RETURN SUBSTR($N,(0-$K),$K).SUBSTR($N,0,$K);
+}Re: lazycat007 2012-03-10 12:49发表[回复] 回复liangkeyi2：既然用了SUBSTR的话，那么空间复杂度应该就不是O(1)了吧？应该至少是O(k)，而时间复杂度变成O(1)了。
+不过还应该检查SUBSTR函数中的时间复杂度，才可以确定。109楼 qufujun 2011-08-29 16:50发表[回复] 单说算法，很好，非常好，嘿嘿，搞了点怪，汉字和英文夹杂着，移动之后就悲剧了。108楼 james20092106 2011-07-18 22:40发表[回复] 谢谢楼主分享这些知识以及提供如此吸引人的一个学习平台！学习ing。。。107楼 flounders 2011-06-17 18:03发表[回复] 楼主阐述很有渐进感，我的想法：
+CHAR_SHIFT() {
+char a[] = &quot;abcd1234&quot;;
+char b[] = a.SUBSTR(0, K - 1);
+char c[] = a.SUBSTR(K, LENGTH(a) - 1);
+a = CHAR_MERGE(c, b)
+}Re: qinshudong 2012-03-26 21:26发表[回复] 回复flounders：是否生成了新的数组 占用了空间
+如果在自己的电脑上的话 还行 做arm的 肯定不行的饿106楼 3w 2011-06-10 09:30发表[回复] 解法1中的K %=N 算法复杂度怎么和K无关呢？Re: lht1936 2011-07-16 09:51发表[回复] 
+引用“wanwenweifly4”的评论：解法1中的K %=N 算法复杂度怎么和K无关呢？
+
+应该是K再大也不会大过N，所以只跟N有关105楼 ma_thilda 2011-06-09 13:55发表[回复] 来晚了~[e10]104楼 v_JULY_v 2011-06-09 00:44发表[回复] 以上的3点关于为什么一共有gcd(n, m)个循环链的证明，应该是来自qq312873977的，非常感谢这位朋友，[e10]。103楼 v_JULY_v 2011-06-09 00:43发表[回复] 3、所以(i+j*m) % n有n/gcd(n,m)个不同的数。则总共有gcd(n，m)个循环链。符号“|”是整除的意思。102楼 v_JULY_v 2011-06-09 00:43发表[回复] 2、假设j和k对应的数字是相同的， 即(i+j*m)%n = (i+k*m)%n， 可以推出n|(j-k)*m，m=m'*gcd(n.m), n=n'*gcd(n,m), 可以推出n'|(j-k)*m'，而m'和n'互素，于是n'|(j-k)，即(n/gcd(n,m))|(j-k)，101楼 v_JULY_v 2011-06-09 00:42发表[回复] 1、首先，直观的看肯定是有循环链，关键是有几条以及每条有多长，根据(i+j *m) % n这个表达式可以推出一些东东，一个j对应一条循环链，现在要证明(i+j *m) % n有n/gcd(n,m)个不同的数。100楼 qq312873977 2011-06-08 18:22发表[回复] 所有序号为 (j + i * m) % n（j为0到gcd(n, m)-1之间的某一整数，i = 0:n-1）会构成一个循环链，一共有gcd(n, m)个循环链，这个是要证明的Re: v_JULY_v 2011-06-08 19:07发表[回复] 回复 qq312873977：[e03]，是阿，不知您是否能证明?zhoulei0907@yahoo.cn。99楼 qq312873977 2011-06-08 16:51发表[回复] 一个看起来很简单的问题可以很深入的研究下去，太NB了，同事看到了数学的强大98楼 ao929929fei 2011-06-08 14:56发表[回复] 博主很强，学习中 [e01][e04]97楼 frogoscar 2011-06-07 20:16发表[回复] 楼主文笔不错，一般编程的人文笔好的比较少~~~~！[e01]Re: v_JULY_v 2011-06-07 20:27发表[回复] 回复 frogoscar：谢谢，文笔还行。96楼 huaxiangsl 2011-06-07 13:39发表[回复] 不错啊，希望楼主多写些这方面的东西95楼 YBXAYBXA 2011-06-06 16:54发表[回复] 我是来学习的 向楼主致敬Re: v_JULY_v 2011-06-06 18:00发表[回复] 回复 YBXAYBXA：[e10]94楼 RaceBug2010 2011-06-06 16:33发表[回复] 我给出一个时间复杂度O(n+log n)，而不是2n，空间复杂度O(0)的算法。
+当然，楼主说的翻转法确实是对这题的一个非常优美的解法。Re: v_JULY_v 2011-06-06 17:59发表[回复] 回复 RaceBug2010：[e03]，[e10]Re: RaceBug2010 2011-06-06 16:34发表[回复] 回复 RaceBug2010：
+int gcd(int a, int b)
+{ return b == 0 ? a : gcd(b, a % b); }
+
+void swap(int &amp;a, int &amp;b)
+{ a ^= b; b ^= a; a ^= b; }Re: RaceBug2010 2011-06-06 16:35发表[回复] 回复 RaceBug2010：void RightShift(int *arr, int N, int K)
+{
+ K = K % N;
+ int D = gcd(N, K);93楼 iealien 2011-06-04 23:43发表[回复] 3.1下面
+此时的n=17，即为m=544，n=177所求的俩个数的最大公约数。
+ 这里的应该为n=119！[e04]Re: v_JULY_v 2011-06-05 18:04发表[回复] 回复 iealien：是啊，一个笔误，哈哈，谢谢你，[e10]92楼 peng520mike 2011-06-03 09:50发表[回复] [e09][e08][e05][e07][e06][e04][e03][e02][e01][e10]91楼 LZQGdut 2011-06-03 08:16发表[回复] 以前做这题，懵懵懂懂，不清楚其背后的数学原理，今日看君一帖，感受颇深~~~ thanks ，各位奋战在一线的同志们辛苦了~~~[e01]Re: v_JULY_v 2011-06-05 18:03发表[回复] 回复 LZQGdut：[e10]90楼 xiyoukeke 2011-06-02 22:05发表[回复] [e01][e03]89楼 whbwhb123456 2011-06-02 13:47发表[回复] 楼主 能不能给个qq 我有看不懂的地方好内线你啊 我的 1017265508Re: v_JULY_v 2011-06-02 22:42发表[回复] 回复 whbwhb123456：786165179。88楼 whbwhb123456 2011-06-02 13:45发表[回复] [e08][e07][e05][e04][e03][e02][e01][e02][e03][e05][e06][e08]87楼 burellow 2011-06-02 10:14发表[回复] [e01]
+能把一个问题讲述的如此深入，佩服佩服！86楼 jacktar_du 2011-05-30 09:47发表[回复] 楼主辛苦了！有一个问题请教一下：
+第一个例子中
+RightShift(int* arr, int N, int K)
+{
+。。。。。
+}
+参数int* arr可以用来操作“abcd1234”吗？Re: jacktar_du 2011-05-30 09:53发表[回复] 回复 jacktar_du：新手提问！吼吼！85楼 v_JULY_v 2011-05-29 15:46发表[回复] 原狂想曲系列已经更名为编程艺术系列。84楼 parakpurple 2011-05-29 15:36发表[回复] 一看作者 先不看内容 马上回复支持一下 你的文章真棒Re: v_JULY_v 2011-05-29 15:37发表[回复] 回复 parakpurple：[e10]83楼 jiqiren007 2011-05-29 14:53发表[回复] for ( ;j != i;j = (i + k) % n ) //多谢laocpp指正。 这里是否应该对j初始化？呵呵82楼 v_JULY_v 2011-05-17 17:53发表[回复] 本文，日后会被重写的。81楼 zhoulihualiao 2011-05-05 09:30发表[回复] return __m; //我个人觉得，这里应该是返回 n才对，待我进一步验证。 
+这里的n肯定是0,，为什么博主会认为应该返回n呢。80楼 luozenghui529480823 2011-05-02 13:20发表[回复] ④ 所有序号为 (i+t*k) % n (i为指定整数，t为任意整数)，会构成一个循环链（共有gcd(n,k)个，gcd为n、k的最大公约数），每个循环链上的元素只要移动一个位置即可，总共交换了n次。
+
+没看懂！1Re: v_JULY_v 2011-05-03 19:27发表[回复] 回复 luozenghui529480823：朋友，文中你说的那部分，已经有所更新，要不你再看看，看是否比之前容易看懂了?Re: luozenghui529480823 2011-05-03 21:19发表[回复] 回复 v_JULY_v：哦！！马上看看，谢谢！！！Re: v_JULY_v 2011-05-02 13:23发表[回复] 回复 luozenghui529480823：原文下面有解释的。若真弄不懂，容我日后考虑重写那一段文字。79楼 v_JULY_v 2011-05-02 13:18发表[回复] 为了避免版权纠纷，此后本BLOG中将尽量不再原文引用任何人的文字、思路，或原代码。July，updated，2011.05.02.78楼 hjxhjh 2011-05-02 00:30发表[回复] 楼主确实挺有想法的，不错~~赞！77楼 hjxhjh 2011-05-02 00:29发表[回复] 楼主确实挺有想法的，不错~~赞！76楼 laocpp 2011-04-29 12:42发表[回复] 对stl源码方案4的改写有误：j 循环的递增不是j++， 而应是 j = (j + k)%n。Re: v_JULY_v 2011-05-02 11:42发表[回复] 回复 laocpp：en ,非常非常之感谢75楼 放飞的梦想--标哥 2011-04-22 07:26发表[回复] 不过也多学习了你们的思想，还是很有用的！谢谢楼主啦！74楼 放飞的梦想--标哥 2011-04-22 07:24发表[回复] 可不可以用字符数组将串分解成两个子串，然后用strcat函数连接呢？[e07]Re: yanshazi 2011-04-23 17:14发表[回复] 回复 woaifen3344：题目要求空间复杂度为O(1)，如果申请字符数组不满足题意73楼 Mapleyi 2011-04-21 11:05发表[回复] [e06]。。。。
+ 
+
+查看更多评论
+ 
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料 
+
+v_JULY_v 
+
+
+
+
+
+
+访问：4195590次
+积分：25982分
+排名：第50名
+ . 原创：134篇
+转载：0篇
+译文：5篇
+评论：10137条
+ . 
+博客公告 ①.本blog开通于2010年10月11日，高级C /Algorithms交流群：149977547；北京程序员联盟：172727781。②.狂热算法，热爱数据挖掘，关注机器学习、统计分析，爱好文学数学。③.微博：研究者July，邮箱：zhoulei0907@yahoo.cn，July，二零一三年三月二十九日。 
+我的微博 
+文章分类 03.Algorithms（实现）(9) 
+01.Algorithms（研究）(27) 
+02.Algorithms（后续）(22) 
+04.Algorithms（讨论）(1) 
+05.MS 100' original(7) 
+06.MS 100' answers(13) 
+07.MS 100' classify(4) 
+08.MS 100' one Keys(6) 
+09.MS 100' follow-up(3) 
+10.MS 100' comments(4) 
+11.TAOPP（编程艺术）(26) 
+12.TAOPP string(6) 
+13.TAOPP array(10) 
+14.TAOPP list(2) 
+15.stack/heap/queue(0) 
+16.TAOPP tree(1) 
+17.TAOPP c/c++(2) 
+18.TAOPP function(2) 
+19.TAOPP algorithms(7) 
+20.number operations(1) 
+21.Essays(8) 
+22.Big Data Processing(5) 
+23.Redis/MongoDB(0) 
+24.data structures(12) 
+25.Red-black tree(7) 
+26.Image Processing(3) 
+27.Architecture design(4) 
+28.Source analysis(3) 
+29.Recommend&Search(4) 
+30.Machine L&Data Mining(5) 
+
+博客专栏
+
+
+
+
+微软面试100题系列
+文章：17篇
+阅读：1246079 
+
+
+
+
+
+程序员编程艺术
+文章：24篇
+阅读：859692 
+
+
+
+
+
+经典算法研究
+文章：32篇
+阅读：1110598 
+
+阅读排行 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(186260) 
+九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(141609) 
+教你如何迅速秒杀掉：99%的海量数据处理面试题(137438) 
+横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(127653) 
+从B树、B+树、B*树谈到R 树(122026) 
+十道海量数据处理面试题与十个方法大总结(101549) 
+九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(87330) 
+十一、从头到尾彻底解析Hash表算法(78387) 
+微软公司等数据结构+算法面试100题(第1-100题)全部出炉(75912) 
+支持向量机通俗导论（理解SVM的三层境界）(74609) 
+
+评论排行 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(371) 
+九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(361) 
+九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(331) 
+当今世界最为经典的十大算法--投票进行时(320) 
+从B树、B+树、B*树谈到R 树(264) 
+横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(263) 
+十三个经典算法研究与总结、目录+索引(216) 
+我的大学生涯(214) 
+程序员编程艺术第一章、左旋转字符串(203) 
+三五杆枪，可干革命，三五个人，可以创业(198) 
+
+最新评论 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦
+v_JULY_v: @q1w2ok11:替我感谢你的同事:-) 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦
+q1w2ok11: 同事推荐，太给力了，必须好好学习，楼主辛苦 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦
+kiritor: 谢谢博主的分享,先收藏了 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦
+v_JULY_v: @zhouqinxiong:哪个学校呢？替我谢谢你的老师:-) 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦
+zhouqinxiong: 老师推荐的，lz，你的博客非常给力 
+
+快速排序算法
+康天崽: 太给力了，我喜欢，爱死你了 
+
+我的大学生涯
+msjcool: 看完楼主的经历，感觉自己弱爆了 
+
+B树的C实现
+hao138548: 好贴 
+
+教你如何迅速秒杀掉：99%的海量数据处理面试题
+xiyandeng: 虽然看得不是很懂，以后可以慢慢消化！感谢博主啊 
+
+程序员编程艺术第一章、左旋转字符串
+dusx1981: void RightShift4(string &str, int k){ int len = st... 
+
+
+01、本blog索引 3、微软100题维护地址
+1、微软100题横空出世
+5、经典算法研究系列
+7、红黑树系列集锦
+6、程序员编程艺术系列
+2、微软面试全部100题
+0、经典4大原创系列集锦
+4、微软100题下载地址
+ 
+02、Google or baidu? Google搜--"结构之法"（My BLOG）
+baidu 搜--"结构之法"（My BLOG）
+ 
+03、个人标签 本BLOG RSS订阅
+zhoulei0907@yahoo.cn
+csdn blog订阅排行榜
+TAOPP修订wiki
+julymsn@live.cn
+电子工程网专家VIP
+ 博客园blog-成为推荐博客
+ ITpub-代码优化专家
+ 
+04、我的驻点 01. 为学论坛-万物皆数 终生为学
+ 02、Harry
+ 03、NoSQLFan
+ 04、酷勤网
+ 05、52nlp
+ 06、北大朋友的挖掘乐园
+ 07、跟Sophia_qing一起读硕士
+ 08、面试问答社区51nod
+ 09、韩寒
+ 10、我的有鱼
+ 11、曾经的叛逆与年少
+ 12、老D之MongoDB源码分析
+ 14、code4app:iOS代码示例
+ 17、斯坦福机器学习公开课
+ 18、TheItHome算法版块版主
+ 19、36氪--关注互联网创业
+ 20、德问--编程是一种艺术创作
+ 21、善科网
+ 22、百度搜索研发部
+ 23、淘宝搜索技术博客
+ 24、interviewstreet
+ 25、LeetCode
+ 26、Team_Algorithms人人小组
+ 
+文章存档 
+2013年03月(1).
+2012年12月(1).
+2012年11月(1).
+2012年09月(1).
+2012年06月(1).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持Copyright © 1999-2012, CSDN.NET, All Rights Reserved  

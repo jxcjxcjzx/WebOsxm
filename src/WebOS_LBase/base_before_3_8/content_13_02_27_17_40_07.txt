@@ -1,0 +1,76 @@
+perl在网页中抓取图片 binmode  2010-02-14 02:32:22|  分类： 小脚本 |  标签： |字号大中小 订阅 .
+
+转载自http://blog.sina.com.cn/s/blog_4acca98f0100fuln.html
+
+今天在天涯上闲逛的时候，突然一个网页上面楼主贴了很多图片，都是满漂亮的，于是就想把这些图片都下载到本地的电脑上。以前用perl的LWP::Simple模块主要是提前里面的一些文本信息，基本上没碰到过什么障碍，不过这次下载图片可是第一次。利用以前下载文本信息的程序处理时，发现得到的图片内容都是二进制类型的，也就是这些get($url)出的结果是二进制的。后来在网上搜索到了一些解决方法，试了一下的确能够解决问题！
+
+ 
+
+方法一： 利用binmode函数将文件句柄转化下可以接受二进制的形式。
+
+ 
+
+binmode 功能：
+
+ 
+
+binmode FILEHANDLE
+
+     Arranges for FILEHANDLE to be read or written in "binary" or "text" mode on systems where the run-time libraries distinguish between binary and text files. If FILEHANDLE is an expression_r_r, the value is taken as the name of the filehandle. Returns true on success, otherwise it returnsde<undefde< and sets de<$!de< (errno).
+
+ 
+
+codes:
+
+ 
+
+#!usr/bin/perl
+
+use strict;
+
+use LWP::Simple;
+
+ 
+
+my $url="http::/../abc.jpg";
+
+open FILE,">abc.jpg" or die "$!";
+
+my $outcome=get ($url);
+
+binmode(FILE);
+
+print FILE $outcome;                    # input your want picture into the file named abc.jpg
+
+ 
+
+ 
+
+方法二： 利用函数getstore()
+
+ 
+
+getstore()功能：
+
+ 
+
+见文档！
+
+ 
+
+code:
+
+ 
+
+#!usr/bin/perl
+
+use strict;
+
+use LWP::Simple;
+
+ 
+
+my $url="http::/../abc.jpg";
+
+getstore($url,"abc.jpg") or die "get picture failed!";
+

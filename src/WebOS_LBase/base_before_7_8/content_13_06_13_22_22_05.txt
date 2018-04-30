@@ -1,0 +1,115 @@
+下载2频道 秀才　二级|消息 |我的百科|百度首页
+
+新闻网页贴吧知道音乐图片视频地图百科文库
+帮助
+首页自然文化地理历史生活社会艺术人物经济科技体育图片数字博物馆核心用户百科商城来百科畅想太空梦
+vtable
+
+Vtable
+虚表。   
+每一个有虚函数的类都有这样一个东西。   
+它实际上记录了本类中所有虚函数的函数指针，也就是说是个函数指针数组的起始位置。   
+比如virtual   void   TheSecondFun()记录在数组的第二个元素，当一个该类的对象实例调用TheSecondFun时就根据对应关系把第二个函数指针取出来，再去执行该函数，这种行为叫晚绑定，也就是说在运行时才知道调用的函数是什么样子的，而不是在编译阶段就确定的早绑定。
+虚函数的处理：
+通常是由虚函数表（vtable）来实现的。
+虚函数表的结构：它是一个函数指针表，每一个表项都指向一个函数。任何一个包含至少一个虚函数的类都会有这样一张表。需要注意的是vtable只包含虚函数的指针，没有函数体。实现上是一个函数指针的数组。虚函数表既有继承性又有多态性。每个派生类的vtable继承了它各个基类的vtable，如果基类vtable中包含某一项，则其派生类的vtable中也将包含同样的一项，但是两项的值可能不同。如果派生类覆写(override)了该项对应的虚函数，则派生类vtable的该项指向覆写后的虚函数，没有覆写的话，则沿用基类的值。
+每一个类只有唯一的一个vtable，不是每个对象都有一个vtable，恰恰是每个同一个类的对象都有一个指针，这个指针指向该类的vtable（当然，前提是这个类包含虚函数）。那么，每个对象只额外增加了一个指针的大小，一般说来是4字节。
+在类对象的内存布局中，首先是该类的vtable指针，然后才是对象数据。
+在通过对象指针调用一个虚函数时，编译器生成的代码将先获取对象类的vtable指针，然后调用vtable中对应的项。对于通过对象指针调用的情况，在编译期间无法确定指针指向的是基类对象还是派生类对象，或者是哪个派生类的对象。但是在运行期间执行到调用语句时，这一点已经确定，编译后的调用代码能够根据具体对象获取正确的vtable，调用正确的虚函数，从而实现多态性。
+例:
+实现多态:
+class   a   
+{   
+public:   
+virtual   void   fun1();   
+vitrual   void   fun2();   
+private:   
+int   i;   
+}   
+class   b   :   public   a   
+{   
+public:   
+virtual   void   fun2();   
+virtual   void   fun3();   
+private:   
+int   j;   
+}   
+则class   a   的内存layout为(win32   platform)   
+begin   of   layout   of   class   a   
+vtable   pointer   (pointer   to   vtable   of   class   a   see   below)   (4   bytes)   
+int   i   (4   bytes)   
+end   of   layout   of   class   a   
+vtable   of   class   a   
+begin   of   vtable   of   class   a   
+start   address   of   a::fun1   (4   bytes)   
+start   address   of   a::fun2   (4   bytes)   
+end   of   vtable   of   class   a   
+class   b   的内存layout为(win32   platform)   
+begin   of   layout   of   class   b   
+vtable   pointer   (pointer   to   vtable   of   class   b   see   below)   (4   bytes)   
+int   i   (4   bytes)   
+int   j   (4   bytes)   
+end   of   layout   of   class   b   
+vtable   of   class   b   
+begin   of   vtable   of   class   b   
+start   address   of   a::fun1   (4   bytes)   
+start   address   of   b::fun2   (4   bytes)   
+start   address   of   b::func3   (4   bytes)   
+end   of   vtable   of   class   b   
+所以才有   
+a*   p   =   new   b;   
+p->fun2()   调   b::fun2()   
+开放分类：
+C++
+百度百科中的词条正文与判断内容均由用户提供，不代表百度百科立场。如果您需要解决具体问题（如法律、医学等领域），建议您咨询相关领域专业人士。
+本词条对我有帮助
+添加到收藏
+分享到:
+ 更多
+合作编辑者
+BUCK271565685 ， 风华Mythwind
+如果您认为本词条还需进一步完善，百科欢迎您也来参与 编辑词条 在开始编辑前，您还可以先学习如何编辑词条
+如想投诉，请到百度百科投诉中心；如想提出意见、建议，请到百度百科吧。
+
+百度百科内容方针
+提倡有可靠依据、权威可信的内容
+鼓励客观、中立、严谨的表达观点
+不欢迎恶意破坏、自我或商业宣传
+在这里你可以
+编辑
+质疑
+投诉
+全方位的质量监督
+学术委员会：为亿万网友提供权威意见
+编修院：把控质量，做更好的知识
+
+下载2频道
+00
+
+去兑换>>您尚无道具可使用
+成长任务
+日常任务
+本月累计点亮0天。今日笑脸还没点亮哦。
+一目了然 日常任务：参加任务
+热词推送
+词条动态
+进入我的百科
+词条统计
+浏览次数：约 7387次
+编辑次数：2次 历史版本
+最近更新：2011-09-13
+创建者：风华Mythwind
+更多贡献光荣榜
+辛勤贡献者：
+BUCK271565...		 版本
+最新动态
+求知专题：重返月球 ：
+
+百科消息：
+神舟十号太空漫游指南
+微信答题iPhone5 iPad拿不停
+百科编辑器草稿箱功能升级
+百科2.0版客户端上线 首页改版
+PPT高手是这样成就的
+© 2013 Baidu 使用百度前必读 | 百科协议 | 百度百科合作平台
+

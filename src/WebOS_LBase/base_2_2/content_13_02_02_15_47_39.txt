@@ -1,0 +1,1333 @@
+
+
+
+Phinecos(洞庭散人) 
+
+专注于开源技术的研究与应用
+ 
+
+
+基于朴素贝叶斯分类器的文本分类算法（下）
+
+  
+源代码下载：NaviveBayesClassify.rar 
+ 
+Preface
+ 
+文本的分类和聚类是一个比较有意思的话题，我以前也写过一篇blog《基于K-Means的文本聚类算法》，加上最近读了几本数据挖掘和机器学习的书籍，因此很想写点东西来记录下学习的所得。
+ 
+在本文的上半部分《基于朴素贝叶斯分类器的文本分类算法（上）》一文中简单介绍了贝叶斯学习的基本理论，这一篇将展示如何将该理论运用到中文文本分类中来，具体的文本分类原理就不再介绍了，在上半部分有，也可以参见代码的注释。
+ 
+文本特征向量
+ 
+文本特征向量可以描述为文本中的字／词构成的属性。例如给出文本：
+ 
+Good good study,Day day up.
+ 
+可以获得该文本的特征向量集：{ Good, good, study, Day, day , up.}
+ 
+朴素贝叶斯模型是文本分类模型中的一种简单但性能优越的的分类模型。为了简化计算过程，假定各待分类文本特征变量是相互独立的，即“朴素贝叶斯模型的假设”。相互独立表明了所有特征变量之间的表述是没有关联的。如上例中，[good]和[study]这两个特征变量就是没有任何关联的。
+ 
+在上例中，文本是英文，但由于中文本身是没有自然分割符（如空格之类符号），所以要获得中文文本的特征变量向量首先需要对文本进行中文分词
+ 
+中文分词
+ 
+      这里采用极易中文分词组件，这个中文分词组件可以免费使用，提供Lucene接口，跨平台，性能可靠。
+ 
+
+
+package com.vista;
+ import java.io.IOException;      
+ import jeasy.analysis.MMAnalyzer;
+ 
+/**
+ * 中文分词器
+ */
+ public class ChineseSpliter 
+ {
+     /**
+     * 对给定的文本进行中文分词
+     * @param text 给定的文本
+     * @param splitToken 用于分割的标记,如"|"
+     * @return 分词完毕的文本
+     */
+     public static String split(String text,String splitToken)
+     {
+         String result = null;
+         MMAnalyzer analyzer = new MMAnalyzer();      
+         try      
+         {
+             result = analyzer.segment(text, splitToken);    
+         }      
+         catch (IOException e)      
+         {     
+             e.printStackTrace();     
+         }     
+         return result;
+     }
+ }
+ 
+
+
+停用词处理
+ 
+      去掉文档中无意思的词语也是必须的一项工作,这里简单的定义了一些常见的停用词，并根据这些常用停用词在分词时进行判断。
+ 
+
+
+package com.vista;
+ 
+/**
+ * 停用词处理器
+ * @author phinecos 
+ * 
+ */
+ public class StopWordsHandler 
+ {
+     private static String stopWordsList[] ={"的", "我们","要","自己","之","将","“","”","，","（","）","后","应","到","某","后","个","是","位","新","一","两","在","中","或","有","更","好",""};//常用停用词
+     public static boolean IsStopWord(String word)
+     {
+         for(int i=0;i<stopWordsList.length;++i)
+         {
+             if(word.equalsIgnoreCase(stopWordsList[i]))
+                 return true;
+         }
+         return false;
+     }
+ }
+ 
+
+
+训练集管理器
+ 
+      我们的系统首先需要从训练样本集中得到假设的先验概率和给定假设下观察到不同数据的概率。
+ 
+
+
+package com.vista;
+ import java.io.BufferedReader;
+ import java.io.File;
+ import java.io.FileInputStream;
+ import java.io.FileNotFoundException;
+ import java.io.IOException;
+ import java.io.InputStreamReader;
+ import java.util.Properties;
+ import java.util.logging.Level;
+ import java.util.logging.Logger;
+ /**
+ * 训练集管理器
+ */
+ public class TrainingDataManager 
+ {
+     private String[] traningFileClassifications;//训练语料分类集合
+     private File traningTextDir;//训练语料存放目录
+     private static String defaultPath = "D:\\TrainningSet";
+     
+     public TrainingDataManager() 
+     {
+         traningTextDir = new File(defaultPath);
+         if (!traningTextDir.isDirectory()) 
+         {
+             throw new IllegalArgumentException("训练语料库搜索失败！ [" +defaultPath + "]");
+         }
+         this.traningFileClassifications = traningTextDir.list();
+     }
+     /**
+     * 返回训练文本类别，这个类别就是目录名
+     * @return 训练文本类别
+     */
+     public String[] getTraningClassifications() 
+     {
+         return this.traningFileClassifications;
+     }
+     /**
+     * 根据训练文本类别返回这个类别下的所有训练文本路径（full path）
+     * @param classification 给定的分类
+     * @return 给定分类下所有文件的路径（full path）
+     */
+     public String[] getFilesPath(String classification) 
+     {
+         File classDir = new File(traningTextDir.getPath() +File.separator +classification);
+         String[] ret = classDir.list();
+         for (int i = 0; i < ret.length; i++) 
+         {
+             ret[i] = traningTextDir.getPath() +File.separator +classification +File.separator +ret[i];
+         }
+         return ret;
+     }
+     /**
+     * 返回给定路径的文本文件内容
+     * @param filePath 给定的文本文件路径
+     * @return 文本内容
+     * @throws java.io.FileNotFoundException
+     * @throws java.io.IOException
+     */
+     public static String getText(String filePath) throws FileNotFoundException,IOException 
+     {
+         InputStreamReader isReader =new InputStreamReader(new FileInputStream(filePath),"GBK");
+         BufferedReader reader = new BufferedReader(isReader);
+         String aline;
+         StringBuilder sb = new StringBuilder();
+         while ((aline = reader.readLine()) != null)
+         {
+             sb.append(aline + " ");
+         }
+         isReader.close();
+         reader.close();
+         return sb.toString();
+     }
+     /**
+     * 返回训练文本集中所有的文本数目
+     * @return 训练文本集中所有的文本数目
+     */
+     public int getTrainingFileCount()
+     {
+         int ret = 0;
+         for (int i = 0; i < traningFileClassifications.length; i++)
+         {
+             ret +=getTrainingFileCountOfClassification(traningFileClassifications[i]);
+         }
+         return ret;
+     }
+     /**
+     * 返回训练文本集中在给定分类下的训练文本数目
+     * @param classification 给定的分类
+     * @return 训练文本集中在给定分类下的训练文本数目
+     */
+     public int getTrainingFileCountOfClassification(String classification)
+     {
+         File classDir = new File(traningTextDir.getPath() +File.separator +classification);
+         return classDir.list().length;
+     }
+     /**
+     * 返回给定分类中包含关键字／词的训练文本的数目
+     * @param classification 给定的分类
+     * @param key 给定的关键字／词
+     * @return 给定分类中包含关键字／词的训练文本的数目
+     */
+     public int getCountContainKeyOfClassification(String classification,String key) 
+     {
+         int ret = 0;
+         try 
+         {
+             String[] filePath = getFilesPath(classification);
+             for (int j = 0; j < filePath.length; j++) 
+             {
+                 String text = getText(filePath[j]);
+                 if (text.contains(key)) 
+                 {
+                     ret++;
+                 }
+             }
+         }
+         catch (FileNotFoundException ex) 
+         {
+         Logger.getLogger(TrainingDataManager.class.getName()).log(Level.SEVERE, null,ex);
+     
+         } 
+         catch (IOException ex)
+         {
+             Logger.getLogger(TrainingDataManager.class.getName()).log(Level.SEVERE, null,ex);
+         }
+         return ret;
+     }
+ }
+ 
+
+
+先验概率
+ 
+      先验概率是我们需要计算的两大概率值之一
+ 
+
+
+package com.vista;
+ /**
+ * 先验概率计算
+ * <h3>先验概率计算</h3>
+ * P(c<sub>j</sub>)=N(C=c<sub>j</sub>)<b>/</b>N <br>
+ * 其中，N(C=c<sub>j</sub>)表示类别c<sub>j</sub>中的训练文本数量；
+ * N表示训练文本集总数量。
+ */
+ public class PriorProbability 
+ {
+     private static TrainingDataManager tdm =new TrainingDataManager();
+     /**
+     * 先验概率
+     * @param c 给定的分类
+     * @return 给定条件下的先验概率
+     */
+     public static float calculatePc(String c)
+     {
+         float ret = 0F;
+         float Nc = tdm.getTrainingFileCountOfClassification(c);
+         float N = tdm.getTrainingFileCount();
+         ret = Nc / N;
+         return ret;
+     }
+ }
+ 
+
+
+
+分类条件概率
+ 
+      这是另一个影响因子，和先验概率一起来决定最终结果
+ 
+
+
+package com.vista;
+ 
+/**
+ * <b>类</b>条件概率计算
+ *
+ * <h3>类条件概率</h3>
+ * P(x<sub>j</sub>|c<sub>j</sub>)=( N(X=x<sub>i</sub>, C=c<sub>j
+ * </sub>)+1 ) <b>/</b> ( N(C=c<sub>j</sub>)+M+V ) <br>
+ * 其中，N(X=x<sub>i</sub>, C=c<sub>j</sub>）表示类别c<sub>j</sub>中包含属性x<sub>
+ * i</sub>的训练文本数量；N(C=c<sub>j</sub>)表示类别c<sub>j</sub>中的训练文本数量；M值用于避免
+ * N(X=x<sub>i</sub>, C=c<sub>j</sub>）过小所引发的问题；V表示类别的总数。
+ *
+ * <h3>条件概率</h3>
+ * <b>定义</b> 设A, B是两个事件，且P(A)>0 称<br>
+ * <tt>P(B∣A)=P(AB)/P(A)</tt><br>
+ * 为在条件A下发生的条件事件B发生的条件概率。
+ 
+*/
+ 
+public class ClassConditionalProbability 
+ {
+     private static TrainingDataManager tdm = new TrainingDataManager();
+     private static final float M = 0F;
+     
+     /**
+     * 计算类条件概率
+     * @param x 给定的文本属性
+     * @param c 给定的分类
+     * @return 给定条件下的类条件概率
+     */
+     public static float calculatePxc(String x, String c) 
+     {
+         float ret = 0F;
+         float Nxc = tdm.getCountContainKeyOfClassification(c, x);
+         float Nc = tdm.getTrainingFileCountOfClassification(c);
+         float V = tdm.getTraningClassifications().length;
+         ret = (Nxc + 1) / (Nc + M + V); //为了避免出现0这样极端情况，进行加权处理
+         return ret;
+     }
+ }
+ 
+
+
+分类结果
+ 
+      用来保存各个分类及其计算出的概率值，
+ 
+
+
+package com.vista;
+ /**
+ * 分类结果
+ */
+ public class ClassifyResult 
+ {
+     public double probility;//分类的概率
+     public String classification;//分类
+     public ClassifyResult()
+     {
+         this.probility = 0;
+         this.classification = null;
+     }
+ }
+ 
+
+
+朴素贝叶斯分类器
+ 
+      利用样本数据集计算先验概率和各个文本向量属性在分类中的条件概率，从而计算出各个概率值，最后对各个概率值进行排序，选出最大的概率值，即为所属的分类。
+ 
+
+
+package com.vista;
+ import com.vista.ChineseSpliter;
+ import com.vista.ClassConditionalProbability;
+ import com.vista.PriorProbability;
+ import com.vista.TrainingDataManager;
+ import com.vista.StopWordsHandler;
+ import java.util.ArrayList;
+ import java.util.Comparator;
+ import java.util.List;
+ import java.util.Vector;
+ 
+/**
+ * 朴素贝叶斯分类器
+ */
+ public class BayesClassifier 
+ {
+     private TrainingDataManager tdm;//训练集管理器
+     private String trainnigDataPath;//训练集路径
+     private static double zoomFactor = 10.0f;
+     /**
+     * 默认的构造器，初始化训练集
+     */
+     public BayesClassifier() 
+     {
+         tdm =new TrainingDataManager();
+     }
+ 
+    /**
+     * 计算给定的文本属性向量X在给定的分类Cj中的类条件概率
+     * <code>ClassConditionalProbability</code>连乘值
+     * @param X 给定的文本属性向量
+     * @param Cj 给定的类别
+     * @return 分类条件概率连乘值，即<br>
+     */
+     float calcProd(String[] X, String Cj) 
+     {
+         float ret = 1.0F;
+         // 类条件概率连乘
+         for (int i = 0; i <X.length; i++)
+         {
+             String Xi = X[i];
+             //因为结果过小，因此在连乘之前放大10倍，这对最终结果并无影响，因为我们只是比较概率大小而已
+             ret *=ClassConditionalProbability.calculatePxc(Xi, Cj)*zoomFactor;
+         }
+         // 再乘以先验概率
+         ret *= PriorProbability.calculatePc(Cj);
+         return ret;
+     }
+     /**
+     * 去掉停用词
+     * @param text 给定的文本
+     * @return 去停用词后结果
+     */
+     public String[] DropStopWords(String[] oldWords)
+     {
+         Vector<String> v1 = new Vector<String>();
+         for(int i=0;i<oldWords.length;++i)
+         {
+             if(StopWordsHandler.IsStopWord(oldWords[i])==false)
+             {//不是停用词
+                 v1.add(oldWords[i]);
+             }
+         }
+         String[] newWords = new String[v1.size()];
+         v1.toArray(newWords);
+         return newWords;
+     }
+     /**
+     * 对给定的文本进行分类
+     * @param text 给定的文本
+     * @return 分类结果
+     */
+     @SuppressWarnings("unchecked")
+     public String classify(String text) 
+     {
+         String[] terms = null;
+         terms= ChineseSpliter.split(text, " ").split(" ");//中文分词处理(分词后结果可能还包含有停用词）
+         terms = DropStopWords(terms);//去掉停用词，以免影响分类
+         
+         String[] Classes = tdm.getTraningClassifications();//分类
+         float probility = 0.0F;
+         List<ClassifyResult> crs = new ArrayList<ClassifyResult>();//分类结果
+         for (int i = 0; i <Classes.length; i++) 
+         {
+             String Ci = Classes[i];//第i个分类
+             probility = calcProd(terms, Ci);//计算给定的文本属性向量terms在给定的分类Ci中的分类条件概率
+             //保存分类结果
+             ClassifyResult cr = new ClassifyResult();
+             cr.classification = Ci;//分类
+             cr.probility = probility;//关键字在分类的条件概率
+             System.out.println("In process.");
+             System.out.println(Ci + "：" + probility);
+             crs.add(cr);
+         }
+         //对最后概率结果进行排序
+         java.util.Collections.sort(crs,new Comparator() 
+         {
+             public int compare(final Object o1,final Object o2) 
+             {
+                 final ClassifyResult m1 = (ClassifyResult) o1;
+                 final ClassifyResult m2 = (ClassifyResult) o2;
+                 final double ret = m1.probility - m2.probility;
+                 if (ret < 0) 
+                 {
+                     return 1;
+                 } 
+                 else 
+                 {
+                     return -1;
+                 }
+             }
+         });
+         //返回概率最大的分类
+         return crs.get(0).classification;
+     }
+     
+     public static void main(String[] args)
+     {
+         String text = "微软公司提出以446亿美元的价格收购雅虎中国网2月1日报道 美联社消息，微软公司提出以446亿美元现金加股票的价格收购搜索网站雅虎公司。微软提出以每股31美元的价格收购雅虎。微软的收购报价较雅虎1月31日的收盘价19.18美元溢价62%。微软公司称雅虎公司的股东可以选择以现金或股票进行交易。微软和雅虎公司在2006年底和2007年初已在寻求双方合作。而近两年，雅虎一直处于困境：市场份额下滑、运营业绩不佳、股价大幅下跌。对于力图在互联网市场有所作为的微软来说，收购雅虎无疑是一条捷径，因为双方具有非常强的互补性。(小桥)";
+         BayesClassifier classifier = new BayesClassifier();//构造Bayes分类器
+         String result = classifier.classify(text);//进行分类
+         System.out.println("此项属于["+result+"]");
+     }
+ }
+ 
+
+
+训练集与分类测试
+ 
+作为测试，这里选用Sogou实验室的文本分类数据，我只使用了mini版本。迷你版本有10个类别 ，共计100篇文章，总大小244KB
+ 
+使用的测试文本：
+ 
+
+
+微软公司提出以446亿美元的价格收购雅虎
+ 
+中国网2月1日报道 美联社消息，微软公司提出以446亿美元现金加股票的价格收购搜索网站雅虎公司。
+ 
+微软提出以每股31美元的价格收购雅虎。微软的收购报价较雅虎1月31日的收盘价19.18美元溢价62%。微软公司称雅虎公司的股东可以选择以现金或股票进行交易。
+ 
+微软和雅虎公司在2006年底和2007年初已在寻求双方合作。而近两年，雅虎一直处于困境：市场份额下滑、运营业绩不佳、股价大幅下跌。对于力图在互联网市场有所作为的微软来说，收购雅虎无疑是一条捷径，因为双方具有非常强的互补性。(小桥)
+ 
+
+
+使用mini版本的测试结果：
+ 
+
+
+In process.
+ IT：2.8119528E-5
+ In process.
+ 体育：2.791735E-21
+ In process.
+ 健康：3.3188528E-12
+ In process.
+ 军事：2.532662E-19
+ In process.
+ 招聘：2.3753596E-17
+ In process.
+ 教育：4.2023427E-19
+ In process.
+ 文化：6.0595915E-23
+ In process.
+ 旅游：5.1286412E-17
+ In process.
+ 汽车：4.085446E-8
+ In process.
+ 财经：3.7337095E-10
+ 此项属于[IT]
+ 
+
+
+
+作者：洞庭散人
+ 
+出处：http://phinecos.cnblogs.com/　　　　
+ 
+
+本博客遵从Creative Commons Attribution 3.0 License，若用于非商业目的，您可以自由转载，但请保留原作者信息和文章链接URL。
+ 
+
+
+
+
+
+
+
+分类: Others, Search Engine
+ 
+
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+
+
+
+
+Phinecos(洞庭散人)
+ 关注 - 0
+ 粉丝 - 405 
+
+
+
++加关注 
+
+
+5
+
+0
+
+
+ (请您对文章做出评价) 
+
+
+« 博主上一篇：基于朴素贝叶斯分类器的文本分类算法（上）
+» 博主下一篇：ZOJ1057 Undercut
+« 首页上一篇：FCKeditor.NET的配置、扩展与安全性经验交流
+» 首页下一篇：较为周全的Asp.net提交验证方案(Session版)
+
+ 
+posted on 2008-10-21 16:31 Phinecos(洞庭散人) 阅读(18816) 评论(109) 编辑 收藏
+
+
+
+< Prev123
+ 
+
+评论
+
+#60楼2009-03-04 15:40shling[未注册用户]
+
+
+
+下载了lucene包，也import了，可是还是出现以下错误，帮忙一下，谢谢！
+
+Exception in thread "main" java.lang.NoSuchMethodError: org.apache.lucene.analysis.StopFilter.<init>(Lorg/apache/lucene/analysis/TokenStream;Ljava/util/Set;Z)V
+ at jeasy.analysis.MMAnalyzer.tokenStream(Unknown Source:27)
+ at jeasy.analysis.lIlllIIIIIllIlII.segment(Unknown Source:234)
+ at com.vista.ChineseSpliter.split(ChineseSpliter.java:29)
+ at com.vista.BayesClassifier.classify(BayesClassifier.java:74)
+ at com.vista.BayesClassifier.main(BayesClassifier.java:116)
+
+   
+
+#61楼2009-03-04 19:45shling[未注册用户]
+
+
+
+自己弄好了，不过还是要谢谢！
+  
+
+#62楼2009-03-10 15:46路上有雪[未注册用户]
+
+
+
+ret = (Nxc + 1) / (Nc + M + V); 
+我看了理论部分 这里V应该是所有训练文档中出现的词语数，而你这里用的是类别数？Nxc也应该是在某一类中单词出现的次数 你用的是出现的文档数？很不解？ 
+这个问题没有回答
+  
+
+#63楼2009-03-17 16:16gg[未注册用户]
+
+
+
+回62楼
+他的方法是伯努利贝叶斯法，你说的是多项式贝叶斯法，
+都可以用
+
+  
+
+#64楼2009-03-25 19:16magic0419[未注册用户]
+
+
+
+我eclipse中运行你提供的代码时，提示MMAnalyzer无法解析为类型，有谁懂的，能帮助一下我吗。
+  
+
+#65楼2009-03-25 19:54magic0419[未注册用户]
+
+
+
+64楼的问题已经解决，可是在调试TrainingDataManager时遇到“从未使用导入java.util.properties”，不知道怎么办？另个一个问题是，如果要运行楼主这写代码，都需要安装些什么工具呀？现在我的电脑上已经安装了jdk1.6.0和eclipse3.2中文版。
+  
+
+#66楼2009-03-25 20:10magic0419[未注册用户]
+
+
+
+我用的是eclipse3.2中文版，在调试BayesClassifier 时遇到“语法错误，仅当源级别为 5.0 时已参数化的类型才可用”，请问楼主源级别在哪改呀。不好意思，因为我第一次用eclipse所以对它不熟悉，麻烦楼主了，谢谢！
+  
+
+#67楼2009-03-25 20:14magic0419[未注册用户]
+
+
+
+并且还遇到“类型 ArrayList 不是通用的；不能使用参数 <ClassifyResult> 将它参数化”、类型 List 不是通用的；不能使用参数 <ClassifyResult> 将它参数化”和“类型 Vector 不是通用的；不能使用参数 <String> 将它参数化”的问题，请楼主给我指点一下吧，非常感谢您的帮助。
+  
+
+#68楼2009-03-25 20:18magic0419[未注册用户]
+
+
+
+67楼的提问题太笨了，哈哈，我明白过来了。不好意思，楼主，让您见笑了。期待您能对65、66楼的问题提供帮助。
+  
+
+#69楼2009-03-25 20:36magic0419[未注册用户]
+
+
+
+楼主，您好，66楼的问题已经解决。但还有一个警告“从不在本地读取字段BayesClassifier.trainnigDataPath”。
+  
+
+#70楼2009-03-26 08:25cc0930[未注册用户]
+
+
+
+楼主，你好！看了你的中文文本分类的，效率不错。我想请教下，怎么对英语文本进行预处理？如去停用词，去超文本标记，取词干等，用 C++写 谢谢！
+  
+
+#71楼2009-04-05 20:04magic0419[未注册用户]
+
+
+
+com.vista.TrainingDataManager getCountContainKeyOfClassification 
+严重: null 
+java.io.FileNotFoundException: D:\TrainningSet\SogouC.mini\Sample (拒绝访问。) 
+at java.io.FileInputStream.open(Native Method) 
+at java.io.FileInputStream.<init>(FileInputStream.java:106) 
+at java.io.FileInputStream.<init>(FileInputStream.java:66) 
+at com.vista.TrainingDataManager.getText(TrainingDataManager.java:65) 
+at com.vista.TrainingDataManager.getCountContainKeyOfClassification(TrainingDataManager.java:114)
+ at com.vista.ClassConditionalProbability.calculatePxc(ClassConditionalProbability.java:35)
+ at com.vista.BayesClassifier.calcProd(BayesClassifier.java:41) 
+at com.vista.BayesClassifier.classify(BayesClassifier.java:84) 
+at com.vista.BayesClassifier.main(BayesClassifier.java:119) 
+
+  
+
+#72楼2009-04-05 20:05magic0419[未注册用户]
+
+
+
+请问楼主，71楼那个问题怎么解决呀？谢谢啦。
+  
+
+#73楼2009-04-07 00:18万里[未注册用户]
+
+
+
+60楼的哥们(shling)你是如何解决你的问题的,望给予回复,急用,谢谢. 
+邮件s030501408@sina.com 
+QQ:281600859
+   
+
+#74楼2009-04-08 09:43magic0419[未注册用户]
+
+
+
+有谁能解决71楼的问题呀，请教高手给予指点，谢谢。
+  
+
+#75楼2009-04-08 16:46magic0419[未注册用户]
+
+
+
+问题全部解决，不用回复了。
+  
+
+#76楼2009-04-11 15:19车超[未注册用户]
+
+
+
+看了你的代码，很少启发。但有一个问题，在程序getCountContainKeyOfClassification(c, x)方法中;每计算一个词的出现频次，都要重新读一次文件，这样大量的I/O 操作会不会影响程序的运行速度，另外，每次计算一个词条在类别Ci出现的条件下出现的概率都要使用getTrainingFileCountOfClassification(c)计算一次类别出现的概率，这是不是有些重复。
+  
+
+#77楼2009-04-11 15:20车超[未注册用户]
+
+
+
+前面说错了，是很受启发，呵呵。
+  
+
+#78楼2009-04-14 14:45ZMEREDITH
+
+
+
+Exception in thread "main" java.lang.NoSuchMethodError: org.apache.lucene.analysis.StopFilter.<init>(Lorg/apache/lucene/analysis/TokenStream;Ljava/util/Set;Z)V
+ at jeasy.analysis.MMAnalyzer.tokenStream(Unknown Source:28) 
+at jeasy.analysis.lIlllIIIIIllIlII.segment(Unknown Source:209) 
+at JaneBayesClassify.ChineseSpliter.split(ChineseSpliter.java:22) 
+at JaneBayesClassify.BayesClassifier.classify(BayesClassifier.java:73) 
+at JaneBayesClassify.BayesClassifier.main(BayesClassifier.java:117) 
+
+
+我已入了你们说的包，但是还是这错误，怎么样解决，61楼是怎么弄好的？！
+  
+
+#79楼2009-04-14 14:46ZMEREDITH
+
+
+
+Exception in thread "main" java.lang.NoSuchMethodError: org.apache.lucene.analysis.StopFilter.<init>(Lorg/apache/lucene/analysis/TokenStream;Ljava/util/Set;Z)V
+ at jeasy.analysis.MMAnalyzer.tokenStream(Unknown Source:28) 
+at jeasy.analysis.lIlllIIIIIllIlII.segment(Unknown Source:209) 
+at JaneBayesClassify.ChineseSpliter.split(ChineseSpliter.java:22) 
+at JaneBayesClassify.BayesClassifier.classify(BayesClassifier.java:73) 
+at JaneBayesClassify.BayesClassifier.main(BayesClassifier.java:117) 
+
+
+我已入了你们说的包，但是还是这错误，怎么样解决，61楼是怎么弄好的？！
+  
+
+#80楼2009-04-14 14:46ZMEREDITH
+
+
+
+Exception in thread "main" java.lang.NoSuchMethodError: org.apache.lucene.analysis.StopFilter.<init>(Lorg/apache/lucene/analysis/TokenStream;Ljava/util/Set;Z)V
+ at jeasy.analysis.MMAnalyzer.tokenStream(Unknown Source:28) 
+at jeasy.analysis.lIlllIIIIIllIlII.segment(Unknown Source:209) 
+at JaneBayesClassify.ChineseSpliter.split(ChineseSpliter.java:22) 
+at JaneBayesClassify.BayesClassifier.classify(BayesClassifier.java:73) 
+at JaneBayesClassify.BayesClassifier.main(BayesClassifier.java:117) 
+
+
+我已入了你们说的包，但是还是这错误，怎么样解决，61楼是怎么弄好的？！
+  
+
+#81楼2009-04-16 09:17zhangzd
+
+
+
+请问楼主 为什么测试分类效率有点低呢？和电脑CPU有关系吗？稍长点的文章要等上半分多钟将近一分钟。
+  
+
+#82楼2009-04-16 16:55冰月[未注册用户]
+
+
+
+楼主是个好人
+  
+
+#83楼2009-04-23 15:47木木木木
+
+
+
+博主，你好，请问你的特征提取用的是什么方法啊，在程序哪一块实现的呢?
+   
+
+#84楼2009-04-23 16:30木木木木
+
+
+
+楼主，你是不是把文档分词处理后，去除然后去除停用此，剩下的全部当作特征项了呢？
+  
+
+#85楼2009-05-13 12:57afafafaf[未注册用户]
+
+
+
+--引用-------------------------------------------------- 
+木木木木: 博主，你好，请问你的特征提取用的是什么方法啊，在程序哪一块实现的呢? 
+-------------------------------------------------------- 
+同样的问题,请楼主回下 
+
+  
+
+#86楼2009-05-20 19:38刘捷[未注册用户]
+
+
+
+２０和６０楼的问题如何解决的，谢谢大虾们的帮助
+  
+
+#87楼2009-05-21 11:50oop_ming[未注册用户]
+
+
+
+楼主你好，我用你的分类器进行测试，语料库是搜狗的精简版本，为什么测试的准确性不是很高？还有一个问题，怎样让分类器一次性训练好训练集，而不需要每次进行分类的时候重新训练一次？
+ 
+呵呵，一下子提了这么多问题，希望得到楼主的帮助，万分感谢...
+   
+
+#88楼2009-05-22 20:24shling[未注册用户]
+
+
+
+路径错了，训练文本集放在D:\\TrainningSet就可以了
+  
+
+#89楼2009-05-26 12:37oop_ming[未注册用户]
+
+
+
+我是这样设置的，但好像准确性不是很高，请问怎样提高准确性呢？
+  
+
+#90楼2009-05-29 23:20dirty[未注册用户]
+
+
+
+不知楼主在不？我运行了一下您的程序，结果出现了这样的问题： 
+Exception in thread "main" java.lang.NoClassDefFoundError: org/apache/lucene/analysis/Analyzer
+ at java.lang.ClassLoader.defineClass1(Native Method) 
+at java.lang.ClassLoader.defineClass(Unknown Source) 
+at java.security.SecureClassLoader.defineClass(Unknown Source) 
+at java.net.URLClassLoader.defineClass(Unknown Source) 
+at java.net.URLClassLoader.access$000(Unknown Source) 
+at java.net.URLClassLoader$1.run(Unknown Source) 
+at java.security.AccessController.doPrivileged(Native Method) 
+at java.net.URLClassLoader.findClass(Unknown Source) 
+at java.lang.ClassLoader.loadClass(Unknown Source) 
+at sun.misc.Launcher$AppClassLoader.loadClass(Unknown Source) 
+at java.lang.ClassLoader.loadClass(Unknown Source) 
+at java.lang.ClassLoader.loadClassInternal(Unknown Source) 
+at java.lang.ClassLoader.defineClass1(Native Method) 
+at java.lang.ClassLoader.defineClass(Unknown Source) 
+at java.security.SecureClassLoader.defineClass(Unknown Source) 
+at java.net.URLClassLoader.defineClass(Unknown Source) 
+at java.net.URLClassLoader.access$000(Unknown Source) 
+at java.net.URLClassLoader$1.run(Unknown Source) 
+at java.security.AccessController.doPrivileged(Native Method) 
+at java.net.URLClassLoader.findClass(Unknown Source) 
+at java.lang.ClassLoader.loadClass(Unknown Source) 
+at sun.misc.Launcher$AppClassLoader.loadClass(Unknown Source) 
+at java.lang.ClassLoader.loadClass(Unknown Source) 
+at java.lang.ClassLoader.loadClassInternal(Unknown Source) 
+at com.vista.ChineseSpliter.split(ChineseSpliter.java:20) 
+at com.vista.BayesClassifier.classify(BayesClassifier.java:78) 
+at com.vista.BayesClassifier.main(BayesClassifier.java:129) 
+Caused by: java.lang.ClassNotFoundException: org.apache.lucene.analysis.Analyzer
+ at java.net.URLClassLoader$1.run(Unknown Source) 
+at java.security.AccessController.doPrivileged(Native Method) 
+at java.net.URLClassLoader.findClass(Unknown Source) 
+at java.lang.ClassLoader.loadClass(Unknown Source) 
+at sun.misc.Launcher$AppClassLoader.loadClass(Unknown Source) 
+at java.lang.ClassLoader.loadClass(Unknown Source) 
+at java.lang.ClassLoader.loadClassInternal(Unknown Source) 
+... 27 more 
+不知是什么原因，望楼主给予解答，也希望各位大侠不吝赐教，多谢啦
+  
+
+#91楼2009-05-30 01:18dirty[未注册用户]
+
+
+
+20楼和60楼的问题怎么解决的？有明白的大侠告诉我一声，多谢 
+
+  
+
+#92楼2009-08-18 15:55皮皮猫[未注册用户]
+
+
+
+这个Classes怎么获取的长度为0呢？
+Classes.length=============0
+Classes.length=~~~~~~~~~~~~=0
+Exception in thread "main" java.lang.IndexOutOfBoundsException: Index: 0, Size: 0
+ at java.util.ArrayList.RangeCheck(Unknown Source)
+ at java.util.ArrayList.get(Unknown Source)
+ at com.vista.BayesClassifier.classify(BayesClassifier.java:108)
+ at com.vista.BayesClassifier.main(BayesClassifier.java:115)
+   
+
+#93楼2009-09-15 20:29qingjiao[未注册用户]
+
+
+
+我想问一下kdd99数据集是怎么随机抽取的，谢谢你
+  
+
+#94楼2009-11-18 14:22武汉[未注册用户]
+
+
+
+网络上关于朴素贝叶斯的分类程序，就楼主这里有，好急求啊
+  
+
+#95楼2010-05-30 17:25sun008  
+
+
+
+ 能够拜读高人的文章十分荣幸，由于本人是菜鸟，所以调试了好几天还是出现了上面提到的问题，也不知道解决办法，还请高人能赐教，不胜感激！！！
+ 错误如下：
+Exception in thread "main" java.lang.NoSuchMethodError: org.apache.lucene.analysis.StopFilter.<init>(Lorg/apache/lucene/analysis/TokenStream;Ljava/util/Set;Z)V
+ at jeasy.analysis.MMAnalyzer.tokenStream(Unknown Source:27)
+ at jeasy.analysis.lIlllIIIIIllIlII.segment(Unknown Source:234)
+ at com.vista.ChineseSpliter.split(ChineseSpliter.java:23)
+ at com.vista.BayesClassifier.classify(BayesClassifier.java:78)
+ at com.vista.BayesClassifier.main(BayesClassifier.java:122)
+那个用来训练的数据文件应该如何存储，是在D盘见一个TrainningSet文件夹，然后把下载后的压缩文件直接放进去吗？
+望楼住赐教啊，十分期待
+急 急 急 求！！！
+
+支持(0)反对(0)
+   
+
+#96楼2010-05-31 10:24wxpeihao  
+
+
+
+@sun008
+TrainningSet下有10个文件夹，IT，财经，体育。。。把数字都换成ClassList.txt里对应的名字就好了。源代码再导入2个包就可以运行了。这个程序很好，继续研究。
+
+支持(0)反对(0)
+   
+
+#97楼2010-05-31 14:50sun008  
+
+
+
+非常感谢您的及时回复
+我按照您说的去做了，包我已经加过了，加的是luecne-core-3.0.1.jar和je-analysis-1.5.3.jar
+还需要再倒入别的包吗
+TrainningSet 也按照您说的方式去建了，可是运行后还是会出现同样的问题，还请指教 
+
+
+支持(0)反对(0)
+   
+
+#98楼2010-06-13 17:37sun008  
+
+
+
+今天看到了您的回复，很感谢。问题已经解决了，是luecne包版本的问题，不能用最新版的，很个性，换了个2.2版的就好了，还是很感谢。
+
+支持(0)反对(0)
+   
+
+#99楼2010-07-20 11:14流浪剑客  
+
+
+
+楼主居然犯了个低级错误哦，后面都忘了乘以先验概率了，直接比较了条件概率
+
+支持(0)反对(0)
+   
+
+#100楼2010-07-20 11:25流浪剑客  
+
+
+
+看错了，不好意思，
+probility = calcProd(terms, Ci);//计算给定的文本属性向量terms在给定的分类Ci中的分类条件概率
+这句的注释让我误会了。我以为你说的probility=P(Ai|Ci)
+
+
+支持(0)反对(0)
+   
+
+#101楼2010-12-21 11:13yupenghua520  
+
+
+
+谢谢，调通了，lucene版本不能用最新的呢。
+
+支持(0)反对(0)
+   
+
+#102楼2011-03-07 15:29wllxzc  
+
+
+
+楼主，帮我看看这个问题哦
+Exception in thread "main" java.lang.NullPointerException
+ at vista.TrainingDataManager.getFilesPath(TrainingDataManager.java:49)
+ at vista.TrainingDataManager.getCountContainKeyOfClassification(TrainingDataManager.java:108)
+ at vista.ClassConditionalProbability.calculatePxc(ClassConditionalProbability.java:34)
+ at vista.BayesClassifier.calcProd(BayesClassifier.java:45)
+ at vista.BayesClassifier.classify(BayesClassifier.java:88)
+ at vista.BayesClassifier.main(BayesClassifier.java:123)
+急。。。
+
+支持(0)反对(0)
+   
+
+#103楼2011-12-29 21:22笑翱江湖  
+
+
+
+看过你的这篇博文，去查看其它相关资料的时候，发现你的这篇文章被人原封不动的作为了一论文发表了。 真相见链接：[url=http://wenku.baidu.com/view/c9d6a6e9e009581b6bd9eb90.html]
+
+支持(0)反对(0)
+   
+
+#104楼[楼主] 2011-12-29 23:07Phinecos(洞庭散人)  
+
+
+
+@笑翱江湖
+我靠，太无耻了！！！。。。
+
+支持(0)反对(0)
+   
+
+#105楼2012-04-15 20:31daixu1987  
+
+
+
+@Phinecos(洞庭散人)
+楼主你好，
+ 我最近要用朴素贝叶斯算法的代码做毕业设计。我在网上下载了个je-analysis-1.5.3jar，到进去， class ChineseSpliter中的此句result = analyzer.segment(text, splitToken);报出It is indirectly referenced from required .class files错误，可能是包没引齐全。能不能把你写的有关导入包，发到我邮箱里呀？410963373@qq.com，谢谢了！
+
+支持(0)反对(0)
+   
+
+#106楼2012-04-24 18:03apple122117  
+
+
+
+
+引用Phinecos(洞庭散人)：
+@杨海
+<br/>缺少org.apache.lucene.analysis.Analyzer ,那就下个lucene包，import缺少的jar，极易中文分词组件用到了lucene这个开源搜索包
+
+我下载了lucene-3.5.0包 里面有两个lucene-core-3.5.0.jar和lucene-test-framwork-3.5.0.jar 我该把他们放在什么位置啊 我使用了import jeasy.analysis.MMAnalyzer，然后编译时说找不到jeasy.analysis软件包，是下载了lucene-3.5.0就可以了吗？那么要将lucene-3.5.0放在哪里呢 拜托楼主了 我不知道怎么解决了
+支持(0)反对(0)
+   
+
+#107楼2012-04-26 16:18yy382001926  
+
+
+
+楼主，你怎么不写一篇C++的，我没学过JAVA呀，悲剧，现在毕业设计就是做贝叶斯对文本的情感分类，还要求用C++的，我现在前面的分词，去停用词都用C++弄好了，就差最后这个朴素贝叶斯分类了，啊，啊啊啊啊，悲剧啊，这怎么不是C++版的啊，5555555555
+
+支持(0)反对(0)
+   
+
+#108楼2012-05-30 20:35betty920  
+
+
+
+楼主楼主，你输出的结果没有对概率进行排序啊啊啊。。。
+
+支持(0)反对(0)
+   
+
+#109楼2012-06-11 14:40Boy王  
+
+
+
+--------------------配置: <默认>--------------------
+D:\Users\lenovo\Documents\学年论文\实验代码\新建文件夹\NaviveBayesClassify\com\vista\BayesClassifier.java:3: 找不到符号
+符号： 类 ChineseSpliter
+位置： 软件包 com.vista
+import com.vista.ChineseSpliter;
+ ^
+D:\Users\lenovo\Documents\学年论文\实验代码\新建文件夹\NaviveBayesClassify\com\vista\BayesClassifier.java:78: 找不到符号
+符号： 变量 ChineseSpliter
+位置： 类 com.vista.BayesClassifier
+ terms= ChineseSpliter.split(text, " ").split(" ");//中文分词处理(分词后结果可能还包含有停用词）
+^
+2 错误
+
+处理已完成。
+
+请问楼主这个要怎么改正啊。（新手请指正）
+
+支持(0)反对(0)
+   
+
+
+< Prev123
+ 
+
+
+刷新评论刷新页面返回顶部
+ 
+
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+
+ 
+博客园首页博问新闻闪存程序员招聘知识库
+ 
+
+
+
+
+
+最新IT新闻:
+ · 剥开周鸿祎 天天向上背后的故事
+ · 马云知天命：固执坚持不动摇
+ · 若不是那五次拒绝！惠普或成今日之苹果
+ · 新疆阿勒泰发现世界第四大铁陨石 引发官争民抢
+ · 伊朗的猴子宇航员真的安全返回了？
+» 更多新闻...
+
+最新知识库文章:
+
+ · HTML5之美
+ · 每天工作的第一个小时，做什么？
+ · Hadoop 分布式文件系统：架构和设计
+ · 异常的代价
+ · 从P1到P7——第八年
+
+» 更多知识库文章... 
+
+
+
+
+Powered by: 
+博客园
+Copyright © Phinecos(洞庭散人) 
+
+
+
+
+导航
+ 博客园
+首页
+新随笔
+联系
+订阅
+管理
+ 
+统计
+随笔 - 607 
+文章 - 2 
+评论 - 1458 
+引用 - 117 
+
+公告
+
+ 
+
+
+联系方式 
+新浪微博：http://weibo.com/phinecos 
+Email: phinecos@gmail.com 
+
+昵称：Phinecos(洞庭散人)
+园龄：6年8个月
+粉丝：405
+关注：0
++加关注
+
+ 
+
+搜索
+
+ 
+ 
+随笔分类(744)
+ .Net(33) 
+ACM(69) 
+Android(10) 
+Assembly(4) 
+C/C++/VC++(231) 
+COM/ATL/ActiveX(16) 
+Flex(10) 
+Java(123) 
+linux(30) 
+Mozilla扩展(16) 
+Others(30) 
+PHP(12) 
+python(14) 
+Search Engine(9) 
+程序人生(32) 
+计算机图形学(69) 
+考研心得(36) 
+
+随笔档案(607)
+2013年1月 (1) 
+2012年12月 (2) 
+2012年5月 (1) 
+2012年3月 (3) 
+2012年2月 (4) 
+2012年1月 (2) 
+2011年12月 (1) 
+2011年11月 (2) 
+2011年10月 (2) 
+2011年9月 (1) 
+2011年8月 (1) 
+2011年6月 (1) 
+2011年4月 (5) 
+2011年2月 (1) 
+2011年1月 (1) 
+2010年12月 (1) 
+2010年11月 (1) 
+2010年10月 (6) 
+2010年9月 (6) 
+2010年8月 (1) 
+2010年7月 (4) 
+2010年6月 (1) 
+2010年5月 (10) 
+2010年4月 (9) 
+2010年3月 (3) 
+2009年11月 (1) 
+2009年10月 (5) 
+2009年9月 (18) 
+2009年8月 (9) 
+2009年6月 (7) 
+2009年5月 (16) 
+2009年3月 (9) 
+2009年2月 (5) 
+2009年1月 (3) 
+2008年12月 (17) 
+2008年11月 (50) 
+2008年10月 (23) 
+2008年9月 (15) 
+2008年8月 (13) 
+2008年7月 (32) 
+2008年6月 (26) 
+2008年5月 (17) 
+2008年4月 (14) 
+2008年3月 (11) 
+2008年2月 (2) 
+2008年1月 (13) 
+2007年12月 (14) 
+2007年11月 (24) 
+2007年10月 (12) 
+2007年9月 (11) 
+2007年8月 (24) 
+2007年7月 (17) 
+2007年6月 (6) 
+2007年5月 (6) 
+2007年4月 (17) 
+2007年3月 (11) 
+2006年12月 (3) 
+2006年11月 (3) 
+2006年10月 (17) 
+2006年9月 (11) 
+2006年8月 (22) 
+2006年7月 (3) 
+2006年6月 (26) 
+2006年5月 (4) 
+
+常去的站点
+cnBeta 
+codeproject 
+developerWorks 
+sourceforge 
+
+我的好友
+vandalor 
+涛哥 
+
+我的站点
+我在CSDN的blog 
+
+积分与排名
+ 积分 - 982466 
+排名 - 37 
+
+最新评论
+ 
+
+1. Re:ZOJ1009 Enigma
+j-(curLine[j]-'A');  可以给解释下这个的意思吗？--简单地快乐
+2. Re:《基于MFC的OpenGL编程》Part 4 Drawing Simple 3D objects 
+楼主请问一下为什么我的画面知道能在-1<z<1之间，如果超出了这个范围就不可见了？？--梦想狂人
+3. Re:Base64编解码(C++版)
+在网上看了这么多东西，真正能用的也就这一篇，谢谢！--宝马良驹
+4. Re:TinyXML：一个优秀的C++ XML解析器
+新手路过，谢谢楼主分析~~~--柚子5
+5. Re:TinyXML：一个优秀的C++ XML解析器
+瑕疵是不是tixmldocument对象直接定义使用而不是new出来，这是作为根节点而不是一般的节点，new出来后没有父节点协助析构是不是应该delete。--flytosunset
+ 
+阅读排行榜
+ 
+
+1. TinyXML：一个优秀的C++ XML解析器(57546)
+2. 基于MFC的OpenGL绘图(24451)
+3. Android实例剖析笔记（一）(23346)
+4. COM组件开发实践（一）(22609)
+5. 技术宅---我的网上抢火车票攻略(19179)
+ 
+评论排行榜
+ 
+
+1. 基于朴素贝叶斯分类器的文本分类算法（下）(109)
+2. 基于MFC的OpenGL绘图(77)
+3. 技术宅---我的网上抢火车票攻略(52)
+4. 基于JMF RTP的音视频传输(46)
+5. IIS默认网站（停止）错误ox8ffe2740解决办法(44)
+ 
+推荐排行榜
+ 
+
+1. TinyXML：一个优秀的C++ XML解析器(9)
+2. 技术宅---我的网上抢火车票攻略（终极秒杀版）(8)
+3. 技术宅---我的网上抢火车票攻略(6)
+4. Android实例剖析笔记（八）(5)
+5. Android实例剖析笔记（二）(5)
+ 

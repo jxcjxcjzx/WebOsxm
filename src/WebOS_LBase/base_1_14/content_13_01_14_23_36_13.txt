@@ -1,0 +1,1410 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+曹胜欢的专栏
+
+再牛逼的梦想也抵不过傻逼一样的坚持
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年1月当选微软MVP名单揭晓！    CSDN博客频道年终送好礼获奖名单公布！
+ 2012CSDN博客之星火热出炉！      2000元大奖征异构开发博文      2013年全国百所高校巡讲讲师招募 
+
+
+
+Lucene教程详解 
+.
+ 分类： Lucene专区2011-09-26 17:5013416人阅读评论(10)收藏举报
+
+
+ 
+注明：本文是由本人在开发有关基于lucene资源检索系统时的一点总结，其中一部分是自己根据开发过程自己总结的，也有部分是摘自网络，因无法获取当时摘文的地址，所以在此没有写源地址。
+ 
+转载请声明出处
+ 
+ 
+ 
+Lucene-3.0.0配置
+ 
+
+
+
+一、Lucene开发环境配置
+ 
+ 
+ 
+step1.Lucene开发包下载
+ 
+ 
+ 
+step2.Java开发环境配置
+ 
+ 
+ 
+step3.Tomcat安装
+ 
+ 
+ 
+step4.Lucene开发环境配置
+ 
+ 
+ 
+解压下载的lucene-3.0.0.zip，可以看到lucene-core-3.0.0.jar和lucene-demos-3.0.0.jar这两个文件,将其解压(建议放在安装jdk的lib文件夹内)，并把路径添加到环境变量的classpath。
+ 
+二、Lucene开发包中Demo调试
+ 
+控制台应用程序
+ 
+step1.建立索引
+ 
+>java org.apache.lucene.demo.IndexFiles [C:\Java](已经存在的任意文件路径)
+ 
+将对C:\Java下所有文件建立索引，同时，在当前命令行位置将生成“index”文件夹。
+ 
+step2.执行查询
+ 
+>java org.apache.lucene.demo.SearchFiles
+ 
+将会出现“Query:”提示符，在其后输入关键字，回车，即可得到查询结果。
+ 
+Web应用程序
+ 
+step1.将lucene-core-3.0.0.jar和lucene-demos-3.0.0jar这两个文件复制到安装Tomcat 的\common\lib中
+ 
+step2.解压下载的lucene-3.0.0.zip，可以看到luceneweb.war文件。将该文件复制到安装Tomcat的\webapps
+ 
+step3.重启Tomcat服务器。
+ 
+step4.建立索引
+ 
+ 
+ 
+>java org.apache.lucene.demo.IndexHTML -create -index [索引数据存放路径] [被索引文件路径]（如：D:\lucene\temp\index D:\lucene\temp\docs）
+ 
+step5.打开安装Tomcat的\webapps\luceneweb\configuration.jsp文件，找到String indexLocation = "***"，将"***"改为第四步中[索引数据存放路径]，保存关闭。
+ 
+step6.执行查询
+ 
+http://localhost:8080/luceneweb
+ 
+在文本框中输入关键字，执行，即可得到查询结果。
+ 
+ 
+ 
+说明：本文采用lucene-3.0.0版本，运行step6 时查询报错，根据提示将安装Tomcat的webapps\luceneweb\results.jsp 中
+ 
+[    QueryParser qp = new QueryParser("contents", analyzer);     ]     修改为
+ 
+[    QueryParser qp = new QueryParser(Version.LUCENE_CURRENT,"contents", analyzer);    ]
+ 
+ 
+ 
+注：本文参考YM's house
+ 
+
+lucene的demo环境搭建 
+ 
+总结一下lucene的环境搭建，查看以及了解lucene的原理，对其有个大概的了解。
+ 
+ 
+ 
+1、下载lucene2.3.2
+ 
+地址：http://apache.mirror.phpchina.com/lucene/java/
+ 
+2、下载jdk1.6
+ 
+3、下载tomcat
+ 
+ 
+ 
+下载以上内容完成后，开始安装。
+ 
+1、安装jdk
+ 
+一路确定下去，无需选择。
+ 
+2、安装tomcat
+ 
+一路确定下去，无需选择。
+ 
+3、解压文件即可
+ 
+假设解压文件路径为d:\lucene\
+ 
+现在可以建立目录(此处的目录为我们要进行检索的信息的原始数据文件，我们放置在docs中，还有一个是lucene生成的检索信息，我们放置于index中)，即可以在d:\lucene下建立一个temp\docs以及temp\index，此处两个文件夹目录可以随意，当然不一定非得放置于d:\lucene。
+ 
+然后将需要检索的原始数据文件放置于docs文件夹中。
+ 
+拷贝解压的lucene文件夹中的lucene-core-2.3.2.jar以及lucene-demos-2.3.2.jar到temp文件夹中，解压。
+ 
+ 
+ 
+如果没有配置jdk环境，参考下方：
+ 
+打开我的电脑-属性-高级-环境变量：
+ 
+在系统变量中添加：
+ 
+JAVA＿HOME C:\Program Files\Java\jdk1.6.0
+ 
+PATH %JAVA_HOME%\bin
+ 
+CLASSPATH .;%JAVA_HOME%\lib\tools.jar;%JAVA_HOME%\jre\lib\rt.jar;
+ 
+ 
+ 
+打开命令行：将目录定位到temp文件夹。
+ 
+输入命令：
+ 
+java org.apache.lucene.demo.IndexHTML -create -index D:\lucene\temp\index D:\lucene\temp\docs
+ 
+即建立索引与原始数据文件的关系。
+ 
+ 
+ 
+完成后，会发现index文件夹中多处一部分数据，以后再研究。
+ 
+ 
+ 
+然后找到tomcat的安装目录，拷贝lucene中的luceneweb.war进入tomcat的webapps\文件夹中，启动tomcat，会看见webapps\下多出一个文件夹，找到configuration.jsp文件，将其中的String indexLocation = "/opt/lucene/index"；修改为String indexLocation = "D:/lucene/temp/index"；就是刚才生成的文件。
+ 
+ 
+ 
+打开浏览器，输入http://127.0.0.1:8080/luceneweb/
+ 
+ 
+ 
+输入需要查询的信息，看看结果如何。
+ 
+ 
+ 
+ 
+ 
+简单地说：首先建立索引文件放置目录，cmd命令生成索引文件，部署工程，修改工程文件中目标为索引文件目录。
+ 
+搜索引擎的组成
+ 
+　搜索引擎一般由搜索器、索引器、检索器和用户接口四个部分组成： 
+ 
+搜索器
+ 
+　　其功能是在互联网中漫游，发现和搜集信息； 
+ 
+索引器
+ 
+　　其功能是理解搜索器所搜索到的信息，从中抽取出索引项，用于表示文档以及生成文档库的索引表； 
+ 
+检索器
+ 
+　　其功能是根据用户的查询在索引库中快速检索文档，进行相关度评价，对将要输出的结果排序，并能按用户的查询需求合理反馈信息； 
+ 
+用户接口
+ 
+　　其作用是接纳用户查询、显示查询结果、提供个性化查询项。
+ 
+d:\lucene\index是上一篇学习笔记（[Lucene3.0学习笔记1（建立索引）] ）中生成的索引文件的存放地址。具体步骤简介如下：
+ 
+1、创建Directory对象，索引文件夹
+ 
+2、创建IndexSearch对象，建立查询（参数是Directory对象）
+ 
+3、创建QueryParser对象（lucene版本，查询Field字段，所用分词器）
+ 
+4、生成Query对象，由QueryParser对象的parse函数生成（参数是所查的关键字）
+ 
+5、建立TopDocs对象（IndexSearch的search函数，参数是Query查询对象，）
+ 
+6、TopDocs对象数组里存放查询信息
+ 
+7、关闭IndexSearch
+ 
+索引创建和搜索过程所一个总结
+ 
+Lucene教程
+ 
+Lucene是apache组织的一个用java实现全文搜索引擎的开源项目。 其功能非常的强大，api也很简单。总得来说用Lucene来进行建立 和搜索和操作数据库是差不多的(有点像)，Document可以看作是 数据库的一行记录，Field可以看作是数据库的字段。用lucene实 现搜索引擎就像用JDBC实现连接数据库一样简单。 
+ 
+Lucene2.0，它与以前广泛应用和介绍的Lucene 1.4.3并不兼容。 Lucene2.0的下载地址是http://apache.justdn.org/lucene/java/ 
+ 
+
+例子一 ：
+ 
+1、在windows系统下的的C盘，建一个名叫s的文件夹,在该文件夹里面随便建三个txt文件，随便起名啦，就叫"1.txt","2.txt"和"3.txt"啦 
+ 其中1.txt的内容如下： 
+ 
+中华人民共和国   
+ 全国人民   
+ 2006年   
+ 
+而"2.txt"和"3.txt"的内容也可以随便写几写，这里懒写，就复制一个和1.txt文件的内容一样吧
+ 
+2、下载lucene包，放在classpath路径中 
+ 建立索引:
+ 
+package  lighter.javaeye.com;   
+   
+ import  java.io.BufferedReader;   
+ import  java.io.File;   
+ import  java.io.FileInputStream;   
+ import  java.io.IOException;   
+ import  java.io.InputStreamReader;   
+ import  java.util.Date;   
+   
+ import  org.apache.lucene.analysis.Analyzer;   
+ import  org.apache.lucene.analysis.standard.StandardAnalyzer;   
+ import  org.apache.lucene.document.Document;   
+ import  org.apache.lucene.document.Field;   
+ import  org.apache.lucene.index.IndexWriter;   
+   
+ /** */ /**   
+  * author lighter date 2006-8-7  
+   */   
+ public   class  TextFileIndexer  {   
+      public   static   void  main(String[] args)  throws  Exception  {   
+          /**/ /*  指明要索引文件夹的位置,这里是C盘的S文件夹下  */   
+         File fileDir  =   new  File( " c://s " );   
+   
+          /**/ /*  这里放索引文件的位置  */   
+         File indexDir  =   new  File( " c://index " );   
+         Analyzer luceneAnalyzer  =   new  StandardAnalyzer();  //建立一个标准分析器 
+         IndexWriter indexWriter  =   new  IndexWriter(indexDir, luceneAnalyzer,   
+                  true );   //创建一个索引器
+         File[] textFiles  =  fileDir.listFiles();   
+          long  startTime  =   new  Date().getTime();   
+            
+          //增加document到索引去    
+          for  ( int  i  =   0 ; i  <  textFiles.length; i ++ )  {   
+              if  (textFiles[i].isFile()   
+                      &&  textFiles[i].getName().endsWith( " .txt " ))  {   
+                 System.out.println( " File  "   +  textFiles[i].getCanonicalPath()   
+                          +   "正在被索引 . " );   
+                 String temp  =  FileReaderAll(textFiles[i].getCanonicalPath(),   
+                          " GBK " );   
+                 System.out.println(temp);   
+                 Document document  =   new  Document();  //Document是一个记录。用来表示一个条目。就是搜索建立的倒排索引的条目。比如说，你要搜索自己电脑上的文件。这个时候就可以创建field。然后用field组合成 document 。最后会变成若干文件。这个document和 文件系统document不是一个概念。 
+                 Field FieldPath  =   new  Field( " path " , textFiles[i].getPath(),   
+                         Field.Store.YES, Field.Index.NO);   //创建一个字段
+                 Field FieldBody  =   new  Field( " body " , temp, Field.Store.YES,   
+                         Field.Index.TOKENIZED,   
+                         Field.TermVector.WITH_POSITIONS_OFFSETS);   
+                 document.add(FieldPath);   
+                 document.add(FieldBody);   
+                 indexWriter.addDocument(document);   
+             }    
+         }    
+          // optimize()方法是对索引进行优化    
+         indexWriter.optimize();   
+         indexWriter.close();   
+            
+          //测试一下索引的时间    
+          long  endTime  =   new  Date().getTime();   
+         System.out   
+                 .println( "这花费了 "   
+                          +  (endTime  -  startTime)   
+                          +   "  毫秒来把文档增加到索引里面去! "   
+                          +  fileDir.getPath());   
+     }    
+   
+      public   static  String FileReaderAll(String FileName, String charset)   
+              throws  IOException  {   
+         BufferedReader reader  =   new  BufferedReader( new  InputStreamReader(   
+                  new  FileInputStream(FileName), charset));   
+         String line  =   new  String();   
+         String temp  =   new  String();   
+            
+          while  ((line  =  reader.readLine())  !=   null )  {   
+             temp  +=  line;   
+         }    
+         reader.close();   
+          return  temp;   
+     }    
+ }  
+ 
+索引的结果： 
+ 
+File C:/s/ 1 .txt正在被索引 .   
+ 中华人民共和国全国人民2006年   
+ File C:/s/ 2 .txt正在被索引 .   
+ 中华人民共和国全国人民2006年   
+ File C:/s/ 3 .txt正在被索引 .   
+ 中华人民共和国全国人民2006年   
+ 这花费了297 毫秒来把文档增加到索引里面去 ! c:/s  
+ 
+
+3、建立了索引之后，查询啦....
+ 
+package  lighter.javaeye.com;   
+   
+ import  java.io.IOException;   
+   
+ import  org.apache.lucene.analysis.Analyzer;   
+ import  org.apache.lucene.analysis.standard.StandardAnalyzer;   
+ import  org.apache.lucene.queryParser.ParseException;   
+ import  org.apache.lucene.queryParser.QueryParser;   
+ import  org.apache.lucene.search.Hits;   
+ import  org.apache.lucene.search.IndexSearcher;   
+ import  org.apache.lucene.search.Query;   
+   
+ public   class  TestQuery  {   
+      public   static   void  main(String[] args)  throws  IOException, ParseException  {   
+         Hits hits  =   null ;   
+         String queryString  =   "中华 " ;   
+         Query query  =   null ;   
+         IndexSearcher searcher  =   new  IndexSearcher( " c://index " );   
+   
+         Analyzer analyzer  =   new  StandardAnalyzer();   
+          try   {   
+             QueryParser qp  =   new  QueryParser( " body " , analyzer);   
+             query  =  qp.parse(queryString);   
+         }   catch  (ParseException e)  {   
+         }    
+          if  (searcher  !=   null )  {   
+             hits  =  searcher.search(query);   
+              if  (hits.length()  >   0 )  {   
+                 System.out.println( "找到: "   +  hits.length()  +   "  个结果! " );   
+             }    
+         }    
+     }  
+   
+ }   
+ 
+
+其运行结果：
+ 
+找到: 3  个结果 ! 
+ 
+ 
+ 
+Lucene其实很简单的,它最主要就是做两件事:建立索引和进行搜索 
+ 来看一些在lucene中使用的术语,这里并不打算作详细的介绍,只是点一下而已----因为这一个世界有一种好东西，叫搜索。
+ 
+IndexWriter:lucene中最重要的的类之一，它主要是用来将文档加入索引，同时控制索引过程中的一些参数使用。
+ 
+Analyzer:分析器,主要用于分析搜索引擎遇到的各种文本。常用的有StandardAnalyzer分析器,StopAnalyzer分析器,WhitespaceAnalyzer分析器等。
+ 
+Directory:索引存放的位置;lucene提供了两种索引存放的位置，一种是磁盘，一种是内存。一般情况将索引放在磁盘上；相应地lucene提供了FSDirectory和RAMDirectory两个类。
+ 
+Document:文档;Document相当于一个要进行索引的单元，任何可以想要被索引的文件都必须转化为Document对象才能进行索引。
+ 
+Field：字段。
+ 
+IndexSearcher:是lucene中最基本的检索工具，所有的检索都会用到IndexSearcher工具;
+ 
+Query:查询，lucene中支持模糊查询，语义查询，短语查询，组合查询等等,如有TermQuery,BooleanQuery,RangeQuery,WildcardQuery等一些类。
+ 
+QueryParser:是一个解析用户输入的工具，可以通过扫描用户输入的字符串，生成Query对象。
+ 
+Hits:在搜索完成之后，需要把搜索结果返回并显示给用户，只有这样才算是完成搜索的目的。在lucene中，搜索的结果的集合是用Hits类的实例来表示的。
+ 
+上面作了一大堆名词解释，下面就看几个简单的实例吧:
+  1、简单的的StandardAnalyzer测试例子 
+ 
+ 
+ 
+package  lighter.javaeye.com;   
+   
+ import  java.io.IOException;   
+ import  java.io.StringReader;   
+   
+ import  org.apache.lucene.analysis.Analyzer;   
+ import  org.apache.lucene.analysis.Token;   
+ import  org.apache.lucene.analysis.TokenStream;   
+ import  org.apache.lucene.analysis.standard.StandardAnalyzer;   
+   
+ public   class  StandardAnalyzerTest    
+ {   
+      //构造函数，    
+      public  StandardAnalyzerTest()   
+      {   
+     }    
+      public   static   void  main(String[] args)    
+      {   
+          //生成一个StandardAnalyzer对象    
+         Analyzer aAnalyzer  =   new  StandardAnalyzer();   
+          //测试字符串    
+         StringReader sr  =   new  StringReader( " lighter javaeye com is the are on " );   
+          //生成TokenStream对象    
+         TokenStream ts  =  aAnalyzer.tokenStream( " name " , sr);    
+          try   {   
+              int  i = 0 ;   
+             Token t  =  ts.next();   
+              while (t != null )   
+              {   
+                  //辅助输出时显示行号    
+                 i ++ ;   
+                  //输出处理后的字符    
+                 System.out.println( "第 " + i + "行: " + t.termText());   
+                  //取得下一个字符    
+                 t = ts.next();   
+             }    
+         }   catch  (IOException e)  {   
+             e.printStackTrace();   
+         }    
+     }    
+ }    
+ 
+
+显示结果：
+ 
+第1行:lighter 
+ 第2行:javaeye 
+ 第3行:com 
+ 
+提示一下： 
+ StandardAnalyzer是lucene中内置的"标准分析器",可以做如下功能:
+  1、对原有句子按照空格进行了分词 
+ 2、所有的大写字母都可以能转换为小写的字母 
+ 3、可以去掉一些没有用处的单词，例如"is","the","are"等单词，也删除了所有的标点 
+ 查看一下结果与"new StringReader("lighter javaeye com is the are on")"作一个比较就清楚明了。 
+ 这里不对其API进行解释了，具体见lucene的官方文档。需要注意一点，这里的代码使用的是lucene2的API，与1.43版有一些明显的差别。 
+ 
+2、看另一个实例,简单地建立索引，进行搜索 
+ 
+package  lighter.javaeye.com;   
+ import  org.apache.lucene.analysis.standard.StandardAnalyzer;   
+ import  org.apache.lucene.document.Document;   
+ import  org.apache.lucene.document.Field;   
+ import  org.apache.lucene.index.IndexWriter;   
+ import  org.apache.lucene.queryParser.QueryParser;   
+ import  org.apache.lucene.search.Hits;   
+ import  org.apache.lucene.search.IndexSearcher;   
+ import  org.apache.lucene.search.Query;   
+ import  org.apache.lucene.store.FSDirectory;   
+   
+ public   class  FSDirectoryTest  {   
+   
+      //建立索引的路径    
+      public   static   final  String path  =   " c://index2 " ;   
+   
+      public   static   void  main(String[] args)  throws  Exception  {   
+         Document doc1  =   new  Document();   
+         doc1.add(  new  Field( " name " ,  " lighter javaeye com " ,Field.Store.YES,Field.Index.TOKENIZED));   
+   
+         Document doc2  =   new  Document();   
+         doc2.add( new  Field( " name " ,  " lighter blog " ,Field.Store.YES,Field.Index.TOKENIZED));   
+   
+         IndexWriter writer  =   new  IndexWriter(FSDirectory.getDirectory(path,  true ),  new  StandardAnalyzer(),  true );   
+         writer.setMaxFieldLength( 3 );   
+         writer.addDocument(doc1);   
+         writer.setMaxFieldLength( 3 );   
+         writer.addDocument(doc2);   
+         writer.close();   
+   
+         IndexSearcher searcher  =   new  IndexSearcher(path);   
+         Hits hits  =   null ;   
+         Query query  =   null ;   
+         QueryParser qp  =   new  QueryParser( " name " , new  StandardAnalyzer());   
+            
+         query  =  qp.parse( " lighter " );   
+         hits  =  searcher.search(query);   
+         System.out.println( "查找/ " lighter/ "  共 "   +  hits.length()  +   "个结果 " );   
+   
+         query  =  qp.parse( " javaeye " );   
+         hits  =  searcher.search(query);   
+         System.out.println( "查找/ " javaeye/ "  共 "   +  hits.length()  +   "个结果 " );   
+   
+     }    
+   
+ }   
+ 
+
+运行结果：
+ 
+查找 " lighter "  共2个结果   
+ 查找 " javaeye "  共1个结果  
+ 
+
+到现在我们已经可以用lucene建立索引了
+ 下面介绍一下几个功能来完善一下：
+ 1．索引格式
+ 
+其实索引目录有两种格式，
+ 
+一种是除配置文件外，每一个Document独立成为一个文件（这种搜索起来会影响速度）。
+ 
+另一种是全部的Document成一个文件，这样属于复合模式就快了。
+ 
+2.索引文件可放的位置：
+ 
+索引可以存放在两个地方1.硬盘，2.内存
+ 放在硬盘上可以用FSDirectory()，放在内存的用RAMDirectory()不过一关机就没了
+ 
+FSDirectory.getDirectory(File file,  boolean  create)
+ FSDirectory.getDirectory(String path,  boolean  create)
+ 
+两个工厂方法返回目录
+ New RAMDirectory()就直接可以
+ 再和
+ 
+IndexWriter(Directory d, Analyzer a,  boolean  create)
+ 
+一配合就行了
+ 如：
+ 
+IndexWrtier indexWriter  =   new  IndexWriter(FSDirectory.getDirectory(“c://index”, true ), new  StandardAnlyazer(), true );
+ IndexWrtier indexWriter  =   new  IndexWriter( new  RAMDirectory(), new  StandardAnlyazer(), true );
+ 
+3.索引的合并
+ 这个可用
+ 
+IndexWriter.addIndexes(Directory[] dirs)
+ 
+将目录加进去
+ 来看个例子:
+ 
+public   void  UniteIndex()  throws  IOException
+      {
+         IndexWriter writerDisk  =   new  IndexWriter(FSDirectory.getDirectory( " c://indexDisk " ,  true ), new  StandardAnalyzer(), true );
+         Document docDisk  =   new  Document();
+         docDisk.add( new  Field( " name " , "程序员之家 " ,Field.Store.YES,Field.Index.TOKENIZED));
+         writerDisk.addDocument(docDisk);
+         RAMDirectory ramDir  =   new  RAMDirectory();
+         IndexWriter writerRam  =   new  IndexWriter(ramDir, new  StandardAnalyzer(), true );
+         Document docRam  =   new  Document();
+         docRam.add( new  Field( " name " , "程序员杂志 " ,Field.Store.YES,Field.Index.TOKENIZED));
+         writerRam.addDocument(docRam);
+         writerRam.close(); //这个方法非常重要，是必须调用的 
+         writerDisk.addIndexes( new  Directory[] {ramDir} );
+         writerDisk.close();
+     } 
+      public   void  UniteSearch()  throws  ParseException, IOException
+      {
+         QueryParser queryParser  =   new  QueryParser( " name " , new  StandardAnalyzer());
+         Query query  =  queryParser.parse( "程序员 " );
+         IndexSearcher indexSearcher  = new  IndexSearcher( " c://indexDisk " );
+         Hits hits  =  indexSearcher.search(query);
+         System.out.println( "找到了 " + hits.length() + "结果 " );
+          for ( int  i = 0 ;i
+          {
+             Document doc  =  hits.doc(i);
+             System.out.println(doc.get( " name " ));
+         } 
+ }
+ 
+
+这个例子是将内存中的索引合并到硬盘上来.
+ 注意：合并的时候一定要将被合并的那一方的IndexWriter的close()方法调用。
+ 
+4.对索引的其它操作:
+ IndexReader类是用来操作索引的，它有对Document,Field的删除等操作。
+ 下面一部分的内容是：全文的搜索
+ 全文的搜索主要是用：IndexSearcher,Query,Hits,Document(都是Query的子类),有的时候用QueryParser
+ 主要步骤：
+ 
+1 . new  QueryParser(Field字段， new  分析器)
+ 2 .Query query  =  QueryParser.parser(“要查询的字串”);这个地方我们可以用反射api看一下query究竟是什么类型
+ 3 . new  IndexSearcher(索引目录).search(query);返回Hits
+ 4 .用Hits.doc(n);可以遍历出Document
+ 5 .用Document可得到Field的具体信息了。 
+ 
+其实1　，2两步就是为了弄出个Query实例，究竟是什么类型的看分析器了。
+ 
+拿以前的例子来说吧
+ 
+QueryParser queryParser  =   new  QueryParser( " name " , new  StandardAnalyzer());
+         Query query  =  queryParser.parse( "程序员 " );
+ /**/ /*这里返回的就是org.apache.lucene.search.PhraseQuery */ 
+         IndexSearcher indexSearcher  = new  IndexSearcher( " c://indexDisk " );
+         Hits hits  =  indexSearcher.search(query);
+ 
+
+不管是什么类型，无非返回的就是Query的子类，我们完全可以不用这两步直接new个Query的子类的实例就ok了，不过一般还是用这两步因为它返回的是PhraseQuery这个是非常强大的query子类它可以进行多字搜索用QueryParser可以设置各个关键字之间的关系这个是最常用的了。
+ IndexSearcher:
+ 其实IndexSearcher它内部自带了一个IndexReader用来读取索引的，IndexSearcher有个close()方法，这个方法不是用来关闭IndexSearche的是用来关闭自带的IndexReader。
+ 
+QueryParser呢可以用parser.setOperator()来设置各个关键字之间的关系（与还是或）它可以自动通过空格从字串里面将关键字分离出来。
+ 注意：用QueryParser搜索的时候分析器一定的和建立索引时候用的分析器是一样的。
+ Query:
+ 可以看一个lucene2.0的帮助文档有很多的子类:
+ BooleanQuery, ConstantScoreQuery, ConstantScoreRangeQuery, DisjunctionMaxQuery, FilteredQuery, MatchAllDocsQuery, MultiPhraseQuery, MultiTermQuery, PhraseQuery, PrefixQuery, RangeQuery, SpanQuery, TermQuery
+ 各自有用法看一下文档就能知道它们的用法了
+ 下面一部分讲一下lucene的分析器:
+ 分析器是由分词器和过滤器组成的，拿英文来说吧分词器就是通过空格把单词分开，过滤器就是把the,to,of等词去掉不被搜索和索引。
+ 我们最常用的是StandardAnalyzer()它是lucene的标准分析器它集成了内部的许多的分析器。
+ 最后一部分了：lucene的高级搜索了
+ 1.排序
+ Lucene有内置的排序用IndexSearcher.search(query,sort)但是功能并不理想。我们需要自己实现自定义的排序。
+ 这样的话得实现两个接口: ScoreDocComparator, SortComparatorSource
+ 用IndexSearcher.search(query,new Sort(new SortField(String Field,SortComparatorSource)));
+ 就看个例子吧：
+ 这是一个建立索引的例子：
+ 
+public   void  IndexSort()  throws  IOException
+ {
+         IndexWriter writer  =   new  IndexWriter( " C://indexStore " , new  StandardAnalyzer(), true );
+         Document doc  =   new  Document()
+         doc.add( new  Field( " sort " , " 1 " ,Field.Store.YES,Field.Index.TOKENIZED));
+         writer.addDocument(doc);
+         doc  =   new  Document();
+         doc.add( new  Field( " sort " , " 4 " ,Field.Store.YES,Field.Index.TOKENIZED));
+         writer.addDocument(doc);
+         doc  =   new  Document();
+         doc.add( new  Field( " sort " , " 3 " ,Field.Store.YES,Field.Index.TOKENIZED));
+         writer.addDocument(doc);
+         doc  =   new  Document();
+         doc.add( new  Field( " sort " , " 5 " ,Field.Store.YES,Field.Index.TOKENIZED));
+         writer.addDocument(doc);
+         doc  =   new  Document();
+         doc.add( new  Field( " sort " , " 9 " ,Field.Store.YES,Field.Index.TOKENIZED));
+         writer.addDocument(doc);
+         doc  =   new  Document();
+         doc.add( new  Field( " sort " , " 6 " ,Field.Store.YES,Field.Index.TOKENIZED));
+         writer.addDocument(doc);
+         doc  =   new  Document();
+         doc.add( new  Field( " sort " , " 7 " ,Field.Store.YES,Field.Index.TOKENIZED));
+         writer.addDocument(doc);
+         writer.close();
+ } 
+ 
+
+
+下面是搜索的例子:
+ [code]
+ public void SearchSort1() throws IOException, ParseException
+ {
+         IndexSearcher indexSearcher = new IndexSearcher("C://indexStore");
+         QueryParser queryParser = new QueryParser("sort",new StandardAnalyzer());
+         Query query = queryParser.parse("4");
+        
+         Hits hits = indexSearcher.search(query);
+         System.out.println("有"+hits.length()+"个结果");
+         Document doc = hits.doc(0);
+         System.out.println(doc.get("sort"));
+ }
+ public void SearchSort2() throws IOException, ParseException
+ {
+         IndexSearcher indexSearcher = new IndexSearcher("C://indexStore");
+         Query query = new RangeQuery(new Term("sort","1"),new Term("sort","9"),true);//这个地方前面没有提到，它是用于范围的Query可以看一下帮助文档.
+         Hits hits = indexSearcher.search(query,new Sort(new SortField("sort",new MySortComparatorSource())));
+         System.out.println("有"+hits.length()+"个结果");
+         for(int i=0;i
+         {
+             Document doc = hits.doc(i);
+             System.out.println(doc.get("sort"));
+         }
+ }
+ public class MyScoreDocComparator implements ScoreDocComparator
+ {
+     private Integer[]sort;
+     public MyScoreDocComparator(String s,IndexReader reader, String fieldname) throws IOException
+     {
+         sort = new Integer[reader.maxDoc()];
+         for(int i = 0;i
+         {
+             Document doc =reader.document(i);
+             sort[i]=new Integer(doc.get("sort"));
+         }
+     }
+     public int compare(ScoreDoc i, ScoreDoc j)
+     {
+         if(sort[i.doc]>sort[j.doc])
+             return 1;
+         if(sort[i.doc]
+             return -1;
+         return 0;
+     }
+     public int sortType()
+     {
+         return SortField.INT;
+     }
+     public Comparable sortValue(ScoreDoc i)
+     {
+         // TODO自动生成方法存根
+         return new Integer(sort[i.doc]);
+     }
+ }
+ public class MySortComparatorSource implements SortComparatorSource
+ {
+     private static final long serialVersionUID = -9189690812107968361L;
+     public ScoreDocComparator newComparator(IndexReader reader, String fieldname)
+             throws IOException
+     {
+         if(fieldname.equals("sort"))
+             return new MyScoreDocComparator("sort",reader,fieldname);
+         return null;
+     }
+ }[/code]
+ SearchSort1()输出的结果没有排序,SearchSort2()就排序了。
+ 2.多域搜索MultiFieldQueryParser
+ 如果想输入关键字而不想关心是在哪个Field里的就可以用MultiFieldQueryParser了
+ 用它的构造函数即可后面的和一个Field一样。
+ MultiFieldQueryParser. parse(String[] queries, String[] fields, BooleanClause.Occur[] flags, Analyzer analyzer)                                          ~~~~~~~~~~~~~~~~~
+ 第三个参数比较特殊这里也是与以前lucene1.4.3不一样的地方
+ 看一个例子就知道了
+ String[] fields = {"filename", "contents", "description"};
+  BooleanClause.Occur[] flags = {BooleanClause.Occur.SHOULD,
+                 BooleanClause.Occur.MUST,//在这个Field里必须出现的
+                 BooleanClause.Occur.MUST_NOT};//在这个Field里不能出现
+  MultiFieldQueryParser.parse("query", fields, flags, analyzer);
+ 
+1、lucene的索引不能太大，要不然效率会很低。大于1G的时候就必须考虑分布索引的问题
+ 
+2、不建议用多线程来建索引，产生的互锁问题很麻烦。经常发现索引被lock，无法重新建立的情况
+ 
+3、中文分词是个大问题，目前免费的分词效果都很差。如果有能力还是自己实现一个分词模块，用最短路径的切分方法，网上有教材和demo源码，可以参考。
+ 
+4、建增量索引的时候很耗cpu，在访问量大的时候会导致cpu的idle为0
+ 
+5、默认的评分机制不太合理，需要根据自己的业务定制
+ 
+ 
+ 
+整体来说lucene要用好不容易，必须在上述方面扩充他的功能，才能作为一个商用的搜索引擎
+ 
+\
+ 
+编程点滴.LUCENE的FILED选项
+ 
+争取每日记录一些
+ 
+Index选项
+ 
+Index.ANALYZED – 索引并分词(适用于body, title, abstract等.).
+ Index.NOT_ANALYZED – 索引但不分词,可以使用NORM方式.(可以人为干预提权)
+ 
+Index.ANALYZED_NO_NORMS – 索引并分词但不使用NORM方式(不可认为提权)
+ 
+Index.NOT_ANALYZED_NO_NORMS – 索引但不分词也不使用NORM方式(经常用到,存储标志值最好的方式.)
+ 
+Index.NO – 不索引
+ 
+ 
+ 
+Store选项
+ 
+Store.YES – 存储
+ 
+Store.NO  – 不存储
+ 
+ 
+ 
+TermVector选项
+ 
+(除TermVector.NO外其他必须要求Index选项为Index.ANALYZED或Index.NOT_ANALYZED)
+ 
+TermVector.YES – 最基本的向量存储(特殊性,数量,在哪个文档)
+ 
+TermVector.WITH_POSITIONS – TermVector.YES+位置
+ TermVector.WITH_OFFSETS – TermVector.YES+偏移
+ 
+TermVector.WITH_POSITIONS_OFFSETS – TermVector.YES+位置+偏移
+ 
+TermVector.NO – 不做向量存储
+ 
+ 
+ 
+各选项组合应用场景
+ 
+
+
+
+Index
+ 
+
+Store
+ 
+
+TermVector
+ 
+
+事例
+ 
+
+
+
+NOT_ANALYZ
+ 
+Technorati 标签: LUCENE FIELD INDEX ANALYZED NOT_ANALYZED TermVector
+ 
+ED_NO_NORMS
+ 
+
+YES
+ 
+
+NO
+ 
+
+主键,电话,身份证号,URLs,日期和需要排序的字段
+ 
+
+
+
+ANALYZED
+ 
+
+YES
+ 
+
+WITH_POSITIONS_OFFSETS
+ 
+
+文档标题,摘要.
+ 
+
+
+
+ANALYZED
+ 
+
+NO
+ 
+
+WITH_POSITIONS_OFFSETS
+ 
+
+文档主体
+ 
+
+
+
+NO
+ 
+
+YES
+ 
+
+NO
+ 
+
+文档类型,数据库主键(如果不需要检索该字段的话)
+ 
+
+
+
+NOT_ANALYZED
+ 
+
+NO
+ 
+
+NO
+ 
+
+隐藏字段
+ 
+
+ 
+ 
+排序的注意事项
+ 
+如果需要排序的字段是数字就用NumericField,如果是文本,一定要记得使用FIELD.Index.NOT_ANALYZED.
+ 
+如果不需要提权则应该使用NOT_ANALYZED_NO_NORMS
+ 
+ 
+ 
+多值字段的保存
+ 
+在同一个Document下可以给同一个字段赋不同的值.例如
+ 
+Document doc = new Document();
+ for (int i = 0; i < authors.length; i++) {
+       doc.add(new Field("author", authors[i],
+                                     Field.Store.YES,
+                                     Field.Index.ANALYZED));
+ }
+ 
+LUCENE.NET QQ交流群(81361051) 
+ 
+Lucene  API
+ 
+l  被索引的文档用Document对象表示。
+ 
+l  IndexWriter通过函数addDocument将文档添加到索引中，实现                  创建索引的过程。
+ 
+l  Lucene的索引是应用反向索引。
+ 
+l  当用户有请求时，Query代表用户的查询语句。
+ 
+l  IndexSearcher通过函数search搜索Lucene Index。
+ 
+l  IndexSearcher计算term weight和score并且将结果返回给用户。
+ 
+l  返回给用户的文档集合用TopDocsCollector表示。
+ 
+Lucene搜索的api的类主要有4个 IndexSearcher ,Query（包括子类）,QueryParser,Hits
+ 
+
+一:IndexSearcher是搜索的入口，他的search方法提供了搜索功能
+ Query有很多子类， 各种不同的子类代表了不同的查询条件,下文详述
+ QueryParser是一个非常通用的帮助类，他的作用是把用户输入的文本转换为内置的Query对象（大多数web搜索引擎都提供一个查询输入框来让用户输入查询条件）。QueryParser内置提供了很多语法来使使用可以输入各种高级条件的Query。比如: "Hello AND world"会被解析为一个AND关系的BooleanQuery，他包含两个TermQuery(Hell和world)。这些语法虽然强大，但都针对英文设计，对我们需要中文搜索来说都不需要了解太多的Query类型，一般几个简单的就够用了。QueryParser的使用如下
+ QueryParser.parse(String query, String field, Analyzer analyzer) throws ParseException
+ 其中：query是用户输入的内容,field是搜索默认的field（其他field需要显式指定），analyzer是用来将用户输入的内容也作分析处理（分词），一般情况下这里的anaylyzer是index的时候采用的同一analyzer。
+ 另外我们也可以自己构造一个QueryParser: new QueryParser(String field, Analyzer a)(含义同上),这样做的好处是可以自己定义调整一些参数.
+ 搜索结果的处理:Hits对象
+ Hits对象是搜索结果的集合 主要有下面几个方法
+ length() ,这个方法记录有多少条结果返回(lazy loading)
+ doc(n) 返回第n个记录
+ id(in) 返回第n个记录的Document ID
+ score(n) 第n个记录的相关度(积分)
+ 由于搜索的结果一般比较大，从性能上考虑，Hits对象并不会真正把所有的结果全部取回，默认情况下是保留前100个记录(对于一般的搜索引擎,100个记录足够了).
+ 分页的处理
+ 100条记录还是太多，我们多半会每页显示20条记录，然后分为若干页显示，对于分页，一般有两个办法
+ 在session中保留indexreader对象和hit对象，翻页的时候提取内容
+ 不使用session，每次都简单处理为重新查询
+ lucene推荐先使用第二个办法，即每次都重新查询，这样做的好处是简单方便，不需要考虑session的问题，lucene的查询效率也能保证每次查询时间不长，除非真正有了性能问题，否则不用考虑第一个办法。
+ 缓存：RAMDirectory的用法
+ RAMDirectory对象很好用，通过它，我们可以把一个普通的index完全读取到内存中,用法如下：
+ RAMDirectory ramDir = new RAMDirectory(dir);
+ 这样的ramdir效率自然比真正的文件系统快很多
+ Lucene的scoring算法
+ lucence查询的纪录默认按照相关度排序，这个相关度就是score,scoring的算法是比较复杂的,对于我们做应用的人似乎没有什么帮助，（先说一下Term: 我的理解是Term为一个独立的查询词,用户输入的的查询通过各种分词，大小写处理(正规化),消除stopwords等）以后，会已Term为基本单位），几个关键参数稍微留意一下即可。
+ Term在文章中出现的频率量,包含同一个Term的文章的频率
+ field中的boosting参数
+ term的长度
+ term在文章中的数量
+ 一般来说,这些参数我们都不可能去调整, 如果你想了解更多,IndexSearcher还提供了一个explain方法, 通过传入一个Query和document ID,你可以得到一个Explaination对象,他是对内部算法信息的简单封装,toString()一下就可以看到详细的说明
+ 
+
+二:创建Query:各种query介绍
+ 最普通的TermQuery
+ TermQuery最普通, 用Term t=new Term("contents","cap"); new TermQuery(t)就可以构造
+ TermQuery把查询条件视为一个key, 要求和查询内容完全匹配,比如Field.Keyword类型就可以使用TermQuery
+ RangeQuery
+ RangeQuery表示一个范围的搜索条件,RangeQuery query = new RangeQuery(begin, end, included);
+ 最后一个boolean值表示是否包含边界条件本身, 用字符表示为"[begin TO end]" 或者"{begin TO end}"
+ PrefixQuery
+ 顾名思义,就是表示以某某开头的查询, 字符表示为"something*"
+ BooleanQuery
+ 这个是一个组合的Query,你可以把各种Query添加进去并标明他们的逻辑关系,添加条件用
+ public void add(Query query, boolean required, boolean prohibited)
+ 方法, 后两个boolean变量是标示AND or NOT三种关系 字符表示为" AND or NOT" 或 "+ -" ,一个BooleanQuery中可以添加多个Query, 如果超过setMaxClauseCount(int)的值(默认1024个)的话,会抛出TooManyClauses错误.
+ PhraseQuery
+ 表示不严格语句的查询,比如"red pig"要匹配"red fat pig","red fat big pig"等,PhraseQuery所以提供了一个setSlop()参数,在查询中,lucene会尝试调整单词的距离和位置,这个参数表示可以接受调整次数限制,如果实际的内容可以在这么多步内调整为完全匹配,那么就被视为匹配.在默认情况下slop的值是0, 所以默认是不支持非严格匹配的, 通过设置slop参数(比如"red pig"匹配"red fat pig"就需要1个slop来把pig后移动1位),我们可以让lucene来模糊查询. 值得注意的是,PhraseQuery不保证前后单词的次序,在上面的例子中,"pig red"需要2个slop,也就是如果slop如果大于等于2,那么"pig red"也会被认为是匹配的.
+ WildcardQuery
+ 使用?和*来表示一个或多个字母比如wil*可以匹配 wild ,wila ,wilxaaaa...,值得注意的是,在wildcard中,只要是匹配上的纪录,他们的相关度都是一样的,比如wilxaaaa和wild的对于wil*的相关度就是一样的.
+ FuzzyQuery
+ 这个Query对中文没有什么用处,他能模糊匹配英文单词(前面的都是词组),比如fuzzy和wuzzy他们可以看成类似, 对于英文的各种时态变化和复数形式,这个FuzzyQuery还算有用,匹配结果的相关度是不一样的.字符表示为 "fuzzy~"
+ 
+
+三:QueryParser使用
+ 对于搜索引擎, 很多情况下用户只需要一个输入框就要输入所有的查询条件(比如google), 这时,QueryParser就派上用场了,他的作用就是把各种用户输入转为Query或者Query组, 他把上面提到的Query的字符表示(Query.toString)转化为实际的Query对象,比如"wuzzy~"就会转换为FuzzyQuery, 不过QueryParser用到了Analyzer,所以QueryParser parse过后的Query再toString未必和原来的一样.Query额外的语法有:
+ 分组:Groupping
+ 比如"(a AND b) or C",就是括号分组,很容易理解
+ FieldSelectiong
+ QueryParser的查询条件是对默认的Field进行的, 它在QueryParser解析的时候编码指定, 如果用户需要在查询条件中选用另外的Field, 可以使用如下语法: fieldname:fielda, 如果是多个分组,可以用fieldname:(fielda fieldb fieldc)表示.
+ *号问题
+ QueryParse默认不允许*号出现在开始部分，这样做的目的主要是为了防止用户误输入*来头导致严重的性能问题（会把所有记录读出）
+ boosting
+ 通过hello^2.0 可以对hello这个term进行boosting，(我想不到什么用户会这样么bt)
+ QueryParser是一个准备好的,立即可以工作的帮助类,不过他还是提供了很多参数供程序员调整，首先,我们需要自己构造一个新的QueryParser,然后对他的各种参数来定制化
+ 
+Lucene分析
+ 
+1.创建索引的步骤：
+ 
+1）把要转换为索引的磁盘上的文件转换为Luncene文档：
+ 
+Document doc = File2DocumentUtils.file2Document(filePath);
+ 
+转换代码
+ 
+public static Document file2Document(String filePath) {
+ 
+// TODO Auto-generated method stub
+ 
+File file = new File(filePath);
+ 
+Document doc = new Document();
+ 
+doc.add(new Field("name", file.getName(), Store.YES, Index.ANALYZED));
+ 
+doc.add(new Field("content", readFileContent(file), Store.YES,
+ 
+Index.ANALYZED));
+ 
+doc.add(new Field("size", String.valueOf(file.length()), Store.YES,
+ 
+Index.ANALYZED));
+ 
+doc.add(new Field("path", file.getAbsolutePath(), Store.YES,
+ 
+Index.ANALYZED));
+ 
+return doc;
+ 
+}
+ 
+读取文件内容代码
+ 
+public static String readFileContent(File file) {
+ 
+// TODO Auto-generated method stub
+ 
+try {
+ 
+BufferedReader br = new BufferedReader(new InputStreamReader(
+ 
+new FileInputStream(file)));
+ 
+StringBuffer buffer = new StringBuffer();
+ 
+for (String line; (line = br.readLine()) != null;) {
+ 
+buffer.append(line).append("\n");
+ 
+}
+ 
+return buffer.toString();
+ 
+} catch (FileNotFoundException e) {
+ 
+// TODO Auto-generated catch block
+ 
+e.printStackTrace();
+ 
+} catch (IOException e) {
+ 
+// TODO Auto-generated catch block
+ 
+e.printStackTrace();
+ 
+}
+ 
+return null ;
+ 
+   
+ 
+}
+ 
+2）创建IndexWriter
+ 
+IndexWriter indexWriter = new IndexWriter(indexPath, analyzer, true,
+ 
+new MaxFieldLength(10000));
+ 
+IndexWriter是用来操作（增、删、改）索引库的
+ 
+3）把document文档加到IndexWriter
+ 
+indexWriter.addDocument(doc);
+ 
+4）关闭IndexWriter
+ 
+Indexwriter。Close（）；
+ 
+2.在索引库的搜素步骤
+ 
+1）把要搜索的索引解析为query
+ 
+String querystring="document";
+ 
+String []fields={"name","content"};
+ 
+QueryParser parser=new MultiFieldQueryParser(fields,analyzer);
+ 
+//QueryParser是一个解析用户输入的工具，可以扫描用户输入的字符串，生成query对象。
+ 
+Query query=parser.parse(querystring);
+ 
+2）进行查询
+ 
+IndexSearcher indexSearcher=new IndexSearcher(indexPath);
+ 
+Filter filter=null;
+ 
+TopDocs  topDocs=indexSearcher.search(query,(org.apache.lucene.search.Filter) filter,10000);
+ 
+      System.out.println("总共有【"+topDocs.totalHits+"】条匹配结果");
+ 
+注：TopDocs 根据关键字搜索整个索引库，然后对所有结果进行排序，然后取前10000条结果
+ 
+3）输出搜索结果
+ 
+for(ScoreDoc scoreDoc:topDocs.scoreDocs){
+ 
+     int docSn=scoreDoc.doc;//文档内部编号
+ 
+     Document doc=indexSearcher.doc(docSn);//根据编号取出相应的文档
+ 
+     File2DocumentUtils.printDocumentInfo(doc);//打印出文档信息
+ 
+}
+ 
+/**
+ 
+获取name属性的值的两种方法
+ 
+ 1.Filed f=doc.getFiled("name");
+ 
+    f.stringValue();
+ 
+ 2.doc.get("name")
+ 
+*/
+ 
+     public static void printDocumentInfo(Document doc){
+ 
+      //Filed f=doc.getFiled("name");
+ 
+     // f.stringValue();
+ 
+      System.out.println("-------------------------------------------");
+ 
+      System.out.println("name    ="+doc.get("name"));
+ 
+      System.out.println("content ="+doc.get("content"));
+ 
+      System.out.println("size     ="+doc.get("size"));
+ 
+      System.out.println("path     ="+doc.get("path"));
+ 
+     }
+ 
+分享到： 
+
+上一篇：原创利用flashpaper实现百度文库、豆丁网文档预览功能
+下一篇：小菜鸟程序员的苦恼
+ .
+顶10踩1. 
+
+
+查看评论
+ 
+10楼 byxiangfei 2012-09-12 23:57发表[回复] 唉，居然是 java org.apache.lucene.demo.IndexFiles -index g:\ -docs g:\9楼 byxiangfei 2012-09-12 23:55发表[回复] 特别想知道怎么在cmd 运行
+java org.apache.lucene.demo.IndexFiles [C:\Java](已经存在的任意文件路径)
+
+在indexFiles 后面输入的是"[c:\java]" 还是c:\java 呢
+有没有方括号 只输入一个目录可以吗？ 为什么我的不可以
+我后面又加了一个目录，用来存放index结果。 但是运行的时候还是提示我usage，那意思就是我的格式用错了呗。。
+
+到底正确的格式是什么， [-UPDATE] 是什么option，不知道怎么填 难道连“-”也算是输入的一部分吗？
+
+我各种格式都试过了，没有一个成功的，你能给我一个输入的格式模版吗8楼 wuxian111xinkong 2012-05-15 18:11发表[回复] 嗯。。不错哈！7楼 FU261910 2012-04-10 15:21发表[回复] 写的蛮清晰的。6楼 liyueling 2012-03-08 22:35发表[回复] 简单易懂入门很好5楼 Chaos 2012-02-29 09:52发表[回复] 不错 。4楼 大狂人 2012-02-08 11:12发表[回复] 代码错误不要紧，关键字你要读懂人家的思路，自己写出来就不是什么难事了，刚接触者东西，不知道他如何用，读后发现者玩意蛮容易懂，大致的框架算是知道了，提供的API貌似比较方便。3楼 crlystaldong 2012-01-15 13:43发表[回复] 学习，刚接触！！！！！！2楼 xman88xman 2011-12-15 17:29发表[回复] 代码都是错误 真不知道是怎么写的！1楼 bjyuling 2011-12-12 11:10发表[回复] mark
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+关于我请勿在加标注已满的群
+
+ java交流工作群1：
+ 77800592 (已满)
+ java交流学生群2：
+234897635(已满)
+ java交流工作群3：
+ 94507287 (已满）
+ java交流学生群4：
+261304104（已满）
+ java交流工作群5：
+272265434（已满）
+ java交流混合群6：
+209062598（已满）
+ java交流混合群7：16876608
+ 
+我的邮箱：bzu901@163.com
+ 
+
+个人资料
+
+曹胜欢
+ 
+
+
+
+
+
+访问：652513次
+积分：11431分
+排名：第180名
+.原创：190篇
+转载：27篇
+译文：0篇
+评论：2436条
+. 
+我的微博 
+博客专栏
+
+
+
+
+深入java虚拟机
+文章：8篇
+阅读：46979 
+
+
+
+
+
+跟我学jquery
+文章：7篇
+阅读：27075 
+
+
+
+
+
+细谈spring
+文章：12篇
+阅读：27773 
+
+
+
+
+
+细谈Hibernate
+文章：18篇
+阅读：35928 
+
+
+
+
+
+细谈struts2
+文章：14篇
+阅读：36260 
+
+
+
+
+
+大话设计模式
+文章：8篇
+阅读：24314 
+
+
+
+
+
+Java程序员从笨鸟到菜鸟
+文章：112篇
+阅读：400369 
+
+
+
+
+
+java一系列
+文章：3篇
+阅读：0 
+
+文章分类框架Struts2(18)
+java Web(10)
+java SE(11)
+IDE(1)
+学习专区(136)
+Lucene专区(2)
+杂谈(24)
+框架Hibernate(31)
+c#(4)
+设计模式(12)
+ASP.NET(4)
+Java程序员从笨鸟到菜鸟(82)
+数据结构(2)
+jquery(10)
+深入jvm(8)
+operate sys(1)
+经典转载(8)
+webservice(4)
+oracle(6)
+ 
+文章搜索
+
+. 
+阅读排行Java程序员从笨鸟到菜鸟全部博客目录【2012年十一月三十日更新】(25562)
+铁道部12306后台技术框架、完整异常栈信息以及技术缺点和漏洞(18933)
+Java程序员从笨鸟到菜鸟之（九十二）深入java虚拟机（一）——java虚拟机底层结构详解(16928)
+《Java程序员由笨鸟到菜鸟》电子版书正式发布，欢迎大家下载(13498)
+Lucene教程详解(13416)
+Java程序员从笨鸟到菜鸟之（一百）sql注入攻击详解（一）sql注入原理详解(12559)
+Java程序员从笨鸟到菜鸟之（一）开发环境搭建，基本语法，字符串，数组(12363)
+Java程序员从笨鸟到菜鸟之（一百零三）java操作office和pdf文件（一）java读取word，excel和pdf文档内容(9790)
+Java程序员从笨鸟到菜鸟之（三十一）大话设计模式（一）设计模式遵循的七大原则(9771)
+优秀有价值的博客收藏列表（持续更新）(9665)
+ 
+学习博客【酷壳】 
+
+【陈勇老师】 
+
+【李晨光老师】 
+
+【纪争光】 
+
+【李守宏】 
+
+【畅之部落格博客】 
+
+【高爽|Java】
+
+ 【陈建秋】
+ 
+【java老鸟】
+ 
+【一线码农】
+ 
+【 通向架构师的道路】
+ 
+
+最新评论 利用java实现的一个发送手机短信的小例子
+lisheng158161: 很好。。。。非常感谢.....!! 
+
+java程序员菜鸟进阶（五）oracle基础详解（五）oracle数据库体系架构详解
+李守宏: 学习了 
+
+献给初学者：谈谈如何学习Linux操作系统
+李守宏: 很好啊 
+
+java程序员菜鸟进阶（一）oracle基础详解（一）Windows_7安装oracle和简单配置详解
+李守宏: 我这里没有问题呀 
+
+Java程序员从笨鸟到菜鸟之（一）开发环境搭建，基本语法，字符串，数组
+wlcw16: 关于赋值运算符，有一点问题。1、赋值运算符 赋值运算符用于把一个数赋予一个变量。赋值运算符两边... 
+
+教你如何电脑被盗还能找回
+三千分之一的爱: 想法不错，这个发邮件的程序DOS命令也可以实现。把写好的bat放在开始下的启动里，开机就会执行了。 
+
+java程序员菜鸟进阶（五）oracle基础详解（五）oracle数据库体系架构详解
+the_true_noble: 真好 
+
+【分享】分享一个基于SSH实现的简单学生选课系统（附源码）
+HuiWeiNi525: 能给一下数据库文件吗，呵呵，，，huiweini@sina.com 先谢谢啦，，哈 
+
+《Java程序员由笨鸟到菜鸟》电子版书正式发布，欢迎大家下载
+zhaoqiangjizhi: 感慨万分！------楼主犀利 
+
+教你如何电脑被盗还能找回
+leowangz: 顶一个。。。。。 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

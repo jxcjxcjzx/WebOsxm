@@ -1,0 +1,518 @@
+<?php
+/**
+	关于Nginx + Mysql + Php + Memcache + Subvsion 的安装配置整合(服务器环境配置)
+	
+	Note： 网络资料很多，这里只是参考整合和不足的经验
+	Email：499188204@qq.com
+	date： 2012-05-04 --〉2012-08-23  威哥 
+
+*/
+
+	 //  一键安装包
+	 
+	 //  参考地址：
+	 /*
+		http://linux.chinaunix.net/
+		http://www.heibai.net/articles/technical/system/2011/0420/14110.html
+		http://www.myhack58.com/Article/sort099/sort0102/2012/33789.htm
+	 */
+
+	 
+	 
+	 //  分包安装 （tar安装	&	rpm安装）
+
+     // ### 以下安装是以 RedHat & Centos 为 Eg  运行的
+	 // ### 包路径以 /usr/local/src/ 下为 Eg
+
+	 
+	////##############/////  
+    ////Yum源配置安装/////  
+	////##############/////  
+	
+	
+	/*
+	  yum -y install yum-fastestmirror
+	*/
+	
+	
+	/*
+
+	没有的联系我 给你镜像.iso 
+	mount -o loop RHEL*****.iso /media　  //挂载iso
+	mount -o loop CentOS*****.iso /media　//挂载iso
+	ln -s /media/Server/RPMS/*.rpm /media/repodata  //为镜像所有的rpm做一个链接
+	
+	//找到该文件   /etc/yum.repos.d/*.repo
+
+		baseurl=file:///media/repodata   //添加 或者直接指定  baseurl=file:///media/Server
+		enabled=1
+		gpgcheck=1
+		gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+		
+		
+	yum update
+	
+	//  参考地址：
+	 /*
+		http://www.iteye.com/wiki/blog/1343693
+	 */
+
+	 
+	 
+	 
+	
+	// 好了 ，告一段落，   接下来就你想安什么，安什么了，*^◎^*
+		
+		
+		
+		
+	////##############/////  
+    ////Nginx配置安装/////  
+	////##############/////
+
+
+
+	
+	/*
+	yum -y install gcc automake autoconf libtool make  //安装一些必备工具
+	yum -y install pcre* gd gd-devel        //安装nginx的必备条件 都是些库文件放心安装
+	wget http://nginx.org/download/nginx-1.2.0.tar.gz
+	tar zxvf nginx-1.2.0.tar.gz
+	cd nginx-1.2.0
+	//实际生产环境经验  测试机的话  直接  ./configure --prefix=/usr/local/nginx
+	./configure --prefix=/usr/local/nginx \
+				--with-rtsig_module \
+				--with-poll_module \
+				--with-ipv6 \
+				--with-http_ssl_module \
+				--with-http_realip_module \
+				--with-http_addition_module \
+				--with-http_xslt_module \
+				--with-http_image_filter_module \
+				--with-http_sub_module  \
+				--with-http_flv_module  \
+				--with-http_gzip_static_module \
+				--with-http_random_index_module \
+				--with-http_secure_link_module \
+				--with-http_degradation_module \
+				--with-http_stub_status_module \
+				--with-pcre 
+	
+	
+	make
+	make install  // 或者 make && make install   
+	
+	//到此为止  安装nginx 如果不出意外的话 贡献你成功了 
+	
+	nginx -t
+	nginx reload   // 如果执行报错  可以尝试绝对路径再执行一下  然后http://127.0.0.1 试着访问下
+	
+	*/
+	
+	
+	//  参考地址：
+	/*
+		http://blog.163.com/awk_sed/blog/static/2024420072012124935083/
+		http://www.myhack58.com/Article/sort099/sort0102/2011/29340.htm
+	*/
+		
+	
+	
+	
+		
+	////##############/////  
+    ////Mysql配置安装/////  
+	////##############/////	
+	
+	
+	/*
+	
+	
+	// 为mysql服务增加用户组和用户
+	
+	groupadd mysql              //建一个msyql的用户和组  
+    useradd -g mysql mysql -s  /usr/sbin/nologin  
+    mkdir /usr/local/mysql          //创建目录  
+    mkdir /usr/local/mysql/data     //数据仓库目录 
+	
+	
+	// 安装mysql必须的一些库文件
+	yum -y install ncurses ncurses-devel bison bison-devel libaio libaio-devel libtool*
+	
+	
+	
+	// 1. rpm 安装
+	
+	rpm -ivh MySQL-server-community-mysql-5.5.15.rhel5.i386.rpm
+	rpm -ivh MySQL-client-community-mysql-5.5.15.rhel5.i386.rpm 
+	
+	
+	// 2. 二进制安装
+	
+	tar xvfz mysql-5.4.38-linux-i686-glibc23.tar.gz
+	ln -s mysql-5.4.38-linux-i686-glibc23 /usr/local/mysql
+	/usr/local/mysql/scripts/mysql_install_db --user=mysql
+	
+	//找到你的mysql 的data目录设置目录权限，将data目录的所有者改为mysql，其它目录的文件的所有者为root 
+	chown -R root:mysql
+	chown -R mysql:mysql data
+	/usr/local/mysql/bin/mysqld_safe --user=mysql & 
+	
+	
+	//*3. 源码安装  cmake 安装  （重点）
+	
+	
+	wget http://mirrors.sohu.com/mysql/MySQL-5.5/mysql-5.5.12-linux2.6-i686.tar.gz
+	wget http://www.cmake.org/files/v2.8/cmake-2.8.5.tar.gz //cmake 编译工具以后的趋势
+	
+	tar zxvf cmake-2.8.5.tar.gz
+　　cd cmake-2.8.5
+　　./configure 
+　　make
+　　make install   
+
+	//cmake 编译安装 完成
+	
+	
+	tar zxvf mysql-5.5.15.tar.gz
+　　cd mysql-5.5.15
+	CC=gcc CXX=gcc CXXFLAGS="-O3 -felide-constructors -fno-exceptions -fno-rtti"
+	
+	cmake -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \  
+		 -DMYSQL_UNIX_ADDR=/usr/local/mysql/mysql.sock \  
+		 -DDEFAULT_CHARSET=utf8 \  
+		 -DDEFAULT_COLLATION=utf8_general_ci \  
+		 -DWITH_MYISAM_STORAGE_ENGINE=1 \  
+		 -DWITH_INNOBASE_STORAGE_ENGINE=1 \  
+		 -DWITH_MEMORY_STORAGE_ENGINE=1 \  
+		 -DWITH_READLINE=1 \  
+		 -DENABLED_LOCAL_INFILE=1 \  
+		 -DMYSQL_DATADIR=/usr/local/mysql/data \  
+		 -DMYSQL_USER=mysql \  
+		 -DMYSQL_TCP_PORT3306  
+		  
+	make && make install  
+	
+	//安装mysql默认的数据库  
+	scripts/mysql_install_db --basedir=/usr/local/mysql --datadir=/usr/local/mysql/data --user=mysql  
+	cp support-files/my-medium.cnf /usr/local/mysql/my.cnf //copy配置文件  
+	chown -R mysql:mysql /usr/local/mysql //更改权限  
+	nano /usr/local/mysql/my.cnf  
+	//加上以下内容  
+	[mysqld]  
+	basedir = /usr/local/mysql  
+	datadir = /usr/local/mysql/data  
+	log-error = /usr/local/mysql/mysql_error.log  
+	pid-file = /usr/local/mysql/mysql.pid  
+	user = mysql  
+	tmpdir = /tmp  
+	
+	//启动mysql
+	
+	cd /usr/local/mysql/support-files/  
+	cp ./mysql.server /etc/init.d/mysql5  
+	/etc/init.d/mysql5 start
+	
+	// 测试下 进入mysql  show databases；
+	
+	*/
+	
+	
+	//  参考地址：
+	/*
+		http://www.mysql.com/downloads/mysql-4.0.html
+		http://www.cnblogs.com/breg/archive/2012/03/28/2421318.html
+		http://www.cnblogs.com/breg/archive/2012/03/28/2421318.html
+	*/
+		
+		
+		
+		
+	////##############/////  
+    ////Php配置安装/////  
+	////##############/////		
+		
+	/*
+	
+	 // 1. 如果启用mssql的话 
+			 //安装freetds, 启用mssql连接支持	cd /usr/loca/src	
+			wget http://yum.120ask.com/deploy/freetds-stable.tgz
+		　　tar zxf freetds-stable.tgz
+		　　cd freetds-stable
+		　　./configure --prefix=/usr/local/freetds && make && make install
+			注意：安装好freetds后，请修改/usr/local/freetds/etc/freetds.conf文件，在全局配置中加入以下几项(或修改已有项的值)，以保证可以正常从Linux连接SQL Server ：
+		　　tds version = 7.0
+		　　client charset = GBK
+		　　port = 1433
+	
+	// 2. 安装libmcrypt库	PHP除了自带的几种加密函数外，还有功能更全面的PHP加密扩展库Mcrypt和Mhash。其中，Mcrypt扩展库可以实现加密解密功能，就是既能将明文加密，也可以密文还原。PHP加密扩展库Mcrypt的算法和加密模式。
+		  Mcrypt库支持20多种加密算法和8种加密模式，具体可以通过函数mcrypt_list_algorithms()和mcrypt_list_modes()来显示。Mcrypt支持的算法有：cast-128 gost rijndael-128 twofish arcfour cast-256 loki97 rijndael-192 saferplus wake blowfish-compat des rijndael-256 serpent xtea blowfish enigma rc2 tripledes
+		  Mcrypt支持的加密模式有：cbc cfb ctr ecb ncfb nofb ofb stream。安装mcrypt时候需要解决对libmcrypt还有mhash的依赖
+			
+	
+		　　tar zxvf libmcrypt-2.5.7.tar.gz
+　　		cd libmcrypt-2.5.7/libltdl
+　　		./configure --enable-ltdl-install
+　　		make && make install
+　　		cd ..
+　　		./configure && make && make install
+
+		//再安装其它重要的依赖库，如pcre, png,jpeg,freetype支持等等(此步很重要)：	
+		yum -y install gd gd-devel pcre* freetype* libpng* libjpeg* \
+　　		libevent* libxml* libtool* libaio* libevent* autoconf*
+
+
+		//php 安装
+		tar zxvf php-5.3.8_hash_patched.tar.gz
+	　　cd php-5.3.8	
+		./configure --prefix=/usr/local/php-5.3.8 \
+	　　--enable-fpm \
+	　　--enable-safe-mode \
+	　　--enable-sigchild \
+	　　--with-libxml-dir \
+	　　--with-zlib \
+	　　--enable-bcmath \
+	　　--with-bz2 \
+	　　--enable-calendar \
+	　　--with-curl \
+	　　--with-curlwrappers \
+	　　--with-libxml-dir \
+	　　--enable-exif \
+	　　--with-pcre-dir \
+	　　--enable-ftp \
+	　　--with-gd \
+	　　--with-jpeg-dir \
+	　　--with-png-dir \
+	　　--with-freetype-dir \
+	　　--enable-gd-native-ttf \
+	　　--with-gettext \
+	　　--with-mhash \
+	　　--enable-mbstring \
+	　　--with-mcrypt \
+	　　--with-mysql=/usr/local/mysql \
+	　　--enable-pcntl \
+	　　--with-pdo-mysql=/usr/local/mysql \
+	　　--enable-shmop \
+	　　--enable-soap \
+	　　--enable-sockets \
+	　　--enable-sqlite-utf8 \
+	　　--enable-sysvmsg \
+	　　--enable-sysvsem \
+	　　--enable-sysvshm \
+	　　--enable-wddx \
+	　　--with-xmlrpc \
+	　　--with-xsl \
+	　　--enable-zip \
+	　　--with-zlib-dir \
+	　　--with-pcre-dir  \
+	　　--without-pear  \
+	　　--with-openssl \
+	　　--with-mssql=/usr/local/freetds \
+	　　--with-pdo-dblib=/usr/local/freetds
+	　　
+	　　make && make install
+	
+		cp php.ini-dist /usr/local/php/etc/php.ini  
+		//php.ini 配置 和windows环境配置无异  
+		
+		
+		// 到此为止   安装完毕
+		
+		// （选安装）安装重要的扩展库memcache, APC
+		
+　　	//memcache是当今几乎所有网站均使用到缓存技术，此处描述的是以扩展模块方式给PHP增加memcache访问功能。
+　　	//安装此memcache扩展，并不需要安装memcache的服务器端程序(仅仅是一个客户端扩展)。
+	　　cd /usr/local/src
+	　　
+	　　tar zxvf memcache-3.0.5.tgz
+	　　cd memcache-3.0.5
+	　　/usr/local/php-5.3.8/bin/phpize
+	　　./configure --with-php-config=/usr/local/php-5.3.8/bin/php-config
+	　　make && make install
+　　
+　　	//经过生产环境测试发现，APC对php程序性能提升，服务器负载能力增加，都有较强效果。使用APC之后，服务器的负载能力大约可提高一倍。程序执行性能可提高达20%，所以一般要尽可能安装它。
+　　
+	　　cd /usr/local/src
+	　　tar zxf APC-3.1.7.tgz
+	　　cd APC-3.1.7
+	　　/usr/local/php-5.3.8/bin/phpize
+	　　./configure --with-php-config=/usr/local/php-5.3.8/bin/php-config
+	　　make && make install
+
+	*/
+	
+	//  参考地址：
+	/*
+		http://www.php.net/downloads.php
+		http://www.iteye.com/wiki/blog/1326463
+		http://blog.xuyu.org/?p=801
+		http://www.mgrei.com/archives/739.html
+		http://www.mgrei.com/lnamp-install-package
+		http://irobot.blog.hexun.com/18584127_d.html
+		http://www.cnblogs.com/foxtk/articles/2422867.html
+		http://linux.chinaitlab.com/set/896568.html
+		http://hi.baidu.com/water213/item/ef6ab2dd7f0cbf50d63aaef9
+	*/
+		
+	
+		////##############/////  
+		////Memcache配置安装/////  
+		////##############/////		
+
+
+		/**
+		是指memcache的服务器端，并非memcache客户端。
+　　	Memcached 是一个高性能的分布式内存对象缓存系统，
+		用于动态Web应用以减轻数据库负载。它通过在内存中缓存数据
+		和对象来减少读取数据库的次数，
+		从而提供动态、数据库驱动网站的速度。
+		Memcached基于一个存储键/值对的hashmap。
+		其守护进程（daemon ）是用C写的，但是客户端可以用任何语言来编写，
+		并通过memcached协议与守护进程通信。
+		但是它并不提供冗余（例如，复制其hashmap条目）；
+		当某个服务器S停止运行或崩溃了，所有存放在S上的键/值对都将丢失。 
+		*/
+	
+		/*
+		//检查libevent, libevent-devel库是否已经安装	
+		rpm -qa|grep libevent  //确保已经安装
+		
+	　　yum install libevent
+		yum install libevent-deve
+		
+		tar zxvf memcached-1.4.5.tar.gz
+		cd memcached-1.4.5
+		./configure --prefix=/usr/local/memcached
+		make && make install
+		
+		//启动	
+		/usr/local/memcached/bin/memcached -d -l 127.0.0.1 -m 1024 -u nobody
+	　　//-d : 以后台方式运行	-l :  监听地址及端口（默认为11211），请换成自己期望的配置
+	　　//-m:  缓存内存总大小(MB)
+	　　//-u : memcached工作进程的系统帐号
+	　　//其它参数可通过/usr/local/memcached/bin/memcached -h 获得。
+
+　		//测试	
+		telnet 127.0.0.1  11211
+
+		//　添加到启动项	向/etc/rc.local中加入	/usr/local/memcached/bin/memcached -d -l 127.0.0.1 -m 1024 -u nobody 或者 执行以下操作
+		
+		 echo "/usr/local/memcached/bin/memcached -d -l 127.0.0.1 -m 1024 -u nobody" >>/etc/rc.local
+		*/
+	
+	
+	//  参考地址：
+	/*
+		http://hi.baidu.com/new/616237138?page=2
+	*/
+		
+		
+		
+		
+		////##############/////  
+		////Svn 独立配置安装  （非apache 整合安装）  及hook 设置/////  
+		////##############/////		
+
+
+		/*
+		//包下载http://down.51cto.com/detail_list.php?keywords=svn&x=24&y=9
+		
+		tar xzvf subversion-1.6.6.tar.gz
+		tar xzvf subversion-deps-1.6.6.tar.gz
+		./configure --prefix=/usr/local/svn   --with-zlib=./zlib --with-zlib=PREFIX 
+		//设置svn命令环境变量
+		echo "PATH=$PATH:/usr/local/svn/bin" >>/etc/profile
+		source /etc/profile
+		
+		svnserve --help  //查看帮助
+		mkdir /mnt/svndata  //仓库
+		svnserve -d --listen-port 5566  -r /mnt/svndata
+		//默认监听端口：3690，
+		//添加到开机启动 
+		echo "svnserve -d --listen-port 5566  -r /mnt/svndata" >> /etc/rc.local
+		
+		cd /mnt/svndata
+		svnadmin create weige_site  //创建一个威哥的站点版本
+		//修改conf目录下 svnserve.conf
+
+		anon-access = none
+		auth-access = write
+		password-db = passwd
+		authz-db = authz
+		#说明：
+		#conf目录下 svnserve.conf
+		anon-access = none
+		#没通过验证，则无任何权限
+		auth-access = write
+		#通过验证，最多可获得写权限
+		password-db = passwd
+		#验证文件的位置,可以是绝对路径或者相对路径，默认在conf目录下的passwd文件
+		authz-db = authz
+		#权限配置文件的位置，可以是绝对路径或者相对路径，默认在conf目录下的authz文件
+		realm = weige_site
+		#只是说明，没有特殊作用
+
+		#2>修改conf目录passwd文件
+		[users]
+		username1 = password1
+		username2 = password2
+
+		#在passwd文件中，“=”前的字符就是用户名，后面的就是密码
+		#3>修改conf目录下authz权限策略文件
+		[groups]
+		admin = username1，username2
+		##admin为组名，=后面为passwd中的成员
+		[/]
+		* =
+		@admin = rw
+		[/www]
+		@admin = r
+		www = rw
+		#关键字“@”代表组
+		
+		//本地项目检出  假设你的网站在 /var/www/weige
+		
+		svn co 或者 svn checkout
+		svn checkout --username username1 --password password1 svn://127.0.0.1/weige
+
+
+		
+		//最后 hook设置  如果是 同步的其他服务器的话还要麻烦一些  这里假设是在本地项目目录
+		#post-commit 内容如下
+		
+		#!/bin/bash
+		export LANG=en_US.UTF-8  
+		remoteip=1.1.1.1
+		svn update  /var/www/weige  --username username1 --password password1 
+		
+		
+		// 好了 客户端安装一下 自己测试下 
+		
+		*/
+		
+	
+	//  参考地址：
+	/*
+		http://hi.baidu.com/new/616237138?page=2
+		http://hi.baidu.com/616237138/item/5f1b78f867dfcdcb0dd1c891
+		http://www.iteye.com/wiki/blog/1394885
+	*/
+	
+	//###########################
+	// 好了 到此为止 环境安装整理终于完了  请多多支持
+	//  以上安装包 没有的 可联系qq 
+	//###########################
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+?>

@@ -1,0 +1,409 @@
+ 博客首页登录注册戏说欧冠诺坎普保卫战 发博文  博文        ×推荐：摄影博客记录世间百态博友热议全国两会
+推荐：摄影博客记录世间百态博友热议全国两会西窗居士的BLOG
+http://blog.sina.com.cn/westwinwow [订阅][手机订阅]首页 博文目录 图片 关于我个人资料 
+ westwin 
+Qing 微博 
+加好友 发纸条 
+
+写留言 加关注 
+
+
+博客等级： 博客积分：203 博客访问：14,362 关注人气：2 
+精彩图文 
+凯蒂猫主题咖啡馆
+倾城国色旗袍
+
+新浪Qing
+
+出浴美女干露露
+
+新浪Qing
+
+小清新美女自拍
+
+新浪Qing
+
+童话里的小女孩
+
+新浪Qing
+
+临终后悔五件事
+
+新浪Qing
+
+年度校花代言人
+
+新浪Qing
+
+
+查看更多>>
+相关博文 
+初夏如水微微凉隔岸细柳舞柔霜
+创世三国
+已婚男人爱上偷情的5大诱因
+白衣梧桐
+徐小明：周五操作策略
+徐小明
+第九百四十二篇&bu
+马未都
+日中应回到“不再互动干戈”的
+蒋丰
+让男人爱到心疼的5种女人
+健康达人
+修心修心，天助我也
+情感威客
+狠女人惹不起(多图)
+龙儿杨雪
+风景图片-精美的风景图片
+小白杨
+更多>>
+推荐博文 
+总理交接时温家宝对李克强最后说
+徐静波品味日本
+《男公关》选载5：男公关对女客
+方刚
+第九百四十二篇•死猪
+马未都
+吴邦国十年影像记忆（配照片）
+刘卫兵
+王学进：一公里倒下一名干部的“
+王学进
+【天眼聚焦】回忆我为习主席拍照
+天眼摄郎
+黑色的王妃
+沈东子
+中国人的新加坡情结
+薛涌
+为什么今天的中国盛产贪官？
+汪华斌
+再说钟南山院士应慎言
+方舟子
+查看更多>>
+谁看过这篇博文 
+加载中…
+正文 字体大小：大 中 小 
+LUA语言学习(7)--LUA PLAYER中的函数(2006-05-13 15:12:18)转载▼ 分类： LUA语言学习  
+经过一两天来的学习,深感LUA编游戏比用C编游戏容易的多.
+脚本语言不用考虑系统底层的事情.
+虽然牺牲了效率,但是换来了方便和成就感,
+目前正在使用LUA语言编写RPG游戏.
+昨天用了近十个小时找各种素材
+找了将近600G的图形素材
+虽然有很精美的素材.
+但是为了编程方便还是计划编2D的,45度角2D的等随后掌握技能后再行编制.
+今天我计划将LUA PLAYER中的函数罗列一下供自己回顾:
+英文原版地址:
+http://wiki.ps2dev.org/psp:lua_player:functions
+ 
+正文开始了,大家请留意.  :)
+图形函数
+Font Font.load(filename)
+调用一个TT字体.我试过调用一个仿宋字体库,结果失败了.
+
+
+--------------------------------------------------------------------------------
+
+Font Font.createMonoSpaced()
+创建mono-spaced字体,系统自带的. 
+
+例子: LUA-1.lua
+
+green = Color.new(0, 255, 0)
+monoSpaced = Font.createMonoSpaced()
+monoSpaced:setPixelSizes(0, 14)
+while true do
+ screen:clear()
+ screen:fontPrint(monoSpaced, 10, 200, "This is the mono-spaced font", green)
+ if Controls.read():start() then break end
+ screen.waitVblankStart()
+ screen.flip()
+end
+
+
+--------------------------------------------------------------------------------
+
+Font Font.createProportional()
+创建proportional 字体,系统自带的.
+例子与上面的相似 
+
+
+--------------------------------------------------------------------------------
+Font Font:setCharSize(number width, number height, number dpiX, number dpiY) 
+
+改变当前字体的大小 
+
+
+--------------------------------------------------------------------------------
+
+
+Font Font:setPixelSizes(number width, number height)
+改变当前字体像素的大小(如果width设成0,字体的宽度会根据height的值而自动调整)
+
+例子见: LUA-1.lua
+
+
+--------------------------------------------------------------------------------
+
+width, height Font:getTextSize(string)
+返回某字符串的所用字体的宽和高. 
+
+
+--------------------------------------------------------------------------------
+
+
+Image Image.createEmpty(width, height)
+创建一个绘图区,并初始化清空,宽和度最大值为512
+
+例子: LUA-2.lua
+pApp = Image.load("back/back.jpg")调用一个图形pScroll = Image.createEmpty(pApp:width()*2, pApp:height()*2)创建宽和高为图形宽和高两倍的绘图区pScroll:blit(0,0,pApp)在0,0位置将调用的图形显示出来
+--------------------------------------------------------------------------------
+Image Image.load( filename )
+调用一个图形,目前仅支持JPG和PNG的调用. 例子参见LUA-2.lua
+
+
+--------------------------------------------------------------------------------
+
+
+nil image:blit(x, y, Image source, [sourcex, sourcey, width, height], [alpha = true])
+nil表示该函数没有返回值.和NULL类似.
+当这个函数被调用时,将会名字为"source"的图形绘制出来(这个函数用在双缓冲是用“screen:blit(...)” 来实现的,这时screen系数自带的特殊变量.相当于:screen=Image.createEmpty(482,272),也就是一个480*272的绘图区)sourcex, sourcey是被调用图形的一个坐标,也就是从该图形从左上角为座标圆点的sourcex, sourcey处调用一个宽和高为width, height的图块.
+例如: LUA-3.lua
+image:blit(x, y, maptiles,32,0,32,32)
+其中maptiles是个地图图块的图形,以32*32为网格,这里这个函数调用的是第一行第二行图块.这个函数通常可以用于绘制2D RPG游戏的背景图.
+
+
+--------------------------------------------------------------------------------
+
+
+nil image:clear([color = transparent-black])
+从某个颜色充满绘图区,缺省为黑色.
+
+例如: LUA-4.lua
+
+screen:clear(Color.new(0, 255, 0))
+此函数用绿色充满了屏幕.
+
+
+--------------------------------------------------------------------------------
+
+nil image:fillRect(x, y, width, height, [color = transparent-black])
+用某个颜色在绘图区的某一个坐标,绘制一个宽为width,高为height的矩形色块,缺省为黑色.
+
+例如: LUA-5.lua
+
+screen:fillRect(10,10,100,10,Color.new(255, 0, 0))
+在10,10位置画一个宽100高10的红色长方形
+
+
+
+--------------------------------------------------------------------------------
+
+
+nil image:drawLine(x0, y0, x1, y1, [color = black])
+画一条直线
+
+
+
+--------------------------------------------------------------------------------
+
+
+Color image:pixel(x, y) --get
+获取某坐标点的颜色.
+例如: LUA-6.lua
+image = Image.createEmpty(1, 1) color = image:pixel(0, 0) colors = color:colors() assert(colors.r == 0) assert(colors.g == 0) assert(colors.b == 0) assert(colors.a == 0)
+
+--------------------------------------------------------------------------------
+
+nil image:pixel(x, y, Color) --set
+在某坐标点以某个颜色画一个点. 
+--------------------------------------------------------------------------------
+nil image:print(x, y, text, [color = black])
+在某坐标以8*8的大小显示某种颜色的文字
+例如: LUA-7.lua 在屏幕84,4位置,用蓝色显示当前时间
+screen:print(84, 4, os.date("%c", os.time()), Color.new(0, 0, 255))
+
+--------------------------------------------------------------------------------
+
+nil image:fontPrint(font, x, y, text, [color = black])
+在某坐标(x,y)显示特定字体(font),特定颜色(color)的矢量文字(text)
+
+
+
+--------------------------------------------------------------------------------
+
+
+Number image:width()
+获取图形的宽度
+
+
+--------------------------------------------------------------------------------
+
+Number image:height()
+获取图形的高度
+
+
+--------------------------------------------------------------------------------
+
+nil Image:save( filename )
+保存图形至记忆棒. 
+
+
+--------------------------------------------------------------------------------
+
+global Image screen
+全局变量screen,具有IMAGE的所有功能.另外还有许多独特的功能. 
+
+
+--------------------------------------------------------------------------------
+
+nil screen.flip() --  
+主屏和缓冲屏幕的切换,实现无闪烁动画
+
+
+--------------------------------------------------------------------------------
+
+nil screen.waitVblankStart([count])
+等待垂直刷新结束.
+
+
+--------------------------------------------------------------------------------
+
+Color Color.new(r, g, b, [a=255])
+返回一个颜色值
+
+
+--------------------------------------------------------------------------------
+
+table[r,g,b,a] color:colors()
+返回某颜色的RGBA值,A应是指ALPHA,没有试成功
+
+
+
+--------------------------------------------------------------------------------
+
+
+Bool (Color a == Color b)
+判断两个颜色是否相同,返回值为是/否
+
+
+--------------------------------------------------------------------------------
+
+3D GU 绘图
+3D API可能回加到未来的函数中. 
+
+Gu.start3d() saves the current GE state for the normal 2D operations. Call this function first and then draw your scene. You can use the following functions: 
+
+Gu.clearColor, Gu.clearDepth, Gu.clear, Gum.matrixMode, Gum.loadIdentity, Gum.perspective, Gum.translate, Gum.rotateXYZ, Gu.texImage, Gu.texFunc, Gu.texEnvColor, Gu.texFilter, Gu.texScale, Gu.texOffset, Gu.ambientColor, Gu.enable, Gu.disable, Gu.blendFunc, Gu.light, Gu.lightAtt, Gu.lightColor, Gu.lightMode, Gu.lightSpot and Gum.drawArray. See the PSPSDK for documenation about the parameters, for example the pspgu.h. If there is a ScePspFVector3, write 3 numbers instead one parameter (this will be changed in a later version). Whereever a color is expected, use a Color object. For textures use an Image object. 
+
+Gum.drawArray is something special: It has just 3 parameters: “prim”, “vtype” and a table. With “prim” you specify which primitive should be used, for example Gu.TRIANGLES. “vtype” specifies the vertex format and the transformation operation. For example “Gu.COLOR_8888|Gu.VERTEX_32BITF|Gu.TRANSFORM_3D” means, that your vertices has a color component and a 3 vertex coordinate components and is transformed before passed to the rasterizer. The table is then a list of vertex entries, where each vertex entry has the form (color, x, y, z). If you have specified GU_TEXTURE_32BITF, too, then one entry looks like this: (textureU, textureV, color, x, y, z). The order of the entries is defined in pspgu.h: textureU, textureV, color, normalX, normalY, normalZ, vertexX, vertexY, vertexZ. Indices, weights and multiple vertices per entry (which you’ll need for the morphing feature) currently are not supported. 
+
+After drawing anything, call Gu.end3d(), which flushs the display buffer and draws all pending 3D graphics and restores the 2D GE state. Don’t forget to call a screen:clear() before fullscreen 2D operations, because otherwise the z-buffer is not cleared and the blitting functions may not work correctly. If you need to blit 2D images in 3D mode, use textures and triangles. 
+
+See the 3D Cube example in the Applications folder of the distribution of Lua Player to see how to use the 3D functions and take a look at the GU example in the PSPSDK how to use all the other functions. Most of the time you can copy and paste the examples and just remove all those C fussinesses like “.0f”, semicolon, malloc etc.  
+
+
+--------------------------------------------------------------------------------
+
+控制函数
+Controls Controls.read()
+Bool controls:select() Bool controls:start() Bool controls:up() Bool controls:right() Bool controls:down() Bool controls:left() Bool controls:l() Bool controls:r() Bool controls:triangle() Bool controls:circle() Bool controls:cross() Bool controls:square() Bool controls:home() Bool controls:hold() Bool controls:note()
+
+--------------------------------------------------------------------------------
+
+Number controls:analogX() -- ranges from -127 to 128.返回摇杆的X位置(-127到128)--------------------------------------------------------------------------------
+Number controls:analogY() -- 返回摇杆的Y位置(-127到128)
+
+
+--------------------------------------------------------------------------------
+
+Bool (Controls a == Controls b) -- note! The analog stick is NOT considered when comparing because of analog fluctuations.  
+Compares two pad states. 
+
+
+--------------------------------------------------------------------------------
+
+Number controls:buttons() -- returns the bitmask like sceCtrlReadBufferPositive reads it  
+Constants for binary operations on buttons() result (for example “Controls.read():buttons() & Controls.startMask > 0” is the same as “Controls.read():start()”) 
+
+Number Controls.selectMask Number Controls.startMask Number Controls.upMask Number Controls.rightMask Number Controls.downMask Number Controls.leftMask Number Controls.ltriggerMask Number Controls.rtriggerMask Number Controls.triangleMask Number Controls.circleMask Number Controls.crossMask Number Controls.squareMask Number Controls.homeMask Number Controls.holdMask Number Controls.noteMask
+
+--------------------------------------------------------------------------------
+
+毫秒记时器函数
+Timer Timer.new([startTime])
+Creates a new Timer object, sets to 0 or startTime in milliseconds, if specified BUT don’t start ticking as yet. 
+
+
+--------------------------------------------------------------------------------
+
+Number Timer:start()
+Starts to tick the timer (incrementing by one every millisecond), or resumes to tick after being stopped. Returns the current time() value. If the timer is running, it is the same as time(). 
+
+
+--------------------------------------------------------------------------------
+
+Number Timer:time()
+Returns in milliseconds since the timer started/resumed. 
+
+
+--------------------------------------------------------------------------------
+
+Number Timer:stop()
+Stops the timer. Returns the current time(). Subsequent time() calls returns the value when stopped. If the timer is stopped, this call is the same as time(). 
+
+
+--------------------------------------------------------------------------------
+
+Number Timer:reset([startTime])
+Resets the timer to 0 by default or startTime in milliseconds and holds the timer. Returns the time before resetted to the new value. 
+
+
+--------------------------------------------------------------------------------
+
+分享： 分享到新浪Qing 0
+喜欢
+
+阅读(1328)┊ 评论 (1)┊ 收藏(0) ┊转载(1) ┊ 喜欢▼ ┊打印┊举报 
+
+转载列表：
+转载 
+转载是分享博文的一种常用方式...
+
+前一篇：LUA语言学习(6)--音乐和语音后一篇：LUA语言学习(8)--LUA PLAYER中的函数2
+评论 重要提示：警惕虚假中奖信息       ♥ 2011吃货们的幸福生活       关注每日最热门博客  [发评论]评论加载中，请稍候...
+
+发评论 Qing带来全新读图时代       关注每日最热门博客 
+  更多>>
+
+登录名： 密码： 找回密码 注册 记住登录状态
+昵   称：
+
+ 分享到微博    评论并转载此博文
+
+验证码： 请点击后输入验证码 收听验证码 
+匿名评论发评论 
+以上网友发言只代表其个人观点，不代表新浪网的观点或立场。
+< 前一篇
+LUA语言学习(6)--音乐和语音后一篇 >
+LUA语言学习(8)--LUA PLAYER中的函数2
+  新浪BLOG意见反馈留言板　不良信息反馈　电话：4006900000 提示音后按1键（按当地市话标准计费）　欢迎批评指正
+
+新浪简介 | About Sina | 广告服务 | 联系我们 | 招聘信息 | 网站律师 | SINA English | 会员注册 | 产品答疑 
+
+Copyright © 1996 - 2013 SINA Corporation, All Rights Reserved
+
+新浪公司 版权所有
+
+
+X分享到...选择其他平台 >>
+写365
+长微博
+微语录
+九宫格
+发照片
+发视频
+发商品
+博文博主音乐视频播主 最近喜欢了的博主：
+加载中…Qing博客转载原文采编长微博分享到新浪Qing分享到新浪微博为了您的账号安全，请绑定邮箱
+分享到X
+腾讯微博一键通新浪微博QQ空间人人网天涯凤凰微博朋友网人民微博豆瓣网搜狐微博新华微博手机网易微博开心网百度空间QQ好友更多平台... (130)bShare幻灯播放关闭

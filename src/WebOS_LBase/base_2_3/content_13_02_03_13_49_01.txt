@@ -1,0 +1,487 @@
+博文视点官方博客技术凝聚实力 专业创新出版 与向上的心合作 共同成长！
+博客园首页新闻新随笔联系管理订阅 随笔- 536  文章- 1  评论- 288 
+豆瓣动力核心——Quixote
+
+
+摘自《可爱的Python》，本文作者洪强宁，网名Qiangning Hong或hongqn，2002年开始接触Python，2004年起完全使用Python工作。豆瓣网（http://www.douban.com/）02号程序员，技术负责人。
+
+
+缘起
+Quixote是由美国全国研究创新联合会（CNRI，Corporation for National Research Initiatives）的工程师A.M.Kuchling、Neil Schemenauer和Greg Ward开发的一个轻量级Web框架。和几乎所有的开源项目一样，Quixote也是为了满足实际需要而出世的。
+
+CNRI当时在进行一个名为MEMS Exchange的项目（http://www.mems-exchange.org/）。MEMS是微机电系统的缩写，制造一个MEMS设备往往需要多种制造设备，单个工厂可能无法提供所需的所有设备。因此，MEMS Exchange项目就是要整合起多家制造厂的资源，利用互联网派单和追踪制造过程，形成一个分布式的MEMS设备制造网络。
+
+起初，他们做了一个Java版的客户端程序提供给用户，但他们发现，没有人愿意使用这个客户端程序，大家还是习惯性地用邮件发送加工过程。最终他们认识到，虽然客户端的表现力更强，功能也更完整，但相比起要下载一个庞大的程序，用户更加愿意使用他们每天面对的浏览器来做事情。于是，他们决定改到Web界面上来，要做一个Web应用。但是用Java的servlets开发Web应用是一件非常低效的事情，所以他们选择了Zope（和现在不同，在1999年，Python的Web应用框架没有什么选择的余地，基本上是Zope一家独大）。3个月的开发之后，他们得到了一个运转良好的系统。
+
+然而，Zope带来的快乐并没有持续多长时间。几个月后，他们想提供更加复杂一点的界面，却发现用Zope写的代码难以维护和调试，在浏览器的文本编辑框里写代码也实在不是什么好的体验。由于当时除了Zope之外也没有什么别的Python Web框架，他们决定：自己写一个！在2000年，编写一个新的Web框架是类似于向风车挑战一样的事情，开发团队自嘲地用堂吉诃德的名字命名这个框架：Quixote。
+
+特性介绍
+（以下使用Quixote 1.2版本为例进行介绍）
+
+Quixote有以下几个特点：
+
+1. 简单的URL分发规则
+
+所有的Web框架要解决的第一件事情就是：当用户输入一个URL，应该调用哪段代码来响应用户需求呢？这就是URL分发。与Django之类的基于正则表达式匹配来实现URL分发的框架不同，Quixote是基于URL的目录结构进行逐层查找实现的。
+
+一个Quixote应用对应着一个Python的名字空间（通常是一个包）。URL的每一级目录映射到一个子名字空间上（模块或者子包），URL的最末一级映射到上一级名字空间中的一个函数上。该函数返回一个字符串，就是返回给浏览器的页面。例如，如果你的应用是放在app这个包下的，那么http://www.example.com/hello/john 就对应app.hello.john(request)。末级目录则对应于_q_index函数，如http://www.example.com/hello/ 对应于app.hello._q_index(request)。就这么简单。
+
+这种层级查找的结构还可以带来额外的好处：在目录层进行控制。在每一个目录层级进行查找之前，Quixote都会先运行当前名字空间下的_q_access(request)函数。比如你需要 http://www.example.com/settings/ 下的所有路径都只能由登录用户访问，那么只须要在 app.settings这个名字空间（app/settings.py，或者app/settings/__init__.py）中定义一个_q_access(request)函数，在其中检查当前用户的登录状态（cookie可以从request对象获得），如果发现是未登录状态，抛出一个quixote.errors.AccessError异常即可。
+
+当Quixote执行代码时碰到异常，它会首先检查当前名字空间下有没有_q_exception_handler函数，如果有的话，则由这个函数处理异常，返回的字符串则为出错页面。如果没有定义这个函数，或者在执行它的时候又抛出了异常，则向上一级的名字空间查找_q_exception_handler函数，直至找到为止。所以，我们一般只须要在app/__init__.py中定义_q_exception_handler函数，就可以方便地实现定制出错页面了（当然你连这个也不定义也可以，Quixote提供了默认的出错页面）。
+
+2. 易于实现RESTful的URL
+刚才我们说 http://www.example.com/hello/john 对应app.hello.john(request)，那除了john之外，还有成千上万的用户的名字怎么办？不能为每个用户都定义一个函数吧！传统的方法是把会变的部分用URL参数的形式传进来，比如http://www.example.com/ hello/?name=bob。但这种风格的URL既不好看，又不利于搜索引擎收录，要是都能像john一样直接成为URL的一部分多好啊！幸运的是，Quixote帮助你实现了这一点。
+
+我们只须要在 app.hello 这个名字空间中定义一个_q_lookup(request, component)函数，当Quixote查不到bob这个名字时就会调用这个函数，把需要查找的名字bob传给component参数，用这个函数返回的结果作为找到的子名字空间或函数。在我们的例子里，代码就是：
+
+1 # in app/hello/__init__.py
+
+2 def _q_lookup(request, name):
+
+3     def hello(request):
+
+4         return say_hello(name)
+
+5     return hello
+
+这里我们返回了一个函数（也可以用定义了__call__方法的类实例代替），这个函数将被调用以生成HTML页面。
+
+3. 显式标记，拒绝魔术
+
+Zen of Python中有一句“Explicit is better than implicit”，Quixote也是这个理念的贯彻者。所有可以通过URL访问到的函数和方法，必须在当级名字空间的_q_exports变量中列举出来（除了用_q_lookup实现的动态URL）。也就是说，要让 http://www.example.com/hello/bob 可以访问，必须在app/__init__.py中定义
+
+1 _q_exports = ['hello']
+
+4. 非常类似Python的模板语言
+
+呃，或者说，就是Python语言。为了让程序员不用再学习一门模板语言，而是直接使用已经掌握的Python语法写模板，Quixote的模板语言PTL（Python Template Language，以.ptl作为文件名后缀）的语法和Python一模一样（除了后面要说到的[html]标记），在执行了quixote.enable_ptl()之后，这些.ptl文件就可以像普通的.py文件一样作为Python模块import进来。
+
+但是既然是模板语言，就会有一些专门为了生成字符串的语法糖。在函数定义时，加上一个 [html] 标签就可以改变这个函数的表现，使得每执行一条语句，运行的结果如果不是None的话，就会以字符串的形式添加到函数的返回值里，而无须再使用return语句了。假设hello.ptl的内容如下：
+
+1 def say_hello [html] (name):
+
+2     "Hello, "
+
+3     "<em>%s</em>!" % name
+
+我们来看看say_hello的返回值是什么：
+
+1 >>> from quixote import enable_ptl
+
+2 >>> enable_ptl()   # 使得我们可以import ptl文件
+
+3 >>> from hello import say_hello
+
+4 >>> print say_hello("Quixote")
+
+因为say_hello函数由两条语句组成，这两行语句的运行结果分别返回一个字符串，因此运行结果就是Hello, <em>Quixote</em>!。这个设定可以大大方便模板的编写。
+
+5. 内置的安全性支持
+
+互联网上有很多寻找网站漏洞的攻击者，跨站脚本（XSS）是一个常见的攻击手段。这种攻击通常会在页面显示数据的地方插入一段恶意Javascript代码，当有人浏览这个页面的时候，就会运行这段代码。比如在say_hello这个例子中，恶意用户输入的名字（也就是name参数）是"<script>alert('haha')</script>"的话，在模板没有安全性处理的情况下，页面就会输出Hello, <em><script>alert('haha')</script></em>，浏览这个页面的用户就会中招。幸好，PTL帮助我们解决了这个问题，它会自动将输入的数据进行HTML转义，就是用&lt;、&gt;等HTML实体替换掉危险的<、>等字符，这样输出的结果就是Hello, <em>&lt;script&gt;alert('haha')&lt;/script&gt;</em>，安全了。
+
+PTL是怎么实现这一点的呢？实际上，打了[html]标记的PTL函数中的字符串常量（比如 "<em>%s</em>!"）并不是普通的str对象，而会自动转成quixote.html.htmltext对象，这个对象的接口和str几乎一样，但和普通的str对象做操作时（比如+、%等运算），会自动把str对象中的HTML特殊字符进行转义。
+
+6. 高效的模板
+
+PTL的速度非常之快，在豆瓣，我们曾经拿它和号称最快的Python模板Mako进行过PK，PTL胜出。当然，这一部分是由于PTL的核心代码是用C写的（比如前面说的htmltext类），另一方面PTL的功能非常基本，完全依赖于Python语言自身的特性。
+
+7. 没有内置数据库支持
+Quixote专注于URL分发和模板系统，对于数据库没有提供直接支持。开发者可以根据自己的需要选择合适的数据库软件，如SQLAlchemy、SQLObject或者直接使用MySQLdb等。
+
+快速起步
+那我们来看一个完整的应用示例吧，就是我们前边举的例子：通过URL获得一个名字，在页面上显示对他的欢迎信息。
+
+首先安装Quixote，在 http://quixote.ca/ 下载 Quixote 1.x版的最新版本（目前是1.2版）并安装。
+
+1 # app/__init__.py
+
+2
+
+3 _q_exports = ['hello']
+
+ 
+
+1 # app/hello/__init__.py
+
+2
+
+3 from app.hello.hello_ui import say_hello
+
+4
+
+5 _q_exports = []
+
+6
+
+7 def _q_index(request):
+
+8     return say_hello("everyone")
+
+9
+
+10 def _q_lookup(request, name):
+
+11     def hello(request):
+
+12         return say_hello(name)
+
+13     return hello
+
+ 
+
+ 1 # app/hello/hello_ui.ptl
+
+ 2 
+
+ 3 def say_hello [html] (name):
+
+ 4     header(title="Hello")
+
+ 5     "Hello, "
+
+ 6     """<em class="name">%s</em>!""" % name
+
+ 7     footer()
+
+ 8 
+
+ 9 def header [html] (title):
+
+10     """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+
+       "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+11 <html xmlns="http://www.w3.org/1999/xhtml">
+
+12 <head>
+
+13 <title>%s</title>
+
+14 </head>
+
+15 <body>
+
+16     """ % title
+
+17
+
+18 def footer [html] ():
+
+19     """</body>
+
+20 </html>
+
+21     """
+
+以上已经创建了整个Web应用。下面的问题是：怎么运行呢？
+
+有好几个方式可以用来运行Quixote应用，比如mod_python、FastCGI和CGI等。在豆瓣我们使用的是SCGI（http://www.mems-exchange.org/software/scgi/，精巧地址： http://bit.ly/2GMFUb），这是Quixote的开发团队制作的一个简化版本的FastCGI，使用和Web服务器独立的进程运行Web应用。著名的轻量级Web服务器lighttpd （http://www.lighttpd.net/）直接内置支持SCGI，下面用lighttpd来运行hello程序。
+
+首先安装scgi Python包，到 http://python.ca/scgi/ 下载最新版本并安装。
+
+创建SCGI服务程序scgi-server.py：
+
+ 1 #!/usr/bin/env python
+
+ 2 
+
+ 3 from scgi.quixote_handler import QuixoteHandler, main
+
+ 4 from quixote import enable_ptl
+
+ 5 
+
+ 6 enable_ptl()
+
+ 7 
+
+ 8 class MyHandler(QuixoteHandler):
+
+ 9     root_namespace = 'app'
+
+10
+
+11 if __name__ == '__main__':
+
+12     main(MyHandler)
+
+这个程序运行时会在默认的4000端口上开启一个SCGI服务，端口号可以使用命令行参数 -p更改。更多控制参数请使用python scgi-server.py --help查看。
+
+创建lighttpd的配置文件lighttpd.conf：
+
+ server.modules = (
+
+ "mod_scgi",
+
+)
+
+server.document-root = "."
+
+server.port = 8080
+
+scgi.server = ( "/" =>
+
+  ( "localhost" => (
+
+   "host" => "127.0.0.1",
+
+   "port" => 4000,
+
+   "check-local" => "disable",
+
+   )
+
+  )
+
+)
+
+这个配置让lighttpd监听8080端口，把所有请求都转发给4000端口上的SCGI服务处理，再把处理结果发给用户。
+运行SCGI服务和lighttpd（以GNU/Linux下为例）：
+
+$ python scgi-server.py
+
+$ /usr/sbin/lighttpd -f lighttpd.conf
+
+访问http://localhost:8080/hello/bob，就可以看到 "Hello, bob!"了
+
+须注意的是，对代码进行修改后，要重启SCGI服务才能看到效果。我们可以做一个简单的重启SCGI服务的shell脚本，以简化操作：
+#!/bin/sh
+
+PIDFILE=/var/tmp/quixote-scgi.pid  # 默认的PID文件路径
+
+kill `cat $PIDFILE`
+sleep 1
+python scgi-server.py
+
+案例讲解
+作为老牌的Web框架，Quixote已经被证明了它足够支撑起相当规模的网站。除了MEMS Exchange之外，LWN（Linux Weekly News, http://lwn.net/）也是使用Quixote搭建的。在国内，Quixote最著名的使用者就是豆瓣网（http://www.douban.com/）。
+
+豆瓣网是一个致力于帮助用户发现自己可能感兴趣的书、电影、音乐、博客等信息的网站。2005年3月正式上线，当时Python社区的web框架屈指可数，Django、TurboGears等新兴框架还没出现，因此选择了Quixote作为整个网站的基础框架。至2008年10月，豆瓣网已经发展到200万注册用户，每日1000万次动态页面点击，但仍只需要两台Quixote应用服务器即可轻松负担，这充分说明了Quixote的性能和可扩展性。
+
+小结
+Quixote是一个轻量级的框架，简单、高效，代码也十分简洁易读。用豆瓣网创始人阿北的话来说：“用quixote的时候你的注意力大部分在要实现的内容上，framework不会拦在中间跳来跳去。”
+
+但是，Quixote毕竟是2000年的框架，现在看来已经略显老态。比起Django、TurboGears这些后起之秀来，确实存在某些劣势。大略有以下几点：
+
+1.调试开发不够方便，没有内置的调试用Web服务器；
+
+2.修改代码后必须重启服务才能看到效果；
+
+3.URL的末尾带和不带"/"会被解释到不同函数；
+
+4.PTL模板适合Python程序员编写，却非常不适合美工独立编辑；
+
+5.没有内置的WSGI支持；
+
+6.没有内置的用户认证系统、数据库支持等。
+
+
+《可爱的Python》即将上市，敬请关注！
+豆瓣讨论：http://www.douban.com/subject/3884108/
+互动网预订：http://www.china-pub.com/195771
+
+标签: python, Quixote, 轻量级, Web框架
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+博文视点
+关注 - 3
+粉丝 - 65
++加关注
+0 0
+(请您对文章做出评价)
+« 博主上一篇：揭开苹果开发平台的神秘面纱
+» 博主下一篇：《我是一只IT小小鸟》九月初隆重上市——为您讲述一群IT学子的成长故事
+posted @ 2009-08-13 14:11 博文视点 阅读(980) 评论(0) 编辑 收藏
+刷新评论刷新页面返回顶部
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+博客园首页博问新闻闪存程序员招聘知识库
+
+最新IT新闻:
+· Sycamore穷途末路：从450亿美元到一无所有
+· 柯达完成数字影像专利出售 交易价5.27亿美元
+· 海航空地联网测试空中发微博 姐玩的是寂寞！
+· 施密特预言媒体：低劣报道泛滥 老牌媒体更重要
+· Facebook宣布在美国重新启用TS面部识别功能
+» 更多新闻...
+最新知识库文章:
+· HTML5之美
+· 每天工作的第一个小时，做什么？
+· Hadoop 分布式文件系统：架构和设计
+· 异常的代价
+· 从P1到P7——第八年
+» 更多知识库文章...
+
+博文视点期待与国内IT社区及广大IT从业人员展开深入合作，诚邀作者、译者、热心读者服务社区、提升自我，共同进步。
+读者信箱：reader@broadview.com.cn
+投稿信箱：BVtougao@gmail.com
+
+
+参加读者调查，免费获取新书
+博文视点，年底重磅原创
+Web2.0好书推荐
+昵称：博文视点
+园龄：4年6个月
+粉丝：65
+关注：3
+随笔分类(306)
+01.新书快讯(75)
+02.样章试读(57)
+03.热点书评（HOT）(92)
+04.编辑手记(8)
+05.图书勘误(4)
+06.资源下载(5)
+07.诚征译者(6)
+08.新手必读(13)
+09.团队生活(25)
+10.LAMP精品书廊
+11.RIA精品书廊
+12.O’Reilly图书(1)
+13.原创精品大系(3)
+14.测试实践丛书
+15.数据库系列(1)
+16.单本精品(3)
+成长顾问(4)
+程序员成长之路(9)
+随笔档案(536)
+2011年7月 (2)
+2011年2月 (7)
+2011年1月 (6)
+2010年12月 (11)
+2010年11月 (20)
+2010年10月 (16)
+2010年9月 (20)
+2010年8月 (25)
+2010年7月 (20)
+2010年6月 (15)
+2010年5月 (20)
+2010年4月 (11)
+2010年3月 (13)
+2010年2月 (3)
+2010年1月 (12)
+2009年12月 (12)
+2009年11月 (6)
+2009年10月 (10)
+2009年9月 (15)
+2009年8月 (14)
+2009年7月 (22)
+2009年6月 (23)
+2009年5月 (18)
+2009年4月 (22)
+2009年3月 (24)
+2009年2月 (18)
+2009年1月 (17)
+2008年12月 (36)
+2008年11月 (29)
+2008年10月 (4)
+2008年9月 (19)
+2008年8月 (16)
+2008年7月 (30)
+博文@互联网
+博文@cnblogs
+博文@CSDN
+博文@Douban
+博文@JavaEye
+博文@新浪微博
+设计博客@BvDesign (rss)
+博文视点合作伙伴
+01.《程序员》杂志
+02.CSDN读书频道
+03.51CTO读书频道
+04.IT专家网Linux频道
+05.JavaEye技术网站
+06.InfoQ中文站
+07.互动出版网
+08.卓越亚马逊
+09.新风雨书城
+10.华储网
+11.当当网
+12.豆瓣网
+13.博客园
+博文视点图书网站
+《RESTful Web Services中文版》官方网站
+《Silverlight 2完美征程》官方网站
+《Web信息架构》信息架构兴趣小组
+《编程之美》学生大本营
+《代码大全》官方网站
+《软件调试》官方网站
+《移山之道》读者社区
+博文原创，精英荟萃
+MySQL专家-简朝阳
+OracleDBA手记-盖国强
+OSGi先锋-林昊
+Python源码剖析-陈儒
+Silverlight 2完美征程-李会军
+Windbg专家-熊力
+Windows系统技术研究-潘爱民
+把时间当作朋友-李笑来
+编程之美/移山之道-邹欣
+程序员的自我修养-俞甲子
+开源网格GIS实验田-高昂
+可爱的Python-周琦
+冒号课堂-郑晖
+软件调试-张银奎
+一线架构师实践指南-温昱
+走出软件作坊-阿朱
+左手程序右手诗-侯捷
+积分与排名
+积分 -	146533
+排名 -	701
+最新评论
+1. Re:读《插件式GIS应用框架的设计与实现——基于C#和ArcGIS Engine 9.2》
+楼主，你有这本书的电子档么，发我一份看看。
+《插件式GIS应用框架的设计与实现——基于C#和ArcGIS Engine 9.2》
+alphaxj@163.com
+--谢军
+2. Re:《编程之美》读书笔记（八）：“发帖水王”扩展问题
+经过验证，楼主的方法是错误的
+--高石坎
+3. Re:IT行业博客网站创新与创新（一）ITeye、CSDN、cnblog、ITpub博客网站的比较
+支持博客园
+--桦仔
+4. Re:JavaScript大牛：Douglas Crockford
+这书 没用卖了  ╮(╯▽╰)╭
+--fhefh
+5. Re:《编程之美：分层遍历二叉树》的另外两个实现
+楼主 我表示非常崇拜啊！呵呵
+--~风影*IT~
+6. Re:磨刀与砍柴
+挺有哲理的
+--郡勒
+7. Re:IT行业博客网站创新与创新（一）ITeye、CSDN、cnblog、ITpub博客网站的比较
+csdn的风格比cnblog简洁，我喜欢。写博客嘛，搞得华丽花哨不喜欢。
+--jjtx
+8. Re:线上讲座——全国海关中心架构师王翔畅谈设计模式
+2009年吗? 唉!!!
+--zyngdbwh
+9. Re:《编程之美》第2刷勘误
+184页，最大子数组扩展问题一，数组首尾相邻，书中给出的思路是错误的。一方面，问题分析的出发点是不对的，找最大跨界子数组和不等同于分别找以A[0]开始的最大和以及A[n-1]为结尾的最大和，二者没有等价关系；另一方面，当i<=j时，不能简单地认为最大和为A[0]到A[n-1]；这两方面都有反例，具体错误分析我整理成博文编程之美解法错误分析
+--Yx.Ac
+10. Re:IT行业博客网站创新与创新（一）ITeye、CSDN、cnblog、ITpub博客网站的比较
+对IT方面的朋友来说，只有博客园，它最纯粹！
+--当时
+11. Re:正则表达式的与或非
+学习了，非常不错。
+--刘付灵(Foolin)
+阅读排行榜
+1. 《编程之美》读书笔记（一）：中国象棋将帅问题(5318)
+2. 正则表达式的与或非(4693)
+3. 【出版直播】博客园征途系列，《设计模式——基于C#的工程化实现与扩展》电子书、示例代码发布，互动网预订开始(3552)
+4. 《编程之美》读书笔记（七）：数独游戏解析 (3065)
+5. 【出版直播】博客园征途系列，《设计模式——基于C#的工程化实现及扩展》书签制作完成(2720)
+6. 常见的三种Web服务架构(2709)
+7. 【出版直播】博客园征途系列，《设计模式——基于C#的工程化实现及扩展》今天上市，共飨博客园圣诞大餐(2581)
+8. 【现场直播】博客园征途系列，《设计模式——基于C#的工程化实现及扩展》封面火热出炉(2559)
+9. 我认识的简朝阳(2358)
+10. 《全程软件测试》第8章电子书下载(2165)
+11. 《编程之美》读书笔记（三）： 一摞烙饼的排序问题(1892)
+12. 《编程之美》读书笔记（二）：“求二进制数中1的个数”扩展问题(1801)
+13. 胡睿：感谢清华大学计算机系的朱仲涛老师(1760)
+14. 最新公告：欢迎参加“创业与团队管理”主题沙龙 (1691)
+15. 面试难，应聘难，好工作，今安在？(1662)
+16. Java Web服务之“从WSDL文档中生成客户端支持代码”(1660)
+17. 《编程之美》读书笔记（八）：“发帖水王”扩展问题(1638)
+18. 哈工大计算机系本科毕业生分享08年找工作经历(1616)
+19. 《编程之美》读书笔记（六）：连连看游戏设计(1592)
+20. MySQL DBA成长宝典(1527)
+Copyright ©2013 博文视点

@@ -1,0 +1,247 @@
+首页技术频道51CTO旗下网站地图  社区：论坛博客下载读书更多 登录注册
+
+中小企业智能网管交换机推荐
+调研:移动开发者生存状况
+指尖上的资讯 51CTO iOS版
+春暖花开之日 防火墙升级之时
+
+首页 | Java | .NET | Web | XML | 语言工具 | 测试 | 游戏 | 移动 | 架构 | 项目管理 | 全部文章
+
+
+您所在的位置：开发 > Java > Java基础 > Java多线程编程实战精要(1)
+Java多线程编程实战精要(1)
+2009-07-29 16:42 Werther blogjava 我要评论(0) 字号：T | T
+
+多线程在目前的应用开发中被广泛使用；本文向您介绍Java多线程编程的原理和具体实现，通过简单的编程示例来说明 Java 程序中的多线程是多么直观。
+AD： 2013大数据全球技术峰会课程PPT下载
+在 Java 程序中使用多线程要比在 C 或 C++ 中容易得多，这是因为Java 编程语言提供了语言级的支持。本文通过简单的编程示例来说明Java多线程编程多么直观。读完本文以后，用户应该能够编写简单的多线程程序。
+
+51CTO编辑推荐：Java线程从入门到实践
+
+为什么会排队等待?
+
+下面的这个简单的 Java 程序完成四项不相关的任务。这样的程序有单个控制线程，控制在这四个任务之间线性地移动。此外，因为所需的资源 ? 打印机、磁盘、数据库和显示屏 -- 由于硬件和软件的限制都有内在的潜伏时间，所以每项任务都包含明显的等待时间。因此，程序在访问数据库之前必须等待打印机完成打印文件的任务，等等。如果您正在等待程序的完成，则这是对计算资源和您的时间的一种拙劣使用。改进此程序的一种方法是使它成为多线程的。
+
+四项不相关的任务
+
+    class myclass {   
+static public void main(String args[]) {   
+print_a_file();   
+manipulate_another_file();   
+access_database();   
+draw_picture_on_screen();   
+}   
+} 
+在本例中，每项任务在开始之前必须等待前一项任务完成，即使所涉及的任务毫不相关也是这样。但是，在现实生活中，我们经常使用多线程模型。我们在处理某些任务的同时也可以让孩子、配偶和父母完成别的任务。例如，我在写信的同时可能打发我的儿子去邮局买邮票。用软件术语来说，这称为多个控制(或执行)线程。
+
+可以用两种不同的方法来获得多个控制线程：
+
+多个进程
+
+在大多数操作系统中都可以创建多个进程。当一个程序启动时，它可以为即将开始的每项任务创建一个进程，并允许它们同时运行。当一个程序因等待网络访问或用户输入而被阻塞时，另一个程序还可以运行，这样就增加了资源利用率。但是，按照这种方式创建每个进程要付出一定的代价：设置一个进程要占用相当一部分处理器时间和内存资源。而且，大多数操作系统不允许进程访问其他进程的内存空间。因此，进程间的通信很不方便，并且也不会将它自己提供给容易的编程模型。
+
+线程
+
+线程也称为轻型进程 (LWP)。因为线程只能在单个进程的作用域内活动，所以创建线程比创建进程要廉价得多。这样，因为线程允许协作和数据交换，并且在计算资源方面非常廉价，所以线程比进程更可取。线程需要操作系统的支持，因此不是所有的机器都提供线程。Java 编程语言，作为相当新的一种语言，已将Java多线程编程支持与语言本身合为一体，这样就对线程提供了强健的支持。
+
+使用Java 编程语言实现线程
+
+Java编程语言使多线程如此简单有效，以致于某些程序员说它实际上是自然的。尽管在 Java 中使用线程比在其他语言中要容易得多，仍然有一些概念需要掌握。要记住的一件重要的事情是 main() 函数也是一个线程，并可用来做有用的工作。程序员只有在需要多个线程时才需要创建新的线程。
+
+Thread 类
+
+Thread 类是一个具体的类，即不是抽象类，该类封装了线程的行为。要创建一个线程，程序员必须创建一个从 Thread 类导出的新类。程序员必须覆盖 Thread 的 run() 函数来完成有用的工作。用户并不直接调用此函数;而是必须调用 Thread 的 start() 函数，该函数再调用 run()。下面的代码说明了它的用法：
+
+创建两个新线程
+
+     import java.util.*;   
+class TimePrinter extends Thread {   
+int pauseTime;   
+String name;   
+public TimePrinter(int x, String n) {   
+pauseTime = x;   
+name = n;   
+}   
+public void run() {   
+while(true) {   
+try {   
+System.out.println(name + ":" + new   
+Date(System.currentTimeMillis()));   
+Thread.sleep(pauseTime);   
+} catch(Exception e) {   
+System.out.println(e);   
+}   
+}   
+}   
+static public void main(String args[]) {   
+TimePrinter tp1 = new TimePrinter(1000, "Fast Guy");   
+tp1.start();   
+TimePrinter tp2 = new TimePrinter(3000, "Slow Guy");   
+tp2.start();   
+}   
+} 
+在本例中，我们可以看到一个简单的程序，它按两个不同的时间间隔(1 秒和 3 秒)在屏幕上显示当前时间。这是通过创建两个新线程来完成的，包括 main() 共三个线程。但是，因为有时要作为线程运行的类可能已经是某个类层次的一部分，所以就不能再按这种机制创建线程。虽然在同一个类中可以实现任意数量的接口，但 Java 编程语言只允许一个类有一个父类。同时，某些程序员避免从 Thread 类导出，因为它强加了类层次。对于这种情况，就要 runnable 接口。
+
+Runnable 接口
+
+此接口只有一个函数，run()，此函数必须由实现了此接口的类实现。但是，就运行这个类而论，其语义与前一个示例稍有不同。我们可以用 runnable 接口改写前一个示例。(不同的部分用黑体表示。)
+
+创建两个新线程而不强加类层次
+
+　   import java.util.*;   
+class TimePrinter implements Runnable {   
+int pauseTime;   
+String name;   
+public TimePrinter(int x, String n) {   
+pauseTime = x;   
+name = n;   
+}   
+public void run() {   
+while(true) {   
+try {   
+System.out.println(name + ":" + new   
+Date(System.currentTimeMillis()));   
+Thread.sleep(pauseTime);   
+} catch(Exception e) {   
+System.out.println(e);   
+}   
+}   
+}   
+static public void main(String args[]) {   
+Thread t1 = new Thread(new TimePrinter(1000, "Fast Guy"));   
+t1.start();   
+Thread t2 = new Thread(new TimePrinter(3000, "Slow Guy"));   
+t2.start();   
+}   
+} 
+请注意，当使用 runnable 接口时，您不能直接创建所需类的对象并运行它;必须从 Thread 类的一个实例内部运行它。许多程序员更喜欢 runnable 接口，因为Java多线程编程从 Thread 类继承会强加类层次。
+
+1 2 下一页>>
+内容导航
+ 第 1 页：使用Java编程语言实现线程	 第 2 页：Java编程语言中的高级多线程支持
+
+
+给力
+(91票)
+
+动心
+(67票)
+
+废话
+(84票)
+
+专业
+(68票)
+
+标题党
+(65票)
+
+路过
+(75票)
+原文：Java多线程编程实战精要(1)返回开发首页
+分享到： 2 收藏|打印|复制
+关于Java多线程编程的更多文章
+如何理解Java多线程编程的相关问题
+带你走进Java多线程编程的神秘世界
+Java内存泄露监控工具：JVM监控工具介绍及分析
+
+jstack--如果java程序崩溃生成core文件，jstack工具可以用来获得[详细]
+网友评论TOP5查看所有评论（0）
+提交评论
+通行证： 密码：   注册通行证
+
+
+验证码：		请点击后输入验证码		匿名发表	
+栏目热门更多>>
+Java编程：常见问题汇总
+Java迷题：等于，还是不等于？
+Java堆内存的10个要点
+菜鸟入门Java语言学习的要点
+深入研究Java虚拟机的类加载机制
+同期最新更多>>
+Java内部类使用的四点建议
+浅析jQuery框架与构造对象
+深入核心 Java终止函数详解
+MySQL中关于JDBC URL几个重要参数说明
+详解JDBC连接Access的三种方法
+开发频道导航
+JavaJava开发|Java基础|Java EE开发|Java框架|设计模式
+WEB开发PHP开发|Python|Ruby|JSP|HTML 5|DIV+CSS
+综合.NET开发|嵌入式开发|项目管理|架构设计
+热点推荐
+
+Android开发应用详解
+
+那些性感的让人尖叫的程序员
+
+HTML5 下一代Web开发标准详解
+
+高性能WEB开发应用指南
+
+Ubuntu开源技术交流频道
+热门标签： windows频道移动开发云计算objective-ctp-link路由器设置图解html5
+
+热点游戏设计法则5：永无休止的重要性
+在设计游戏时，要让玩家可以永无止境的从中获得快乐。
+免费游戏设计法则法则2:星巴克测试
+5月编程语言排行榜UNIX下的Bash
+
+文章排行本月本周24小时
+Eclipse插件大全 挑选最牛的TOP30
+我们“看不到”的残疾人程序员
+你应该知道的10种软件工具
+正能量系列：失业的程序员(一)
+IT界那些性感的让人尖叫的程序员
+IT民工创业之殇(完)
+Java数组声明、创建、初始化
+详解Java解析XML的四种方法
+单枪匹马 WEB程序员手游开发日记
+从程序员到CTO的Java技术路线图
+热点专题更多>>
+
+Eclipse十年
+2011年11月是Eclipse诞生十周年的日子，最开始是作为
+
+ASP.NET性能优化
+ASP.NET是常用的网站开发技术之一，本专题将给大家提
+
+百度地图API开发指南
+本专题将帮助大家做好百度地图API的开发。百度地图API
+热点标签
+编程语言排行榜 敏捷开发 Eclipse 3.6 PHP设计模式 NetBeans 7 Java7 Scala编程语言 Python编程世界 Ruby On Rails开发 LINQ ASP.NET视频教程 Visual Studio 智能手机 软件下载
+点击这里查看样刊
+
+全站热点
+
+浏览器正在成为你的新视界吗？
+
+12306订票龟速网烧钱数千万
+安全桌面 - 引领第二代上网行为管理
+赢在应用安全 梭子鱼下一代防火墙
+2011赛门铁克大中国区用户大会
+CISSP认证考试指南(第5版)
+.NET单元测试艺术
+读书
+
+Java EE 5 开发指南
+本书是对Java EE各种技术之间互相协作的概览和补充。 本书还展示了如何编写JavaServer Page(JSP)页面或者企业级JavaBean(EJ
+Tomcat与Java Web开发技术详解
+网管第一课——计算机网络原理
+网管第一课——网络组建与管理
+网管员必读——网络安全（第2版）
+博文推荐更多>>
+windows 7 解决B/S架构兼容性的case
+Proxool 0.9.1的配置与应用
+ado.net连接池
+尼泊尔行之博卡拉
+最新热帖更多>>
+BE IT规划资料
+联想集团内部管理系统（非常好的实用
+SQL数据库的复制(视频)
+德勤的《内部组织结构和部门职能》内
+SQL Server 2005 盛宴系列之四十二：
+
+51CTO旗下网站
+领先的IT技术网站 51CTO 领先的中文存储媒体 WatchStor 中国首个CIO网站 CIOage 中国首家数字医疗网站 HC3i 移动互联网生活门户 灵客风LinkPhone
+Copyright©2005-2013 51CTO.COM 版权所有 未经许可 请勿转载
+

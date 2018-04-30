@@ -1,0 +1,255 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+小菜鸟的专栏
+目录视图摘要视图订阅
+亲，“社区之星”已经一周岁了！        百度Clouda的初步探索      Tag功能介绍—我们为什么打Tag      订阅CSDN社区周刊，及时了解社区精华内容
+ hdu1698(线段树染色区间求和)
+分类： 线段树 2013-05-30 11:05 64人阅读 评论(0) 收藏 举报
+http://acm.hdu.edu.cn/showproblem.php?pid=1698
+
+Just a Hook
+Time Limit: 4000/2000 MS (Java/Others) Memory Limit: 32768/32768 K (Java/Others)
+Total Submission(s): 9726 Accepted Submission(s): 4761
+
+
+
+Problem Description
+In the game of DotA, Pudge’s meat hook is actually the most horrible thing for most of the heroes. The hook is made up of several consecutive metallic sticks which are of the same length.
+
+hdu1698(线段树染色区间求和)
+
+
+Now Pudge wants to do some operations on the hook.
+
+Let us number the consecutive metallic sticks of the hook from 1 to N. For each operation, Pudge can change the consecutive metallic sticks, numbered from X to Y, into cupreous sticks, silver sticks or golden sticks.
+The total value of the hook is calculated as the sum of values of N metallic sticks. More precisely, the value for each kind of stick is calculated as follows:
+
+For each cupreous stick, the value is 1.
+For each silver stick, the value is 2.
+For each golden stick, the value is 3.
+
+Pudge wants to know the total value of the hook after performing the operations.
+You may consider the original hook is made up of cupreous sticks.
+
+ 
+
+Input
+The input consists of several test cases. The first line of the input is the number of the cases. There are no more than 10 cases.
+For each case, the first line contains an integer N, 1<=N<=100,000, which is the number of the sticks of Pudge’s meat hook and the second line contains an integer Q, 0<=Q<=100,000, which is the number of the operations.
+Next Q lines, each line contains three integers X, Y, 1<=X<=Y<=N, Z, 1<=Z<=3, which defines an operation: change the sticks numbered from X to Y into the metal kind Z, where Z=1 represents the cupreous kind, Z=2 represents the silver kind and Z=3 represents the golden kind.
+
+ 
+
+Output
+For each case, print a number in a line representing the total value of the hook after the operations. Use the format in the example.
+
+ 
+
+Sample Input
+1 10 2 1 5 2 5 9 3
+
+ 
+
+Sample Output
+Case 1: The total value of the hook is 24.
+
+ 
+
+Source
+2008 “Sunline Cup” National Invitational Contest
+
+ 
+
+Recommend
+wangye
+题意：给一组棍子染色，不同的颜色有不同的值，执行一系列的区间染色后，问这组棍子的总值是多少。
+每个线段树的结点，存储该结点所代表区间的染色状况c，如果该区间全为同样的颜色，则用一个正数表示，如果含有多种颜色，则用-1表示，每次执行染色操作时，如果所要染的颜色与区间颜色一样，则停止，如果所要染区间跟当前结点区间一致，则直接将所要染颜色赋给当前结点的c,否则，如果当前结点区间不是混合色，则先将当前结点的颜色赋给左右子结点的c,并递归下去。
+
+#include
+#include
+#include
+using namespace std;
+#define maxn 100010
+struct node
+{
+    int l;
+    int r;
+    int num;//该段的颜色 1、2、3；标记-1 表示该段不为纯色。
+}s[maxn*3];
+void build(int l,int r,int i)//建树
+{
+    s[i].l=l;
+    s[i].r=r;
+    s[i].num=1;//初始时都为1
+    if(l==r)
+    {
+        return;
+    }
+    int mid=(l+r)/2;
+    build(l,mid,i*2);
+    build(mid+1,r,i*2+1);
+}
+void update(int a,int b,int c,int i)//从left到right更改为col
+{
+    if(a<=s[i].l&&s[i].r<=b)//要更新的段包含当前段，就更新
+    {
+        s[i].num=c;//把值c赋给s[i].num
+        return;
+    }
+    if(s[i].num!=-1)
+    {
+        s[i*2].num=s[i].num;
+        s[i*2+1].num=s[i].num;
+        s[i].num=-1;
+    }
+    int mid=(s[i].l+s[i].r)/2;
+    //成段更新不同于前面的中点划分
+    if(a<=mid)
+    {
+        update(a,b,c,i*2);
+    }
+    if(b>mid)
+    {
+        update(a,b,c,i*2+1);
+    }
+}
+int query(int a,int b,int i)
+{
+    if(s[i].num!=-1)
+    {
+        return s[i].num*(b-a+1);
+    }
+    int mid=(s[i].l+s[i].r)/2;
+    if(b<=mid)
+    {
+        return query(a,b,i*2);
+    }
+    if(a>mid)
+    {
+        return query(a,b,i*2+1);
+    }
+    else
+    {
+        return query(a,mid,i*2)+query(mid+1,b,i*2+1);
+    }
+}
+int main()
+{
+    int t;
+    int n,m;
+    int cc=0;
+    int a,b,c;
+    scanf("%d",&t);
+    while(t--)
+    {
+        scanf("%d",&n);
+        build(1,n,1);//建树
+        scanf("%d",&m);
+        for(int i=0;i
+        {
+            scanf("%d%d%d",&a,&b,&c);
+            update(a,b,c,1);//每输入一次结点就进行一次更新
+        }
+        printf("Case %d: The total value of the hook is %d.\n",++cc,query(1,n,1));
+    }
+    return 0;
+}
+更多 0
+上一篇：hdu1394(点树在逆序数中的应用)
+下一篇：zoj1610(线段树-染色区间连续段数…
+
+查看评论
+
+  暂无评论
+
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+核心技术类目
+全部主题 数据挖掘 SOA UML 开放平台 HTML5 开源 移动开发 iOS Android 移动游戏 Windows Phone JavaScript CSS 游戏引擎 云计算 大数据 Hadoop OpenStack 云平台 PHP MongoDB JSON Xcode Node.js 前端开发 神经网络 安全 Java .NET MySQL textview BigTable web框架 SQL Redis CouchDB Linux 可穿戴计算 NoSQL Ruby API GPL XAML ASP.NET 前端开发 虚拟化 框架 机器学习 数据中心 IE10 敏捷 集群
+个人资料
+ 访问我的空间 
+lanjiangzhou
+ 
+访问：13000次
+积分：4312分
+排名：第1349名
+原创：428篇转载：11篇译文：0篇评论：3条
+文章搜索
+
+文章分类
+uva(52)
+计算几何(6)
+hdu(17)
+poj(67)
+学习 生活：感悟(12)
+DP(31)
+字符串处理(5)
+排序(13)
+数据结构(8)
+图论(31)
+搜索、回溯、遍历(17)
+贪心(9)
+大数(2)
+hdu(7)
+poj(37)
+uva(4)
+字符串处理(2)
+线段树(18)
+学习 生活：感悟(1)
+知识点(3)
+数据结构(1)
+图论(1)
+poj(7)
+训练指南(3)
+学习 生活：感悟(2)
+数据结构(5)
+图论(5)
+acm(21)
+博弈(28)
+小知识点(1)
+乔布斯语录学习(1)
+文章存档
+2013年07月(3)
+2013年06月(94)
+2013年05月(341)
+2013年04月(1)
+阅读排行
+poj 2291水题(202)
+线段树总结(187)
+hdoj动态规划题集（转载）(152)
+poj2121(字符串)(146)
+我的acm新博客(100)
+poj1273(网络流最大流dinic)(90)
+0.8poj2252(bfs三维)(87)
+hdu1394(点树在逆序数中的应用)(83)
+uva579&nbsp;-&nbsp;ClockHands(计算几何)(83)
+poj1142(质因数分解)(82)
+评论排行
+hdu1394(点树在逆序数中的应用)(2)
+poj2121(字符串)(1)
+poj2249（排列组合__套模板)(0)
+poj1833(排列组合)(0)
+poj2748(找规律)(0)
+poj2356(鸽巢原理)(0)
+poj3370(鸽巢原理-与2356一样)(0)
+poj3270(置换群)(0)
+poj1019(数学)(0)
+zoj1316(数学)(0)
+推荐文章
+
+最新评论
+poj2121(字符串)
+KevinMite: 你好 我感觉你这个代码有点问题 就是输入如one milion one thousand one 这...
+hdu1394(点树在逆序数中的应用)
+lanjiangzhou: 大神谦虚了。
+hdu1394(点树在逆序数中的应用)
+时雨晴天: 今天突然发现“点树”这个东西，很好用的样子，在此借鉴楼主的写法
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved GongshangLogo
+  

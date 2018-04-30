@@ -1,0 +1,176 @@
+
+Next
+
+Introduction to WebKit Objective-C Programming Guide
+
+
+Concurrency Note: The WebKit framework is not thread safe. If you call functions or methods in this framework, you must do so exclusively on the main program thread.
+
+
+What Is the WebKit?
+
+The WebKit provides a set of core classes to display web content in windows, and by default, implements features such as following links clicked by the user. The WebKit greatly simplifies the complicated process of loading webpages—that is, asynchronously requesting web content from an HTTP server over the network where the response may arrive incrementally, in random order, or partially due to network errors. The WebKit also simplifies the process of displaying content that can contain various MIME types, and multiple frames each with their own set of scrollbars.
+
+You use the WebKit to display web content in a window of your application. It’s as simple as creating a view, placing it in a window, and sending a URL load request message. By default, your WebKit application behaves as you would expect without error. The WebKit conveniently creates and manages all the views needed to handle different MIME types. When the user clicks on a link in a page, the WebKit automatically creates the views needed to display the next page. 
+
+However, the WebKit doesn’t implement a complete set of web browser features. You can, however, extend the WebKit by implementing custom delegate, view, and model objects. For example, you can implement a delegate to display load status, and the current URL.
+
+The WebKit also offers web content editing. If you enable editing in your WebView, users can edit the web content it displays. You can programmatically control the current selection and control editing behavior using a WebView delegate. You can also modify the Document Object Model directly using an Objective-C API.
+
+You can also access JavaScript from Objective-C and vice versa.
+
+Who Should Read This Document?
+
+The WebKit Objective-C API is specifically designed for embedding web content in your Cocoa or Carbon applications—developing web client applications not web server applications or web content. It is also not suitable for implementing non-GUI applications such as web crawlers. If you are a web content creator or JavaScript programmer, refer to WebKit DOM Programming Topics.
+
+
+Important: Currently, this API is available in Objective-C only. A minimal C API is provided for embedding web browser views in Carbon applications. You can use Objective-C in combination with C. The WebKit works with all versions of OS X v10.2 that have Safari 1.0 installed.
+
+
+Organization of This Document
+
+The following articles cover key concepts in understanding how the WebKit works:
+•
+“Why Use the WebKit?” describes the purpose of the WebKit and why you might want to use it in your applications.
+
+•
+“Core WebKit Classes” describes the core WebKit classes and the object-oriented design that is fundamental to understanding how the WebKit works.
+
+
+The following articles explain how to display web content in views:
+•
+“Simple Browsing” shows how to embed web content in your application by following a few simple steps.
+
+•
+“Multiple Windows” shows how to add support for multiple windows, and open windows automatically.
+
+•
+“Loading Pages” shows how to track the progress of loading frame content.
+
+•
+“Loading Resources” shows how to track the progress of loading individual resources on a page.
+
+•
+“Paging Back and Forward” shows how to implement a back-forward list and add Back and Forward buttons to your application.
+
+•
+“Managing History” shows how to maintain a history of all the visited pages, and allow the user to go to a previously visited page.
+
+•
+“Spoofing” shows how to use user-agent strings.
+
+•
+“Accessing the WebKit From Carbon Applications” explains how to embed web content in Carbon applications.
+
+•
+“Determining WebKit Availability” explains how to determine if the WebKit is available on your system.
+
+
+The following articles explain how to implement web content editing:
+•
+“Enabling Editing” shows how to enable user editing in a WebView.
+
+•
+“Saving and Loading Web Content” shows how to save and load web content edited by the user.
+
+•
+“Modifying the Current Selection” shows how to programmatically modify the current selection.
+
+•
+“Changing Editing Behavior” explains how to use the WebView editing delegate to customize editing behavior.
+
+•
+“Using Undo When Editing” shows how to implement undo when editing web content.
+
+
+The following articles explain how to use the Document Object Model Objective-C API:
+•
+“Using the Document Object Model from Objective-C” describes the DOM Objective-C API in terms of the specification.
+
+•
+“Using the Document Object Model Extensions” describes the WebKit extensions to the DOM API.
+
+
+Read this article if you want to access JavaScript from your application:
+•
+“Using JavaScript From Objective-C” shows how to access the scripting environment from an Objective-C application.
+
+
+You begin using the WebKit by first embedding web content in your application. Read “Simple Browsing,” and, optionally, “Loading Pages” and “Loading Resources” to embed web content. If you want to add more browser-like features or implement a custom user interface, read “Core WebKit Classes” first and any other articles based on your application needs. If you want to edit web content, read “Enabling Editing.”
+
+
+See Also
+
+For more details on the Objective-C WebKit API, read:
+•
+WebKit Objective-C Framework Reference
+
+•
+WebKit Plug-In Programming Topics
+
+•
+WebKit DOM Programming Topics
+
+
+There are other technologies, not covered in this topic, that can be used in conjunction with the WebKit or separately to solve related problems. 
+
+Refer to this document for more details on the URL loading system:
+•
+URL Loading System Programming Guide
+
+
+If you are accessing the WebKit from a Carbon application, refer to these documents:
+•
+WebKit C Reference
+
+•
+Carbon-Cocoa Integration Guide
+
+
+If you are creating web content for Safari or Dashboard, refer to these documents:
+•
+WebKit DOM Programming Topics
+
+•
+Dashboard Reference
+
+
+The /Developer/Examples/WebKit folder also contains more in-depth code examples.
+
+Other related text book resources are:
+•
+HTML and XHTML: The Definitive Guide (O’Reilly)
+
+•
+Cascading Style Sheets: The Definitive Guide (O’Reilly)
+
+•
+JavaScript: The Definitive Guide (O’Reilly)
+
+
+Also refer to the World Wide Web Consortium at www.w3.org for the latest information on web standards.
+
+Next
+
+
+
+
+--------------------------------------------------------------------------------
+
+
+ © 2003, 2012 Apple Inc. All Rights Reserved. (Last updated: 2012-11-09)
+
+ Did this document help you? YesIt's good, but...Not helpful... 
+
+
+Shop the Apple Online Store (1-800-MY-APPLE), visit an Apple Retail Store, or find a reseller.
+Mailing Lists
+RSS Feeds
+ .
+
+Copyright © 2010 Apple Inc. All rights reserved.
+Terms of Use
+Privacy Policy
+. 
+
+

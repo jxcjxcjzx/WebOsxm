@@ -1,0 +1,1014 @@
+
+Discover  Docs  Blog  Community Sign inSign up   
+Docs
+Open webOS Architecture
+Developer Guide
+Developer Reference
+webOS Application APIs
+webOS Foundations
+webOS Service APIs
+Accelerometer
+Activity Manager
+Alarms
+Application Manager
+Connection Manager
+db8
+Download Manager
+Key Manager
+System Properties
+System Services
+webOS Data Types
+webOS Configuration Files
+Building Open webOS
+Porting Open webOS
+Share on linkedin Share on facebook Share on twitter Share on email More Sharing Services
+Download Manager
+The Download Manager service (com.palm.downloadmanager) supports the downloading and uploading of files to and from a HP webOS device.
+
+The download and upload methods return a ticket, a number which identifies the download or upload. For a download, the ticket is used when making other method calls such as pause, resume, check status, and so on.
+
+Methods
+
+cancelDownload -- Cancels a download.
+deleteDownloadedFile -- Deletes a downloaded file.
+download -- Downloads a file.
+downloadStatusQuery -- Returns a download's status.
+listPending -- Lists the pending downloads.
+pauseDownload -- Pauses downloading a file.
+resumeDownload -- Resumes downloading a paused file.
+upload -- Uploads a device file.
+
+cancelDownload
+
+Cancels a download.
+
+Syntax
+{
+    "ticket" : number
+}
+Parameters
+Parameter	Required	Type	Description
+ticket	Yes	number	Download ID returned from download method.
+Returns
+{
+   "ticket"               : number,
+   "returnValue"          : boolean,
+   "subscribed"           : boolean,
+   "aborted"              : boolean,
+   "completed"            : boolean,
+   "completionStatusCode" : number,
+   "errorCode"            : string
+}
+Parameter	Required	Type	Description
+ticket	Yes	number	Passed download ID.
+returnValue	Yes	boolean	true (success) or false (failure).
+subscribed	Yes	boolean	Was download subscribed flag.
+aborted	No	boolean	Was download aborted flag.
+completed	No	boolean	Was download completed flag.
+completionStatusCode	No	number	Completion status code:
+-1 -- General error
+-2 -- Connect timeout
+-3 -- Corrupt file
+-4 -- File system error
+-5 -- HTTP error
+11 -- Interrupted
+12 -- Cancelled
+errorCode	No	string	Error message returned on failure.
+Examples
+Enyo
+
+ ...
+
+ {
+      name : "cancelDownloadFile",
+      kind : "PalmService",
+      service : "palm://com.palm.downloadmanager/",
+      method : "cancelDownload",
+      onSuccess : "cancelFinished",
+      onFailure : "cancelFail",
+      onResponse : "gotResponse"
+ },
+
+ ...
+
+   cancelFinished : function(inSender, inResponse) {
+      enyo.log("Cancel Download success, results=" + enyo.json.stringify(inResponse));
+   },
+   cancelFail : function(inSender, inResponse) {
+      enyo.log("Cancel Download failure, results=" + enyo.json.stringify(inResponse));
+   },   
+   cancelFile : function(inSender, inResponse)
+   {
+      this.$.cancelDownloadFile.call({ ticket: ticket});
+   }
+Mojo
+
+this.controller.serviceRequest('palm://com.palm.downloadmanager/', {
+        method: 'cancelDownload',
+        parameters: { "ticket": ticket},
+        onSuccess : function (e){ Mojo.Log.info("Cancel Download success, results="+JSON.stringify(e)); },
+        onFailure : function (e){ Mojo.Log.info("Cancel Download failure, results="+JSON.stringify(e)); }
+}); 
+Success
+
+Cancel Download sucess, results=
+{
+   "ticket":32,
+   "returnValue":true,
+   "subscribed":false,
+   "aborted":true,
+   "completed":false,
+   "completionStatusCode":12
+}
+Failure
+
+Cancel Download failure, results=
+{
+    "ticket":0,
+    "returnValue":false,
+    "subscribed":false,
+    "errorCode":"missing 'ticket' parameter"
+}
+
+deleteDownloadedFile
+
+Deletes a downloaded file.
+
+Syntax
+{
+    "ticket" : number
+}
+Parameters
+Parameter	Required	Type	Description
+ticket	Yes	number	Unique download ID returned from download.
+Returns
+{
+    returnValue : boolean,
+    ticket      : number,
+    errorCode   : string
+}
+Parameter	Required	Type	Description
+returnValue	Yes	boolean	true (success) or false (failure).
+ticket	Yes	number	Passed download ID.
+errorCode	No	string	Error message returned on failure.
+Examples
+Enyo
+
+...
+
+{
+    name : "deleteDownloadFile",
+    kind : "PalmService",
+    service : "palm://com.palm.downloadmanager/",
+    method : "deleteDownloadedFile",
+    onSuccess : "deleteFinished",
+    onFailure : "deleteFail",
+    onResponse : "gotResponse"
+ }, 
+
+ ...
+
+deleteFinished : function(inSender, inResponse) {
+   enyo.log("deleteDownloadedFile success, results=" + enyo.json.stringify(inResponse));
+},
+deleteFail : function(inSender, inResponse) {
+   enyo.log("deleteDownloadedFile failure, results=" + enyo.json.stringify(inResponse));
+},  
+deleteFile : function(inSender, inResponse)
+{
+   this.$.deleteDownloadFile.call({ticket: ticket});
+}  
+Mojo
+
+this.controller.serviceRequest('palm://com.palm.downloadmanager/', {
+    method: 'deleteDownloadedFile',
+    parameters: {"ticket":ticket},
+    onSuccess : function (e){ Mojo.Log.info("deleteDownloadedFile success, results="+JSON.stringify(e)); },
+    onFailure : function (e){ Mojo.Log.info("deleteDownloadedFile failure, results="+JSON.stringify(e)); }
+}); 
+Success
+
+ deleteDownloadedFile success, results=
+ {
+     "ticket":43,
+     "returnValue":true
+}
+Failure
+
+ deleteDownloadedFile failure, results=
+ {
+     "ticket":166,
+     "returnValue":false,
+     "errorCode": "requested download record not found"
+}
+
+download
+
+Downloads a file located at a target URI, and returns a ticket, a unique download ID you can use in other method calls, i.e., to check status, pause, resume, cancel, and so on.
+
+If subscribe = false, the onSuccess handler is called only once, after the initial request. To be notified when the download is complete, set subscribe = true and onSuccess will be called periodically with progress updates.
+
+The download is complete when the handler receives a response with completed = true. Alternatively, you can call downloadStatusQuery to check this.
+
+If the target filename is not explicitly specified in the call and a file with the same name already exists, the Download Manager appends an underscore ("") and a number (1, _2, and so on) to avoid overwriting the existing copy of the file. If you specify the target filename in the call, any existing file with the same name is overwritten.
+
+Syntax
+{
+    "target"                 : string,
+    "mime"                   : string,
+    "cookieHeader"           : string,
+    "targetDir"              : string,
+    "targetFilename"         : string,
+    "keepFilenameOnRedirect" : boolean,
+    "canHandlePause"         : boolean,
+    "subscribe"              : boolean,
+    "e_rangeLow"             : string,
+    "e_rangeHigh"            : string
+}  
+Parameters
+Parameter	Required	Type	Description
+target	Yes	string	URL of the form "http://file" or "https://file" where file is a well-formed URI targeting a downloadable file.
+mime	No	string	File's MIME type.
+cookieHeader	No	string	Sets the cookie header for the request, i.e., "foo=bar", or, for multiple cookies, "foo=bar;red=blue;night=day".
+targetDir	No	string	The local directory to save the file. This directory must be beneath /media/internal and defaults to /media/internal/downloads if not specified.
+targetFilename	No	string	The local file name to use when saving the file. Defaults to file name specified in target.
+keepFilenameOnRedirect	No	boolean	When the download URL redirects, setting keepFilenameOnRedirect to true preserves the original target filename. This parameter is ignored if targetFilename is specified.
+subscribe	No	boolean	If true, the onSuccess handler is called periodically with updates during the file download. Otherwise, the onSuccess handler is only called once when the download request is sent (not when the download completes). Default is false.
+canHandlePause	No	boolean	If true, you can use the pause/resume APIs with this download. Default is false.
+e_rangeLow	No	string	Indicates where to start the download as a byte offset from the beginning of the file. You can use this to only download a specific byte range.
+e_rangeHigh	No	string	Indicates where to end the download as a byte offset from the beginning of the file. You can use this to only download a specific byte range.
+Returns
+{
+   "returnValue"          : boolean,
+   "ticket"               : number,
+   "url"                  : string,
+   "sourceUrl"            : string,
+   "deviceId"             : string,
+   "authToken"            : string,
+   "destTempPrefix"       : string,
+   "destFile"             : string,
+   "destPath"             : string,
+   "mimetype"             : string,
+   "amountReceived"       : number,
+   "e_amountReceived"     : string,
+   "amountTotal"          : number,
+   "e_amountTotal"        : string,
+   "initialOffset"        : number,
+   "e_initialOffsetBytes  : string,
+   "e_rangeLow"           : string,
+   "e_rangeHigh"          : string,   
+   "canHandlePause"       : boolean,
+   "completionStatusCode" : number,
+   "httpStatus"           : number,   
+   "interrupted"          : boolean,
+   "completed"            : boolean,
+   "aborted"              : boolean,
+   "target"               : string,
+   "errorCode"            : string,
+   "errorText"            : string
+}
+Parameter	Required	Type	Description
+returnValue	Yes	boolean	true (success) or false (failure)
+ticket	Yes	number	Download ID number.
+url	No	string	URI of the downloaded file.
+sourceUrl	No	string	URI of the downloaded file.
+deviceId	No	string	Used in App Catalog downloads.
+authToken	No	string	Used in App Catalog downloads.
+destTempPrefix	No	string	A file is downloaded as a temporary file first -- "++" -- and when the file completes, it is renamed to+.
+destFile	No	string	Name of downloaded file on device.
+destPath	No	string	Path to downloaded file on device.
+subscribed	Yes	boolean	Set to true if subscribed to downloads from that URI.
+amountReceived	No	number	Number of bytes received so far.
+e_amountReceived	No	string	Number of bytes received so far.
+amountTotal	No	number	Total number of bytes downloaded.
+e_amountTotal	No	string	Total number of bytes downloaded.
+initialOffset	No	number	Initial offset
+e_initialOffsetBytes	No	string	Initial offset in bytes.
+e_rangeLow	No	string	Indicates where download began as a byte offset from the beginning of the file.
+e_rangeHigh	No	string	Indicates where download ended as a byte offset from the beginning of the file.
+canHandlePause	No	boolean	Pause and resume functions can be used during download flag.
+completionStatusCode	No	number	Completion status code:
+-1 -- General error
+-2 -- Connect timeout
+-3 -- Corrupt file
+-4 -- File system error
+-5 -- HTTP error
+11 -- Interrupted
+12 -- Cancelled
+200 -- Success
+...Other HTTP return codes (besides 200)...
+httpStatus	No	number	Returns the request's actual HTTP status code without filtering. For example, if a file was not found on the server, it would be "404" (not found).
+If that was the case, completionStatusCode would be "-5".
+interrupted	No	boolean	true if download was interrupted.
+completed	No	boolean	true if download is complete.
+aborted	No	boolean	Was download aborted flag.
+target	No	string	Path to the local downloaded file.
+mimetype	No	string	File's MIME type.
+errorCode	No	string	Error code returned on failure.
+errorText	No	string	Error message returned on failure.
+Examples
+Note: Anything short of a missing target parameter will cause "onSuccess" to be called. For example, trying to download a file that does not exist will still result in "onSuccess" getting called. However, the completeStatusCode will indicate an error, in this case, -5 = HTTP Error. A negative number for this field always means an error.
+
+Enyo
+
+enyo.kind({
+   name : "ServerDownload",
+   kind : enyo.VFlexBox,
+   components : [ {
+      kind : "PageHeader",
+      components : [ {
+         content : "File Download Test"
+      } ]
+   }, {
+      flex : 1,
+      kind : "Pane",
+      components : [ {
+         flex : 1,
+         kind : "Scroller",
+         components : [ {
+            name : "fileDownload",
+            kind : "PalmService",
+            service : "palm://com.palm.downloadmanager/",
+            method : "download",
+            onSuccess : "downloadFinished",
+            onFailure : "downloadFail",
+            onResponse : "gotResponse",
+            subscribe : true
+         },
+
+         {
+            kind : "Button",
+            name : "DownloadButton",
+            caption : "Call PalmService",
+            onclick : "downloadFile"
+         }]
+      } ]
+   }, {
+      kind : "Toolbar",
+      components : [
+
+      ]
+   } ],
+
+   downloadFinished : function(inSender, inResponse) {
+      enyo.log("Download success, results=" + enyo.json.stringify(inResponse));
+   },
+   downloadFail : function(inSender, inResponse) {
+      enyo.log("Download failure, results=" + enyo.json.stringify(inResponse));
+   },
+
+   downloadFile : function(inSender, inResponse)
+   {
+      this.$.fileDownload.call({
+             target: "http://www.somewebsite.com/welcome.html",
+             mime: "text/html",
+             targetDir : "/media/internal/files/",
+             targetFilename : "welcome.html",
+             keepFilenameOnRedirect: false,
+             canHandlePause: true,
+             subscribe: true });
+   }
+
+});
+Mojo
+
+this.controller.serviceRequest('palm://com.palm.downloadmanager/', {
+    method: 'download',
+    parameters: {
+        target: "http://www.somewebsite.com/welcome.html",
+        mime: "text/html",
+        targetDir : "/media/internal/files/",
+        targetFilename : "welcome.html",
+        keepFilenameOnRedirect: false,
+        subscribe: true
+    },
+    onSuccess : function (e){ Mojo.Log.info("Download success, results="+JSON.stringify(e)); },
+    onFailure : function (e){ Mojo.Log.info("Download failure, results="+JSON.stringify(e)); }
+});
+Success
+
+Download success, results=
+{
+   "returnValue":true,
+   "ticket":21,
+   "url":"http://www.somewebsite.com/welcome.html",
+   "target":"/media/internal/files/welcome.html",
+   "subscribed":true
+}
+Download success, results=
+{
+   "ticket":21,
+   "amountReceived":1959,
+   "amountTotal":2386
+}
+Download success, results=
+{
+   "ticket":21,
+   "url":"http://www.somewebsite.com/welcome.html",
+   "sourceUrl":"http://www.somewebsite.com/welcome.html",
+   "deviceId":"",
+   "authToken":"",
+   "destTempPrefix":".",
+   "destFile":"welcome.html",
+   "destPath":"/media/internal/files/",
+   "mimetype":"text/html",
+   "amountReceived":2386,
+   "amountTotal":2386,
+   "canHandlePause":false,
+   "completionStatusCode":200,
+   "interrupted":false,
+   "completed":true,
+   "aborted":false,
+   "target":"/media/internal/files/welcome.html"
+}
+Failure
+
+Download failure, results=
+{
+   "returnValue":false,
+   "errorCode":"-1",
+   "errorText":"Failed to find param target in message",
+   "subscribed":false
+}
+
+
+downloadStatusQuery
+
+Returns a download's status.
+
+Syntax
+{
+    "ticket" : number
+}
+Parameters
+Parameter	Requred	Type	Description
+ticket	Yes	number	Download ID returned from download.
+Returns
+ {
+   "returnValue"          : boolean
+   "ticket"               : number,
+   "url"                  : string,
+   "sourceUrl"            : string,
+   "deviceId"             : string,
+   "authToken"            : string,
+   "destTempPrefix"       : string,
+   "destFile"             : string,
+   "destPath"             : string,
+   "mimetype"             : string,
+   "amountReceived"       : number,
+   "amountTotal"          : number,
+   "canHandlePause"       : boolean,
+   "completionStatusCode" : number,
+   "interrupted"          : boolean,
+   "completed"            : boolean,
+   "aborted"              : boolean,
+   "target"               : string,
+   "owner"                : string,
+   "interface"            : string,
+   "state"                : string,
+   "subscribed"           : boolean,
+   "errorCode"            : string
+}
+Parameter	Required	Type	Description
+returnValue	Yes	boolean	true (success) or false (failure)
+ticket	No	number	A unique download ID you can use in other method calls.
+url	No	string	URI of the downloaded file.
+sourceUrl	No	string	URI of the downloaded file.
+deviceId	No	string	Used in App Catalog downloads.
+authToken	No	string	Used in App Catalog downloads.
+destTempPrefix	No	string	A file is downloaded as a temporary file first -- "++" -- and when the file completes, it is renamed to+.
+destFile	No	string	Name of downloaded file on device.
+destPath	No	string	Path to downloaded file on device.
+mimetype	No	string	File's MIME type.
+amountReceived	No	number	Number of bytes received so far.
+amountTotal	No	number	Total number of bytes downloaded.
+canHandlePause	No	boolean	Pause and resume functions can be used during download flag.
+completionStatusCode	No	number	Completion status code:
+-1 -- General error
+-2 -- Connect timeout
+-3 -- Corrupt file
+-4 -- File system error
+-5 -- HTTP error
+11 -- Interrupted
+12 -- Cancelled
+200 -- Success
+...Other HTTP return codes (besides 200)...
+interrupted	No	boolean	true if download was paused.
+completed	No	boolean	true if download is complete.
+aborted	No	boolean	Was download aborted flag.
+target	No	string	Path to the local downloaded file.
+owner	No	string	ID and PID of app requesting download.
+interface	No	string	Interface name, i.e., "wifi".
+state	No	string	Download state
+subscribed	No	boolean	Is download subscribed flag. Returned on failure.
+errorCode	No	string	Error message returned on failure.
+Examples
+Enyo
+
+...
+
+{
+    name : "queryDownloadFile",
+    kind : "PalmService",
+    service : "palm://com.palm.downloadmanager/",
+    method : "downloadStatusQuery",
+    onSuccess : "queryFinished",
+    onFailure : "queryFail",
+    onResponse : "gotResponse"
+},      
+
+ ...
+
+queryFinished : function(inSender, inResponse) {
+    enyo.log("downloadStatusQuery success, results=" + enyo.json.stringify(inResponse));
+},
+queryFail : function(inSender, inResponse) {
+    enyo.log("downloadStatusQuery failure, results=" + enyo.json.stringify(inResponse));
+},  
+queryFile : function(inSender, inResponse)
+{
+      this.$.queryDownloadFile.call({ticket: ticket});
+} 
+Mojo
+
+this.controller.serviceRequest('palm://com.palm.downloadmanager/', {
+     method: 'downloadStatusQuery',
+     parameters: {"ticket":ticket},
+     onSuccess : function (e){ Mojo.Log.info("downloadStatusQuery success, results="+JSON.stringify(e)); },
+     onFailure : function (e){ Mojo.Log.info("downloadStatusQuery failure, results="+JSON.stringify(e)); }
+  });
+Success
+
+ downloadStatusQuery success, results=
+ {
+   "ticket":16,
+   "url":"http://www.somewebsite.com/MekongThumb.jpg",
+   "sourceUrl":"http://www.somewebsite.com/MekongThumb.jpg",
+   "deviceId":"",
+   "authToken":"",
+   "destTempPrefix":".",
+   "destFile":"MekongThumb.jpg",
+   "destPath":"/media/internal/files/",
+   "mimetype":"image/jpeg",
+   "amountReceived":301560,
+   "amountTotal":301560,
+   "canHandlePause":true,
+   "completionStatusCode":200,
+   "interrupted":false,
+   "completed":true,
+   "aborted":false,
+   "target":"/media/internal/files/MekongThumb.jpg",
+   "owner":"com.yourdomain.downloadmanager 1059",
+   "interface":"wifi",
+   "state":"completed",
+   "returnValue":true
+}
+Failure
+
+downloadStatusQuery failure, results=
+{  
+    "ticket": 122,   
+    "returnValue": false,
+    "errorCode": "ticket_not_found",
+    "subscribed": false 
+}
+
+listPending
+
+Lists pending downloads.
+
+Syntax
+{ }
+Parameters
+None.
+
+Returns
+{
+   "returnValue" : boolean,
+   "count"       : number,
+   "downloads":[
+      {
+         "ticket"         : number,
+         "url"            : string,
+         "sourceUrl"      : string,
+         "deviceId"       : string,
+         "authToken"      : string,
+         "target"         : string,
+         "destTempPrefix" : string,
+         "destFile"       : string,
+         "destPath"       : string,
+         "mimetype"       : string,
+         "amountReceived" : number,
+         "amountTotal"    : number,
+         "canHandlePause" : boolean,
+         "lastUpdateAt"   : number,
+         "queued"         : boolean,
+         "owner"          : string,
+         "connectionName" : string
+      }
+   ]
+}
+Parameter	Required	Type	Description
+returnValue	Yes	boolean	true (success) or false (failure)
+count	No	number	Number of downloads in progress.
+downloads	No	object array	One object for each pending download. This object is absent if there are no pending downloads.
+ticket	No	number	Download's ID from download.
+url	No	string	URI of the downloaded file.
+sourceUrl	No	string	URI of the downloaded file.
+deviceId	No	string	Used in App Catalog downloads.
+authToken	No	string	Used in App Catalog downloads.
+target	No	string	Path and filename of the local downloaded file.
+destTempPrefix	No	string	A file is downloaded as a temporary file first -- "++" -- and when the file completes, it is renamed to+.
+destFile	No	string	Name of downloaded file on device.
+destPath	No	string	Path to downloaded file on device.
+mimetype	No	string	File's MIME type, i.e., "text/html"
+amountReceived	No	number	Number of bytes received so far.
+amountTotal	No	number	Total number of bytes downloaded.
+canHandlePause	No	boolean	Pause and resume functions can be used during download flag.
+lastUpdateAt	No	number	Bytemark at which the last subscription update was sent
+queued	No	boolean	Is file queued for download flag.
+owner	No	string	ID and PID of app requesting download.
+connectionName	No	string	Connection name, i.e., "wifi".
+Examples
+Enyo
+
+...
+
+{
+    name : "getPendingFiles",
+    kind : "PalmService",
+    service : "palm://com.palm.downloadmanager/",
+    method : "listPending",
+    onSuccess : "getPendingFinished",
+    onFailure : "getPendingFail",
+    onResponse : "gotResponse"
+},      
+
+ ...
+
+getPendingFinished : function(inSender, inResponse) {
+    enyo.log("listPending success, results=" + enyo.json.stringify(inResponse));
+},
+getPendingFail : function(inSender, inResponse) {
+    enyo.log("listPending failure, results=" + enyo.json.stringify(inResponse));
+},  
+getPending : function(inSender, inResponse)
+{
+  this.$.getPendingFiles.call({});
+}     
+Mojo
+
+this.controller.serviceRequest('palm://com.palm.downloadmanager/', {
+     method: 'listPending',
+     parameters: {},
+     onSuccess : function (e){ Mojo.Log.info("List Pending success, results="+JSON.stringify(e)); },
+     onFailure : function (e){ Mojo.Log.info("List Pending failure, results="+JSON.stringify(e)); }
+});
+Success
+
+List Pending success, results={
+{
+   "returnValue":true,
+   "count":1,
+   "downloads":[
+      {
+         "ticket":41,
+         "url":"http://www.somewebsite.com/access_110201.log",
+         "sourceUrl":"http://www.somewebsite.com/access_110201.log",
+         "deviceId":"",
+         "authToken":"",
+         "target":"/media/internal/files/.access_110201.log",
+         "destTempPrefix":".",
+         "destFile":"access_110201.log",
+         "destPath":"/media/internal/files/",
+         "mimetype":"application/x-binary",
+         "amountReceived":675,
+         "amountTotal":9876,
+         "canHandlePause":true,
+         "lastUpdateAt":0,
+         "queued":false,
+         "owner":"com.yourdomain.downloadmanager 1012",
+         "connectionName":"wifi"
+      }
+   ]
+}
+
+pauseDownload
+
+Pauses downloading a file.
+
+Note
+
+Only downloads started with canHandlePause = true can be paused; otherwise, calling pauseDownload on a downloading file will act like a "cancel".
+
+Syntax
+{
+    "ticket" : number
+}
+Parameters
+Parameter	Required	Type	Description
+ticket	Yes	number	Download ID from download
+Returns
+{
+   "returnValue" : boolean,
+   "subscribed"  : boolean,
+   "errorCode"   : string
+}
+Parameter	Required	Type	Description
+returnValue	Yes	boolean	true (success) or false (failure)
+subscribed	Yes	boolean	Is download subscribed to flag
+errorCode	No	string	Error message returned on failure.
+Examples
+Enyo
+
+...
+
+{
+    name : "pauseDownloadFile",
+    kind : "PalmService",
+    service : "palm://com.palm.downloadmanager/",
+    method : "pauseDownload",
+    onSuccess : "pauseFinished",
+    onFailure : "pauseFail",
+    onResponse : "gotResponse"
+},          
+
+ ...
+
+pauseFinished : function(inSender, inResponse) {
+    enyo.log("pauseDownload success, results=" + enyo.json.stringify(inResponse));
+},
+pauseFail : function(inSender, inResponse) {
+    enyo.log("pauseDownload failure, results=" + enyo.json.stringify(inResponse));
+},   
+pauseFile : function(inSender, inResponse)
+{
+  this.$.pauseDownloadFile.call({ticket: ticket});
+} 
+Mojo
+
+this.controller.serviceRequest('palm://com.palm.downloadmanager/', {
+     method: 'pauseDownload',
+     parameters: {},
+     onSuccess : function (e){ Mojo.Log.info("pauseDownload success, results="+JSON.stringify(e)); },
+     onFailure : function (e){ Mojo.Log.info("pauseDownload failure, results="+JSON.stringify(e)); }
+}); 
+Success
+
+pauseDownload success, results=
+{
+    "subscribed":false,
+    "returnValue":true
+}
+Failure
+
+pauseDownload failure, results=
+{
+    "subscribed":false,
+    "returnValue":false,
+    "errorCode":"Ticket provided does not correspond to a downloading transfer"
+}   
+
+resumeDownload
+
+Resumes a paused download.
+
+{
+    "ticket" : number
+}
+Parameters
+Parameter	Required	Type	Description
+ticket	Yes	number	Download ID from download
+Returns
+{
+   "returnValue" : boolean,
+   "subscribed"  : boolean,
+   "errorCode"   : string
+}
+Parameter	Required	Type	Description
+returnValue	Yes	boolean	true (success) or false (failure)
+subscribed	Yes	boolean	Is download subscribed to flag
+errorCode	No	string	Error message returned on failure.
+Examples
+Enyo
+
+...
+
+{
+    name : "resumeDownloadFile",
+    kind : "PalmService",
+    service : "palm://com.palm.downloadmanager/",
+    method : "resumeDownload",
+    onSuccess : "resumeFinished",
+    onFailure : "resumeFail",
+    onResponse : "gotResponse"
+},          
+
+ ...
+
+resumeFinished : function(inSender, inResponse) {
+    enyo.log("resumeDownload success, results=" + enyo.json.stringify(inResponse));
+},
+resumeFail : function(inSender, inResponse) {
+    enyo.log("resumeDownload failure, results=" + enyo.json.stringify(inResponse));
+},   
+resumeFile : function(inSender, inResponse)
+{
+  this.$.resumeDownloadFile.call({ticket: ticket});
+} 
+Mojo
+
+this.controller.serviceRequest('palm://com.palm.downloadmanager/', {
+     method: 'resumeDownload',
+     parameters: {},
+     onSuccess : function (e){ Mojo.Log.info("resumeDownload success, results="+JSON.stringify(e)); },
+     onFailure : function (e){ Mojo.Log.info("resumeDownload failure, results="+JSON.stringify(e)); }
+}); 
+Success
+
+resumeDownload success, results=
+{
+    "subscribed":false,
+    "returnValue":true
+}
+Failure
+
+resumeDownload failure, results=
+{
+    "subscribed":false,
+    "returnValue":false,
+    "errorCode":"Ticket provided does not correspond to an interrupted transfer in history"
+}   
+
+upload
+
+Uploads a file to the target URI.
+
+If subscribe = false, the onSuccess handler is called only once, after the initial request. To be notified when the upload is complete, set subscribe = true and onSuccess will be called periodically with progress updates.
+
+The upload is complete when the handler receives a response with completed = true.
+
+On completing the upload, the upload method sends the following object to all subscribed apps for both success and failure cases:
+
+Syntax
+{
+    "filename"          : string,
+    "url"               : string,
+    "fileLabel"         : string,
+    "contentType"       : string,
+    "postParameters"  
+    {
+       "key"            : string,
+       "data"           : string,
+       "contentType"    : string
+    },
+    "cookies" :
+    {
+      ""     : string,
+      ...
+    },
+    "customHTTPHeaders" : string array
+}                           
+Parameters
+Parameter	Required	Type	Description
+fileName	Yes	string	Path to the local file to be uploaded.
+url	Yes	string	The URL to which to post the file.
+fileLabel	No	string	The label portion of the file name (as opposed to the file extension).
+contentType	No	string	The MIME type of the file.
+postParameters	No	object	An object containing key/data/content triplets to support parameters required by the server to which the file is uploaded. See 3 fields below.
+key	No	string	Header name.
+data	No	string	Header value.
+contentType	No	string	Header value type. Default is text/plain.
+cookies	No	object	Key-value pairs that carry additional optional information with the upload, in the format:
+cookies: { "key1": "val1", "key2": "val2", ...}
+customHttpHeaders	No	object	Values to include in the HTTP headers, in the format:
+customHttpHeaders: [ "val1", "val2", ...]
+subscribe	No	boolean	If set to true, upload() calls the onSuccess handler periodically with updates during the file upload. If set to false, calls the onSuccess handler only when the upload request is sent.
+Returns
+{
+   "ticket"         : number,
+   "returnValue"    : boolean,
+   "sourceFile"     : string,
+   "url"            : string,
+   "completionCode" : number,
+   "httpCode"       : number,
+   "responseString" : string,
+   "subscribed"     : boolean,
+   "errorCode"      : string   
+}
+Parameter	Required	Type	Description
+ticket	Yes	number	A number uniquely identifying the upload.
+returnValue	No	boolean	true (success) or false (failure).
+sourceFile	No	string	Path to the local file uploaded.
+url	No	string	The URL to which to post the file.
+completionCode	No	number	Completion status code:
+0 -- Success
+-1 -- General error
+-2 -- Connect timeout
+-3 -- Corrupt file
+-4 -- File system error
+-5 -- HTTP error
+11 -- Interrupted
+12 -- Cancelled
+completed	No	boolean	Is upload complete flag.
+httpCode	No	number	HTTP return code, as described at http://www.w3.org/Protocols/HTTP/HTRESP.html
+responseString	No	string	Server response to the POST request.
+location	No	string	Uploaded file location.
+subscribed	No	boolean	Set to true if subscribed to updates on the upload request.
+errorCode	No	string	One of the following error messages:
+url parameter missing
+fileName parameter missing
+failed to start upload
+Examples
+Enyo
+
+...
+
+{
+    name : "uploadFile",
+    kind : "PalmService",
+    service : "palm://com.palm.downloadmanager/",
+    method : "upload",
+    onSuccess : "uploadFinished",
+    onFailure : "uploadFail",
+    onResponse : "gotResponse"
+},      
+
+ ...
+
+uploadFinished : function(inSender, inResponse) {
+   enyo.log("Upload success, results=" + enyo.json.stringify(inResponse));
+},
+uploadFail : function(inSender, inResponse) {
+   enyo.log("Upload failure, results=" + enyo.json.stringify(inResponse));
+},    
+uploadDeviceFile : function(inSender, inResponse)
+{
+    this.$.uploadFile.call({
+    "fileName": "/media/internal/files/MekongThumb.jpg",
+    "fileLabel":"media",
+    "url": "http://twitpic.com/api/uploadAndPost",
+    "contentType": "image/jpg",
+    "postParameters": [
+        {"key":"username" , "data": "helenwheels99"},
+        {"key":"password" , "data": "kd9o$#Pk"},
+     ],
+    "subscribe": true 
+    });
+}  
+Mojo
+
+this.controller.serviceRequest('palm://com.palm.downloadmanager/', {
+    method: "upload",
+    parameters: {
+        "fileName": "/media/internal/files/MekongThumb.jpg",
+        "fileLabel":"media",
+        "url": "http://twitpic.com/api/uploadAndPost",
+        "contentType": "image/jpg",
+        "postParameters": [
+            {"key":"username" , "data": "helenwheels99"},
+            {"key":"password" , "data": "kd9o$#Pk"},
+             ],
+         "subscribe": true 
+      },
+      onSuccess : function (e){ Mojo.Log.info("Upload success, results="+JSON.stringify(e)); },
+      onFailure : function (e){ Mojo.Log.info("Upload failure, results="+JSON.stringify(e)); }
+});
+Success
+
+Upload success, results=
+{
+    "returnValue":true,
+    "ticket":5,
+    "subscribed":true
+}
+Upload success, results=
+ {
+   "ticket":5,
+   "sourceFile":"/media/internal/files/MekongThumb.jpg",
+   "url":"http://twitpic.com/api/uploadAndPost",
+   "completed":true,
+   "completionCode":0,
+   "httpCode":200,
+   "responseString":"
+                     \n
+                     \n 
+                     \n 164784775
+                     \n 4tbbf6
+                     \n  http://twitpic.com/4tbbf6
+                     \n",
+   "location":""
+}
+Failure
+
+Upload failure, results=
+{
+   "returnValue":false,
+   "errorCode":"url parameter missing"
+}
+485 Potrero Ave. Sunnyvale, CA 94085 
++1 408-617-7000 Main Phone
+Careers
+Sponsored by 
+© 2012 Hewlett-Packard Development Company, L.P. The information contained herein is subject to change without notice. 
+All screen images simulated. Site is best viewed in Chrome, Firefox, Safari, IE9 and above.  Privacy Policy  Terms of Use

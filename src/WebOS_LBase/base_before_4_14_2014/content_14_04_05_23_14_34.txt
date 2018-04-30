@@ -1,0 +1,48 @@
+Jamendo开源在线音乐播放器源码分析（一）
+
+分类： Android随笔 2012-08-15 19:40 1170人阅读 评论(2) 收藏 举报
+音乐dialogandroidapplication
+Jamendo源码地址：https://github.com/telecapoland/jamendo-android 
+src跟res结构：
+
+
+
+之后将会按照流程走向和模块进行分析。
+先来分析下初始界面：
+
+
+
+先从manifest文件入手：
+
+<application android:icon="@drawable/icon" android:label="@string/app_name" android:name="JamendoApplication">
+...
+<activity android:name=".activity.SplashscreenActivity">
+	<intent-filter>
+		<action android:name="android.intent.action.MAIN"></action>
+		<category android:name="android.intent.category.LAUNCHER"></category>
+	</intent-filter>
+</activity>
+</application>
+一、全局的JamendoApplication
+中央仓库预处理一些信息和存放一些公用的信息，在主activity之前先执行，后面穿插着说。
+
+二、launcher activity：SplashscreenActivity
+
+一进主activity，先加载页面，然后从配置文件判断是否需要弹出提示的dialog，dimiss掉dialog后触发一个淡出动画，动画结束，启动HomeActivity同时finish当前activity。
+1、PreferenceManager.getDefaultSharedPreferences(this).getBoolean(FIRST_RUN_PREFERENCE, true)
+从/data/data/包名/shared_prefs/下取得默认的配置文件，这个默认的文件名看源码可知是:包名_preferences.xml。如果是true，则弹出dialog，这个自定义dialog可以跟一下，非常简单。
+2、给dialog设置setOnDismissListener()监听，当摁back键或者dialog上的close时都会触发这个监听，会先检测dialog上的checkbook是否选中，如果选中则更改配置，下次就不会弹出此dialog，再触发动画。
+3、通过handler延迟执行此动画。
+
+AnimationUtils.loadAnimation(this, R.anim.fade_out);//加载此淡出动画
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+	android:zAdjustment="bottom" android:fillAfter="false">
+	<alpha android:fromAlpha="1.0" android:toAlpha="0"
+		android:duration="400" />
+</set>//1.0代表不透明，0.0代表全透明。duration代码持续时间400ms
+endAnimation.setFillAfter(true);
+//这个代表将动画留在最后一帧，默认是留在第一帧，如果注释了这句则动画结束后又会出现不透明时的状态，你可以注释掉看下效果
+endAnimation.setAnimationListener();
+//设置动画在各个状态时的监听器，在动画结束时将会以FLAG_ACTIVITY_CLEAR_TOP形式启动HomeActivity。
+下篇分析HomeActivity。
+

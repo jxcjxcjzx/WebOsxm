@@ -1,0 +1,163 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+seahoyel的专栏
+目录视图摘要视图订阅
+2013年7月微软MVP申请开始啦！        专访卜茂霞：嵌入式汽车开发潜力巨大      CSDN博客移动开发排行榜 
+【有奖提问】CSDN论坛第1期专家问答开始        “传统商家移动化之路”会议        下载频道3月领任务~赚下载分！
+ C++程序的C语言接口
+分类： 编程小结 2007-05-07 11:47 406人阅读 评论(1) 收藏 举报
+c++语言ciostreamclass编译器
+有时候我们得到一个C++库，但却要在C语言中使用该库中的函数，或者想编一个在C语言下也容易使用的C++库。
+首先我们写两个文件，分别是foo.cpp和main.c，
+先看main.c
+void g(void);
+
+int main()
+{
+    g();
+    return 0;
+}
+只是简单声明了函数g()，再在main()中调用。
+g() 在foo.cpp中定义
+#include <iostream>
+using namespace std;
+
+class Foo {
+    int i;
+public:
+    Foo(int i = 0);
+    void print();
+};
+
+Foo::Foo(int i) : i(i) {}
+void Foo::print()
+{
+       cout << "Foo " << i << endl; 
+}
+
+extern "C" {
+void g(void)
+{
+    Foo foo;
+    foo.print();
+}
+}
+定义了一个类Foo，在g()中实例化了一个foo，使用print()方法打印一些信息。
+我们所要作的就是在g()函数外加上extern "C" {和}，这样C++编译器在编译g()的时候会以C语言的方式来生成g()的内部名，这样连接器才能在C语言目标代码中找到g()的引用。
+在GCC下编译：
+gcc -c main.c
+g++ -c foo.cpp
+g++ main.o foo.o
+在MSVC中编译
+cl foo.cpp main.c
+ 
+ 
+上面foo.cpp中的g()声明和定义是在一块儿的，其实只要在函数声明上加上extern "C"就行了，所以我们可以把声明提取到一个头文件foo.h中去。
+foo.h
+#ifndef FOO_H
+#define FOO_H
+
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
+void g(void);
+
+#ifdef  __cplusplus
+}
+#endif
+#endif /* FOO_H */
+foo.cpp
+#include "foo.h"
+#include <iostream>
+using namespace std;
+
+class Foo {
+    int i;
+public:
+    Foo(int i = 0);
+    void print();
+};
+
+Foo::Foo(int i) : i(i) {}
+void Foo::print()
+{
+       cout << "Foo " << i << endl; 
+}
+
+void g(void)
+{
+    Foo foo;
+    foo.print();
+}
+main.c
+#include "foo.h"
+
+int main()
+{
+    g();
+    return 0;
+}
+ 
+分享到： 
+上一篇：GnuPG上手指南
+下一篇：使用Haskell编写的Yi－义编辑器
+
+查看评论
+1楼 biosman 2010-08-08 00:04发表 [回复]
+
+好，这才是真正的高手。这样一来C语言有可能进入大型程序领域。尽管其实是C++
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+ 
+个人资料
+  
+seahoyel
+ 
+访问：5560次
+积分：102分
+排名：千里之外
+原创：4篇转载：1篇译文：0篇评论：3条
+文章搜索
+
+文章分类
+python(0)
+Text Editor(1)
+Windows Script(2)
+常用软件(1)
+编程小结(1)
+文章存档
+2008年02月(1)
+2007年05月(1)
+2006年12月(1)
+2006年04月(2)
+阅读排行
+GnuPG上手指南(1530)
+启动/禁用本地连接的vbs脚本(1325)
+使用Haskell编写的Yi－义编辑器(1220)
+下载网页中代理的地址与端口的js脚本(683)
+C++程序的C语言接口(406)
+评论排行
+GnuPG上手指南(2)
+C++程序的C语言接口(1)
+启动/禁用本地连接的vbs脚本(0)
+下载网页中代理的地址与端口的js脚本(0)
+使用Haskell编写的Yi－义编辑器(0)
+推荐文章
+
+最新评论
+GnuPG上手指南
+virgoboy: 非常好的介绍，谢谢哦
+C++程序的C语言接口
+biosman: 好，这才是真正的高手。这样一来C语言有可能进入大型程序领域。尽管其实是C++
+GnuPG上手指南
+jessonliu: 我是地3333次访问的
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+ 联系邮箱：webmaster(at)csdn.net
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+

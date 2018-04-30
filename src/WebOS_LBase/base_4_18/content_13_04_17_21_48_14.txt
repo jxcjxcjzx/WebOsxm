@@ -1,0 +1,258 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+L's Space
+ 
+
+
+
+
+
+目录视图
+ 摘要视图
+ 订阅
+ . 
+
+
+
+【免费】全新海外营销策论分享        CSDN社区4月技术大分享活动火爆开始      专访黄钊吉：SQL Server现已经向云过渡 
+公告：CSDN新版首页上线      欢迎关注CSDN产品客服微博      CSDN论坛 第4期专家问答——基于openstac的可扩展云平台开发 
+
+
+
+pku 2394(最短路径,dijkastra) 
+. 
+分类： [ACM] 2009-12-15 19:14 102人阅读 评论(0) 收藏 举报 
+
+c
+ 
+
+注意重边，多头牛同一位置。
+ 
+ 
+ 
+
+
+
+[cpp] view plaincopyprint?
+01.#include <iostream>  
+02.#include <vector>  
+03.using namespace std;  
+04.vector<int> vec;  
+05.int map[505][505];           //地图  
+06.int dis[505];               //保存最短路径的值  
+07.int cow[105];             //保存牛在哪个农场  
+08.bool visit[505];         //检查该点是否已访问  
+09.int f,p,c,m;  
+10.const int inf=999999999;  
+11.void dijkastra(){         //dij模板  
+12.    int min_t,tag;  
+13.  
+14.    for(int i=1;i<=f;++i){  
+15.        dis[i]=map[1][i];  
+16.        visit[i]=false;  
+17.    }  
+18.    visit[1]=true;  
+19.  
+20.    for(int i=1;i<=f;++i){  
+21.        min_t=inf;  
+22.        for(int j=1;j<=f;++j)  
+23.            if(!visit[j]&&dis[j]<min_t){  
+24.                min_t=dis[j];  
+25.                tag=j;  
+26.            }  
+27.            if(min_t==inf) return ;  
+28.            visit[tag]=true;  
+29.            for(int j=1;j<=f;++j)  
+30.                if(!visit[j]&&map[tag][j]<inf&&dis[tag]+map[tag][j]<dis[j])  
+31.                    dis[j]=dis[tag]+map[tag][j];  
+32.    }  
+33.}  
+34.int main(){  
+35.    while (cin>>f>>p>>c>>m)  
+36.    {  
+37.        vec.clear();  
+38.        int a,b,t;  
+39.        for(int i=1;i<=f;++i)  
+40.            for(int j=1;j<=f;++j){  
+41.                    map[i][j] = inf;  
+42.                    if(i==j) map[i][j]=0;  
+43.            }  
+44.            for(int i=0;i<p;++i){  
+45.                cin>>a>>b>>t;  
+46.                if(map[a][b]>t){  
+47.                    map[a][b]=t;  
+48.                    map[b][a]=t;  
+49.                }  
+50.            }  
+51.  
+52.        for(int i=1;i<=c;++i)  
+53.            cin>>cow[i];               //input  and  initial  
+54.  
+55.        dijkastra();  
+56.  
+57.            for(int i=1;i<=c;++i)          //记录可以到达的牛的编号  
+58.                if(dis[ cow[i] ]<=m) vec.push_back(i);  
+59.            int size=(int)vec.size();  
+60.            cout<<size<<endl;  
+61.            for(int i=0;i<size;++i)  
+62.                cout<<vec[i]<<endl;  
+63.    }  
+64.    return 0;  
+65.}  
+ 
+
+分享到： 
+
+上一篇：二分图匹配：匈牙利算法
+ 下一篇：pku 1018 ( 贪心 )
+ . 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料 
+
+liaojinyu282 
+
+
+
+
+访问：15314次
+ 积分：660分
+ 排名：第16573名
+ . 原创：47篇
+ 转载：2篇
+ 译文：0篇
+ 评论：9条
+ . 
+文章搜索 
+
+. 
+文章分类 Ogre(1) 
+[ACM](43) 
+图形学(3) 
+数据结构(5) 
+杂物(0) 
+算法(2) 
+Qt(0) 
+
+文章存档 
+2011年06月(1).
+2010年11月(3).
+2010年06月(1).
+2010年05月(10).
+2010年04月(3).
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+阅读排行 Ogre载入Ogitor导出的场景(1474) 
+Bresenham算法实现任意斜率直线绘制(1374) 
+Weiler-Atherton多边形裁剪算法(990) 
+Cohen-Sutherland线段裁剪算法(776) 
+pku 3469(最大流，最小割)(477) 
+pku 1511(最短路径,spfa静态邻接表)(424) 
+pku 1014(多重背包)(382) 
+hdu 2222(AC自动机模板)(334) 
+[ACM] ZOJ 1205(293) 
+pku 1847(最短路径,floyd)(282) 
+
+评论排行 Ogre载入Ogitor导出的场景(5) 
+pku 3630(静态trie树)(1) 
+pku 1016(字符串)(1) 
+hdu 2222(AC自动机模板)(1) 
+pku 1659 (Havel定理)(1) 
+pku 3259(最短路径,spfa)(0) 
+pku 1186(DFS+hash)(0) 
+hdu 1285(拓补排序)(0) 
+pku 1010(DFS)(0) 
+pku 1847(最短路径,floyd)(0) 
+
+推荐文章 
+最新评论 Ogre载入Ogitor导出的场景 
+hklwjy: 你代码的最后一行 SceneManager好像没有getSingleton（）这个函数吧？ 
+
+Ogre载入Ogitor导出的场景 
+gongliju: 616707770 
+
+Ogre载入Ogitor导出的场景 
+gongliju: 能麻烦加下我Q么，问你些问题。。。 
+
+Ogre载入Ogitor导出的场景 
+lockon_2080: 请问OgreTerrain_d.lib是只有OGRE1.7.2才有的吗？ 
+
+hdu 2222(AC自动机模板) 
+dy0013: 木有delete只new的话case多了会MLE的 
+
+Ogre载入Ogitor导出的场景 
+lelingjieli: 谢谢！ 
+
+pku 1659 (Havel定理) 
+qqmantou: 
+
+pku 3630(静态trie树) 
+匿名用户: 
+
+pku 1016(字符串) 
+tanchunhaihaijiayou: 
+
+
+知识链接 云风的 BLOG
+GameDev
+ 
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持Copyright © 1999-2012, CSDN.NET, All Rights Reserved  
+
+
+
+
+
+
+
+
+
+

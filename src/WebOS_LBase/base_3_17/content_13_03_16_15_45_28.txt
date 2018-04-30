@@ -1,0 +1,233 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+chenchao03的专栏
+目录视图摘要视图订阅
+博客专家信息更新登记表        专访卜茂霞：嵌入式汽车开发潜力巨大      云计算最低优惠仅剩1天 
+专访陈勇： 敏捷开发现状及发展之路        “传统商家移动化之路”会议        下载频道3月领任务~赚下载分！
+ linux 高级编程
+2009-01-13 16:03 222人阅读 评论(0) 收藏 举报
+linux编程多线程struct网络数据分析
+
+应用编程;
+1.多进程编程:
+    主要处理多个任务同时执行,或有不通的任务需要中断等待处理等.最好做好进程组管理
+    应用示例:
+process1-server.c
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <string.h>
+#include <time.h>
+#include <sys/stat.h>
+struct msgbuf {
+        int mtype;
+        char mtext[256];
+};
+int init_daemon(void)
+{
+        int pid;
+        int i;
+        if ((pid = fork()) < 0)
+        {
+                perror("fork");
+                exit(1);
+        }else if (pid > 0) //Fa.父进程退出
+        {
+                exit(0);
+        }
+        if ((pid = fork()) < 0)
+        {
+                perror("fork2");
+                exit(1);
+        }else if (pid > 0) //Su.第一个子进程也退出
+        {
+                exit(0);
+        }
+         //以下为第二个子进程运行
+        sleep(2);
+        setsid();//使子进程脱离父进程的关系，把父进程的信息改掉;;;脱离终端的控制
+        for (i = 0; i < 1024; i++)//关闭文件描述符,节省资源
+                close(i);
+        chdir("/tmp");//改变工作目录
+        umask(0);//重设掩码，使程序工作顺畅
+        return 0;
+}
+int main(int argc, char **argv)
+{
+        key_t key;
+        int msgid;
+        char *p;
+        time_t t;
+        struct msgbuf msg = {100, ""};//设置消息的ID＝100
+        key = ftok("/home/chenchao/learn/star", 's');//产生一个key
+        msgid = msgget(key, IPC_CREAT | 0666);//产生一个ipc标识
+        if (msgid == -1)
+        {
+                perror("msgget");
+                exit(1);
+        }
+        init_daemon();//守护进程创建
+        while(1)
+        {
+                t = time(NULL);
+                p = asctime(localtime(&t));
+                strcpy(msg.mtext, p);
+                msgsnd(msgid, &msg, strlen(msg.mtext) + 1, IPC_NOWAIT);//把时间字符放入消息队列无阻塞
+                sleep(2);
+        }
+}
+process-client.c
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <string.h>
+#include <time.h>
+struct msgbuf {
+        int mtype;
+        char mtext[256];
+};
+int main(int argc, char **argv)
+{
+        key_t key;
+        int msgid;
+        struct msgbuf msg;
+        key = ftok("/home/chenchao/learn/star", 's');
+        msgid = msgget(key, IPC_CREAT | 0666);
+        if (msgid == -1)
+        {
+                perror("msgget");
+                exit(1);
+        }
+        while(1)
+        {
+                if (msgrcv(msgid, &msg, 256, 100, IPC_NOWAIT) == -1)
+                {
+                        perror("msgrcv");
+                }
+                printf("%s", msg.mtext);
+                memset(&msg, 0, sizeof(struct msgbuf));
+                sleep(2);
+        }
+}
+
+2.多线程编程:
+    基本上同多线程一样,目前以多线程取代多进程比较多.差异是线程是进程的单位,线程间为数据(内存)共享的,不同线程在一个线程组中即进程内.而进程间数据不共享,需要通过管道等其他方法来处理数据.最好做好线程组管理
+3.信号编程:
+    linux系统中存在各种各样的信号传输,也可以把它叫为软中断或异常等等的现象.具体的可以在进程间信号通知等.
+4.信号量编程:
+    主要处理PV操作的,即数据同步等,
+5.互斥:
+    一般使用在多线程编程中,由于是内存共享的,多线程中的某些共用变量防止被多个线程同时访问(写访问)而造成数据的不确定性操作.一般加上互斥操作.还有就是多CPU中.
+6.阻塞/非阻塞编程:
+    认清,分析,在哪些操作中用阻塞,哪些操作中用非阻塞.主要通过对消息/数据的重要性及实效性的判断来处理.
+7.进程中管道编程:
+    有单向管道,双向管道,主要用来做数据传输.
+8.高级内存/指针管理:
+    怎么样用好指针来管理内存,及减少数据拷贝.
+9.定时器实现:
+
+10.回调函数实现:
+主：：：：
+在fork()/execve()过程中，假设子进程结束时父进程仍存在，而父进程fork()之前既没安装SIGCHLD信号处理函数调用 waitpid()等待子进程结束，又没有显式忽略该信号，则子进程成为僵尸进程，无法正常结束，此时即使是root身份kill -9也不能杀死僵尸进程。补救办法是杀死僵尸进程的父进程(僵尸进程的父进程必然存在)，僵尸进程成为”孤儿进程”，过继给1号进程init，init始终会负责清理僵尸进程。
+
+产生原因：
+1.在子进程终止后到父进程调用wait()前的时间里，子进程被称为zombie。
+2.网络原因有时会引起僵死进程。
+
+解决方法：
+1.设置SIGCLD信号为SIG_IGN，系统将不产生僵死进程。
+2.用两次fork()，而且使紧跟的子进程直接退出，是的孙子进程成为孤儿进程，从而init进程将负责清除这个孤儿进程。
+：：：：：
+
+驱动模块编程:
+1.字符设备操作:
+    一般的文件操作,中断,阻塞/非阻塞,互斥,
+2.块设备操作:
+    主要通过sector等方式来操作,主要跟设备本身有很大关系.
+3.网络设备操作:
+    主要为FEGE等网络接口操作,ethernet->IP.
+
+网络编程:
+1.TCP编程:
+    处理好消息格式,消息队列,数据分析,数据拷贝,
+2.UDP编程:
+    非面向链接的,处理消息机制的时候要考虑丢包问题,消息正确到达问题.
+3.Mcast/broadcat编程:
+分享到： 
+上一篇：Linux 信号signal处理机制
+下一篇：线程基本函数
+
+查看评论
+
+  暂无评论
+
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+ 
+个人资料
+  
+chenchao03
+ 
+访问：19977次
+积分：547分
+排名：第19967名
+原创：32篇转载：12篇译文：0篇评论：6条
+文章搜索
+
+文章存档
+2012年11月(1)
+2012年08月(1)
+2012年06月(1)
+2012年05月(1)
+2012年03月(1)
+展开
+阅读排行
+linux tty pty pts tts概念 区别(3943)
+linux: repair filesystem(1841)
+Mcast 多播网络编程(1148)
+linux web server(761)
+基于S3C2410平台移植Linux 2.6内核指南(转载）(746)
+转载Linux PCI driver(663)
+英文缩写(525)
+linux启动时挂载rootfs的几种方式(495)
+VLC(428)
+TCP/IP知名端口(425)
+评论排行
+linux: repair filesystem(2)
+VLC(1)
+xml解析-tinyxml(1)
+2.4 Linux内核Makefile文件(1)
+Mcast 多播网络编程(1)
+c语言面试题(0)
+linux 库编写(动态/静态)(0)
+linux开发杂项(0)
+定时器编程linux(0)
+PVLAN &amp;amp; VLAN(0)
+推荐文章
+
+最新评论
+Mcast 多播网络编程
+hyd034: 学习了 谢谢
+xml解析-tinyxml
+jijiyuyisheng: test.xml默认编码格式为ASCII， 周星星 解析出来无法正常显示，或者说无法解析出来。这个该...
+linux: repair filesystem
+gl00jy: 你好！ 今天我也出现你这个的问题，按你写的解决不了问题，repair filesystem 1...
+VLC
+righthook8: COPY哥的啊，无耻
+2.4 Linux内核Makefile文件
+yyf10074144:
+linux: repair filesystem
+VC_ZSY: 好文章
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+ 联系邮箱：webmaster(at)csdn.net
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+

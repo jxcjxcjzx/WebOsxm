@@ -1,0 +1,257 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+Rill的专栏
+make the change.
+目录视图摘要视图订阅
+亲，“社区之星”已经一周岁了！        WebApp实时开源框架Clouda---认识心得      Tag功能介绍—我们为什么打Tag      订阅CSDN社区周刊，及时了解社区精华内容
+ OpenRisc-1-startup
+分类： OpenRisc 2012-11-16 12:50 2011人阅读 评论(22) 收藏 举报
+引言
+计算机体系结构的研究和学习中，理论是一方面，这方面有很多很优秀的教材，比如J&P的两本经典，国内也有很多关于体系结构的书籍可供参考。
+此外，理论联系实际也是不可或缺的，但是关于实用CPU的具体实现的源码分析方面的书籍就寥寥无几了。这可能跟从事这方面的研发人员的数量有限有关。参与的人少，又加剧了参考资料的稀疏，形成了一个不好的循环。
+这使我想起了linux kernel的研究。按理说，linux kernel要比一个简单的RISC CPU复杂的多，研究linux要比研究CPU困难的多，为什么有无数的人了解linux？我觉得，这跟很多linux的大牛写了好多优秀的书籍有很大关系，我们可以踩着巨人的肩膀，继续前进，形成了一个良性的循环。
+最近要做一个project，需要对CPU的实现有深入的了解才行，找了好久，都没有找到比较理想的参考资料。求人不如求己，呵呵，所以就打算分析一款开源的CPU代码。
+希望能将理论照进现实。一个人的力量是微弱的，在此也希望有兴趣的同仁参与进来。
+ 
+1.1 直观感受
+开源的CPU，我选择了opencores开发的or1200。
+源码我已上传：
+http://download.csdn.net/detail/rill_zhen/4761982
+ 
+在开始旅途之前有一个整体的直观的感受是很重要的。为此，我用modelsim对顶层module进行了仿真：
+
+ 
+1.2 探险地图
+对一个复杂工程的分析，就像一次漫长而危险的探险，很容易迷路，也很容易掉入万丈深渊。所以在探险开始之前准备一张比较详细的地图是很重要的。
+为此，我根据or200的56个verilog源码文件，绘制了所有模块的调用关系图，和所有叶子模块的实现图。
+整张地图包含56页，我也已经上传，根据各个top模块的调用图，甚至根据书签，就可以清楚知道模块间的关系：
+http://download.csdn.net/detail/rill_zhen/4773700
+下面是其中一张的截图。
+
+ 
+ 
+
+ 
+ 
+1.3 小结
+以此，作为or1200分析的startup。
+ 
+ 
+附：
+另外，对于想研究和修改计算机体系结构的朋友，openrisc的simulator是很有必要的，此外还要有compiler的支持，所有这些都可从下面的网址获得：
+http://opencores.org/or1k/Main_Page
+
+1，最简单的，就是下一个虚拟机的镜像：
+http://opencores.org/or1k/Ubuntu_VirtualBox-image_updates_and_information
+2，也可以自己搭建工具链：
+http://www.embecosm.com/download/ean2.html
+ 
+ 
+
+另：
+国内我们有一个qq群，可以参与讨论，相互学习与交流：
+277505520
+或者我个人的QQ：
+120379064
+ 
+另：玩OpenRISC所需资料，我专门建了一个list，请参考：
+
+http://blog.csdn.net/rill_zhen/article/details/8882797
+OpenRisc-25-ORPSoC,openrisc相关资料汇总
+
+
+更多 0
+上一篇：朝花夕拾-3-TLB & cache
+下一篇：异构计算-1-10x10：一种异质性和提高能量效率的通用架构方法
+顶
+56
+踩
+0
+
+查看评论
+8楼 fafactx 2013-11-01 17:54发表 [回复]
+
+来给勇哥顶一个。。。。
+7楼 brian791204 2013-09-14 17:39发表 [回复]
+
+楼主您好,目前在学习Openrisc.
+然而看到你的网站,非常感谢,收获良多。
+但目前有遇到一个问题:
+我在Modelsim仿真时出现了这个警告
+Memory address read on line 16385 of file "ram0.ver" is out of bounds specified for readmem command. (Current address [8192], address range [0:8191]) : C:/ Users/brian/Desktop/OpenRISC_Project/altera_mf.v(44184)
+
+应该是我代码太大的关系,想请问要修改哪里来增加ram的大小. 非常感谢
+Re: Rill 2013-09-16 16:44发表 [回复]
+
+回复brian791204：altera_mf.v，应该是altera的LPM，如果修改size，可能需要重新生成一下这个模块。
+Re: brian791204 2013-09-16 17:59发表 [回复]
+
+回复rill_zhen：楼主非常感谢你,刚开始想说改一下ram.v 的数据就可以了
+,不过失败..............
+要生成这个库好像需要学Quartus tool,目前正在收集相关资料学习中, 再次感谢
+Re: Rill 2013-09-16 19:24发表 [回复]
+
+回复brian791204：太客气了，相互交流，我应该做的。
+6楼 liyijun08ic 2013-08-26 10:49发表 [回复]
+
+最近在学体系结构，刚看完软硬件接口，也打算从OPENrisc入手，但是从opencore的官网下了整个trunk不知道如何入手，在网上搜了一下，发现这个好地方，谢谢楼主分享！
+Re: Rill 2013-08-26 10:52发表 [回复]
+
+回复liyijun08ic：以后多向你请教啊。
+Re: liyijun08ic 2013-08-26 11:09发表 [回复]
+
+回复rill_zhen：牛人都谦虚，呵呵..Rill大哥，晚上下班回去加qq（群）..再次感谢提供这么好的学习经验。。
+5楼 macdir11 2013-07-17 10:30发表 [回复]
+
+楼主，有两个问题。
+1.这个镜像文件是不是用vmware打开，它是否包括了所有的工具： RTL compile-simulation, C 工具链？
+2.FPGA开发板有什么特别要求，我自己有的开发板是否适用？
+Re: Rill 2013-07-17 11:16发表 [回复]
+
+回复u011416258：从这个镜像的名称都可以看出是virtualbox镜像。不是vmware镜像。
+Re: Rill 2013-07-17 11:14发表 [回复]
+
+回复u011416258：关于第一个问题，请参考：
+http://blog.csdn.net/rill_zhen/article/details/8443882
+
+关于第二个问题，请参考：
+http://opencores.org/or1k/FPGA_Development_Boards
+和
+http://blog.csdn.net/rill_zhen/article/details/8535317#comments
+下面的评论回复。
+Re: macdir11 2013-07-17 12:05发表 [回复]
+
+多谢，
+我先多学习一下你的博文，尽量少来点傻瓜问题。
+Re: Rill 2013-07-17 12:30发表 [回复]
+
+回复u011416258：没关系。
+4楼 macdir11 2013-07-16 00:30发表 [回复]
+
+博主你好，感谢你的慷慨的经验分享。
+openrisc 新人，还望不吝赐教。已经申请加群了，正在等待通过。
+Re: Rill 2013-07-16 10:22发表 [回复]
+
+回复u011416258：okay!
+3楼 向前一一步走 2013-07-15 10:30发表 [回复]
+
+你好，你的资料我下不了，能不能分享你的学习步骤和经验，还有资料可不可以发到我的邮箱。1142327757@qq.com不胜感激！
+Re: Rill 2013-07-15 11:03发表 [回复]
+
+回复w40306030072：你好，首先，不知道你为什么不能下载，也不知道你具体想要的是哪个资料，因为有些资料太大，发email会很困难。
+其次，我写的OpenRISC专栏中三十多篇blog，就是我的学习步骤和经验。如果有什么具体的问题可以再交流。
+最后，如果感兴趣，可以加入上面提到的那个群，一起探讨学习。
+谢谢。
+Re: 向前一一步走 2013-07-16 14:15发表 [回复]
+
+回复rill_zhen：谢谢楼主，只是我们之前分析，现在做移植。我不知道从哪下手从来么接触过。请提几点建议。
+Re: Rill 2013-07-16 14:34发表 [回复]
+
+回复w40306030072：如果你想移植的是硬件（orpsoc），移植工作大概分为三部分，1，引脚的重分配了；2，memory block的替换；3，个别模块的修改，比如ordb2a的板子是ddr sdram，ml501的板子是ddr2 sdram，如果你的板子是ddr3的话就需要自己修改一下。
+
+如果你想移植的是软件（bootloader/linux/eCos），opencores官网一般都对应的参考文档或者已经移植完成的工程。
+
+我不知道你的具体情况，如果是零基础的话，可以先熟悉一下FPGA的板子，做几个简单的实验。然后把minsoc弄到板子上跑跑。然后移植orpsoc，运行一下软件，熟悉一下linux/eCos。然后自己写写ipcore和其对应的软件driver，测试验证一下。做完这些应该就可以入门了。
+2楼 u010994758 2013-06-07 23:03发表 [回复]
+
+楼主太谢谢了，想看or1200，但苦于没有中文资料，楼主的openrisc专栏真是太好了
+Re: Rill 2013-06-08 09:10发表 [回复]
+
+回复u010994758：谢谢，对你有用就是好事。
+1楼 aaalllggg 2012-11-16 21:41发表 [回复]
+
+自由软件的精神也贯彻到了硬件领域！
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+ TOP
+核心技术类目
+全部主题 数据挖掘 SOA UML 开放平台 HTML5 开源 移动开发 iOS Android 移动游戏 Windows Phone JavaScript CSS 游戏引擎 云计算 大数据 Hadoop OpenStack 云平台 PHP MongoDB JSON Xcode Node.js 前端开发 神经网络 安全 Java .NET MySQL textview BigTable web框架 SQL Redis CouchDB Linux 可穿戴计算 NoSQL Ruby API GPL XAML ASP.NET 前端开发 虚拟化 框架 机器学习 数据中心 IE10 敏捷 集群
+个人资料
+ 访问我的空间 
+Rill
+ 
+
+访问：123742次
+积分：5927分
+排名：第792名
+原创：99篇转载：25篇译文：3篇评论：314条
+博客专栏
+	openrisc
+文章：55篇
+阅读：40170
+文章搜索
+
+文章分类
+linux内核(10)
+linux移植(2)
+项目管理(8)
+c/c++/java/tcl(2)
+程序人生(7)
+编译原理(7)
+FPGA/HDL(17)
+数字集成电路(8)
+朝花夕拾(3)
+模拟器/程序分析(4)
+OpenRisc(56)
+异构计算(3)
+文章存档
+2013年11月(2)
+2013年10月(5)
+2013年09月(3)
+2013年08月(9)
+2013年07月(8)
+展开
+阅读排行
+程序人生-3-一位老科学家的自传(5500)
+深入浅出FPGA-2-让source insight 支持verilog HDL(4599)
+深入浅出FPGA-4-数字电路设计基础(3980)
+移植LB-LINK（rt5370），rt3070，rtl8192 三款USB无线网卡到arm-linux(3661)
+项目管理-8-径回东土 五圣成真（大结局）(2697)
+数字集成电路设计-2-除法器的verilog简单实现(2459)
+深入浅出FPGA-17-xilinx_zynq7000_EPP上一个简单实验(PS+PL)(2390)
+OpenRisc-1-startup(2011)
+数字集成电路设计-7-一个简单cpu的设计，实现，仿真与综合(1851)
+项目管理-7-降妖除魔(1815)
+评论排行
+OpenRisc-1-startup(22)
+深入浅出FPGA-2-让source insight 支持verilog HDL(19)
+数字集成电路设计-7-一个简单cpu的设计，实现，仿真与综合(13)
+OpenRisc-17-or1200移植linux(13)
+OpenRisc-41-or1200的cache模块分析(11)
+OpenRisc-29-ORPSoC的debug子系统分析(11)
+深入浅出FPGA-1-Cyclone芯片内部(10)
+OpenRisc-49-or1200的except模块分析(9)
+数字集成电路设计-3-除法器的verilog简单实现（续）(8)
+OpenRisc-4-ORSoC跑linux实验(8)
+最新评论
+OpenRisc-14-or1200第一个裸机程序
+xiaoxiao_luo: @rill_zhen:好的 谢谢~~~
+OpenRisc-14-or1200第一个裸机程序
+Rill: @xiaoxiao_luo:我没测试过，但是应该是可以的，请参考or1ksim的user guide...
+OpenRisc-14-or1200第一个裸机程序
+xiaoxiao_luo: 你好，想问问你 or1ksim可以仿真添加了自定义的硬件设计的SoC系统吗？如果可以，如何仿真呢？
+OpenRisc-25-ORPSoC,openrisc相关资料汇总
+isenenti: 谢谢，整理的很好，感觉opencores这个网站让人有点无语，很分散
+OpenRisc-24-ORPSoC boot过程分析
+isenenti: 厉害
+OpenRisc-1-startup
+fafactx: 来给勇哥顶一个。。。。
+OpenRisc-53-debugging the OpenRISC 1200
+zsjzhl: ！！！！！！
+OpenRisc-40-or1200的MMU模块分析
+brian791204: @rill_zhen:很谢谢楼主回复，那想请问下手册中的283页所定义的PTE格式是由OS来产生吗？...
+OpenRisc-40-or1200的MMU模块分析
+Rill: @rill_zhen:MR 和TR两个寄存器的域定义就是PTE格式。实际上，在文中聚的那个例子就是按...
+OpenRisc-40-or1200的MMU模块分析
+brian791204: @rill_zhen:楼主您好：       我找了很久还是找不到OR1200的PTE定义宏，倒是在...
+统计
+量子统计
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved GongshangLogo
+  

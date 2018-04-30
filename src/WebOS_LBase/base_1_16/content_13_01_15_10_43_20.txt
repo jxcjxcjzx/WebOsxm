@@ -1,0 +1,1139 @@
+   
+青鸟的天空
+导航
+IT博客 
+首页 
+新随笔 
+联系 
+聚合 
+管理 
+< 2007年10月 > 
+ 
+日 一 二 三 四 五 六 
+30 1 2 3 4 5 6 
+7 8 9 10 11 12 13 
+14 15 16 17 18 19 20 
+21 22 23 24 25 26 27 
+28 29 30 31 1 2 3 
+4 5 6 7 8 9 10 
+
+留言簿(1)
+给我留言 
+查看公开留言 
+查看私人留言 
+随笔分类(68)
+ASP编程(1) (rss) 
+carve-out (rss) 
+PHP(9) (rss) 
+SEO(3) (rss) 
+UNIX(3) (rss) 
+VC++编程(3) (rss) 
+WEB编程(14) (rss) 
+外语(1) (rss) 
+数据库编程(3) (rss) 
+生活(2) (rss) 
+系统编程(3) (rss) 
+维护(15) (rss) 
+网络安全(11) (rss) 
+随笔档案(46)
+2007年11月 (1) 
+2007年10月 (23) 
+2007年9月 (22) 
+阅读排行榜
+1. 破解电信的E家套餐送的ADSL（华为HG520s无线moden)(15859) 
+2. 如何解决PHP startup: Unable to load dynamic library的错误(14491) 
+3. 计算机无法访问,您可能没有权限使用网络资源.请与这台服务器的管理员联系(11355) 
+4. PHP连接Mysql的实例(6794) 
+5. 解决卡巴斯基black.lst破坏的问题（原创）(5885) 
+评论排行榜
+1. 破解电信的E家套餐送的ADSL（华为HG520s无线moden)(8) 
+2. 如何解决PHP startup: Unable to load dynamic library的错误(6) 
+3. 任务栏图标不见的处理方法(5) 
+4. 如何永久关闭XP系统的默认共享和IPC$共享?(1) 
+5. PHP连接Mysql的实例(1) 
+积分与排名
+积分 - 82597 
+排名 - 37 
+最新评论 
+1. re: 如何解决PHP startup: Unable to load dynamic library的错误 
+升级到php 5.4 后，问题解决。 
+--chenwen 
+2. re: 如何解决PHP startup: Unable to load dynamic library的错误 
+unabietoloaditmsg.dii 
+--张仪 
+3. re: 如何解决PHP startup: Unable to load dynamic library的错误 
+怎么搞 
+--张仪 
+4. re: PHP连接Mysql的实例 
+ddddddddddd 
+--ddd 
+5. re: 任务栏图标不见的处理方法 
+评论内容较长,点击标题查看 
+--MarisolJACOBS22 
+《VC++技术内幕》学习笔记 
+『VC++技术内幕』学习笔记 
+
+以下来自于网络，仅学习之用。侵权请留言.
+雷神
+
+写在前面：
+     我看的『VC++技术内幕』版本为--潘爱民和王国印译清华大学出版的第四版，因从网上看到此版译的最好。
+     这篇学习笔记是后补的，因为这本书我已经看到了第三十二章，之前并没有做笔记，只是随意的在书上画了画重点，可是越向后学越觉得前面的知识并没有掌握，所以决定重新来过并补上笔记。我认为只有踏踏实实的记录下每天的学习心得才能真正的有所收获。我个人认为学习这本经典之前最好先看看WINDOWS 32位编程的书，至少能用纯SDK写出一些小程序。
+
+第一天：
+WINDOWS应用程序一定要有WinMain函数，该函数用来完成一些特殊的任务，象创建程序的主窗口，主窗口用来处理消息的代码。MFC将WinMain隐藏在框架中，不象写SDK程序时可以很容易的找到它。
+WINDOWS采用的消息处理机制也交给了程序框架，我们不必担心如何使这些消息和代码联系起来。并且WINDOWS定义好了一些消息，当窗口被创建时系统就会发送WM_CREATE消息，当点击鼠标左键时便系统会发送WM_LBUTTONDOWN消息，当用户按下键盘时系统会发送WM_CHAR消息，当用户关闭窗口时系统会发送WM_CLOSE消息，当用户进行菜单项选择或单击按钮时系统回发送WM_COMMAND消息，什么都不做系统还会发送WM_TIMER消息。先不说别的，先搞清出这几个消息再说。从MSDN中可以很方便的找到关于这几个消息的帮助文档。
+WINDOWS提供通用的图形设备接口（GUI），我们通过调用（GDI）函数和硬件打交道，不必理会设备环境，WINDOWS会自动将设备环境结构映射到相应的物理设备，这应该就是设备无关性吧。
+动态连接库（DLL）应该是代码重用的典型例子（不知道可不可这样说），把一些模块、自己新编的类单独调试并编译成DLL，及增加代码的可读性也提高了程序模块的灵活性。
+用Developer Studio建立项目Developer Studio会创建很多中间文件，这些文件还是有必要说一下的。
+APS     //支持ResourceView
+BSC    //浏览器信息文件
+CLW    //支持ClassWizard
+DSP    //项目文件，不能删除和用文本编辑器编辑
+DSW    //工作空间文件，不能删除和用文本编辑器编辑
+MAK    //外部的创建文件
+NCB    //支持ClassView
+OPT    //保存工作空间的配置
+PLG    //建立日志文件
+这些文件都有一定的作用，拿CLW来说，如果你有一个新类，需要加到ClassWizard中，除了将相应的.h 和.cpp加到DSP中还需要重新编译CLW。PLG文件记录着你的项目配置信息。
+VC++的源程序浏览器能够使我们从类或函数的角度来了解或编辑程序，而不是直接从文件入手。在看别人的源代码时如果能熟练的使用源代码浏览器将会事倍功半。源程序浏览器主要的查看状态有以下几种：
+Definitions and References——选择任何函数、变量、类型、宏定义可以看到它在项目中的定义，并且在何处和什么地方用到它。
+Call Graph/Caller Graph——对于所选择的函数，给出它的调用与被调用函数的图示。
+Derived Class Graph/Base Class Graph——给出类层次关系的图形表示，可以看到所选择的类的派生类和基类以及成员。
+File Outline——对于所选的文件，列出文件中的类、函数和数据成员，同时还显示它们定义的位置和使用位置。
+可见Source Brower比起Class View来功能多了很多也更加好用，以前我就不知道，因为一般的VC++书没有讲或根本没有注意这块，看到讲菜单、操作界面、编辑器时总是跳过，心想“没吃过猪肉还没见过猪跑？这种东西不用学就会”。可实际上还是应该仔细的看看的。
+对于本章学习雷神建议大家在VC++6中用AppWizard生成一个空的程序，然后试着看看都有那些文件，和他们的类层次、函数、宏、结构的定义，我就是这样干的，学编程不动手是不行的。
+
+ 
+
+第二篇：Microsoft基本类库应用程序框架
+◎MFC是C++的Microsoft Windows API，如果想要开发WINDOWS的应用程序当然VC/MFC是开发环境的首选。
+◎MFC产生的应用程序使用了标准化的结构。（我现在还体会不出这点的优势所在，请高手指点）
+◎MFC产生的应用程序短而运行速度快。这应该说的是可以很容易的建立动态连接，其实程序还是需要大量的DLL，不过由于WINDOWS上有很多可以用DLL所以应用程序很短，我是这样想的不知对否。
+◎VC++工具降低了编码的复杂性。这点不容质疑比起TC方便太多了。
+◎MFC库功能非常丰富。书上列出了MFC从1.0--4.21的一些特性，我就不废话了，大家应该看看。
+这一章节主要介绍了MFC库的优点，其实我本人认为在某些特定环境下其实MFC不一定就象说的那样好。我想不会有人用纯VC做MIS系统吧，太累了。我是这样理解编程序的，如果把学编程看成学武的话，C/C++语言及编程思想（OOP）是内功，API是基本功（编程思想是内功、API是基本功这适用于任何WIN32编程，不论Visual C++、Delphi、C++Builder、VB......），VC/MFC应该不同武功其中的一种，不同的学习方法效果不一样，只要下工夫也都可以达到一定的境界。真正的高手是有着深厚的内功，扎实的基本功，至于武功招数无所谓了，随便一站不丁不八全无破绽，无招胜有招了。对不住扯远了。
+
+C++可以通过类库来进行扩展，我们除了可以使用随编译器提供的类库外还可以很方便使用软件公司销售的类库产品，甚至可以自己开发。而应用程序框架是一种类库的超集，它定义了程序的结构。
+下面给出两个示例程序（一个是书上的一个是我写的）：
+雷神建议：虽然现在很多书都附CD，CD上有书中所有示例的源代码，但还是应该亲自在VC6用手敲进去。这样可以加深印象以及感受一下编译除错后程序正确运行时的乐趣，因为是纯手工打造。自从我敲了近一百个代码示例后，由于笔误的BUG就很少了，打字速度也提高了。而且最好在原示例代码的基础上做些改动例如别千篇一律的显示HELLO WORLD！换点别的，这样做也可以加深对示例程序的理解。
+我的HELLO WORLD用AppWizard向导创建一个显示一个字符串的单文档程序，只需要敲入一行语句，主要是体验MFC的强大功能。
+1、打开VC++6从菜单选择NEW，给项目命名为”MyApp01“。
+2、选择MFC AppWizard[exe] 选项，除STEP 1选择单文档外其他STEP缺省。
+3、在Class View选择CMyApp01View类的OnDraw()成员函数双击会在C++编译器看到以下内容
+
+void CMyApp01View::OnDraw(CDC* pDC)
+{
+    CMyApp01Doc* pDoc = GetDocument();
+    ASSERT_VALID(pDoc);
+    // TODO: add draw code for native data here
+}
+在    // TODO: add draw code for native data here的位置增加一行代码
+void CMyApp01View::OnDraw(CDC* pDC)
+{
+    CMyApp01Doc* pDoc = GetDocument();
+    ASSERT_VALID(pDoc);
+    pDC->TextOut(10,10,"雷神愿意和所有学VC的朋友共同进步！");  //<-----------增加的一行
+    // TODO: add draw code for native data here
+}
+完了，就这么简单。编译运行。看到了吗？这个程序具备WINDOWS程序的所有特性，例如有菜单、工具条、状态栏、最大化、关闭、甚至还有关于对话框、打印预览.....全了，这就是AppWizard通过MFC动态创建的一个应用程序。从这个小例子可以看出用VC/MFC设计WINDOWS程序多么方便。下面我们看看书上的例子，以便更进一步了解应用程序框架。
+
+书上的例子：
+1、先建立一个Win32 Application的应用程序。
+2、选择Project->Add to project->Files,分别创建一个名为MyApp.h和一个名为MyApp.cpp的文件。
+3、添加代码：（最好照敲以下代码到编译器，别用Ctrl+C/Ctrl+V）
+//***********************************************
+//  MyApp.h    
+//
+
+class CMyApp:public CWinApp  //见下②
+{
+public:
+    virtual BOOL InitInstance();
+};
+
+class CMyFrame:public CFrameWnd
+{
+public:
+    CMyFrame();
+protected:
+    afx_msg void OnLButtonDown(UINT nFlags,CPoint point);
+    afx_msg void OnPaint();
+    DECLARE_MESSAGE_MAP()
+};
+
+//*****************************************************
+//  MyApp.cpp
+//
+
+#include "afxwin.h"
+#include "myapp.h"
+CMyApp theApp;//建立一个CMyAPP对象见下②
+
+BOOL CMyApp::InitInstance ()
+{
+    m_pMainWnd=new CMyFrame();
+    m_pMainWnd->ShowWindow (m_nCmdShow);
+    m_pMainWnd->UpdateWindow ();
+    return TRUE;
+}
+
+BEGIN_MESSAGE_MAP(CMyFrame,CFrameWnd)
+    ON_WM_LBUTTONDOWN()
+    ON_WM_PAINT()
+END_MESSAGE_MAP()
+
+CMyFrame::CMyFrame(){
+    Create(NULL,"MYAPP Application");
+}
+void CMyFrame::OnLButtonDown (UINT nFlags,CPoint point)
+{
+    TRACE("Entering CMyFrame::OnLButtonDown - %lx,%d,%d\n",
+    (long)nFlags,point.x ,point.y);
+}
+
+void CMyFrame::OnPaint ()
+{
+    CPaintDC dc(this);
+    dc.TextOut (0,0,"Hello World!");
+}
+
+4、编译运行，报错。为什么呢？原来还没有添加MFC的支持，在Project Setting选项General属性页选择”Use MFC in a Static Library"
+5、再Ctrl+F5,哈成功了。
+让我们看看这个程序中的一些元素。
+①WinMain函数：并非不存在只是已经被隐藏在应用程序框架内部。
+②CMyApp类：CMyApp类的对象代表一个应用程序，CWinApp基类决定它的大部分行为。
+③应用程序的启动：当开始运行应用程序时WINDOWS会调用WinMain函数，WinMain会查找该应用程序的全局对象theApp。
+④CMyApp::InitInstance成员函数：发现theApp后自动调用重载的虚函数InitInstance来完成主窗口的构造和显示工作。记住这个函数。
+⑤CWinApp::Run成员函数：WinMain在调用InitInstance之后紧接着调用Run函数，它被隐藏在基类中负责传递应用程序的消息给相映的窗口。（我把它理解为好象SDK的窗口的过程函数不知对不对）
+⑥CMyFrame类：此类的对象代表着应用程序的主窗口。它的构造函数调用基类CFrameWnd的Create函数创建具体的窗口结构。
+⑦CMyFrame::OnLButtonDown函数：演示消息处理机制，当鼠标坐键被按下这一事件被映射到CMyFrame的OnLButtonDown函数上，如果你选择F5进行编译运行的话可以在调试窗口看到TRACE宏显示的类似下面的信息
+    Entering CMyFrame::OnLButtonDown - 1,309,119
+    Entering CMyFrame::OnLButtonDown - 1,408,221
+⑧CMyFrame::OnPaint函数：应用程序每次重新绘制窗口都需要调用此函数，将显示"Hello World!"放在这里是因为每次窗口发生变化时保证"Hello World!"被显示，你可以试着将语句：
+    CPaintDC dc(this);
+    dc.TextOut (0,0,"Hello World!");
+写在别出，例如写在
+void CMyFrame::OnLButtonDown (UINT nFlags,CPoint point)
+{
+    TRACE("Entering CMyFrame::OnLButtonDown - %lx,%d,%d\n",
+    (long)nFlags,point.x ,point.y);
+    CPaintDC dc(this);
+    dc.TextOut (0,0,"Hello World!");
+}
+运行后当点击左键时显示"Hello World!"，但当窗口最小化再最大化时"Hello World!"不见了。
+⑧关闭应用程序：用户关闭应用程序时会有一系列事件发生。首先CMyFrame对象被删除，然后退出Run，进而退出WinMain，最后删除CMyApp对象。
+通过上面的示例我们看见程序的大部分功能包含在基类CWinApp和CFrameWnd中，我们只写了很少的函数，便可以完成很复杂的功能。所以应用程序框架不仅仅是一种类库，它还定义了应用程序的结构，除了基类外还包括WinMain函数，以及用来支持消息处理、诊断、DLL、等都包含在应用程序框架中。
+
+ 
+
+第三篇：消息映射和视图类
+
+
+在写了两篇笔记后有很多朋友给我发信，和我交流一些在学习过程中的问题。但由于我也是一个初学者，对一些问题自己也没有把握，所以实在不敢做答，但我会尽量尽我所能和大家一起研究，谢谢大家的鼓励和信任。
+在开始先补充一下上一篇的内容“内容窗口的创建”，兼答天歌网友的问题（如果天歌兄弟能看到的话 ）。为了简化我们看一个更简单代码，只有一个文件，创建一个空白的窗口，什么也不做。注意哦：真写程序时还是要分成.h和.cpp两个文件比较清晰。
+前几步和『VC++技术内幕』学习笔记（2）中的一样，下面是代码：
+//**********************************
+//  MyApp.cpp    
+
+#include "afxwin.h"     //afxwin.h会调用windows.h是MFC编程的途径，只要用到MFC就一定要包含它。
+
+class CMyApp:public CWinApp  //从CWinApp继承一个类
+{
+public:
+    virtual BOOL InitInstance();//重载InitInstance虚函数
+};
+
+class CMyFrame:public CFrameWnd //从CFrameWnd继承一个类
+{};
+
+
+CMyApp myApp; //最后又激活应用程序的构造函数
+
+BOOL CMyApp::InitInstance () 
+{
+    m_pMainWnd=new CMyFrame; 
+    //new 激活了CMyFrame类构造函数CFrameWnd()，构造函数调又用CREATE()
+    //m_pMainWnd在MFC的定义CWnd* m_pMainWnd;// main window (usually same AfxGetApp()->m_pMainWnd)
+    //m_pMainWnd保存窗口的位置
+    ((CMyFrame * )m_pMainWnd)->Create(NULL,"一个MFC应用程序：空白窗口"); //创建窗口
+    m_pMainWnd->ShowWindow(m_nCmdShow); //显示在屏幕上
+    return TRUE;
+}
+如果还不明白建议查看MSDN或看看侯大师的深入浅出。关于这个问题就说到这，最后对天歌朋友的学习态度表示敬意。
+下面进入正体，让我们继续来看看MFC的消息映射。
+MFC是通过一些宏来将特定的消息影射到派生类相应的成员函数上，这种体制的好处是允许某些非窗口类（如文档类）来控制命令消息。且不需要
+
+C++作任何扩展。
+MFC的消息控制函数要求提供函数原形、函数体以及消息映射中的入口。真的很麻烦，还好用Class Wizard可以很容易的将上面说到的东西加到我
+
+们的类中。例如只要在Class Wizard中添加WM_LBUTTONDOWN消息,则相应的代码便加在合适的地方。怎么样简单多了吧。
+应用程序除了包含应用程序框架类外，一般还要包含文档和视图类。这种文档-视图结构是应用框架的核心。我一直做MIS开发，当然不是用VC用的
+
+是VB，所以看到这我很不自觉的想到了后台数据库和界面的关系，这个例子可能不是很恰当，但却能很好的帮助我们理解文档和视图。文档好比后
+
+台的数据库，视图就是界面上显示的内容，同一个数据库可以用不同的界面显示，但由于所有的界面内容都是从数据库中数据得来，所以当数据库
+
+发生变化时所有的相关界面显示都会跟着改变。越来越觉得不恰当，不过实在想不出别的例子了。我们的应用程序实际上就是通过视图对文档进行
+
+一系列操作，不单指输出。下面我们看看视图类。
+视图是一个从CView类派生的类的对象，在屏幕上显示的窗口就是一种。对象的行为完全由类的成员函数和数据成员决定，其中及包括派生类中的
+
+特定函数，也包括基类的标准函数，所以了解MFC类库的结构以及各类的标准成员函数是多么重要啊，别怕麻烦找来MFC的源码读读，看多少算多
+
+少，但肯定不白看，这是雷神的经验。记得上一篇的我的例子吗，
+
+1、打开VC++6从菜单选择NEW，给项目命名为”MyApp01“。
+2、选择MFC AppWizard[exe] 选项，除STEP 1选择单文档外其他STEP缺省。
+此时MFC应用程序框架便帮我们完成了应用程序，你可以执行它，它会在屏幕上显示一个典型的WINDOWS风格的空白窗口。
+我们来看一下项目程序所在目录下的文件：
+
+myapp01.dsp        //项目文件
+myapp01.dsw        //工作空间文件
+myapp01.rc        //资源描述文件
+myapp01View.cpp        //包含CMyAppView类成员函数的视图类实现文件  重点
+myapp01View.h        //包含CMyAppView类成员函数的视图类头文件  重点
+myapp01.opt        //二进制文件，告诉Developer Studio本项目的哪些文件是打开的，又是如何排列的
+readme.txt        //用来解释所产生的所有文件，未列出的myapp01Doc.cpp、myapp01Doc.h、StdAfx.cpp、StdAfx.h....在这里都可
+
+以找到相应解释。
+resource.h        //包含#define常量定义的头文件
+仔细研究一下myapp01View.cpp和myapp01View.h文件，程序核心CMyAppView类在这两个文件中定义，就是我们今天要学的视图类。要想看到CMyAppView类的全貌，应该用Source Browser查看，选择CMyApp01View，按Alt+F12，选择Base Class and Members 选项。我们会看到CMyAppView类的层次关系（从哪来得），以及所有成员函数，包括从基类继承的（在Class View中不能显示父类的成员函数）。我们发现实际上你什么也不用做就拥有了一个有着强大功能的类。
+下面我们看一下CMyAppView类的OnDraw成员函数，它是虚函数作用是每当窗口需重绘时应用程序框架会调用它。它的原型是这样的（在myapp01View.h可以找到）
+virtual void OnDraw(CDC* pDC);  // overridden to draw this view
+参数是CDC类的指针，WINDOWS是通过和窗口相关联的设备环境（CDC类的对象就是设备环境）和显示硬件进行通讯。有了这个指针我们便可以调用CDC类的成员函数来完成各种绘制工作，如上一篇用到的textout()还有一些Ellipse()、Polygon()、BitBlt()等等在MSDN中有好长的一篇，它是直接从CObject派生的，好了我们开始在OnDraw()里添加一些绘图工作。
+3、在Class View选择CMyApp01View类的OnDraw()成员函数双击会在C++编译器看到以下内容
+void CMyApp01View::OnDraw(CDC* pDC)
+{
+    CMyApp01Doc* pDoc = GetDocument();
+    ASSERT_VALID(pDoc);
+    // TODO: add draw code for native data here
+}
+在    // TODO: add draw code for native data here的位置增加一行代码
+void CMyApp01View::OnDraw(CDC* pDC)
+{
+    CMyApp01Doc* pDoc = GetDocument();
+    ASSERT_VALID(pDoc);
+    pDC->TextOut(10,10,"雷神愿意和所有学VC的朋友共同进步！"); 
+    pDC->SelectStockObject (DKGRAY_BRUSH);    //选择刷子
+    pDC->Ellipse (CRect(20,40,120,140));        //画圆，CRect是MFC库提供的一个表示WINDOWS矩形类
+    pDC->Rectangle (CRect(220,240,120,140));    //画矩形
+    // TODO: add draw code for native data here
+}
+编译运行，成功了吧。先到这吧。另外以后的文章将同时贴在写作区。
+
+ 
+
+第四篇：资源和编译
+资源文件（就是以应用程序名和扩展名是.rc的文件）很大程度上决定了应用程序的用户界面。在VC++中资源文件包括以下内容：
+Accelerator //模拟菜单和工具栏的选择内容
+Dialog //对话框的布局及内容
+Icon //图标有两种一种是16X16一种是32X32。
+Menu //应用程序的主菜单及所属的弹出式菜单
+String table //字符串不属于C++源代码部分
+Toolbar //工具条。
+Version //程序的描述、版本号、支持语言信息。
+以上信息都在.rc文件中包含，同时.rc文件还包含了以下语句：
+#include "afxres.h"
+#include "afxres.rc"
+它们的作用是把适合于所有应用程序的一些通用MFC库资源包含进来。
+关于资源编辑器的使用就不多说了，因为它的操作很简单，需要注意的是虽然resource.h是一个ASCII码文件可以用文本编辑器进行编辑，单如果使用文本编辑器进行编辑的话，下次再使用资源编辑器时所做的修改有可能丢失，所以我们应该在尽量在资源编辑器中编辑应用程序的资源，新增的资源内容回自动的添加在我们的程序相应位置，例如resource.h而不用我们操心。这便是为什么称为Visual （可视）的原因之一。
+
+编译在VC++中有两种模式，一种是Release Build另一种是Debug Build。它们之间的区别在于，Release Build不对源代码进行调试，不考虑MFC的诊断宏，使用的是MFC Release库，编译十对应用程序的速度进行优化，而Debug Build则正好相反，它允许对源代码进行调试，可以定义和使用MFC的诊断宏，采用MFC Debug库，对速度没有优化。所以我们应该在Debug模式下开发应用程序，然后在Release模式下发布应用程序。在我们的工程文件夹下会有一个Debug文件夹和一个Release文件夹分别存放输出文件和中间文件。
+诊断宏是我们编译程序时检测程序状态的有利工具，例如上两篇用到的TRACE宏，可以在Debug窗口获得你需要的诊断信息，而不用设置对话框之类的方法，在发布时Release会自动滤掉此信息。
+实际上对一个应用程序的调式是一件很具挑战的工作，我相信我们都有类似的经历，从网上或书本上找来了一段代码或源程序，当我们一点点将他们敲进 Deleloper Studio后进行编译时一下子出现了无数的错误和警告，（有些书的源代码就是错误的）这是需要的耐心和经验，有了VC++提供的调试工具如诊断宏、设断点、单步执行等等，会让我们省不少力气。至于编译的话题其实应该有很多可以说，但由于雷神本身的经验不足只能把书上所讲的作一个总结，大家应该熟练的掌握VC++为我们提供的的各种调试工具，象SPY之类的工具在MSDN中也有很详细的使用帮助说明，到现在我体会到了高手们所说的MSDN是最好的最全的也是最权威的。
+
+ 
+
+ 
+
+第五篇：基本事件处理
+我们已经知道MFC库应用程序框架调用CView视图类的虚函数OnDraw来完成屏幕显示。其实CView和CWnd类包含了几百个成员函数，在MSDN中可以看到这些成员函数，其中有许多On开头的，例如第二篇的例子就有一个OnLButtonDown，它们都是应用程序框架响应各种事件所需调用的函数。OnDraw便是当窗口发生变化是被调用的，OnLButtonDown是鼠标左键被按下时调用，还有OnKeyDown是键盘被按下时调用等等。
+当用户在视窗中按下鼠标左键时，Windows会自动发送WM_LBUTTONDOWN消息给该视窗，当然你可以什么都不做象我们第3篇的例子一样，如果你想要让程序对此消息做出反应就必须在视图类给出相应的函数，类似下面这样：
+void CMyView::OnLButtonDown(UINT nFlags,CPoint point)
+{
+//做些事情的代码
+}
+还需要在类头文件包含相应的函数原型说明
+afx_msg void OnLButtonDown(UINT nFlags,CPoint point);
+afx_msg只是说明该函数原型是针对消息映射函数。下一步在代码文件中还需要有一个消息映射宏，作用是把OnLButtonDown函数和应用程序框架联系在一起。
+BEGIN_MESSAGE_MAP(CMyView,CView)
+ON_WM_LBUTTONDOWN
+END_MESSAGE_MAP()
+最后在类库的头文件还需包含：
+DECLARE_MESSAGE_MAP()
+函数和Windows消息的对应关系可以从MSDN中找到在MSDN中索引输入（WM_ Messages）便会列出所有的Windows消息和消息控制函数原型。在实际的编程过程中我们不可能全部都用手工的添加或编制消息控制函数。除了一些特殊的，我们一般是借助Class Wizard来自动编制消息映射函数。这又是MFC应用程序框架比起SDK来的有一个便捷的地方。
+MFC库对140种windows消息直接提供了消息控制函数，并且我们还可以自己定义自己的消息，下面列出的五种消息是我们应该特别注意的（MSDN上有更详细的内容）。
+WM_CREATE
+该消息是Windows发给视图的第一个消息。当应用程序框架调用create函数时该消息便会被发送，此时窗口还未创建完成，不可见，因此在消息控制函数OnCreate内不能调用那些依赖窗口处于完全激活状态的Windows函数。如果需要可以在重载的OnInitialUpdate函数内调用。不过注意在SDI应用程序OnInitialUpdate函数可能被多次调用。
+WM_CLOSE
+当用户关闭窗口时，系统会发送WM_CLOSE消息。如果派生类重新定义了OnClose函数，就可以完全控制关闭过程，可以将提醒用户存盘之类的工作放在这里完成。我们可以通过重载
+CDocument::SaveModified虚函数达到相同的目的。
+WM_QUERYENDSESSION
+从字面的意思看就可以看出，当用户退出Windows时，或者调用了ExitWindows 函数时。Windows会发送WM_QUERYENDSESSION消息给所有的正在运行的应用程序，由OnQueryEndSession消息映射函数对消息进行处理。在它之后应该是WM_ENDSESSION 消息。
+WM_DESTROY在Windows发送WM_CLOSE消息后，紧接着会发送WM_DESTROY消息，虽然窗口已经Close但实际上并没有完全清除，在任务管理器中还可以看见应用程序的进程（我想很多木马或病毒都是无窗口的程序，它们的做法是生成了已经活动状态的窗口但不显示出来），利用这个消息控制函数便可以对依赖于当前窗口存在的东西做清除工作，不过一定要注意，应该调用基类的OnDestroy函数，而不能在用户自己的视图的OnDestroy函数中终止窗口的析构过程，终止析构过程应该在OnClose函数中。
+WM_NCDESTROY
+当窗口被取消所发送的最后一个消息就是这个消息。我们可以在OnNcDestroy函数中做一些不依赖该窗口是否处于活动状态的最后的处理工作，（我实在想不出还需要做什么？那位朋友能给个例子），注意一定要调用基类中的OnNcDestroy函数。
+
+我们可以做一个小恶作剧程序：当在窗口内单击鼠标右键（注意是右键）时退出所有的正在运行的应用程序。
+void CMy007View::OnDraw(CDC* pDC)
+{
+CMy007Doc* pDoc = GetDocument();
+ASSERT_VALID(pDoc);
+pDC->TextOut (100,100,"请不要单击鼠标右键，否则后果自负！");
+}
+void CMy007View::OnRButtonDown(UINT nFlags, CPoint point) 
+{
+::MessageBox (NULL,"你确定要这样做吗？","警告",1);
+::ExitWindows ();
+}
+
+ 
+
+第六篇：映射模式
+在此篇之前我们已经学会了在窗口显示图形，更准确的说是在窗口指定位置显示图形或文字，我们使用的坐标单位是象素，称之为设备坐标。看下面语句：
+pDC->Rectangle(CRect(0,0,200,200));
+画一个高和宽均为200个象素的方块，因为采用的是默认的MM_TEXT映射模式，所以在设备环境不一样时，画的方块大小也不一样，在1024*768的显示器上看到的方块会比640*480的显示器上的小（在不同分辨率下的屏幕象素，在WINDOWS程序设计一书中有示例程序可以获得，或者可以用GetClientRect函数获得客户区的矩形大小。在这里就不说了，大家只要知道就行了），在输出到打印机时也会有类似的情况发生。如何做才能保证在不同设备上得到大小一致的方块或者图形、文字呢？就需要我们进行选择模式映射，来转换设备坐标和逻辑坐标。
+Windows提供了以下几种映射模式：
+MM_TEXT
+MM_LOENGLISH
+MM_HIENGLISH
+MM_LOMETRIC
+MM_HIMETRIC
+MM_TWIPS
+MM_ISOTROPIC
+MM_ANISOTROPIC
+下面分别讲讲这几种映射模式：
+MM_TEXT：
+默认的映射模式，把设备坐标被映射到象素。x值向右方向递增；y值向下方向递增。坐标原点是屏幕左上角（0，0）。但我们可以通过调用CDC的SetViewprotOrg和SetWindowOrg函数来改变坐标原点的位置看下面两个例子：
+//************************************************
+// 例子6-1
+void CMyView::OnDraw(CDC * pDC)
+{
+      pDC->Rectangle(CRect(0,0,200,200));//全部采用默认画一个宽和高为200象素的方块
+}
+
+//**************************************************
+// 例子6-2
+void CMyView::OnDraw(CDC * pDC)
+{
+      pDC->SetMapMode(MM_TEXT);//设定映射模式为MM_TEXT
+      pDC->SetWindowOrg(CPoint(100,100));//设定逻辑坐标原点为（100，100）
+      pDC->Rectangle(CRect(100,100,300,300));//画一个宽和高为200象素的方块
+}
+这两个例子显示出来的图形是一样的，都是从屏幕左上角开始的宽和高为200象素的方块，可以看出例子2将逻辑坐标（100，100）映射到了设备坐标（0，0）处，这样做有什么用？滚动窗口使用的就是这种变换。
+固定比例映射模式：
+MM_LOENGLISH、MM_HIENGLISH、MM_LOMETRIC、MM_HIMETRIC、MM_TWIPS这一组是Windows提供的重要的固定比例映射模式。
+它们都是x值向右方向递增，y值向下递减，并且无法改变。它们之间的区别在于比例因子见下：（我想书上P53页肯定是印错了，因为通过程序实验x值向右方向也是递增的）
+MM_LOENGLISH 0.01英寸
+MM_HIENGLISH 0.001英寸
+MM_LOMETRIC 0.1mm
+MM_HIMETRIC 0.01mm
+MM_TWIPS 1/1440英寸 //应用于打印机，一个twip相当于1/20磅，一磅又相当于1/72英寸。
+看例3
+//**************************************************
+// 例子6-3
+void CMyView::OnDraw(CDC * pDC)
+{
+    pDC->SetMapMode(MM_HIMETRIC);//设定映射模式为MM_HIMETRIC
+    pDC->Rectangle(CRect(0,0,4000,-4000));//画一个宽和高为4厘米的方块
+}
+
+还有一种是可变比例映射模式，MM_ISOTROPIC、MM_ANISOTROPIC。用这种映射模式可以做到当窗口大小发生变化时图形的大小也会相应的发生改变，同样当翻转某个轴的伸展方向时图象也会以另外一个轴为轴心进行翻转，并且我们还可以定义任意的比例因子，怎么样很有用吧。
+MM_ISOTROPIC、MM_ANISOTROPIC两种映射模式的区别在于MM_ISOTROPIC模式下无论比例因子如何变化纵横比是1：1而M_ANISOTROPIC模式则可以纵横比独立变化。让我们看例子4
+//**************************************************
+// 例子6-4
+void CMy002View::OnDraw(CDC* pDC)
+{
+    CRect rectClient; //
+    GetClientRect(rectClient);//返回客户区矩形的大小
+    pDC->SetMapMode(MM_ANISOTROPIC);//设定映射模式为MM_ANISOTROPIC
+    pDC->SetWindowExt(1000,1000);
+    pDC->SetViewportExt (rectClient.right ,-rectClient.bottom );
+    //用SetWindowExt和SetViewportExt函数设定窗口为1000逻辑单位高和1000逻辑单位宽
+    pDC->SetViewportOrg(rectClient.right/2,rectClient.bottom/2 );//设定逻辑坐标原点为窗口中心
+    pDC->Ellipse(CRect(-500,-500,500,500));//画一个撑满窗口的椭圆。
+    // TODO: add draw code for native data here
+}
+怎么样，屏幕上有一个能跟随窗口大小改变而改变的椭圆。把    pDC->SetMapMode(MM_ANISOTROPIC)；这句改为pDC->SetMapMode(MM_ISOTROPIC)会怎样？大家可以试试。那还有一个问题就是上例的比例因子是多少呢？看下面公式（注意是以例子4为例的）
+x比例因子=rectClient.right/1000   //视窗的宽除以窗口范围
+y比例因子=-rectClient.bottom/1000   //视窗的高除以窗口范围
+
+从Windows的鼠标消息可以获得鼠标指针的当前坐标值（point.x和point.y）此坐标值是设备坐标。
+很多MFC库函数尤其是CRect的成员函数只能工作在设备坐标下。
+还有我们有时需要利用物理坐标，物理坐标的概念就是现实世界的实际尺寸。
+设备坐标-逻辑坐标-物理坐标之间如何进行转换便成为我们要考虑的一个问题，物理坐标和逻辑坐标是完全要我们自己来做的，但WINDOWS提供了函数来帮助我们转换逻辑坐标和设备坐标。
+CDC的LPtoDP函数可以将逻辑坐标转换成设备坐标
+CDC的DPtoLP函数可以将设备坐标转换成逻辑坐标
+下面列出我们应该在什么时候使用什么样的坐标系一定要记住：
+◎CDC的所有成员函数都以逻辑坐标为参数
+◎CWnd的所有成员函数都以设备坐标为参数
+◎区域的定义采用设备坐标
+◎所有的选中测试操作应考虑使用设备坐标。
+◎需要长时间使用的值用逻辑坐标或物理坐标来保存。因设备坐标会因窗口的滚动变化而改变。
+用书上的例子作为以前几篇的复习，如果你能够独立完成它说明前面的内容已经掌握。另外有些东西是新的，我会比较详细的做出说明，例如客户区、滚动窗口等。
+下面我们来一步步完成例子6-5：
+■第一步：用AppWizard创建MyApp6。除了Setp 1 选择单文档视图和Setp 6 选择基类为CScrollView外其余均为确省。 
+■第二步：在CMyApp6View类中增加m_rectEllipse和m_nColor两个私有数据成员。你可以手工在myapp6View.h添加，不过雷神建议这样做，在ClassView中选中CMyApp6View类，击右键选择Add Member Variable插入它们。
+//**************************
+// myapp6View.h
+private:
+  int m_nColor; //存放椭圆颜色值
+  CRect  m_rectEllipse; //存放椭圆外接矩形
+
+//***************************************************
+问题1：CRect是什么？
+CRect是类，是从RECT结构派生的，和它类似的还有从POINT结构派生的CPoint、从SIZE派生的CSize。因此它们继承了结构中定义的公有整数数据成员，并且由于三个类的一些操作符被重载所以可以直接在三个类之间进行类的运算。
+//重载operator +
+CRect operator +( POINT point ) const;
+CRect operator +( LPCRECT lpRect ) const;
+CRect operator +( SIZE size ) const;
+//重载operator -
+CRect operator -( POINT point ) const;
+CRect operator -( SIZE size ) const;
+CRect operator -( LPCRECT lpRect ) const;
+......
+更多的请在MSDN中查看
+
+■第三步：修改由AppWizard生成的OnIntitalUpdate函数
+
+void CMyApp6View::OnInitialUpdate()
+{
+CScrollView::OnInitialUpdate();
+CSize sizeTotal(20000,30000);
+CSize sizePage(sizeTotal.cx /2,sizeTotal.cy /2);
+CSize sizeLine(sizeTotal.cx /50,sizeTotal.cy/50);
+SetScrollSizes(MM_HIMETRIC,sizeTotal,sizePage,sizeLine);//设置滚动视图的逻辑尺寸和映射模式
+}
+
+问题2：关于void CMyApp6View::OnInitialUpdate()
+函数OnInitialUpdate()是一个非常重要的虚函数，在视图窗口完全建立后框架用的第一个函数，框架在第一次调用OnDraw前会调用它。因此这个函数是设置滚动视图的逻辑尺寸和映射模式的最佳地点。
+
+■第四步：编辑CMyApp6View构造函数和OnDraw函数
+//*********************************************
+// CMyApp6View构造函数
+//
+CMyApp6View::CMyApp6View():m_rectEllipse(0,0,4000,-4000)//椭圆矩形为4*4厘米。
+{
+     m_nColor=GRAY_BRUSH;//设定刷子颜色
+}
+
+//*********************************************
+// CMyApp6View的OnDraw函数
+//
+void CMyApp6View::OnDraw(CDC* pDC)
+{
+pDC->SelectStockObject (m_nColor);
+pDC->Ellipse(m_rectEllipse); 
+}
+
+问题3：
+CMyApp6View::CMyApp6View():m_rectEllipse(0,0,4000,-4000)为什么不能这样写：
+CMyApp6View::CMyApp6View()
+{
+     m_rectEllipse(0,0,4000,-4000)；
+     m_nColor=GRAY_BRUSH;
+}
+我从CSDN上得到的答案：两者实际上没有区别。有两个原因使得我们选择第一种语法，它被称为成员初始化列表：
+一个原因是必须的，另一个只是出于效率考虑。 
+　　让我们先看一下第一个原因——必要性。设想你有一个类成员，它本身是一个类或者结构，而且只有一个带一个参数的构造函数。 
+class CMember { 
+public: 
+　　CMember(int x) { ... } 
+}; 
+　　因为Cmember有一个显式声明的构造函数， 编译器不产生一个缺省构造函数（不带参数），所以没有一个整数就无法创建Cmember的一个实例。 
+CMember* pm = new CMember(2);　　 // OK 
+　　如果Cmember是另一个类的成员， 你怎样初始化它呢？你必须使用成员初始化列表。 
+class CMyClass { 
+　　CMember m_member; 
+public: 
+　　CMyClass(); 
+}; 
+//必须使用成员初始化列表 
+CMyClass::CMyClass() : m_member(2) 
+{ 
+} 
+　　没有其它办法将参数传递给m_member，如果成员是一个常量对象或者引用也是一样。根据C++的规则，常量对象和引用不能被赋值， 它们只能被初始化。 
+　　第二个原因是出于效率考虑，当成员类具有一个缺省的构造函数和一个赋值操作符时。MFC的Cstring提供了一个完美的例子。假定你有一个类CmyClass具有一个Cstring类型成员m_str，你想把它初始化为"yada yada."。你有两种选择： 
+CMyClass::CMyClass() { 
+　　// 使用赋值操作符 
+　　// CString::operator=(LPCTSTR); 
+　　m_str = _T("yada yada"); 
+} 
+//使用类成员列表 
+// and constructor CString::CString(LPCTSTR) 
+CMyClass::CMyClass() : m_str(_T("yada yada")) 
+{ 
+} 
+　　在它们之间有什么不同吗？是的。编译器总是确保所有成员对象在构造函数体执行之前初始化，因此在第一个例子中编译的代码将调用CString::Cstring来初始化m_str，这在控制到达赋值语句前完成。在第二个例子中编译器产生一个对CString:: CString(LPCTSTR)的调用并将"yada yada" 传递给这个函数。结果是在第一个例子中调用了两个Cstring函数（构造函数和赋值操作符），而在第二个例子中只调用了一个函数。在Cstring的例子里这是无所谓的，因为缺省构造函数是内联的，Cstring只是在需要时为字符串分配内存（即，当你实际赋值时）。但是，一般而言，重复的函数调用是浪费资源的，尤其是当构造函数和赋值操作符分配内存的时候。在一些大的类里面，你可能拥有一个构造函数和一个赋值操作符都要调用同一个负责分配大量内存空间的Init函数。在这种情况下，你必须使用初始化列表，以避免不要的分配两次内存。在内部类型如ints或者longs或者其它没有构造函数的类型下，在初始化列表和在构造函数体内赋值这两种方法没有性能上的差别。不管用那一种方法，都只会有一次赋值发生。有些程序员说你应该总是用初始化列表以保持良好习惯，但我从没有发现根据需要在这两种方法之间转换有什么困难。在编程风格上，我倾向于在主体中使用赋值，因为有更多的空间用来格式化和添加注释，你可以写出这样的语句：x=y=z=0; 或者memset(this,0,sizeof(this)); 注意第二个片断绝对是非面向对象的。 
+　　当我考虑初始化列表的问题时，有一个奇怪的特性我应该警告你，它是关于 C++初始化类成员的，它们是按照声明的顺序初始化的，而不是按照出现在初始化列表中的顺序。
+class CMyClass { 
+　　CMyClass(int x, int y); 
+　　int m_x; 
+　　int m_y; 
+}; 
+CMyClass::CMyClass(int i) : m_y(i), m_x(m_y) 
+{ 
+} 
+　　你可能以为上面的代码将会首先做m_y=I，然后做m_x=m_y，最后它们有相同的值。但是编译器先初始化m_x，然后是m_y，因为它们是按这样的顺序声明的。结果是m_x将有一个不可预测的值。 我的例子设计来说明这一点，然而这种bug会更加自然的出现。有两种方法避免它， 一个是总是按照你希望它们被初始化的顺序声明成员，第二个是，如果你决定使用初始化列表，总是按照它们声明的顺序罗列这些成员。这将有助于消除混淆。 
+
+
+■第五步：映射WM_LBUTTONDOWN消息并编辑OnLButtonDown消息处理函数。在Class Wizard中选择CMyApp6View类，在Message列表中选择WM_LBUTTONDOWN双击，则此消息映射便完成了。用下面代码替换Wizard生成的OnLButtonDown消息处理函数。
+
+void CMyApp6View::OnLButtonDown(UINT nFlags, CPoint point) 
+{
+CClientDC dc(this);
+OnPrepareDC(&dc);
+CRect rectDevice = m_rectEllipse;
+dc.LPtoDP(rectDevice);
+if (rectDevice.PtInRect(point)) { 
+if (m_nColor == GRAY_BRUSH) {
+m_nColor = WHITE_BRUSH;
+}
+else{
+m_nColor = GRAY_BRUSH;
+}
+InvalidateRect(rectDevice);
+}
+}
+问题4：详解此段代码
+第1行  CClientDC由CDC派生，它的对象dc是当前窗口的客户区域
+第2行  OnPrepareDC是在OnDraw函数前调用的。
+第3行  将m_rectEllipse赋给rectDevice矩形区域
+第4行  将矩形区域的逻辑坐标转为设备坐标，LPtoDP是CDC类的成员函数，且是多态的，函数声明如下：
+void LPtoDP( LPPOINT lpPoints, int nCount = 1 ) const;
+void LPtoDP( LPRECT lpRect ) const;
+void LPtoDP( LPSIZE lpSize ) const;
+第5-11行  CRect的成员函数PtInRect(point)用来判断鼠标当前位置（point）是否在当前矩形（rectDevice）内
+第12行  InvalidateRect函数可以触发WM_PAINT消息，改消息又被映射，引起调用OnDraw调用。
+
+■第六步：映射WM_KEYDOWN消息并编辑OnKeyDown消息处理函数。在Class Wizard中选择CMyApp6View类，在Message列表中选择WM_KEYDOWN双击。用下面代码替换Wizard生成的OnKeyDown消息处理函数。
+
+void CMyApp6View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags) 
+{
+switch (nChar) {
+case VK_HOME: 
+OnVScroll(SB_TOP, 0, NULL);
+OnHScroll(SB_LEFT, 0, NULL);
+break;
+case VK_END:
+OnVScroll(SB_BOTTOM, 0, NULL);
+OnHScroll(SB_RIGHT, 0, NULL);
+break;
+case VK_UP:
+OnVScroll(SB_LINEUP, 0, NULL);
+break;
+case VK_DOWN:
+OnVScroll(SB_LINEDOWN, 0, NULL);
+break;
+case VK_PRIOR:
+OnVScroll(SB_PAGEUP, 0, NULL);
+break;
+case VK_NEXT:
+OnVScroll(SB_PAGEDOWN, 0, NULL);
+break;
+case VK_LEFT:
+OnHScroll(SB_LINELEFT, 0, NULL);
+break;
+case VK_RIGHT:
+OnHScroll(SB_LINERIGHT, 0, NULL);
+break;
+default:
+break;
+}
+}
+
+问题5：此段代码详解：
+先看OnVScroll和OnHScroll的函数原型
+afx_msg void OnVScroll( UINT nSBCode, UINT nPos, CScrollBar* pScrollBar );
+afx_msg void OnHScroll( UINT nSBCode, UINT nPos, CScrollBar* pScrollBar );
+主要参数 nSBCode是指滚动条移动方向。
+再看OnKeyDown函数原型
+afx_msg void OnKeyDown( UINT nChar, UINT nRepCnt, UINT nFlags );
+主要参数nChar是指Virtual Keys code 虚拟键码你可以在winuser.h文件中看到更多，这里只列出很小一部分。
+#define VK_ESCAPE         0x1B
+#define VK_SPACE          0x20
+#define VK_PRIOR          0x21
+#define VK_NEXT           0x22
+#define VK_END            0x23
+#define VK_HOME           0x24
+......
+/* VK_0 thru VK_9 are the same as ASCII '0' thru '9' (0x30 - 0x39) */
+/* VK_A thru VK_Z are the same as ASCII 'A' thru 'Z' (0x41 - 0x5A) */
+#define VK_LWIN           0x5B
+......
+
+编译运行它，怎么样成功了吧，
+■第七步：做一个更复杂的程序，例如屏幕上有多个圆，然后点其中一个，则点中的变色，其他的不变。
+
+ 
+
+第七篇：图形设备接口（GDI） 
+我想大家和我一样通过前几天的学习，对VC++MFC应用程序框架的神奇功能有了一些了解，但是还是感觉不能驾御这个强的开发工具，不过别担心，我170多斤体重不是一口吃出来的，是经过了30年不懈的努力才吃成了如此“魁梧”的体形，呵呵开个玩笑。所以学习也一样。学VC尤其如此。还有我发现很多好的技术类书籍有一个共同的特点，就是在前几章学到了一些东西在你正在疑惑或者苦苦领会的时候，接下来的章节便给你解除疑惑。雷神经验：遇到实在想不明白的地方先放下，继续向下读，也许读着读着前面的问题就明白了。『VC++技术内幕』当然属于好的技术书籍一类，所以在本书第五章开始仔细的给我们讲解设备环境类和图形设备接口（GDI），使得我们能守得云开见月明。
+设备环境类CDC：
+CDC是设备环境类的基类直接由CObject派生。是GDI的关键元素，它代表了物理设备。每一个C++设备环境对象都有相对应Windows设备环境，并通过一个32位类型的HDC句柄来标识。CDC类的虚拟性使我们可以很容易的做到编写同时适用于多种设备的代码。例如OnDraw函数的pDC->TextOut(0,0,"Hello");既可以适用于显示器、还可以适用于打印预览和打印，只需要在CView::OnDraw函数的pDC参数指向不同的对象类。
+CClientDC和CWindowDC是显示设备环境类，都是由CDC派生而来，区别在于CClientDC是窗口的客户区不包括边框、标题栏和菜单栏，（0，0）指客户区域的左上角。CWindowDC的（0，0）指整个屏幕的左上角，这意味着我们可以在显示器的任意地方绘图，包括窗口边框、标题栏和菜单栏等等。CWindowDC一般应用在框架窗口，而不是视图窗口。
+CDC对象被创建后一定要在合适的时候将它删除掉，如果忘记了删除设备环境对象则会造成内存丢失。如何做才能避免出现这个问题呢，我们应该在堆栈中构造对象。看例子7-1
+//***************************
+//    例子7-1
+void CMyView::OnLButtonDown(UINT nFlags,CPoint point)
+{
+    CRect    rect;
+    CClientDC dc(this);    //在堆栈中构造设备环境对象，用一个窗口指针this作参数。
+    dc.GetClipBox(rect);    //GetClipBox函数是一个虚函数，作用是可以获得选定区域的尺寸
+}
+//析构函数在函数返回时自动调用，也就完成对设备环境对象的删除。
+书上还给出了另一种写法：
+void CMyView::OnLButtonDown(UINT nFlags,CPoint point)
+{
+    CRect    rect;
+    CDC * pDC=GetDC();    //通过调用CWnd的GetDC()函数获得设备环境指针
+    pDC->GetClipBox(rect);    //可以获得选定区域的尺寸
+    ReleaseDC(pDC);        //一定不能忘记，释放设备环境。（书上又写错了）
+}
+创建的设备环境对象具有一些默认的特性，通过CDC类的成员函数可以设定这些特性。例如前一篇笔记用到的刷子、映射模式等等。我们还可以通过重载SelectObject函数将GDI对象选进设备环境中。
+GDI对象是通过CGdiObject派生类的C++对象来表示的。读着怎么这么别扭？举例说一下。
+CBrush是一个GDI的派生类，它在MFC中的层次结构是这样的：CObject派生CGdiObject派生CBrush，明白了吧。CGdiObject是所有GDI对象的抽象基类。下面列出的是GDI派生类的列表：
+CBitmap：位图是一种位矩阵，每一个显示象素都对应于其中的一个或多个位，可以用来表示图象，也可以用来创建刷子
+CBrush：刷子定义了一种位图形式的象素，可以用来对区域内部填充颜色。
+CFont：字体是一种具有某种风格和尺寸的所有字符的完整集合，常常被作为资源，其中一些依赖某种设备。
+CPalette：调色板是一种颜色映射接口，它允许应用程序在不影响其他应用程序的前提下，可以充分利用输出设备的颜色描绘能力。
+CPen：笔是一种用来画线及绘制有形边框的工具，可以指定它的颜色及宽度，并可以指定画虚线、点线还是实线。
+CRgn：区域是由多边形、椭圆二者组合形成的一种范围，可以用来进行填充、裁剪、鼠标点中测试等等。
+以上很容易理解，可以用WINDOWS的画图帮助我们理解。
+CGdiObject类很眼生，看过很多代码就没有看到过它，原因是由于CGdiObject类是所有GDI对象类的虚拟基类，所以我们不必创建CGdiObject类的对象，可以直接构造它的派生类的对象，例如这样
+CPen newPen(PS_DASHDOTDOT,2,(COLORREF) 0);    //黑色的笔宽度为2
+但需要注意的是CFont和CRgn的对象建立需要先调用默认的构造函数来构造C++对象，然后再调用相应的创建函数如：
+CreateFont或CreatePolygonRgn等。
+CGdiObject类有一个虚拟的析构函数，它派生类的析构函数需要将与C++对象相关联的GDI对象删除掉，一定要在退出程序之前把构造的CGdiObject派生类对象干掉。因为一个没有释放的GDI对象会占用很多的内存。
+让我们用一个例子跟踪一下GDI对象
+//*************************************
+//    例子7-2
+void CMy10View::OnDraw(CDC* pDC)
+{
+    pDC->MoveTo (10,10);
+    pDC->LineTo (110,10);
+    CPen newPen(PS_DASHDOTDOT,10,(COLORREF) 192);    //红色的笔宽度为10
+    CPen * pOldPen=pDC->SelectObject (&newPen);    
+//在将新对象选进设备环境的同时返回指向前一次被选对象的指针。作用保存原来的对象，以便完成任务时恢复它。
+    pDC->MoveTo (10,20);
+    pDC->LineTo (110,20);
+    pDC->SelectObject (pOldPen);//把原来的对象恢复
+    pDC->MoveTo (10,30);
+    pDC->LineTo (110,30);
+}
+屏幕上应该显示三条线，第一条和第三条一样颜色和粗细因为他们都是用的设备环境默认的CPen对象，第二条是一条用我们自己设定的CPen对象。我们可以看出在将新对象选进设备环境的同时返回指向前一次被选对象的指针。作用保存原来的对象，以便完成任务时恢复它。
+Windows还包含有一些可以利用的库存对象，它们不会被删除，因为Windows对企图删除它们的动作不予理睬。我们可以用SelectStockObject函数将它们选进设备环境。下面列出的是所有的有关刷子、笔、字体和调色板的库存对象。
+//***************************************************************************
+//    MSDN中的内容
+BLACK_BRUSH       //Black brush.
+DKGRAY_BRUSH       //Dark gray brush.
+GRAY_BRUSH       //Gray brush.
+HOLLOW_BRUSH   //Hollow brush.
+LTGRAY_BRUSH       //Light gray brush.
+NULL_BRUSH       //Null brush.
+WHITE_BRUSH       //White brush.
+BLACK_PEN       //Black pen.
+NULL_PEN       //Null pen.
+WHITE_PEN      //White pen.
+ANSI_FIXED_FONT   //ANSI fixed system font.
+ANSI_VAR_FONT      // ANSI variable system font.
+DEVICE_DEFAULT_FONT       //Device-dependent font.
+OEM_FIXED_FONT   //OEM-dependent fixed font.
+SYSTEM_FONT       //The system font. By default, Windows uses the system font to draw menus, dialog-box controls, and other text. In Windows versions 3.0 and later, the system font is proportional width; earlier versions of Windows use a fixed-width system font.
+SYSTEM_FIXED_FONT   //The fixed-width system font used in Windows prior to version 3.0. This object is available for compatibility with earlier versions of Windows.
+DEFAULT_PALETTE   //Default color palette. This palette consists of the 20 static colors in the system palette. 
+//*******************************************************************************
+
+一个问题：
+由于SelectObject函数返回的GDI C++对象指针具有临时性，当程序的空闲处理阶段或者控制函数返回时应用程序框架会将临时的C++对象删除，我们不能简单的把这一指针保存在类的数据成员中，而应该借助GetSafeHdc函数将它转化为Windows的句柄，以便持久的保存GDI的标识。我们将例子7-2做些改动。
+//**************************************************
+//    例子7-3
+void CMy10View::OnDraw(CDC* pDC)
+{
+    HPEN m_hPen; //一个指向CPen对象的指针
+    pDC->MoveTo (10,10);
+    pDC->LineTo (110,10);
+    CPen newPen(PS_DASHDOTDOT,10,(COLORREF) 192);    //红色的笔宽度为10
+    CPen * pOldPen=pDC->SelectObject (&newPen);    //在将新对象选进设备环境的同时返回指向前一次被选对象的指针。作用保存原来的对象，以便完成任务时恢复它。
+    m_hPen=(HPEN)pOldPen->GetSafeHandle ();//获得并保存原来对象的句柄
+    pDC->MoveTo (10,20);
+    pDC->LineTo (110,20);
+    pDC->SelectObject (CPen::FromHandle (m_hPen));//把原来的对象恢复，和例子7-2不同的是通过句柄
+    pDC->MoveTo (10,30);
+    pDC->LineTo (110,30);
+}
+补充一下IGDI派生类的Windows handle type列表
+CPen         HPEN 
+CBrush        HBRUSH 
+CFont        HFONT 
+CBitmap         HBITMAP 
+CPalette         HPALETTE 
+CRgn         HRGN 
+
+好了我们已经对GDI有了一些了解，下一篇我们将说说颜色和字体，雷神希望大家对我的学习笔记提些建议，因为很多东西也许不必说的这么罗嗦，可我知道初学VC的痛苦，太多的东西看不明白，所以尽量写的详细。文章记录了我学习时的心得，很多东西是从MSDN查来的，不知道合不合大家（初学者）的口味。
+
+ 
+
+第八篇：颜色和字体
+
+由于种种原因，雷神有4、5天没有看一眼VC++了，所以在开始之前我又把前几篇笔记仔细的看了一遍，使自己能够进入最佳的学习状态。因为学习状态的好坏直接影响学习的效率，有时候我看一天的书，可实际掌握的内容却很少，不知大家是否和我一样？今天要学的是颜色和字体。终于要进入多彩的世界了，这是一件令人兴奋的事情，本人向来对用程序做出漂亮的界面、画面和用程序发出悦耳的声音很感兴趣，因为我的目标是做游戏程序。
+标准的VGA显示卡使用的是8位颜色寄存器，所以它可以表示出262144种颜色，然而由于视频内存的限制、标准的VGA只能采用4位颜色代码，一次只能同时显示16种标准纯色。太少了不是吗？如何获得更加丰富的色彩呢，面向颜色的GDI函数可以使我们获得更多的颜色。每一种WINDOWS的颜色都是通过8位RGB值的组合来表示，面向颜色的GDI函数可以接收32位的COLORREF参数，这种类型的参数包含了8位的红、绿、蓝颜色值。WINDOWS的RGB宏可以将8位的红绿蓝值转化成COLORREF参数，经过模糊处理可以得到更多的颜色。我们可以这样创建刷子：
+CBrush brush（RGB（128，128，192））；
+看个例子：
+//*****************************
+// 例子8-1
+//
+void CMy81View::OnDraw(CDC* pDC)
+{
+    pDC->SetBkColor (#ff0000);
+    pDC->SetTextColor (#c6c6c6);
+    pDC->TextOut (10,10,"雷神祝大家在新的一年万事如意！");
+}
+在OnDraw(CDC* pDC)函数中设定文本的背景色和前景色，我们试着改变RGB宏的数值，会发现SetBkColor和SetTextColor函数并不总是显示模糊色，如果模糊色过于复杂，它们会选择与之相近的纯色来显示。书上是这样说的。以目前的硬件设备来说我们可以在1024X768的方式下获得24位真彩色，这意味着我们可以通过RGB宏获得任何我们想要的颜色，其实我们的肉眼已经不能分辨它们的区别了。其实256色已经足够作出很精美的画面了，光荣的三国志系列栩栩如生的人物就是256色绘制的，在这点不得不佩服日本的漫画水平。
+下面我们来看看字体。字体是GDI对象，和其他GDI对象一样它可以按比例缩放，被裁剪，可以被选进设备环境，并可以被释放和删除。书上对于字体部分描述实在令我不愿意读，我想大家可能也是这样的心情。那好我们便不去读它，直接用一个例子来理解字体。
+例子8-2：
+1、建立一个新MFC AppWizard(exe)项目“82”,除选择单文档外其余全用默认项。
+2、重载My82View类的OnPrepareDC函数
+void CMy82View::OnPrepareDC(CDC* pDC, CPrintInfo* pInfo) 
+{
+    pDC->SetMapMode (MM_ANISOTROPIC);//应该还记得此种映射模式是X，Y的比例因子可以独立变化
+    pDC->SetWindowExt (1440,1440);//将映射模式设置成逻辑twips即一个逻辑单位等于1/1440逻辑英寸。
+    pDC->SetViewportExt (pDC->GetDeviceCaps (LOGPIXELSX),-pDC->GetDeviceCaps (LOGPIXELSY));
+    //用SetWindowExt和SetViewportExt定义比例GetDeviceCaps函数可以获得各种显示参数，典型的参数如下：
+/*
+在640X480分辨率下：
+HORZSIZE    物理宽度（毫米）        320    
+VERTSIZE    物理高度（毫米）        240    
+HORZRES    象素宽度            640
+VERTRES    象素高度            480
+LOGPIXEXSX    每逻辑英寸的水平点数    96
+LOGPIXEXSY    每逻辑英寸的垂直点数    96
+*/
+}
+3、加入一个Private类型的辅助函数ShowFont用来显示文本。可以用Add Member Function的方法加入，也可以直接修改代码
+在82View.h中加入
+class CMy82View : public CView
+{
+private:
+    void ShowFont(CDC* pDC, int& nPos, int nPoints);
+    //以下为原生成代码，不需改变
+    ......
+}
+在82View.cpp中加入
+void CMy82View::ShowFont(CDC* pDC, int& nPos, int nPoints)
+{
+    TEXTMETRIC tm;
+    /*
+    TEXTMETRIC结构包含字体的所有逻辑单位信息原型如下：
+    typedef struct tagTEXTMETRIC {  /* tm */
+        int  tmHeight;
+        int  tmAscent;
+        int  tmDescent;
+        int  tmInternalLeading;
+        int  tmExternalLeading;
+        int  tmAveCharWidth;
+        int  tmMaxCharWidth;
+        int  tmWeight;
+        BYTE tmItalic;
+        BYTE tmUnderlined;
+        BYTE tmStruckOut;
+        BYTE tmFirstChar;
+        BYTE tmLastChar;
+        BYTE tmDefaultChar;
+        BYTE tmBreakChar;
+        BYTE tmPitchAndFamily;
+        BYTE tmCharSet;
+        int  tmOverhang;
+        int  tmDigitizedAspectX;
+        int  tmDigitizedAspectY;
+    } TEXTMETRIC;
+    */
+    CFont      fontText;
+    CString    strText;
+    CSize      sizeText;
+    fontText.CreateFont(-nPoints * 20, 0, 0, 0, 400, FALSE, FALSE, 0,
+                        ANSI_CHARSET, OUT_DEFAULT_PRECIS,
+                        CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+                        DEFAULT_PITCH | FF_ROMAN, "Tahoma");
+    //调用CFont：：CreateFont函数，建立GDI的字体对象，参数1和2是字体的高度和宽度，最后一个参数是字体的名称
+    CFont* pOldFont = (CFont*) pDC->SelectObject(&fontText);
+    //将新字体选进设备，并返回指向前一次被选对象的指针。作用保存原来的对象，以便完成任务时恢复它
+    pDC->GetTextMetrics(&tm);
+    //参数是指向TEXTMETRIC结构的指针，得到当前字体的属性，
+    strText.Format("%d磅 WINDOWS 中文字体范例 1234567890", nPoints);
+    sizeText = pDC->GetTextExtent(strText);
+    pDC->TextOut(0, nPos, strText);
+    pDC->SelectObject(pOldFont);
+    //恢复原来的对象
+    nPos -= tm.tmHeight + tm.tmExternalLeading;
+    
+}
+
+4、编辑CMy82View::OnDraw函数
+void CMy82View::OnDraw(CDC* pDC)
+{
+    int nPosition = 0;
+    for (int i = 12; i <= 24; i += 2) {
+        ShowFont(pDC, nPosition, i);
+    }
+}
+5、编译运行，可以看到7行逐渐放大的同字体字符串。
+书上还有一个例子大家应该也实际运行一下，雷神就不废话了，关于颜色和字体就说到这吧。下面将进入对话框和控件，利用它们我们便可以做一些小的应用了。
+
+ 
+
+第九篇：模式对话框和通用控件（上）
+对话框是一个真正的窗口，它不但可以接受消息，而且可以被移动和关闭，还可以在它的客户区中进行绘图操作。对话框可以分为模式对话框和无模式对话框两种，两者区别是在对话框被关闭之前用户能否在同一应用程序的其他地方进行工作。举例说明：打开文件对话框便是典型的模式对话框，在你选择好要打开的文件按下确定后，或者取消打开文件操作后，才可以在同一应用程序进行其他操作。而常见的查找和替换对话框便是无模式对话框的典型，在该对话框打开的同时，我们还可以进行其他工作。
+对话框属于一种资源，VC的资源编辑器可以帮助我们创建和编辑对话框，这个对话框编辑器有点类似VB的编辑器界面了，大多数的常用控件都在控件工具条中列出，我们可以很容易的画出对话框的外观样子，不用象SDK时控件也全部由代码创建。书上给出了建立模式对话框的步骤，希望大家记住它。
+1、用对话框编辑器创建包含各种资源和控件的对话框资源。对话框编辑器会自动更新项目的资源文件。
+2、利用Class Wizard来创建CDialog的派生类，并将它和第一步创建的资源相连接。Class Wizard会在项目中自动加入相应的代码和头文件。
+3、利用Class Wizard向对话框类中加入数据成员、交换函数和确认函数。
+4、利用Class Wizard对对话框中的按钮和其它可以产生事件的控件加入相应的消息控制函数。
+5、对一些特殊的控件初始化函数（如OnInitDialog）及消息控制函数进行编辑。当用户关闭对话框时，别忘了调用CDialog的虚成员函数OnOK。OnOK是以默认方式调用的。
+6、对视图类代码进行编辑，以便对话框被激活。在所编写的代码中首先应该包含对对话框类构造函数的调用，然后再调用DoModel对话框类成员函数，只有当用户退出对话框时，DoModel才返回。
+书上还举了一个例子，这个例子包含了各种类型的控件，不过好象有一处错误（在LANG组合框处）。不过大家最好照书上的步骤完成这个例子，它对于掌握控件和对话框很有帮助，雷神在这里不准备用书上的例子，而是自己写一个有点意思的小程序--“体育彩票选号器” 。
+
+程序的目的：
+我经常购买北京的体育彩票，虽然没有中过超过50元的奖，可还是兴趣盎然，只当作是支持体育事业了。我从不费神进行一些概率分析之类的工作，一般都是机选，为了演示对话框的操作，写一个程序实现北京电脑体育彩票36选7的机选功能。
+程序运行效果是：
+当按下选号键后，由计算机随机选出7个0-36的号码，并显示在对话框中的7个EDIT控件中。
+设计思路：
+1、为了简单选择"Dialog Base"，省去了上面说的第6步。
+2、随机数的产生，这是游戏编程的关键，雷神不用细说大家也都明白。用VC产生随机数有两个函数，一个是Rand一个是Srand，我的用法是这样的，先调用srand函数，如srand( (unsigned)time( NULL ) )，这样可以每次产生的随机数序列不同。因为各种编程语言返回的随机数（确切地说是伪随机数）实际上都是根据递推公式计算的一组数值，当序列足够长，这组数值近似满足均匀分布。如果计算伪随机序列的初始数值（称为种子）相同，则计算出来的伪随机序列就是完全相同的（这便是为什么单独使用Rand产生的随机数是一样的原因）。这个特性被有的软件利用于加密和解密。加密时，可以用某个种子数生成一个伪随机序列并对数据进行处理；解密时，再利用种子数生成一个伪随机序列并对加密数据进行还原。这样，对于不知道种子数的人要想解密就需要多费些事了。当然，这种完全相同的序列对于你来说是非常糟糕的。要解决这个问题，需要在每次产生随机序列前，先指定不同的种子，这样计算出来的随机序列就不会完全相同了。你可以在调用rand()函数之前调用srand( (unsigned)time( NULL ))，这样以time函数值（即当前时间）作为种子数，因为两次调用rand函数的时间通常是不同的，这样就可以保证随机性了。你也可以使用srand函 数来人为指定种子数。Windows 9x/NT的 游 戏FreeCell就允许用户指定种子数，这样用户如果一次游戏没有成功，下次还可以以同样的发牌结果再玩一次。
+3、获得1-36号码的算法：因为我们通过随机函数获得的随机数是一个unsigned int,我们需要进行处理才能得到我们想要的数，在本例是1-36，我的算法是用得到的随机数除36取余再加1，则得到的肯定是1-36范围内的整数。
+4、不重复：彩票中的7个数是互不相同的数字，因此还需要加一个判断，新得到的随机数是否有效。
+5、排序：得到7个号码后需要对它们按大小排序，这里用的是一种常见的排序法，比较相临的两个数，如果后面的元素大于前面的，就交换位置。
+
+好了，让我们开始吧。
+1）新建一个“MFC AppWizard(EXE)”程序GUESS，在选择模式时，选择基于“Dialog”模式,其它选项缺省；
+2）将新建的对话框上缺省的控件全部删去（一个OK按钮，一个CANCEL按钮），然后添加一个静态文本控件、7个Edit控件和1个Button控件，右击Button控件选择Properties选项，将Caption属性设为“选号”，同样方法将静态文本控件的Caption属性设定为“电脑体育彩票选号：”；
+3）右击任一Edit控件，在出现的菜单中选择“ClassWizard”；在“ClassWizard”中为7个Edit控件一一绑定Int型的变量如下：
+Control Ids     Type    Member
+IDC_BUTTON1
+IDC_EDIT1    int    m_num1
+IDC_EDIT2    int    m_num2
+IDC_EDIT3    int    m_num3
+IDC_EDIT4    int    m_num4
+IDC_EDIT5    int    m_num5
+IDC_EDIT6    int    m_num6
+IDC_EDIT7    int    m_num7
+
+4）在“ClassWizard”中为Button控件添加一个处理过程，选择“Message Maps”选项卡，确定Object IDs是IDC_BUTTON1，双击Messages中的BN_CLICKED,则“ClassWizard”会自动添加一个OnButton1() 函数。
+5）编辑CGuessDlg::OnButton1() ，添加以下代码
+void CGuessDlg::OnButton1() 
+{
+    int temp,pnum[35],num[7]; //临时变量，临时数组
+    for(int i=0;i<35;i++)    //共有36个数组元素
+        pnum[i]=i+1;
+//***选号***//
+    for(i=0;i<7;i++)
+    {
+        srand( (unsigned)time( NULL ) );
+        temp=rand(); 
+        temp=temp%36+1; //得到一个1-36的数
+        while(pnum[temp]==0)//如果此元素以被选过则重选
+        {
+            srand( (unsigned)time( NULL ) );
+            temp=rand();
+            temp=temp%36+1;
+        }
+        num[i]=temp; //选定一个号码
+        pnum[temp]=0; //给该元素置0，表示已被选过，如再有视为无效。
+    }
+//***排序***//
+    for(int chance=1;chance<7;chance++)
+    {
+        int position=chance; //元素排序用到的游标
+        for(i=0;i<7;i++){
+            if(num[position]>num[i]) //如果后面的元素大于前面的，就交换位置
+                {
+                temp=num[position];
+                num[position]=num[i];
+                num[i]=temp; 
+                }
+        }
+    }
+//***显示***//
+    m_num1=num[0];
+    m_num2=num[1];
+    m_num3=num[2];
+    m_num4=num[3];
+    m_num5=num[4];
+    m_num6=num[5];
+    m_num7=num[6];
+    UpdateData(FALSE); //通过变量刷新Edit控件的显示 
+}
+//********************************************************************************
+/*说明：CWnd::UpdateData()
+UpdateData()的原型如下：
+BOOL UpdateData( BOOL bSaveAndValidate = TRUE );
+UpdateData()是这样工作的，如果调用UpdateData时传给它的参数是FLASE，那么通过DoDataExchange、DDX_(交换)和DDV_(确认)函数会将数据成员中的值传递给对话框中的控件；反之，如果调用UpdateData时传给它的参数是TRUE，那么通过函数会将对话框的控件传递给数据成员。
+本例中DoDataExchange函数在CGuessDlg类中被重载，在代码中是下面这样的：
+void CGuessDlg::DoDataExchange(CDataExchange* pDX)
+{
+    CDialog::DoDataExchange(pDX);
+    //{{AFX_DATA_MAP(CGuessDlg)
+    DDX_Text(pDX, IDC_EDIT1, m_num1);
+    DDX_Text(pDX, IDC_EDIT2, m_num2);
+    DDX_Text(pDX, IDC_EDIT3, m_num3);
+    DDX_Text(pDX, IDC_EDIT4, m_num4);
+    DDX_Text(pDX, IDC_EDIT5, m_num5);
+    DDX_Text(pDX, IDC_EDIT6, m_num6);
+    DDX_Text(pDX, IDC_EDIT7, m_num7);
+    //}}AFX_DATA_MAP
+}
+DDX_Text函数也被重载，这样它可以用来处理各种类型的数据。
+*/
+//**************************************************************************************
+
+6）好了，编译运行，怎么样成功了吧。如果通过这个小程序您买的彩票中了奖，别忘了告诉雷神一声。
+注意，程序运行需等待一段时间，下一步可以改进程序例如在程序运行过程中使鼠标指针变成“沙漏”，或加入一个进度条控件，有兴趣的朋友可以一试。
+今天我们了解了对话框和控件应用的基本方法，其实书上的例子更适合大家了解对话框和控件的应用，雷神写这个例子的目的是让大家尤其是初学者知道，VC虽然很不容易学好，但以我们掌握的知识，也可以用它做一些程序，虽然很小，但很实用。如果你还没有信心不妨写个计算器，我相信你一定会成功。下一回我们将进一步学习模式对话框和通用控件，我们将学习对话框和视图相连，以及一些高级控件，和对话框的改进。
+
+ 
+
+第十篇：模式对话框和通用控件（下）
+大家好，雷神由于出差在外，所以笔记今天才写出抱歉。不知道大家有没有做上篇提到的计算器，计算器对雷神来说可是经典的程序，学VB先搞了计算器，学VC也搞了个计算器，前不久在学扩展CBUTTON类时也是用计算器程序，为什么？按钮多呗，雷神最终做出了一个圆形按钮，液晶显示的计算器，感觉真的不错。学编程就是要编写代码，代码写的多少和编程水平是成正比的。
+由对话框编辑器和Class Wizard生成的对话框可以很轻松的不需编写很多的代码而获得很多的功能，但如果我们想对对话框进一步的改进则需要手工编程了。
+我们以上一篇的电脑体育彩票选号小程序为例进行一系列的改进工作。
+改进一：截获退出控制权
+当我们的光标不在选号按钮上时（例如在文本框内），当按下回车（Enter）键则回退出程序的运行，还有当你按下ESC键时也会退出。为什么？因为当用户按下回车键时Windows就会自动查找“输入焦点”在哪个按钮上，如果所有的按钮都没有获得输入焦点，Windows会自动的寻找程序资源指定的默认按钮，如果对话框没有默认按钮，系统会调用OnOK函数。ESC键也会触发对OnCancel函数的调用，从而导致控制从对话框中退出。如果我们想截获退出控制权该如何做呢？用哑函数，就是将按下Enter和ESC后的处理函数写成空函数。
+步骤1、由于我们的对话框没有OK和CANCEL按钮，我们只能手工添加代码。在guessDlg.h文件的类声名重载：virtual void OnOK()和virtual void OnCancel();两个虚函数。
+class CGuessDlg : public CDialog
+{
+    .......
+
+    // ClassWizard generated virtual function overrides
+    //{{AFX_VIRTUAL(CGuessDlg)
+    protected:
+    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+    virtual void OnOK();
+    virtual void OnCancel();
+    //}}AFX_VIRTUAL
+    .......
+};
+步骤2、在guessDlg.cpp文件加入两个哑函数OnOK和OnCancel。
+void CGuessDlg::OnOK ()
+{
+}
+void CGuessDlg::OnCancel()
+{
+}
+好了在编译运行，按ESC和在文本框内点一下鼠标，按下回车（Enter）键，上一篇的问题不存在了，程序不会退出，彻底退不出了，只能通过任务管理器退了，这可不行，我们还需要继续改进。
+步骤3、添加一个按钮，叫退出。加入这个按钮的消息控制函数如下：
+void CGuessDlg::OnButton2() 
+{
+    CDialog::OnOK();
+}
+这回可以了，我们已经掌握了对话框退出控制权。
+
+改进二：改变对话框的外观
+我们可以改变对话框的背景颜色，或对话框中的控件颜色以使得程序界面不至于千篇一律，如何做呢？每个控件和对话框在显示之前回发送WM_CTLCOLOR消息，如果派生对话框类对WM_CTLCOLOR消息进行了映射，就可以设定文本的前景色和背景色。同时还可以为控件或对话框的非文本区域选择一个刷子。
+WM_CTLCOLOR消息对应的函数为OnCtlColor，OnCtlColor函数的原型为：afx_msg HBRUSH OnCtlColor( CDC* pDC, CWnd* pWnd, UINT nCtlColor );其中参数pDC是：一个指向设备环境的指针。pWnd：指定特定的控件。nCtlColor:指明控件类型。 可以有以下类型：
+CTLCOLOR_BTN            button control
+CTLCOLOR_DLG            dialog box
+CTLCOLOR_EDIT           edit control
+CTLCOLOR_LISTBOX        list box
+CTLCOLOR_MSGBOX         message box
+CTLCOLOR_SCROLLBAR      scroll bar
+CTLCOLOR_STATIC         static text, frame, or rectangle
+现在为了突出显示文本框的显示号码，我们将文本框的文字背景设为黄色。
+步骤1、添加一个成员变量 HBRUSH m_hBrush;
+步骤2、用Class Wizard为CGuessDlg加入WM_CTLCOLOR消息，并编辑OnCtlColor函数： 
+HBRUSH CGuessDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor) 
+{
+    if(nCtlColor==CTLCOLOR_EDIT){
+        pDC->SetBkColor (#ffff00);//EDIT控件文字背景为黄色
+        return m_hBrush;
+    }
+    return CDialog::OnCtlColor (pDC,pWnd,nCtlColor);
+}
+编译运行，怎么样，文本框内的文字均变为黄底了。关于对话框的外观我们将在以后再说。
+
+改进三、增加进度条。
+程序在随机产生号码时没有任何提示，我们不知道程序是否在运行，怎么办？我们增加一个进度条控件，用来观察程序的运行状况。
+步骤1、在对话框编辑器中增加一个进度条控件（Progress），并在CGuessDlg为进度条增加一个成员变量。int  m_nProgress;
+步骤2、将CGuessDlg::OnButton1()用下面代码替换。 
+void CGuessDlg::OnButton1() 
+{
+    m_nProgress=0;//初始进度条为0
+    CProgressCtrl *pProg=(CProgressCtrl*)GetDlgItem(IDC_PROGRESS1);
+    pProg->SetRange (0,70);//设定进度条范围为0-70
+    int temp,pnum[35],num[7]; //临时变量，临时数组
+    for(int i=0;i<35;i++)    //赋值，以作选号用
+        pnum[i]=i+1;
+    //***选号过程：***//
+    for(i=0;i<7;i++)
+    {
+        srand( (unsigned)time( NULL ) );
+        //srand(3);
+        temp=rand(); //取随机种子数
+        temp=temp%36+1; //取小于35的数组元素
+        while(pnum[temp]==0)//如果是已被选过的元素，重选
+        {
+            srand( (unsigned)time( NULL ) );
+            temp=rand();
+            temp=temp%36+1;
+        }
+        m_nProgress+=10;//进度加10
+        num[i]=temp; //选定一个号码
+        pnum[temp]=0; //给该元素置0，表示已被选过
+        UpdateData(TRUE);//刷新
+        pProg->SetPos (m_nProgress);
+       }
+    /***　在选完号码后，应该为它们排一下序：***/
+    //排序部分无变化省略。
+}
+编译运行它，好了，有了进度显示我们可以知道程序的运行情况了。
+在这篇笔记中我们通过对上一篇所写的小程序的改进，掌握了一些改进对话框的方法，不用书上的例子是想给大家多个例子参考，不过书上的例子一定要掌握。好了关于模式对话框我们已经掌握，下一篇我们将继续学习无模式对话框。
+
+posted on 2007-09-17 16:15 断桥诗轩 阅读(362) 评论(0)  编辑 收藏 引用 所属分类: VC++编程 
+
+ 
+
+博问 - 解决您的IT难题
+
+IT新闻：
+· 索尼前高管李曦加入京东 任公关部高级副总裁
+· 科学家找到了人类无法进行冬眠的部分原因
+· 开局不错！开发者向RIM BB10交1.5万个程序
+· 3G版iPad mini/4周五国内上市 官价公布
+· 微软开始提供Windows Embedded测试版系统
+ 
+   
+ 博客园首页  IT新闻  IT问答  程序员招聘  
+标题  请输入标题 
+姓名  请输入你的姓名 
+主页   
+请输入验证码  
+验证码 *   
+ 
+内容(提交失败后,可以通过“恢复上次提交”恢复刚刚提交的内容) 请输入评论内容
+  
+ 
+Remember Me? 
+    登录  使用高级评论  新用户注册  返回页首  恢复上次提交        
+[使用Ctrl+Enter键可以直接提交] 
+ 
+ 
+博客园首页随笔：
+· char *p 与char p[] 比较
+· 从程序员到项目经理（10）：程序员加油站 --要执着但不要固执
+· go/src/make.bash阅读
+· (译)构建Async同步基元，Part 3 AsyncCountdownEvent
+· 设计模式学习日记四(持续更新)
+ 
+博客园   IT新闻   BlogJava   博客生活   C++博客   PHP博客    
+相关文章: 
+程序员面试无敌---程序算法 
+《VC++技术内幕》学习笔记 
+经典编程书籍（C++, 网络, Windows, Linux) 
+ 
+ 
+ 
+
+Powered by: 
+IT博客 
+Copyright © 断桥诗轩 
+

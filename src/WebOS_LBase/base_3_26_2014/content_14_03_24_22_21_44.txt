@@ -1,0 +1,101 @@
+Firefox（火狐）浏览器扩展开发初探
+
+分类： Firefox 扩展 javascript xmlhttprequest 设计 2011-09-08 12:24 3034人阅读 评论(0) 收藏 举报
+firefox浏览器扩展mozillaextension文档
+        最近开发一个FF的扩展，自动完成公司的订餐操作，主要完成的功能很简单：登陆网站，执行一个特定操作，并在ff的状态栏内显示执行的成功或者失败的状态。以前没有写过FF扩展，需要从头学习，在完成这个扩展过程中，有些收获记录下来，一方面自己记录，另一方面也方便有此需求的同学。在整个开发过程中碰到一些问题，也走了一些弯路，希望对其他同学有所帮助。
+        由于是第一开发FF扩展，没什么经验，所以，第一步先去搜索些关于FF插件开发的文档。先几乎把所有关于FF插件开发的中文文档看个边，至少了解FF扩展和插件的基本信息，以及插件的基本结构，并在这个过程中在构建自己的开发环境。
+        构建自己的开发环境，构建自己的firefox开发环境，好处是你可以随便在这个开发环境中折腾，出现问题也不会影响你正常firefox的使用，当然使用这场模式也没问题。这一步主要做的事情有
+                第一步，firefox启动时，添加-no-remote -P develop 参数，其中develop代表开发者，如果有多个开发者你可以改这个字段就可以。Windows系统修改方法，是右键Firefox图标，属性，在目录里面添加此项即可，如下图
+        
+                第二步，为了更好的调试插件，修改Firefox某些项配置，具体方法：firefox的地址栏输入about:config回车，
+                        参数：javascript.options.showInConsole= true
+                        作用：将chrome文件中的错误显示在Console里。
+                        参数：nglayout.debug.disable_xul_cache= true
+                        作用：关闭XUL缓存，这允许不重启而改变窗口以及对话的内容。这里，可以使用目录而不是Jar。但是Overlay改变后，overlay文档必须重载（这一项非常有用，修改uxl后不用重启窗口）。
+                        参数：browser.dom.window.dump.enabled= true
+                        作用：这将允许dump()函数输出到stdout里。参考window.dump函数。特权应用也可用nsIConsoleService。
+                        参数：javascript.options.strict= true
+                        作用：启用严格JavaScript错误提示，js出错调试可用。
+                        参数：extensions.logging.enabled= true 
+                        作用：这将给出更多关于安装以及更新插件的日志信息。
+                        参数：nglayout.debug.disable_xul_fastload= true (仅限Gecko 2.0+ (Firefox 4.0+))
+                        参数：dom.report_all_js_exceptions= true
+            以上参数有些在你的配置项已经存在，可能设置的状态值不对，修改下即可。有些参数可能没有，需要你手动创建这些参数和值。只需要在list中右键-》新建-》布尔即可。
+           了解FF扩展的基本文件结构
+
+
+        了解ff扩展的基本结构，也对FF扩展相关的文档有所了解。现在最迫切的是想先创建一个自己的扩展，虽然我们现在还是很了解install.rdf,chrome.manifest文件内是什么东东，但是丝毫不妨碍我们创建一个FF的扩展，因为FF已经给我们提供了一个工具，可以生成自己的扩展，作为新手我强烈建议创建一个这样的扩展包，学习FF的扩展目录结构和文件内容。创建ff扩展的链接https://addons.mozilla.org/en-US/developers/tools/builder，访问这个页面，按上面说明每项参数填写即可，和其他网站一样，星号是必填的。填写完成后，点击底部按钮，就会创建你的第一个FF扩展，然后下载下这个zip包，把zip后者，修改成xpi，然后拖到你FF中去，安装，重启，看看你的第一个ff扩展吧，为了看到效果，建议你把这一串属性全都勾选上，这样你可以方便的看到插件所能展现的效果了。
+
+没有写一行代码，第一个FF扩展已经完成了。接下来，我们仔细研究下FF扩展的文件吧
+       Install.rdf文件，install.rdf文件是FF扩展的安装文件，在这个文件配置FF扩展相关的信息。
+<?xmlversion="1.0" encoding="UTF-8"?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+  <Descriptionabout="urn:mozilla:install-manifest">
+       <!—扩展的ID，之前的版本都是guid，现在流行方式是个email地址，要确保这个ID在你的电脑上唯一-->
+       <em:id>ugg_xchj@hotmail.com </em:id>
+       <!—2表示是ff扩展，这个数字不要变-->
+       <em:type>2</em:type>
+       <!—FF扩展的名字-->
+       <em:name>u-mytest-name</em:name>
+       <!—FF扩展的版本号-->
+       <em:version>1</em:version>
+       <!—FF扩展的创建者和贡献者->
+       <em:creator>ugg</em:creator>
+       <em:contributor>ugg </em:contributor>
+       <!—FF扩展的描述->
+       <em:description>u-description</em:description>
+       <!—FF扩展的关于部分，可以是一个网址，也可以是扩展内的一个窗口个窗口->
+       <em:aboutURL>chrome://u-packagename/content/about.xul</em:aboutURL>
+       <!—FF扩展的选项部分，可以是一个网址，也可以是扩展内的一个窗口个窗口，选项部分和扩展内defaults\preferences下的文件有关系，可以通过这块设置一些变量的默认值->
+       <em:optionsURL>chrome://u-packagename/content/options.xul</em:optionsURL>
+       <em:targetApplication>
+            <Description>
+                <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!—Firefox，这个guid不能变，表示的是FF-->
+                <em:minVersion>0.3</em:minVersion> <!—最低的支持版本-->
+                <em:maxVersion>8.0a1</em:maxVersion> <!—最高的支持版本-->
+           </Description>
+       </em:targetApplication>
+  </Description>
+</RDF>
+
+除了这些参数外，install.rdf还有其他的参数，详细的可以从https://developer.mozilla.org/en/install_manifests了解
+
+chrome.manifest文件
+      content   u-na                 chrome/content/
+      overlay   chrome://browser/content/browser.xul   chrome://u-na/content/ff-overlay.xul
+      定义u-na包的content路径，使用插件中的ff-overlay.xul覆盖浏览器中browser.xul。
+      Chrome.manifest作用不仅仅如此，还可以定义很多内容，关于这个文件的详细描述可以参考https://developer.mozilla.org/en/chrome_registration
+
+Xul文件
+XUL（XML用户界面语言）是Mozilla的基于XML的语言，可以快速构建应用程序的界面。Mozilla的界面元素有很多比如状态栏，工具栏，按钮等等，需要设置xul才能更改或者控制FF的界面，关于xul的详细介绍参考https://developer.mozilla.org/en/xul。我们可以参考下状态栏的xul控制
+<statusbarid="status-bar">
+                  <statusbarpanelid="dcdingcan"
+                   label="登陆中...."  右下角状态栏显示信息
+                   context="stockmenu"
+                   onclick="DingCan.disPlay('')"点击后触发事件，这个事件有js控制
+         />
+</statusbar>
+
+        以上都是最简单的内容，如果要做出花哨需要详细查看MDN文档。有了这些基本知识后，我们回到我之前的需求上。我希望做一个FF扩展，在这个扩展中可以设置登录用户的账号和密码，当打开FF后，按给定的用户名和密码登录公司订餐网站，执行成功或者失败后在状态下给出提示。最终实现，设置域账号密码
+
+
+
+打开ff后的状态显示
+，，
+代码下载，点击此处
+
+实现功能很简单，代码也比较简单，就不做详细介绍了，大概说下我开发过过程碰到的一些问题。
+
+       Q：开发过程中的插件如何在FF中调试？
+       A：还记得install.rdf中的<em:id>ugg_xchj@hotmail.com</em:id>字段嘛？在你的电脑C:\Documentsand Settings\用户名\Application Data\Mozilla\Firefox\Profiles\dqfrxoai.default\extensions的目录内创建名字为ugg.xchj@hotmail.com的文件，文件内容为正在开发这个FF扩展的绝对路径，比如D:\m\ffex\myffex\helloword。然后重启FF即可工具-》附件组件管理器中看到你的插件。
+
+       Q：为什么我创建的扩展不能加载到FF中
+       A：主要有几方面，1：确保install.rdf，chrome.manifest文件格式正确，最好的办法是直接修改已有的FF扩展包的install.rdf，chrome.manifest文件，一般这两个文件出错，FF在加载扩展过程会中断，不能再加载其他的组件。2：编码问题，一旦你的文件中出现中文，一定要确保采用utf-8格式保存文件，否则会加载失败，扩展不显示，建议所有的文件都采用utf-8格式。
+
+      Q：如果打包xpi文件？
+       A：使用winrar或者winzip打包zip，修改成xpi格式即可。注意，要在包含有install.rdf的文件目录打包，否则会提示xpi包已损坏，不能安装，另外压缩方式选择为存储。
+
+      Q：js代码在FF扩展开发有何用处？
+      A：FF扩展开发过程中，使用xul开发FF的扩展的界面，而使用js开发扩展的处理逻辑，在我提供的订餐插件中，使用js登陆网站，执行操作。Js处理逻辑很重要，我使用已经写好的js文件，很容易开发出google的扩展插件，IE的扩展插件。所以，浏览器扩展的开发，更多的是js逻辑的开发。
+      学习FF扩展，最佳的方式是多看看别人写的FF扩展，下载下别人的扩展，把xpi修改成zip，直接解压看里面的结构，开发就可以，学习过程很快。另外一个好出去是FF的开发社区，多看下MDN文档，比如下面的就是官方创建一个FF扩展的过程。https://developer.mozilla.org/en/Building_an_Extension
+

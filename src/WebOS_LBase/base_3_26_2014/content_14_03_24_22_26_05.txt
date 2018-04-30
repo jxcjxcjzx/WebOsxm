@@ -1,0 +1,49 @@
+linux下ARM汇编程序的调试
+
+(2010-04-10 08:58:01)
+转载▼
+标签：
+杂谈
+
+linux下ARM汇编程序的调试
+最近在学习ARM的汇编，但是ARM不像x86，可以很方便的调试。不过还好有虚拟机，而且还有GDB这样万能的调试器。Google了很久，又结合自己的实践，终于成功的调试了ARM的汇编，在此向对ARM嵌入式感兴趣的同学分享一下。
+
+首先说明需要的工具
+1. QEMU  这个模拟器不仅可以模拟x86，还可以模拟ARM和MIPS，可谓强大
+2. GDB（源代码）  不用说了，万能调试器，但是需要从源代码编译
+3. arm-linux交叉工具链  我用的是自己开发板配套的3.4版本，不过去www.uclinux.org随便下载一个就可以（不过貌似uclinux被GFW了……）
+
+先编译GDB，设置target为ARM平台：
+$ ./configure --target=arm-linux
+$ make
+
+OK，开始写汇编程序，sample代码很简单，给3个寄存器赋值，之后死循环。注意一定要死循环，否则的话会遇到非法指令或者未知指令。
+
+=======test.S========
+.globl _start
+_start:
+  mov r0, #0
+  mov r1, #1
+  mov r2, #2
+loop:
+  b loop
+=======EOF=========
+
+编译：
+$ ./arm-linx-as -o test.o test.S
+链接：
+$ ./arm-linux-ld -o test test.o
+此时可以用objdump查看test的内容：
+$ ./arm-linux-objdump -d test
+接下来就是调试了，用qemu启动gdb端口监听：
+$ qemu-arm -g 11111 test
+之后启动gdb，注意启动的时候要指明test，不能启动之后用file指定test（为什么不能不清楚，不过是试验结果）：
+$ ./gdb /PATH_TO_TEST                                       注意这里的gdb不是系统的gdb，而是刚刚编译好的gdb
+(gdb) target remote localhost:11111                   设置目标为本机11111端口
+(gdb) disassemble                          反汇编
+(gdb) display /10i $pc-16                 这个命令是显示当前pc附近的10条指令，代替调试x86程序的list命令
+(gdb) si                                      si，不是s，是单步执行指令，如果是s的话就会执行到下一个标号处。类似的还有ni
+(gdb) info register                      嗯，这个就是查看寄存器的值啦~
+(gdb) x /16 0                             这个是查看0x00000000开始的16个字（32 bits per word）的内存信息
+
+差不多就知道这些了，有一个问题是不知道如何设置指令的断点，以后再试吧……

@@ -1,0 +1,1672 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+无幻
+潜心成魔.....
+目录视图摘要视图订阅
+2013年7月微软MVP申请开始啦！        CSDN博客移动开发排行榜      写“书评”赢下载分！ 
+2013年4月微软MVP会员名单揭晓！      来极客头条，赢下载积分      专访关东升：将人文融入到科技产品中
+ 如何制作一个塔防游戏 Cocos2d-x 2.0.4
+分类： 4.4 Cocos2d-x 2013-03-14 17:45 7550人阅读 评论(32) 收藏 举报
+      本文实践自 Pablo Ruiz 的文章《How To Make a Tower Defense Game》，文中使用Cocos2D，我在这里使用Cocos2D-x 2.0.4进行学习和移植。在这篇文章，将会学习到如何制作一个塔防游戏。在这当中，学习如何在设定的时间内出现一波波的敌人，使这些敌人沿着指定的路点前进，如何在地图上指定的位置创建炮塔，如何使炮塔射击敌人，如何可视化调试路点和炮塔的攻击范围。
+步骤如下：
+1.新建Cocos2d-win32工程，工程名为"TowerDefense"，去除"Box2D"选项，勾选"Simple Audio Engine in Cocos Denshion"选项；
+2.下载本游戏所需的资源，将资源放置"Resources"目录下；
+
+3.为场景添加背景图片。打开HelloWorldScene.cpp文件，修改init函数，如下：
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+bool HelloWorld::init()
+{
+    bool bRet = false;
+    do 
+    {
+        CC_BREAK_IF(! CCLayer::init());
+        
+        this->setTouchEnabled(true);
+        CCSize wins = CCDirector::sharedDirector()->getWinSize();
+        CCSprite *background = CCSprite::create("Bg.png");
+        this->addChild(background);
+        background->setPosition(ccp(wins.width / 2, wins.height / 2));
+
+        bRet = true;
+    } while (0);
+    return bRet;
+}
+通过放置的背景图片，可以直观的看出哪些地方允许玩家放置炮塔。编译运行，如下图所示：
+
+4.接着，需要沿路设置一些点，在这些点上能够让玩家触摸和建立炮塔。为了方便管理，使用.plist文件来存储炮塔的放置点，这样就可以很容易的改变它们。TowersPosition.plist已经在资源文件夹中，其中已经有了一些炮塔的位置。查看这个文件，可以看到一个字典数组，字典只包含两个键"x"和"y"。每个字典条目代表一个炮塔位置的x和y坐标。现在需要读取这个文件，并且放置塔基到地图上。打开HelloWorldScene.h文件，添加以下变量：
+1
+cocos2d::CCArray* towerBases;
+打开HelloWorldScene.cpp文件，添加如下方法：
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+void HelloWorld::loadTowerPositions()
+{
+    CCArray* towerPositions = CCArray::createWithContentsOfFile("TowersPosition.plist");
+    towerBases = CCArray::createWithCapacity(10);
+    towerBases->retain();
+
+    CCObject *pObject = NULL;
+    CCARRAY_FOREACH(towerPositions, pObject)
+    {
+        CCDictionary* towerPos = (CCDictionary*)pObject;
+        CCSprite* towerBase = CCSprite::create("open_spot.png");
+        this->addChild(towerBase);
+        towerBase->setPosition(ccp(((CCString*)towerPos->objectForKey("x"))->intValue(),
+            ((CCString*)towerPos->objectForKey("y"))->intValue()));
+        towerBases->addObject(towerBase);
+    }
+}
+在init函数里面，添加背景图片代码之后，添加如下代码：
+1
+this->loadTowerPositions();
+在析构函数里面，添加如下代码：
+1
+towerBases->release();
+编译运行，就可以看到道路两侧的方块，这些是做为玩家炮塔的基座。如下图所示：
+
+5.开始建立炮塔。打开HelloWorldScene.h文件，添加如下代码：
+1
+CC_SYNTHESIZE_RETAIN(cocos2d::CCArray*, _towers, Towers);
+添加Tower类，派生自CCNode类，Tower.h文件代码如下：
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+#ifndef __TOWER_H__
+#define __TOWER_H__
+
+#include "cocos2d.h"
+#include "HelloWorldScene.h"
+
+#define kTOWER_COST 300
+
+class Tower : public cocos2d::CCNode
+{
+public:
+    Tower(void);
+    ~Tower(void);
+
+    static Tower* nodeWithTheGame(HelloWorld* game, cocos2d::CCPoint location);
+    bool initWithTheGame(HelloWorld* game, cocos2d::CCPoint location);
+
+    void update(float dt);
+    void draw(void);
+
+    CC_SYNTHESIZE(HelloWorld*, _theGame, TheGame);
+    CC_SYNTHESIZE(cocos2d::CCSprite*, _mySprite, MySprite);
+
+private:
+    int attackRange;
+    int damage;
+    float fireRate;
+};
+
+#endif  // __TOWER_H__
+打开Tower.cpp文件，代码如下：
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+#include "Tower.h"
+using namespace cocos2d;
+
+Tower::Tower(void)
+{
+}
+
+Tower::~Tower(void)
+{
+}
+
+Tower* Tower::nodeWithTheGame(HelloWorld* game, CCPoint location)
+{
+    Tower *pRet = new Tower();
+    if (pRet && pRet->initWithTheGame(game, location))
+    {
+        return pRet;
+    }
+    else
+    {
+        delete pRet;
+        pRet = NULL;
+        return NULL;
+    }
+}
+
+bool Tower::initWithTheGame(HelloWorld* game, CCPoint location)
+{
+    bool bRet = false;
+    do 
+    {
+        attackRange = 70;
+        damage = 10;
+        fireRate = 1;
+        
+        _mySprite = CCSprite::create("tower.png");
+        this->addChild(_mySprite);
+        _mySprite->setPosition(location);
+        _theGame = game;
+        _theGame->addChild(this);
+
+        this->scheduleUpdate();
+
+        bRet = true;
+    } while (0);
+
+    return bRet;
+}
+
+void Tower::update(float dt)
+{
+
+}
+
+void Tower::draw(void)
+{
+#ifdef COCOS2D_DEBUG
+    ccDrawColor4F(255, 255, 255, 255);
+    ccDrawCircle(_mySprite->getPosition(), attackRange, 360, 30, false);
+#endif
+    CCNode::draw();
+}
+这个Tower类包含几个属性：一个精灵对象，这是炮塔的可视化表现；一个父层的引用，方便访问父层；还有三个变量：
+attackRange: 炮塔可以攻击敌人的距离。
+damage: 炮塔对敌人造成的伤害值。
+fireRate: 炮塔再次攻击敌人的时间间隔。
+有了这三个变量，就可以创建各种不同攻击属性的炮塔，比如需要很长时间来重新加载的远程重击，或者范围有限的快速攻击。最后，代码中的draw方法，用于在炮塔周围绘制一个圆，以显示出它的攻击范围，这将方便调试。
+6.让玩家添加炮塔。打开HelloWorldScene.cpp文件，加入以下头文件声明：
+1
+#include "Tower.h"
+在析构函数中添加如下代码：
+1
+_towers->release();
+在init函数，添加如下代码：
+1
+2
+_towers = CCArray::create();
+_towers->retain();
+添加如下两个方法，代码如下：
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+bool HelloWorld::canBuyTower()
+{
+    return true;
+}
+
+void HelloWorld::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent)
+{
+    CCSetIterator iter = pTouches->begin();
+    for (; iter != pTouches->end(); iter++)
+    {
+        CCTouch* pTouch = (CCTouch*)(*iter);
+        CCPoint location = pTouch->getLocation();
+
+        CCObject *pObject = NULL;
+        CCARRAY_FOREACH(towerBases, pObject)
+        {
+            CCSprite *tb = (CCSprite*)pObject;
+            if (this->canBuyTower() && tb->boundingBox().containsPoint(location) && !tb->getUserData())
+            {
+                //We will spend our gold later.
+
+                Tower* tower = Tower::nodeWithTheGame(this, tb->getPosition());
+                _towers->addObject(tower);
+                tb->setUserData(tower);
+            }           
+        }
+    }
+}
+方法ccTouchesBegan检测当用户触摸屏幕上任何点时，遍历towerBases数组，检查触摸点是否包含在任何一个塔基上。不过在创建炮塔前，还有两件事需要检查：
+①玩家是否买得起炮塔？canBuyTower方法用来检查玩家是否有足够的金币来购买炮塔。在这里先假设玩家有很多金币，方法返回true。
+②玩家是否违法了建筑规则？如果tb的UserData已经设置了，那么这个塔基已经有了炮塔，不能再添加一个新的了。
+如果一切检查都通过，那么就创建一个新的炮塔，放置在塔基上，并将它添加到炮塔数组中。编译运行，触摸塔基，就可以看到炮塔放置上去了，并且它的周围还有白色的圆圈显示攻击范围，如下图所示：
+
+7.添加路点。敌人将会沿着一系列的路点前进，这些简单相互连接的点构成了一条路径，敌人在这条路径上进行行走。敌人会出现在第一个路点，搜寻列表中的下一个路点，移动到那个位置，重复这个过程，直到他们到达列表中的最后一个路点——玩家基地。如果被敌人到达基地，那么玩家就会受到损害。添加Waypoint类，派生自CCNode类，Waypoint.h文件代码如下：
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+#ifndef __WAYPOINT_H__
+#define __WAYPOINT_H__
+
+#include "cocos2d.h"
+#include "HelloWorldScene.h"
+
+class Waypoint : public cocos2d::CCNode
+{
+public:
+    Waypoint(void);
+    ~Waypoint(void);
+
+    static Waypoint* nodeWithTheGame(HelloWorld* game, cocos2d::CCPoint location);
+    bool initWithTheGame(HelloWorld* game, cocos2d::CCPoint location);
+
+    void draw(void);
+
+    CC_SYNTHESIZE(cocos2d::CCPoint, _myPosition, MyPosition);
+    CC_SYNTHESIZE(Waypoint*, _nextWaypoint, NextWaypoint);
+
+private:
+    HelloWorld* theGame;
+};
+
+#endif  // __WAYPOINT_H__
+打开Waypoint.cpp文件，代码如下：
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+#include "Waypoint.h"
+using namespace cocos2d;
+
+Waypoint::Waypoint(void)
+{
+    _nextWaypoint = NULL;
+}
+
+Waypoint::~Waypoint(void)
+{
+}
+
+Waypoint* Waypoint::nodeWithTheGame(HelloWorld* game, CCPoint location)
+{
+    Waypoint *pRet = new Waypoint();
+    if (pRet && pRet->initWithTheGame(game, location))
+    {
+        return pRet;
+    }
+    else
+    {
+        delete pRet;
+        pRet = NULL;
+        return NULL;
+    }
+}
+
+bool Waypoint::initWithTheGame(HelloWorld* game, CCPoint location)
+{
+    bool bRet = false;
+    do 
+    {
+        theGame = game;
+        _myPosition = location;
+
+        this->setPosition(CCPointZero);
+        theGame->addChild(this);
+
+        bRet = true;
+    } while (0);
+
+    return bRet;
+}
+
+void Waypoint::draw(void)
+{
+#ifdef COCOS2D_DEBUG
+    ccDrawColor4F(0, 255, 0, 255);
+    ccDrawCircle(_myPosition, 6, 360, 30, false);
+    ccDrawCircle(_myPosition, 2, 360, 30, false);
+
+    if (_nextWaypoint)
+    {
+        ccDrawLine(_myPosition, _nextWaypoint->_myPosition);
+    }
+#endif
+
+    CCNode::draw();
+}
+首先，通过传入的HelloWorld对象引用和路点位置坐标，进行初始化一个waypoint对象。每个路点都包含下一个路点的引用，这将会创建一个路点链接列表。每个路点知道列表中的下一个路点。通过这种方式，可以引导敌人沿着链表上的路点到达他们的最终目的地。最后，draw方法绘制显示路点的位置，并且绘制一条直线将其与下一个路点进行连接，这仅仅用于调试目的。
+8.创建路点列表。打开HelloWorldScene.h文件，添加以下代码：
+1
+CC_SYNTHESIZE_RETAIN(cocos2d::CCArray*, _waypoints, Waypoints);
+打开HelloWorldScene.cpp文件，加入以下头文件声明：
+1
+#include "Waypoint.h"
+在析构函数中添加如下代码：
+1
+_waypoints->release();
+添加以下方法：
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+void HelloWorld::addWaypoints()
+{
+    _waypoints = CCArray::create();
+    _waypoints->retain();
+
+    Waypoint *waypoint1 = Waypoint::nodeWithTheGame(this, ccp(420, 35));
+    _waypoints->addObject(waypoint1);
+
+    Waypoint *waypoint2 = Waypoint::nodeWithTheGame(this, ccp(35, 35));
+    _waypoints->addObject(waypoint2);
+    waypoint2->setNextWaypoint(waypoint1);
+
+    Waypoint *waypoint3 = Waypoint::nodeWithTheGame(this, ccp(35, 130));
+    _waypoints->addObject(waypoint3);
+    waypoint3->setNextWaypoint(waypoint2);
+
+    Waypoint *waypoint4 = Waypoint::nodeWithTheGame(this, ccp(445, 130));
+    _waypoints->addObject(waypoint4);
+    waypoint4->setNextWaypoint(waypoint3);
+
+    Waypoint *waypoint5 = Waypoint::nodeWithTheGame(this, ccp(445, 220));
+    _waypoints->addObject(waypoint5);
+    waypoint5->setNextWaypoint(waypoint4);
+
+    Waypoint *waypoint6 = Waypoint::nodeWithTheGame(this, ccp(-40, 220));
+    _waypoints->addObject(waypoint6);
+    waypoint6->setNextWaypoint(waypoint5);
+}
+在init函数，添加如下代码：
+1
+this->addWaypoints();
+编译运行，效果如下图所示：
+
+在地图上有6个路点，这是敌人的行走路线。在让敌人出现在游戏中前，还需要添加一个辅助方法。打开HelloWorldScene.cpp文件，添加方法如下：
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+bool HelloWorld::collisionWithCircle(CCPoint circlePoint, float radius, CCPoint circlePointTwo, float radiusTwo)
+{
+    float xdif = circlePoint.x - circlePointTwo.x;
+    float ydif = circlePoint.y - circlePointTwo.y;
+
+    float distance = sqrt(xdif * xdif + ydif * ydif);
+
+    if(distance <= radius + radiusTwo) 
+    {
+        return true;
+    }
+    return false;
+}
+方法collisionWithCircle用于判断两个圆是否碰撞或者相交。这将用于判断敌人是否到达一个路点，同时也可以检测敌人是否在炮塔的攻击范围之内。
+9.添加敌人。打开HelloWorldScene.h文件，添加以下代码：
+1
+2
+3
+4
+CC_SYNTHESIZE_RETAIN(cocos2d::CCArray*, _enemies, Enemies);
+
+int wave;
+cocos2d::CCLabelBMFont* ui_wave_lbl;
+打开HelloWorldScene.cpp文件，在析构函数里，添加如下代码：
+1
+_enemies->release();
+添加Enemy类，派生自CCNode类，Enemy.h文件代码如下：
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+#ifndef __ENEMY_H__
+#define __ENEMY_H__
+
+#include "cocos2d.h"
+#include "HelloWorldScene.h"
+#include "Waypoint.h"
+
+class Enemy : public cocos2d::CCNode
+{
+public:
+    Enemy(void);
+    ~Enemy(void);
+
+    static Enemy* nodeWithTheGame(HelloWorld* game);
+    bool initWithTheGame(HelloWorld* game);
+    void doActivate(float dt);
+    void getRemoved();
+
+    void update(float dt);
+    void draw(void);
+
+    CC_SYNTHESIZE(HelloWorld*, _theGame, TheGame);
+    CC_SYNTHESIZE(cocos2d::CCSprite*, _mySprite, MySprite);
+
+private:
+    cocos2d::CCPoint myPosition;
+    int maxHp;
+    int currentHp;
+    float walkingSpeed;
+    Waypoint *destinationWaypoint;
+    bool active;
+};
+
+#endif  // __ENEMY_H__
+打开Enemy.cpp文件，代码如下：
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+#include "Enemy.h"
+using namespace cocos2d;
+
+#define HEALTH_BAR_WIDTH 20
+#define HEALTH_BAR_ORIGIN -10
+
+Enemy::Enemy(void)
+{
+}
+
+Enemy::~Enemy(void)
+{
+}
+
+Enemy* Enemy::nodeWithTheGame(HelloWorld* game)
+{
+    Enemy *pRet = new Enemy();
+    if (pRet && pRet->initWithTheGame(game))
+    {
+        return pRet;
+    }
+    else
+    {
+        delete pRet;
+        pRet = NULL;
+        return NULL;
+    }
+}
+
+bool Enemy::initWithTheGame(HelloWorld* game)
+{
+    bool bRet = false;
+    do 
+    {
+        maxHp = 40;
+        currentHp = maxHp;
+        active = false;
+        walkingSpeed = 0.5;
+
+        _theGame = game;
+        _mySprite = CCSprite::create("enemy.png");
+        this->addChild(_mySprite);
+
+        Waypoint *waypoint = (Waypoint*)_theGame->getWaypoints()->objectAtIndex(_theGame->getWaypoints()->count() - 1);
+        destinationWaypoint = waypoint->getNextWaypoint();
+        CCPoint pos = waypoint->getMyPosition();
+        myPosition = pos;
+        _mySprite->setPosition(pos);
+        _theGame->addChild(this);
+
+        this->scheduleUpdate();
+
+        bRet = true;
+    } while (0);
+
+    return bRet;
+}
+
+void Enemy::doActivate(float dt)
+{
+    active = true;
+}
+
+void Enemy::getRemoved()
+{
+    this->getParent()->removeChild(this, true);
+    _theGame->getEnemies()->removeObject(this);
+
+    //Notify the game that we killed an enemy so we can check if we can send another wave
+    _theGame->enemyGotKilled();
+}
+
+void Enemy::update(float dt)
+{
+    if (!active)
+    {
+        return;
+    }
+
+    if (_theGame->collisionWithCircle(myPosition, 1, destinationWaypoint->getMyPosition(), 1))
+    {
+        if (destinationWaypoint->getNextWaypoint())
+        {
+            destinationWaypoint = destinationWaypoint->getNextWaypoint();
+        } 
+        else
+        {
+            //Reached the end of the road. Damage the player
+            _theGame->getHpDamage();
+            this->getRemoved();
+        }
+    }
+
+    CCPoint targetPoint =  destinationWaypoint->getMyPosition();
+    float movementSpeed = walkingSpeed;
+
+    CCPoint normalized = ccpNormalize(ccp(targetPoint.x - myPosition.x, targetPoint.y - myPosition.y));
+    _mySprite->setRotation(CC_RADIANS_TO_DEGREES(atan2(normalized.y, - normalized.x)));
+
+    myPosition = ccp(myPosition.x + normalized.x * movementSpeed, myPosition.y + normalized.y * movementSpeed);
+    _mySprite->setPosition(myPosition);
+}
+
+void Enemy::draw(void)
+{
+    CCPoint healthBarBack[] = {
+        ccp(_mySprite->getPosition().x - 10, _mySprite->getPosition().y + 16),
+        ccp(_mySprite->getPosition().x + 10, _mySprite->getPosition().y + 16),
+        ccp(_mySprite->getPosition().x + 10, _mySprite->getPosition().y + 14),
+        ccp(_mySprite->getPosition().x - 10, _mySprite->getPosition().y + 14)
+    };
+    ccDrawSolidPoly(healthBarBack, 4, ccc4f(255, 0, 0, 255));
+
+    CCPoint healthBar[] = {
+        ccp(_mySprite->getPosition().x + HEALTH_BAR_ORIGIN, _mySprite->getPosition().y + 16),
+        ccp(_mySprite->getPosition().x + HEALTH_BAR_ORIGIN + (float)(currentHp * HEALTH_BAR_WIDTH) / maxHp, _mySprite->getPosition().y + 16),
+        ccp(_mySprite->getPosition().x + HEALTH_BAR_ORIGIN + (float)(currentHp * HEALTH_BAR_WIDTH) / maxHp, _mySprite->getPosition().y + 14),
+        ccp(_mySprite->getPosition().x + HEALTH_BAR_ORIGIN, _mySprite->getPosition().y + 14)
+    };
+    ccDrawSolidPoly(healthBar, 4, ccc4f(0, 255, 0, 255));
+
+    CCNode::draw();
+}
+首先，通过传递一个HelloWorld对象引用进行初始化。在初始化函数里面，对一些重要的变量进行设置：
+maxHP: 敌人的生命值。
+walkingSpeed: 敌人的移动速度。
+mySprite: 存储敌人的可视化表现。
+destinationWaypoint: 存储下一个路点的引用。
+update方法每帧都会被调用，它首先通过collisionWithCircle方法检查是否到达了目的路点。如果到达了，则前进到下一个路点，直到敌人到达终点，玩家也就受到伤害。接着，它根据敌人的行走速度，沿着一条直线移动精灵到达下一个路点。它通过以下算法：
+①计算出从当前位置到目标位置的向量，然后将其长度设置为1（向量标准化）
+②将移动速度乘以标准化向量，得到移动的距离，将它与当前坐标进行相加，得到新的坐标位置。
+最后，draw方法在精灵上面简单的实现了一条血量条。它首先绘制一个红色背景，然后根据敌人的当前生命值用绿色进行覆盖血量条。
+10.显示敌人。打开HelloWorldScene.cpp文件，添加头文件声明：
+1
+#include "Enemy.h"
+添加如下方法：
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+bool HelloWorld::loadWave()
+{
+    CCArray *waveData = CCArray::createWithContentsOfFile("Waves.plist");
+    if (wave >= waveData->count())
+    {
+        return false;
+    }
+    
+    CCArray *currentWaveData = (CCArray*)waveData->objectAtIndex(wave);
+    CCObject *pObject = NULL;
+    CCARRAY_FOREACH(currentWaveData, pObject)
+    {
+        CCDictionary* enemyData = (CCDictionary*)pObject;
+        Enemy *enemy = Enemy::nodeWithTheGame(this);
+        _enemies->addObject(enemy);
+        enemy->schedule(schedule_selector(Enemy::doActivate), ((CCString*)enemyData->objectForKey("spawnTime"))->floatValue());
+    }
+
+    wave++;
+    ui_wave_lbl->setString(CCString::createWithFormat("WAVE: %d", wave)->getCString());
+    return true;
+}
+
+void HelloWorld::enemyGotKilled()
+{
+    //If there are no more enemies.
+    if (_enemies->count() <= 0)
+    {
+        if (!this->loadWave())
+        {
+            CCLog("You win!");
+            CCDirector::sharedDirector()->replaceScene(CCTransitionSplitCols::create(1, HelloWorld::scene()));
+        }       
+    }   
+}
+
+void HelloWorld::getHpDamage()
+{
+
+}
+在init函数里面，添加如下代码：
+1
+2
+3
+4
+5
+6
+7
+8
+9
+wave = 0;
+ui_wave_lbl = CCLabelBMFont::create(CCString::createWithFormat("WAVE: %d", wave)->getCString(), "font_red_14.fnt");
+this->addChild(ui_wave_lbl, 10);
+ui_wave_lbl->setPosition(ccp(400, wins.height - 12));
+ui_wave_lbl->setAnchorPoint(ccp(0, 0.5));
+
+_enemies = CCArray::create();
+_enemies->retain();
+this->loadWave();
+现在对上面的代码进行一些解释。最重要的部分是loadWave方法，它从Waves.plist文件读取数据。查看这个文件，可以看到它包含了3个数组，每个数组代表着一波敌人。第一个数组包含6个字典，每个字典定义了一个敌人。在本篇文章中，这个字典仅存储敌人的出现时间，但是也可用于定义敌人类型或者其他特殊属性，以区分不同的敌人。loadWave方法检查下一波应出现的敌人，根据波信息创建相应的敌人，并安排它们在规定的时间出现在屏幕上。enemyGotKilled方法检查当前屏幕上的敌人数量，如果已经没有敌人的话，那么就让下一波敌人出现。之后，还使用这个方法来判断玩家是否赢得了游戏。编译运行，敌人正向玩家基地前进，如下图所示：
+
+10.炮塔攻击。每座塔进行检查是否有敌人出现在攻击范围之内，如果有的话，对敌人进行开火，直到以下两种情况之一发生：敌人移动出范围；敌人被消灭。那么炮塔就会寻找下一个敌人。打开Tower.h文件，添加以下代码：
+1
+class Enemy;
+添加以下变量：
+1
+2
+bool attacking;
+Enemy *chosenEnemy;
+打开Tower.cpp文件，添加头文件声明：
+1
+#include "Enemy.h"
+在initWithTheGame函数开头if条件之后，添加如下代码：
+1
+chosenEnemy = NULL;
+添加以下方法：
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+void Tower::attackEnemy()
+{
+    this->schedule(schedule_selector(Tower::shootWeapon), fireRate);
+}
+
+void Tower::chosenEnemyForAttack(Enemy *enemy)
+{
+    chosenEnemy = NULL;
+    chosenEnemy = enemy;
+    this->attackEnemy();
+    enemy->getAttacked(this);
+}
+
+void Tower::shootWeapon(float dt)
+{
+    CCSprite *bullet = CCSprite::create("bullet.png");
+    _theGame->addChild(bullet);
+    bullet->setPosition(_mySprite->getPosition());
+    bullet->runAction(CCSequence::create(
+        CCMoveTo::create(0.1, chosenEnemy->getMySprite()->getPosition()),
+        CCCallFunc::create(this, callfunc_selector(Tower::damageEnemy)),
+        CCCallFuncN::create(this, callfuncN_selector(Tower::removeBullet)),
+        NULL));
+}
+
+void Tower::removeBullet(CCSprite *bullet)
+{
+    bullet->getParent()->removeChild(bullet, true);
+}
+
+void Tower::damageEnemy()
+{
+    if (chosenEnemy)
+    {
+        chosenEnemy->getDamaged(damage);
+    }
+}
+
+void Tower::targetKilled()
+{
+    if (chosenEnemy)
+    {
+        chosenEnemy = NULL;
+    }
+
+    this->unschedule(schedule_selector(Tower::shootWeapon));
+}
+
+void Tower::lostSightOfEnemy()
+{
+    chosenEnemy->gotLostSight(this);
+    if (chosenEnemy)
+    {
+        chosenEnemy = NULL;
+    }
+
+    this->unschedule(schedule_selector(Tower::shootWeapon));
+}
+最后，更新update方法为如下：
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+void Tower::update(float dt)
+{
+    if (chosenEnemy)
+    {
+        //We make it turn to target the enemy chosen
+        CCPoint normalized = ccpNormalize(ccp(chosenEnemy->getMySprite()->getPosition().x - _mySprite->getPosition().x,
+            chosenEnemy->getMySprite()->getPosition().y - _mySprite->getPosition().y));
+        _mySprite->setRotation(CC_RADIANS_TO_DEGREES(atan2(normalized.y, - normalized.x)) + 90);
+
+        if (!_theGame->collisionWithCircle(_mySprite->getPosition(), attackRange, chosenEnemy->getMySprite()->getPosition(), 1))
+        {
+            this->lostSightOfEnemy();
+        }
+    } 
+    else
+    {
+        CCObject *pObject = NULL;
+        CCARRAY_FOREACH(_theGame->getEnemies(), pObject)
+        {
+            Enemy *enemy = (Enemy*)pObject;
+            if (_theGame->collisionWithCircle(_mySprite->getPosition(), attackRange, enemy->getMySprite()->getPosition(), 1))
+            {
+                this->chosenEnemyForAttack(enemy);
+                break;
+            }           
+        }
+    }
+}
+打开Enemy.h文件，添加以下代码：
+1
+cocos2d::CCArray *attackedBy;
+打开Enemy.cpp文件，在initWithTheGame函数开头if条件之后，添加如下代码：
+1
+2
+attackedBy = CCArray::createWithCapacity(5);
+attackedBy->retain();
+在getRemoved函数开头，添加如下代码：
+1
+2
+3
+4
+5
+6
+CCObject *pObject = NULL;
+CCARRAY_FOREACH(attackedBy, pObject)
+{
+    Tower *attacker = (Tower*)pObject;
+    attacker->targetKilled();
+}
+添加如下方法：
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+void Enemy::getAttacked(Tower* attacker)
+{
+    attackedBy->addObject(attacker);
+}
+
+void Enemy::gotLostSight(Tower* attacker)
+{
+    attackedBy->removeObject(attacker);
+}
+
+void Enemy::getDamaged(int damage)
+{
+    currentHp -= damage;
+    if (currentHp <= 0)
+    {
+        this->getRemoved();
+    }
+}
+代码中最重要的部分是在Tower类的update方法。炮塔不断检查敌人是否在攻击范围内，如果是的话，炮塔将旋转朝向敌人，开火攻击。一个敌人一旦被标记为被攻击，将会调用方法让炮塔以攻击间隔发射子弹。反过来，每个敌人都存储有向其攻击的炮塔列表，所以如果敌人被杀死了，那么炮塔就会被通知停止攻击。编译运行，放置几个炮塔在地图上，将会看到一旦敌人进入炮塔的攻击范围，炮塔就会向它们开火攻击，敌人的血量条就会减少，直到被消灭。如下图所示：
+
+11.显示玩家血量。打开HelloWorldScene.h文件，添加以下代码：
+1
+2
+3
+int playerHp;
+cocos2d::CCLabelBMFont *ui_hp_lbl;
+bool gameEnded;
+变量playerHp表示玩家的生命值，CCLabelBMFont对象是一个标签，用来显示生命数值。gameEnded用来表示游戏是否结束。打开HelloWorldScene.cpp文件，在init函数里面，添加如下代码：
+1
+2
+3
+4
+5
+gameEnded = false;
+playerHp = 5;
+ui_hp_lbl = CCLabelBMFont::create(CCString::createWithFormat("HP: %d", playerHp)->getCString(), "font_red_14.fnt");
+this->addChild(ui_hp_lbl, 10);
+ui_hp_lbl->setPosition(ccp(35, wins.height - 12));
+添加如下方法：
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+void HelloWorld::getHpDamage()
+{
+    playerHp--;
+    ui_hp_lbl->setString(CCString::createWithFormat("HP: %d", playerHp)->getCString());
+    if (playerHp <= 0)
+    {
+        this->doGameOver();
+    }
+}
+
+void HelloWorld::doGameOver()
+{
+    if (!gameEnded)
+    {
+        gameEnded = true;
+        CCDirector::sharedDirector()->replaceScene(CCTransitionRotoZoom::create(1, HelloWorld::scene()));
+    }
+}
+添加的方法为减少玩家生命值，更新标签，并检查玩家生命是否耗尽，如果是的话，游戏就结束了。当敌人到达基地的时候，getHpDamage方法被调用。编译运行，让敌人到达基地，你将会看到玩家的生命在减少，直到游戏失败。如下图所示：
+
+12.限制金币供应量。大多数游戏都实现了“零和”功能，建造每座炮塔需要一定的资源，并给玩家有限的资源进行分配。打开HelloWorldScene.h文件，添加如下代码：
+1
+2
+int playerGold;
+cocos2d::CCLabelBMFont *ui_gold_lbl;
+就像显示生命数值一样，一个变量表示玩家的金币数，一个标签对象显示金币数值。打开HelloWorldScene.cpp文件，在init函数里面，添加如下代码：
+1
+2
+3
+4
+5
+playerGold = 1000;
+ui_gold_lbl = CCLabelBMFont::create(CCString::createWithFormat("GOLD: %d", playerGold)->getCString(), "font_red_14.fnt");
+this->addChild(ui_gold_lbl, 10);
+ui_gold_lbl->setPosition(ccp(135, wins.height - 12));
+ui_gold_lbl->setAnchorPoint(ccp(0, 0.5));
+添加如下方法：
+1
+2
+3
+4
+5
+void HelloWorld::awardGold(int gold)
+{
+    playerGold += gold;
+    ui_gold_lbl->setString(CCString::createWithFormat("GOLD: %d", playerGold)->getCString());
+}
+替换canBuyTower方法，代码如下：
+1
+2
+3
+4
+5
+6
+7
+8
+bool HelloWorld::canBuyTower()
+{
+    if (playerGold - kTOWER_COST >= 0)
+    {
+        return true;
+    }
+    return false;
+}
+在ccTouchesBegan函数里面，语句//We will spend our gold later.的后面，添加如下代码：
+1
+2
+playerGold -= kTOWER_COST;
+ui_gold_lbl->setString(CCString::createWithFormat("GOLD: %d", playerGold)->getCString());
+上述的代码在玩家尝试放置炮塔时，检查是否有足够的金币。如果足够的话，炮塔就会放置上去，并从玩家的金币数中减去炮塔的费用。每次杀死敌人的时候也应该奖励玩家一些金币。打开Enemy.cpp文件，在getDamaged函数里面，if条件后面，添加如下语句：
+1
+_theGame->awardGold(200);
+编译运行，会看到不能随意的放置炮塔了，因为每个炮塔都要花费金币。当然，杀死敌人就可以获得金币奖励，这样就可以继续购买炮塔。这是一个很好的系统。如下图所示：
+
+13.加入背景音乐和音效。打开HelloWorldScene.cpp文件，添加头文件声明：
+1
+#include "SimpleAudioEngine.h"
+在init函数，if条件之后，添加如下代码：
+1
+CocosDenshion::SimpleAudioEngine::sharedEngine()->playBackgroundMusic("8bitDungeonLevel.mp3", true);
+在ccTouchesBegan函数，添加一个新的Tower对象前，添加如下代码：
+1
+CocosDenshion::SimpleAudioEngine::sharedEngine()->playEffect("tower_place.wav");
+在getHpDamage函数里，添加如下代码：
+1
+CocosDenshion::SimpleAudioEngine::sharedEngine()->playEffect("life_lose.wav");
+打开Enemy.cpp文件，添加头文件声明：
+1
+#include "SimpleAudioEngine.h"
+在getDamaged函数里，添加如下代码：
+1
+CocosDenshion::SimpleAudioEngine::sharedEngine()->playEffect("laser_shoot.wav");
+编译运行，现在游戏将有配乐，关闭掉调试绘制后，效果图：
+
+参考资料：
+1.How To Make a Tower Defense Game  http://www.raywenderlich.com/15730/how-to-make-a-tower-defense-game
+2.钓龟岛保卫战-如何从零开始制作一款iOS塔防游戏（新）  http://article.ityran.com/archives/1941
+非常感谢以上资料，本例子源代码附加资源下载地址：http://download.csdn.net/detail/akof1314/5143209
+如文章存在错误之处，欢迎指出，以便改正。
+分享到： 
+上一篇：Scintilla 3.24在MFC中的使用(动态、静态)
+顶
+26
+踩
+0
+
+查看评论
+19楼 CD16849332 6天前 18:40发表 [回复]
+
+厉害啊
+18楼 Be_better 6天前 15:21发表 [回复]
+
+不用图片用纯html5 的canvas标签也能做
+Re: zxx43 5天前 09:23发表 [回复]
+
+回复wo_shi_chuan_qi_007：用js+css+html也能做
+Re: Seaol 6天前 16:15发表 [回复]
+
+回复wo_shi_chuan_qi_007：发出来分享一下嘛~
+17楼 btl19792008 2013-03-30 14:52发表 [回复]
+
+好文啊！拜读了！
+请教一下，一些地方为什么用“ while (0) ”呢？这个循环只能执行一次吧？
+Re: Seaol 6天前 22:32发表 [回复]
+
+回复btl19792008：一般do-while(0)和CC_BREAK_IF(!)都是组合使用的，目的是当某对象创建或初始化失败时可以跳出该循环，停止下面的语句，防止资源浪费。
+16楼 u010090991 2013-03-30 01:18发表 [回复]
+
+新手 在学C++ 长见识了
+15楼 u010082908 2013-03-29 14:35发表 [回复]
+
+学习了啊
+14楼 Seaol 2013-03-28 21:38发表 [回复]
+
+好吧，出差中。。。一直没时间上网，才看到。。。我期待许久的TD塔啊。感动的泪奔啊。。。可以再点个植物大战僵尸么。。。
+13楼 huiaskfakfakaf 2013-03-28 19:46发表 [回复]
+
+厉害啊
+12楼 huiaskfakfakaf 2013-03-28 19:46发表 [回复]
+
+好东西
+11楼 huaxiangsl 2013-03-28 12:50发表 [回复]
+
+真不错哦~~ 学习学习
+10楼 qq190679152 2013-03-26 23:44发表 [回复]
+
+LZ都学啥东西了！？分享下学习经验么？
+Re: 无幻 2013-03-27 09:46发表 [回复]
+
+回复qq190679152：看教程学的
+Re: qq190679152 2013-03-28 21:52发表 [回复]
+
+回复akof1314：哇 大哥真牛！
+9楼 疯狂DE闹钟 2013-03-26 15:44发表 [回复]
+
+学习一下
+8楼 lishengkai 2013-03-26 14:49发表 [回复]
+
+mark先 ，这个比较感兴趣
+7楼 lixinnan18 2013-03-26 09:21发表 [回复]
+
+给力！
+6楼 不懂必须要问 2013-03-25 09:58发表 [回复]
+
+很好，没学过呀。看起来很烦。
+5楼 zhangten1 2013-03-19 21:26发表 [回复]
+
+很好,学习了
+4楼 naruto2011sasuke 2013-03-16 14:44发表 [回复]
+
+太感谢了,跟着楼主的教程学会了很多东西。楼主是在读研吗？
+Re: 无幻 2013-03-16 21:01发表 [回复]
+
+回复naruto2011sasuke：没有哦
+Re: naruto2011sasuke 2013-03-16 22:10发表 [回复]
+
+回复akof1314：读过楼主很多博客,最羡慕你们这样早年搞过acm的人了。楼主难道不是09级的，从高中就开始编程？
+Re: 无幻 2013-03-17 10:49发表 [回复]
+
+回复naruto2011sasuke：没有哦，都出来2年了
+Re: naruto2011sasuke 2013-03-17 19:21发表 [回复]
+
+回复akof1314：博主是已经出来工作了？还能有如此耐心写出高质量博客真的的佩服不已啊
+3楼 CallMe根爷 2013-03-15 18:15发表 [回复]
+
+楼主你知道怎么生成这个TowersPosition.plist？请问用什么软件，怎么来生成它，谢了
+Re: 无幻 2013-03-16 09:15发表 [回复]
+
+回复zijuan0810：这是个XML格式文件，在MAC下可以方便建立
+Re: Seaol 6天前 16:14发表 [回复]
+
+回复akof1314：Windows下怎么生成？为什么要用这个？
+Re: 无幻 5天前 09:31发表 [回复]
+
+回复ggjj741：也有个编辑器
+2楼 wangqiuyun 2013-03-14 23:35发表 [回复]
+
+哈哈，顶起，cocos2d-iphone的我那有翻译。。。
+1楼 雪域迷影 2013-03-14 19:49发表 [回复]
+
+看起来还蛮有意思的，期待你上传的源代码，有空好好学习下C++游戏制作。
+Re: 无幻 2013-03-15 09:47发表 [回复]
+
+回复ccf19881030：代码已上传~
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+个人资料
+  
+无幻
+ 
+
+访问：524722次
+积分：9380分
+排名：第281名
+原创：316篇转载：83篇译文：4篇评论：1688条
+个人说明
+联系方式：
+文章搜索
+
+文章分类
+1 ------基础知识------(0)
+1.1 C/C++(19)
+1.2 ACM/ICPC(71)
+1.3 数据结构和算法(27)
+1.4 C++标准和STL(5)
+2 ------VC 编程------(1)
+2.1 VC++/MFC(61)
+2.2 MFC9.0版本(17)
+2.3 VC技巧收集(31)
+2.4 线程/图形学(10)
+2.5 网络编程(7)
+2.6 第三方库(28)
+3 ------软件方面------(0)
+3.1 软件应用(18)
+3.2 软件测试(2)
+3.3 软件作品(11)
+3.4 游戏作品(1)
+4 ------其他方面------(0)
+4.1 C#/.NET编程(10)
+4.2 Delphi编程(41)
+4.3 Lua编程(6)
+4.4 Cocos2d-x(14)
+4.5 SQL Server(7)
+4.6 Ubuntu初探(6)
+4.7 实用网站(8)
+文章存档
+2013年03月(1)
+2013年02月(2)
+2013年01月(3)
+2012年12月(6)
+2012年11月(1)
+展开
+阅读排行
+Cocos2d-x 2.0 从HelloWorld入手(21724)
+CoolFormat源代码格式化工具(15238)
+VC2008 Windows Media Player控件的使用技巧(二)(9356)
+VC皮肤库SkinSharp 1.0.6.6的使用(9226)
+VC2008 Windows Media Player控件的使用技巧(三)(8661)
+用CImage类来显示PNG、JPG等图片(8210)
+VC 位图按钮CBitmapButton的使用(7903)
+如何制作一个塔防游戏 Cocos2d-x 2.0.4(7550)
+VC2008 Windows Media Player控件的使用技巧(7489)
+VS2008下直接安装使用Boost库1.46.1版本(7160)
+最新评论
+VC皮肤库SkinSharp 1.0.6.6的使用
+无幻: @cstoqwer:可以打开原有的皮肤，对照怎么画的进行学习
+VC皮肤库SkinSharp 1.0.6.6的使用
+cstoqwer: 博主，skinsharp的界面设计器怎么用啊？九宫是什么意思？
+DevPartner Studio Professional Edition 11 内存泄露检测使用
+无幻: @jsrghfr:可能还没有这个版本的，但是有之前版本的，CSDN搜一下就可以
+DevPartner Studio Professional Edition 11 内存泄露检测使用
+jsrghfr: 请问一下试用期到了之后咋办，有破解的方法么？Thanks！
+CoolFormat源代码格式化工具
+无幻: @wzyefd:没有办法哦，可以写完文件的时候再格式化，或者开发个特定的插件
+CoolFormat源代码格式化工具
+wzyefd: 请问我用外部工具调用，每次格式化之后都会把原文件覆盖，然后编辑器重新加载信文件。这样的话，我就不能用...
+Mosquitto 0.15 开源MQTT v3.1 Broker
+无幻: @bearcount:没有进行保存数据库
+Mosquitto 0.15 开源MQTT v3.1 Broker
+bearcount: 博主 你好 ，请问你这些消息有没有保存到数据库中？有的话是怎样实现的？
+Delphi 7下使用Log4Delphi 0.8日志组件
+无幻: @6rl:只支持上面所提到的那几种
+Delphi 7下使用Log4Delphi 0.8日志组件
+6rl: 能输出为结构化的二进制日志？
+链接博客
+Matrix67
+Byvoid
+征
+xiaoc
+Timeless's Blog
+英雄无敌㊣
+月光博客
+酷壳
+学习网站
+清华同方数据结构
+Fuzhou University OnlineJudge
+数据结构自学网
+SourceForge (RSS)
+Tutorials From FunctionX
+CodeProject
+在线编译器compilr
+Windows Application UI Development
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+

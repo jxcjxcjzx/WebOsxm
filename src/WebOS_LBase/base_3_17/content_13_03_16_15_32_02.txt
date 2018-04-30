@@ -1,0 +1,1233 @@
+
+
+
+coffeegg
+ 
+
+
+Linux多线程编程小结
+
+
+
+1.Linux进程与线程
+
+Linux进程创建一个新线程时，线程将拥有自己的栈（因为线程有自己的局部变量），但与它的创建者共享全局变量、文件描述符、信号句柄和当前目录状态。
+
+Linux通过fork创建子进程与创建线程之间是有区别的：fork创建出该进程的一份拷贝，这个新进程拥有自己的变量和自己的PID，它的时间调度是独立的，它的执行几乎完全独立于父进程。
+
+进程可以看成一个资源的基本单位，而线程是程序调度的基本单位，一个进程内部的线程之间共享进程获得的时间片。
+
+2._REENTRANT宏
+
+在一个多线程程序里，默认情况下，只有一个errno变量供所有的线程共享。在一个线程准备获取刚才的错误代码时，该变量很容易被另一个线程中的函数调用所改变。类似的问题还存在于fputs之类的函数中，这些函数通常用一个单独的全局性区域来缓存输出数据。
+
+为解决这个问题，需要使用可重入的例程。可重入代码可以被多次调用而仍然工作正常。编写的多线程程序，通过定义宏_REENTRANT来告诉编译器我们需要可重入功能，这个宏的定义必须出现于程序中的任何#include语句之前。
+
+_REENTRANT为我们做三件事情，并且做的非常优雅：
+
+（1）它会对部分函数重新定义它们的可安全重入的版本，这些函数名字一般不会发生改变，只是会在函数名后面添加_r字符串，如函数名gethostbyname变成gethostbyname_r。
+
+（2）stdio.h中原来以宏的形式实现的一些函数将变成可安全重入函数。
+
+（3）在error.h中定义的变量error现在将成为一个函数调用，它能够以一种安全的多线程方式来获取真正的errno的值。
+
+3.线程的基本函数
+
+大多数pthread_XXX系列的函数在失败时，并未遵循UNIX函数的惯例返回-1，这种情况在UNIX函数中属于一少部分。如果调用成功，则返回值是0，如果失败则返回错误代码。
+
+1.线程创建：
+
+#include <pthread.h>
+
+int pthread_create(pthread_t *thread, pthread_attr_t *attr, void *(*start_routine)(void *), void *arg);
+
+参数说明：
+
+thread：指向pthread_create类型的指针，用于引用新创建的线程。
+
+attr：用于设置线程的属性，一般不需要特殊的属性，所以可以简单地设置为NULL。
+
+*(*start_routine)(void *)：传递新线程所要执行的函数地址。
+
+arg：新线程所要执行的函数的参数。
+
+调用如果成功，则返回值是0，如果失败则返回错误代码。
+
+2.线程终止
+
+#include <pthread.h>
+
+void pthread_exit(void *retval);
+
+参数说明：
+
+retval：返回指针，指向线程向要返回的某个对象。
+
+线程通过调用pthread_exit函数终止执行，并返回一个指向某对象的指针。注意：绝不能用它返回一个指向局部变量的指针，因为线程调用该函数后，这个局部变量就不存在了，这将引起严重的程序漏洞。
+
+3.线程同步
+
+#include <pthread.h>
+
+int pthread_join(pthread_t th, void **thread_return);
+
+参数说明：
+
+th：将要等待的张璐，线程通过pthread_create返回的标识符来指定。
+
+thread_return：一个指针，指向另一个指针，而后者指向线程的返回值。
+
+一个简单的多线程Demo（thread1.c）：
+
+view plaincopy to clipboardprint?
+1.#include <pthread.h>
+2.#include <stdio.h>
+3.#include <stdlib.h>
+4.#include <string.h>
+5.
+6.void *thread_function(void *arg);  
+7.
+8.char message[] = "Hello World";  
+9.
+10.int main()  
+11.{  
+12.int res;  
+13.    pthread_t a_thread;  
+14.void *thread_result;  
+15.
+16.    res = pthread_create(&a_thread, NULL, thread_function, (void *)message);  
+17.if (res != 0)  
+18.    {  
+19.        perror("Thread creation failed!");  
+20.        exit(EXIT_FAILURE);  
+21.    }  
+22.
+23.    printf("Waiting for thread to finish...\n");  
+24.
+25.    res = pthread_join(a_thread, &thread_result);  
+26.if (res != 0)  
+27.    {  
+28.        perror("Thread join failed!\n");  
+29.        exit(EXIT_FAILURE);  
+30.    }  
+31.
+32.    printf("Thread joined, it returned %s\n", (char *)thread_result);  
+33.    printf("Message is now %s\n", message);  
+34.
+35.    exit(EXIT_FAILURE);  
+36.}  
+37.
+38.void *thread_function(void *arg)  
+39.{  
+40.    printf("thread_function is running. Argument was %s\n", (char *)arg);  
+41.    sleep(3);  
+42.    strcpy(message, "Bye!");  
+43.    pthread_exit("Thank you for your CPU time!");  
+44.}  
+
+编译这个程序时，需要定义宏_REENTRANT：
+
+gcc -D_REENTRANT thread1.c -o thread1 –lpthread
+
+运行这个程序：
+
+$ ./thread1输出：
+
+thread_function is running. Argument was Hello World
+
+Waiting for thread to finish...
+
+Thread joined, it returned Thank you for your CPU time!
+
+Message is now Bye!
+
+这个例子值得我们去花时间理解，因为它将作为几个例子的基础。
+
+pthread_exit(void *retval)本身返回的就是指向某个对象的指针，因此，pthread_join(pthread_t th, void **thread_return);中的thread_return是二级指针，指向线程返回值的指针。
+
+可以看到，我们创建的新线程修改的数组message的值，而原先的线程也可以访问该数组。如果我们调用的是fork而不是pthread_create，就不会有这样的效果了。原因是fork创建子进程之后，子进程会拷贝父进程，两者分离，相互不干扰，而线程之间则是共享进程的相关资源。
+
+4.线程的同时执行
+
+接下来，我们来编写一个程序，以验证两个线程的执行是同时进行的。当然，如果是在一个单处理器系统上，线程的同时执行就需要靠CPU在线程之间的快速切换来实现了。
+
+我们的程序需要利用一个原理：即除了局部变量外，所有其他的变量在一个进程中的所有线程之间是共享的。
+
+在这个程序中，我们是在两个线程之间使用轮询技术，这种方式称为忙等待，所以它的效率会很低。在本文的后续部分，我们将介绍一种更好的解决办法。
+
+下面的代码中，两个线程会不断的轮询判断flag的值是否满足各自的要求。
+
+view plaincopy to clipboardprint?
+1.#include <pthread.h>
+2.#include <stdio.h>
+3.#include <stdlib.h>
+4.
+5.int flag = 1;  
+6.
+7.void *thread_function(void *arg);  
+8.
+9.int main()  
+10.{  
+11.int res;  
+12.    pthread_t a_thread;  
+13.void *thread_result;  
+14.int count = 1;  
+15.
+16.    res = pthread_create(&a_thread, NULL, thread_function, NULL);  
+17.if (res != 0)  
+18.    {  
+19.        perror("Thread creation failed");  
+20.        exit(EXIT_FAILURE);  
+21.    }  
+22.
+23.while (count++ <= 20)  
+24.    {  
+25.if (flag == 1)  
+26.        {  
+27.            printf ("1");  
+28.            flag = 2;  
+29.        }  
+30.else
+31.        {  
+32.            sleep(1);  
+33.        }  
+34.    }  
+35.
+36.    printf("\nWaiting for thread to finish...\n");  
+37.    res = pthread_join(a_thread, &thread_result);  
+38.if (res != 0)  
+39.    {  
+40.        perror("Thread join failed");  
+41.        exit(EXIT_FAILURE);  
+42.    }  
+43.
+44.    exit(EXIT_SUCCESS);  
+45.}  
+46.
+47.void *thread_function(void *arg)  
+48.{  
+49.int count = 1;  
+50.
+51.while (count++ <= 20)  
+52.    {  
+53.if (flag == 2)  
+54.        {  
+55.            printf("2");  
+56.            flag = 1;  
+57.        }  
+58.else
+59.        {  
+60.            sleep(1);  
+61.        }  
+62.    }  
+63.}  
+
+编译这个程序：
+
+gcc -D_REENTRANT thread2.c -o thread2 –lpthread
+
+运行这个程序：
+
+$ ./thread2
+
+121212121212121212
+
+Waiting for thread to finish...
+
+5.线程的同步
+
+在上述示例中，我们采用轮询的方式在两个线程之间不停地切换是非常笨拙且没有效率的实现方式，幸运的是，专门有一级设计好的函数为我们提供更好的控制线程执行和访问代码临界区的方法。
+
+本小节将介绍两个线程同步的基本方法：信号量和互斥量。这两种方法很相似，事实上，它们可以互相通过对方来实现。但在实际的应用中，对于一些情况，可能使用信号量或互斥量中的一个更符合问题的语义，并且效果更好。
+
+5.1用信号量进行同步
+
+1.信号量创建
+
+#include <semaphore.h>
+
+int sem_init(sem_t *sem, int pshared, unsigned int value);
+
+参数说明：
+
+sem：信号量对象。
+
+pshared：控制信号量的类型，0表示这个信号量是当前进程的局部信号量，否则，这个信号量就可以在多个进程之间共享。
+
+value：信号量的初始值。
+
+2.信号量控制
+
+#include <semaphore.h>
+
+int sem_wait(sem_t *sem);
+
+int sem_post(sem_t *sem);
+
+sem_post的作用是以原子操作的方式给信号量的值加1。 
+sem_wait的作用是以原子操作的方式给信号量的值减1，但它会等到信号量非0时才会开始减法操作。如果对值为0的信号量调用sem_wait，这个函数就会等待，直到有线程增加了该信号量的值使其不再为0。
+
+3.信号量销毁
+
+#include <semaphore.h>
+
+int sem_destory(sem_t *sem);
+
+这个函数的作用是，用完信号量后对它进行清理，清理该信号量所拥有的资源。如果你试图清理的信号量正被一些线程等待，就会收到一个错误。
+
+与大多数Linux函数一样，这些函数在成功时都返回0。
+
+下面编码实现输入字符串，统计每行的字符个数，以“end”结束输入：
+
+view plaincopy to clipboardprint?
+1.#include <pthread.h>
+2.#include <stdio.h>
+3.#include <stdlib.h>
+4.#include <string.h>
+5.#include <semaphore.h>
+6.
+7.#define SIZE 1024
+8.
+9.void *thread_function(void *arg);  
+10.
+11.char buffer[SIZE];  
+12.sem_t sem;  
+13.
+14.int main()  
+15.{  
+16.int res;  
+17.    pthread_t a_thread;  
+18.void *thread_result;  
+19.
+20.    res = sem_init(&sem, 0, 0);  
+21.if (res != 0)  
+22.    {  
+23.        perror("Sem init failed");  
+24.        exit(EXIT_FAILURE);  
+25.    }  
+26.
+27.    res = pthread_create(&a_thread, NULL, thread_function, NULL);  
+28.if (res != 0)  
+29.    {  
+30.        perror("Thread create failed");  
+31.        exit(EXIT_FAILURE);  
+32.    }  
+33.
+34.    printf("Input some text. Enter 'end' to finish\n");  
+35.
+36.while (scanf("%s", buffer))  
+37.    {  
+38.        sem_post(&sem);  
+39.if (strncmp("end", buffer, 3) == 0)  
+40.break;  
+41.    }  
+42.
+43.    printf ("\nWaiting for thread to finish...\n");  
+44.
+45.    res = pthread_join(a_thread, &thread_result);  
+46.if (res != 0)  
+47.    {  
+48.        perror("Thread join failed");  
+49.        exit(EXIT_FAILURE);  
+50.    }  
+51.
+52.    printf ("Thread join\n");  
+53.
+54.    sem_destroy(&sem);  
+55.
+56.    exit(EXIT_SUCCESS);  
+57.}  
+58.
+59.void *thread_function(void *arg)  
+60.{  
+61.    sem_wait(&sem);  
+62.while (strncmp("end", buffer, 3) != 0)  
+63.    {  
+64.        printf("You input %d characters\n", strlen(buffer));  
+65.        sem_wait(&sem);  
+66.    }  
+67.    pthread_exit(NULL);  
+68.}  
+
+编译这个程序：
+
+gcc -D_REENTRANT thread2.c -o thread2 –lpthread
+
+运行这个程序：
+
+$ ./thread3
+
+Input some text. Enter 'end' to finish
+
+123
+
+You input 3 characters
+
+1234
+
+You input 4 characters
+
+12345
+
+You input 5 characters
+
+end
+
+Waiting for thread to finish…
+
+Thread join
+
+通过使用信号量，我们阻塞了统计字符个数的线程，这个程序似乎对快速的文本输入和悠闲的暂停都很适用，比之前的轮询解决方案效率上有了本质的提高。
+
+5.2用互斥量进行线程同步
+
+另一种用在多线程程序中同步访问的方法是使用互斥量。它允许程序员锁住某个对象，使得每次只能有一个线程访问它。为了控制对关键代码的访问，必须在进入这段代码之前锁住一个互斥量，然后在完成操作之后解锁它。
+
+用于互斥量的基本函数和用于信号量的函数非常相似：
+
+#include <pthread.h>
+
+int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t, *mutexattr);
+
+int pthread_mutex_lock(pthread_mutex_t *mutex);
+
+int pthread_mutex_unlock(pthread_mutex_t *mutex);
+
+int pthread_mutex_destory(pthread_mutex_t *mutex);
+
+与其他函数一样，成功时返回0，失败时将返回错误代码，但这些函数并不设置errno，所以必须对函数的返回代码进行检查。互斥量的属性设置这里不讨论，因此设置成NULL。
+
+我们用互斥量来重写刚才的代码如下：
+
+view plaincopy to clipboardprint?
+1.#include <pthread.h>
+2.#include <stdio.h>
+3.#include <stdlib.h>
+4.#include <string.h>
+5.#include <semaphore.h>
+6.
+7.#define SIZE 1024
+8.char buffer[SIZE];  
+9.
+10.void *thread_function(void *arg);  
+11.pthread_mutex_t mutex;  
+12.
+13.int main()  
+14.{  
+15.int res;  
+16.    pthread_t a_thread;  
+17.void *thread_result;  
+18.
+19.    res = pthread_mutex_init(&mutex, NULL);  
+20.if (res != 0)  
+21.    {  
+22.        perror("Mutex init failed!");  
+23.        exit(EXIT_FAILURE);  
+24.    }  
+25.
+26.    res = pthread_create(&a_thread, NULL, thread_function, NULL);  
+27.if (res != 0)  
+28.    {  
+29.        perror("Thread create failed!");  
+30.        exit(EXIT_FAILURE);  
+31.    }  
+32.
+33.    printf("Input some text. Enter 'end' to finish\n");  
+34.
+35.while (1)  
+36.    {  
+37.        pthread_mutex_lock(&mutex);  
+38.        scanf("%s", buffer);  
+39.        pthread_mutex_unlock(&mutex);  
+40.if (strncmp("end", buffer, 3) == 0)  
+41.break;  
+42.        sleep(1);  
+43.    }  
+44.
+45.    res = pthread_join(a_thread, &thread_result);  
+46.if (res != 0)  
+47.    {  
+48.        perror("Thread join failed!");  
+49.        exit(EXIT_FAILURE);  
+50.    }  
+51.
+52.    printf("Thread joined\n");  
+53.
+54.    pthread_mutex_destroy(&mutex);  
+55.
+56.    exit(EXIT_SUCCESS);  
+57.}  
+58.
+59.void *thread_function(void *arg)  
+60.{  
+61.    sleep(1);  
+62.
+63.while (1)  
+64.    {  
+65.        pthread_mutex_lock(&mutex);  
+66.        printf("You input %d characters\n", strlen(buffer));  
+67.        pthread_mutex_unlock(&mutex);  
+68.if (strncmp("end", buffer, 3) == 0)  
+69.break;  
+70.        sleep(1);  
+71.    }  
+72.}  
+
+编译这个程序：
+
+gcc -D_REENTRANT thread4.c -o thread4 –lpthread
+
+运行这个程序：
+
+$ ./thread4
+
+Input some text. Enter 'end' to finish
+
+123
+
+You input 3 characters
+
+1234
+
+You input 4 characters
+
+12345
+
+You input 5 characters
+
+end
+
+You input 3 characters
+
+Thread joined
+
+6.线程的属性
+
+之前我们并未谈及到线程的属性，可以控制的线程属性是非常多的，这里面只列举一些常用的。
+
+如在前面的示例中，我们都使用的pthread_join同步线程，但其实有些情况下，我们并不需要。如：主线程为服务线程，而第二个线程为数据备份线程，备份工作完成之后，第二个线程可以直接终止了，它没有必要再返回到主线程中。因此，我们可以创建一个“脱离线程”。
+
+下面介绍几个常用的函数：
+
+(1)int pthread_attr_init (pthread_attr_t* attr);
+
+功能：对线程属性变量的初始化。
+
+attr：线程属性。
+
+函数返回值：成功：0，失败：-1
+
+(2) int pthread_attr_setscope (pthread_attr_t* attr, int scope);
+
+功能：设置线程绑定属性。
+
+attr：线程属性。
+
+scope：PTHREAD_SCOPE_SYSTEM(绑定)；PTHREAD_SCOPE_PROCESS(非绑定)
+
+函数返回值：成功：0，失败：-1
+
+(3) int pthread_attr_setdetachstate (pthread_attr_t* attr, int detachstate);
+
+功能：设置线程分离属性。
+
+attr：线程属性。
+
+detachstate：PTHREAD_CREATE_DETACHED(分离)；PTHREAD_CREATE_JOINABLE（非分离）
+
+函数返回值：成功：0，失败：-1
+
+(4) int pthread_attr_setschedpolicy(pthread_attr_t* attr, int policy);
+
+功能：设置创建线程的调度策略。
+
+attr：线程属性；
+
+policy：线程调度策略：SCHED_FIFO、SCHED_RR和SCHED_OTHER。
+
+函数返回值：成功：0，失败：-1
+
+(5) int pthread_attr_setschedparam (pthread_attr_t* attr, struct sched_param* param);
+
+功能：设置线程优先级。
+
+attr：线程属性。
+
+param：线程优先级。
+
+函数返回值：成功：0，失败：-1
+
+(6) int pthread_attr_destroy (pthread_attr_t* attr);
+
+功能：对线程属性变量的销毁。
+
+attr：线程属性。
+
+函数返回值：成功：0，失败：-1
+
+(7)其他
+
+int pthread_attr_setguardsize(pthread_attr_t* attr,size_t guardsize);//设置新创建线程栈的保护区大小。
+
+int pthread_attr_setinheritsched(pthread_attr_t* attr, int inheritsched);//决定怎样设置新创建线程的调度属性。
+
+int pthread_attr_setstack(pthread_attr_t* attr, void* stackader,size_t stacksize);//两者共同决定了线程栈的基地址以及堆栈的最小尺寸（以字节为单位）。
+
+int pthread_attr_setstackaddr(pthread_attr_t* attr, void* stackader);//决定了新创建线程的栈的基地址。
+
+int pthread_attr_setstacksize(pthread_attr_t* attr, size_t stacksize);//决定了新创建线程的栈的最小尺寸（以字节为单位）。
+
+例：创建优先级为10的线程。
+
+pthread_attr_t attr;
+
+struct sched_param param;
+
+pthread_attr_init(&attr);
+
+pthread_attr_setscope (&attr, PTHREAD_SCOPE_SYSTEM); //绑定
+
+pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED); //分离
+
+pthread_attr_setschedpolicy(&attr, SCHED_RR);
+
+param.sched_priority = 10;
+
+pthread_attr_setschedparam(&attr, &param);
+
+pthread_create(xxx, &attr, xxx, xxx);
+
+pthread_attr_destroy(&attr);
+
+下面实现一个脱离线程的程序，创建一个线程，其属性设置为脱离状态。子线程结束时，要使用pthread_exit，原来的主线程不再等待与子线程重新合并。代码如下：
+
+view plaincopy to clipboardprint?
+1.#include <pthread.h>
+2.#include <stdio.h>
+3.#include <stdlib.h>
+4.#include <string.h>
+5.#include <semaphore.h>
+6.
+7.#define SIZE 1024
+8.char buffer[SIZE];  
+9.
+10.void *thread_function(void *arg);  
+11.pthread_mutex_t mutex;  
+12.
+13.int main()  
+14.{  
+15.int res;  
+16.    pthread_t a_thread;  
+17.void *thread_result;  
+18.
+19.    res = pthread_mutex_init(&mutex, NULL);  
+20.if (res != 0)  
+21.    {  
+22.        perror("Mutex init failed!");  
+23.        exit(EXIT_FAILURE);  
+24.    }  
+25.
+26.    res = pthread_create(&a_thread, NULL, thread_function, NULL);  
+27.if (res != 0)  
+28.    {  
+29.        perror("Thread create failed!");  
+30.        exit(EXIT_FAILURE);  
+31.    }  
+32.
+33.    printf("Input some text. Enter 'end' to finish\n");  
+34.
+35.while (1)  
+36.    {  
+37.        pthread_mutex_lock(&mutex);  
+38.        scanf("%s", buffer);  
+39.        pthread_mutex_unlock(&mutex);  
+40.if (strncmp("end", buffer, 3) == 0)  
+41.break;  
+42.        sleep(1);  
+43.    }  
+44.
+45.    res = pthread_join(a_thread, &thread_result);  
+46.if (res != 0)  
+47.    {  
+48.        perror("Thread join failed!");  
+49.        exit(EXIT_FAILURE);  
+50.    }  
+51.
+52.    printf("Thread joined\n");  
+53.
+54.    pthread_mutex_destroy(&mutex);  
+55.
+56.    exit(EXIT_SUCCESS);  
+57.}  
+58.
+59.void *thread_function(void *arg)  
+60.{  
+61.    sleep(1);  
+62.
+63.while (1)  
+64.    {  
+65.        pthread_mutex_lock(&mutex);  
+66.        printf("You input %d characters\n", strlen(buffer));  
+67.        pthread_mutex_unlock(&mutex);  
+68.if (strncmp("end", buffer, 3) == 0)  
+69.break;  
+70.        sleep(1);  
+71.    }  
+72.}  
+
+编译这个程序：
+
+gcc -D_REENTRANT thread5.c -o thread5 –lpthread
+
+运行这个程序：
+
+$ ./thread5
+
+thread_function is running. Argument: hello world!
+
+Waiting for thread to finished...
+
+Waiting for thread to finished...
+
+Waiting for thread to finished...
+
+Waiting for thread to finished...
+
+Second thread setting finished flag, and exiting now
+
+Other thread finished!
+
+通过设置线程的属性，我们还可以控制线程的调试，其方式与设置脱离状态是一样的。
+
+7.取消一个线程
+
+有时，我们想让一个线程可以要求另一个线程终止，线程有方法做到这一点，与信号处理一样，线程可以在被要求终止时改变其行为。
+
+先来看用于请求一个线程终止的函数：
+
+#include <pthread.h>
+
+int pthread_cancel(pthread_t thread);
+
+这个函数简单易懂，提供一个线程标识符，我们就可以发送请求来取消它。
+
+线程可以用pthread_setcancelstate设置自己的取消状态。
+
+#include <pthread.h>
+
+int pthread_setcancelstate(int state, int *oldstate);
+
+参数说明：
+
+state：可以是PTHREAD_CANCEL_ENABLE允许线程接收取消请求，也可以是PTHREAD_CANCEL_DISABLE忽略取消请求。
+
+oldstate：获取先前的取消状态。如果对它没兴趣，可以简单地设置为NULL。如果取消请求被接受了，线程可以进入第二个控制层次，用pthread_setcanceltype设置取消类型。
+
+#include <pthread.h>
+
+int pthread_setcanceltype(int type, int *oldtype);
+
+参数说明：
+
+type：可以取PTHREAD_CANCEL_ASYNCHRONOUS，它将使得在接收到取消请求后立即采取行动；另一个是PTHREAD_CANCEL_DEFERRED，它将使得在接收到取消请求后，一直等待直到线程执行了下述函数之一后才采取行动：pthread_join、pthread_cond_wait、pthread_cond_timedwait、pthread_testcancel、sem_wait或sigwait。
+
+oldtype：允许保存先前的状态，如果不想知道先前的状态，可以传递NULL。
+
+默认情况下，线程在启动时的取消状态为PTHREAD_CANCEL_ENABLE，取消类型是PTHREAD_CANCEL_DEFERRED。
+
+下面编写代码thread6.c，主线程向它创建的线程发送一个取消请求。
+
+view plaincopy to clipboardprint?
+1.#include <pthread.h>
+2.#include <stdio.h>
+3.#include <stdlib.h>
+4.
+5.void *thread_function(void *arg);  
+6.
+7.int main()  
+8.{  
+9.int res;  
+10.    pthread_t a_thread;  
+11.void *thread_result;  
+12.
+13.    res = pthread_create(&a_thread, NULL, thread_function, NULL);  
+14.if (res != 0)  
+15.    {  
+16.        perror("Thread create failed!");  
+17.        exit(EXIT_FAILURE);  
+18.    }  
+19.
+20.    sleep(4);  
+21.    printf("Canceling thread...\n");  
+22.
+23.    res = pthread_cancel(a_thread);  
+24.if (res != 0)  
+25.    {  
+26.        perror("Thread cancel failed!");  
+27.        exit(EXIT_FAILURE);  
+28.    }  
+29.
+30.    printf ("Waiting for thread to finished...\n");  
+31.
+32.    res = pthread_join(a_thread, &thread_result);  
+33.if (res != 0)  
+34.    {  
+35.        perror ("Thread join failed!");  
+36.        exit(EXIT_FAILURE);  
+37.    }  
+38.
+39.    printf("Thread canceled!");  
+40.
+41.    exit(EXIT_FAILURE);  
+42.}  
+43.
+44.void *thread_function(void *arg)  
+45.{  
+46.int i;  
+47.int res;  
+48.
+49.    res = pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);  
+50.if (res != 0)  
+51.    {  
+52.        perror("Thread setcancelstate failed!");  
+53.        exit(EXIT_FAILURE);  
+54.    }  
+55.
+56.    res = pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);  
+57.if (res != 0)  
+58.    {  
+59.        perror("Thread setcanceltype failed!");  
+60.        exit(EXIT_FAILURE);  
+61.    }  
+62.
+63.    printf("thread_function is running...\n");  
+64.
+65.for (i = 0; i < 10; i++)  
+66.    {  
+67.        printf("Thread is still running (%d)...\n", i);  
+68.        sleep(1);  
+69.    }  
+70.    pthread_exit(0);  
+71.}  
+
+编译这个程序：
+
+gcc -D_REENTRANT thread6.c -o thread6 –lpthread
+
+运行这个程序：
+
+$ ./thread6
+
+thread_function is running...
+
+Thread is still running (0)...
+
+Thread is still running (1)...
+
+Thread is still running (2)...
+
+Thread is still running (3)...
+
+Canceling thread...
+
+Waiting for thread to finished...
+
+8.多线程
+
+之前，我们所编写的代码里面都仅仅是创建了一个线程，现在我们来演示一下如何创建一个多线程的程序。
+
+view plaincopy to clipboardprint?
+1.#include <pthread.h>
+2.#include <stdio.h>
+3.#include <stdlib.h>
+4.
+5.#define NUM 6
+6.
+7.void *thread_function(void *arg);  
+8.
+9.int main()  
+10.{  
+11.int res;  
+12.    pthread_t a_thread[NUM];  
+13.void *thread_result;  
+14.int index;  
+15.
+16.for (index = 0; index < NUM; ++index) {  
+17.        res = pthread_create(&a_thread[index], NULL, thread_function, (void *)index);  
+18.if (res != 0)  
+19.        {  
+20.            perror("Thread create failed!");  
+21.            exit(EXIT_FAILURE);  
+22.        }  
+23.        sleep(1);  
+24.    }  
+25.
+26.    printf("Waiting for threads to finished...\n");  
+27.
+28.for (index = NUM - 1; index >= 0; --index)  
+29.    {  
+30.        res = pthread_join(a_thread[index], &thread_result);  
+31.if (res == 0)  
+32.        {  
+33.            printf("Picked up a thread:%d\n", index + 1);  
+34.        }  
+35.else
+36.        {  
+37.            perror("pthread_join failed\n");  
+38.        }  
+39.    }  
+40.
+41.    printf("All done\n");  
+42.
+43.    exit(EXIT_SUCCESS);  
+44.}  
+45.
+46.void *thread_function(void *arg)  
+47.{  
+48.int my_number = (int)arg;  
+49.int rand_num;  
+50.
+51.    printf("thread_function is running. Argument was %d\n", my_number);  
+52.    rand_num = 1 + (int)(9.0 * rand()/(RAND_MAX + 1.0));  
+53.    sleep(rand_num);  
+54.    printf("Bye from %d\n", my_number);  
+55.    pthread_exit(NULL);  
+56.}  
+
+编译这个程序：
+
+gcc -D_REENTRANT thread7.c -o thread7 –lpthread
+
+运行这个程序：
+
+$ ./thread7
+
+thread_function is running. Argument was 0
+
+thread_function is running. Argument was 1
+
+thread_function is running. Argument was 2
+
+thread_function is running. Argument was 3
+
+thread_function is running. Argument was 4
+
+Bye from 1
+
+thread_function is running. Argument was 5
+
+Waiting for threads to finished...
+
+Bye from 5
+
+Picked up a thread:6
+
+Bye from 0
+
+Bye from 2
+
+Bye from 3
+
+Bye from 4
+
+Picked up a thread:5
+
+Picked up a thread:4
+
+Picked up a thread:3
+
+Picked up a thread:2
+
+Picked up a thread:1
+
+All done
+
+9.小结
+
+本文主要介绍了Linux环境下的多线程编程，介绍了信号量和互斥量、线程属性控制、线程同步、线程终止、取消线程及多线程并发。
+
+本文比较简单，只作为初学Linux多线程编程入门之用。
+
+ 
+
+
+
+
+
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+
+
+
+
+coffeegg
+ 关注 - 0
+ 粉丝 - 9 
+
+
+
++加关注 
+
+
+1
+
+0
+
+
+ (请您对文章做出评价) 
+
+
+« 博主上一篇：4个shell写的进度条脚本
+» 博主下一篇：shell ANSI控制码
+
+ 
+posted on 2011-10-26 14:50 coffeegg 阅读(6548) 评论(0) 编辑 收藏
+ 
+
+
+
+刷新评论刷新页面返回顶部
+ 
+
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+
+ 
+博客园首页博问新闻闪存程序员招聘知识库
+ 
+
+
+
+
+
+最新IT新闻:
+ · 美国著名影评网站“影评情报”即将关闭
+ · 咖啡的“逆袭”：网络的价值 传统门店求变
+ · Google Reader猝死启示录：互联网无法永远免费
+ · 深圳威武！全球最廉价手机只需10美元
+ · 是什么造就了优秀的开发者/工程师文化？
+» 更多新闻...
+
+最新知识库文章:
+
+ · 处理 JavaScript 异常的一个想法
+ · SQL Server表分区详解
+ · 漫谈重构
+ · 云计算里AWS和Azure的探究
+ · SQL Server 高性能写入的一些总结
+
+» 更多知识库文章... 
+
+
+
+
+
+
+导航
+ 博客园
+ 首页
+ 联系
+ 订阅
+ 管理
+ 
+
+
+
+
+
+
+
+<
+
+2011年10月
+
+>
+
+ 
+
+
+日
+
+一
+
+二
+
+三
+
+四
+
+五
+
+六
+
+
+
+25
+
+26
+
+27
+
+28
+
+29
+
+30
+
+1
+
+
+
+2
+
+3
+
+4
+
+5
+
+6
+
+7
+
+8
+
+
+
+9
+
+10
+
+11
+
+12
+
+13
+
+14
+
+15
+
+
+
+16
+
+17
+
+18
+
+19
+
+20
+
+21
+
+22
+
+
+
+23
+
+24
+
+25
+
+26
+
+27
+
+28
+
+29
+
+
+
+30
+
+31
+
+1
+
+2
+
+3
+
+4
+
+5
+
+ 
+公告
+ 
+
+
+昵称：coffeegg
+园龄：1年10个月
+粉丝：9
+关注：0
++加关注
+ 
+
+统计
+ 随笔 - 21 
+文章 - 0 
+评论 - 4 
+
+
+
+搜索
+ 
+ 
+ 
+ 
+ 
+常用链接
+ 我的随笔
+我的评论
+我的参与
+最新评论
+我的标签
+ 
+
+
+随笔档案
+2011年12月 (1) 
+2011年11月 (5) 
+2011年10月 (9) 
+2011年9月 (5) 
+2011年6月 (1) 
+
+最新评论
+ 
+
+1. Re:在Android里完美实现基站和WIFI定位
+高手，我想问一下import com.google.android.photostream.UserTask这个怎么报错啊，怎么解决？最近做项目需要定位，还望快点告诉我。多谢了--我爱生活啊
+2. Re:在Android里完美实现基站和WIFI定位
+import com.google.android.photostream.UserTask;这个引用无效--yangann
+ 
+阅读排行榜
+ 
+
+1. Linux多线程编程小结(6548)
+2. 在Android里完美实现基站和WIFI定位(5675)
+3. C++处理异常技巧-try,catch,throw,finally(3602)
+4. QT Creator的style sheet的几种用法（QT Creator）（StyleSheet）（样式）（QT4.7）（用法）(1795)
+5. Oracle局部索引和全局索引(1734)
+ 
+评论排行榜
+ 
+
+1. 在Android里完美实现基站和WIFI定位(3)
+2. 重新签名APK文件(1)
+3. linux调试工具ipcs的深入分析(0)
+4. 测试一下(0)
+5. 数字证书原理[转载](0)
+ 
+推荐排行榜
+ 
+
+1. Oracle局部索引和全局索引(1)
+2. Linux多线程编程小结(1)
+ 
+Powered by: 
+博客园
+Copyright © coffeegg 
+

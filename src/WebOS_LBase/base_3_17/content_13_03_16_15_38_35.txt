@@ -1,0 +1,368 @@
+ 博客首页登录注册早春休闲兼娱乐好趣游 发博文  博文        ×推荐：摄影博客记录世间百态博友热议全国两会
+推荐：摄影博客记录世间百态博友热议全国两会leo鱼
+http://blog.sina.com.cn/u/1987302565 [订阅][手机订阅]首页 博文目录 图片 关于我个人资料 
+ leo鱼 
+Qing 微博 
+加好友 发纸条 
+
+写留言 加关注 
+
+
+博客等级： 博客积分：245 博客访问：3,185 关注人气：3 
+精彩图文 
+光影中的美人鱼
+红色的艳情狂袭
+
+新浪Qing
+
+梦中的水彩美人
+
+新浪Qing
+
+惊悚的牙膏广告
+
+新浪Qing
+
+女士十款百搭包
+
+新浪Qing
+
+人和动物的温情
+
+新浪Qing
+
+那年的花名未闻
+
+新浪Qing
+
+
+查看更多>>
+相关博文 
+意蕴深长的内涵人体图
+郭子-Joy
+已婚男人爱上偷情的5大诱因
+白衣梧桐
+徐小明：周五操作策略
+徐小明
+第九百三十五篇&bu
+马未都
+更多>>
+推荐博文 
+第九百三十八篇•奶粉
+马未都
+20130303唐师曾：198
+唐师曾
+何新委员四个提案：首先反对铁道
+何新博客
+“四大节假日免费坐火车”是哗众
+杨金溪
+参加中国独立影评金扫帚奖颁奖会
+李银河
+标题《青年电影手册》第四届“金
+程青松
+让大家玩儿新闻：专业媒体如何善
+陈昌凤
+依法制定《未成年观看电影指导办
+王兴东-紫禁城影业
+查看更多>>
+谁看过这篇博文 
+加载中…
+正文 字体大小：大 中 小 
+LINUX多进程编程(2011-02-23 20:07:12)转载▼ 分类： 技术  
+进程在退出后就立刻变成了僵尸，然后等父进程收尸；
+如果这时它的父进程已经死了，也就是说这个进程是个孤儿，也没问题，它的父进程临死前”托孤“的init进程，也就是它的养父，会帮它收尸。
+如果这里它的父进程还没死，就要看这个父进程在做什么了？如果这个父进程对正在调用wait或waitpid操作，则表示这个父进程有准备棺材纸钱，这个进程就可以入土为安了。或者这个父进程设置了SIGCHLD信号处理函数，并在处理函数中执行了wait或waitpid操作，也没问题。但如果父进程没有忙得不可开交，没有任何收尸的想法，那这个进程就只好一直处于僵尸态，直到父进程什么时候想起来的时候进行wait或waitpid收尸，或者父进程死的时候收尸。
+
+
+摘要：
+
+       进程的概念起源于60年代，目前已经成为操作系统和并发程序设计中非常重要的概念。用户在操作系统中所作的每一件事情，都是通过进程实现的。所谓进程是具有一定功能的程序关于一个数据集合的一次执行过程。对于一个特定的程序来说，它的每一次正在运行中的副本都有自己的进程。就是说，如果用户在一个程序的一次运行尚未结束时再次启动该程序，则将会有两个进程在运行这一个程序。多个进程可以同时运行，各个进程之间相互隔开，除非不同进程之间需要数据交换，否则互不影响。
+
+一个进程的存在过程，可以分为进程的产生、进程的执行和进程的结束3个步骤。当一个程序被启动时，就产生了一个新的进程。进程在系统内核的管理下得到执行。当某个进程执行完毕后，该进程就消亡了。
+
+Linux系统支持多个进程同时运行。所谓同时，其实是Linux系统在各个进程之间调度，轮流使每个进程占用cpu一个时间片。由于每个时间片和宏观的时间相比很小，而每个进程可以频繁的得到时间片，于是就使用户看到了多个进程“同时”运行的情况。
+
+Abstract:
+
+       Process concept originated in the 60’s,it has become a important concept in operating system and concurrent programming.The user’s active in operating system are all finished by process.The so-called process is a certain function of a data collection procedures on an implementation process.For a specific program, it is running in every copy has its own process.That is ,if a user runs a program started again before the end of the program,then there will be two processes running this program.You can run multiple processes,each process between the swparated, unless the need for data exchange between different processes,or independently of each other.
+
+       The existence of a process procedure,the process can be divided into generation, process execution and process the end of the three steps.When a program is started, it creates a new process.Process in the system to be implemented under the management of the kernel.When a process completes, the process came to an end.
+
+       Linux system to support multiple processes running in the same time.The so-called in the same time actually is the Linux system is scheduled in various processes,each process in turn takes cpu to a time slice.Since each time slice and the macro-time compared to small,frequent and each process can be time slice, so to enable users to see a number of process running in the same time.
+
+正文：
+
+ 
+
+一、进程概念
+
+1、进程的特点
+
+所谓进程是具有一定功能的程序关于一个数据集合的一次执行过程。对于每个特定的程序来说，它的每一次正在运行中的副本都有自己的进程。一个进程的存在过程，可以分为进程的产生、进程的执行和进程的结束3个步骤。当一个程序被启动时，就产生了一个新的进程。进程在系统内核的管理下得到执行。当某个进程执行完毕后，该进程就消亡了。
+
+Linux系统支持多个进程同时运行。所谓同时，其实是Linux系统在各个进程之间调度，轮流使每个进程占用cpu一个时间片。由于每个时间片和宏观的时间相比很小，而每个进程可以频繁的得到时间片，于是就使用户看到了多个进程“同时”运行的情况。
+
+用户在执行一个程序以完成一定的功能时，为了提高程序执行的效率，可以把一个程序设计成由若干个部分组成，由若干个进程同时执行。这就是所谓的并发程序的概念。运行并发程序时，对应于该程序的若干进程同步运行，这些进程之间应该是相互独立的，但在必要的时候也会发生联系。
+
+如果在各个进程运行时，不同进程需要使用相同的资源的话，可能会出现资源使用上的冲突。在这种情况下，只能设定由各个进程轮流使用该资源。
+
+此外，不同进程之间可能会需要相互合作，进行某种数据的交流。一个进程可能要等待其他进程运行到一定的阶段，得到一定结果后磁能继续运行。这就要在各进程之间建立一种通信关系。
+
+另外一种情况是，可能会出现进程间的互斥关系，即不同进程需要调用同一程序，但却不允许多个进程同时调用该程序。例如，车站的各售票窗口中，可能会有两个以上窗口在同一个时间需要查询同一个车次的车票，如果这些窗口同时都调用了余票查询程序，可能会得到相同的余票列表而将同一张票卖个不同的乘客。因此，程序员需要设定该程序同一时间只允许一个进程进入，其他进程需要等待其完成后在调用该程序。对文件的使用也有类似的问题，程序员可以通过文件的锁定保证在需要时只由一个进程对某一特定文件进行修改。
+
+当然，多个进程并不需要同一时间产生并都维持到整个程序运行结束。用户可以根据需要动态地产生结束进程。也就是说，一个进程可以派生另一个进程，这就是所谓父进程与子进程的关系。
+
+ 
+
+二、进程间通信方式
+
+进程间通信的几种手段：
+
+1．管道及有名管道：管道可用于具有亲缘关系进程间的通信，有名管道克服了管道没有名字的限制。因此，除了具有管道所具有的功能外，它还允许无亲缘关系进程间的通信；
+
+2．信号：信号是比较复杂的通信方式，用于通知接受进程有某种事件发生，除了用于进程间通信外，进程还可以发送信号给进程本身；linux除了支持Unix早期信号语义函数signal外，还支持符合posix标准的信号函数sigaction；
+
+3．消息队列：消息队列是消息的链接表，包括posix消息队列system v消息队列。有足够权限的进程可以向队列中添加消息，被赋予读权限的进程则可以读走队列中的消息。消息队列克服了信号承载量少，管道只能承载无格式字节流以及缓冲区大小受限制的缺点。
+
+4．共享内存：使得多个进程可以访问同一块内存空间，是最快的可用ipc形式。是针对其他通信机制运行效率较低而设计的。往往与其他通信机制，如信号量结合使用，来达到进程间的同步及互斥。
+
+5．信号量：主要作为进程间以及用一个进程不同线程之间的同步手段。
+
+6．套接口：更为一般的进程间通信机制，可用于不用机器之间的进程间通信。
+
+三、各种通信方式简述
+
+管道
+
+1、管道是半双工的，数据流只能向一个方向流动；需要双方通信时，需要建立两个管道；
+
+2、只能用于父子进程或者兄弟进程之间；
+
+3、单独构成一种独立的文件系统：管道对于两端的进程而言，就是一个文件，并且存在于内存中；
+
+4、数据的读出和写入：一个进程向管道中写的内容被管道另一端的进程读出。
+
+管道使用函数int pipe(int fd[2])创建。管道两端可以分别用描述字fd[0]以及fd[1]来描述，管道的两端是固定了任务的，一段只能用于读，另一端只能用于写。这便需要首先建立一管道数组pipe_fd[2],并且在使用时应首先关闭一端再从另一端向里面写，再关闭。读端的开关顺序与写段正好相反。
+
+ 
+
+命名管道：克服了管道没有名字的缺点，可用于不具有亲缘关系的进程间通信。它提供了一个路径名与命名管道关联，以fifo的文件形式存在于文件系统中。管道的建立函数：int mkfifo(const char *pathname,mode_t mode)该函数的第一个参数是普通的路径名，也就是创建后fifo的名字，第二个参数与打开普通文件的open（）函数中的mode参数相同。
+
+ 
+
+信号
+
+    信号是在软件层次上对中断机制的一种模拟，在原理上，一个进程收到一个信号与处理器收到一个中断请求可以说是一样的。信号是异步的，一个进程不必通过任何操作来等到信号的到达，事实上，进程也不知道信号到底什么时候到底。
+
+    信号是进程间通信机制中唯一的异步通信机制，可以看作是异步通知，通知接收信号的进程有哪些事情发生了。信号机制经过posix实时扩展后，功能更加强大，除了基本通知功能外，还可以传递附加信息。
+
+    信号来源有两个：硬件来源（比如我们按下了键盘或者其他硬件故障）；软件来源，最常用发送的信号的系统函数是kill，raise，alarm和setitimer，软件来源还包括一些非法运算等操作。
+
+信号的分类：
+
+1. 可靠信号与不可靠信号
+
+信号值小于SIGRTMIN的信号都是不可靠信号，linux支持不可靠信号，但是对不可靠信号机制做了改进；在调用完信号处理函数后，不必重新调用该信号的安装函数。因此，linux下的不可靠信号问题主要指的是信号可能丢失。
+
+信号值位于SIGRTMIN和SIGRTMAX之间的信号都是可靠信号，可靠信号可能丢失的问题得以克服。
+
+2. 实时信号与非实时信号
+
+实时信号是posix标准的一部分，可用于应用进程。非实时信号都不支持排队，都是不可靠信号；实时信号都支持排队，都是可靠信号。
+
+进程对信号的相应：
+
+进程可以通过三种方式相应一个信号：1）忽略信号，即对信号不做任何处理。2）捕捉信号。定义信号处理函数，当信号发生时，执行相应的处理函数；3）执行缺省操作，linux对每种信号都规定了默认操作。
+
+信号的发送：
+
+Int Kill（pid_t pid,int signo）最常用于pid>0时的信号发送，调用成功返回0；否则，返回-1
+
+Int raise(int signo)向进程本身发送信号，参数为即将发送的信号值。调用成功返回0；否则，返回-1。
+
+Sigqueue(pid_t pid,int sig,const union sugval val)调用成功返回0,；否则返回-1。Sigqueue是比较新的发送信号系统调用，主要是针对实时信号提出的，支持信号带有参数，与函数sigaction配合使用。Sigqueue的第一个参数是指定接收信号的进程ID，第二个参数确定即将发送的信号，第三个参数是一个联合数据结构union sigval指定了信号传递的参数。Sigqueue虽然比kill传递了更多的附加信息，但它只能向一个进程发送信号，而不能发送信号给一个进程组。Sigqueue发送非实时信号是，第三个参数包含的信息仍然能够传递给信号处理函数，不支持排队，即在信号处理函数执行过程中到来的所有相同的信号，都被合并为一个信号。
+
+Unsigned int alarm(unsigned int seconds)专门为SIGALRM信号而设，在指定的时间seconds秒后，将向进程本身发送SIGALRM信号，又成为闹钟时间。进程调用alarm后，任何以前的alarm调用都将无效。如果seconds为零，那么进程内将不再包含任何闹钟时间。
+
+Int Setitimer(int which,const struct itimerval *value,struct itimerval *ovalue)比alarm功能强大第一个参数which指定定时器类型，第二个参数是结构itimerval的一个实例，第三个参数可以不做处理。
+
+Void abort(void);向进程发送SIGABORT信号，默认情况下进程会异常退出，当然可定义自己的信号处理函数。即使SIGABORT被进程设置为阻塞信号，调用abort后，SIGABORT仍然能被进程接收。
+
+信号的安装
+
+如果进程要处理某一信号，那么就要在进程中安装该信号。安装信号主要用来确定信号值以及进程针对该信号值的动作之间的映射关系，即进程将要处理那个信号；该信号被传递给进程时，将执行何种操作。
+
+Linux主要有两个函数实现信号的安装：signal().sigaction().其中signal在可靠信号系统调用的基础上实现，是库函数。它只有两个参数，不支持传递信号，主要是非实时信号的安装；而signaction是较新的函数，有三个参数，支持信号传递信息，主要用来与sigqueue系统调用配合使用。当然sigaction同意支持非实时信号的安装。
+
+      
+
+信号集以及信号集操作函数
+
+Int sigemptyset(sigset_t *set)初始化由set指定的信号集，信号集里面包含的所有信号被清空；
+
+Int sigfillset(sigset_t *set)调用该函数后，set指向的信号集中将包含linux支持的64中信号；
+
+Int sigaddset(sigset_t *set,int signum)在set指向的信号集中加入signum信号；
+
+Int sigdelset(sigset_t *set,int signum)在set指向的信号集中删除signum信号；
+
+Int sigimember(const sigset_t *set,int signum)判定信号signum是否在set指向的信号集中。
+
+ 
+
+消息队列：
+
+1、打开或创建消息队列，消息队列的内核持续性要求每个消息队列都在系统范围内对应唯一的键值，所以，要获得一个消息队列的描述字，只需提供该消息队列的键值。
+
+2、读写操作，消息的数据结构struct msgbuf{long mtype;char mtext[1];}mtype成员代表消息类型，从消息队列中读取消息的一个重要依据就是消息的类型；mtext是消息内容，当然长度不一定为1。因此，对于发送消息来说，首先要预设值一个msgbuf缓冲区并写入消息类型和内容，调用相应的发送函数即可；对读取消息来说，首先分配这样一个msgbuf缓冲区，然后把消息读入该缓冲区即可。
+
+3、获得或设置消息队列属性，消息队列的信息基本上都保存在消息队列头中，因此，可以分配一个类似于消息队列头的结构struct msqid_ds，来返回消息队列的属性。
+
+4、相关api，系统v消息队列api共有四个，int msgget（key_t  key,int msgflg）参数key是一个键值，由ftok获得；msgflg参数是一些标志位。该调用返回与键值key相对应的消息队列描述字。Int msgrcv(int msqid,struct msgbuf *msgp,int msgsz,long msgtyp,int msgflg)；该系统调用从msgid代表的消息队列中读取一个消息，并把消息存储在msgp指向的msgbuf结构中。Msqid为消息队列描述字；消息返回后存储在msgp指向的地址，msgsz指定msgbuf的mtext成员长度，msgtyp为请求读取的消息类型；读取消息标志为msgflg。Int msgsnd(int msqid,struct msgbuf *msgp,int msgsz,int msgflg);向msqid代表的消息队列发送一个消息，即将要发送的消息存储在msgp指向的msgbuf结构中，消息大小由msgze指定。Int msgctl(int msqid,int cmd,struct msqid_ds *buf);该系统调用对由msqid标示的消息队列执行cmd操作。
+
+ 
+
+共享内存
+
+       共享内存允许两个不相关的进程反问同一个逻辑内存。共享内存是在两个正在运行的进程之间传递数据的一种非常有效的方式。但是，它并没有提供同步机制，所以我们通常需要用其它的机制来同步对共享内存的访问。而一种典型的应用是，我们用共享内存来提供对大块内存区域的有效访问，同时通过传递小消息来同步对该内存的访问。
+
+共享内存的api有void *shmat(int shm_id,const void *shm_addr,int shmflg);key 内共享内存段名，shmget函数返回一个共享内存标识符，该标识符将用于后续的共享内存函数。Size为共享内存的容量。
+
+Void Shmat（int shm_id,const void *shm_addr,int shmflg）把内存和进程相关联。如果调用成功，它返回一个指向共享内存第一个字节的指针。
+
+Void shmctl(int shm_id,int command,struct shmid_ds *buf)
+
+以及int shmdt （const void *( shm_addr）该函数的作用是将共享内存从当前进程中分离。参数是函数的返回地址指针。
+
+ 
+
+套接口
+
+    套接口编程步骤：
+
+1）创建套接口，由系统调用socket实现：int socket(int domain,int type,int protocol)
+
+2）绑定地址，由函数bind实现:int bind (int socketfd,const struct sockaddr *my_addr,socklen_t my_addr_len)
+
+3）请求建立连接，由函数int connect(int sockfd,const struct sockaddr *servaddr,socklen_t addrlen)
+
+4）接受连接请求（有tcp服务器端发起），由函数int accept(int sockfd,struct sockaddr *cliaddr,socklen_t *addrlen).
+
+5）通信客户可以通过套接口接收服务器传来的数据，也可以通过套接口向服务器发送数据。常用的函数有recv、recvfrom、recvmsg以及send、sendto、sending等。
+
+6）关闭套接口使用close（）来完成此项功能，它唯一的参数是套接口描述字，不再赘述。
+
+四、进程间通信各种方式效率比较
+
+类型
+ 无连接
+ 可靠
+ 流控制
+ 记录
+ 消息类型优先级
+ 
+普通PIPE
+ N
+ Y
+ Y
+  
+ N
+ 
+流PIPE
+ N
+ Y
+ Y
+  
+ N
+ 
+命名PIPE(FIFO)
+ N
+ Y
+ Y
+  
+ N
+ 
+消息队列
+ N
+ Y
+ Y
+  
+ Y
+ 
+信号量
+ N
+ Y
+ Y
+  
+ Y
+ 
+共享存储
+ N
+ Y
+ Y
+  
+ Y
+ 
+UNIX流SOCKET
+ N
+ Y
+ Y
+  
+ N
+ 
+UNIX数据包SOCKET
+ Y
+ Y
+ N
+  
+ N
+ 
+
+ 
+
+分享： 分享到新浪Qing 0
+喜欢
+
+阅读(590)┊ 评论 (1)┊ 收藏(0) ┊转载(1) ┊ 喜欢▼ ┊打印┊举报 已投稿到：  排行榜 圈子  
+
+转载列表：
+转载 
+转载是分享博文的一种常用方式...
+
+后一篇：LINUX下多线程编程
+评论 重要提示：警惕虚假中奖信息|[商讯]我有明星气势签名[发评论]评论加载中，请稍候...
+
+发评论 [商讯]爱心签名换梦想，天天派奖|[商讯]提高博客人气新方法
+  更多>>
+
+登录名： 密码： 找回密码 注册 记住登录状态
+昵   称：
+
+ 分享到微博    评论并转载此博文
+
+验证码： 请点击后输入验证码 收听验证码 
+匿名评论发评论 
+以上网友发言只代表其个人观点，不代表新浪网的观点或立场。
+后一篇 >
+LINUX下多线程编程
+  新浪BLOG意见反馈留言板　不良信息反馈　电话：4006900000 提示音后按1键（按当地市话标准计费）　欢迎批评指正
+
+新浪简介 | About Sina | 广告服务 | 联系我们 | 招聘信息 | 网站律师 | SINA English | 会员注册 | 产品答疑 
+
+Copyright © 1996 - 2013 SINA Corporation, All Rights Reserved
+
+新浪公司 版权所有
+
+
+X分享到...选择其他平台 >>
+写365
+长微博
+微语录
+九宫格
+发照片
+发视频
+发商品
+博文博主音乐视频播主 最近喜欢了的博主：
+加载中…Qing博客转载原文采编长微博分享到新浪Qing分享到新浪微博为了您的账号安全，请绑定邮箱
+分享到X
+腾讯微博一键通新浪微博QQ空间人人网天涯凤凰微博朋友网人民微博豆瓣网搜狐微博新华微博手机网易微博开心网百度空间QQ好友更多平台... (130)bShare幻灯播放关闭

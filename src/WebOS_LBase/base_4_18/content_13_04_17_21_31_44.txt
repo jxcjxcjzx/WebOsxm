@@ -1,0 +1,41 @@
+/**********************
+ *Write to 5 July 2012*
+ *By Mr Rao           *
+ **********************/
+#ifndef _CLIENT_H_
+#define _CLIENT_H_
+
+#include <QDialog>
+#include <QPushButton>
+#include <QTextEdit>
+#include <QLineEdit>
+#include <QLabel>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QTcpSocket>
+
+class Dialog:public QDialog
+{
+    Q_OBJECT
+public:
+    Dialog();
+    ~Dialog();
+
+public slots:
+    void send_slot();
+    void connect_slot();
+private:
+    QLabel *lab;
+    QLabel *lab1;
+    QLineEdit *lineEdit;
+    QLineEdit *lineEditPort;
+    QPushButton *connectButton;
+    QPushButton *sendButton;
+    QPushButton *exitButton;
+    QTextEdit *textEdit;
+    QTcpSocket *tcpSocket;
+    QString strIP;
+    QString strPort;
+};
+#endif
+

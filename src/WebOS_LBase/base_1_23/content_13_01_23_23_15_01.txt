@@ -1,0 +1,404 @@
+
+
+网通主站  |  电信镜像
+ 软件下载 黑客软件 安全相关 动画教程 常用软件 最新更新　 手机软件 股票软件 国外黑软 
+技术教程 新闻动态 黑客技术 安全漏洞 加密解密 安全防御 病毒资讯 技术文摘 网络杂文 
+软件教程 黑客软件 安全相关 系统工具 网络工具 多媒体类 图形图像 联络聊天 实用工具 
+以前教程 黑客技术 系统漏洞 软件教程 黑客防御 病毒相关 技术文摘 大连保税区国际车城 
+ 
+ 
+ 
+
+首页 > 信息 > 技术文摘 > 黑客编程  
+ 
+我的PE程序加密核心代码(MASM 6.0) 
+
+--------------------------------------------------------------------------------
+ 
+
+ 
+
+ 
+
+
+作者：看雪学院 文章来源：看雪学院 
+;=======================我的加密程序 2.5版ASM源程序================ 
+;本程序是将被加壳到被加密的程序中的主要部分 
+;2.5版的程序将处理原程序中的输入表的修正工作 
+;================================================================== 
+;程序主要流程 
+;    1.进行反动态跟踪,破坏INT1.检测是否有跟踪程序存在 
+;    2.修正原程序的输入表 
+;    3.加载mkey.dll 
+;    4.在mkey.dll中查找名为error 的过程 
+;    5.运行error过程 
+;    6.返回到原程序 
+; 
+;=================================================================== 
+
+          
+        .486 
+        .model flat, stdcall 
+        option casemap :none  ; case sensitive 
+
+INCLUDE        E:\masm32\INCLUDE\windows.inc 
+INCLUDE        E:\masm32\INCLUDE\kernel32.inc 
+INCLUDE        E:\masm32\INCLUDE\user32.inc 
+            
+includelib     E:\masm32\lib\kernel32.lib 
+includelib        E:\masm32\lib\user32.lib 
+;============================================================================== 
+;自定义过程 
+RVAtoAddr proto  :DWORD ;将相对地址（RVA）转化为内存实际地址 
+SetprocAddr proto :DWORD,:DWORD  ;取出每一个DLL中的涵数名,将正确地址写入FirstThunk中 
+
+
+
+
+
+DEBUG=FALSE 
+;============================================================================= 
+
+.code     ;代码开始             
+start:  ;-------------------------------------------------- 
+;在以下段占写入程序的代码;             
+            call      @1 
+            
+data1: 
+            ver db        1    ; 
+            main_ver db        2 
+            sub_ver db        5 
+        impRVA dd 4a000h  ;输入表地址,装配时需修改 
+        impSize dd 1c14h ;输入表的大小，装配时需修改 
+        imagebase dd 60000h  ;被加入代码段的RVA，装配时需修改 
+
+          
+            call_ep dd        0c1e92h  ;被加壳程序的入口经计算后的值，装配时需修改 
+            key dd        0b8420000h          ;加密的密码经计算后的值，装配时需修改 
+        diskey dd 0  ;是否用钥匙盘的变量,为0时不用,1为A:,2为B:，装配时需修改 
+            hdll dd        ?  ;保存DLL句柄的变量 
+        lpszfmt db "%s%s",0 
+            dll_name db        "mkey.dll",0 
+            error db        "错误",0 
+            caption1 db        "mkey.dll 没有找到!",0 
+        lpszKNL db "KERNEL32.DLL",0 
+        lpszGetVer db "GetVersion",0 
+            call_name db        "Error",0 
+        lpszLoadError db "程序启动时出错!",0 
+        lpszError db "找不到所需的 .DLL 文件 - ",0 
+        sint1 dd ? 
+            int1    dd        ? 
+
+IF DEBUG 
+        d_caption        db "测试",0 
+        d_sz        db "现在处于调试状态,请修改程序section(节表)的属性(改为0XE0000020),不然就会出现非法操作",0 
+        d_sz1        db "现在开始修正输入表",0 
+ENDIF 
+            
+            
+            
+      @1: 
+            pop      EBX 
+
+IF DEBUG 
+        pusha 
+        push MB_OK 
+        lea eax,[offset d_caption-data1][ebx] 
+        push eax 
+        lea eax,[offset d_sz-data1][ebx] 
+        push eax 
+        push 0 
+        call MessageBox 
+        popa 
+
+ELSE 
+
+
+            call      anti_debug 
+ENDIF 
+        mov    eax,ebx 
+        mov edx,[offset imagebase-data1][ebx] 
+        sub eax,edx 
+        sub eax,5h 
+        mov [offset imagebase-data1][ebx],eax ;将计算后的载入基址存入变量imagebase中 
+        mov eax,[offset impRVA-data1][ebx] 
+        invoke RVAtoAddr,eax 
+        mov [offset impRVA-data1][ebx],eax 
+        call import ;修正原程序的输入表 
+
+            lea      ECX,[OFFSET dll_name-data1][EBX] 
+            invoke LoadLibraryA,ecx ;加载mkey.dll 
+        .if eax==0      ;加载不成功 
+                  push      MB_OK 
+              LEa      EAX,[OFFSET error-data1][ebx] 
+            push      EAX 
+            lea      EAX,[OFFSET caption1-data1][ebx] 
+            push      EAX 
+            push      0   
+            call MessageBoxA ;显示错误信息框 
+            push      0 
+            call    ExitProcess  ;退出 
+        .endif 
+
+IF DEBUG 
+ELSE 
+            call      deint 
+ENDIF 
+            mov      dword PTR[OFFSET hdll-data1][EBX],EAX             
+            lea      ECX,[OFFSET call_name-data1][EBX] 
+            push      ECX 
+            push      EAX 
+                          
+            call      GetProcAddress  ;取得DLL中显示对话框的函数 
+            .if eax!=0 
+                    mov      EDX,[OFFSET key-data1][EBX] 
+            push      EDX 
+            mov edx,[offset diskey-data1][ebx] 
+            push edx 
+            call      EAX 
+        .endif             
+freelibrary: 
+            mov      EAX,dword PTR[OFFSET hdll-data1][EBX] 
+            push      EAX 
+            call      FreeLibrary      ;卸载mkey.dll 
+
+            call      bw            ;防bw2000 
+IF DEBUG 
+ELSE 
+              mov      edx,[offset int1-data1][EBX] 
+          mov      ecx,[offset sint1-data1][ebx ] 
+              mov      [edx],ecx            ;修改INT1中断门,破坏跟踪环境 
+ENDIF 
+            mov      EAX,dword PTR[OFFSET call_ep-data1][EBX] 
+        xor    eax,80586h 
+        invoke RVAtoAddr,eax 
+        push      eax ;计算出原程序的入口值，压入堆栈 
+            
+            ret 
+            
+;---------------------------------------------------------- 
+;以下用于编写一些反跟踪的代码: 
+            anti_debug: 
+                call      trw 
+                  
+                ret             
+;----------------------------------------------------------- 
+;防TRW,SOFTICE等的反跟踪: 
+            trw: 
+                push      EdX 
+                sidt      [esp-2] 
+                pop      edx 
+                add      edx,8 
+        mov      dword PTR[OFFSET int1-data1][EBX],EdX                 
+            ret 
+;------------------------------------------------------------ 
+;防bw2000找入口点: 
+              bw: 
+                lea edx, [OFFSET lpszKNL-data1][ebx] 
+        push edx 
+        call GetModuleHandle 
+                lea ecx,[offset lpszGetVer-data1][ebx] 
+        push ecx 
+        push eax 
+        call GetProcAddress 
+                cmp word ptr[eax],30cdh 
+                jnz nobw2000 
+        mov eax,0bff70451h 
+        jmp dword ptr[eax] 
+                    ;退出                               
+                                
+  nobw2000: 
+        ret 
+  deint:   
+                  mov      edx,[offset int1-data1][EBX] 
+                    mov      ecx,[edx] 
+              mov      dword ptr[offset sint1-data1][ebx],ecx     
+                  add      dword ptr[edx],2 
+              ret 
+            
+  ;----------------------------------------------------------------------------------------------------- 
+  ;以下为重载原程序的输入表内的涵数地址 
+  import proc uses eax ecx edi edx 
+IF DEBUG 
+        pusha 
+        push MB_OK 
+        lea eax,[offset d_caption-data1][ebx] 
+        push eax 
+        lea eax,[offset d_sz1-data1][ebx] 
+        push eax 
+        push 0 
+        call MessageBox 
+        popa 
+ENDIF 
+          
+        mov edi,[offset impRVA-data1][ebx] 
+        mov ecx,[offset impSize-data1][ebx] 
+        xor edx,edx 
+        assume edi:ptr IMAGE_IMPORT_DESCRIPTOR     
+        .while !([edi].OriginalFirstThunk==0 && [edi].TimeDateStamp==0 && [edi].ForwarderChain==0 && [edi].Name1==0 && [edi].FirstThunk==0) 
+            .if edx>=ecx 
+                jmp impend 
+            .endif 
+            mov eax,[edi].Name1 
+            invoke RVAtoAddr,eax 
+            mov esi,eax 
+            push edx 
+IF DEBUG 
+            pusha 
+            push MB_OK 
+            push eax 
+            lea eax,[offset d_sz1-data1][ebx] 
+            push eax 
+            push 0 
+            call MessageBox 
+            popa 
+ENDIF 
+            invoke GetModuleHandle,esi 
+            .if eax==0 
+                invoke LoadLibraryA,esi 
+                .if eax==0 
+                    push esi 
+                    lea eax,[offset lpszError-data1][ebx] 
+                    push eax 
+                    lea eax,[offset lpszfmt-data1][ebx] 
+                    push eax 
+                    lea eax,[offset dll_name-data1][ebx] 
+                    push eax 
+                    call wsprintf 
+
+                    push MB_ICONEXCLAMATION+MB_OK 
+                    mov eax,[offset lpszLoadError-data1][ebx] 
+                    push eax 
+                    mov eax,[offset dll_name-data1][ebx] 
+                    push eax 
+                    push NULL 
+                    call MessageBox 
+                    invoke ExitProcess,NULL 
+
+                .endif 
+            .endif 
+            mov dword ptr[esi],0 
+            mov [offset hdll-data1][ebx],eax 
+            mov eax,[edi].FirstThunk 
+            invoke RVAtoAddr,eax 
+            push eax                    ;FirstThunk的偏移量压栈， 
+            .if [edi].OriginalFirstThunk!=0      ;有的连接器会将OriginalFirstThunk的值置0，这时取FirstThunk所指的数组的值指向涵数名 
+                mov eax,[edi].OriginalFirstThunk 
+                invoke RVAtoAddr,eax 
+                push eax                  ;OriginalFirstThunk的偏移量压栈，这时eax所指数组的值指向IMAGE_IMPORT_BY_NAME 
+            .else 
+                push eax    ;这时eax所指数组的值指向IMAGE_IMPORT_BY_NAME 
+            .endif 
+            call SetprocAddr 
+            pop edx 
+            add edx,sizeof IMAGE_IMPORT_DESCRIPTOR 
+            add edi,sizeof IMAGE_IMPORT_DESCRIPTOR 
+        .endw 
+impend: 
+
+      ret 
+import endp 
+
+RVAtoAddr proc  RVA:DWORD 
+    mov eax,RVA 
+    ADD eax,DWORD PTR[offset imagebase-data1][ebx] 
+    ret 
+RVAtoAddr endp 
+            
+SetprocAddr proc uses edi ecx esi edx naddr:DWORD ,faddr:DWORD 
+
+        mov edi,naddr 
+        mov esi,faddr 
+        .while DWORD PTR[edi]!=0 
+            .if dword ptr[edi]&80000000h ;判断涵数是以序号方式引入，还是用名称的方式引入。 
+                mov eax,dword ptr[edi] 
+                and eax,7fffffffh ;得到引入函数的序号 
+                push eax 
+            .else 
+                mov eax,DWORD PTR[edi] 
+                invoke RVAtoAddr,eax             
+                assume eax:ptr IMAGE_IMPORT_BY_NAME 
+
+                IF DEBUG 
+                    pusha 
+                    push MB_OK 
+                    lea ecx,[offset d_sz1-data1][ebx] 
+                    push ecx 
+                    lea ecx,[eax].Name1 
+                    push ecx 
+                    push 0 
+                    call MessageBox 
+                    popa 
+                ENDIF 
+
+                lea ecx,[eax].Name1     
+                push ecx 
+                push ecx 
+            .endif 
+
+                mov ecx,[offset hdll-data1][ebx] 
+                push ecx 
+            call GetProcAddress 
+            .if eax==0 
+                lea eax,[offset lpszLoadError-data1][ebx] 
+                push MB_ICONEXCLAMATION+MB_OK 
+                push eax 
+                push eax 
+                push 0 
+                call MessageBox 
+                invoke ExitProcess,0 
+            .endif 
+            .if !(dword ptr[edi] & 80000000h) 
+                pop ecx 
+                mov DWORD PTR[ecx-2],0 
+            .endif 
+            mov DWORD PTR[esi],eax 
+            add esi,sizeof IMAGE_THUNK_DATA 
+            add edi,sizeof IMAGE_THUNK_DATA 
+          .endw 
+
+        ret 
+SetprocAddr endp 
+            
+            
+;---------------------------------------------------------- 
+            
+        END    start 
+
+
+ 
+ 
+ 
+ 
+ 
+上一篇：在2000和xp下，隐藏进程，VC6.0测试通过
+
+
+
+
+
+下一篇：做一个脚本小子也应该做成这样的   
+
+ 
+   文 章 搜 索  
+  
+
+
+　
+
+　
+
+　
+ 
+
+ 
+ 
+ 
+TOP  
+ 
+ 
+　 黑白网络提供各类黑客软件，黑客教程,每天及时更新病毒信息及杀毒软件,用心打造最专业的黑客网站! 
+辽ICP备05006163号
+网站统计  
+ 
+

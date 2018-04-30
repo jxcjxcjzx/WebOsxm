@@ -1,0 +1,762 @@
+
+
+首页
+开源软件
+讨论区
+
+
+
+
+
+
+代码分享
+博客
+翻译
+资讯
+移动开发
+
+
+
+
+招聘
+
+你好2,您好 我的空间
+
+
+
+
+
+
+
+ |  添加软件 | 投递新闻 | 退出
+ 
+
+开源中国 
+代码分享
+ 当前位置：代码分享 » C/C++ » Qt 图形界面开发 
+搜 索 
+
+
+
+
+
+
+
+
+
+Qt通过dom方式修改xml
+
+鉴客 发布于 2010年11月15日 10时, 1评/1909阅
+
+
+ 
+
+
+分享到 
+
+新浪微博腾讯微博
+
+
+收藏+2
+
+踩顶0
+ 
+
+
+DOM是一种解析由万维网协会(W3C)所开发的XML文档的标准应用程序编程接口。Qt提供一套用于读取、操作和编写XML文档的非验证型二级DOM实现。
+
+DOM把XML文件表示成内存中的一棵树。我们可以按需要遍历这个DOM树，也可以修改这个树并把它作为XML文件保存到磁盘中。
+
+
+标签：DOM jQuery XML
+
+
+
+
+代码片段(3)
+
+
+[代码] [XML]代码
+
+
+
+
+
+
+
+
+
+
+1
+
+<doc>
+
+
+
+
+
+2
+
+     <quote>Scio me nihil scire</quote>
+
+
+
+
+
+3
+
+     <translation>I know that I know nothing></translation>
+
+
+
+
+
+4
+
+</doc>
+
+
+
+[代码] 修改属性值
+
+
+
+
+
+
+
+
+
+
+01
+
+bool QXmlEdit::SetAValue(const QString &key, const QVariant &value)
+
+
+
+
+
+02
+
+{
+
+
+
+
+
+03
+
+    try
+
+
+
+
+
+04
+
+    {
+
+
+
+
+
+05
+
+        QString tag;
+
+
+
+
+
+06
+
+        QString attName;
+
+
+
+
+
+07
+
+        QStringList sl=key.split("/");
+
+
+
+
+
+08
+
+        tag = sl.at(0);
+
+
+
+
+
+09
+
+        attName = sl.at(1);
+
+
+
+
+
+10
+
+ 
+
+
+
+
+
+11
+
+        QDomElement docElem = doc.documentElement();
+
+
+
+
+
+12
+
+        QDomNodeList nodeList = docElem.elementsByTagName(tag);
+
+
+
+
+
+13
+
+        if (nodeList.count() >0 )
+
+
+
+
+
+14
+
+        {
+
+
+
+
+
+15
+
+            QDomElement el = nodeList.at(0).toElement();
+
+
+
+
+
+16
+
+            el.setAttribute(attName,value.toString());  //设置属性值
+
+
+
+
+
+17
+
+ 
+
+
+
+
+
+18
+
+            QFile file(fileName);
+
+
+
+
+
+19
+
+            if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+
+
+
+
+
+20
+
+            {
+
+
+
+
+
+21
+
+                return false;
+
+
+
+
+
+22
+
+            }
+
+
+
+
+
+23
+
+            QTextStream out(&file);
+
+
+
+
+
+24
+
+            doc.save(out,4);
+
+
+
+
+
+25
+
+        }
+
+
+
+
+
+26
+
+        return true;
+
+
+
+
+
+27
+
+    }
+
+
+
+
+
+28
+
+    catch (...)
+
+
+
+
+
+29
+
+    {
+
+
+
+
+
+30
+
+        return false;
+
+
+
+
+
+31
+
+    } 
+
+
+
+
+
+32
+
+}
+
+
+
+[代码] 修改节点值
+
+
+
+
+
+
+
+
+
+
+01
+
+bool QXmlEdit::SetTValue(const QString &key, const QVariant &value)
+
+
+
+
+
+02
+
+{
+
+
+
+
+
+03
+
+    try
+
+
+
+
+
+04
+
+    {
+
+
+
+
+
+05
+
+        QDomElement docElem = doc.documentElement();
+
+
+
+
+
+06
+
+        QDomNodeList nodeList = docElem.elementsByTagName(key);
+
+
+
+
+
+07
+
+        if (nodeList.count() >0 )
+
+
+
+
+
+08
+
+        {
+
+
+
+
+
+09
+
+            QDomElement el = nodeList.at(0).toElement();  //tag为key的节点
+
+
+
+
+
+10
+
+            QDomNode oldnode = el.firstChild();           //标签之间的内容作为节点的子节点出现，得到原来的子节点
+
+
+
+
+
+11
+
+            el.firstChild().setNodeValue(value.toString());   //用提供的value值来设置子节点的内容
+
+
+
+
+
+12
+
+ 
+
+
+
+
+
+13
+
+            QDomNode newnode = el.firstChild();               //值修改过后的子节点
+
+
+
+
+
+14
+
+ 
+
+
+
+
+
+15
+
+            el.replaceChild(newnode,oldnode);                 //调用节点的replaceChild方法实现修改功能
+
+
+
+
+
+16
+
+         
+
+
+
+
+
+17
+
+            QFile file(fileName);
+
+
+
+
+
+18
+
+            if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+
+
+
+
+
+19
+
+            {
+
+
+
+
+
+20
+
+                return false;
+
+
+
+
+
+21
+
+            }
+
+
+
+
+
+22
+
+            QTextStream out(&file);
+
+
+
+
+
+23
+
+            doc.save(out,4);
+
+
+
+
+
+24
+
+        }
+
+
+
+
+
+25
+
+        return true;
+
+
+
+
+
+26
+
+    }
+
+
+
+
+
+27
+
+    catch (...)
+
+
+
+
+
+28
+
+    {
+
+
+
+
+
+29
+
+        return false;
+
+
+
+
+
+30
+
+    }
+
+
+
+
+
+31
+
+}
+
+
+
+举报
+
+
+
+开源中国-程序员在线工具：API文档大全(120+) JS在线编辑演示 二维码更多»
+
+ 
+
+
+相关的代码(78)
+0回/8638阅[js]在jQuery中利用AJAX加载XML数据并解析2年前 By 疯狂的流浪
+1回/7067阅[Java]Java解析XML文件2年前 By YuChao
+6回/6224阅[PHP]PHP中的生成XML文件的4种方法1年前 By 夏小八
+11回/6084阅[js]jQuery 读取XML文件内容2年前 By hcqenjoy
+1回/5061阅[C/C++]Qt 解析xml格式的例子2年前 By 红薯
+4回/4278阅[Flash]Flex中解析XML文件示例1年前 By Ethan.Yang
+1回/3819阅[Java]JAVA操作XML2年前 By 疯狂的流浪
+3回/3582阅[C/C++]QT 读取xml文件，然后写入另外一个新的xml文件的简单方法2年前 By 鉴客
+2回/3352阅[Python]Python 解析xml(dom)2年前 By Sephiroth
+4回/2875阅[js]最短的 XML 格式化工具1年前 By redraiment
+显示所有 »
+
+发表评论回到顶部网友评论(1)
+
+
+
+
+
+
+
+ 1楼：cookie 发表于 2010-11-15 10:22 回复此评论
+
+哦，看到了，真的是非常感谢。用QXmlStreamReader和QXmlStreamWriter修改不了是吗？
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+回到顶部   回到评论列表
+
+开源从代码分享开始 分享代码
+
+
+
+鉴客的其他代码PHP 检测是否 Ajax 请求(9评/1047阅,3个月前)
+使用 PHP 限制下载速度(5评/857阅,4个月前)
+JavaScript 获取当前页面的 URL 地址(1评/1007阅,4个月前)
+httpclient 设置user-agent(0评/569阅,5个月前)
+c# 获取 httponly cookie(0评/548阅,6个月前)
+全部(608)...
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+© 开源中国(OsChina.NET) | 关于我们 | 广告联系 | @新浪微博 | 开源中国手机版 | 粤ICP备12009483号-3
+ 
+开源中国手机客户端：AndroidiPhoneWP7 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2条新留言，查看留言»
+
+
+
+

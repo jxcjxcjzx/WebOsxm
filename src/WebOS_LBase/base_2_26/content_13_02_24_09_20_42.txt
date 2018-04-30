@@ -1,0 +1,14 @@
+ 1,ubuntu中mysql好久没用了，密码忘记了，
+首先停止mysql
+/etc/init.d/mysql stop
+然后以不检查权限的方式启动mysql
+mysqld_safe --skip-grant-tables &
+然后root用户以空密码登录mysql
+mysql -u root
+然后修改root用户密码：
+mysql> update mysql.user set password=PASSWORD('新密码') where User='root'; 
+mysql> flush privileges; 
+mysql> quit 
+最后重新启动mysql:
+/etc/init.d/mysql restart
+就可以使用新密码登录了

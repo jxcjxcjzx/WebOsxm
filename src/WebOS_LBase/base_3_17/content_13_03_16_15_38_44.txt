@@ -1,0 +1,1338 @@
+酷勤网 – 程序员的那点事！
+酷勤网 设为首页
+加入收藏
+订阅本站 首页 编程 产品 职业 管理 资讯 考试 游戏 读书 主题 导航 下载 程序员爱情 编程语言排行榜 程序员 12306火车票系统 Facebook Dijkstra算法 游戏开发 企业信息化 系统架构 Web开发 Java技术 .Net技术 Linux社区 移动开发 交互设计 视觉设计 网页设计 网络营销 网络广告 IT法律 IT幽默 程序人生 求职招聘 IT人物 IT人创业 站长经验 网络编辑 如何学习 修炼之道 管理工具 开发工具 项目管理 软件工程 程序员健康 业界 通信与电信 数码与手机 数据中心 家电 互联网 网络服务 IT史记 IT知识百科 IT考研 竞赛比赛 培训考证 题库中心 程序员英语 程序员数学 英语四六级 游戏资讯 单机游戏 电视游戏 手机游戏 网络游戏 网页游戏 电子竞技 书籍百科 书籍书评 GPU处理器 暗黑破坏神 Dijkstra算法 Android游戏 Astar百度之星 商标权 ITHao123.COM - 导航计算机优秀网站 电子书下载 常用软件下载 源码下载     首页 > 编程资料 > Linux > 正文 UNIX多进程编程
+浏览次数：210次 2004年12月01日 作者:xzh2002 字号: 大 中 小 
+分享到： QQ空间 新浪微博 腾讯微博 人人网 豆瓣网 开心网 更多 
+
+一.多进程程序的特点 
+    由于UNIX系统是分时多用户系统, CPU按时间片分配给各个用户使用, 而在 
+实质上应该说CPU按时间片分配给各个进程使用, 每个进程都有自己的运行环境 
+以使得在CPU做进程切换时不会"忘记"该进程已计算了一半的"半成品". 以DOS 
+的概念来说, 进程的切换都是一次"DOS中断"处理过程, 包括三个层次: 
+    (1)用户数据的保存: 包括正文段(TEXT), 数据段(DATA,BSS), 栈段 
+       (STACK), 共享内存段(SHARED MEMORY)的保存. 
+    (2)寄存器数据的保存: 包括PC(program counter,指向下一条要执行的指 
+       令的地址), PSW(processor status word,处理机状态字), SP(stack 
+       pointer,栈指针), PCBP(pointer of process control block,进程控 
+       制块指针), FP(frame pointer,指向栈中一个函数的local变量的首地 
+       址), AP(augument pointer,指向栈中函数调用的实参位置), ISP( 
+       interrupt stack pointer,中断栈指针), 以及其他的通用寄存器等. 
+    (3)系统层次的保存: 包括proc,u,虚拟存储空间管理表格,中断处理栈. 
+以便于该进程再一次得到CPU时间片时能正常运行下去. 
+    既然系统已经处理好所有这些中断处理的过程, 我们做程序还有什么要担 
+心的呢? 我们尽可以使用系统提供的多进程的特点, 让几个程序精诚合作, 简 
+单而又高效地把结果给它搞出来. 
+    另外,UNIX系统本身也是用C语言写的多进程程序,多进程编程是UNIX的特 
+点,当我们熟悉了多进程编程后,将会对UNIX系统机制有一个较深的认识. 
+    首先我介绍一下多进程程序的一些突出的特点: 
+    1.并行化 
+        一件复杂的事件是可以分解成若干个简单事件来解决的, 这在程序员 
+    的大脑中早就形成了这种概念, 首先将问题分解成一个个小问题, 将小问 
+    题再细分, 最后在一个合适的规模上做成一个函数. 在软件工程中也是这 
+    么说的. 如果我们以图的方式来思考, 一些小问题的计算是可以互不干扰 
+    的, 可以同时处理, 而在关键点则需要统一在一个地方来处理, 这样程序 
+    的运行就是并行的, 至少从人的时间观念上来说是这样的. 而每个小问题 
+    的计算又是较简单的. 
+    2.简单有序 
+        这样的程序对程序员来说不亚于管理一班人, 程序员为每个进程设计 
+    好相应的功能, 并通过一定的通讯机制将它们有机地结合在一起, 对每个 
+    进程的设计是简单的, 只在总控部分小心应付(其实也是蛮简单的), 就可 
+    完成整个程序的施工. 
+    3.互不干扰 
+        这个特点是操作系统的特点, 各个进程是独立的, 不会串位. 
+    4.事务化 
+        比如在一个数据电话查询系统中, 将程序设计成一个进程只处理一次 
+    查询即可, 即完成一个事务. 当电话查询开始时, 产生这样一个进程对付 
+    这次查询; 另一个电话进来时, 主控程序又产生一个这样的进程对付, 每 
+    个进程完成查询任务后消失. 这样的编程多简单, 只要做一次查询的程序 
+    就可以了. 
+
+二.常用的多进程编程的系统调用 
+    1.fork() 
+        功能:创建一个新的进程. 
+        语法:#include 
+
+             #include  
+             pid_t fork(); 
+        说明:本系统调用产生一个新的进程, 叫子进程, 是调用进程的一个复 
+             制品. 调用进程叫父进程, 子进程继承了父进程的几乎所有的属 
+             性: 
+             . 实际UID,GID和有效UID,GID. 
+             . 环境变量. 
+             . 附加GID. 
+             . 调用exec()时的关闭标志. 
+             . UID设置模式比特位. 
+             . GID设置模式比特位. 
+             . 进程组号. 
+             . 会话ID. 
+             . 控制终端. 
+             . 当前工作目录. 
+             . 根目录. 
+             . 文件创建掩码UMASK. 
+             . 文件长度限制ULIMIT. 
+             . 预定值, 如优先级和任何其他的进程预定参数, 根据种类不同 
+               决定是否可以继承. 
+             . 还有一些其它属性. 
+             但子进程也有与父进程不同的属性: 
+             . 进程号, 子进程号不同与任何一个活动的进程组号. 
+             . 父进程号. 
+             . 子进程继承父进程的文件描述符或流时, 具有自己的一个拷贝 
+               并且与父进程和其它子进程共享该资源. 
+             . 子进程的用户时间和系统时间被初始化为0. 
+             . 子进程的超时时钟设置为0. 
+             . 子进程的信号处理函数指针组置为空. 
+             . 子进程不继承父进程的记录锁. 
+        返回值: 调用成功则对子进程返回0, 对父进程返回子进程号, 这也是 
+             最方便的区分父子进程的方法. 若调用失败则返回-1给父进程, 
+             子进程不生成. 
+        例子:pid_t pid; 
+             if ((pid=fork())>;0) { 
+                 /*父进程处理过程*/ 
+             } 
+             else if (pid==0) { 
+                 /*子进程处理过程*/ 
+                 exit(0);     /*注意子进程必须用exit()退出运行*/ 
+             } 
+             else { 
+                 printf("fork error\n"); 
+                 exit(0); 
+             } 
+    2.system() 
+        功能:产生一个新的进程, 子进程执行指定的命令. 
+        语法:#include  
+             #include  
+             int system(string) 
+             char *string; 
+        说明:本调用将参数string传递给一个命令解释器(一般为sh)执行, 即 
+             string被解释为一条命令, 由sh执行该命令.若参数string为一 
+             个空指针则为检查命令解释器是否存在. 
+             该命令可以同命令行命令相同形式, 但由于命令做为一个参数放 
+             在系统调用中, 应注意编译时对特殊意义字符的处理. 命令的查 
+             找是按PATH环境变量的定义的. 命令所生成的后果一般不会对父 
+             进程造成影响. 
+        返回值:当参数为空指针时, 只有当命令解释器有效时返回值为非零. 
+             若参数不为空指针, 返回值为该命令的返回状态(同waitpid()) 
+             的返回值. 命令无效或语法错误则返回非零值,所执行的命令被 
+             终止. 其他情况则返回-1. 
+        例子:char command[81]; 
+             int i; 
+             for (i=1;i<8;i++) { 
+                 sprintf(command,"ps -t tty%02i",i); 
+                 system(command); 
+             } 
+    3.exec() 
+        功能:执行一个文件 
+        语法:#include  
+             int execl(path,arg0,...,argn,(char*)0) 
+             char *path,*arg0,...,*argn; 
+
+             int execv(path,argv) 
+             char *path,*argv[]; 
+
+             int execle(path,arg0,...,argn,(char*)0,envp) 
+             char *path,*arg0,...,*argn,*envp[]; 
+
+             int execve(path,argv,envp) 
+             char *path,*argv[],*envp[]; 
+
+             int execvp(file,argv) 
+             char *file,*argv[]; 
+        说明:这是一个系统调用族, 用于将一个新的程序调入本进程所占的内 
+             存, 并覆盖之, 产生新的内存进程映象. 新的程序可以是可执行 
+             文件或SHELL批命令. 
+             当C程序被执行时,是如下调用的: 
+             main(int argc,char *argv[],char *envp[]); 
+             argc是参数个数,是各个参数字符串指针数组,envp是新进程的环 
+             境变量字符串的指针数组.argc至少为1,argv[0]为程序文件名, 
+             所以,在上面的exec系统调用族中,path为新进程文件的路径名, 
+             file为新进程文件名,若file不是全路径名,系统调用会按PATH环 
+             境变量自动找对应的可执行文件运行.若新进程文件不是一个可 
+             执行的目标文件(如批处理文件),则execlp()和execvp()会将该 
+             文件内容作为一个命令解释器的标准输入形成system(). 
+             arg0,...等指针指向'\0'结束的字符串,组成新进程的有效参数, 
+             且该参数列表以一个空指针结束.反过来,arg0至少必须存在并指 
+             向新进程文件名或路径名. 
+             同样,argv是字符串指针数组,argv[0]指向新进程文件名或路径 
+             名,并以一空指针结束. 
+             envp是一个字符串指针数组,以空指针结束,这些字符串组成新进 
+             程的环境. 
+             在调用这些系统调用前打开的文件指针对新进程来说也是打开的, 
+             除非它已定义了close-on-exec标志.打开的文件指针在新进程中 
+             保持不变,所有相关的文件锁也被保留. 
+             调用进程设置并正被捕俘的信号在新进程中被恢复为缺省设置, 
+             其它的则保持不变. 
+             新进程启动时按文件的SUID和SGID设置定义文件的UID和GID为有 
+             效UID和GID. 
+             新进程还继承了如下属性: 
+             . 附加GID. 
+             . 进程号. 
+             . 父进程号. 
+             . 进程组号. 
+             . 会话号. 
+             . 控制终端. 
+             . alarm时钟信号剩下的时间. 
+             . 当前工作目录. 
+             . 根目录. 
+             . 文件创建掩码. 
+             . 资源限制. 
+             . 用户时间,系统时间,子进程用户时间,子进程系统时间. 
+             . 记录锁. 
+             . 进程信号掩码. 
+             . 信号屏蔽. 
+             . 优先级. 
+             . 预定值. 
+             调用成功后,系统调用修改新进程文件的最新访问时间. 
+        返回值:该系统调用一般不会有成功返回值, 因为原来的进程已荡然无 
+             存. 
+        例子:printf("now this process will be ps command\n"); 
+             execl("/bin/ps","ps","-ef",NULL); 
+    4.popen() 
+        功能:初始化从/到一个进程的管道. 
+        语法:#include  
+             FILE *popen(command,type) 
+             char *command,type; 
+        说明:本系统调用在调用进程和被执行命令间创建一个管道. 
+             参数command做为被执行的命令行.type做为I/O模式,"r"为从被 
+             执行命令读,"w"为向被执行命令写.返回一个标准流指针,做为管 
+             道描述符,向被执行命令读或写数据(做为被执行命令的STDIN或 
+             STDOUT)该系统调用可以用来在程序中调用系统命令,并取得命令 
+             的输出信息或者向命令输入信息. 
+        返回值:不成功则返回NULL,成功则返回管道的文件指针. 
+    5.pclose() 
+        功能:关闭到一个进程的管道. 
+        语法:#include  
+             int pclose(strm) 
+             FILE *strm; 
+        说明:本系统调用用于关闭由popen()打开的管道,并会等待由popen() 
+             激活的命令执行结束后,关闭管道后读取命令返回码. 
+        返回值:若关闭的文件描述符不是由popen()打开的,则返回-1. 
+        例子:printf("now this process will call popen system call\n"); 
+             FILE * fd; 
+             if ((fd=popen("ps -ef","r"))==NULL) { 
+                 printf("call popen failed\n"); 
+                 return; 
+             } 
+             else { 
+                 char str[80]; 
+                 while (fgets(str,80,fd)!=NULL) 
+                     printf("%s\n",str); 
+             } 
+             pclose(fd); 
+    6.wait() 
+        功能:等待一个子进程返回并修改状态 
+        语法:#include  
+             #include  
+             pid_t wait(stat_loc) 
+             int *stat_loc; 
+        说明:允许调用进程取得子进程的状态信息.调用进程将会挂起直到其 
+             一个子进程终止. 
+        返回值:等待到一个子进程返回时,返回值为该子进程号,否则返回值为 
+             -1.同时stat_loc返回子进程的返回值. 
+        例子:/*父进程*/ 
+             if (fork()>;0) { 
+                 wait((int *)0); 
+                 /*父进程等待子进程的返回*/ 
+             } 
+             else { 
+                 /*子进程处理过程*/ 
+                 exit(0); 
+             } 
+    7.waitpid() 
+        功能:等待指定进程号的子进程的返回并修改状态 
+        语法:#include  
+             #include  
+             pid_t waitpid(pid,stat_loc,options) 
+             pid_t pid; 
+             int *stat_loc,options; 
+        说明:当pid等于-1,options等于0时,该系统调用等同于wait().否则该 
+             系统调用的行为由参数pid和options决定. 
+             pid指定了一组父进程要求知道其状态的子进程: 
+                -1:要求知道任何一个子进程的返回状态. 
+                >;0:要求知道进程号为pid值的子进程的状态. 
+                <-1:要求知道进程组号为pid的绝对值的子进程的状态. 
+             options参数为以比特方式表示的标志以或运算组成的位图,每个 
+             标志以字节中某个比特置1表示: 
+               WUNTRACED:报告任何未知而又已停止运行的指定进程号的子进 
+                   程的状态.该子进程的状态自停止运行时起就没有被报告 
+                   过. 
+               WCONTINUED:报告任何继续运行的指定进程号的子进程的状态, 
+                   该子进程的状态自继续运行起就没有被报告过. 
+               WHOHANG:若调用本系统调用时,指定进程号的子进程的状态目 
+                   前并不是立即有效的(即可被立即读取的),调用进程并被 
+                   暂停执行. 
+               WNOWAIT:保持将其状态设置在stat_loc的进程在可等待状态. 
+                   该进程将等待直到下次被要求其返回状态值. 
+        返回值:等待到一个子进程返回时,返回值为该子进程号,否则返回值为 
+               -1.同时stat_loc返回子进程的返回值. 
+        例子:pid_t pid; 
+             int stat_loc; 
+             /*父进程*/ 
+             if ((pid=fork())>;0) { 
+                 waitpid(pid,&stat_loc,0); 
+                 /*父进程等待进程号为pid的子进程的返回*/ 
+             } 
+             else { 
+                 /*子进程的处理过程*/ 
+                 exit(1); 
+             } 
+             /*父进程*/ 
+             printf("stat_loc is [%d]\n",stat_loc); 
+             /*字符串"stat_loc is [1]"将被打印出来*/ 
+    8.setpgrp() 
+        功能:设置进程组号和会话号. 
+        语法:#include  
+             pid_t setpgrp() 
+        说明:若调用进程不是会话首进程.将进程组号和会话号都设置为与它 
+             的进程号相等.并释放调用进程的控制终端. 
+        返回值:调用成功后,返回新的进程组号. 
+        例子:/*父进程处理*/ 
+             if (fork()>;0) { 
+                 /*父进程处理*/ 
+             } 
+             else { 
+                 setpgrp(); 
+                 /*子进程的进程组号已修改成与它的进程号相同*/ 
+                 exit(0); 
+             } 
+    9.exit() 
+        功能:终止进程. 
+        语法:#include  
+             void exit(status) 
+             int status; 
+        说明:调用进程被该系统调用终止.引起附加的处理在进程被终止前全 
+             部结束. 
+        返回值:无 
+    10.signal() 
+        功能:信号管理功能 
+        语法:#include  
+             void (*signal(sig,disp))(int) 
+             int sig; 
+             void (*disp)(int); 
+
+             void (*sigset(sig,disp))(int) 
+             int sig; 
+             void (*disp)(int); 
+
+             int sighold(sig) 
+             int sig; 
+
+             int sigrelse(sig) 
+             int sig; 
+
+             int sigignore(sig) 
+             int sig; 
+
+             int sigpause(sig) 
+             int sig; 
+        说明:这些系统调用提供了应用程序对指定信号的简单的信号处理. 
+             signal()和sigset()用于修改信号定位.参数sig指定信号(除了 
+             SIGKILL和SIGSTOP,这两种信号由系统处理,用户程序不能捕捉到). 
+             disp指定新的信号定位,即新的信号处理函数指针.可以为 
+             SIG_IGN,SIG_DFL或信号句柄地址. 
+             若使用signal(),disp是信号句柄地址,sig不能为SIGILL,SIGTRAP 
+             或SIGPWR,收到该信号时,系统首先将重置sig的信号句柄为SIG_DFL, 
+             然后执行信号句柄. 
+             若使用sigset(),disp是信号句柄地址,该信号时,系统首先将该 
+             信号加入调用进程的信号掩码中,然后执行信号句柄.当信号句柄 
+             运行结束 
+             后,系统将恢复调用进程的信号掩码为信号收到前的状态.另外, 
+             使用sigset()时,disp为SIG_HOLD,则该信号将会加入调用进程的 
+             信号掩码中而信号的定位不变. 
+             sighold()将信号加入调用进程的信号掩码中. 
+             sigrelse()将信号从调用进程的信号掩码中删除. 
+             sigignore()将信号的定位设置为SIG_IGN. 
+             sigpause()将信号从调用进程的信号掩码中删除,同时挂起调用 
+             进程直到收到信号. 
+             若信号SIGCHLD的信号定位为SIG_IGN,则调用进程的子进程在终 
+             止时不会变成僵死进程.调用进程也不用等待子进程返回并做相 
+             应处理. 
+        返回值:调用成功则signal()返回最近调用signal()设置的disp的值. 
+             否则返回SIG_ERR. 
+        例子一:设置用户自己的信号中断处理函数,以SIGINT信号为例: 
+             int flag=0; 
+             void myself() 
+             { 
+                 flag=1; 
+                 printf("get signal SIGINT\n"); 
+                 /*若要重新设置SIGINT信号中断处理函数为本函数则执行以 
+                  *下步骤*/ 
+                 void (*a)(); 
+                 a=myself; 
+                 signal(SIGINT,a); 
+                 flag=2; 
+             } 
+             main() 
+             { 
+                 while (1) { 
+                     sleep(2000);  /*等待中断信号*/ 
+                     if (flag==1) { 
+                         printf("skip system call sleep\n"); 
+                         exit(0); 
+                     } 
+                     if (flag==2) { 
+                         printf("skip system call sleep\n"); 
+                         printf("waiting for next signal\n"); 
+                     } 
+                 } 
+             } 
+    11.kill() 
+        功能:向一个或一组进程发送一个信号. 
+        语法:#include  
+             #include  
+             int kill(pid,sig); 
+             pid_t pid; 
+             int sig; 
+        说明:本系统调用向一个或一组进程发送一个信号,该信号由参数sig指 
+             定,为系统给出的信号表中的一个.若为0(空信号)则检查错误但 
+             实际上并没有发送信号,用于检查pid的有效性. 
+             pid指定将要被发送信号的进程或进程组.pid若大于0,则信号将 
+             被发送到进程号等于pid的进程;若pid等于0则信号将被发送到所 
+             有的与发送信号进程同在一个进程组的进程(系统的特殊进程除 
+             外);若pid小于-1,则信号将被发送到所有进程组号与pid绝对值 
+             相同的进程;若pid等于-1,则信号将被发送到所有的进程(特殊系 
+             统进程除外). 
+             信号要发送到指定的进程,首先调用进程必须有对该进程发送信 
+             号的权限.若调用进程有合适的优先级则具备有权限.若调用进程 
+             的实际或有效的UID等于接收信号的进程的实际UID或用setuid() 
+             系统调用设置的UID,或sig等于SIGCONT同时收发双方进程的会话 
+             号相同,则调用进程也有发送信号的权限. 
+             若进程有发送信号到pid指定的任何一个进程的权限则调用成功, 
+             否则调用失败,没有信号发出. 
+        返回值:调用成功则返回0,否则返回-1. 
+        例子:假设前一个例子进程号为324,现向它发一个SIGINT信号,让它做 
+             信号处理: 
+             kill((pid_t)324,SIGINT); 
+    12.alarm() 
+        功能:设置一个进程的超时时钟. 
+        语法:#include  
+             unsigned int alarm(sec) 
+             unsigned int sec; 
+        说明:指示调用进程的超时时钟在指定的时间后向调用进程发送一个 
+             SIGALRM信号.设置超时时钟时时间值不会被放入堆栈中,后一次 
+             设置会把前一次(还未到超时时间)冲掉. 
+             若sec为0,则取消任何以前设置的超时时钟. 
+             fork()会将新进程的超时时钟初始化为0.而当一个进程用exec() 
+             族系统调用新的执行文件时,调用前设置的超时时钟在调用后仍 
+             有效. 
+        返回值:返回上次设置超时时钟后到调用时还剩余的时间秒数. 
+        例子:int flag=0; 
+             void myself() 
+             { 
+                 flag=1; 
+                 printf("get signal SIGALRM\n"); 
+                 /*若要重新设置SIGALRM信号中断处理函数为本函数则执行 
+                  *以下步骤*/ 
+                 void (*a)(); 
+                 a=myself; 
+                 signal(SIGALRM,a); 
+                 flag=2; 
+             } 
+             main() 
+             { 
+                 alarm(100);       /*100秒后发超时中断信号*/ 
+                 while (1) { 
+                     sleep(2000);  /*等待中断信号*/ 
+                     if (flag==1) { 
+                         printf("skip system call sleep\n"); 
+                         exit(0); 
+                     } 
+                     if (flag==2) { 
+                         printf("skip system call sleep\n"); 
+                         printf("waiting for next signal\n"); 
+                     } 
+                 } 
+             } 
+    13.msgsnd() 
+        功能:发送消息到指定的消息队列中. 
+        语法:#include  
+             #include  
+             #include  
+             int msgsnd(msqid,msgp,msgsz,msgflg) 
+             int msqid; 
+             void *msgp; 
+             size_t msgsz; 
+             int msgflg; 
+        说明:发送一个消息到由msqid指定消息队列标识号的消息队列. 
+             参数msgp指向一个用户定义的缓冲区,并且缓冲区的第一个域应 
+             为长整型,指定消息类型,其他数据放在缓冲区的消息中其他正文 
+             区内.下面是消息元素定义: 
+               long mtype; 
+               char mtext[]; 
+             mtype是一个整数,用于接收进程选择消息类型. 
+             mtext是一个长度为msgsz字节的任何正文,参数msgsz可从0到系 
+             统允许的最大值间变化. 
+             msgflg指定操作行为: 
+             . 若(msgflg&IPC_NOWAIT)是真的,消息并不是被立即发送而调用 
+               进程会立即返回. 
+             . 若(msgflg&IPC_NOWAIT)不是真的,则调用进程会被挂起直到下 
+               面情况之一发生: 
+                 * 消息被发送出去. 
+                 * 消息队列标志被系统删除.系统调用返回-1. 
+                 * 调用进程接收到一个未被忽略的中断信号,调用进程继续 
+                   执行或被终止. 
+             调用成功后,对应指定的消息队列的相关结构做如下动作: 
+             . 消息数(msg_qnum)加1. 
+             . 消息队列最近发送进程号(msg_lspid)改为调用进程号. 
+             . 消息队列发送时间(msg_stime)改为当前系统时间. 
+             以上信息可用命令ipcs -a看到. 
+        返回值:成功则返回0,否则返回-1. 
+    14.msgrcv() 
+        功能:从消息队列中取得指定类型的消息. 
+        语法:#include  
+             #include  
+             #include  
+             int msgrcv(msqid,msgp,msgsz,msgtyp,msgflg) 
+             int msqid; 
+             void *msgp; 
+             int msgsz; 
+             long msgtyp; 
+             int msgflg; 
+        说明:本系统调用从由msqid指定的消息队列中读取一个由msgtyp指定 
+             类型的消息到由msgp指向的缓冲区中,同样的,该缓冲区的结构如 
+             前所述,包括消息类型和消息正文.msgsz为可接收的消息正文的 
+             字节数.若接收到的消息正文的长度大于msgsz,则会被截短到 
+             msgsz字节为止(当消息标志msgflg&MSG_NOERROR为真时),截掉的 
+             部份将被丢失,而且不通知消息发送进程. 
+             msgtyp指定消息类型: 
+             . 为0则接收消息队列中第一个消息. 
+             . 大于0则接收消息队列中第一个类型为msgtyp的消息. 
+             . 小于0则接收消息队列中第一个类型值不小于msgtyp绝对值且 
+               类型值又最小的消息. 
+             msgflg指定操作行为: 
+             . 若(msgflg&IPC_NOWAIT)是真的,调用进程会立即返回,若没有 
+               接收到消息则返回值为-1,errno设置为ENOMSG. 
+             . 若(msgflg&IPC_NOWAIT)不是真的,则调用进程会被挂起直到下 
+               面情况之一发生: 
+                 * 队列中的消息的类型是有效的. 
+                 * 消息队列标志被系统删除.系统调用返回-1. 
+                 * 调用进程接收到一个未被忽略的中断信号,调用进程继续 
+                   执行或被终止. 
+             调用成功后,对应指定的消息队列的相关结构做如下动作: 
+             . 消息数(msg_qnum)减1. 
+             . 消息队列最近接收进程号(msg_lrpid)改为调用进程号. 
+             . 消息队列接收时间(msg_rtime)改为当前系统时间. 
+             以上信息可用命令ipcs -a看到. 
+        返回值:调用成功则返回值等于接收到实际消息正文的字节数. 
+             不成功则返回-1. 
+    15.msgctl() 
+        功能:消息控制操作 
+        语法:#include  
+             #include  
+             #include  
+             int msgctl(msqid,cmd,buf) 
+             int msqid,cmd; 
+             struct msqid_ds *buf; 
+        说明:本系统调用提供一系列消息控制操作,操作动作由cmd定义,以下 
+             cmd定义值表明了各操作动作的定义. 
+             . IPC_STAT:将msqid相关的数据结构中各个元素的当前值放入由 
+                 buf指向的结构中. 
+             . IPC_SET:将msqid相关的数据结构中的下列元素设置为由buf指 
+                 向的结构中的对应值. 
+                 msg_perm.uid 
+                 msg_perm.gid 
+                 msg_perm.mode 
+                 msg_qbytes 
+                 本命令只能由有效UID等于msg_perm.cuid或msg_perm.uid的 
+                 进程或有效UID有合适权限的进程操作.只有具有合适权限的 
+                 用户才能增加msg_qbytes的值. 
+             . IPC_RMID:删除由msqid指示的消息队列.将它从系统中删除并 
+                 破坏相关的数据结构. 
+                 本命令只能由有效UID等于msg_perm.cuid或msg_perm.uid的 
+                 进程或有效UID有合适权限的进程操作. 
+        返回值:调用成功则返回值为0,否则为-1. 
+    16.msgget() 
+        功能:取得一个消息队列. 
+        语法:#include  
+             #include  
+             #include  
+             int msgget(key,msgflg) 
+             key_t key; 
+             int msgflg; 
+        说明:本系统调用返回与参数key相关的消息队列的标识符. 
+             若以下事实成立,则与消息队列相关的标识符和数据结构将被创 
+             建出来: 
+             . 若参数key等于IPC_PRIVATE. 
+             . 若参数key没有一个已存在的消息队列标识符与之相关,同时值 
+               (msgflg&IPC_CREAT)为真. 
+             创建消息队列时,与新的消息队列标识符相关的数据结构将被初 
+             始化为如下: 
+             . msg_perm.cuid和msg_perm.uid设置为调用进程的有效UID. 
+             . msg_perm.cgid和msg_perm.gid设置为调用进程的有效GID. 
+             . msg_perm.mode访问权限比特位设置为msgflg访问权限比特位. 
+             . msg_qnum,msg_lspid,msg_lrpid,msg_stime,msg_rtime设置为0. 
+             . msg_ctime设置为当前系统时间. 
+             . msg_qbytes设置为系统允许的最大值. 
+        返回值:调用成功则返回一非0值,称为消息队列标识符;否则返回值为-1. 
+        例子:本例将包括上述所有消息队列操作的系统调用: 
+             #define RKEY 0x9001L    /*读消息队列的KEY值*/ 
+             #define WKEY 0x9002L    /*写消息队列的KEY值*/ 
+             #define MSGFLG 0666     /*消息队列访问权限*/ 
+             #define IPC_WAIT 0      /*等待方式在include文件中未定义*/ 
+             int rmsqid;             /*读消息队列标识符*/ 
+             int wmsqid;             /*写消息队列标识符*/ 
+             struct msgbuf { 
+                 long mtype; 
+                 char mtext[200]; 
+             } buf; 
+             /*若读消息队列已存在就取得标识符,否则则创建并取得标识符*/ 
+             if ((rmsqid=msgget(RKEY,MSGFLG|IPC_CREAT))<0) { 
+                 printf("get read message queue failed\n"); 
+                 exit(1); 
+             } 
+             /*若写消息队列已存在则失败,若不存在则创建并取得标识符*/ 
+             if ((wmsqid=msgget(WKEY, 
+                  MSGFLG|IPC_CREAT|IPC_TRUNC))<0) { 
+                 printf("get write message queue failed\n"); 
+                 exit(2); 
+             } 
+             /*接收所有类型的消息*/ 
+             if (msgrcv(rmsqid,&buf,sizeof(struct msgbuf)-sizeof(long), 
+                  0L,IPC_WAIT)>;0) 
+                 printf("get %ld type message from queue:%s\n", 
+                        buf.mtype,buf.mtext); 
+             else { 
+                 printf("get message failed\n"); 
+                 exit(3); 
+             } 
+             buf.mtype=3L 
+             if (msgsnd(wmsqid,&buf,sizeof(struct msgbuf)-sizeof(long), 
+                  IPC_NOWAIT)>;0) 
+                 printf("send message OK\n"); 
+             else { 
+                 printf("send message failed\n"); 
+                 exit(4); 
+             } 
+             msgctl(wmsqid,IPC_RMID,(struct msqid *)NULL); 
+    17.shmat() 
+        功能:联接共享内存的操作. 
+        语法:#include  
+             #include  
+             #include  
+             void *shmat(shmid,shmaddr,shmflg) 
+             int shmid; 
+             void *shmaddr; 
+             int shmid; 
+        说明:将由shmid指示的共享内存联接到调用进程的数据段中.被联接的 
+             段放在地址,该地址由以下准则指定: 
+             . 若shmaddr等于(void *)0,则段联接到由系统选择的第一个可 
+               用的地址上. 
+             . 若shmaddr不等于(void *)0同时(shmflg&SHM_RND)值为真,则 
+               段联接到由(shmaddr-(shmaddr%SHMLBA))给出的地址上. 
+             . 若shmaddr不等于(void *)0同时(shmflg&SHM_RND)值为假,则 
+               段联接到由shmaddr指定的地址上. 
+             若(shmflg&sSHM_RDONLY)为真并且调用进程有读允许,则被联接 
+             的段为只读;否则,若值不为真且调用进程有读写权限,则被联接 
+             的段为可读写的. 
+        返回值:若调用成功则返回被联接的共享内存段在数据段上的启始地址. 
+             否则返回值为-1. 
+    18.shmdt() 
+        功能:断开共享内存联接的操作. 
+        语法:#include  
+             #include  
+             #include  
+             void *shmdt(shmaddr) 
+             void *shmaddr; 
+        说明:本系统调用将由shmaddr指定的共享内存段从调用进程的数据段 
+             脱离出去. 
+        返回值:若调用成功则返回值为0,否则返回值为-1. 
+    19.shmget() 
+        功能:取得共享内存段 
+        语法:#include  
+             #include  
+             #include  
+             int shmget(key,size,shmflg) 
+             key_t key; 
+             int size,shmflg; 
+        说明:本系统调用返回key相关的共享内存标识符. 
+             共享内存标识符和相关数据结构及至少size字节的共享内存段能 
+             正常创建,要求以下事实成立: 
+             . 参数key等于IPC_PRIVATE. 
+             . 参数key没有相关的共享内存标识符,同时(shmflg&IPC_CREAT) 
+               值为真. 
+             共享内存创建时,新生成的共享内存标识相关的数据结构被初始 
+             化如下: 
+             . shm_perm.cuid和shm_perm.uid设置为调用进程的有效UID. 
+             . shm_perm.cgid和shm_perm.gid设置为调用进程的有效GID. 
+             . shm_perm.mode访问权限比特位设置为shmflg访问权限比特位. 
+             . shm_lpid,shm_nattch,shm_atime,shm_dtime设置为0. 
+             . shm_ctime设置为当前系统时间. 
+             . shm_segsz设置为0. 
+        返回值:若调用成功则返回一个非0值,称为共享内存标识符,否则返回 
+             值为-1. 
+    20.shmctl() 
+        功能:共享内存控制操作. 
+        语法:#include  
+             #include  
+             #include  
+             int shmctl(shmid,cmd,buf) 
+             int shmid,cmd; 
+             struct shmid_ds *buf; 
+        说明:本系统调用提供一系列共享内存控制操作.操作行为由cmd指定. 
+             以下为cmd的有效值: 
+             . IPC_STAT:将shmid相关的数据结构中各个元素的当前值放入由 
+                 buf指向的结构中. 
+             . IPC_SET:将shmid相关的数据结构中的下列元素设置为由buf指 
+                 向的结构中的对应值. 
+                 shm_perm.uid 
+                 shm_perm.gid 
+                 shm_perm.mode 
+                 本命令只能由有效UID等于shm_perm.cuid或shm_perm.uid的 
+                 进程或有效UID有合适权限的进程操作. 
+             . IPC_RMID:删除由shmid指示的共享内存.将它从系统中删除并 
+                 破坏相关的数据结构. 
+                 本命令只能由有效UID等于shm_perm.cuid或shm_perm.uid的 
+                 进程或有效UID有合适权限的进程操作. 
+        返回值:若调用成功则返回0,否则返回-1. 
+        例子:本例包括上述所有共享内存操作系统调用: 
+             #include  
+             #include  
+             #include  
+             #define SHMKEY 74 
+             #define K 1024 
+             int shmid; 
+             cleanup() 
+             { 
+                 shmctl(shmid,IPC_RMID,0); 
+                 exit(0); 
+             } 
+             main() 
+             { 
+                 int *pint; 
+                 char *addr1,*addr2; 
+                 extern char *shmat(); 
+                 extern cleanup(); 
+                 for (i=0;i<20;i++) 
+                     signal(i,cleanup); 
+                 shmid=shmget(SHMKEY,128*K,0777|IPC_CREAT); 
+                 addr1=shmat(shmid,0,0); 
+                 addr2=shmat(shmid,0,0); 
+                 printf("addr1 0x%x addr2 0x%x\n",addr1,addr2); 
+                 pint=(int*)addr1; 
+                 for (i=0;i<256;i++) 
+                     *pint++=i; 
+                 pint=(int*)addr1; 
+                 *pint=256; 
+                 pint=(int*)addr2; 
+                 for (i=0;i<256;i++) 
+                     printf("index %d\tvalue%d\n",i,*pint++); 
+                 shmdt(addr1); 
+                 shmdt(addr2); 
+                 pause(); 
+             } 
+    21.semctl() 
+        功能:信号量控制操作. 
+        语法:#include  
+             #include  
+             #include  
+             int semctl(semid,memnum,cmd,arg) 
+             int semid,semnum,cmd; 
+             union semun { 
+                   int val; 
+                   struct semid_ds *buf; 
+                   ushort *array; 
+             }arg; 
+        说明:本系统调用提供了一个信号量控制操作,操作行为由cmd定义,这 
+             些命令是对由semid和semnum指定的信号量做操作的.每个命令都 
+             要求有相应的权限级别: 
+             . GETVAL:返回semval的值,要求有读权限. 
+             . SETVAL:设置semval的值到arg.val上.此命令成功执行后, 
+                  semadj的值对应的所有进程的信号量全部被清除,要求有修 
+                  改权限. 
+             . GETPID:返回sempid的值,要求有读权限. 
+             . GETNCNT:返回semncnt的值,要求有读权限. 
+             . GETZCNT:返回semzcnt的值,要求有读权限. 
+             以下命令在一组信号量中的各个semval上操作: 
+             . GETALL:返回每个semval的值,同时将各个值放入由arg.array 
+                 指向的数组中.当此命令成功执行后,semadj的值对应的所有 
+                 进程的信号量全部被清除,要求有修改权限. 
+             . SETALL:根据由arg.array指向的数组设置各个semval值.当此 
+                 命令成功执行后,semadj的值对应的所有进程的信号量全部 
+                 被清除,要求有修改权限. 
+             以下命令在任何情况下都是有效的: 
+             . IPC_STAT:将与semid相关的数据结构的各个成员的值放入由 
+                 arg.buf指向的结构中.要求有读权限. 
+             . IPC_SET:设置semid相关数据结构的如下成员,设置数据从 
+                 arg.buf指向的结构中读取: 
+                   sem_perm.uid 
+                   sem_perm.gid 
+                   sem_perm.mode 
+                 本命令只能由有效UID等于sem_perm.cuid或sem_perm.uid的 
+                 进程或有效UID有合适权限的进程操作. 
+             . IPC_RMID:删除由semid指定的信号量标识符和相关的一组信号 
+                 量及数据结构.本命令只能由有效UID等于sem_perm.cuid或 
+                 sem_perm.uid的进程或有效UID有合适权限的进程操作. 
+        返回值:若调用成功,则根据cmd返回以下值: 
+               GETVAL:semval的值. 
+               GETPID:sempid的值. 
+               GETNCNT:semncnt的值. 
+               GETZCNT:semzcnt的值. 
+               其他:0. 
+               若调用失败则返回-1. 
+    22.semget() 
+        功能:取得一组信号量. 
+        语法:#include  
+             #include  
+             #include  
+             int semget(key,nsems,semflg) 
+             key_t key; 
+             int nsems,semflg; 
+        说明:返回和key相关的信号量标识符. 
+             若以下事实成立,则与信号量标识符,与之相关的semid_ds数据结 
+             构及一组nsems信号量将被创建: 
+               . key等于IPC_PRIVATE. 
+               . 系统内还没有与key相关的信号量,同时(semflg&IPC_CREAT) 
+                 为真. 
+             创建时新的信号量相关的semid_ds数据结构被初始化如下: 
+             . 在操作权限结构,sem_perm.cuid和sem_perm.uid设置等于调用 
+               进程的有效UID. 
+             . 在操作权限结构,sem_perm.cgid和sem_perm.gid设置等于调用 
+               进程的有效GID. 
+             . 访问权限比特位sem_perm.mode设置等于semflg的访问权限比 
+               特位. 
+             . sem_otime设置等于0,sem_ctime设置等于当前系统时间. 
+        返回值:若调用成功,则返回一非0值,称为信号量标识符;否则返回-1. 
+    23.semop() 
+        功能:信号量操作. 
+        语法:#include  
+             #include  
+             #include  
+             int semop(semid,sops,nsops) 
+             int semid; 
+             struct sembuf *sops; 
+             unsigned nsops; 
+        说明:本系统调用用于执行用户定义的在一组信号量上操作的行为集合. 
+             该组信号量与semid相关. 
+             参数sops为一个用户定义的信号量操作结构数组指针. 
+             参数nsops为该数组的元素个数. 
+             数组的每个元素结构包括如下成员: 
+               sem_num;    /* 信号量数 */ 
+               sem_op;     /* 信号量操作 */ 
+               sem_flg;    /* 操作标志 */ 
+             由本系统调用定义的每个信号量操作是针对由semid和sem_num指 
+             定的信号量的.变量sem_op指定三种信号量操作的一种: 
+             . 若sem_op为一负数并且调用进程具有修改权限,则下列情况之 
+               一将会发生: 
+               * 若semval不小于sem_op的绝对值,则sem_op的绝对值被减去 
+                 semval的值.若(semflg&SEM_UNDO)为真则sem_op的绝对值加 
+                 上调用进程指定的信号量的semadj值. 
+               * 若semval小于sem_op的绝对值同时(semflg&IPC_NOWAIT)为 
+                 真,则本调用立即返回. 
+               * 若semval小于sem_op的绝对值同时(semflg&IPC_NOWAIT)为 
+                 假,则本系统调用将增加指定信号量相关的semncnt值(加一), 
+                 将调用进程挂起直到下列条件之一被满足: 
+                   (1).semval值变成不小于sem_op的绝对值.当这种情况发 
+                       生时,指定的信号量相关的semncnt减一,若 
+                       (semflg&SEM_UNDO)为真则sem_op的绝对值加上调用 
+                       进程指定信号量的semadj值. 
+                   (2).调用进程等待的semid已被系统删除. 
+                   (3).调用进程捕俘到信号,此时,指定信号量的semncnt值 
+                       减一,调用进程执行中断服务程序. 
+             . 若sem_op为一正值,同时调用进程具有修改权限,sem_op的值加 
+               上semval的值,若(semflg&SEM_UNDO)为真,则sem_op减去调用 
+               进程指定信号量的semadj值. 
+             . 若sem_op为0,同时调用进程具有读权限,下列情况之一将会发 
+               生: 
+               * 若semval为0,本系统调用立即返回. 
+               * 若semval不等于0且(semflg&IPC_NOWAIT)为真,本系统调用 
+                 立即返回. 
+               * 若semval不等于0且(semflg&IPC_NOWAIT)为假,本系统调用 
+                 将把指定信号量的 
+                 semzcnt值加一,将调用进程挂起直到下列情况之一发生: 
+                   (1).semval值变为0时,指定信号量的semzcnt值减一. 
+                   (2).调用进程等待的semid已被系统删除. 
+                   (3).调用进程捕俘到信号,此时,指定信号量的semncnt值 
+                       减一,调用进程执行中断服务程序. 
+        返回值:调用成功则返回0,否则返回-1. 
+        例子:本例将包括上述信号量操作的所有系统调用: 
+             #include  
+             #include  
+             #include  
+             #define SEMKEY 75 
+             int semid; 
+             unsigned int count; 
+             /*在文件sys/sem.h中定义的sembuf结构 
+              *  struct sembuf { 
+              *      unsigned short sem_num; 
+              *      short sem_op; 
+              *      short sem_flg; 
+              *  }*/ 
+             struct sembuf psembuf,vsembuf;   /*P和V操作*/ 
+             cleanup() 
+             { 
+                 semctl(semid,2,IPC_RMID,0); 
+                 exit(0); 
+             } 
+             main(argc,argv) 
+             int argc; 
+             char *argv[]; 
+             { 
+                 int i,first,second; 
+                 short initarray[2],outarray[2]; 
+                 extern cleanup(); 
+                 if (argc==1) { 
+                     for (i=0;i<20;i++) 
+                         signal(i,clearup); 
+                     semid=semget(SEMKEY,2,0777|IPC_CREAT); 
+                     initarray[0]=initarray[1]=1; 
+                     semctl(semid,2,SETALL,initarray); 
+                     semctl(semid,2,GETALL,outarray); 
+                     printf("sem init vals %d%d \n", 
+                            outarray[0],outarray[1]); 
+                     pause(); /*睡眠到被一软件中断信号唤醒*/ 
+                 } 
+                 else if (argv[1][0]=='a') { 
+                     first=0; 
+                     second=1; 
+                 } 
+                 else { 
+                     first=1; 
+                     second=0; 
+                 } 
+                 semid=semget(SEMKEY,2,0777); 
+                 psembuf.sem_op=-1; 
+                 psembuf.sem_flg=SEM_UNDO; 
+                 vsembuf.sem_op=1; 
+                 vsembuf.sem_flg=SEM_UNDO; 
+                 for (count=0;;xcount++) { 
+                     psembuf.sem_num=first; 
+                     semop(semid,&psembuf,1); 
+                     psembuf.sem_num=second; 
+                     semop(semid,&psembuf,1); 
+                     printf("proc %d count %d\n",getpid(),count); 
+                     vsembuf.sem_num=second; 
+                     semop(semid,&vsembuf,1); 
+                     vsembuf.sem_num=first; 
+                     semop(semid,&vsembuf,1); 
+                 } 
+             } 
+    24.sdenter() 
+        功能:共享数据段同步访问,加锁. 
+        语法:#include  
+             int sdenter(addr,flags) 
+             char *addr; 
+             int flags; 
+        说明:用于指示调用进程即将可以访问共享数据段中的内容. 
+             参数addr为将一个sdget()调用的有效返回码. 
+             所执行的动作取决于flags的值: 
+             . SD_NOWAIT:若另一个进程已对指定的段调用本系统调用且还没 
+                 有调用sdleave(),并且该段并非用SD_UNLOCK标志创建,则调 
+                 用进程不是等待该段空闲而是立即返回错误码. 
+             . SD_WRITE:指示调用进程希望向共享数据段写数据.此时,另一 
+                 个进程用SD_RDONLY标志联接该共享数据段则不被允许. 
+        返回值:调用成功则返回0,否则返回-1. 
+    25.sdleave() 
+        功能:共享数据段同步访问,解锁. 
+        语法:#include  
+             int sdleave(addr,flags) 
+             char *addr; 
+        说明:用于指示调用进程已完成修改共享数据段中的内容. 
+        返回值:调用成功则返回0,否则返回-1. 
+    26.sdget() 
+        功能:联接共享数据段到调用进程的数据空间中. 
+        语法:#include  
+             char *sdget(path,flags,size.mode) 
+             char *path; 
+             int flags; 
+             long size; 
+             int mode; 
+        说明:本系统调用将共享数据段联接到调用进程的数据段中,具体动作 
+             由flags的值定义: 
+             . SD_RDONLY:联接的段为只读的. 
+             . SD_WRITE:联接的段为可读写的. 
+             . SD_CREAT:若由path命名的段存在且不在使用中,本标志的作用 
+                 同早先创建一个段相同,否则,该段根据size和mode的值进程 
+                 创建.对段的读写访问权限的授予基于mode给的权限,功能与 
+                 一般文件的相同.段被初始化为全0. 
+             . SD_UNLOCK:若用此标志创建该段,则允许有多个进程同时访问 
+                 (在读写中)该段. 
+        返回值:若调用成功则返回联接的段地址.否则返回-1. 
+    27.sdfree() 
+        功能:将共享数据段从调用进程的数据空间中断开联接. 
+        语法:#include  
+             int sdfree(addr) 
+             char *addr; 
+        说明:本系统调用将共享数据段从调用进程的数据段的指定地址中分离. 
+             若调用进程已完成sdenter()的调用,还未调用sdleave()就调用 
+             本系统调用,则sdleave()被自动调用,然后才做本调用的工作. 
+        返回值:若调用成功则返回联接的段地址.否则返回-1. 
+    28.sdgetv() 
+        功能:同步共享数据访问. 
+        语法:#include  
+             int sdgetv(addr) 
+             char *addr; 
+        说明:用于同步协调正在使用共享数据段的进程.返回值为共享数据段 
+             的版本号.当有进程对该段做sdleave()操作时,版本号会被修改. 
+        返回值:若调用成功,则返回指定共享数据段的版本号,否则返回-1. 
+    29.sdwaitv() 
+        功能:同步共享数据访问. 
+        语法:#include  
+             int sdwaitv(addr,vnum) 
+             char *addr; 
+             int vnum; 
+        说明:用于同步协调正在使用共享数据段的进程.返回值为共享数据段 
+             的版本号.调用进程会睡眠直到指定段的版本号不再等于vnum; 
+        返回值:若调用成功,则返回指定共享数据段的版本号,否则返回-1. 
+    30.sbrk() 
+        功能:修改数据段空间分配. 
+        语法:char *sbrk(incr) 
+             int incr; 
+        说明:用于动态修改调用进程数据段的空间分配.进程将重置进程的分 
+             段值并分配一个合适大小的空间.分段值为数据段外第一次分配 
+             的地址.要分配的空间的增加量等于分段值的增加量.新分配的空 
+             间设置为0.若相同的内存空间重新分配给同一个进程,则空间的 
+             内容不确定. 
+        返回值:若成功调用则返回值为0,否则返回-1. 
+        例子:本例将包括上述共享数据空间操作的所有系统调用: 
+             char * area1; 
+             char buf[21]; 
+             int v; 
+             /*取得或创建一个共享数据空间(系统特殊文件),名字为 
+               /tmp/area1,长度为640,用户访问权限为0777*/ 
+             area1=sdget("/tmp/area1",SD_WRITE|SD_CREAT,640,0777); 
+             if ((int)area1==-1) { 
+                 printf("get share data segment area1 failed\n"); 
+                 exit(1); 
+             } 
+             /*取得共享数据段area1的版本号*/ 
+             v=sdgetv(area1); 
+             /*申请访问共享数据段area1,若已有进程在访问该段则本进程挂 
+              *起,否则进入访问并将该数据段加写锁*/ 
+             sdenter(area1,SD_WRITE); 
+             /*对共享数据段访问,写10个a*/ 
+             strcpy(area1,"aaaaaaaaaa"); 
+             /*申请解除访问权限,若已有进程申请访问则激活该进程*/ 
+             sdleave(area1); 
+             /*进程处理过程*/ 
+             /*等待取共享数据段area1的版本号*/ 
+             sdwaitv(area1,v); 
+             /*重新申请访问共享数据段area1*/ 
+             sdenter(area1,SD_WRITE); 
+             /*读取共享数据段中的数据*/ 
+             memcpy(buf,area1,20); 
+             /*申请解除访问权限,若已有进程申请访问则激活该进程*/ 
+             sdleave(area1); 
+             printf("the data now in area1 is [%s]\n",buf); 
+    31.getenv() 
+        功能:取得指定环境变量值. 
+        语法:#include  
+             #include 
+             char *getenv(name) 
+             char *name; 
+        说明:本系统调用检查环境字符串(格式如name=value),并在找到有指 
+             定名字的环境值后,返回指向value字符串的指针.否则返回空指 
+             针. 
+        返回值:如前述. 
+        例子:char * value; 
+             value=getenv("HOME"); 
+             printf("HOME = [%s]\n",value); 
+             /*将打印出HOME环境变量的值*/ 
+    32.putenv() 
+        功能:修改或增加环境值. 
+        语法:#include  
+             int putenv(string) 
+             char *string; 
+        说明:参数string指向一个字符串,格式如下: 
+             name=value 
+             本系统调用将环境变量name等于值value,修改或增加一个环境变 
+             量,字符串string成为环境的一部分. 
+        返回值:若putenv()不能取得合适的内存空间则返回非0值,否则返回0. 
+        例子:/*父进程处理*/ 
+             putenv("HOME=/home/abcdef"); 
+             putenv("PATH=/bin"); 
+             if (fork()>;0) 
+                 exit(0);   /*父进程退出运行*/ 
+             /*子进程处理*/ 
+             setpgrp(); 
+             /*父进程设置的环境变量已传到子进程*/ 
+             char * value1; 
+             value1=getenv("HOME"); 
+             value2=getenv("PATH"); 
+             printf("HOME=[%s],PATH=[%s]\n",value1,value2); 
+             /*将打印出"HOME=/home/abcdef"和"PATH=/bin"*/ 
+
+三.多进程编程技巧 
+    1.主要程序结构 
+      (1)事件主控方式 
+          若是应用程序属于事务处理方式,则在主函数中设计为监控事件发生, 
+      当事件发生时,可以生成一个新的进程来处理该事务,事务处理完成后就 
+      可以让子进程退出系统.这种处理方式一般不要消息传递. 
+      (2)信息协调方式 
+          若是应用程序需要由多个进程协调处理完成,则可以生成这些进程, 
+      通过消息在进程间的传递,使各个进程能相互协调,共同完成事务.这种处 
+      理方式一般是用fork()生成几个进程后,用exec()调用其它程序文件,使 
+      得不同的程序同时在系统内运行.然后通过IPC机制传送消息,使各个程序 
+      能协调运行. 
+    2.选择主体分叉点 
+      (1)事件初始产生 
+         对应于事件主控方式的程序结构.关键点在于以何种方式选择事件的 
+      初始发生点,如网络程序给出的建链信息.主控程序在收到该消息后就认 
+      为是一个事件开始,则可以产生一个子进程处理后面的事务:接收交易信 
+      息,事务处理,发送返回交易信息,关闭链接等,完成后将子进程退出系统. 
+      (2)主程序自主产生 
+         对应于信息协调方式的程序结构.主控程序只负责生成几个子进程,各 
+      个子进程分别调用exec()将不同的执行文件调入内存运行,主控程序在生 
+      成所有的子进程后即可退出系统,将子进程留在内存中运行. 
+    3.进程间关系处理 
+      (1)父子进程关系 
+         . 进程组处理 
+           进程组的概念是这样的,当系统启动时,第一个进程是init,其进程 
+           组号等于进程号,由它产生的所有子进程的进程组号也相同,子进程 
+           的子进程也继承该进程组号,这样,由init所生成的所有子进程都属 
+           于同一个进程组.但是,同一个进程组的父子进程可能在信号上有相 
+           互通讯,若父进程先于子进程退出系统,则子进程会成为一个孤儿进 
+           程,可能变成僵死进程.从而使该子进程在其不"愿意"的情况下退出 
+           运行.为解决这个问题,子进程可以自己组成一个新的进程组,即调 
+           用setpgrp()与原进程组脱离关系,产生一个新的进程组,进程组号 
+           与它的进程号相同.这样,父进程退出运行后就不会影响子进程的当 
+           前运行. 
+         . 子进程信号处理 
+           但是,单做上述处理还不能解决另一个困难,即子进程在退出运行 
+           时,找不到其父进程(父进程已退出,子进程的父进程号改为1).发送 
+           子进程退出信号后没有父进程做出响应处理,该子进程就不可能完 
+           全退出运行,可能进入僵死状态.所以父进程在产生子进程前最好屏 
+           蔽子进程返回信号的处理,生成子进程,在父进程退出运行后,子进 
+           程返回则其进程返回信号的处理会由系统给出缺省处理,子进程就 
+           可以正常退出. 
+      (2)兄弟进程关系 
+         . 交换进程号 
+           对于信息协调方式的程序来说,各兄弟进程间十分需要相互了解进 
+           程号,以便于信号处理机制.比较合理的方法是父进程生成一个共享 
+           内存的空间,每个子进程都在启动时在共享内存中设置自己的进程 
+           号.这样,当一个子进程要向另一个子进程发送信号或是因为其他原 
+           因需要知道另一个子进程号时,就可以在共享内存中访问得到所需 
+           要的进程号. 
+    4.进程间通讯处理 
+      (1)共享内存需要锁机制 
+          由于共享内存在设计时没有处理锁机制,故当有多个进程在访问共享 
+      内存时就会产生问题.如:一个进程修改一个共享内存单元,另一个进程在 
+      读该共享内存单元时可能有第三个进程立即修改该单元,从而会影响程序 
+      的正确性.同时还有分时系统对各进程是分时间片处理的,可能会引起不 
+      同的正确性问题.按操作系统的运作方式,则有读锁和写锁来保证数据的 
+      一致性.所以没有锁机制的共享内存,必须和信号量一起使用,才能保证共 
+      享内存的正确操作. 
+      (2)消息队列需要关键值 
+          消息队列的操作在进程取得消息队列的访问权限后就必须通过关键 
+      值来读消息队列中的相同关键值的消息,写消息时带入消息关键值.这样 
+      可以通过不同的关键值区分不同的交易,使得在同一个消息队列可以供多 
+      种消息同时使用而不冲突.若读消息队列使用关键值0则读取消息队列中 
+      第一个消息,不论其关键值如何. 
+      (3)信号需要信号处理函数设置和再设置 
+          在用户进程需要对某个中断做自己定义的处理时,可以自己定义中断 
+      处理函数,并设置中断处理函数与该中断相关联.这样,用户进程在收到该 
+      中断后,即调用用户定义的函数,处理完成后用户进程从被中断处继续运 
+      行(若用户定义的中断函数没有长跳函数或退出运行等会改变运行指令地 
+      址的系统调用).在中断信号被处理后,该中断的处理函数会恢复成上次缺 
+      省处理函数而不是保持用户定义函数,故在用户定义的中断处理函数中一 
+      般都再定义该中断和函数自己的关联. 
+      (4)IPC的权限设置 
+          在消息队列,共享内存和信号量的访问时有用户访问权限设置,类同 
+      于文件的访问权限的设置如(777表示rwxrwxrwx),用命令ipcs即可看到在 
+      系统中生成的消息队列,共享内存和信号量的访问权限.其意义也类似于 
+      文件访问权限.只是执行位无效. 
+          在有名管道和文件方式共享内存中以系统文件的方式定义了用户的 
+      访问权限.用命令ls -l可以看到它们以系统文件方式存在并具有访问权 
+      限值,并可以看到有名管道的文件类型为p,文件方式共享内存的文件类型 
+      为s. 
+      (5)信号中断对系统调用一级有效 
+          系统在设计系统调用时就考虑了中断处理问题.当进程运行到一个系 
+      统调用时发生了中断,则进程进入该中断处理,处理完成后,进程会跳过该 
+      系统调用而进入下一条程序指令. 
+          应该注意的是中断发生在系统调用一级而不是子程序或函数一级.比 
+      如一个程序在一个子程序被调用前设置了超时中断,并在子程序中收到超 
+      时中断,系统在处理完超时中断后接着处理该子程序被中断的系统调用之 
+      后的指令,而不是从调用该子程序名指令的后一条指令继续处理. 
+      (6)各种IPC方式的特点 
+         . 消息队列: 
+           通过消息队列key值定义和生成消息队列. 
+           任何进程只要有访问权限并知道key即可访问消息队列. 
+           消息队列为内存块方式数据段. 
+           消息队列中的消息元素长度可为系统参数限制内的任何长度. 
+           消息元素由消息类型分类,其访问方式为按类型访问. 
+           在一次读写操作前都必须取得消息队列标识符,即访问权.访问后即 
+             脱离访问关系. 
+           消息队列中的某条消息被读后即从队列中删除. 
+           消息队列的访问具备锁机制处理,即一个进程在访问时另一个进程 
+             不能访问. 
+           操作时要注意系统资源和效率. 
+           在权限允许时,消息队列的信息传递是双向的. 
+         . 共享内存 
+           通过共享内存key值定义和生成共享内存. 
+           任何进程只要有访问权限并知道key即可访问共享内存. 
+           共享内存为内存块方式的数据段. 
+           共享内存中的数据长度可为系统参数限制内的任何长度. 
+           共享内存的访问同数组的访问方式相同. 
+           在取得共享内存标识符将共享内存与进程数据段联接后即可开始对 
+             之进行读写操作,在所有操作完成之后再做共享内存和进程数据 
+             段脱离操作,才完成全部共享内存访问过程. 
+           共享内存中的数据不会因数据被进程读取后消失. 
+           共享内存的访问不具备锁机制处理,即多个进程可能同时访问同一 
+             个共享内存的同一个数据单元. 
+           共享内存的使用最好和信号量一起操作,以具备锁机制,保证数据的 
+             一致. 
+           在权限允许时,共享内存的信息传递是双向的. 
+         . 信号量 
+           用于生成锁机制,避免发生数据不一致. 
+           没有其他的数据信息. 
+           不需要有父子关系或兄弟关系. 
+         . 信号 
+           信号由系统进行定义. 
+           信号的发送只要有权限即可进行. 
+           信号是一个事件发生的信息标志,不带有其它信息. 
+           信号不具备数据块. 
+           信号的处理可由用户自己定义. 
+           信号可能由用户进程,操作系统(软件或硬件原因)等发出. 
+           有一些信号是不可被屏蔽的. 
+           信号中断的是系统调用级的函数. 
+           信号的信息传递是单向的. 
+         . 管道 
+           做为系统的特殊设备文件,可以是内存方式的,也可以是外存方式的. 
+           管道的传输一般是单向的,即一个管道一向,若两个进程要做双向传 
+           输则需要2个管道.管道生成时即有两端,一端为读,一端为写,两个 
+           进程要协调好,一个进程从读方读,另一个进程向写方写. 
+           管道的读写使用流设备的读写函数,即:read(),write. 
+           管道的传输方式为FIFO,流方式的.不象消息队列可以按类型读取. 
+           * 有名管道 
+             一般为系统特殊文件方式,使用的进程之间不一定要有父子关系 
+             或兄弟关系. 
+           * 无名管道 
+             一般为内存方式,使用的进程之间一定要有父子关系或兄弟关系. 
+         . 文件 
+           文件是最简单的进程间通讯方式,使用外部存贮器为中介. 
+           操作麻烦,定位困难. 
+           保密程度低. 
+           容易出现数据不一致问题. 
+           占用硬盘空间. 
+           只要有权限并知道文件名,任何进程都可对之操作. 
+           * 特殊处理 
+             为避免出现保密问题,在打开文件,取得文件描述符后,调用 
+             unlink()将硬盘上的文件路径名删除,则硬盘上就没有文件拷贝 
+             了.但在进程中该文件描述符是打开的,由该进程生成的子进程中 
+             该文件描述符也是打开的,就可以利用系统提供的文件缓冲区做 
+             进程间通讯,代价是进程间必须有父子关系或兄弟关系. 
+         . 环境变量 
+           信息的传送一般是单向的,即由父进程向子进程传送. 
+           保密性较好. 
+           双方必须约定环境变量名. 
+           只占用本进程和子进程的环境变量区. 
+         . 共享数据段 
+           操作比较复杂. 
+           占用硬盘空间,生成系统特殊文件. 
+           其他性质与共享内存相类似. 
+         . 流 
+           文件描述符的操作方式. 
+           进程间不一定要有父子关系或兄弟关系. 
+           双向传送信息. 
+           进程各自生成socket,用bind()联接. 
+           其他性质与管道相类似. 
+           流编程为TCP/IP网络编程范围,在本文中暂不阐述. 
+         . 传递参数 
+           信息的传送一般是单向的, 即由父进程向子进程传送. 
+           保密性较差,用进程列表即可显示出来. 
+           双方必须约定参数位置. 
+           只占用子进程的参数区.
+
+
+
+--------------------------------------------------------------------------------
+ Elite 回复于：2003-05-03 17:47:31
+
+so good.
+up
+
+
+--------------------------------------------------------------------------------
+ shanhan 回复于：2003-05-06 09:46:14
+
+好！
+
+
+--------------------------------------------------------------------------------
+ hljwdz2003 回复于：2003-05-08 10:55:00
+
+:emn22:
+
+
+--------------------------------------------------------------------------------
+ sqc_mail 回复于：2004-09-26 19:56:01
+
+好
+
+
+--------------------------------------------------------------------------------
+ 纳兰婷 回复于：2004-09-27 00:20:23
+
+不错~~
+
+
+--------------------------------------------------------------------------------
+ dm 回复于：2004-09-30 11:46:26
+
+well
+
+
+--------------------------------------------------------------------------------
+ 雨霖玲 回复于：2004-10-12 16:54:35
+
+:( 我学的太浅了,看不大懂,初学者应该先学什么啊?
+
+
+--------------------------------------------------------------------------------
+ dominick 回复于：2004-10-19 09:44:59
+
+我也是个初学者，着实不知道该从哪里下手。希望你能指教一下。 :em11:
+
+
+--------------------------------------------------------------------------------
+ dominick 回复于：2004-10-19 09:49:40
+
+我也是个初学者，着实不知道该从哪里下手。希望你能指教一下。 :em11:
+
+
+--------------------------------------------------------------------------------
+ ManFree 回复于：2004-10-25 17:32:50
+
+不错，很有价值
+
+初学者还是先把基本的函数概念先弄懂。比如什么是多线程，fork函数是干什么用的。
+
+
+--------------------------------------------------------------------------------
+ diag 回复于：2004-10-25 22:32:40
+
+good
+
+
+--------------------------------------------------------------------------------
+ JohnBull 回复于：2004-10-26 01:32:08
+
+连code标记都不加,抄抄书也能加精???
+这要是贴在C/C++版,早挨板砖了 :D
+
+
+--------------------------------------------------------------------------------
+ 大大狗 回复于：2004-11-01 14:59:46
+
+好，谢谢楼主
+
+
+--------------------------------------------------------------------------------
+ Red_Crow 回复于：2004-12-01 09:06:15
+
+guud
+
+
+
+
+原文链接：http://linux.chinaunix.net/bbs/viewthread.php?tid=60371
+转载请注明作者名及原文出处
+
+
+
+
+> 相关主题：学习编程，上酷勤网>> 
+GPU处理器 
+暗黑破坏神 
+Dijkstra算法 
+Android游戏
+

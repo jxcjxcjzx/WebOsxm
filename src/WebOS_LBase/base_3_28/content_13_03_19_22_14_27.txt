@@ -1,0 +1,300 @@
+
+思想比知识更重要 成长比成功更重要
+回归blogjava
+BlogJava    首页    新文章    新随笔    聚合    管理
+posts - 73,  comments - 48,  trackbacks - 0
+字符串匹配
+1 术语定义
+在字符串匹配问题中，我们期待察看串T中是否含有串P。
+其中串T被称为目标串，串S被称为模式串。
+
+2 朴素匹配算法
+进行字符串匹配，最简单的一个想法是：
+
+ public   class  SimpleMatch  {
+   public   int  StringMatch(String target,String patten)  {
+       int  tl  =  target.length();
+       int  pl  =  patten.length();
+       int  i  =   0 ;
+       int  j  =   0 ;
+       while (i  <  tl  -  pl  &&  j  <  pl)  {
+           if (patten.charAt(j)  ==  target.charAt(i + j))
+              j ++ ;
+           else   {
+              j  =   0 ;
+              i ++ ;
+          } 
+      } 
+       if (j  ==  pl)
+           return  i;
+       return   - 1 ;
+  } 
+  
+   public   static   void  main(String[] args) {
+      String t  =   " 123456789 " ;
+      String p  =   " 456 " ;
+      SimpleMatch sm  =   new  SimpleMatch();
+      System.out.println(sm.StringMatch(t, p));
+  } 
+}
+可以看见，这个算法（假定m>>n）的复杂度是O(mn)，其中m是T的长度，n是P的长度。这种算法的缺陷是匹配过程中带有回溯——准确地说是T串存在回溯，也就是当匹配不成功的时候，之前进行的匹配完全变为无用功，所有的比较需要重新开始。
+
+3 KMP算法
+KMP算法是D.E.Knuth、J.H.Morris和V.R.Pratt提出的无回溯的字符串匹配算法，算法的核心思想就是设法在匹配失败的时候，尽量利用之前的匹配结果，消除T串的回溯问题。那么如何消除回溯呢？请看下面的例子：
+
+假设P=abacd，如果T=abax...，当从头开始匹配到字符c时，若c=x，显然，匹配过程继续；当c≠x时，按照朴素的匹配算法，T串会发生回溯，之后T串会从第2个字符b开始重新匹配，而不是从匹配失败的字符x开始继续。但是显然，对于上述的匹配过程，T串不需要从b开始重新匹配，它只需要从x开始和P的b字符继续匹配即可。如下：
+匹配过程：
+P=abacd
+T=abax....
+     ^----比较到此处时发生匹配失败
+朴素匹配算法：
+P= abacd
+T=abax...
+   ^----回溯到b，重新开始和P的匹配
+KMP算法：
+P=  abacd
+T=abax...
+     ^----T串不回溯，从x处继续匹配
+
+现在的问题是，按照KMP算法，匹配失败的时候，P串需要重新调整位置，但是调整的依据是什么？Knuth等人发现，P调整位置的依据和P的构造有关，和T无关。具体来说，定义失效函数：f(j)=k，其中0<=k<=j，且k是使得p0p1...pk-1 = pj-k+1pj-k+2...pj成立的最大整数。建立失效函数的算法如下：
+public void Build() {
+ if(pattern == null)
+  throw new Exception("KMP Exception : null pattern");
+ array = new int[pattern.Length];
+ int i = 0, s = pattern.Length;
+ if(s > 1)
+  array[0] = 0;
+ for(i = 1; i < s; i++) {
+  if(pattern[i] == pattern[array[i - 1]])
+   array[i] = array[i - 1] + 1;
+  else
+   array[i] = 0;
+ }
+}
+
+匹配过程如下：
+public int Match(String target, int start) {
+ if(array == null || pattern == null || target == null)
+  return -1;
+ int target_index = start;
+ int pattern_index = 0;
+ int token_length = target.Length;
+ int pattern_length = pattern.Length;
+ while(target_index < token_length && pattern_index < pattern_length) {
+  if(target[target_index] == pattern[pattern_index]) {
+   target_index++;
+   pattern_index++;
+  } else {
+   if(pattern_index == begin)
+    target_index++;
+   else
+    pattern_index = array[pattern_index - 1];
+  }
+ }
+ if(pattern_index == pattern_length)
+  return target_index - pattern_length;
+ return -1;
+}
+
+4 支持通配符?和*的KMP算法
+KMP算法虽然能够进行字符串匹配，但是，在实践中字符串匹配往往还要支持通配符，MS系统中最常见的通配符是?和*。其中，?可以代表一个字符（不能没有），*可以代表任意多个字符（可以为空）。经典的KMP算法针对通配符是无能为力的，但是经过简单的改造，KMP算法也可以识别通配符。
+
+首先是?，根据?的功能，?表示任意字符，也就是说在匹配过程中，?永远匹配成功。因此对匹配函数的修改十分简单：
+...
+ while(target_index < token_length && pattern_index < pattern_length) {
+  if(target[target_index] == pattern[pattern_index]|| pattern[pattern_index] == '?') {
+   target_index++;
+   pattern_index++;
+  } else {
+...
+建立失效函数的过程和匹配过程类似，修改如下：
+...
+ for(i = 1; i < s; i++) {
+  if(pattern[i] == pattern[array[i - 1]]|| pattern[i] == '?' || pattern[array[i - 1]] == '?')
+   array[i] = array[i - 1] + 1;
+...
+
+本质上，?并没有修改算法，而仅仅修改了匹配规则——遇到?则一定匹配。然而*与此不同，*的作用是匹配任意多个字符，显然我们不能简单的修改匹配过程而满足要求。如果我们重新思考*的作用，我们会发现*的另一个作用就是分割P串，即如果P=P1*P2，那么与其说*代表匹配任意多个字符，不如说P的匹配条件是在匹配P1子串后再匹配P2子串。
+
+现在回顾失效函数的作用，如果当匹配到P的j+1位时匹配失败，那么重新开始匹配的时候，P串的位置调整到f(j)位，直到P串的位置调整到0，则匹配重新开始。但当P=P1*P2，假如P1已经匹配成功，而在P2中发生匹配失败，那么P串要需要调整位置，但P串无论如何调整，此时也不应该调整到0，最多调整到P2的开始处，因为P1已经匹配，只需匹配P2即可。假如P=abcab*abcab，失效函数应该是（注意之前提到*的作用）：
+a b c a b * a b c a b
+0 0 0 1 2 - 6 6 6 7 8
+
+因此，要想让KMP支持*，那么关键是要重新设计失效函数的建立算法，如下：
+public void Build() {
+ if(pattern == null)
+  throw new Exception("KMP Exception : null pattern");
+ array = new int[pattern.Length];
+ int i = 0, s = pattern.Length;
+ if(s > 1)
+  array[0] = 0;
+ int begin = 0;
+ for(i = 1; i < s; i++) {
+  if(pattern[i] == '*') {
+   array[i] = i;
+   begin = i + 1;
+  } else if(pattern[i] == pattern[array[i - 1]] || pattern[i] == '?' || pattern[array[i - 1]] == '?')
+   array[i] = array[i - 1] + 1;
+  else
+   array[i] = begin;
+ }
+} 
+
+算法中begin表示每段字符串的开始位置。此外，匹配过程也应该进行相应的修改，因为字符*对于匹配没有任何帮助，它属于占位符，因此需要跳过，匹配算法如下：
+public int Match(String target, int start) {
+ if(array == null || pattern == null || target == null)
+  return -1;
+ int target_index = start;
+ int pattern_index = 0;
+ int token_length = target.Length;
+ int pattern_length = pattern.Length;
+ int begin = 0;
+ while(target_index < token_length && pattern_index < pattern_length) {
+  if(pattern[pattern_index] == '*') {
+   begin = pattern_index + 1;
+   pattern_index++;
+  } else if(target[target_index] == pattern[pattern_index] || pattern[pattern_index] == '?') {
+   target_index++;
+   pattern_index++;
+  } else {
+   if(pattern_index == begin)
+    target_index++;
+   else
+    pattern_index = array[pattern_index - 1];
+  }
+ }
+ if(pattern_index == pattern_length)
+  return target_index - pattern_length + begin;
+ return -1;
+}
+
+5 正则语言和确定状态自动机
+一个数字逻辑的问题：设计一个识别11011的电路，解这个问题的关键就是设计出这个电路的DFA，如下：
+
+
+仔细看看这个状态机，是不是和KMP的算法有几分类似呢？这并不是巧合，因为KMP算法中的失效函数总可以等价的转化为一个DFA。当然KMP的DFA远比识别11011的DFA要复杂，原因在于KMP接受的输入是全体字符集合，识别11011的DFA只接受0和1这两个输入。我们知道，一个正则语言和一个DFA是等价的，而KMP计算失效函数的算法，实际上等价于求DFA的过程，f(j)的值实际上表明状态j+1接受到不正确的字符时应该回溯到的状态（注意此时输入流并没有前进）。普通的字符串都能看成是一个正则语言，含有通配符?和*的字符串也可以等价的转换为一个正则表达式。但是，正则语言的集合远比KMP算法所能支持的模式集合的更大，期间原因还是刚才提过的输入问题。试想P=p1p2...pn，当匹配到pj的时候，如果下一个输入字符正是pj，那么状态机进入下一个状态，如果不是pj，那么状态机按照实效函数的指示转移到状态f(j-1)，也就是说KMP状态机的每个状态只能根据输入是否为pj来进行转移。而正则表达式所对应的状态机则有所不同，如果正则语言L=l1l2...ln，假设这些都是字母，当匹配到lj位的时候，如果下一个输入字符正是lj，那么状态机进入下一个状态，否则它还可以根据输入的值进行转移，例如lj=c1时转换到状态x，lj=c2时状态转换到y等等。
+
+6 结语
+字符串匹配问题是老问题了，并没有太多新意可言，只不过虽然KMP算法十分简单，但它的内在含义还是十分深刻的。横向比较KMP、DFA和正则语言、正则表达式我们会发现，它们之间存在很多的关联，而这种比较也有利于我们更好的理解这些算法，或者改进这些算法。最后说一句，试图利用目前的框架使得KMP算法支持全部种类的通配符（对应于正则表达式就是x?、x*、x+、{m,n}等等）是不可能，而我们也不需要这么做，因为我们还有正则表达式嘛。
+
+posted on 2007-03-05 15:29 保尔任 阅读(4104) 评论(2)  编辑  收藏 所属分类: Arithmetic & Data Structure
+
+
+FeedBack:
+# re: 字符串匹配
+2007-04-07 20:12 | 阿里
+第一算法，朴素匹配算法，错了。提示一下，少了个等号  回复  更多评论
+  
+# re: 字符串匹配
+2007-04-07 20:15 | 阿里
+再说一句，算法的首字母要小写，命名规则。  回复  更多评论
+  
+新用户注册  刷新评论列表  
+
+找优秀程序员，就在博客园
+博客园  博问  IT新闻  Java程序员招聘
+标题		
+姓名		
+主页		
+验证码	*  	
+内容(请不要发表任何与政治相关的内容) 
+
+ Remember Me?
+	  登录      
+[使用Ctrl+Enter键可以直接提交]
+
+网站导航:
+博客园   IT新闻   知识库   C++博客   程序员招聘  
+相关文章:
+求两个数或多个数的最大公约数算法及其实现
+组合数学－Catalan数
+java用字节数截取字符串
+java两个字符串的最大公共自串
+java整型数组平衡点算法
+java字符串全排列问题（经典）
+动态规划算法
+二叉树
+如何求素数
+ 
+
+<	2007年3月	>
+日	一	二	三	四	五	六
+25	26	27	28	1	2	3
+4	5	6	7	8	9	10
+11	12	13	14	15	16	17
+18	19	20	21	22	23	24
+25	26	27	28	29	30	31
+1	2	3	4	5	6	7
+常用链接
+我的随笔
+我的评论
+我的参与
+最新评论
+留言簿(4)
+给我留言
+查看公开留言
+查看私人留言
+随笔分类
+Arithmetic & Data Structure(11)
+J2EE(4)
+J2SE(33)
+Python(1)
+随笔档案
+2008年9月 (1)
+2008年2月 (1)
+2007年12月 (2)
+2007年11月 (2)
+2007年10月 (2)
+2007年9月 (1)
+2007年7月 (2)
+2007年5月 (1)
+2007年4月 (1)
+2007年3月 (8)
+2007年2月 (8)
+2007年1月 (3)
+2006年12月 (34)
+2006年11月 (6)
+文章分类
+Design Patten(18)
+open source(10)
+文章档案
+2008年8月 (1)
+2008年7月 (1)
+2006年12月 (1)
+2006年11月 (3)
+2006年10月 (14)
+2006年9月 (7)
+2006年8月 (34)
+2006年7月 (32)
+2006年6月 (39)
+搜索
+ 
+最新评论  
+1. re: Builder（生成器）模式[未登录]
+设计和施工不要相互影响
+--hgd
+2. re: Builder（生成器）模式[未登录]
+众里寻他千百度 这才是我要的文章 谢谢分享
+--lb
+3. re: ajax简单实例（js内产生xmlHttpRequest，它和servlet交互返回xml显示在页面）[未登录]
+很好，如果用struts框架，怎么写struts.xml文件找到servlet呢
+--菜鸟
+4. re: 如何求素数[未登录]
+评论内容较长,点击标题查看
+--javaer
+5. re: java用字节数截取字符串[未登录]
+评论内容较长,点击标题查看
+--dj
+阅读排行榜
+1. CSDN论坛面试经验和面试题集锦(4922)
+2. java处理url中的特殊字符（如&,%...）(4845)
+3. 字符串匹配(4104)
+4. java.math包应用(3343)
+5. python学习笔记(3182)
+评论排行榜
+1. 如何求素数(6)
+2. 各种排序算法java实现(3)
+3. 求两个数或多个数的最大公约数算法及其实现(2)
+4. 字符串匹配(2)
+5. java用字节数截取字符串(1)
+Copyright ©2013 保尔任 Powered By博客园 模板提供：沪江博客

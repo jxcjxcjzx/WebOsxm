@@ -1,0 +1,431 @@
+
+
+首页
+开源软件
+讨论区
+
+
+
+
+
+
+代码分享
+博客
+翻译
+资讯
+移动开发
+
+
+
+
+招聘
+
+你好2,您好 我的空间
+
+
+
+
+
+
+
+ |  添加软件 | 投递新闻 | 退出
+ 
+
+开源中国 
+代码分享
+ 当前位置：代码分享 » C/C++ » Qt 图形界面开发 
+搜 索 
+
+
+
+
+
+
+
+
+
+QT获取网页内容
+
+solookin 发布于 2013年03月06日 0时, 0评/674阅
+
+
+ 
+
+
+分享到 
+
+新浪微博腾讯微博
+
+
+收藏+5
+
+踩顶0
+ 
+
+QT的网络库QHTTP和QNetworkAccessManager等都是异步获取网页的方式，用起来相当不爽。 
+自己写了个同步的网页获取程序。望指点。。。
+
+标签：QT
+
+
+
+
+代码片段(1)
+
+
+[代码] qt
+
+
+
+view source
+
+print?
+
+
+
+
+01
+
+#include <QNetworkAccessManager>
+
+
+
+
+
+02
+
+#include <QNetworkRequest>
+
+
+
+
+
+03
+
+#include <QNetworkReply>
+
+
+
+
+
+04
+
+#include <QtCore>
+
+
+
+
+
+05
+
+#include <iostream>
+
+
+
+
+
+06
+
+using namespace std ;
+
+
+
+
+
+07
+
+class TT : public QObject
+
+
+
+
+
+08
+
+{
+
+
+
+
+
+09
+
+    Q_OBJECT
+
+
+
+
+
+10
+
+public:
+
+
+
+
+
+11
+
+    static QString getHtml(QString url)
+
+
+
+
+
+12
+
+    {
+
+
+
+
+
+13
+
+        QNetworkAccessManager *manager = new QNetworkAccessManager();
+
+
+
+
+
+14
+
+        QNetworkReply *reply = manager->get(QNetworkRequest(QUrl(url)));
+
+
+
+
+
+15
+
+        QByteArray responseData;
+
+
+
+
+
+16
+
+        QEventLoop eventLoop;
+
+
+
+
+
+17
+
+        connect(manager, SIGNAL(finished(QNetworkReply*)), &eventLoop, SLOT(quit()));
+
+
+
+
+
+18
+
+        eventLoop.exec();       //block until finish
+
+
+
+
+
+19
+
+        responseData = reply->readAll();
+
+
+
+
+
+20
+
+        return QString(responseData);
+
+
+
+
+
+21
+
+    }
+
+
+
+
+
+22
+
+};
+
+
+
+
+
+23
+
+ 
+
+
+
+
+
+24
+
+int main(int argc, char *argv[])
+
+
+
+
+
+25
+
+{
+
+
+
+
+
+26
+
+    QCoreApplication a(argc, argv);
+
+
+
+
+
+27
+
+    QString data = TT::getHtml(QString("http://www.oschina.net") );
+
+
+
+
+
+28
+
+    cout<<data.toStdString()<<endl;
+
+
+
+
+
+29
+
+    return a.exec();
+
+
+
+
+
+30
+
+}
+
+
+
+举报
+
+
+
+开源中国-程序员在线工具：API文档大全(120+) JS在线编辑演示 二维码更多»
+
+ 
+
+
+相关的代码(66)
+25回/7671阅[C/C++]我自己闲的无聊写个了多线程下载工具2年前 By 王振威
+9回/6296阅[C/C++]Qt 设置透明按钮其实很简单2年前 By 鉴客
+30回/5994阅[C/C++]Qt写的五子棋人机对弈程序1年前 By 自由民
+12回/6023阅[C/C++]用qt实现类似qq截图的工具2年前 By 乔3爷
+5回/5404阅[C/C++]QT中文 乱码解决2年前 By 李永波
+6回/5215阅[C/C++]不用 SDL 的QT+FFMPEG 播放器2年前 By 鉴客
+1回/5061阅[C/C++]Qt 解析xml格式的例子2年前 By 红薯
+3回/3582阅[C/C++]QT 读取xml文件，然后写入另外一个新的xml文件的简单方法2年前 By 鉴客
+2回/3510阅[C/C++]Qt-在表格(QTableView)中插入喜好设置1年前 By xiangxw
+12回/3371阅[C/C++]Qt生成灰度图1年前 By xiangxw
+显示所有 »
+
+发表评论回到顶部网友评论(0)
+
+
+暂无网友评论
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+回到顶部   回到评论列表
+
+开源从代码分享开始 分享代码
+
+
+
+solookin的其他代码QT获取网页内容(0评/674阅,1个月前)
+生成递归目录的xml文件(0评/328阅,5个月前)
+全部(2)...
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+© 开源中国(OsChina.NET) | 关于我们 | 广告联系 | @新浪微博 | 开源中国手机版 | 粤ICP备12009483号-3
+ 
+开源中国手机客户端：AndroidiPhoneWP7 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2条新留言，查看留言»
+
+
+
+

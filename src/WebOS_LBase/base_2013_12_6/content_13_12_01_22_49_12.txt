@@ -1,0 +1,338 @@
+
+
+
+
+树袋大熊的专栏
+
+只是在走一个CSer的应该走的路
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+《这些年，我们读过的技术经典图书》主题有奖征文       专访李铁军：从医生到金山首席安全专家的转变      独一无二的职位：开源社区经理        CSDN博客第三期云计算最佳博主评选
+ 
+
+
+寻找最大的K个数 
+.
+ 分类： 编程之美名企面试题2011-05-12 18:26489人阅读评论(0)收藏举报
+ 
+stringpivotminanullinputcommand
+
+ 
+此题多数互联网公司都有提及，这里简单描述一下。
+ 
+首先，被问到这题应该先询问数据规模与数据分布。如果数据规模比较小，在千数量级，采用O（nlgn）排序取前K个即可。如果数据为整形，且分布范围不大，可以考虑计数排序，在线性时间中求解。
+ 
+其次，如果不是上面讨论的情况，就是大规模一般情况。数据集可能在10亿个整形数中取最大的1W个。10亿个整形数全部装入内存大概需要4G空间。
+ 
+以下采用两种方法：
+ 
+1、快排方法，快排采用分治思想，每次把数组分成两部分，所以这里关键就是找到第K大的数的那次划分，前一部分数组就是我们需要的。
+ 
+2、堆方法，1方法的不足是需要把所有数据装入内存，如果内存空间不足，系统颠簸，性能必然下降。如果取最大的K个数，可以先用前K个数建立一个最小堆，然后每次读入一个之后的数据与堆顶元素比较，如果比堆顶元素大则替换，并且heapify维护堆性质。
+ 
+ 
+ 
+C/C++源码：
+ 
+代码通过宏定义QUICK来切换快排方法与堆方法
+ 
+其中堆方法不需要把所有数据读入内存，但这里为了屏蔽从文件读数据的时间影响，采用先把数据都读入再处理方法，并且为了验证结果正确，结果都把前K个数排序。
+ 
+ #include <iostream>
+#include <stack>
+#include <cassert>
+#include <cstring>
+using namespace std;
+
+const int num_per_line = 10;
+
+int string_to_num(const char* str){
+    int len = strlen(str), sum=0;
+    for(int i=0;i<len;i++)
+        sum = sum*10 + str[i]-'0';
+    return sum;
+}
+int deal_opt(string& in,string& out,int& n, int& k, int argc, char *argv[]){
+    for(int i=1;i<argc;i++){
+        if(!strncmp("-i",argv[i],2) && i<argc-1){
+            in = argv[i+1];
+            i++;
+        }else if(!strncmp("-o",argv[i],2) && i<argc-1){
+            out = argv[i+1];
+            i++;
+        }else if(!strncmp("-n",argv[i],2) && i<argc-1){
+            n = string_to_num(argv[i+1]);
+            i++;
+        }else if(!strncmp("-k",argv[i],2) && i<argc-1){
+            k = string_to_num(argv[i+1]);
+            i++;
+        }else
+            return 1;
+    }
+    assert(n>=k);
+    return 0;
+}
+void swap(int& a,int& b){
+    int tmp=a;
+    a=b;
+    b=tmp;
+}
+//create min heap
+void heapify(int A[], int i, int n){
+#define LC(i) (2*i+1)
+#define RC(i) (2*i+2)
+    while(i<n/2){
+        int min = A[i], f=0;
+        if(min>A[LC(i)] && LC(i)<n) min=A[LC(i)],f=1;
+        if(min>A[RC(i)] && RC(i)<n) f=2;
+        if(1==f){
+            swap(A[i],A[LC(i)]);
+            i=LC(i);
+        }else if(2==f){
+            swap(A[i],A[RC(i)]);
+            i=RC(i);
+        }else
+            break;
+    }
+}
+void heapSort(int A[],int n){
+    if(n<=1) return;
+    for(int i=n/2-1;i>=0;i--)
+        heapify(A,i,n);
+    swap(A[0],A[n-1]);
+    for(int i=n-2;i>=1;i--){
+        heapify(A,0,i+1);
+        swap(A[0],A[i]);
+    }
+}
+struct node{
+    node(int a,int b):l(a),r(b){}
+    int l,r;
+};
+int main(int argc, char *argv[]){
+    int n=(1<<30), k=10;
+    string infile("din.txt"), outfile("dout.txt");
+    string help("command [-i infile] [-o outfile] [-n arrNum] [-k firstKBigest]");
+
+    if(0==deal_opt(infile,outfile,n,k,argc,argv)){
+        int *arr = new int[n];
+        FILE* fptr=NULL;
+        if((fptr=fopen(infile.c_str(),"r"))!=NULL){
+            int data, i=0;
+            clock_t s = clock();
+            while(i<n && (fscanf(fptr,"%d",&data))!=EOF)
+                arr[i++]=data;
+            n=i;
+            assert(n>=k);
+            fclose(fptr);
+            double timeUsed = (double)(clock()-s)/CLOCKS_PER_SEC;
+            cout << "input timeUsed is " << timeUsed << "s" << endl;
+            ////////////////////////////////////////////////////////////////////
+#ifndef QUICK
+            s = clock();
+            for(int i=k/2-1;i>=0;i--)//create min heap
+                heapify(arr,i,k);
+            for(int i=k+1;i<n;i++){
+                if(arr[i]>arr[0]){
+                    arr[0]=arr[i];
+                    heapify(arr,0,k);
+                }
+            }
+            timeUsed = (double)(clock()-s)/CLOCKS_PER_SEC;
+            cout << "K min heap timeUsed is " << timeUsed << "s" <<endl;
+            s=clock();
+            heapSort(arr,k);
+            timeUsed = (double)(clock()-s)/CLOCKS_PER_SEC;
+            cout << "sort timeUsed is " << timeUsed << "s" << endl;
+#else
+            s = clock();
+            //quick from max to min
+            stack<node*> st;
+            st.push(new node(0,n-1));
+            while(!st.empty()){
+                int l=st.top()->l;
+                int r=st.top()->r;
+                delete st.top();
+                st.pop();
+                int i=l,j=r, pivot=arr[i];
+                while(i<j){
+                    while(arr[i]>=pivot && i<=j) i++;
+                    while(arr[j]<=pivot && i<=j) j--;
+                    if(i<j) swap(arr[i],arr[j]);
+                }
+                swap(arr[l],arr[j]);
+                if(j<k){
+                    st.push(new node(j+1,r));
+                }else if(j>k){
+                    st.push(new node(l,j-1));
+                }else
+                    break;
+            }
+            timeUsed = (double)(clock()-s)/CLOCKS_PER_SEC;
+            cout << "quickSort way timeUsed is " << timeUsed << "s" <<endl;
+            s=clock();
+            heapSort(arr,k);
+            timeUsed = (double)(clock()-s)/CLOCKS_PER_SEC;
+            cout << "sort timeUsed is " << timeUsed << "s" << endl;
+#endif
+            //////////////////////////////////////////////////////////////////////
+            if((fptr=fopen(outfile.c_str(),"w"))!=NULL){
+                for(int i=0;i<k;i++){
+                    fprintf(fptr,"%d/t",arr[i]);
+                    if(i%num_per_line==num_per_line-1)
+                        fprintf(fptr,"/n");
+                }
+                fclose(fptr);
+            }else{
+                cout << "incorrect open outfile" << endl;
+                cout << help << endl;
+            }
+        }else{
+            cout << "incorrect open infile" << endl;
+            cout << help << endl;
+        }
+    }else{
+        cout << "incorrect options" << endl;
+        cout << help << endl;
+    }
+    return 0;
+}
+ 
+
+ 
+ 
+运行结果：
+ 
+input为从文件读数据时间，第二项是真正操作时间，第三项是为了验证结果的排序时间。
+ 
+1000W数据规模寻找最大的1W个
+ 
+
+
+ 
+ 
+10亿数据规模寻找最大的1W个
+ 
+
+
+
+上一篇：基于比较的内排序算法（三）
+下一篇：PKU 3964 无向图广度遍历
+ . 
+
+
+查看评论
+ 
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+个人资料 
+
+koala002 
+
+
+
+
+访问：22663次
+积分：637分
+排名：第19589名
+ . 原创：42篇
+转载：2篇
+译文：0篇
+评论：21条
+ . 
+
+文章搜索
+
+. 
+文章分类 ACM解题报告(14) 
+名企面试题(15) 
+我之见解(0) 
+技术学习(5) 
+算法模板(8) 
+编程之美(2) 
+
+文章存档 
+2012年02月(1).
+2011年11月(2).
+2011年10月(4).
+2011年09月(4).
+2011年05月(12).
+2011年04月(18).
+2010年09月(3).
+ . 
+阅读排行 搜狗2012笔试、面试体会(2549) 
+IT公司2012笔面杂谈(1653) 
+阿里云2012笔试感想(1540) 
+SPEC2006编译经历(1355) 
+EMC2012笔试体会(1156) 
+HULU2012校招笔试体会(918) 
+Multi2sim、Dramsim链接(895) 
+Google2012笔试题感想(658) 
+(二)用双栈实现队列(537) 
+PKU ACM经典50题(534) 
+
+评论排行 SPEC2006编译经历(8) 
+2011年Cisco Webex实习生笔试(3) 
+Google2012笔试题感想(2) 
+HULU2012校招笔试体会(2) 
+autoconf 和 automake 生成 Makefile 文件学习(2) 
+EMC2012笔试体会(1) 
+PKU 1001 高精度乘幂(1) 
+PKU 1087 网络最大流(1) 
+Multi2sim、Dramsim链接(1) 
+PKU 1002 计数排序(0) 
+
+推荐文章 
+最新评论 SPEC2006编译经历
+nancygreen: 在编2006时遇到下面的错，您是怎么处理的？cc -L/home/yrtan/benchmark/2... 
+
+Google2012笔试题感想
+cqusuperyang: 第二题答案有错误吧，一个空格未去干净，第二个最后一个字符串未翻转，贴上修改后的代码：#include... 
+
+SPEC2006编译经历
+loverszhaokaikai: 楼主，您有所不知啊，我们本科毕业生去哪找SPEC2006啊，这么贵，买不起啊。求楼主能不能给发一份b... 
+
+SPEC2006编译经历
+loverszhaokaikai: @cjyuni:你有SPEC 2006了吗？ 
+
+SPEC2006编译经历
+loverszhaokaikai: @Lotuselva:请问你有SPEC2006吗，可以拷贝一份送我吗，我的QQ464813450 ... 
+
+Multi2sim、Dramsim链接
+shuchang78: 由于最近想做实验，想快速搞定"将Multi2sim中集成DRAMSim2“。。。请问如何联系你？我的... 
+
+autoconf 和 automake 生成 Makefile 文件学习
+shuchang78: 请问有没有什么step-by-step的操作介绍？想必你在修改后通过simulation验证了正确性... 
+
+autoconf 和 automake 生成 Makefile 文件学习
+shuchang78: 你好！我最近正好想要将multi2sim内集成DRAMSim2，看到你的博客，想请教你具体是怎么做的... 
+
+2011年Cisco Webex实习生笔试
+yynetsdk: 喔喔，此面试题，是针对高级c++ 的职位吗，合肥？苏州/ 
+
+SPEC2006编译经历
+Phoenix001: 我猜这是计算所的？SPEC06这么高端的东西都有？ 
+
+
+
+. 

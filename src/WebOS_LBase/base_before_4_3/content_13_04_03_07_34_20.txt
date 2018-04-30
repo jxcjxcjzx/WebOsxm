@@ -1,0 +1,780 @@
+
+
+首页
+开源软件
+讨论区
+
+
+
+
+
+
+代码分享
+博客
+翻译
+资讯
+移动开发
+
+
+
+
+招聘
+
+ 当前访客身份：游客 [ 登录 | 加入开源中国 ] 
+
+
+
+开源中国 
+代码分享
+ 当前位置：代码分享 » Python » 常用Python方法 
+搜 索 
+
+
+
+
+
+
+
+
+
+ipv4 ipv6 数字地址转换
+
+KSo^Super 发布于 2011年07月26日 5时, 0评/1477阅
+
+
+ 
+
+
+分享到 
+
+新浪微博腾讯微博
+
+
+收藏+1
+
+踩顶0
+ 
+
+<无详细内容>
+
+标签：ipv4 IPv6
+
+
+
+
+代码片段(1)
+
+
+[代码] [Python]代码
+
+
+
+view source
+
+print?
+
+
+
+
+01
+
+import struct,socket
+
+
+
+
+
+02
+
+#import twisted.python.compat  #导入twisted.python.compat 更方便
+
+
+
+
+
+03
+
+ 
+
+
+
+
+
+04
+
+# ipv4数字地址 
+
+
+
+
+
+05
+
+def ipv4_to_string(ipv4):
+
+
+
+
+
+06
+
+    ipv4_n = socket.htonl(ipv4)
+
+
+
+
+
+07
+
+    data = struct.pack('I', ipv4_n)
+
+
+
+
+
+08
+
+    ipv4_string = socket.inet_ntop(socket.AF_INET, data)
+
+
+
+
+
+09
+
+    return ipv4_string
+
+
+
+
+
+10
+
+def ipv4_from_string(ipv4_string):
+
+
+
+
+
+11
+
+    data = socket.inet_pton(socket.AF_INET, ipv4_string)
+
+
+
+
+
+12
+
+    ipv4_n = struct.unpack('I', data)
+
+
+
+
+
+13
+
+    ipv4 = socket.ntohl(ipv4_n[0])
+
+
+
+
+
+14
+
+    return ipv4
+
+
+
+
+
+15
+
+def ipv4_readable2int(ipv4):
+
+
+
+
+
+16
+
+    return int(ipv4)
+
+
+
+
+
+17
+
+def ipv4_int2readable(ipv4):
+
+
+
+
+
+18
+
+    return str(ipv4)
+
+
+
+
+
+19
+
+ 
+
+
+
+
+
+20
+
+# ipv6用四个整数(tuple或用,分开的字符串)表示
+
+
+
+
+
+21
+
+def ipv6_to_string(ipv6):
+
+
+
+
+
+22
+
+    ipv6_n = (socket.htonl(ipv6[0]),
+
+
+
+
+
+23
+
+              socket.htonl(ipv6[1]),
+
+
+
+
+
+24
+
+              socket.htonl(ipv6[2]),
+
+
+
+
+
+25
+
+              socket.htonl(ipv6[3]))
+
+
+
+
+
+26
+
+    data = struct.pack('IIII', ipv6_n[0], ipv6_n[1], ipv6_n[2], ipv6_n[3])
+
+
+
+
+
+27
+
+    ipv6_string = socket.inet_ntop(socket.AF_INET6, data)
+
+
+
+
+
+28
+
+    return ipv6_string
+
+
+
+
+
+29
+
+def ipv6_from_string(ipv6_string):
+
+
+
+
+
+30
+
+    data = socket.inet_pton(socket.AF_INET6, ipv6_string)
+
+
+
+
+
+31
+
+    ipv6_n = struct.unpack('IIII', data)
+
+
+
+
+
+32
+
+    ipv6 = (socket.ntohl(ipv6_n[0]),
+
+
+
+
+
+33
+
+            socket.ntohl(ipv6_n[1]),
+
+
+
+
+
+34
+
+            socket.ntohl(ipv6_n[2]),
+
+
+
+
+
+35
+
+            socket.ntohl(ipv6_n[3]))
+
+
+
+
+
+36
+
+    return ipv6
+
+
+
+
+
+37
+
+def ipv6_tuple2readable(ipv6):
+
+
+
+
+
+38
+
+    return str(ipv6[0]) + ',' + str(ipv6[1]) + ',' + str(ipv6[2]) + ',' + str(ipv6[3])
+
+
+
+
+
+39
+
+def ipv6_readable2tuple(ipv6):
+
+
+
+
+
+40
+
+    return tuple(ipv6.split(','))
+
+
+
+
+
+41
+
+ 
+
+
+
+
+
+42
+
+#win32 下实现 inet_pton 和 inet_ntop
+
+
+
+
+
+43
+
+def inet_ntop(family, ipstr):
+
+
+
+
+
+44
+
+    if family== socket.AF_INET:
+
+
+
+
+
+45
+
+        return socket.inet_ntoa(ipstr)
+
+
+
+
+
+46
+
+    elif family== socket.AF_INET6:
+
+
+
+
+
+47
+
+        v6addr = ':'.join(('%02X%02X' % (ord(i), ord(j)))
+
+
+
+
+
+48
+
+                         for i,j in zip(ipstr[::2], ipstr[1::2]))
+
+
+
+
+
+49
+
+        return v6addr
+
+
+
+
+
+50
+
+ 
+
+
+
+
+
+51
+
+def inet_pton(family, addr):
+
+
+
+
+
+52
+
+    if family== socket.AF_INET:
+
+
+
+
+
+53
+
+        return socket.inet_aton(addr)
+
+
+
+
+
+54
+
+    elif family== socket.AF_INET6:
+
+
+
+
+
+55
+
+        if '.' in addr: # a v4 addr
+
+
+
+
+
+56
+
+             v4addr = addr[addr.rindex(':')+1:]
+
+
+
+
+
+57
+
+             v4addr = socket.inet_aton(v4addr)
+
+
+
+
+
+58
+
+             v4addr = map(lambda x: ('%02X' % ord(x)), v4addr)
+
+
+
+
+
+59
+
+             v4addr.insert(2, ':')
+
+
+
+
+
+60
+
+             newaddr = addr[:addr.rindex(':')+1] + ''.join(v4addr)
+
+
+
+
+
+61
+
+             return inet_pton(family, newaddr)
+
+
+
+
+
+62
+
+        dbyts = [0]* 8 # 8 groups
+
+
+
+
+
+63
+
+        grps = addr.split(':')
+
+
+
+
+
+64
+
+        for i,v in enumerate(grps):
+
+
+
+
+
+65
+
+            if v:
+
+
+
+
+
+66
+
+                dbyts[i] = int(v, 16)
+
+
+
+
+
+67
+
+            else:
+
+
+
+
+
+68
+
+                for j, w in enumerate(grps[::-1]):
+
+
+
+
+
+69
+
+                    if w:
+
+
+
+
+
+70
+
+                        dbyts[7-j] = int(w, 16)
+
+
+
+
+
+71
+
+                    else:
+
+
+
+
+
+72
+
+                        break
+
+
+
+
+
+73
+
+                break
+
+
+
+
+
+74
+
+        return ''.join( (chr(i//256) + chr(i%256)) for i in dbyts)
+
+
+
+
+
+75
+
+    else:
+
+
+
+
+
+76
+
+        raise RuntimeError("What family?")
+
+
+开源中国-程序员在线工具：API文档大全(120+) JS在线编辑演示 二维码更多»
+
+ 
+
+
+相关的代码(7)
+0回/1461阅[Java]Java IP地址字符串与BigInteger的转换, 支持IPv62年前 By YuChao
+0回/929阅[Java]获取本机所有的ipv4地址，若这些地址针对某个端口已经被占用则抛出异常2年前 By swanky_yao
+3回/644阅[Java]手机上运用Googel 搜索引擎1年前 By antkingwei
+0回/603阅[Python]验证用户注册信息7个月前 By zfz
+0回/310阅[Java]GAE中使用Apache Commons FileUpload2年前 By 答复哈
+0回/233阅[Java]以jdo方式实现的gae的数据底层1年前 By 南宫傲
+0回/223阅[Python]转换英文字符。7个月前 By zfz
+
+
+发表评论回到顶部网友评论(0)
+
+
+暂无网友评论
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+回到顶部   回到评论列表
+
+开源从代码分享开始 分享代码
+
+
+
+KSo^Super的其他代码ipv4 ipv6 数字地址转换(0评/1477阅,1年前)
+全部(1)...
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+© 开源中国(OsChina.NET) | 关于我们 | 广告联系 | @新浪微博 | 开源中国手机版 | 粤ICP备12009483号-3
+ 
+开源中国手机客户端：AndroidiPhoneWP7 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

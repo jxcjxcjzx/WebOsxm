@@ -1,0 +1,59 @@
+汇编rep指令：rep指令的作用  
+2010-02-28 04:41:43|  分类： 汇编知识 |  标签： |字号大
+中
+小 订阅 
+
+汇编语言中的rep指令的作用
+
+Ｑ：
+
+0040106C B9 12 00 00 00 mov ecx,12h 
+
+00401071 B8 CC CC CC CC mov eax,0CCCCCCCCh 
+
+00401076 F3 AB rep stos dword ptr [edi]
+
+问题补充：请问高手们，在main函数的反汇编代码中的一段代码，能告诉我这段代码有什么作用吗？
+
+Ａ：
+
+重复执行后面的指令 
+
+rep stos dword ptr [edi] 
+
+是将edi指向的区域初始化为0CCCCCCCCh 
+
+应该是12h*4个字节，可以理解为一个函数，传来的某个参数为指针，然后将这个指针指向的区域初始化 
+
+void fun(long *p) 
+
+{ 
+
+int i; 
+
+// 12h=18 
+
+for(i=0;i<18;i++) 
+
+{ 
+
+p[i]=0CCCCCCCCh; 
+
+} 
+
+} 
+
+相当于这个函数的功能
+
+Ａ：
+
+stos dword ptr [edi] 
+
+将此指令执行12次(根据ECX的值重复执行某行指令) 
+
+如果用汇编指令来描述他的作用的话就是 
+
+s: stos dword ptr [edi] 
+
+loop s
+

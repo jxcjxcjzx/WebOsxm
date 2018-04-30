@@ -1,0 +1,231 @@
+STL中的仿函数
+
+发表于1年前(2012-05-11 00:13)   阅读（605） | 评论（0） 0人收藏此文章, 我要收藏
+赞0
+什么是仿函数
+
+    “你可以说，任何东西，只要其行为像函数，它就是个函数。因此，如果你定义了一个对象，行为像函数，它可以被当做函数来用。
+
+    那什么才算是具备函数行为（也就是行为像个函数）？ 所谓函数行为，是指可以“使用小括号传递参数，藉以调用某个东西“ 。例如：
+
+    function（arg1, arg2）;    // a function call
+
+    如果你指望对象也可以如此这般，就必须让它们也有可能被”调用“——通过小括号的运用和参数的传递。没错，你只需定义operator（），并给予合适的参数类型，例如：” ————（摘自《c++标准库》）
+
+class CmpStrKey 
+{ 
+private: 
+    std::string tmp; 
+public: 
+    CmpStrKey(std::string str):tmp(str){} 
+    //这里是关键
+    bool operator()(std::map<std::string, uint32_t>::value_type const&itr) const 
+    { 
+       //if (tmp.find(itr.first) != std::string::npos) 
+       if ( strstr(tmp.c_str(), itr.first.c_str()) != NULL) 
+            return true; 
+        return false; 
+    } 
+};
+
+       上面的仿函数。就是我为了在实现map中查找特定字段而实现的。
+
+      定义完上面的仿函数类。好像也可以使用结构体 ，只要在结构体内实现operator就行了。（姑且这样认吧！）。就可以在代码中使用了。
+
+std::find_if( m_mapSubHost.begin(),  m_mapSubHost.end() , CmpStrKey(host));
+下面是完整的示例代码：
+
+#include <string>
+#include <iostream>
+#include <map>
+#include <algorithm>
+#include <string.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <sys/time.h>
+
+using namespace std;
+
+typedef struct _SHOSTCODE
+{
+    char *strHost;
+    uint32_t uiCode;
+}SHOSTCODE, *LPSHOSTCODE;
+
+const SHOSTCODE subHostCode[]={
+    {"10010",                  1001},
+    {"weibo",                  1002},
+    {"kaixin001",              1005},
+    {"tudou",                  1006},
+    {"dianping",               1007},
+    {"renren",                 1008},
+    {"qq",                     1009},
+    {"apple",                  1010},
+    {"baidu",                  1011},
+    {"google",                 1012},
+    {"91rb",                   1013},
+    {"wo",                     1014},
+    {"soso",                   1015},
+    {"ovi",                    1016},
+    {"nokia",                  1017},
+    {"taobao",                 1018},
+    {"imgo.tv",                1019},
+    {"sina",                   1020},
+    {"sohu",                   1021},
+    {"360",                    1022},
+    {"uc",                     1023},
+    {"ucweb",                  1023},
+    {"sdo",                    1028},
+    {"youdao",                 1029},
+    {NULL}
+};
+
+const SHOSTCODE subsubHostCode[]={
+    {"t.qq",                   1003},
+    {"t.sohu",                 1004},
+    {"ynote.youdao",           1025},
+    {"dict.youdao",            1026},
+    {"note.sdo",               1027},
+    {NULL}
+};
+
+std::map<std::string, uint32_t> m_mapSubHost;
+std::map<std::string, uint32_t> m_mapSubSubHost;
+
+class CmpStrKey
+{
+private:
+    std::string tmp;
+public:
+    CmpStrKey(std::string str):tmp(str){}
+    bool operator()(std::map<std::string, uint32_t>::value_type const&itr) const
+    {
+       //if (tmp.find(itr.first) != std::string::npos)
+       if ( strstr(tmp.c_str(), itr.first.c_str()) != NULL)
+            return true;
+        return false;
+    }
+};
+
+bool FixSubServiceMsg(const char *host)
+{
+    //老实说 发觉有点蠢！ 竟然用find_if 进行查找匹配
+    std::map<std::string, uint32_t>::iterator itSubHost = \
+        std::find_if( m_mapSubHost.begin(),  m_mapSubHost.end() ,//rang
+                            CmpStrKey(host));  // CMP
+    if ( itSubHost != m_mapSubHost.end())
+    {
+        map<string, uint32_t>::iterator itSubSubHost = \
+            find_if(m_mapSubSubHost.begin(), m_mapSubSubHost.end(), //Rang
+                        CmpStrKey(host));  //CMP
+        if ( itSubSubHost != m_mapSubSubHost.end())
+        {
+            std::cout <<"SubSubType: " << itSubSubHost->second << std::endl;
+            return true;
+        }
+        std::cout <<"SubType: " << itSubHost->second << std::endl;
+        return true;
+    }
+    return false;
+}
+//初始化
+uint32_t InitSubHostMap()
+{
+    int n=0;
+    while (NULL != subHostCode[n].strHost)
+    {
+        m_mapSubHost.insert(std::make_pair<string, uint32_t>(string(subHostCode[n].strHost),\
+                subHostCode[n].uiCode));
+        n++;
+    }
+    
+    n = 0 ;
+    while (NULL != subsubHostCode[n].strHost)
+    {
+        m_mapSubSubHost.insert(make_pair<string, uint32_t>(string(subsubHostCode[n].strHost),\
+                subsubHostCode[n].uiCode));
+        n++;
+    }
+    return 1;
+}
+
+int main()
+{
+    InitSubHostMap();
+
+    //time_t ti=time(0);
+    int t1 ,t2 ;
+    t1 = clock();
+    std::cout << t1 << std::endl;
+
+    char hh[20][64]={"Host: t.qq.com",
+                   "Host: www.google.org.sg",
+                   "Host: www.bbs.sina.com.cn",
+                   "Host: www.baidu.xxx.msn.cn",
+                   "Host: mm.t.qq.com",
+                   "Host: cc.t.sohu.com",
+                   "Host: sfafsaf.qq.com",
+                   "Host: news.sohu.com",
+                   "Host: dict.youdao.com",
+                   "Host: ynote.youdao.com",
+                   "Host: note.sdo.com",
+                   "Host: sdo.com",
+                   "Host: news.youdao.com"};
+
+    for (int i = 0 ; i < 13 ; i++)
+        FixSubServiceMsg(hh[i]);
+    
+    t2 = clock();
+    std::cout << t2 - t1 << std::endl;
+
+    return 0;
+}
+仿函数的几个特点：
+
+1、仿函数是”smart function“（智能型函数）
+
+2、每个仿函数都有自己的类型（原文是型别）
+
+3、仿函数通常比一般函数速度快
+
+ 
+
+刚才又在213页 ， 看到这个仿函数例子：
+
+class RuntimeStringCmp
+{
+public:
+    //constants for the comparison criterion
+    enum cmp_mode (normal, nocase);
+
+private:
+    //actual comparison mode
+    const cmp_mode mode;
+    
+    //auxiliary function to compare case insensitive
+    static bool nocase_compare (char c1, char c2)
+    {
+        return toupper(c1) < toupper(c2);
+    }
+    
+public:
+    //constructor: initializes the comparison cirterion
+    RuntimeStringCmp (cmp_mode m=normal) : mode(m) {
+        ;
+    };
+    
+    // the comparison
+    bool operator() (const string &s1, const string &s2) const 
+    {
+        if (mode == normal)
+        {
+            return s1 < s2;
+        }
+        else 
+        {
+            return_lexicographical_compare(s1.begin(), s1.end(),
+                                            s2.begin(), s2.end(),
+                                                    nocase_compare);
+        }
+    }
+};

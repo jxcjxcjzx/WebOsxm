@@ -1,0 +1,175 @@
+资讯 |  安全 |  论坛 |  下载 |  读书 |  程序开发 |  数据库 |  系统 |  网络 |  电子书 |  站长学院 |  源码 |  QQ |  专栏 |  考试 |  手册 |  
+Linux| Windows| Dos命令行| 浏览器| 虚拟机| 其他| 
+
+
+
+
+
+首页 > 系统 > Linux > 正文linux下的抓包工具tcpdump2012-02-23 08:11:00     我来说两句       收藏   我要投稿linux下的抓包工具tcpdump
+  
+  
+ 这篇讲linux下的抓包工具。
+  
+ 抓包工具比较好用的有两个，一个是snort，一个是tcpdump，这次不说snort了，觉得这个工具虽然很强大，但是比较复杂，还是tcpdump比较简单。tcpdump windows、linux版本均有。linux版本可以在以下网站下载：www.tcpdump.org.
+  
+ 安装好tcpdump之后，运行tcpdump：
+  
+ 1. tcpdump -D 获取网络适配器列表，以下是在windows上获取到的结果：
+  
+ 1.\Device\PssdkLoopback (PSSDK Loopback Ethernet Emulation Adapter)
+ 2.\Device\{CF587901-C85F-4FD6-896F-D977DEFE76EC} (Intel(R) PRO/100 VE Network Co
+ nnection)
+  
+  
+  
+  
+ 2. tcpdump -i <需要监控的网络适配器编号>，例如我想监控lo(127.0.0.1)，即上面列表中的1.\Device\PssdkLoopback: （windows上特有的，linux不适用）
+  
+ tcpdump -i 1
+  
+  
+  
+  
+ 如果不使用-i来定义监控适配器的话，默认使用列表中的第一个；
+  
+ 3. 监控主机为192.9.200.59上8000端口的tcp协议：
+  
+ tcpdump host 192.9.200.59 and tcp port 8000
+  
+  
+  
+  
+ 4. 如果想要显示数据包的内容，需要使用-X参数，如，我想要显示捕获的http数据包http header的内容：
+  
+ tcpdump -X host 192.9.200.59 and tcp port 8000
+  
+  
+  
+  
+ 显示结果如下：
+  
+ 22:13:19.717472 IP testhost59.12535 > liujuan59.8000: . 1:330(329) ack 1 win 327
+ 8
+ 0x0000: 4500 0171 e616 0000 8006 cb2b 0000 0000 E..q.......+....
+ 0x0010: c009 c83b 30f7 1f40 0000 0002 0000 0002 ...;0..@........
+ 0x0020: 5010 8000 b066 0000 504f 5354 202f 2048 P....f..POST./.H
+ 0x0030: 5454 502f 312e 310d 0a43 6f6e 7465 6e74 TTP/1.1..Content
+ 0x0040: 2d54 7970 653a 2074 6578 742f 786d 6c3b -Type:.text/xml;
+ 0x0050: 2063 .c
+  
+  
+  
+  
+ 可以看到该结果只显示了http头的一部分，没有显示全，是因为tcpdump默认将显示的数据长度截断了，可以使用-s后面加数据长度，来设置数据显示长度：
+  
+ tcpdump -X -s 0 host 192.9.200.59 and tcp port 8000
+  
+  
+  
+  
+ 以上的例子中，-s 0 表示自动设置长度使其能够显示所有数据。
+  
+ 5. 捕获的数据太多，不断刷屏，可能需要将数据内容记录到文件里，需要使用-w参数：
+  
+ tcpdump -X -s 0 -w aaa host 192.9.200.59 and tcp port 8000
+  
+  
+  
+  
+ 则将之前显示在屏幕中的内容，写入tcpdump可执行文件同级目录下的aaa文件中。
+  
+ 文件查看方式如下，需要使用-r参数：
+  
+ tcpdump -X -s 0 -r aaa host 192.9.200.59 and tcp port 8000
+  
+  
+  
+  
+ 如果这样写：
+  
+ tcpdump -r aaa
+  
+  
+  
+  
+ 则只能看到最简单的数据传输交互过程，看不到数据包内容，查看时也需要使用相应的参数。
+  
+ 6.总结
+  
+ 总结一下，tcpdump的参数分两个部分，选项（Options）和表达式（expression）：
+  
+ tcpdump[-adeflnNOpqRStuvxX] [-ccount]
+ [-Cfile_size] [-Ffile]
+ [-iinterface] [-mmodule] [-rfile]
+ [-ssnaplen] [-Ttype] [-wfile]
+ [-Ealgo:secret] [expression]
+  
+  摘自 fallenleaves 
+
+点击复制链接 与好友分享!回本站首页
+ 
+分享到： 更多 
+您对本文章有什么意见或着疑问吗？请到论坛讨论您的关注和建议是我们前行的参考和动力   上一篇：linux系统故障排查大全下一篇：linux下对文件和目录的操作相关文章
+将LINUX的控制台定向到串口终端
+
+Linux：一场暧昧的游戏
+
+AWK：Linux 管理员的智能工具包
+
+Linux必学的系统管理命令(1)
+
+Linux必学的系统管理命令(2)
+
+走进Linux图形环境（1）
+
+走进Linux图形环境（2）
+
+Linux常用网络社区资源
+
+Oracle 的标准系统服务脚本 for Re
+
+微软重拳直指Linux要害 Linux生存方式
+图文推荐
+vi编辑只读文档无法保Debian为程序添加一个CentOS release 5.wdcp后台安全设置/IP
+
+
+
+
+
+
+
+排行热门
+
+8,838 | Ubuntu 12.04中文输入法的安装5,114 | linux系统时间修改及同步4,628 | linux下查看磁盘空间3,425 | Ubuntu 12.04下安装QQ 2012 Beta33,291 | linux 的date命令及系统时间设置2,906 | Grub Rescue修复方法2,795 | Linux tar打包命令2,548 | LINUX下搭建FTP服务器
+
+
+
+
+
+
+
+
+
+
+
+您的浏览器不支持嵌入式框架，或者当前配置为不显示嵌入式框架。 
+
+
+
+
+
+
+文章下载读书
+
+· Win2000下关闭无用端口· 禁止非法用户登录综合设置 [win9x篇]· 关上可恶的后门——消除NetBIOS隐患· 网络入侵检测系统· 潜伏在Windows默认设置中的陷井· 调制解调器的不安全· 构建Windows 2000服务器的安全防护林· SQL Server 2000的安全配置
+
+
+
+Linux开启VNC桌面及加在U盘上安装Linux系统▪ Linux开启VNC桌面及加密连接▪ BackTrack5完全配置▪ linux下开机启动DB2,WAS,TDS服务▪ 在U盘上安装Linux系统解决方案▪ Ubuntu 12.04下安装QQ 2012 Beta3▪ CentOS 6.3安装nginx操作指南▪ CentOS 5.5安装图解▪ Ubuntu Server 12.04 LTS安装指引
+ 
+
+
+
+关于我们 | 联系我们 | 广告服务 | 投资合作 | 版权申明 | 在线帮助 | 网站地图 | 作品发布 | Vip技术培训 
+版权所有: 红黑联盟--致力于做最好的IT技术学习网站 
+

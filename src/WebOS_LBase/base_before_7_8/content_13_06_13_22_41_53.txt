@@ -1,0 +1,203 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+caomiao2006的专栏
+目录视图摘要视图订阅
+有奖征集活动系列——【HTML5游戏编程之旅】        专访贺炘：软件测试应讲究策略和方法      低价抢购开源中国论坛门票      “2013年度中国优秀开源项目征集”活动最后一天      Intel Perceptual Camera 初体验
+ C++虚基类的作用
+分类： C++ 2009-08-19 17:06 1631人阅读 评论(1) 收藏 举报
+c++constructorclassc
+虚基类的作用
+     
+当一个基类被声明为虚基类后，即使它成为了多继承链路上的公共基类，最后的派生类中也只有它的一个备份。例如：
+class CBase { }；
+class CDerive1：virtual public CBase{ }；
+class CDerive2：virtual public CBase{ }；
+class CDerive12：public CDerive1，CDerive2{ }；
+则在类CDerive12的对象中，仅有类CBase的一个对象数据
+
+虚基类的特点：
+
+       虚基类构造函数的参数必须由最新派生出来的类负责初始化（即使不是直接继承）；
+       虚基类的构造函数先于非虚基类的构造函数执行。
+       
+重写“C++学习笔记（9）——使用范围运算符解决继承中的二义性问题 ”中的程序，观察虚基类的作用
+代码如下：
+
+[cpp] view plaincopy
+/**//************************************************************************ 
+* 混合继承：多基类继承与多重继承 
+************************************************************************/  
+#include <IOSTREAM.H>  
+//基类  
+class CBase  
+...{  
+protected:  
+    int a;  
+public:  
+    CBase(int na)  
+    ...{  
+        a=na;  
+        cout<<"CBase constructor! ";  
+    }  
+  
+    ~CBase()...{cout<<"CBase deconstructor! ";}  
+};  
+  
+//派生类1(声明CBase为虚基类)  
+class CDerive1:virtual public CBase  
+...{  
+public:  
+    CDerive1(int na):CBase(na)  
+    ...{  
+        cout<<"CDerive1 constructor! ";  
+    }  
+      
+    ~CDerive1()...{cout<<"CDerive1 deconstructor! ";}  
+  
+    int GetA()...{return a;}  
+};  
+  
+//派生类2(声明CBase为虚基类)  
+class CDerive2:virtual public CBase  
+...{  
+public:  
+    CDerive2(int na):CBase(na)  
+    ...{  
+        cout<<"CDerive2 constructor! ";  
+    }  
+    ~CDerive2()...{cout<<"CDerive2 deconstructor! ";}  
+    int GetA()...{return a;}  
+};  
+  
+//子派生类  
+class CDerive12:public CDerive1,public CDerive2  
+...{  
+public:  
+    CDerive12(int na1,int na2,int na3):CDerive1(na1),CDerive2(na2),CBase(na3)  
+    ...{  
+        cout<<"CDerive12 constructor! ";  
+    }  
+    ~CDerive12()...{cout<<"CDerive12 deconstructor! ";}  
+};  
+void main()  
+...{  
+    CDerive12 obj(100,200,300);  
+    //得到从CDerive1继承的值  
+    cout<<" from CDerive1 : a = "<<obj.CDerive1::GetA();  
+    //得到从CDerive2继承的值  
+    cout<<" from CDerive2 : a = "<<obj.CDerive2::GetA()<<endl<<endl;  
+}  
+
+ 
+
+1. 子派生类对象的值：
+
+  
+     从上例可以看出，在类CDerived12的构造函数初始化表中，调用了间接基类CBase的构造函数，这对于非虚基类是非法的，但对于虚基类则是合法且必要的。
+　　对于派生类CDerived1和CDerived2，不论是其内部实现，还是实例化的对象，基类CBase是否是它们的虚基类是没有影响的。受到影响的是它们的派生类CDerived12，因为它从两条路径都能到达CBase。
+         
+2. 运行结果：
+
+    由此可知，其公共基类的构造函数只调用了一次，并且优先于非基类的构造函数调用；并且发现，子派生类的对象obj的成员变量的值只有一个，所以，当公共基类CBase被声明为虚基类后，虽然它成为CDerive1和CDerive2的公共基类，但子派生类CDerive12中也只有它的一个备份。可以仔细比较与例2的运行结果有什么不同。
+
+ 
+
+本文来自CSDN博客，转载请标明出处：http://blog.csdn.net/livelylittlefish/archive/2008/03/11/2171267.aspx
+
+分享到： 
+上一篇：c++中抽象类、虚函数和纯虚函数的学习以及和Java的对比
+下一篇：《.NET框架程序设计》读书笔记一--.NET程序的生成以及执行过程
+
+ 
+查看评论
+1楼 Coker_ye 2012-07-03 19:17发表 [回复]
+
+说得倒是很清楚，但是没讲为什么要将Cbase说明为虚基类，恕我愚笨。
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+ 
+个人资料
+  
+caomiao2006
+ 
+访问：84512次
+积分：1545分
+排名：第5842名
+原创：66篇转载：54篇译文：0篇评论：24条
+文章搜索
+
+文章分类
+.NET(2)
+C(46)
+C++(36)
+JAVA(5)
+Linux(38)
+Visual Studio(Visual C++)(5)
+其他(5)
+多线程(3)
+数据库(7)
+网络(7)
+视音频(1)
+HTTP(0)
+WEB(0)
+文章存档
+2013年05月(4)
+2013年04月(2)
+2012年12月(2)
+2012年11月(2)
+2012年08月(3)
+展开
+阅读排行
+Access 操作或事件已被禁用模式阻止(13379)
+VS2008编译MFC程序提示找不到afxcontrolbars.h(4798)
+安装GCC4.6.0的过程(4326)
+strcpy/strncpy/strcpy_s比较(3934)
+c/c++通过socket发送结构体(3706)
+SO_REUSEADDR的作用(3393)
+VC++中生成DLL和LIB文件(2969)
+5分钟让你整明白美国金融危机爆发的原因(2864)
+VS中def文件对于生成dll和lib文件的作用(2666)
+string的size()和length()(2479)
+评论排行
+Access 操作或事件已被禁用模式阻止(6)
+VS2008编译MFC程序提示找不到afxcontrolbars.h(4)
+C++成员函数的内存分配问题(4)
+c/c++通过socket发送结构体(2)
+Image.Clone()方法(2)
+string的size()和length()(1)
+java中try catch finally与return的执行顺序(1)
+C++虚基类的作用(1)
+c++中抽象类、虚函数和纯虚函数的学习以及和Java的对比(1)
+C语言的一些偏僻知识点(1)
+推荐文章
+
+最新评论
+Access 操作或事件已被禁用模式阻止
+xidianliutingting: 非常感谢
+Image.Clone()方法
+cniaomingjian: 经过对两张图片分别处理，发现Image.Clone()方法确实是深度拷贝
+Image.Clone()方法
+cniaomingjian: 这个代码似乎不能说明问题。如果拷贝引用，那么image1和image2指向堆中相同位置，image1...
+Access 操作或事件已被禁用模式阻止
+ytphr: ganxie
+Access 操作或事件已被禁用模式阻止
+KuGames: 感谢！搜一下就找到你转载的方法了！
+ListView中的焦点
+zhangdi8: 谢谢，也是同样的问题！
+c++中抽象类、虚函数和纯虚函数的学习以及和Java的对比
+Coker_ye: 这一篇说得非常好，太感谢了！
+C++虚基类的作用
+Coker_ye: 说得倒是很清楚，但是没讲为什么要将Cbase说明为虚基类，恕我愚笨。
+string的size()和length()
+niuxuexin: 好，知道了，多谢。
+C++成员函数的内存分配问题
+leizisdu: 谢谢博主的讲解:D
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+

@@ -1,0 +1,249 @@
+
+
+
+
+
+Screenshots
+ Propaganda
+ Users
+ Licensing
+ Blog
+ Forum
+ DocumentationLearning
+
+
+
+ Using vvvv
+
+
+
+
+
+
+ Topics
+
+
+
+
+
+
+
+
+
+
+
+ Node Reference
+ Devvvveloping
+
+
+
+
+
+
+ Website
+ 
+Contributions
+ Downloads
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+vvvv » Documentation » Learning » Tutorials
+» Tutorial Spreads
+
+
+
+
+Tutorial Spreads
+
+
+
+
+
+
+
+
+French | Mandarin | Russian | Spanish | Japanese | Italian
+
+The following tutorial assumes that you have already worked through tutorial II: Herr Inspektor.
+ 
+Spread them Data
+ 
+If one day you decide to take the challenge and attend the final exam to receive the darkgray patcher needle you better be sure of having understood the ease of spreads. Read on carefully and you'll love it. Because:
+ 
+In almost all cases where you want to deal with multiple instances of data, be it values, colors, files, textures, geometries... you can keep your patch pretty simple by thinking in spreads.
+ 
+A Spread of Slices
+ 
+First of all. The word Spread actually denotes nothing more than a list. A list of arbitrary data. Be it values, strings, colors,... and one of the entries in such a list we call a Slice. 
+
+You are already aware that each of a node's pin is of one of vvvv's datatypes (i.e. value, string, color, enum, node). What has not been mentioned so far is that every pin does not necessarily only hold one instance of the data it refers to, but potentially carries a whole spread of data.
+ 
+Spread generators
+ 
+You can find out the number of slices a pin has by hovering above it with the mouse. Create a LinearSpread (Spreads) and hover above its output pin. Nothing special. Right. Now set the nodes SpreadCount to 5. Hover the pin again and note the (5) behind the value. 
+
+
+
+
+
+So the tooltip wants to make you believe that there are 5 slices but only shows you one. Be glad. Suppose you don't have only 5 but say 9874 slices. You wouldn't want to view them all in a tooltip. But of course there are other ways of viewing all the slices of a spread. Remember it from the last tutorial? When viewing a node in the Inspektor you can click the little arrows left to a pins name to get a view on the whole spread.
+ 
+
+
+Like the LinearSpread (Spreads) node there are several more nodes that can generate spreads. If you are curious just quickly go over the HelpPatches of CircularSpread (Spreads), RandomSpread (Spreads) and I (Spreads).
+ 
+Making use of Spreads
+ 
+Think further. There is a pin carrying a spread of 5 slices. How does a node deal with that spread if it is connected to one of its inputs. To see what happens you need to create Renderer (GDI) and a Point (GDI) that you connect to the renderer. This results in one + painted in the middle (i.e. at the coordinates given through the X and Y inputs at the Point (GDI) ) of the Renderer (GDI). Now Connect the LinearSpread (Spreads) output to the X input of the Point (GDI) and lean back. 
+
+
+
+What you see is the clever Point (GDI) node handling a spread. It simply paints its + not only once but 5 times since it got a list of 5 coordinates where to paint. Obvious, eh? If you were a point what'd you do? Yeah, but what if you get connected a spread with a different count on another pin. Duplicate the LinearSpread (Spreads) set its SpreadCount to 2 and connect it to the Y input of the Point (GDI) to see its reaction. 
+
+
+
+Get that? The Point (GDI) receives 5 values on the X input and 2 values on the Y input. What it does: 
+when painting the first + it takes the first slice of the X pin and the first slice of the Y pin
+ when painting the second + it takes the second slice of the X pin and the second slice of the Y pin
+ when painting the third + it takes the third slice of the X pin and since there is no third slice on the Y pin it simply take the first slice again
+ ...
+ 
+That's it. That is the way every node deals with spreads from its inputs. If the input understands spreads. If it doesn't all slices but the first will be discarded. To find out if a pin understands spreads watch it in the Inspektor. A > or >> left to its name indicates that it does understand spreads. 
+
+It can never hurt to watch the video tutorial] about spreads.
+ 
+Accessing individual Slices
+ 
+If you do it right, in most cases you'll not need to deal with individual slices, since almost every node can deal with spreads natively. But of course there are good reasons to access individual slices. Suppose we have such a reason and want to manipulate the 3rd slice that comes out of our first LinearSpread (Spreads) manually. Therefore we insert a SetSlice (Spreads) node as shown below.
+ 
+
+
+The rightmost input of SetSlice (Spreads) tells the node which slice we want to modify. Since slices are counted from 0, if we want to change the 3rd slice we have to enter 2 here. The 2nd input is the new value for that slice. Manipulate that value and note the 3rd + moving independently from the others. 
+
+That's quite nice you may say. But have a look at this:
+ 
+
+
+Via the I (Spreads) node we tell the SetSlice (Spreads) that we do not only want to manipulate the 3rd slice but all slices from the first to the third. And with another LinearSpread (Spreads) we create those 3 values...
+ 
+And so on. Thus, whenever you think things won't work out a spread will come handy. 
+
+Further experimenting
+ 
+At this point you may also want to have a look at the helppatches of: GetSlice (Spreads), Stallone (Spreads), Queue (Spreads) and Cons (Spreads).
+ 
+The tutorial series now goes on telling you some things you should know about IOBoxes
+
+
+
+
+anonymous user login
+
+ 
+
+
+
+
+
+Shoutbox
+
+
+
+
+
+
+~9h ago
+
+Hadasi:http://www.escapemotions.com/experiments/flame/index.html
+ 
+
+
+~10h ago
+
+tonfilm: you can listen to the #techno #jazz #liveset from #vvvvX at #lamf here on #soundcloud : https://soundcloud.com/tonfilmtechno/tonfilm-techno-live-on-vvvvx
+ 
+
+
+~17h ago
+
+matka: thanks vux 
+
+
+
+~18h ago
+
+vux: And here is part 2 :) https://vimeo.com/56469381
+ 
+
+
+~22h ago
+
+vux: Part 1 online: https://vimeo.com/56462513 upload Part 2 soon 
+
+
+
+~1d ago
+
+metrowave: Has anybody tried 'ACCELL ULTRAAV'? http://www.ebay.co.uk/itm/ACCELL-ULTRAAV-BETTER-THAN-MATROX-TRIPLEHEAD2GO-LAPTOP-MACKBOOK-/261147971924?pt=PCC_Video_TV_Cards&hash=item3ccda1d154
+ 
+
+
+~2d ago
+
+metrowave: @vux: the video tutorials are very much appreciated! 
+
+
+
+~2d ago
+
+manolito: @ventolinmono: vlagshipstore is un-occupied at the moment. we will be back in 2013. 
+
+
+
+~2d ago
+
+yair: @skyliner , im at #brvrbt, near the soldering workshops. say hi 
+
+
+
+~2d ago
+
+fibo: @vux: big step forward HLSL coding in v4 
+
+read more
+ follow on twitter
+
+ 
+
+impressum | Page created by joreg, last modification by joreg on 25.09.11 [18:50 UTC], read 18210 times 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.

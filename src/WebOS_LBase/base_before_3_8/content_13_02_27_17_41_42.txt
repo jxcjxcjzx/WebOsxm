@@ -1,0 +1,218 @@
+ 博客首页登录注册如果时间倒流你在哪里 发博文  博文        ×推荐：新《笑傲》之东方不败民间争议“计划生育”
+推荐：新《笑傲》之东方不败民间争议“计划生育”我的BLOG
+http://blog.sina.com.cn/liuguiyou [订阅][手机订阅]首页 博文目录 图片 关于我个人资料 
+ 菜鸟 
+Qing 微博 
+加好友 发纸条 
+
+写留言 加关注 
+
+
+博客等级： 博客积分：1220 博客访问：346,792 关注人气：256 
+精彩图文 
+你在“鄙视链”的哪一环
+动物们的儿童照
+
+新浪Qing
+
+麦当劳3D角色
+
+新浪Qing
+
+容颜金钱选哪个
+
+新浪Qing
+
+动物汽车也卖萌
+
+新浪Qing
+
+我们都曾纯真
+
+新浪Qing
+
+俄罗斯漂亮女人
+
+新浪Qing
+
+
+查看更多>>
+相关博文 
+“李安梦”本质上是“美国梦”
+阿萨
+曹操一家为啥都喜欢有夫之妇？
+微三国
+外资投行聘&nbsp
+Susy
+更多>>
+推荐博文 
+李双江儿子的真实年龄根本就不是
+董路
+日本二战战败并非无条件投降
+徐焰
+善讲跨文化故事，“李安”会更多
+张颐武
+颐和园云龙望柱头被盗
+颐和吴老
+北美崔哥：揭开加拿大的画皮！
+北美崔哥
+谁制造了李家恶少？
+石述思
+空洞博大的“春晚”像个宏大的马
+曾颖
+庄则栋在荧屏上的解冻
+阿忆
+再议“告别革命”
+大侠荣剑
+私了强奸案是犯罪
+丁金坤
+
+
+正月里到凤凰
+
+
+碧海白沙长滩岛
+
+
+骑摩托玩遍花莲
+
+
+冬日随拍
+
+
+苏州冬日山塘街
+
+
+老济南的旧光阴
+
+查看更多>>
+谁看过这篇博文 
+加载中…
+正文 字体大小：大 中 小 
+perl多进程下载网页上所有链接的文章(2010-03-26 11:18:05)转载▼标签： perl杂谈 分类： perl语言学习  
+perl多进程下载网页上所有链接的文章
+ 
+#!c:\perl\bin\perl.exe -w
+use LWP::Simple;
+my $last=264;  #264是最后一页，web看出来的没有写自动的
+ 
+ #获取所有文章列表页面，存入@index_url
+  my $url_t = 'http://linux.chinaunix.netindex_';
+   my @index_url ={};
+   my $index_url="";
+   my $i =1;
+   $index_url[0] = "http://linux.chinaunix.netindex.shtml";
+   for ($i = 1; $i<$last; $i++)      
+  {
+    $index_url[$i] = $url_t."$i.shtml";
+        }
+
+my $maxchild=10;   #最多10个进程
+
+for($i=0;$i<=$maxchild-1;$i++)
+{
+  my $child=fork();
+   if($child)
+  {   # child >; 0, so we're the parent
+        warn "launching child $child\n";
+  }else{ 
+       do_child($i);         # child handles 
+    exit 0;             # child is done
+  }
+}
+sub do_child
+{
+   my $url="";
+   my $url_head="http://linux.chinaunix.net/***";
+   my $location = "e:\\mysoft\\perl\\linuxdoc\\"; 
+   my $t = 1;
+   my $webdoc="";
+ 
+my $child_number=shift(@_);
+   print("child ,$child_number \n");
+  
+   for($i=$child_number;$i<$last;$i=$i+$maxchild)
+   {
+    $index_url = @index_url[$i];
+    my $webdoc = get $index_url;         
+ $j=1;
+ print "正在处理 $index_url","\n";
+    while ($webdoc =~ m#(\/\d{4}\/\d{2}\/\d{2}\/\d*\.shtml)(.*?)14px\">(.*?)<#sgi)
+    {
+  
+  print $j,":$1---$3:";
+  $j++;
+  my $url=$url_head.$1;
+  my $file=$location.$3.".html";
+ 
+  my $code = getstore_r($url,$file);
+  if (is_error($code))  
+           {
+       my $code= getstore_r($url,$location.$t.".html");
+       $t+=1;
+              print "--succeed 3--\n";
+# $t   针对文件名中有特殊字符，改用递增数字命名文件
+    }
+  else
+  {
+              print "--succeed 1--\n";
+  }
+    }
+   }
+   exit;
+}
+######################
+开了10个进程从8:18开始下载，一共有264.shtml个页面，每个页面上有30个文件链接
+263*30=7890
+
+遇到index_54.shtml  171.shtml中间有错误
+use of uninitialized value $webdoc in pattern match (m//) at line 50
+
+9:04 不到处理完  共下载了6512个文件。（7890个文件中有些是同名字的文件）
+分享： 分享到新浪Qing 0
+喜欢
+
+阅读(250)┊ 评论 (0)┊ 收藏(0) ┊转载(2) ┊ 喜欢▼ ┊打印┊举报 已投稿到：  排行榜 圈子  
+
+转载列表：
+转载 
+转载是分享博文的一种常用方式...
+
+前一篇：2010美国大学遗传学基因组学生物信息学专业研究生排名后一篇：Paired end (mate pair) sequencing explanation
+评论 重要提示：警惕虚假中奖信息|[商讯]我有明星气势签名[发评论]评论加载中，请稍候...
+
+发评论 [商讯]爱心签名换梦想，天天派奖|[商讯]提高博客人气新方法
+  更多>>
+
+登录名： 密码： 找回密码 注册 记住登录状态
+昵   称：
+
+ 分享到微博    评论并转载此博文
+
+验证码： 请点击后输入验证码 收听验证码 
+匿名评论发评论 
+以上网友发言只代表其个人观点，不代表新浪网的观点或立场。
+< 前一篇
+2010美国大学遗传学基因组学生物信息学专业研究生排名后一篇 >
+Paired end (mate pair) sequencing explanation
+  新浪BLOG意见反馈留言板　不良信息反馈　电话：4006900000 提示音后按1键（按当地市话标准计费）　欢迎批评指正
+
+新浪简介 | About Sina | 广告服务 | 联系我们 | 招聘信息 | 网站律师 | SINA English | 会员注册 | 产品答疑 
+
+Copyright © 1996 - 2013 SINA Corporation, All Rights Reserved
+
+新浪公司 版权所有
+
+
+X分享到...选择其他平台 >>
+写365
+长微博
+微语录
+九宫格
+发照片
+发视频
+发商品
+博文博主音乐视频播主 最近喜欢了的博主：
+加载中…Qing博客转载原文采编长微博分享到新浪Qing分享到新浪微博为了您的账号安全，请绑定邮箱
+分享到X
+腾讯微博一键通新浪微博QQ空间人人网天涯凤凰微博朋友网人民微博豆瓣网搜狐微博新华微博手机网易微博开心网百度空间QQ好友更多平台... (130)bShare幻灯播放

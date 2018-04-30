@@ -1,0 +1,134 @@
+
+　首页　Linux通用技术 - Linux发行版技术 - 企业应用 - 实验室	 　Linux论坛 -  网站导航
+ 
+
+
+您的位置：	首页 >> 网站导航 >> Linux通用技术 >> Linux安装指导 >> 查看内容 －Linux学习推荐阅读 －最新Linux教程发布下载 －发新话题 (游客可发贴)
+
+
+两种情况下的grub修复
+BENGBENG发布于 2010-6-14 | 7780次阅读   字号: 大 中 小  (网友评论 8 条) 我要评论
+
+ 
+[i=s] 本帖最后由 BENGBENG 于 2010-6-15 10:00 编辑 
+
+大部分安装了linux的一定还保留着windows，有的甚至不是双系统，是三系统甚至更多，记得我看《鸟哥的私房菜》时鸟哥说要在他的三十个G的硬盘里装四个linux，在硬盘里同时装了windows，linux和max的也不是没有，因此装了系统之后grub的修复就是个大问题我就用过Ubuntu和fedora，具体处理的经验也不是很多不过还是有点办法的
+（1）Ubuntu的grub重装和修复。在装了winxp和Ubuntu的电脑上，winxp还原或重装后，grub的启动菜单会丢失，开机会看到grub2的提示符，虽然说grub2从命令行也可以引导，但是我从来没成功过,因此重建菜单是唯一的路：用安装光盘启动到livecd下（硬盘启动livecd的情况没试过），在终端输入命令:
+sudo -i
+mount /dev/sdax /mnt 
+mount /dev/sday /mnt/boot
+grub-install --root-directory=/mnt/ /dev/sda
+上边的每一行都是要单独输入的命令，如没有为/boot单独分区则不需要第三行命令，其中x,y分别为/和/boot所在的分区序号，每一行命令输完后都没有错误提示才行，如果有检查下命令是否有毛病或者多试几次，然后重启即可进入Ubuntu，进入Ubuntu后，打开中断输入命令：
+sudo update-grub
+sudo grub-instll /dev/sda
+第一行命令输入后会显示grub检测到的硬盘上的系统，第二行是将信息写入硬盘，若这些都做了还是无法引导winxp，则要检查grub配置文件：
+sudo gedit /boot/grub/grub.cfg
+看下XP的引导文件是不是为
+menuentry "Microsoft Windows XP Professional" {
+set root=(hd0,1)
+search –no-floppy –fs-uuid –set 4a807ca0807c93e3
+drivemap -s (hd0) $root
+chainloader +1
+若是则将set root=(hd0,1)改为set root=(hd0,0)因为大部分人都将XP装在第一分区，而grub2在这一点上好像总是出错
+（2）安装XP+Ubuntu9.10+fedora13后fedora的grub无法引导Ubuntu的问题。这是我最近遇到的问题，我原来装的是opensuse11.2+XP+Ubuntu9.10但是源太慢了所以格了opensuse装了最新的fedora13,但是装完了后发现Ubuntu启动项不见了，呵呵，系统不能识别一般发生在先装新发行版本后装后发行的版本时，没想到这个fedora13竟然不能识别比他早了近半年的Ubuntu9.10，后来我进了fedora，用gedit打开fedora的grub配置文件，在后面加了个title ubuntu9.10,然后根据ubuntu里的引导文件在fedora里重写ubuntu的引导，原来的ubuntu的引导文件为/boot/grub/grub.cfg,内容为
+menuentry "Ubuntu, Linux 2.6.31-14-generic" {
+recordfail=1
+if [ -n ${have_grubenv} ]; then save_env recordfail; fi
+set quiet=1
+insmod ext2
+set root=(hd0,7)
+search --no-floppy --fs-uuid --set 3038f513-2a08-44c9-b966-b1a09814b523
+linux	/boot/vmlinuz-2.6.31-14-generic root=UUID=3038f513-2a08-44c9-b966-b1a09814b523 ro quiet splash
+initrd	/boot/initrd.img-2.6.31-14-generic
+}
+则对应的fedora引导文件应加入的内容为（对照fedora自己的，注意uuid后的数据来历，我就不多说了）
+title ubuntu(2.6.31-22-generic)
+root (hd0,4)
+uuid 3038f513-2a08-44c9-b966-b1a09814b523
+kernel /boot/vmlinuz-2.6.31-22-generic root=UUID=3038f513-2a08-44c9-b966-b1a09814b523 ro quiet splash
+initrd /boot/initrd.img-2.6.31-22-generic
+（fedora引导文件为/boot/grub/grub.conf）最后应把ubuntu的vmlinuz和initrd.img(省略版本号了)放到fedora的/boot里当然fedora里的grub配置文件指向的是自己的/boot，所以会发现ubuntu里的是
+set root=(hd0,7)而fedora为root (hd0,4)，因为我的ubuntu的/boot在hd0,7而fedora的/boot在hd0,4（这是最关键的一点，我在网上看的，但是没有保存链接）这些做完保存后就行了
+
+ 
+【已有8位网友发表了看法】 【打印】 【关闭】
+
+ 相关评论
+作者: 相思爱文 发布日期: 2010-6-14
+最简单的是安装发行版时，把启动管理器安装到分区，而不是mbr。这样，只需任意一个启动管理器，都可以启动所有系统，还不用菜单，只需转向分区就行。
+
+另外恢复grub更快的方法是备份。引导区用dd，菜单直接cp。启动管理器不能识别新分区，升级grub为最新版本。
+作者: bmcqqi 发布日期: 2010-6-14
+留着看用得着不
+作者: BENGBENG 发布日期: 2010-6-15
+2# 相思爱文 
+
+
+搜噶
+作者: daixlon 发布日期: 2010-6-15
+第二个很好，受教啦
+作者: 松鼠008 发布日期: 2010-6-18
+谢谢了
+作者: chydfl 发布日期: 2010-7-27
+不错。也碰到过这种情况，不过没有楼主那么细心解决。下次试试
+作者: 澎城游子 发布日期: 2010-7-27
+LZ　辛苦了
+作者: gdh7201 发布日期: 2010-7-28
+thanks!
+共有评论数 8/每页显示数 10	
+
+ 
+ 我要评论
+发表评论，与各位同人交流。回复请点击下方的我要评论按钮(游客可回复)，要发表贴子请点击 发新话题 (游客可发贴)
+
+ 热点主题
+·	世界上最快计算机排行榜绝
+·	请教ping不通外网的问题
+·	fedora 13 文本界面（3）下
+·	etc文件权限的问题
+·	help!help!help!我的神舟笔
+·	真正的初学者
+·	fedora 13 下面没有finger
+·	Fedora13的CD版和DVD版的区
+·	虚拟机到底是怎么一回事
+·	用VM多开
+ 最新主题
+·	fedora 13 下面没有finger
+·	关于GNU LINUX 编程指南版本
+·	etc文件权限的问题
+·	fedora 13 文本界面（3）下
+·	help!help!help!我的神舟笔
+·	世界上最快计算机排行榜绝
+·	新人报道
+·	用VM多开
+·	虚拟机到底是怎么一回事
+·	新手的心声
+ 关注热点
+
+ Linux紧张辩论
+和全球40万Linux爱好者热讨当今最热门的开源话题,寻找同城Linux人,发表你的见解...
+
+· 最新主题与激烈辩论主题，5分钟前由系统自动更新！
+· 24小时热点Top20与一周热点Top20主题，15分钟前由系统自动更新！
+下载1000部免费Linux教程,参与Linux社区文档的建设...
+
+
+
+ 各省Linux人：
+北京　上海　天津　重庆　广东
+湖北　四川　安徽　湖南　河北
+江西　河南　陕西　山东　福建
+江苏　浙江　山西　吉林　辽宁
+广西　宁夏　甘肃　贵州　云南
+新疆　西藏　青海　台湾　海南
+香港　澳门　内蒙古　黑龙江
+
+Linux精华文档　Linux同城人(交友)
+
+Linux爱好者在－全国高校
+
+热门栏目推荐：Linux业界新闻
+
+　
+合作　|　关于我们　|　联系我们　|　导航　|　会员注册
+©2013 红联 Powered by SupSite

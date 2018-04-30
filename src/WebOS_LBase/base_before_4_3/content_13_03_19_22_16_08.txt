@@ -1,0 +1,189 @@
+首页 资讯 精华 论坛 问答 博客 专栏 群组 更多 ▼ 您还未登录 ! 登录 注册
+爪哇人
+博客微博相册收藏留言关于我
+  
+【串和序列处理 5】KMP子串匹配算法
+
+博客分类： 数据结构 & 算法
+算法J#F# 
+模式匹配： 在字符串S中，子串P的定位操作通常称做串的模式匹配。说白了，就是在一个字符串中寻找子串。在Suffix Trie和PAT tree中我们已经讨论过匹配子串的方法了。这里我们讨论一种线性匹配算法来寻找子串。
+ 
+例： 我们要在S="ababcabcacbab"中查找子串P="abcac"。下图左侧是一种很普通的模式匹配算法
+
+这种普通的模式匹配算法很简单，但时间复杂度是O(n*m)。其中n=S.length，m=T.length.  代价很高。难道真的要像第三趟到第四趟那样：好不容易匹配到S中的第7个位置，但由于不相同，则有回溯到第4个位置重新开始。
+ 
+其实，每一次匹配过后，主串S中被匹配过的位置其实不用再匹配了。也就是上一趟匹配结果对下一趟有指导作用。 我们用一个证明来说明这一点(假如主串S=s1 s2 .... sn ，模式串P=p1 p2 ... pm  )。
+ 
+证明：当一趟匹配完成之后，我们发现si !=pj 。那么至少说明了模式串p1... p(j-1)是匹配成功的。也就是得到了：  p1  p2  ...  p(j-1) = s(i-j+1)   s(i-j+2) .....  s(i-1) 。 比如第三趟 s7!=p5 => s2...s6=p1...p4 = "abca".
+         如果像上图左侧算法那样，从第三趟i=7回溯到第四趟i=4是有必要的话，那么也说第四趟可能完全匹配到了模式串P。好，我们现在就假设si != sj之后，i 回溯主串(i-j+1)的下一个位置上可以匹配成功模式串P，那么我们可以得到 p1 p2 ... p(j-1) =s(i-j+2)   s(i-j+3) ... s(i)。
+         合并下标蓝色的两个式子，我们可以得到：
+                   s(i-j+1)   s(i-j+2) .....  s(i-1)= s(i-j+2)   s(i-j+3) ...  s(i)
+         也就是：  s(i-j+1)= s(i-j+2)= s(i-j+3)= .... =s(i-1)=s(i)
+         我靠，主串S中全部的字符都一样，这种情况下才必须每一次都回到主串的下一个位置上重新开始。而只要有字符不同，就完全没有这个必要了。好了，基于这个证明成果，我们开始介绍KMP算法。
+ 
+ 
+KMP 模式匹配 —— D.E.Knuth   V.R.Pratt和J.H.Morris同时发现的。因此人们称它为克努特-莫里斯-莫拉特操作（简称KMP算法）。KMP的优势在于当每一趟匹配结果中出现了不等情况时，主串并不需要回溯位置i (上面已经证明)，而只要 回溯模式串P即可 。也就是说，只需要在主串S的位置i 处重新与模式串的位置k进行比较(如上图右侧过程)。 那么这个 重新 需要定位的模式串k位置有什么要求呢，或者说我们怎么确定这个k呢。我们再用一个小小的证明来揭示( 还是假如主串S=s1 s2 .... sn ，模式串P=p1 p2 ... pm  )：
+ 
+证明：当一趟匹配完成之后，我们发现si !=pj 。此时首先可以肯定的是k< j，因为模式串j 必须回溯。
+        如果 s1 与 pk 有重新比较的必要，那么模式串P前k-1个字符必须满足下列关系式：
+                            p1  p2  ...  p(k-1)=s(i-k+1)  s(i-k+2) ...  s(i-1)
+        此外，由于经过额一趟的匹配之后，已经可以得到“部分匹配”结果，主串S中i 位置的前k个字符一定等于模式串P中j 位置上的前k个字符：
+                           p(j-k+1)  p(j-k+2)  ...  p(j-1) = s(i-k+1)   s(i-k+2) .....  s(i-1) 。
+        合并两个蓝色的式子：
+                           p1  p2  ...  p(k-1) = p(j-k+1)   p(j-k+2)   ...   p(j-1)
+        我们发现了，位置k的值取决于模式串P自己必须满足上面这个红色的式子。
+ 
+ 
+失效函数： 当在模式串P的第j 个位置上发生匹配不成功时，需要将模式串回溯到位置 k处的这样一个f(j)=k 的函数，就叫做失效函数。其中j 和k 的值必须满足p1  p2  ...  p(k-1) = p(j-k+1)   p(j-k+2)   ...   p(j-1)。 也就是说 pj 的前k-1个字符必须等于pk 的前k-1 个字符。因此，失效函数f(j)的定义如下：
+ 
+                                                 0       当j=1时
+                                   f(j) =      Max{k|1<k<j 且 p1...p(k-1)=p(j-k+1)...p(j-1) }
+                                                 1       不满足上面的情况
+ 
+比如模式串P=“abcac”的每一个位置的失效函数如下：
+                                            j         1   2   3   4   5
+                                           P         a   b   c   a    c
+                                         k=f(j)     0   1   1   1   2
+
+失效函数的算法
+     假如f(j)=k，则表明 p1...p(k-1) = p(j-k+1)...p(j-1)。这说明 pj 的前k-1个字符必须等于pk 的前k-1 个字符。也就是说p1...pk一定是p1...pj的一个后缀子串。因此我们可以把模式串P与自身做KMP算法的匹配来求解这个K值。算法如下：
+     (1) 若 pk=pj, 则p1...p(k-1)pk= p(j-k+1)...p(j-1) pj 。 表明f(j+1)=k+1
+     (2) 若 pk!=pj , 则可以把求f(j+1)看成以P为主串和匹配串的模式匹配问题。即 pk!=pj 则比较pj与p(f(k))，如果pj==p(f(k))，则f(j+1)=f(k)+1。否则继续比较下去直到f(k)=0为止。
+ 
+     失效函数算法的运行时间是o(m).
+ 
+ 
+KMP算法Java源代码
+Java代码  
+package net.hr.algorithm.string;  
+  
+public class KMP {  
+  
+    private int[] next=null;  
+    private char[] mainAry=null;  
+    private char[] patternAry=null;  
+          
+    public KMP(String main,String pattern){       
+  
+        this.mainAry=new char[main.length()+1];  
+        this.patternAry=new char[pattern.length()+1];  
+        System.arraycopy(main.toCharArray(),0,mainAry,1,main.length());  
+        System.arraycopy(pattern.toCharArray(),0,patternAry,1,pattern.length());  
+        this.next=new int[pattern.length()+1];  
+    }  
+    /** 
+     * KMP匹配 
+     * @param pos 从主串起始位置开始 
+     */  
+    public int match(int pos){  
+  
+        if(pos>mainAry.length)  
+            throw new IndexOutOfBoundsException();  
+        failFunction();  
+          
+        int i=pos,j=1;  
+        while(i<mainAry.length&&j<patternAry.length){  
+            if(j==0||mainAry[i]==patternAry[j]){  
+                ++i;  
+                ++j;  
+            }else{  
+                j=next[j];  
+            }  
+        }  
+        if(j>=patternAry.length) return i-patternAry.length+1;  
+        else return 0;    
+    }  
+    /** 
+     * 匹配串失效函数 
+     */  
+    private void failFunction(){  
+          
+        int i=1,j=0;  
+        next[1]=0;  
+        while(i<patternAry.length-1){  
+            if(j==0||patternAry[i]==patternAry[j]){  
+                next[++i]=++j;  
+            }else{  
+                j=next[j];  
+            }  
+        }  
+    }  
+      
+    /** 
+     * 测试 
+     * @param args 
+     */  
+    public static void main(String[] args) {  
+          
+        KMP kmp=new KMP("acabaabaabcacaabc","abaabcac");  
+        System.out.println(kmp.match(1));  
+    }  
+  
+}  
+ 
+KMP算法效率
+ 
+      对于长度为n的文本串和长度为m的模式串进行模式匹配的运行时间为O(n+m) . 很显然，因为文本串在KMP算法中并不需要回溯，因此与模式串的比较次数为O(n)。但模式串要建立失效函数，所付出的代价是O(m)。因此总体的时间复杂度是O(m+n)。实际中，m要远小于n，因此近似可以认为KMP效率为O(n)。
+      但是KMP算法有种最坏的情况，当模式串P="aaaaa"时，即每一个字符都一样的时候。则失效函数为：
+                                   j     1 2 3 4 5 
+                                  P     a a a a a
+                                 f(j)    0 1 2 3 4
+      此时如果主串中的s[i]!=p[j]的时候，根据模式串P回溯j=f(j)的原则。s[i]需要从模式串P的最后一个字符一步一步回溯到第一个字符，每次都要比较一遍。这时的时间复杂度为O(m)。那么对于n个字符的S串而言，最差的时间复杂度就是O(n*m)了，退化成了蛮力匹配。
+ 
+     KMP和后缀树都可以用来匹配子串。因此我们这里与后缀树做一个比较，虽然后缀树在查找的过程中只需要大概O(m)的时间复杂度。对长度n的文本串建立后缀树最好的算法需要O(n)时间复杂度，因此后缀树大致也需要O(n+m) 。
+ 
+ 
+ 
+ 
+ 
+ 
+5 
+顶0 
+踩 分享到：    
+【串和序列处理 6】LCS 最长公共子序列 | ★经典问题—欧几里得求最大公约数
+2010-03-22 19:59浏览 2815评论(0)分类:编程语言相关推荐
+评论
+发表评论
+  您还没有登录,请您登录后再发表评论
+
+Heart.X.Raid
+浏览: 231851 次
+性别: 
+来自: 武汉
+
+最近访客 更多访客>>
+xwfsdjkdylinshi126skyxkfreshfish2012
+文章分类
+全部博客 (117)
+IT职场面笔题 (13)
+数据结构 & 算法 (24)
+硬件与操作系统 (4)
+J2SE - 语言基础与API (29)
+J2SE - JVM与CLASS (13)
+WEB - J2EE开发框架 (4)
+自然语言处理技术 (5)
+信息检索与搜索引擎 (17)
+踹博百科 (8)
+社区版块
+我的资讯 (0)
+我的论坛 (72)
+我的问答 (35)
+存档分类
+2010-09 (4)
+2010-08 (13)
+2010-06 (2)
+更多存档...
+最新评论
+ddjj7： Mr.TianShu 写道ddjj7 写道Mr.TianShu ...
+【解惑】深入jar包：从jar包中读取资源文件
+zjuttsw： shawnxjf 写道package com;import j ...
+【解惑】小心浅克隆
+zjuttsw： 讲得很好。就是有点瑕疵，代码有些拷贝了两遍，override说 ...
+【解惑】小心浅克隆
+lyp2002924： 顶，深入潜出，
+【总结】Java线程同步机制深刻阐述
+Mr.TianShu： ddjj7 写道Mr.TianShu 写道试过往这个打好包的j ...
+【解惑】深入jar包：从jar包中读取资源文件
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ]
+

@@ -1,0 +1,172 @@
+    下载2频道	
+    秀才　二级
+    |
+    我的百科
+    |
+    百度首页
+
+到百科首页
+
+新闻网页贴吧知道音乐图片视频地图百科文库
+帮助
+
+    首页
+    自然
+    文化
+    地理
+    历史
+    生活
+    社会
+    艺术
+    人物
+    经济
+    科技
+    体育
+    图片
+    数字博物馆
+    核心用户
+    百科商城
+
+LSASS.EXE
+百科名片
+
+lsass.exe是一个系统进程，用于微软Windows系统的安全机制。它用于本地安全和登陆策略。注意：lsass.exe也有可能是Windang.worm、irc.ratsou.b、Webus.B、MyDoom.L、Randex.AR、Nimos.worm创建的，病毒通过软盘、群发邮件和P2P文件共享进行传播。
+
+目录
+
+    进程信息
+    进程描述
+    病毒
+    病毒的清除
+    展开
+
+进程信息
+　　进程文件：lsass 或者 lsass.exe
+　　进程名称：Local Security Authority Service、本地安全权限服务
+　　
+
+  
+出品者：Microsoft Corp.
+　　属于：Microsoft Windows Operating System
+　　系统进程：是
+　　后台程序：是
+　　使用网络：否
+　　硬件相关：否
+　　常见错误：未知N/A
+　　内存使用：未知N/A
+　　安全等级 (0-5)： 0
+　　间谍软件：否
+　　广告软件：否
+　　Virus： 否
+　　木马：否
+进程描述
+　　本地安全权限服务控制Windows安全机制，这是一个系统进程，它会随着系统启动而自动启动。
+　　管理IP安全策略以及启动 ISAKMP/Oakley (IKE) 和 IP 安全驱动程序等，是一个本地的安全授权服务，并且它会为使用winlogon服务的授权用户生成一个进程。这个进程是通过使用授权的包，例如默认的msgina.dll来执行的。如果授权是成功的，lsass就会产生用户的进入令牌，令牌别使用启动初始的shell。其他的由用户初始化的进程会继承这个令牌的。而windows活动目录远程堆栈溢出漏洞，正是利用LDAP 3搜索请求功能对用户提交请求缺少正确缓冲区边界检查，构建超过1000个"AND"的请求，并发送给服务器，导致触发堆栈溢出，使Lsass.exe服务崩溃，系统在60秒内重新启动。并且会导致一些功能失效[1]。
+病毒
+简介及发作
+　　该(这些)病毒是一个可以在WIN9X/NT/2000/XP等操作系统上运行的盗号木马。病毒会强行终止多种杀毒软件的进程，使其不能正常运行。它会频繁检查“传奇”客户端的窗口，如果窗口存在，就会取得当前鼠标的位置，并记录键盘信息，最后把记录下来的信息发送到指定邮箱，从而窃取用户的游戏账号和密码等。
+诊断
+　　如果你的启动菜单（开始-运行-输入“msconfig”）里有个lsass.exe启动项，那就证明你的lsass.exe是木马病毒，中毒后，在进程里可以见到有两个相同的进程，分别是lsass.exe和LSASS.EXE，同时在windows下生成LSASS.EXE和exert.exe两个可执行文件，且在后台运行，LSASS.EXE管理exe类执行文件，exert.exe管理程序退出，还会在D盘根目录下产生和 autorun.inf两个文件，同时侵入注册表破坏系统文件关联。
+病毒的清除
+　　这个病毒比较狠毒，手工清除较为复杂。请用户务必按照步骤严格操作，否则很可能出现无法清除干净的情况。建议一般用户最好使用杀毒软件来清除这个病毒。
+WIN98
+　　打开IE属性删除cookies和所有脱机内容,启动进程杀手终止lsass.exe和exert.exe两个进程，然后到windows目录下删除这两个文件，这两个文件是隐藏的，再到 D：删除和autorun.inf两个文件，最后重启电脑到DOS 运行，用scanreg/restore 命令来恢复注册表，（如果不会的或者是XP系统不能用的可以用瑞星注册表修复程序之类的软件修复一下注册表），重启后进到WINDOWS桌面用杀毒软件，全面杀毒，清除余下的病毒。
+Windows XP
+　　一、准备工作
+　　打开“我的电脑”——工具——文件夹选项——查看
+　　a、把“隐藏受保护的操作系统文件（推荐）”和“隐藏已知文件类型的扩展名”前面的勾去掉；
+　　b、勾中“显示所有文件和文件夹”
+　　二、结束进程　　
+用Ctrl+Alt+Del调出windows务管理器,想通过右击当前用户名的lsass.exe来结束进程是行不通的.会弹出该进程为系统进程无法结束的提醒框;
+　　点到任务管理器进程面版，点击菜单，“查看”－“选择列”，在弹出的对话框中选择“PID（进程标识符）”，并点击“确定”。找到映象名称为“LSASS.exe”，并且用户名不是“SYSTEM”的一项，记住其PID号.点击“开始”——运行，输入“CMD”，点击“确定”打开命令行控制台。
+　　输入“ntsd –c q -p (此红色部分填写你在任务管理器里看到的LSASS.EXE的PID列的数字，是当前用户名进程的PID，别看错了)”，比如我的计算机上就输入“ntsd –c q -p 1064”.这样进程就结束了。（如果结束了又会出现，那么你还是用下面的方法吧）
+　　三、删除病毒文件
+　　删除如下几个文件： （与WIN2000的目录有所不同）
+　　C:\Program Files\Common Files\INTEXPLORE.pif （有的没有.pif）
+　　C:\Program Files\Internet Explorer\INTEXPLORE.C0M
+　　C:\WINDOWS\EXERT.exe （或者exeroute.exe）
+　　C:\WINDOWS\IO.SYS.BAK
+　　C:\WINDOWS\LSASS.exe
+　　C:\WINDOWS\Debug\DebugProgram.exe
+　　C:\WINDOWS\system32\dxdiag.com
+　　C:\WINDOWS\system32\MSCONFIG.COM
+　　C:\WINDOWS\system32\
+　　在D:盘上点击鼠标右键，选择“打开”。删除掉该分区根目录下的“Autorun.inf”文件.
+　　四、删除注册表中的其他垃圾信息
+　　将C:\WINDOWS目录下的“regedit.exe”改名为“”并运行，删除以下项目：
+　　1、HKEY_CLASSES_ROOT\WindowFiles
+　　2、HKEY_CURRENT_USER\Software\VB and VBA Program Settings
+　　3、HKEY_CURRENT_USER\Software\Microsoft\Internet Explorer\Main 下面的 Check_Associations项
+　　4、HKEY_LOCAL_MACHINE\SOFTWARE\Clients\StartMenuInternet\INTEXPLORE.pif
+　　5、HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run 下面的ToP项
+　　五、修复注册表中被篡改的键值
+　　1、将HKEY_CLASSES_ROOT\.exe的默认值修改为 “exefile”(原来是windowsfile)
+　　2、将HKEY_CLASSES_ROOT\Applications\iexplore.exe\shell\open\command 的默认值修改为 “C:\Program Files\Internet Explorer\iexplore.exe” %1
+　　3、将HKEY_CLASSES_ROOT\CLSID\{871C5380-42A0-1069-A2EA-08002B30309D} \shell\OpenHomePage\Command 的默认值修改为
+　　“C:\Program Files\Internet Explorer\IEXPLORE.EXE”
+　　4、将HKEY_CLASSES_ROOT \ftp\shell\open\command 和HKEY_CLASSES_ROOT\htmlfile\shell\opennew\command
+　　的默认值修改为“C:\Program Files\Internet Explorer\iexplore.exe” %1 (原来的值分别INTEXPLORE.pif)
+　　5、将HKEY_CLASSES_ROOT \htmlfile\shell\open\command 和
+　　HKEY_CLASSES_ROOT\HTTP\shell\open\command的默认值修改为
+　　“C:\Program Files\Internet Explorer\iexplore.exe” –nohome
+　　6、将HKEY_LOCAL_MACHINE\SOFTWARE\Clients\StartMenuInternet 的默认值修改为“IEXPLORE.EXE”.(原来是INTEXPLORE.pif)
+　　六、收尾工作
+　　关掉注册表编辑器
+　　将C:\WINDOWS目录下的改回regedit.exe，如果提示有重名文件存在，不能更改，可以先将重名的regedit.exe删除，再将改为regedit.exe。
+问题描述
+　　出现提示缺少exe文件问题的大部分原因是因该文件被木马病毒破坏导致系统程序找不到此文件，出现错误提示框，或程序无法运行，解决此问题只需找到专业的exe文件下载网站，下载该文件后，找到适合程序的文件版本，复制到相应目录。即可解决。
+　　1、Windows 95/98/Me系统，则复制到C:\WINdows\system32\ 目录下。
+　　2、Windows NT/2000系统，则复制到C:\WINNT\system32\ 目录下。
+　　3、Windows XP系统，则复制到C:\WINdows\system32\ 目录下。
+　　4、Windows 7/8系统，则复制到C:\WINdows\system32\目录下。
+
+参考资料
+
+        1．  有关lsass.exe是什么进程的功能及特性图文演示  ．穆童博客 [引用日期2012-12-14] ．
+
+开放分类：
+    电脑 系统 进程 病毒 
+
+百度百科中的词条正文与判断内容均由用户提供，不代表百度百科立场。如果您需要解决具体问题（如法律、医学等领域），建议您咨询相关领域专业人士。
+本词条对我有帮助
+添加到搜藏
+分享到:
+更多
+
+合作编辑者
+    mtoou ， w_ou ， teddy_520 ， xindaocn ， 词条超人 ， 4809281 ， 百科ROBOT ， IDonTKnW ， baomingsen ， lzcgzxyjh ，
+    如果您认为本词条还需进一步完善，百科欢迎您也来参与 编辑词条 在开始编辑前，您还可以先学习如何编辑词条
+
+如想投诉，请到百度百科投诉中心；如想提出意见、建议，请到百度百科吧。
+下载2频道
+
+00
+去兑换>>您尚无道具可使用
+成长任务
+
+    加速升级，快速成长。我要去参加>>
+
+日常任务
+
+    本月累计点亮0天。今日笑脸还没点亮哦。
+    名符图实：参加任务，拿点亮任务日历获得财富值
+
+热词推送
+
+词条动态
+
+进入我的百科
+
+词条统计
+    浏览次数：约 次
+    编辑次数：19次 历史版本
+    最近更新：2012-12-14
+    创建者：你欠揍吗
+
+更多贡献光荣榜
+    辛勤贡献者：
+    	wuhanzhenre	用户等级 	为词条改进贡献了复杂版本的用户，被称为辛勤贡献者 版本
+    	IDonTKnW	用户等级 	为词条改进贡献了复杂版本的用户，被称为辛勤贡献者 版本
+
+© 2013 Baidu 使用百度前必读 | 百科协议 | 百度百科合作平台
+

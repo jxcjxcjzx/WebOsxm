@@ -1,0 +1,700 @@
+
+首页资讯精华论坛问答博客专栏群组更多 ▼
+
+ 
+您还未登录 !登录注册
+
+
+
+
+su1216
+
+
+博客
+微博
+相册
+收藏
+留言
+关于我
+
+
+
+
+.
+
+
+
+
+android手机root后的安全问题 （四）
+博客分类： android
+ 
+androidrootBOOT_COMPLETEDdisableenable .
+
+
+导读： 本文介绍了如何实现禁止开机启动以及如何使应用失效。 
+
+希望大家不要制造各种流氓软件或病毒
+ 
+ 
+ 
+这一期我们来关注以下某些优化软件的开机优化功能
+ 
+禁止开机启动和禁止 
+
+ 
+ 
+很多软件都有开机优化功能，比如360，金山，海卓……
+ 
+我觉得海卓页面还不错，所以就截一张海卓的图片吧
+ 
+
+点击右边的小旗，会有一些选项，这里只说两个
+ 
+开机启动 
+
+程序状态 
+
+ 
+ 
+在android 4.1（jelly bean）版本中，settings中查看应用信息的地方有一个disable按钮，如下图
+ 
+
+disable掉这个应用之后，在launcher列表中是查询不到的，也就是说，你无法启动这个应用了，也合理，但是如果你想enable就有些麻烦了。你得在settings中的应用列表中找到这个应用（一般出厂的手机，都有几十个应用，再加上自己安装的，应用数量很容易就100+了），然后再enable，这时候，launcher中就能再次看到这个应用了
+ 
+（ps：还可以控制是否显示通知，这个功能估计大家都喜欢）
+ 
+ 
+ 
+但是4.0及其之前的版本是没有disable这个功能的，但是如果root了手机，那么我们是可以实现这个功能的。
+ 
+首选我们先看看手机中应用哪些是enabled的
+ 
+
+
+Shell代码  
+1.$ pm list package -e  
+2.package:android  
+3.package:cn.buding.coupon  
+4.package:cn.buding.moviecoupon  
+5.package:cn.chinabus.main  
+6.package:cn.chinabus.metro.main  
+7.package:cn.com.fetion  
+8.……  
+ 
+我看了一下我的手机，居然有249个enabled的程序，汗！
+ 
+
+
+Shell代码  
+1.$ pm list package -e | busybox wc -l                           
+2.249  
+ 
+查看disabled的应用改下选项就可以了
+ 
+
+
+Java代码  
+1.$ pm list package -d  
+ 
+我们先来看看pm都能做些什么
+ 
+
+
+Java代码  
+1.pm list packages: prints all packages, optionally only  
+2.  those whose package name contains the text in FILTER.  Options:  
+3.    -f: see their associated file.  
+4.    -d: filter to only show disbled packages.  
+5.    -e: filter to only show enabled packages.  
+6.    -s: filter to only show system packages.  
+7.    -3: filter to only show third party packages.  
+8.    -u: also include uninstalled packages.  
+9.  
+10.  
+11.pm enable, disable, disable-user: these commands change the enabled state  
+12.  of a given package or component (written as "package/class").  
+ 
+这里只截取了一部分，详情请自行查看pm帮助
+ 
+ 
+ 
+大家可以拿一个无关紧要的程序试试，disable再enable，看看launcher有什么变化（需要root权限，之前的查询是不需要root权限的） ，比如：
+ 
+
+
+Java代码  
+1.pm disable cn.eoe.wiki  
+2.pm enable cn.eoe.wiki  
+ 
+注：切换到root用户时，执行pm可能会出现段错误（android 4.0+） 
+
+ 
+ 
+
+
+Shell代码  
+1.shell@android:/ # pm  
+2.[1] + Stopped (signal)     pm   
+3.shell@android:/ # pm                                                             
+4.[2] + Stopped (signal)     pm   
+5.[1] - Segmentation fault   pm   
+ 
+ 
+ 
+我们在执行pm之前，export一下LD_LIBRARY_PATH即可 
+
+ 
+ 
+
+
+Shell代码  
+1.export LD_LIBRARY_PATH=/vendor/lib:/system/lib  
+ 
+ 
+ 
+我们可以查看一下这个变量
+ 
+ 
+ 
+
+
+Java代码  
+1.echo $LD_LIBRARY_PATH  
+ 
+在我机器上面，普通用户是设置了这个变量的，切换到root的时候，这个变量就空了，所以需要重新export一下
+ 
+ 
+ 
+ 
+ 
+第一个功能程序状态 讲解就结束了。
+ 
+ 
+ 
+其实大多数人关心的是第二个功能开机启动 问题
+ 
+首选，我们需要明确的是：我们需要知道哪些应用具有开机启动功能。
+ 
+其实精确到应用还不可以，因为我们不是要把应用禁止掉，而是要把接收开机启动的Intent的receiver禁止掉，所以我们需要精确到class
+ 
+首先我们来看看接收BOOT_COMPLETED的receiver在manifest中如何注册的
+ 
+
+
+Xml代码  
+1.<receiver android:name=".BootReceiver" android:enabled="true">  
+2.    <intent-filter>      
+3.        <action android:name="android.intent.action.BOOT_COMPLETED"/>   
+4.    </intent-filter>  
+5.</receiver>  
+ 
+这里有一点是需要特别注意的： android:enabled="true" 
+
+enabled这个属性，大多数情况下我们是不显式写在这里的，当然，默认值就为true
+ 
+禁止开机启动，其实就是设置接收BOOT_COMPLETED的receiver状态为disabled，即android:enabled="false" 
+
+首先要解决的就是如何获得所有接收BOOT_COMPLETED的receiver 
+
+开始我也搜索了一下，发现网上的很多方法都不可用，这里给大家说明一下： 
+
+错误方法1 
+
+ 
+ 
+
+
+Java代码  
+1.Intent intent = new Intent(Intent.ACTION_BOOT_COMPLETED);  
+2.List<ResolveInfo> resolveInfoList = mPackageManager.queryBroadcastReceivers(intent, PackageManager.GET_RESOLVED_FILTER);  
+ 
+这里返回的list都是enabled的receiver
+ 
+ 
+ 
+错误方法2 
+
+
+
+Java代码  
+1.List<ApplicationInfo> allAppsList = mPackageManager.getInstalledApplications(0);  
+2.int allAppsListSize = allAppsList.size();  
+3.for (int i = 0; i < allAppsListSize; i++) {  
+4.    ApplicationInfo applicationInfo = allAppsList.get(i);  
+5.    PackageInfo packageInfo = mPackageManager.getPackageInfo(applicationInfo.packageName, PackageManager.GET_RECEIVERS);  
+6.    ActivityInfo[] receivers = packageInfo.receivers;  
+7.    if(receivers != null) {  
+8.            ……  
+9.    }  
+10.}  
+ 
+这里获得的也都是enable的
+ 
+ 
+ 
+错误方法3 
+
+有的人使用下面代码片断
+ 
+ 
+ 
+
+
+Java代码  
+1.if (PackageManager.PERMISSION_GRANTED == mPackageManager.checkPermission("android.permission.RECEIVE_BOOT_COMPLETED", app.packageName))  
+ 
+检查package干什么？！
+ 
+ 
+ 
+其实android原生给我们提供了如何获得所有component的api（enabled+disabled） 
+
+int android.content.pm.PackageManager.GET_DISABLED_COMPONENTS = 512 [0x200]
+ 
+PackageInfo flag: include disabled components in the returned info.
+ 
+ 
+ 
+这样，我们使用如下代码就可以了
+ 
+
+
+Java代码  
+1.Intent intent = new Intent(Intent.ACTION_BOOT_COMPLETED);  
+2.List<ResolveInfo> resolveInfoList = mPackageManager.queryBroadcastReceivers(intent, PackageManager.GET_DISABLED_COMPONENTS);  
+ 
+然后我们需要知道组件的状态，disabled还是enabled 
+
+
+
+Java代码  
+1.ComponentName mComponentName = new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name);  
+2.Log.d(TAG, "COMPONENT_ENABLED_STATE:" + mPackageManager.getComponentEnabledSetting(mComponentName) + "\tpackageName:" + resolveInfo.activityInfo.packageName);  
+ 
+接下来的事情就简单了，如果你想禁止包名为package的应用开机启动，那么只需在上面list中，找到所有此包下的receiver，然后 
+
+
+
+Shell代码  
+1.pm disable package/class  
+2.pm enable package/class  
+ 
+即可
+ 
+ 
+ 
+我们需要关注下面几个COMPONENT_ENABLED_STATE 
+
+ 
+ 
+ 写道
+ 
+public static final int COMPONENT_ENABLED_STATE_DEFAULT
+
+ Since: API Level 1
+ Flag for setApplicationEnabledSetting(String, int, int) and setComponentEnabledSetting(ComponentName, int, int): This component or application is in its default enabled state (as specified in its manifest).
+
+ Constant Value: 0 (0x00000000)
+ public static final int COMPONENT_ENABLED_STATE_DISABLED
+
+ Since: API Level 1
+ Flag for setApplicationEnabledSetting(String, int, int) and setComponentEnabledSetting(ComponentName, int, int): This component or application has been explicitly disabled, regardless of what it has specified in its manifest.
+
+ Constant Value: 2 (0x00000002)
+ public static final int COMPONENT_ENABLED_STATE_DISABLED_USER
+
+ Since: API Level 14
+ Flag for setApplicationEnabledSetting(String, int, int) only: The user has explicitly disabled the application, regardless of what it has specified in its manifest. Because this is due to the user's request, they may re-enable it if desired through the appropriate system UI. This option currently can not be used with setComponentEnabledSetting(ComponentName, int, int).
+
+ Constant Value: 3 (0x00000003)
+ public static final int COMPONENT_ENABLED_STATE_ENABLED
+
+ Since: API Level 1
+ Flag for setApplicationEnabledSetting(String, int, int) and setComponentEnabledSetting(ComponentName, int, int): This component or application has been explictily enabled, regardless of what it has specified in its manifest.
+
+ Constant Value: 1 (0x00000001)
+ public static final int DONT_KILL_APP
+
+ Since: API Level 1
+ Flag parameter for setComponentEnabledSetting(android.content.ComponentName, int, int) to indicate that you don't want to kill the app containing the component. Be careful when you set this since changing component states can make the containing application's behavior unpredictable.
+
+ Constant Value: 1 (0x00000001)
+ 
+ 
+ 
+ 
+ 
+如果是自己应用中想disable或者enable自己的组件，那么是不需要任何权限的，当然不能使用pm命令
+ 
+在原生email(4.0)应用中，旧有此功能，我们来看看email的代码
+ 
+void com.android.email.service.EmailBroadcastProcessorService.setComponentEnabled(Class<?> clazz, boolean enabled)
+ 
+
+
+Java代码  
+1.private void setComponentEnabled(Class<?> clazz, boolean enabled) {  
+2.    final ComponentName c = new ComponentName(this, clazz.getName());  
+3.    getPackageManager().setComponentEnabledSetting(c,  
+4.            enabled ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED  
+5.                    : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,  
+6.            PackageManager.DONT_KILL_APP);  
+7.}  
+ 
+ 
+ 
+void com.android.email.Email.setServicesEnabled(Context context, boolean enabled)方法中也有参考代码
+ 
+ 
+ 
+至此，开机启动、禁用程序 就全部讲解完了。
+ 
+我们发现，海卓这个应用居然有这么多变态功能，居然可以禁止所有事件。。。这是不是过分了点，不过程序的原理应该都在我这篇博客之中了，我不太希望有禁止所有事件这种功能，那还不如把这个app删掉呢，何必折磨它呢？！
+ 
+ 
+ 
+ 
+ 
+请大家不要用root的手机随意下载软件，更不要以任何借口制造任何病毒！ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+android手机root后的安全问题 （一） 
+
+android手机root后的安全问题 （二） 
+
+android手机root后的安全问题 （三） 
+
+android手机root后的安全问题 （四） 
+
+ 
+ 
+ 
+ 
+android安全问题（一） 静音拍照与被拍 
+
+android安全问题（二） 程序锁 
+
+android安全问题（三） 钓鱼程序 
+
+ 
+ 
+ 
+ 
+转贴请保留以下链接 
+
+本人blog地址
+ 
+http://su1216.iteye.com/ 
+
+http://blog.csdn.net/su1216/ 
+
+
+
+1 
+顶
+
+0 
+踩.
+
+分享到： 
+.
+
+java获取系统语言（区分简体中文和繁体中文 ... | android - 为安全而设计 - 1 - 开发文档翻 ...
+
+2012-09-11 14:44
+浏览 1826
+评论(4)
+分类:移动开发
+相关推荐
+
+
+评论
+
+
+4 楼 N_HH 2013-01-08   
+
+
+su1216 写道
+
+
+N_HH 写道
+
+那个，请问，pm是什么。。不懂。 
+
+shell@android:/ $ pm --help
+Error: unknown command '--help'
+usage: pm list packages [-f] [-d] [-e] [-s] [-e] [-u] [FILTER]
+       pm list permission-groups
+       pm list permissions [-g] [-f] [-d] [-u] [GROUP]
+       pm list instrumentation [-f] [TARGET-PACKAGE]
+       pm list features
+       pm list libraries
+       pm path PACKAGE
+       pm install [-l] [-r] [-t] [-i INSTALLER_PACKAGE_NAME] [-s] [-f] PATH
+       pm uninstall [-k] PACKAGE
+       pm clear PACKAGE
+       pm enable PACKAGE_OR_COMPONENT
+       pm disable PACKAGE_OR_COMPONENT
+       pm disable-user PACKAGE_OR_COMPONENT
+       pm set-install-location [0/auto] [1/internal] [2/external]
+       pm get-install-location
+       pm createUser USER_NAME
+       pm removeUser USER_ID
+
+pm list packages: prints all packages, optionally only
+  those whose package name contains the text in FILTER.  Options:
+    -f: see their associated file.
+    -d: filter to only show disbled packages.
+    -e: filter to only show enabled packages.
+    -s: filter to only show system packages.
+    -3: filter to only show third party packages.
+    -u: also include uninstalled packages.
+
+pm list permission-groups: prints all known permission groups.
+
+pm list permissions: prints all known permissions, optionally only
+  those in GROUP.  Options:
+    -g: organize by group.
+    -f: print all information.
+    -s: short summary.
+    -d: only list dangerous permissions.
+    -u: list only the permissions users will see.
+
+pm list instrumentation: use to list all test packages; optionally
+  supply <TARGET-PACKAGE> to list the test packages for a particular
+  application.  Options:
+    -f: list the .apk file for the test package.
+
+pm list features: prints all features of the system.
+
+pm path: print the path to the .apk of the given PACKAGE.
+
+pm install: installs a package to the system.  Options:
+    -l: install the package with FORWARD_LOCK.
+    -r: reinstall an exisiting app, keeping its data.
+    -t: allow test .apks to be installed.
+    -i: specify the installer package name.
+    -s: install package on sdcard.
+    -f: install package on internal flash.
+
+pm uninstall: removes a package from the system. Options:
+    -k: keep the data and cache directories around after package removal.
+
+pm clear: deletes all data associated with a package.
+
+pm enable, disable, disable-user: these commands change the enabled state
+  of a given package or component (written as "package/class").
+
+pm get-install-location: returns the current install location.
+    0 [auto]: Let system decide the best location
+    1 [internal]: Install on internal device storage
+    2 [external]: Install on external media
+
+pm set-install-location: changes the default install location.
+  NOTE: this is only intended for debugging; using this can cause
+  applications to break and other undersireable behavior.
+    0 [auto]: Let system decide the best location
+    1 [internal]: Install on internal device storage
+    2 [external]: Install on external media
+
+很详细。。谢了哈 
+
+3 楼 su1216 2013-01-07   
+
+
+N_HH 写道
+
+那个，请问，pm是什么。。不懂。 
+
+shell@android:/ $ pm --help
+Error: unknown command '--help'
+usage: pm list packages [-f] [-d] [-e] [-s] [-e] [-u] [FILTER]
+       pm list permission-groups
+       pm list permissions [-g] [-f] [-d] [-u] [GROUP]
+       pm list instrumentation [-f] [TARGET-PACKAGE]
+       pm list features
+       pm list libraries
+       pm path PACKAGE
+       pm install [-l] [-r] [-t] [-i INSTALLER_PACKAGE_NAME] [-s] [-f] PATH
+       pm uninstall [-k] PACKAGE
+       pm clear PACKAGE
+       pm enable PACKAGE_OR_COMPONENT
+       pm disable PACKAGE_OR_COMPONENT
+       pm disable-user PACKAGE_OR_COMPONENT
+       pm set-install-location [0/auto] [1/internal] [2/external]
+       pm get-install-location
+       pm createUser USER_NAME
+       pm removeUser USER_ID
+
+pm list packages: prints all packages, optionally only
+  those whose package name contains the text in FILTER.  Options:
+    -f: see their associated file.
+    -d: filter to only show disbled packages.
+    -e: filter to only show enabled packages.
+    -s: filter to only show system packages.
+    -3: filter to only show third party packages.
+    -u: also include uninstalled packages.
+
+pm list permission-groups: prints all known permission groups.
+
+pm list permissions: prints all known permissions, optionally only
+  those in GROUP.  Options:
+    -g: organize by group.
+    -f: print all information.
+    -s: short summary.
+    -d: only list dangerous permissions.
+    -u: list only the permissions users will see.
+
+pm list instrumentation: use to list all test packages; optionally
+  supply <TARGET-PACKAGE> to list the test packages for a particular
+  application.  Options:
+    -f: list the .apk file for the test package.
+
+pm list features: prints all features of the system.
+
+pm path: print the path to the .apk of the given PACKAGE.
+
+pm install: installs a package to the system.  Options:
+    -l: install the package with FORWARD_LOCK.
+    -r: reinstall an exisiting app, keeping its data.
+    -t: allow test .apks to be installed.
+    -i: specify the installer package name.
+    -s: install package on sdcard.
+    -f: install package on internal flash.
+
+pm uninstall: removes a package from the system. Options:
+    -k: keep the data and cache directories around after package removal.
+
+pm clear: deletes all data associated with a package.
+
+pm enable, disable, disable-user: these commands change the enabled state
+  of a given package or component (written as "package/class").
+
+pm get-install-location: returns the current install location.
+    0 [auto]: Let system decide the best location
+    1 [internal]: Install on internal device storage
+    2 [external]: Install on external media
+
+pm set-install-location: changes the default install location.
+  NOTE: this is only intended for debugging; using this can cause
+  applications to break and other undersireable behavior.
+    0 [auto]: Let system decide the best location
+    1 [internal]: Install on internal device storage
+    2 [external]: Install on external media
+ 
+
+2 楼 N_HH 2013-01-07   
+
+那个，请问，pm是什么。。不懂。 
+
+
+1 楼 Lovic 2012-09-11   
+
+ooooooooooooooooooo
+ 
+
+发表评论
+
+ 您还没有登录,请您登录后再发表评论 
+
+
+
+
+
+
+su1216
+ 
+浏览: 65622 次
+性别: 
+来自: 北京
+
+
+
+最近访客 更多访客>>
+
+
+
+
+rimoer
+
+
+
+
+zht19880706
+
+
+
+
+heavensay
+
+
+
+
+woyaowenzi
+.
+
+博客专栏
+深入入门正则表达式（jav...
+浏览量：6019.android手机的安全问...
+浏览量：18362.
+
+文章分类
+■全部博客 (93)
+■android (37)
+■Unix & Linux 大学教程 (22)
+■Linux命令行与shell脚本编程大全 (10)
+■java (5)
+■java多线程 (3)
+■虚拟机 (7)
+■设计模式 (1)
+■正则表达式 (6)
+■数据库 (1)
+■其他 (1)
+■转贴 (1)
+
+
+社区版块
+■我的资讯 (0)
+■我的论坛 (70) 
+■我的问答 (19)
+
+
+存档分类
+■2013-02 (1)
+■2013-01 (5)
+■2012-12 (7)
+■更多存档...
+
+
+评论排行榜
+■android手机root后的安全问题 （二）
+■android安全问题（二） 程序锁
+■android安全问题（四） 抢先开机启动 - ...
+■android安全问题（三） 钓鱼程序
+■android手机root后的安全问题 （一）
+
+
+最新评论
+N_HH： su1216 写道N_HH 写道那个，请问，pm是什么。。不懂 ...
+android手机root后的安全问题 （四）
+su1216： N_HH 写道那个，请问，pm是什么。。不懂。shell@an ...
+android手机root后的安全问题 （四）
+N_HH： 那个，请问，pm是什么。。不懂。
+android手机root后的安全问题 （四）
+su1216： tjwink 写道既然已经知道su的数据库地址，可以直接用DB ...
+android手机root后的安全问题 （三）
+tjwink： 既然已经知道su的数据库地址，可以直接用DBOpenHelpe ...
+android手机root后的安全问题 （三）
+
+.
+
+
+--------------------------------------------------------------------------------
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ] 
+.

@@ -1,0 +1,291 @@
+LPCSTR引发的思考
+
+分类： VC++ 2011-05-29 22:22 607人阅读 评论(0) 收藏 举报
+characterstringintegerwindowscallback编译器
+
+解释一：
+LP-长指针
+C-Const
+T-Unicode/ANSI兼容
+STR-字符串
+解释二：
+LPCSTR   A 32-bit pointer to a constant character string.
+
+LPSTR   A 32-bit pointer to a character string.
+
+LPCTSTR   A 32-bit pointer to a constant character string that is portable for Unicode and DBCS.
+
+LPTSTR   A 32-bit pointer to a character string that is portable for Unicode and DBCS.
+解释三：
+
+LPCSTR 就是 静态char *       静态8位Windows字符（ANSI）无终结字符串指针
+
+LPCTSTR 就是 静态wchar_t *   如果UNICODE已定义则为LPCWSTR，否则为LPCTSTR
+
+
+ 
+
+解释一：
+LP-长指针
+C-Const
+T-Unicode/ANSI兼容
+STR-字符串
+解释二：
+LPCSTR   A 32-bit pointer to a constant character string.
+
+LPSTR   A 32-bit pointer to a character string.
+
+LPCTSTR   A 32-bit pointer to a constant character string that is portable for Unicode and DBCS.
+
+LPTSTR   A 32-bit pointer to a character string that is portable for Unicode and DBCS.
+解释三：
+
+LPCSTR 就是 静态char *       静态8位Windows字符（ANSI）无终结字符串指针
+
+LPCTSTR 就是 静态wchar_t *   如果UNICODE已定义则为LPCWSTR，否则为LPCTSTR
+
+L表示long指针， 这是为了兼容Windows 3.1等16位操作系统遗留下来的， 在win32中以及其他的32为操作系统中， long指针和near指针及far修饰符都是为了兼容的作用。没有实际意义。
+
+
+
+P表示这是一个指针
+
+C表示是一个常量
+
+T在Win32环境中， 有一个_T宏， 这个宏用来表示你的字符是否使用UNICODE, 如果你的程序定义了UNICODE或者其他相关的宏， 那么这个字符或者字符串将被作为UNICODE字符串， 否则就是标准的ANSI字符串。
+
+STR表示这个变量是一个字符串。
+
+
+
+所以LPCTSTR就表示一个指向常固定地址的可以根据一些宏定义改变语义的字符串。
+
+同样， LPCSTR就只能是一个ANSI字符串， 在程序中我们大部分时间要使用带T的类型定义。
+
+
+
+LPCTSTR == const TCHAR *
+
+另外还有：
+
+MSDN,LPCTSTR:A 32-bit pointer to a constant character string
+楼上谁的很对。
+
+BOOL   A Boolean value.
+
+
+BSTR   A 32-bit character pointer.
+
+
+BYTE   An 8-bit integer that is not signed.
+
+
+COLORREF   A 32-bit value used as a color value.
+
+
+DWORD   A 32-bit unsigned integer or the address of a segment and its associated offset.
+
+
+LONG   A 32-bit signed integer.
+
+
+LPARAM   A 32-bit value passed as a parameter to a window procedure or callback function.
+
+
+LPCSTR   A 32-bit pointer to a constant character string.
+
+
+LPSTR   A 32-bit pointer to a character string.
+
+
+LPCTSTR   A 32-bit pointer to a constant character string that is portable for Unicode and DBCS.
+
+
+LPTSTR   A 32-bit pointer to a character string that is portable for Unicode and DBCS.
+
+
+LPVOID   A 32-bit pointer to an unspecified type.
+
+
+LRESULT   A 32-bit value returned from a window procedure or callback function.
+
+
+UINT   A 16-bit unsigned integer on Windows versions 3.0 and 3.1; a 32-bit unsigned integer on Win32.
+
+
+WNDPROC   A 32-bit pointer to a window procedure.
+
+
+WORD   A 16-bit unsigned integer.
+
+
+WPARAM   A value passed as a parameter to a window procedure or callback function: 16 bits on Windows versions 3.0 and 3.1; 32 bits on Win32. 
+Data types unique to the Microsoft Foundation Class Library include the following: 
+
+POSITION   A value used to denote the position of an element in a collection; used by MFC collection classes.
+
+
+LPCRECT   A 32-bit pointer to a constant (nonmodifiable) RECT structure.
+
+
+源于：
+
+http://hi.baidu.com/daihaipengdhp/blog/item/d46531d79c91eedea044df77.html
+
+ 
+
+ 
+
+ 
+
+LPCTSTR类型？     
+L表示long指针,这是为了兼容Windows 3.1等16位操作系统遗留下来的，在win32中以及其他的32为操作系统中， long指针和near指针及far修饰符都是为了兼容的作用。没有实际意义。
+
+P表示这是一个指针
+
+C表示是一个常量
+
+T表示在Win32环境中， 有一个_T宏
+
+这个宏用来表示你的字符是否使用UNICODE, 如果你的程序定义了UNICODE或者其他相关的宏，那么这个字符或者字符串将被作为UNICODE字符串，否则就是标准的ANSI字符串。
+
+STR表示这个变量是一个字符串
+
+所以LPCTSTR就表示一个指向常固定地址的可以根据一些宏定义改变语义的字符串。
+同样， LPCSTR就只能是一个ANSI字符串，在程序中我们大部分时间要使用带T的类型定义。
+
+LPCTSTR == const TCHAR *
+**
+lpcstr与lpctstr的区别     
+LPCSTR    A 32-bit pointer to a constant character string.
+LPSTR    A 32-bit pointer to a character string.
+LPCTSTR    A 32-bit pointer to a constant character string that is portable for Unicode and DBCS.
+LPTSTR    A 32-bit pointer to a character string that is portable for Unicode and DBCS
+LPWSTR 就是wchar*是支持unicode等双字节的字符是16bits
+LPSTR 是char*是ansi单子节8bits
+LPCTSTR 是const char*
+LPTSTR 是一个宏
+#ifdef _UNICODE
+#define LPTSTR   LPWSTR
+#else
+#define LPTSTR   LPSTR
+#endif
+也就是说当你定义了_UNICODE宏LPTSTR就是LPWSTR
+没有定义_UNICODE，LPTSTR就是LPSTR
+可以用ATL的W2T,T2W,W2A,A2W,A2T,T2A六个宏转换
+char s[20]是20个字节的数组
+而char *s只是一个指针他只有16/32/64位字节
+从这个意义上char s[20] 相当于 char *s = new char[20];
+他们分配内存的位置也不同，特别当char s[20]是全局变量时。
+char s[20] 不等于 char *s = new char[20] 了。
+
+源于：
+
+http://hi.baidu.com/strutsspringj2/blog/item/1fd80bc6d4e9d9189d163d25.html
+
+
+
+L表示long指针
+
+这是为了兼容Windows 3.1等16位操作系统遗留下来的，在win32中以及其他的32为操作系统中， long指针和near指针及far修饰符都是为了兼容的作用。没有实际意义。
+
+P表示这是一个指针
+
+
+C表示是一个常量
+
+T表示在Win32环境中， 有一个_T宏
+
+这个宏用来表示你的字符是否使用UNICODE, 如果你的程序定义了UNICODE或者其他相关的宏，那么这个字符或者字符串将被作为UNICODE字符串，否则就是标准的ANSI字符串。
+
+
+STR表示这个变量是一个字符串
+
+所以LPCTSTR就表示一个指向常固定地址的可以根据一些宏定义改变语义的字符串。
+同样， LPCSTR就只能是一个ANSI字符串，在程序中我们大部分时间要使用带T的类型定义。
+
+LPCTSTR == const TCHAR *
+
+CString 和 LPCTSTR 可以说通用。 原因在于CString定义的自动类型转换，没什么奇特的，最简单的C++操作符重载而已。 
+
+常量字符串ansi和unicode的区分是由宏_T来决定的。但是用_T("abcd")时， 字符串"abcd"就会根据编译时的是否定一_UNICODE来决定是char* 还是 w_char*。 同样，TCHAR 也是相同目的字符宏。 看看定义就明白了。简单起见，下面只介绍 ansi 的情况，unicode 可以类推。 
+
+ansi情况下，LPCTSTR 就是 const char*, 是常量字符串（不能修改的）。 
+而LPTSTR 就是 char*, 即普通字符串（非常量，可修改的）。 
+这两种都是基本类型， 而CString 是 C++类， 兼容这两种基本类型是最起码的任务了。 
+
+由于const char* 最简单（常量，不涉及内存变更，操作迅速）， CString 直接定义了一个类型转换函数 
+operator LPCTSTR() {......}， 直接返回他所维护的字符串。 
+
+当你需要一个const char* 而传入了CString时， C++编译器自动调用 CString重载的操作符 LPCTSTR()来进行隐式的类型转换。 
+当需要CString , 而传入了 const char* 时（其实 char* 也可以），C++编译器则自动调用CString的构造函数来构造临时的 CString对象。 
+
+因此CString 和 LPCTSTR 基本可以通用。 
+
+
+但是 LPTSTR又不同了，他是 char*， 意味着你随时可能修改里面的数据，这就需要内存管理了(如字符串变长，原来的存贮空间就不够了，则需要重新调整分配内存)。 
+所以 不能随便的将 const char* 强制转换成 char* 使用。 
+楼主举的例子 
+LPSTR lpstr = (LPSTR)(LPCTSTR)string; 
+就是这种不安全的使用方法。 
+
+这个地方使用的是强制类型转换，你都强制转换了，C++编译器当然不会拒绝你，但同时他也认为你确实知道自己要做的是什么。因此是不会给出警告的。 
+强制的任意类型转换是C(++)的一项强大之处，但也是一大弊端。这一问题在 vc6 以后的版本(仅针对vc而言)中得到逐步的改进(你需要更明确的类型转换声明)。 
+
+其实在很多地方都可以看到类似 
+LPSTR lpstr = (LPSTR)(LPCTSTR)string; 
+地用法，这种情况一般是函数的约束定义不够完善的原因， 比如一个函数接受一个字符串参数的输入，里面对该字符串又没有任何的修改，那么该参数就应该定义成 const char*， 但是很多初学者弄不清const地用法，或者是懒， 总之就是随意写成了 char* 。 这样子传入CString时就需要强制的转换一下。 
+
+这种做法是不安全的，也是不被建议的用法，你必须完全明白、确认该字符串没有被修改。 
+
+CString 转换到 LPTSTR (char*), 预定的做法是调用CString的GetBuffer函数，使用完毕之后一般都要再调用ReleaseBuffer函数来确认修改 (某些情况下也有不调用ReleaseBuffer的，同样你需要非常明确为什么这么做时才能这样子处理，一般应用环境可以不考虑这种情况)。 
+
+同时需要注意的是， 在GetBuffer 和 ReleaseBuffer之间，CString分配了内存交由你来处理，因此不能再调用其他的CString函数。
+
+CString 转LPCTSTR:
+CString cStr;
+const char *lpctStr=(LPCTSTR)cStr;
+
+LPCTSTR转CString:
+LPCTSTR lpctStr;
+CString cStr=lpctStr;
+
+源于：
+http://hi.baidu.com/juliet2366/blog/item/d9d83d2a55538f3b5343c1ff.html
+ 
+
+我主要碰到的情况是在
+
+1.
+
+class CFrameWnd里面的Create（），其中Create（）定义形式如下：
+
+virtual BOOL Create(LPCTSTR lpszClassName,
+                LPCTSTR lpszWindowName,
+                DWORD dwStyle = WS_OVERLAPPEDWINDOW,
+                const RECT& rect = rectDefault,
+                CWnd* pParentWnd = NULL,        // != NULL for popups
+                LPCTSTR lpszMenuName = NULL,
+                DWORD dwExStyle = 0,
+                CCreateContext* pContext = NULL);
+
+
+
+情况2 实在MessageBox()里面遇到
+
+追溯到
+#define MessageBox MessageBoxW
+
+MessageBoxW(
+    __in_opt HWND hWnd,
+    __in_opt LPCWSTR lpText,
+    __in_opt LPCWSTR lpCaption,
+    __in UINT uType);
+
+问题解决如下：
+
+Create(NULL,L"我的窗口",WS_OVERLAPPEDWINDOW,CRect(0,0,300,200));
+
+m_pMainWnd->MessageBox(L"你好，欢迎进入MFC世界！");
+
+必须在常量字符串处加上L，否则安全检查通不过，提示出错。其中MessageBox的问题前两天就遇到了，一直郁闷的不知道是怎么回事儿，现在算是解决了，继续学习摸索。

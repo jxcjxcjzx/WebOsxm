@@ -1,0 +1,323 @@
+
+1. [代码]读取png图片，截取部分数据     
+	public static void getPngData(String path, Vector vMyPng) {
+		// vFileNmae.add(path);
+
+		DataInputStream dateInput = null;
+		InputStream is = null;
+		FileInputStream fr = null;
+
+		byte[] pngHead = new byte[8];// 8B 8*8=64bit
+
+		int length_Data;// 4B
+		byte[] ChunkTypeCode_Data = new byte[4];// 4B
+		char[] crc_Data = new char[2];
+
+		MyPng png = new MyPng(path);
+
+		// is = new DataInputStream(this.getClass().getResourceAsStream(path));
+		is = new DataInputStream(IOControl.class.getResourceAsStream(path));
+		try {
+			fr = new FileInputStream("res/" + path + ".png");
+			dateInput = new DataInputStream(fr);
+			// 建FileReader对象，用来读取字符流
+
+			if (is == null) {
+				System.out.println("1null!!");
+				return;
+			}
+
+			if (dateInput == null) {
+				System.out.println("2null!!");
+				try {
+					System.out.println(dateInput.available());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				return;
+			}
+
+			// dateInput.
+			try {
+				// png head
+				System.out.println(dateInput.readInt());
+				System.out.println(dateInput.readInt());
+				System.out.println("======");
+				System.out.println(0x89504e47);
+				System.out.println(0x0d0a1a0a);
+				
+
+				// other: Length ChunK_Type_Code Chunk_Data CRC
+				while (true) {
+					// dateInput.read(length_Data);
+					length_Data = dateInput.readInt();
+					System.out.println("l=" + length_Data);
+					// 4B ASC-11 1char2B
+					for (int i = 0; i < ChunkTypeCode_Data.length; i++) {
+						ChunkTypeCode_Data[i] = dateInput.readByte();// 32
+					}
+
+					
+					String str = new String(ChunkTypeCode_Data);// ASC-11 java
+																// class编码采用UTF-8
+					System.out.println("TYPE: " + str);
+					// "PLTE", "IDAT","IEND", "tRNS"
+					if (RESERVED[0].contentEquals(str.trim())) {
+						png.IHDR_length = length_Data;
+
+						png.IHDR_ChunkTypeCode = new byte[4];
+						for (int i = 0; i < ChunkTypeCode_Data.length; i++) {
+							png.IHDR_ChunkTypeCode[i] = ChunkTypeCode_Data[i];
+						}
+						
+						//png.IHDR_Data = new byte[png.IHDR_length];
+						png.width = dateInput.readInt();
+						png.height= dateInput.readInt();
+						png.bitDepth = dateInput.readByte();
+						png.colorType= dateInput.readByte(); 
+						png.compressionMethod= dateInput.readByte(); 
+						png.filterMethod = dateInput.readByte();
+						png.interlaceMethod= dateInput.readByte(); 
+						//dateInput.read(png.IHDR_Data);
+						
+						System.out.println(png.width);
+						System.out.println(png.height);
+						System.out.println(png.bitDepth);
+						System.out.println(png.colorType);
+						System.out.println(png.compressionMethod);
+						System.out.println(png.filterMethod);
+						System.out.println(png.interlaceMethod);
+				
+						// System.out.println(new String(png.IHDR_Data));
+						png.IHDR_crc = dateInput.readInt();
+					} else if (RESERVED[1].contentEquals(str.trim())) {// "PLTE"
+						png.plte = true;
+						png.PLTE_length = length_Data;
+						png.PLTE_ChunkTypeCode = new byte[4];
+						for (int i = 0; i < ChunkTypeCode_Data.length; i++) {
+							png.PLTE_ChunkTypeCode[i] = ChunkTypeCode_Data[i];
+						}
+
+						png.PLTE_Data = new byte[png.PLTE_length];
+						dateInput.read(png.PLTE_Data);
+						png.PLTE_crc = dateInput.readInt();
+					} else if (RESERVED[2].contentEquals(str.trim())) {// "IDAT"
+						byte[] data = new byte[length_Data];
+						dateInput.read(data);
+						png.setDate(length_Data, ChunkTypeCode_Data, data,
+								dateInput.readInt());
+					} else if (RESERVED[3].contentEquals(str.trim())) {// "IEND"
+					// png.IEND_length = length_Data;
+					// System.out.println(Integer.toHexString(png.IEND_length));
+					//
+					// png.IEND_ChunkTypeCode = new byte[4];
+					// for(int i=0;i<ChunkTypeCode_Data.length;i++){
+					// png.IEND_ChunkTypeCode[i] = ChunkTypeCode_Data[i];
+					// }
+					// System.out.println(new String(png.IEND_ChunkTypeCode));
+					// png.IEND_Data = new byte[length_Data];
+					// dateInput.read(png.IEND_Data);
+					// //System.out.println(new String(png.IEND_Data));
+					// //dateInput.read(PLTE_crc);
+					// png.IEND_crc = dateInput.readInt();
+					// System.out.println(Integer.toHexString(png.IEND_crc));
+						vMyPng.add(png);
+
+						return;
+					} else if (RESERVED[4].contentEquals(str.trim())) {// "tRNS"
+						png.tRNS = true;
+						png.tRNS_length = length_Data;
+
+						png.tRNS_ChunkTypeCode = new byte[4];
+						for (int i = 0; i < ChunkTypeCode_Data.length; i++) {
+							png.tRNS_ChunkTypeCode[i] = ChunkTypeCode_Data[i];
+						}
+						png.tRNS_Data = new byte[length_Data];
+						dateInput.read(png.tRNS_Data);
+
+						png.tRNS_crc = dateInput.readInt();
+					} else {
+						int counts = length_Data;
+						System.out.println(counts);
+						dateInput.skipBytes(counts + 4);
+					}
+				}
+
+				// IEND
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			fr.close();
+			dateInput.close();
+			is.close();
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+2. [代码]将截取的png数据，新建一个png     
+public static void putFile(Vector vMyPng) {//禁用read 跟 write
+		DataOutputStream dateOutput = null;
+		Enumeration e = vMyPng.elements();
+		while (e.hasMoreElements()) {
+			try {// 20 20 xiao
+				MyPng png = (MyPng) e.nextElement();
+				FileOutputStream fo = new FileOutputStream("d:\\" + png.strName
+						+ ".png");
+				dateOutput = new DataOutputStream(fo);
+
+				//file
+				dateOutput.writeInt(0x89504e47);
+				dateOutput.writeInt(0x0d0a1a0a);
+				
+				// IHDR; int4 short2 short2
+				dateOutput.writeInt(13);
+				dateOutput.writeInt(0x49484452);
+				//dateOutput.writeInt(0x49484452);
+				dateOutput.writeInt(png.width);
+				dateOutput.writeInt(png.height);
+				dateOutput.writeByte(png.bitDepth);
+				dateOutput.writeByte(png.colorType);
+				dateOutput.writeByte(png.compressionMethod);
+				dateOutput.writeByte(png.filterMethod);
+				dateOutput.writeByte(png.interlaceMethod);
+				dateOutput.writeInt(png.IHDR_crc);
+
+				// PLTE;
+				dateOutput.writeBoolean(png.plte);
+				if (png.plte) {
+					dateOutput.writeInt(png.PLTE_length);
+					System.out.println(png.PLTE_length);
+					//dateOutput.write(png.PLTE_ChunkTypeCode);
+					dateOutput.writeInt(0x504C5445);
+					for(int i=0;i<png.PLTE_length;i++){
+						dateOutput.writeByte(png.PLTE_Data[i]);
+					}
+					dateOutput.writeInt(png.PLTE_crc);
+				}
+
+				// tRNS;
+				dateOutput.writeBoolean(png.tRNS);
+				if (png.tRNS) {
+					dateOutput.writeInt(png.tRNS_length);
+					//dateOutput.write(png.tRNS_ChunkTypeCode);
+					dateOutput.writeInt(0x74524E53);
+					//dateOutput.write(png.tRNS_Data);
+					for(int i=0;i<png.tRNS_length;i++){
+						dateOutput.writeByte(png.tRNS_Data[i]);
+					}
+					dateOutput.writeInt(png.tRNS_crc);
+				}
+				// IDAT;
+				dateOutput.writeInt(png.idatCounts);
+				System.out.println("png.idatCounts: " + png.idatCounts);
+				
+				for (int i = 0; i < png.idatCounts; i++) {
+					dateOutput.writeInt(png.IDAT_length[i]);
+					System.out.println(png.IDAT_length[i]);
+					dateOutput.writeInt(0x49444154);
+					for(int j=0;j<png.IDAT_length[i];j++){
+						dateOutput.writeByte(png.IDAT_Data[i][j]);
+						System.out.println();
+					}
+					System.out.println(png.IDAT_Data[i].length+" i="+i);
+					dateOutput.writeInt(png.IDAT_crc[i]);
+				}
+				// End
+				System.out.println("end---");
+				dateOutput.writeInt(0x00000000);// Length
+				dateOutput.writeInt(0x49454e44);// IEND
+				dateOutput.writeInt(0xae426082);// CRC
+				
+				System.out.println(dateOutput.size());
+				dateOutput.flush();
+				fo.close();
+
+				System.out.println(dateOutput.size());
+
+			} catch (FileNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+			}
+		}
+		try {
+			dateOutput.flush();
+			dateOutput.close();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	}
+
+3. [代码]png对象     跳至[1][2][3][全屏预览]
+public class MyPng {
+	public static final int head1 = 0x89504e47;
+	public static final int head2 = 0x0d0a1a0a;
+	private final int max = 10;
+	boolean tRNS;
+	boolean plte;
+	int idatCounts;
+	
+	String strName;
+	
+	int IHDR_length;
+	int PLTE_length;
+	int tRNS_length;
+	
+	int[] IDAT_length = new int[max];
+	
+	int IEND_length;
+
+	byte[] IHDR_ChunkTypeCode;
+	byte[] PLTE_ChunkTypeCode;
+	byte[] tRNS_ChunkTypeCode;
+	
+	byte[][] IDAT_ChunkTypeCode = new byte[max][];
+	
+	byte[] IEND_ChunkTypeCode;
+
+	byte[] IHDR_Data;
+	byte[] PLTE_Data;
+	byte[] tRNS_Data;
+	public byte[][] IDAT_Data = new byte[max][];
+	byte[] IEND_Data;
+
+	int IHDR_crc;
+	int PLTE_crc;
+	int tRNS_crc;
+	
+	int[] IDAT_crc = new int[max];
+	
+	int IEND_crc;
+	
+	public MyPng(String name){
+		this.strName = name;
+	}
+	
+	public void setDate(int length,byte[] chunkTypeCode,byte[] idate_Data,int crc){
+		for(int i=0;i<max;i++){
+			if(IDAT_Data[i]==null){
+				IDAT_length[i] = length;	
+				IDAT_ChunkTypeCode[i] = new byte[4];
+				for(int a=0;a<chunkTypeCode.length;a++){
+					IDAT_ChunkTypeCode[i][a] = chunkTypeCode[a];
+				}
+				System.out.println("  "+new String(IDAT_ChunkTypeCode[i]));
+				IDAT_Data[i] = idate_Data;
+				IDAT_crc[i] =crc;
+				idatCounts++;
+				break;
+			}
+		}
+	}
+}

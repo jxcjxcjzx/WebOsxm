@@ -1,0 +1,491 @@
+
+专注ASP.NET & RIA以及SQLServer BI&GIS
+博客园首页博问闪存新随笔管理
+使用SQL Server Analysis Services数据挖掘的关联规则实现商品推荐功能（二）
+
+假如你有一个购物类的网站，那么你如何给你的客户来推荐产品呢？这个功能在很多电商类网站都有，那么，通过SQL Server Analysis Services的数据挖掘功能，你也可以轻松的来构建类似的功能。
+
+ 
+
+将分为三个部分来演示如何实现这个功能。
+
+1.构建挖掘模型
+
+2.为挖掘模型编写服务接口
+
+3.开发简单的前端应用
+
+ 
+
+ 
+
+ 
+
+此篇在上一篇已经构建好挖掘模型的基础之上，介绍如何构建服务接口。
+
+ 
+
+编写服务接口的方法很多，比如使用WCF。为了简便，这里直接使用ASP.NET Web Services。
+
+将挖掘模型的具体查询的实现部分写到Web服务代码中，主要是考虑到代码分层降低耦合性。另外这部分逻辑通过服务的方式来暴露接口，可以方便其它任何平台来进行调用，比如ASP.NET, Winform, WPF或者其它基于java的技术框架等。Web服务最主要的部分是XML，一个服务接口往往就是一个URL地址，客户端程序通过向这个地址发送xml请求的方式，来获取服务端代码的响应，结果再以xml的方式返回回来。那么既然来回通信的都是xml数据，是否意味这还要手动写代码来序列化和反序列化xml数据呢？这里面又涉及到一个SOAP的概念，这是一个在10年前很火的概念，简单对象访问协议。通过这个SOAP协议，客户端程序可以知道要访问一个Web服务，应该发送什么样的xml数据，以及收到服务端xml的数据之后，本地再如何解析这些数据。基于这样一个方式，Visual Studio中，当你引用一个服务的时候，它就会根据这个协议，在你本地生成若干代理类，这样在你调用远程的一个Web服务的时候，你就会感觉像是在调用本地里的一个类的方法一样方便。
+
+笔者注：如果你用Winform和ASP.NET等，那么你也可以选择直接在代码里访问挖掘模型的数据，但是如果是其它平台，比如Win 8 App, silverlight和flash等，它们是无法直接和数据源进行通信的，所以只能通过服务的方法来访问。
+
+本篇就是要编写这样一个服务接口，这个服务接受客户已经购买的商品列表信息，然后根据这些信息来向用户推荐其它商品。
+
+服务的核心逻辑是根据传送过来的商品列表，来动态的去拼DMX语句。在上一篇中提到的那个DMX语句，这里主要以它为"模版"。
+
+SELECT FLATTENED
+
+PredictAssociation([Association].[v Assoc Seq Line Items],INCLUDE_STATISTICS,3)
+
+FROM
+
+[Association]
+
+NATURAL PREDICTION JOIN
+
+(
+
+SELECT (SELECT 'Touring Tire' AS [Model]
+
+UNION
+
+SELECT 'Touring Tire Tube' AS [Model]
+
+) AS [v Assoc Seq Line Items]) AS t
+
+根据上一篇的讲解，我们知道需要变化的就是SELECT UNION SELECT的部分，一条商品对应一个SELECT。
+还有一个需要介绍的东西是ADOMD.NET，这个名字你看上去可能感觉有些面熟，没错，你肯定用过ADO.NET，还记得经典方式操作数据库的步骤吗？新建Connection, Command然后DataReader或者其它方式来接收数据。ADOMD.NET就是专门用来访问分析服务用的，由于它跟ADO.NET一样都集成自同一接口，所以你可以找到熟悉的Connection和Command对象，而接收对象的除了DataReader外，还有跟DataSet相对应的CellSet对象。
+
+传统的分析服务是包含多维模型和数据挖掘的，所以在ADOMD.NET下，可以抛MDX(查多维数据集用的)和DMX(查挖掘模型用的)。这里我们用的数据访问接口就是ADOMD.NET。
+
+ 
+
+确认好以上逻辑之后，我们开始构建Web服务。
+
+这里我们使用Visual Studio 2012来编写服务。跟上一篇不同，上一篇为了编写一个SQL Server 2012的分析服务项目，我们用的是SQL Server Data Tools，这个实际上就是Visual Studio 2010的一个Shell。而那个地方为什么用的版本是2010而不是2012？这里面有一个SQL Server和Visual Studio版本的一个对应的关系。
+
+SQL Server版本
+
+对应的Visual Studio Shell版本
+
+2000
+
+无
+
+2005
+
+2005
+
+2008
+
+2008
+
+2012
+
+2010
+
+2012的下一个版本
+
+2012
+
+ 
+
+可以看到主要还是根据两个产品系列的版本发布有关系。所以这里就有一个地方需要留意，如果你的机器上同时安装了Visual Studio 2012和SQL Server 2012，那么当你打开一个类似上一篇中建立的分析服务项目的时候，不要默认双击打开项目文件，因为系统会用Visual Studio 2012 (不是应该与其对应的2010)来打开你的项目，然后提示你将项目升级到2012。不用想，对应Visual Studio 2012 Shell的SQL Server版本还没发布呢，所以即使升级了最后也一定是失败。
+
+下面言归正传，打开Visual Studio 2012。点击菜单栏FILE->New Project。
+
+
+
+项目类型选择ASP.NET Empty Web Application。
+
+
+
+点击OK新建一个新ASP.NET项目。
+
+
+
+在Solution Explorer中，右键项目名称，点Add->New Item。
+
+
+
+在Add New Item中，选择Web Service。然后点Add。
+
+
+
+然后可以看到系统自动生成的测试用的服务代码。
+
+下面首先添加ADOMD.NET引用。右键项目目录，选择Add Reference。
+
+
+
+ADOMD.NET组件不会默认出现在这里。需要点击Browse手动去找。
+
+
+
+通常ADOMD.NET组件的位置是位于这个目录下：
+
+C:\Program Files\Microsoft.NET\ADOMD.NET\110
+
+
+
+找到Microsoft.AnalysisServices.AdomdClient.dll，点OK。
+
+
+
+可以看到ADOMD.NET组件已经被添加到引用目录下。
+
+然后，回到Web服务代码界面，在代码中using这个库的引用。
+
+
+
+然后为服务编写代码，首先定义一个类，服务的结果将以这个类的结构返回。
+
+public class ModelResult
+
+{
+
+public string ModelName { get; set; }
+
+public double Support { get; set; }
+
+public double Probility { get; set; }
+
+}
+
+定义好这个类之后，再编写服务代码，这里直接贴出来：
+
+[WebMethod]
+
+public List<ModelResult> GetModelResult(List<string> ModelList)
+
+{
+
+List<ModelResult> result = new List<ModelResult>();
+
+ 
+
+bool FirstOne = true;
+
+ 
+
+//Build DMX query
+
+StringBuilder sb = new StringBuilder();
+
+sb.AppendLine("SELECT FLATTENED");
+
+sb.AppendLine("PredictAssociation([Association].[v Assoc Seq Line Items],INCLUDE_STATISTICS,3)");
+
+sb.AppendLine("FROM");
+
+sb.AppendLine("[Association]");
+
+sb.AppendLine("NATURAL PREDICTION JOIN");
+
+sb.AppendLine("(");
+
+ 
+
+foreach (string item in ModelList)
+
+{
+
+if (FirstOne == true)
+
+{
+
+sb.AppendLine("SELECT (SELECT '" + item + "' AS [Model]");
+
+FirstOne = false;
+
+}
+
+else
+
+{
+
+sb.AppendLine("UNION");
+
+sb.AppendLine("SELECT '" + item + "' AS [Model]");
+
+}
+
+}
+
+ 
+
+ 
+
+sb.AppendLine(") AS [v Assoc Seq Line Items]) AS t");
+
+ 
+
+AdomdConnection conn = new AdomdConnection();
+
+conn.ConnectionString = "Provider=MSOLAP.3;Integrated Security=SSPI;Persist Security Info=True;Initial Catalog=MultidimensionalProject1;Data Source=.";
+
+conn.Open();
+
+ 
+
+AdomdCommand comm = new AdomdCommand(sb.ToString(), conn);
+
+ 
+
+AdomdDataReader dr = comm.ExecuteReader();
+
+ 
+
+//Read result
+
+while (dr.Read())
+
+{
+
+ModelResult mr = new ModelResult();
+
+ 
+
+mr.ModelName = dr[0].ToString();
+
+mr.Support = Convert.ToDouble(dr[1]);
+
+mr.Probility = Convert.ToDouble(dr[2]);
+
+ 
+
+result.Add(mr);
+
+}
+
+ 
+
+conn.Close();
+
+ 
+
+return result;
+
+}
+
+留意贴出的这段代码第一行，有一个[WebMethod]，Web服务的方法跟一个类的传统方法区别就在这里，只有在方法前面打上这个标记才会被系统认为是一个Web服务方法发布出去。
+
+代码中先根据上一篇提到的DMX语句的查询"模版"，中简通过一个foreach循环来动态构建SELECT UNION SELECT部分。最后通过Connection和Command对象以及DataReader方法来读取结果，并且把其加载到类里。
+
+然后，为了方便测试，再加一个测试服务方法：
+
+[WebMethod]
+
+public List<ModelResult> GetModelResultTest(string ModelSingle)
+
+{
+
+List<string> ModelList = new List<string>();
+
+ModelList.Add(ModelSingle);
+
+return GetModelResult(ModelList);
+
+}
+
+这个方法实际上还是调用了刚才建立的服务方法，只不过它只传递了一个商品过来，在这里打包成一个List后丢掉那个方法里。
+
+这样，在ASP.NET自带的服务浏览界面中就可以测试我们刚才编写的方法了。右键asmx文件点View in Browser。
+
+
+
+然后可以看到系统自动为服务建立的简单测试页面。
+
+
+
+这里点击GetModelResultTest方法。
+
+
+
+在参数值中输入'Touring Tire'，点"调用"。
+
+
+
+最后，就可以看到服务返回的结果信息。信息的格式是通过xml的，你无需去解析它，通过前面提到的SOAP协议，系统会为你建立相应的本地代理类。
+
+ 
+
+ 
+
+至此，为挖掘模型编写的服务层代码就编写完毕了。下一篇将建立一个应用程序来调用这个服务从而实现一个简单的商品推荐功能。
+
+ 
+
+ 
+
+ 
+
+ 
+
+---------------------------------------------------------------
+
+aspnetx的BI笔记系列索引：
+
+使用SQL Server Analysis Services数据挖掘的关联规则实现商品推荐功能
+
+微软SQLServer官方示例项目部署-数据引擎和分析服务部分
+
+使用PowerPivot建立简单的分析模型
+
+从数据到信息到决策
+
+使用SQL Server Analysis Services Tabular Model建立分析模型
+
+在Silverlight下用Visifire显示多维数据集中的数据
+
+在Silverlight下用Visifire显示多维数据集中的数据（二）
+
+BI笔记之---增量方式处理多维数据集
+
+BI笔记之---BI通用流程
+
+BI笔记之---SSAS部署的几种方式
+
+BI笔记之---SSAS库Process的几种方案 
+
+BI笔记之--- Cube增量处理的一个场景的处理方案
+
+BI笔记之---SSAS中关于某一度量需要先后根据不通维度的不同聚合方法的解决
+
+BI笔记之---RDLC中读取Analysis Services中Cube的数据
+
+ 
+
+ 
+
+---------------------------------------------------------------
+
+来自博客园的aspnetx宋卫东
+
+ 
+
+ 
+
+分类: (BI)商业智能
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+哥本哈士奇(aspnetx)
+关注 - 6
+粉丝 - 208
+荣誉：推荐博客
++加关注
+1 0
+(请您对文章做出评价)
+« 博主上一篇：使用SQL Server Analysis Services数据挖掘的关联规则实现商品推荐功能（一）
+» 博主下一篇：使用SQL Server Analysis Services数据挖掘的关联规则实现商品推荐功能（三）
+« 首页上一篇：WP8设计器异常解决
+» 首页下一篇：Java事务处理全解析（六）—— 使用动态代理（Dynamic Proxy）完成事务
+posted @ 2013-02-24 12:20 哥本哈士奇(aspnetx) 阅读(774) 评论(1) 编辑 收藏
+
+
+评论列表
+   #1楼 2013-02-24 14:16 通用信息化建设平台  
+又是一篇好文章，顶一下。
+支持(0)反对(0)
+刷新评论刷新页面返回顶部
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+博客园首页博问新闻闪存程序员招聘知识库
+
+最新IT新闻:
+· 巴西iPhone商标官司结束 苹果与IGB将和解
+· 名门之后，ThinkPad Tablet 2 评测
+· 唱吧 iPad 版上线 Windows Phone版正在研发
+· 伊坎与戴尔签保密协议 可查看公司账目
+· 学徒程序员
+» 更多新闻...
+最新知识库文章:
+· 云计算里AWS和Azure的探究
+· SQL Server 高性能写入的一些总结
+· Facebook如何实现PB级别数据库自动化备份
+· 源代码管理十诫
+· 如何成为强大的程序员？
+» 更多知识库文章...
+
+历史上的今天:
+2006-02-24 完全放弃dreamweaver设计方法的几个理由
+公告
+
+文章和随笔为作者个人感悟,不代表任何公司或团体的立场和观点.
+
+如需转载请加上博客园链接.
+
+由于技术更新很快,请各位阅读的时候特意留意下文章的发布时间以及在这个时间相关技术或者产品的版本. 
+
+MSN:
+aspnetx#live.com
+QQ:
+63036666
+新浪Weibo:
+哥本哈士奇
+
+
+------------ 
+目前关注:
+WPF & Silverlight
+SQLServer BI & GIS
+PowerShell
+商业智能
+软件工程
+
+昵称：哥本哈士奇(aspnetx)
+园龄：7年8个月
+荣誉：推荐博客
+粉丝：208
+关注：6
++加关注
+搜索
+ 
+常用链接
+我的随笔
+我的评论
+我的参与
+最新评论
+我的标签
+更多链接
+随笔分类(370)
+(BI)商业智能(87)
+ASP.NET(18)
+Microsoft(32)
+PowerShell(37)
+SharePoint(7)
+Silverlight(35)
+Visifire(11)
+Windows Mobile(17)
+WPF(1)
+设计方法(1)
+试用评测(1)
+微软长春_俱乐部(5)
+新闻点评(1)
+英文翻译(7)
+英语阅读笔记(3)
+杂而悟章(73)
+资料库存(34)
+关注的博客
+孔庆东
+网站收集
+msdn(英文)
+msdn(中文)
+www.asp.net
+微软asp.net(英文)
+微软asp.net(中文)
+我的CodePlex项目
+Noodle
+---用Lucene写的一个简易的网页全文检索工具
+Silverlight for BI
+---Silverlight for BI 的一个简单实现.
+Silverlight for China Map
+---silverlight中国地图的Polygon实现
+Silverlight for SSAS 分解树
+用Silverlight 4做的SSAS分解树。
+WPF Shape Demo
+---画xaml对象的小工具
+积分与排名
+积分 -	575173
+排名 -	95
+Copyright ©2013 哥本哈士奇(aspnetx)

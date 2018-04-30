@@ -1,0 +1,133 @@
+Chinaunix首页　| 　论坛　| 　博客 登录 | 注册
+    
+伤不起
+No injuries
+IT精英在米国创办的农场
+CU博客频道3月技术图书有奖试读征文活动
+2013中国数据库技术大会火热报名中
+首页　| 　博文目录　| 　关于我
+
+伤不起
+博客访问： 4263
+博文数量： 22
+博客积分： 141
+博客等级： 民兵
+用 户 组： 普通用户
+注册时间： 2011-07-28 09:31
+
+文章分类
+全部博文（22）
+
+Linux高级编程（3）
+shell（0）
+linux驱动（0）
+c/c++（1）
+嵌入式调试（0）
+交叉编译工具（0）
+u-boot（0）
+未分配的博文（18）
+文章存档
+2012年（13）
+
+2011年（9）
+
+我的朋友
+
+swfczm
+
+pzm0729
+
+chg365
+
+jpgw9011
+最近访客
+
+瑛草兰馨
+订阅
+推荐博文
+·InnoDB 数据表压缩原理与限制...
+·小米手机2 死机自动重启 --- ...
+·linux Shell 中常用的条件判...
+·i.mx287基于linux-2.6.35内核...
+·编写启动脚本
+热词专题
+·怎么查归档使用量
+·shell 数字 大小 比较 lt...
+·rhythmbox显示歌词
+·miniupnpd 编译
+·CactiEZ centos5
+友情链接
+ linux高级编程之I/O 2012-01-29 01:22:10
+分类： LINUX
+1、API（应用程序接口）库分为glibc库和posix库，都放在busybox里面
+2、查看函数的帮助文档：man  x  函数名，其中x表示2、3、4，可以试着去使用，比如man  2  printf，表示查看printf函数以及其使用说明等等。
+3、文件的读写（可以到网上下载到《linux下c函数速查手册》）
+glibc库：
+fopen、fclose、fread、fwrite、fseek让fwrite的东西快速写入fd（磁盘）中，以防丢失、feaf是否结束、fsync文件同步、fget……
+生产时，注意及时关闭资源，可以用ulimit  -n查看linux最多允许打开的文件
+posix库：
+open、close、read、write、lseek
+4、捕获系统异常的函数
+strerror（）
+perror（）
+errno（）实际是个宏，每个文件对应一个宏，每个宏对应不同的错误信息。
+h_errno（）
+fileno（）
+memset（buffer，‘\0’，buffer_size）清空缓冲区
+5、glibc库文件与posix库文件的区别
+glibc库用的文件指针，而posix库用的是文件描述符。
+他们的转换图如下：文件描述符-----fdopenà文件指针，文件指针-----filenoà文件描述符。
+6、glibc文件三大结构
+1）物理文件：文件索引号ls  -il（inode  index）是唯一的，struct inode{ }
+2）文件可以被多次打开：每个文件都会有一个struct  file（FILE*， int）。其中两个参数表征当前被打开的文件两个信息，FILE*-----文件指针，int-----文件描述符，表征当前被打开的文件，是大于0的整数。
+文件描述符          0             1             2
+FILE*               stdin           stdout         stderr
+Int             STDIN_FILENO   STDOUT_FILENO   STDERR_FILENO
+同一文件没打开一次有一个文件描述符，是从小到大分配的，顺序递增。
+3）文件操作struct file operations
+7、文件属性（用ls  -trl查看）
+1）命令chmod、chown、touch、systeam
+2）函数chmod、chown、stat、fstat
+3）umask   0000 把创建的都改为具有写权限（它既是命令也是函数）
+4）文件类型：8表示普通文件，4表示文件夹
+8、文件描述符互斥以及一些重要函数
+dup标准输出、fcntl改变一个文件的属性
+mmap建立内存映射、munmap、msync更改文件内容
+目录操作函数：readdir读取目录、opendir、closedir、scandir、telldir、mkdir、rmdir、removedir、unlink、chdir切换目录、getcwd获取当前文件夹。
+时间函数：time 、localtime、strftime时间格式符输出。例如：time_t   t；time（&t）；//t = time（NULL）；
+随机数函数：rand、srand随机数种子。例如：rand（）0表示产生0—99的随机数
+整型、float转换为字符串：fprintf
+字符串转换为整型、float：atoi            
+strstr在一个字符串中找指定的字符串
+sleep（1）;//usleep（）;
+API……
+9、段错误调试方法 core  dump调试
+自我推荐网站以及书籍：www.ibook8.com、联合程序开发网、《UNIX网络编程》、《TCP/IP协议详解》卷一
+阅读(544) | 评论(0) | 转发(0) |
+0
+上一篇：Linux高级编程学习记录
+下一篇：linux高级编程之进程（一）
+相关热门文章
+KVM虚机实战攻略
+被AMD显卡的专有驱动折磨的经...
+Linux系统对IO内存和IO端口的...
+ 学习linux/unix编程方法的建...
+ [转载]Linux系统对IO内存和IO...
+linux 常见服务端口
+什么是shell
+linux socket的bug??
+linux的线程是否受到了保护？...
+一个适用于windows和linux的抓...
+linux Shell 中常用的条件判断...
+linux系统只读修复
+MYSQL常用命令
+i.mx287基于linux-2.6.35内核...
+编写启动脚本
+给主人留下些什么吧！~~
+评论热议
+请登录后评论。
+登录 注册
+关于我们 | 关于IT168 | 联系方式 | 广告合作 | 法律声明 | 免费注册
+Copyright 2001-2010 ChinaUnix.net All Rights Reserved 北京皓辰网域网络信息技术有限公司. 版权所有
+感谢所有关心和支持过ChinaUnix的朋友们
+京ICP证041476号 京ICP证060528号

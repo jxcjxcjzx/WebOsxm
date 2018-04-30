@@ -1,0 +1,197 @@
+ 博客首页登录注册她的名字叫“埃菲尔” 发博文  博文        ×推荐：春运购买火车票全攻略热读"旧制度与大革命"
+推荐：春运购买火车票全攻略热读"旧制度与大革命"nereus的BLOG
+http://blog.sina.com.cn/u/1244263073 [订阅][手机订阅]首页 博文目录 图片 关于我个人资料 
+ nereus 
+Qing 微博 
+加好友 发纸条 
+
+写留言 加关注 
+
+
+博客等级： 博客积分：128 博客访问：1,739 关注人气：0 
+精彩图文 
+一组极具张力的人体作品
+创意井盖彩绘
+
+新浪Qing
+
+兔纸霸气打哈欠
+
+新浪Qing
+
+NBA圣诞战袍
+
+新浪Qing
+
+被篡改的历史照
+
+新浪Qing
+
+春哥转奇幻造型
+
+新浪Qing
+
+帅哥都爱的刺青
+
+新浪Qing
+
+
+查看更多>>
+相关博文 
+节操碎一地的桌面壁纸大搜罗
+LOVE雨娃娃
+曹操一家为啥都喜欢有夫之妇？
+微三国
+你的腎臟好嗎&nda
+叶晓泠
+转：冯骥才：精神的殿堂
+在水一方
+走过就是收获&nbs
+尼中缘
+日本侵华中国子孙永远的痛！
+木源光爱能
+解疑：西风漂流为什么在北半球
+左岸右岸
+更多>>
+推荐博文 
+中国古人四次大规划移民日本内幕
+现世报
+張作霖假照片的真實經過
+張閭實
+《河神》之外的“鬼水”奇闻
+天下霸唱
+莫言能取代鲁迅成为中国文学的标
+丁启阵
+孙中山到底有几个老婆？（组图）
+王南方
+毛泽东决策入朝部队指挥员内幕
+何中原
+日本“捐精者后代”呼吁人性体制
+蒋丰
+2013初春诗歌选
+李少君
+紫阳茶赋
+李春平
+
+
+猖獗的尼日利亚偷油贼
+
+
+重走北疆路
+
+
+遍尝长崎美味佳肴
+
+
+最后的香巴拉
+
+
+年味中国
+
+
+庞贝古城什么样
+
+查看更多>>
+谁看过这篇博文 
+加载中…
+正文 字体大小：大 中 小 
+lucene 高级搜索技巧(2007-11-05 14:37:07)转载▼标签： 知识/探索 分类： JAVA  
+ 高级搜索技巧 
+1、 对搜索结果进行排序：
+1） 使用 sort 类排序：
+    Sort sort = new Sort();
+        hits = searcher.search(query,sort);
+这种方式是使用默认的 sort 排序方式进行排序。默认的 sort 排序是按照相关度进行排序。即通过 luence 的评分机制进行排序。
+2) 对某一字段进行排序
+       Sort sort = new Sort( “ content ” );
+     hits = searcher.search(query,sort);
+3) 对多个字段进行排序
+Sort sort = new Sort(new SortField[]{new SortField("title"),new SortField("contents")});
+hits = searcher.search(query,sort);
+2、 多域搜索和多索引搜索：
+在使用 luecene 时，如果查询的只是某些 terms ，而不关心这些词条到时来自那个字段中时。这时可以使用 MultiFieldQueryParser 类。这个用于用户搜索含有某个关键字是否存在在字段中，他们之间的关系使用 OR 连接。即不管存在在哪一个字段都会显示显示出来。
+使用 MultiSearcher 可以满足同时多索引的搜索需求。
+Searcher[] searchers = new Searcher[2];
+searchers[0] = new IndexSearcher(indexStoreB);
+searchers[1] = new IndexSearcher(indexStoreA);
+        // 创建一个多索引检索器
+Searcher mSearcher = new MultiSearcher(searchers);
+3、     对搜索结果进行过滤：
+1)    对时间进行过滤
+         通常情况下我们对搜索结果要进行过滤显示，即只显示过滤后的结果。
+doc.add(Field.Keyword("datefield", DateField.timeToString(now - 1000)));
+DateFilter df1 = DateFilter.Before("datefield", now);
+2)        查询过滤器
+通过查询过滤器可以过滤一部分的信息。
+Filter filter = new Filter()
+        {
+       public BitSet bits (IndexReader reader) throws IOException
+          {
+            BitSet bitset = new BitSet(5);
+            bitset.set (1);
+            bitset.set (3);
+            return bitset;
+          }
+        };
+        // 生成带有过滤器的查询对象
+        Query filteredquery = new FilteredQuery (query, filter);
+       // 返回检索结果
+        Hits hits = searcher.search (filteredquery);
+ 
+这样我们就可以使用自己定义的过滤方式去过滤信息了。
+3)    带缓存的过滤器：
+使用待缓存的过滤器我们可以重用过滤功能，如下：
+MockFilter filter = new MockFilter();
+ CachingWrapperFilter cacher = new CachingWrapperFilter(filter);
+        cacher.bits(reader);
+分享： 分享到新浪Qing 0
+喜欢
+
+阅读(231)┊ 评论 (0)┊ 收藏(0) ┊转载(2) ┊ 喜欢▼ ┊打印┊举报 已投稿到：  排行榜 圈子  
+
+转载列表：
+转载 
+转载是分享博文的一种常用方式...
+
+前一篇：完整的Lucene多字段检索及高亮显示后一篇：lucene 搜索(一)评论 重要提示：警惕虚假中奖信息|[商讯]我有明星气势签名[发评论]当第一个评论者吧！  抢沙发>>
+
+发评论 [商讯]爱心签名换梦想，天天派奖|[商讯]提高博客人气新方法
+  更多>>
+
+登录名： 密码： 找回密码 注册 记住登录状态
+昵   称：
+
+ 分享到微博    评论并转载此博文
+
+验证码： 请点击后输入验证码 收听验证码 
+匿名评论发评论 
+以上网友发言只代表其个人观点，不代表新浪网的观点或立场。
+< 前一篇
+完整的Lucene多字段检索及高亮显示后一篇 >
+lucene 搜索(一)
+  新浪BLOG意见反馈留言板　不良信息反馈　电话：4006900000 提示音后按1键（按当地市话标准计费）　欢迎批评指正
+
+新浪简介 | About Sina | 广告服务 | 联系我们 | 招聘信息 | 网站律师 | SINA English | 会员注册 | 产品答疑 
+
+Copyright © 1996 - 2013 SINA Corporation, All Rights Reserved
+
+新浪公司 版权所有
+
+
+X分享到...选择其他平台 >>
+分享到X
+腾讯微博一键通新浪微博QQ空间人人网天涯凤凰微博朋友网人民微博豆瓣网搜狐微博新华微博手机网易微博开心网百度空间QQ好友更多平台... (130)bShare365
+长微博
+微语录
+九宫格
+发照片
+发视频
+发商品
+博文博主音乐视频播主 最近喜欢了的博主：
+加载中…Qing博客转载原文采编长微博分享到新浪Qing分享到新浪微博为了您的账号安全，请绑定邮箱
+幻灯播放
+
+
+
+
+关闭

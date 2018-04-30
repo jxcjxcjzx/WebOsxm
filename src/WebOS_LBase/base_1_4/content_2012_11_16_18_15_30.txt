@@ -1,0 +1,307 @@
+
+极客工坊's Archiver 
+
+论坛 › Arduino › 玩儿大了~给arduino上操作系统了~！
+
+
+Malc发表于 2012-3-7 17:57:43 
+
+玩儿大了~给arduino上操作系统了~！
+ 恩。。好久没发帖了，不过这几天也没闲着
+ 前几天我在求助区发了个关于定时器的问题，结果没有让我满意的答案
+ 于是自己百度+谷歌，终于找到了一个非常强大的库--ProtoThreads！
+ 一个非常强大的多任务库，非常适合arduino这种资源非常有限的单片机
+ 别急，先上一段简单的代码look look#include <pt.h>
+ 
+static int counter1,counter2,state1=0,state2=0; 
+
+static int protothread1(struct pt *pt) 
+{  
+   PT_BEGIN(pt);  
+   while(1) 
+  {  
+     PT_WAIT_UNTIL(pt, counter1==1); 
+    digitalWrite(12,state1);
+     state1=!state1;
+     counter1=0;   
+   } 
+  PT_END(pt); 
+} 
+
+
+static int protothread2(struct pt *pt) 
+{ 
+  PT_BEGIN(pt); 
+  while(1) {    
+    PT_WAIT_UNTIL(pt, counter2==5); 
+    counter2=0; 
+    digitalWrite(13,state2);
+     state2=!state2;
+   } 
+  PT_END(pt); 
+} 
+
+
+static struct pt pt1, pt2; 
+void setup()
+ { 
+
+  pinMode(12,OUTPUT);
+   pinMode(13,OUTPUT);
+   PT_INIT(&pt1); 
+  PT_INIT(&pt2); 
+}
+ 
+void loop ()
+ { 
+    protothread1(&pt1); 
+    protothread2(&pt2); 
+    delay(1000); 
+    counter1++; 
+    counter2++; 
+  } 此段代码演示了如何使用PT库来实现12、13脚led分别隔1秒、5秒闪烁，已经在arduino09上测试通过
+ sorry，无注释。。别急，这只是个演示
+ 这篇文章会不断更新，分别讲述PT库的原理和应用
+ 让大家能开发出更复杂的程序
+ 
+好介绍开始了~
+ Protothread是专为资源有限的系统设计的一种耗费资源特别少并且不使用堆栈的线程模型，其特点是：  
+ ◆ 以纯C语言实现，无硬件依赖性；  
+ ◆ 极少的资源需求，每个Protothread仅需要2个额外的字节；  
+ ◆ 可以用于有操作系统或无操作系统的场合；  
+ ◆ 支持阻塞操作且没有栈的切换。
+ 使用Protothread实现多任务的最主要的好处在于它的轻量级。每个Protothread不需要拥有自已的堆栈，所有的Protothread 共享同一个堆栈空间，这一点对于RAM资源有限的系统尤为有利。相对于操作系统下的多任务而言，每个任务都有自已的堆栈空间，这将消耗大量的RAM资源，而每个Protothread仅使用一个整型值保存当前状态。  
+ 咱们来结合一个最简单的例子来理解ProtoThreads的原理吧，就拿上面的闪烁灯代码来说#include <pt.h>//ProtoThreads必须包含的头文件
+ 
+static int counter1,counter2,state1=0,state2=0; //counter为定时计数器，state为每个灯的状态
+ 
+static int protothread1(struct pt *pt) //线程1，控制灯1
+ {  
+   PT_BEGIN(pt);  //线程开始
+   while(1) //每个线程都不会死
+   {  
+     PT_WAIT_UNTIL(pt, counter1==1); //如果时间满了1秒，则继续执行，否则记录运行点，退出线程1
+     digitalWrite(12,state1);
+     state1=!state1;//灯状态反转
+     counter1=0; //计数器置零
+   } 
+  PT_END(pt); //线程结束
+ } 
+
+
+static int protothread2(struct pt *pt) //线程2，控制灯2
+ { 
+  PT_BEGIN(pt); //线程开始
+   while(1) {    //每个线程都不会死
+     PT_WAIT_UNTIL(pt, counter2==5); //如果时间满了5秒，则继续执行，否则记录运行点，退出线程2
+     counter2=0;  //计数清零
+     digitalWrite(13,state2);
+     state2=!state2; //灯状态反转
+   } 
+  PT_END(pt);  //线程结束
+ } 
+
+
+static struct pt pt1, pt2; 
+void setup()
+ { 
+
+  pinMode(12,OUTPUT);
+   pinMode(13,OUTPUT);
+   PT_INIT(&pt1);  //线程1初始化
+   PT_INIT(&pt2);  //线程2初始化
+ }
+ 
+void loop () //这就是进行线程调度的地方
+ { 
+    protothread1(&pt1);  //执行线程1
+     protothread2(&pt2);  //执行线程2
+     delay(1000);  //时间片，每片1秒，可根据具体应用设置大小
+     counter1++; 
+    counter2++; 
+  } 看上面的代码，你会发现很多大写的函数，其实那些都是些宏定义（宏定义用大写是约定俗成的..)，如果把这些宏都展开你就能更好的理解他的原理了：#include <pt.h>//ProtoThreads必须包含的头文件
+ 
+static int counter1,counter2,state1=0,state2=0; //counter为定时计数器，state为每个灯的状态
+ 
+static int protothread1(struct pt *pt) //线程1，控制灯1
+ {  
+   { char PT_YIELD_FLAG = 1; 
+                switch((pt)->lc) {//用switch来选择运行点
+                  case 0: //此乃初始运行点，线程正常退出或刚开始都从这开始运行
+                                 while(1) //每个线程都不会死
+                                 {
+                                         do {        
+                                                        (pt)->lc=12;//记录运行点
+                                                         case 12:
+                                                                 if(!(counter1==1))
+                                                                 {
+                                                                         return PT_WAITING;        //return 0
+                                                                 }                                                
+                                        } while(0)
+                                         digitalWrite(12,state1);
+                                         state1=!state1;//灯状态反转
+                                         counter1=0; //计数器置零
+                                 } 
+                }
+   PT_YIELD_FLAG = 0; 
+  pt->lc=0; 
+  return PT_ENDED; // return 1
+   }
+ } 
+
+
+static int protothread2(struct pt *pt) //线程2，控制灯2
+ { 
+  { char PT_YIELD_FLAG = 1; 
+                switch((pt)->lc) {//用switch来选择运行点
+                  case 0:     //线程开始
+                                 while(1) //每个线程都不会死
+                                 {
+                                         do {        
+                                                        (pt)->lc=39;
+                                                         case 39://记录运行点
+                                                                 if(!(counter2==5))
+                                                                 {
+                                                                         return PT_WAITING;        //return 0
+                                                                 }                                                
+                                        } while(0)
+                                         counter2=0;  //计数清零
+                                         digitalWrite(13,state2);
+                                         state2=!state2; //灯状态反转
+                                 }
+                 }
+                 PT_YIELD_FLAG = 0; 
+                pt->lc=0; 
+                return PT_ENDED; // return 1
+         }
+ } 
+
+
+static struct pt pt1, pt2; 
+void setup()
+ { 
+
+  pinMode(12,OUTPUT);
+   pinMode(13,OUTPUT);
+   pt1->lc=0;  //线程1初始化
+   pt2->lc=0;  //线程2初始化
+ }
+ 
+void loop () //这就是进行线程调度的地方
+ { 
+    protothread1(&pt1);  //执行线程1
+     protothread2(&pt2);  //执行线程2
+     delay(1000);  //时间片，每片1秒，可根据具体应用设置大小
+     counter1++; 
+    counter2++; 
+  } 好了，终于扩展完了。。
+   分析一下上面的代码，就知道其实ProtoThreads是利用switch case 来选择运行点的，每个线程中的堵塞，其实就是判断条件是否成立，不成立则return，所以说每个线程都很有雷锋精神，舍己为人，呵呵。有一点要注意那就是每个线程只能够在我们指定的地方堵塞，至于堵塞点，那就要看具体应用了。
+   由于线程是反复被调用的，因此，写程序的时候不能像写一般的函数一样使用局部变量，因为每次重新调用都会把变量初始化了，如果要保持变量，可以把它定义为static的
+   在pt.h中定义了很多功能：
+ PT_INIT(pt)   初始化任务变量，只在初始化函数中执行一次就行 
+PT_BEGIN(pt)   启动任务处理，放在函数开始处 
+PT_END(pt)   结束任务，放在函数的最后 
+PT_WAIT_UNTIL(pt, condition) 等待某个条件（条件可以为时钟或其它变量，IO等）成立，否则直接退出本函数，下一次进入本     函数就直接跳到这个地方判断 
+PT_WAIT_WHILE(pt, condition)  和上面一个一样，只是条件取反了 
+PT_WAIT_THREAD(pt, thread) 等待一个子任务执行完成 
+PT_SPAWN(pt, child, thread) 新建一个子任务，并等待其执行完退出 
+PT_RESTART(pt)   重新启动某个任务执行 
+PT_EXIT(pt)   任务后面的部分不执行，直接退出重新执行 
+PT_YIELD(pt)   锁死任务 
+PT_YIELD_UNTIL(pt, cond) 锁死任务并在等待条件成立，恢复执行 
+在pt中一共定义四种线程状态，在任务函数退出到上一级函数时返回其状态 
+PT_WAITING  等待 
+PT_EXITED  退出 
+PT_ENDED  结束 
+PT_YIELDED  锁死 
+
+比如PT_WAIT_UNTIL(pt, condition) ，通过改变condition可以运用的非常灵活，如结合定时器的库，把condition改为定时器溢出，那就是个时间触发系统了，再把condition改为其他条件，就是事件触发系统了
+ 暂时写这么多吧
+ 感谢以下帖子的作者
+ http://www.ourdev.cn/bbs/bbs_content.jsp?bbs_sn=4315188&bbs_page_no=1&search_mode=1&search_text=protothread&bbs_id=9999
+ http://www.ourdev.cn/bbs/bbs_content.jsp?bbs_sn=3257880&bbs_page_no=1&search_mode=1&search_text=protothread&bbs_id=9999
+ http://www.sics.se/~adam/pt/download.html  
+ 附录：
+ 官方原版库1.4
+ 
+arduino版1.4.01
+ 
+新发现了几个定时器库，还没来得及试用，都是arduino Library上下载的，大家可以先拿过去试试
+ 
+
+
+
+SS15发表于 2012-3-7 21:00:09 
+
+本帖最后由 SS15 于 2012-3-7 21:01 编辑 
+
+ChibiOS 携 FreeRTOS 联名发来贺电
+ 
+Devuino代表在 Arduino基础上的开发平台，Muti代表多线程
+ 
+
+ProtoThread相比其他RTOS有什么突出的优点呢？貌似它已经停止更新了。
+ 
+
+
+Malc发表于 2012-3-7 21:10:58 
+
+SS15 发表于 2012-3-7 21:00 static/image/common/back.gif
+ ChibiOS 携 FreeRTOS 联名发来贺电
+ 
+Devuino代表在 Arduino基础上的开发平台，Muti代表多线程
+ 
+
+优点挺多的
+ 1、超轻量级，他的库基本上都是些宏定义，大小可以忽略不计，而且每个线程只占用2个字节
+ 2、无机器码，纯c实现，所以可移植性很好
+ 3、无堆栈
+ 4、简单使用可以只把他当个调度程序，复杂点也能把他当操作系统来使
+ 恩。。其实我也才接触。。了解不全:lol
+ 现在边研究边更新吧，主要是这几天太忙了。。
+ PT作者的首页http://www.sics.se/~adam/pt/ 
+SS15发表于 2012-3-7 21:19:22 
+
+本帖最后由 SS15 于 2012-3-7 21:27 编辑 
+
+粗粗看了一下pt的源码，没看懂{:soso_e127:}
+ 这是一个真正的，采用了时间片轮换的多线程框架吗？存疑。
+ 好像只是个事件驱动的框架。懒得研究了，等LZ讲解吧 
+wonderfulsf发表于 2012-3-9 18:41:58 
+
+MARK一下,有时间再研究了 
+幻生幻灭 发表于 2012-3-9 22:42:41 
+
+高深啊，留档 
+iron发表于 2012-3-9 22:48:45 
+
+看起来挺有有意思的 
+Malc发表于 2012-3-9 23:22:22 
+
+iron 发表于 2012-3-9 22:48 static/image/common/back.gif
+ 看起来挺有有意思的
+ 
+呵呵，PT在8位机上很有优势的
+ 作者也提供了很多例子，改天我发几个例子 
+凡一 发表于 2012-3-20 22:53:41 
+
+新手，求教一下，看了下示例，不知这定时准确度如何？执行中断后，这定时器时间是否会延长？ 
+Malc发表于 2012-3-21 10:15:31 
+
+凡一 发表于 2012-3-20 22:53 static/image/common/back.gif
+ 新手，求教一下，看了下示例，不知这定时准确度如何？执行中断后，这定时器时间是否会延长？
+ 
+上面的示例只是用了一个delay()来设定时间片，用来演示一个简单的程序罢了
+ 写程序最好不要用delay，一delay程序就不能干别的事了，最好的办法是一遇到要delay就去干别的事，时间到了再接着运行刚才的代码，所以PT结合定时器可以很大的提高程序的实时性
+ 上面的定时器库采用的是内部定时器，至于是TCN几我也没仔细看，不过他们与PT结合的不是很好，下次我再发一个定时器库吧
+ 中断肯定会有影响的，只是影响的大小罢了，所以在中断里一般都不会放大的程序，我用中断一般都是用来计数、改变状态，这点时间可以忽略 
+页: [1]234
+ 
+查看完整版本: 玩儿大了~给arduino上操作系统了~！ 
+
+
+
+Powered by Discuz! X2.5 Archiver   © 2001-2012 Comsenz Inc.
+
+
+ 

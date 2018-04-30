@@ -1,0 +1,345 @@
+官方微博
+水木归档站
+论坛公告
+论坛帮助
+意见建议
+
+
+帐号:
+密码:
+下次自动登录
+
+全部讨论区
+社区管理
+国内院校
+休闲娱乐
+游戏天地
+体育健身
+社会信息
+知性感性
+文化人文
+学术科学
+电脑技术
+关闭版面
+频道推荐
+控制面板
+论坛服务
+
+
+水木社区 >> 电脑技术 >> Emacs编辑器 >> 阅读文章
+贴数:1 分页:
+1
+新话题模版发文快捷回复
+分享到:文章主题: Tip of the Day -- for Using Emacs(ZZ)
+analyz	回复模版回复转寄搜索只看此ID楼主
+
+引车卖浆者流玩linux
+身份用户文章10627积分53639等级沉香(10)
+发信人: analyz (UNIX), 信区: Emacs 
+标  题: Tip of the Day -- for Using Emacs(ZZ) 
+发信站: 水木社区 (Fri Jun 29 01:04:08 2007), 转信 
+  
+http://blog.chinaunix.net/u/23408/showart.php?id=166919 
+  
+Tips for Emacs 
+  
+last-edit: Fang lungang 03-10-2007 21:23> 
+Intro 
+  
+These tips are based on GNU Emacs release 21.3 and/or cvs Emacs 22. It is neither a reference card nor a tutorial. Please refer to GNU Emacs Reference Card for basic (and frequently used) hot keys. 
+从何处获得帮助 
+  
+所谓授之以鱼不如授之以渔，所以这是本文最重要一节。我一般从以下途径查找感兴趣的 Emacs 相关的内容。 
+  
+最重要的信息来源是 Emacs 自带的。Emacs 的文档和帮助系统十分方便，绝对有必要学会使用。Emacs 联机文档（C-h i 激活）中的 Emacs FAQ 的 Getting Help 专门讲如何获取帮助信息，值得一看。 
+  
+其次是 Emacs Wiki (www.emacswiki.org)。 
+  
+然后是新闻组 gnu.emacs.help 。可以在这个新闻组上提问，不过最好是先查查是否以前有人回答过同样的问题了。google 论坛号称是保存了所有新闻组的所有记录，到那去查挺不错的。如果还找不到答案，只剩最后一招了。 
+  
+网络搜索。直接 Google 整个网络的命中率显然不如在专门的新闻组里搜。不过如果前面的方法都不管用也就只能退而求其次了。 
+TIPs 
+  
+     * Open multiple eshells 
+  
+       C-u M-x eshell 
+     * Don't map [tab] to muse-next-reference 
+  
+       In muse-mode.el, comment out following two lines: 
+  
+       (define-key map [tab] 'muse-next-reference) 
+       (define-key map [(control ?i)] 'muse-next-reference) 
+  
+     * Make htmlize-region-for-paste in htmlize.el doesn't force inline-css. I need this because Emacs Muse call this function for tag "src". 
+  
+       Change lines in function htmlize-region-for-paste 
+  
+       From 
+  
+           (let* ((htmlize-output-type 'inline-css) 
+           (htmlbuf (htmlize-region beg end))) 
+  
+       To 
+  
+           (let* ((htmlbuf (htmlize-region beg end))) 
+  
+     * Use C-M-x for eval-defun 
+  
+       If the current defun is actually a call to `defvar' or `defcustom', evaluating it this way, instead of C-x C-e, resets the variable using its initial value expression even if the variable already has some other value. 
+     * To change sort creteria of files in dired buffer 
+  
+       Press 's' to toggle between sort by date/name. For options, "C-u s". All left is to specify proper options of shell "ls". You know how to man "ls", don't you? 
+     * undo region 
+  
+       In Transient Mark mode when the mark is active, only undo changes within the current region. Similarly, when not in Transient Mark mode, just C-u as an argument limits undo to changes within the current region (if to undo region multiple times, C-u is needed only the first time). 
+     * hi-lock-mode 
+  
+       To hightlight keywords at your will. I think this is useful especially when analyzing logs. 
+     * Want to save all kinds of information between Emacs sessions? 
+  
+       Use session.el ( + desktop.el). 
+     * Compare two regions from either same buffer or two buffers 
+  
+       M-x ediff-regions-linewise 
+       M-x ediff-regions-wordwise 
+  
+     * Narrowing buffer to specific region for operations 
+  
+       M-x narrow-to-defun 
+       M-x narrow-to-region 
+       M-x widen 
+  
+     * Specify which init file to be used 
+  
+       occasionally we share a same account while we have init files are much different. To load our own init file instead of the default '.emacs', there are two ways: 
+           o emacs -u user Load user's init file instead. 
+           o emacs -l initfile Load initfile as well as the default one. Since option '-q' means don't load init file, we can use emacs -q -l initfile to load initfile instead of default '.emacs' 
+     * zap-to-char (M-z) 
+  
+       Kill up to and including ARG'th occurrence of CHAR. 
+     * Repeat 'M-@' 
+  
+       See what happens ? Just some like 'C-w' after 'C-s' 
+     * 'C-x z' and then 'zzz...' 
+  
+       To repeat last operation. Similarly, 'C-x e' then 'eee...' to execute latest keyboard macro. 
+     * Browse kill ring 
+  
+       In addition to 'C-y M-y' you can use menu item "Edit=>Select and Paste" to paste non-last items in kill ring. browse-kill-ring.el and browse-kill-ring.el may also are of interests. 
+     * ido.el 
+  
+       After you getting familiar with 'C-x C-f' and 'C-x b', You may want give ido.el a try. It's now a part of GNU Emacs. Just M-x customize-group <ret> convenience <ret> to customize and try Ido. Ido.el enables you to find buffer/files with as few key-strokes as possible. 
+     * 几个Emacs自带的游戏： 
+  
+       gomoku（五子棋） 
+           game of Go against the computer 
+       snake（贪吃蛇） 
+           guide a snake around the screen, eat to grow 
+       tetris（俄罗斯方块） 
+  
+       MorseCode 
+           convert text to and from morse code 
+       pong 
+           two-player computerized ping-pong 
+  
+     * toggle-window-dedicated.el 
+  
+       Install it so that you can make a window dedicated to certain buffer. 
+     * M-x find-name-dired 
+  
+       Search DIR recursively for files matching the globbing pattern PATTERN 
+     * 显示、隐藏ECB窗口的快捷键C-c . l w 
+  
+       我的显示器太小。ECB窗口一直显示的话，窗口排不开。只能是用到时把ECB窗口显示出来，用完就隐藏。用上面的快捷键就方便多了 
+     * Install rfcview.el to read RFC documents. 
+     * switch to a non-existing buffer will creat a new buffer. On closing that buffer, emacs won't ask you to save changes. It's useful for open buffers for tmp use. 
+     * 关于中文的剪贴板操作 
+  
+       在windows 2000下，在Emacs复制的region会被保存到系统的剪贴板中，可以粘贴到别的进程（如word）中。但是对于中文文档，有时粘贴到别的进程后变成乱码。今天突然发现规律了（狂喜中）：如果Emacs的当前状态是中文输入，那么它就能正确的将中文保存到剪贴板中；否则就是乱码。 
+     * (mouse-avoidance-mode 'animate) 
+  
+       让鼠标的图标自动避开当前插入点光标（make the cursor avoid the point) 以前编辑文件时，插入点位置恰好和鼠标光标重叠时，我总是要腾出手来移开鼠标。在.emacs中加入下面的语句，鼠标就会自动走开了： 
+     * 鼠标选中某一区域后，该区域内容就自动被复制到kill-ring（和剪贴板－如果你是在windows下） 
+     * 在文件起始行用“--modename--”告诉Emacs用指定的mode打开文件。例如若文件开头部分如下则Emacs会自动用outline模式打开该文件： 
+  
+       The Title -*-outline-*- 
+  
+     * c/c++ mode下激活hs-minor-mode可以进行代码折叠。 
+     * 安装插件ibuffer，像dired-mode管理文件一样管理buffers。 
+     * Emacs支持正则表达式搜索、替换（C-M-s, M-x replace-regexp等)。如果对正则表达还不熟，花点时间学习并应用它是绝对值得的。 
+     * 一个命令就能够将所有的行尾空白字符删除( M-x delete-trailing-whitespace )。将下列代码加入.emacs文件更是可以实现保存文件时自动删除所有行尾空白。但如果是维护别人留下的代码的话，建议还是不要使用这个功能了，因为如果代码原本含有很多行尾空格，删掉它会造成混淆。 
+  
+       ;; delete-trailing-whitespace when write(save) file 
+           (add-hook 'write-file-hooks 'delete-trailing-whitespace) 
+  
+     * M-x grep-find 搜索特定文字（可用正则表达式）在整个目录下各文件中出现的位置。 
+     * M-x sort-fields对buffer中的内容排序。 
+     * M-x recover-file 恢复文件 
+  
+       Emacs 非正常中断时会自动备份未保存的文件（#filename#)。重启后使用此命令恢复未保存的文件。 
+     * C-x C-q 改变当前buffer的读写权限 
+     * M-x man or M-x woman 
+  
+       在Emacs中查看man page，默认打开当前光标所在单词的 man page（如果有的话）。 
+     * 对于需要重复多次的一组操作，将它门定义成Keyboard Macros（见Manual）简化操作。 
+     * M-x dired-do-... 用这一组命令对一组文件做操作。例如 
+  
+       M-x dired-do-query-replace-regexp 
+  
+       对一组（在dired mode中做了mark的）文件进行正则表达式替换 
+     * M-x c-toggle-auto-hungry-state, M-x c-toggle-auto-state and M-x c-toggle-hungry-state 
+  
+       cc mode下用上面的命令打开、禁止hungry-delete和auto-newline功能。详见 emacs manual的 "TOP::CC mode::Auto-newline Insertion" 及 "TOP::CC mode::Hungry-deletion of Whitespace" 
+     * C-q 作为escape键 
+  
+       有时你需要输入的字符被当作控制字符了（如TAB键被用来缩进当前行了）就需要对字符进行转义，C-q就是这个用处，类似于字符串中的反斜杠"\"。例如，输入 TAB的方法是 C-q [tab]，输入特殊字符""的方法是C-q C-A. 
+     * M-x ffap 
+  
+       如果当前point所在字符串为一个文件名，使用该命令打开此文件。例如当光标在字符串"d:/temp/test.cc"中任一字符上时，输入命令ffap即可打开文件 test.cc. 
+     * 消除程序中的[tab]字符 
+  
+       由于tab究竟显示成几个空格是不确定的（不同程序、不同配置）所以在作者机器上看来排版很好的代码换个地方打开格式可能就乱了。避免这种情况的办法是：不用tab字符，将其替换成数个空格（一般4或8个）。Emacs提供了如下工具： 
+           o M-x tabify/untabify 将区域中的特定个数的空格替换成tab或相反 
+           o 
+  
+             (setq-defalut indent-tabs-mode nil) 
+  
+             在配置文件中加入该语句，输入tab时就自动将其转成空格。 
+     * longlines mode 
+  
+       文本中一行的长到无法在窗口中一行显示完，emacs会折行（如果你配置了的话）并用弯曲的箭头标识。但是单词被从中间拆开，而且实际操作时还是被当作一行，例如C-n 可能会下移窗口中的若干行。解决方法是：安装longlines.el，编辑文件时用M-x longlines激活、取消它的折行功能。 
+     * 用ange-ftp方便的传输文件 
+  
+       尤其是当你正在编辑该文本的时候，用此功能用来FTP单个文本文件十分方便：直接另存为（C-x C-w)目的文件就行了。我常用这个办法备份我的配置文件:在一个 server上修改配置后再保存到本地。 
+     * 在abbrev文件中添加自己定义的缩写来提供便利。例如我就为C++ mode定义了 uns，sc 等缩写，每次输入uns就会展成using namespace，输入sc则展成 static_cast。 
+     * skeleton能实现比abbrev更复杂一些的自动输入功能：你可以定义自己的模板（或者称之为skeleton）。它还可以和abbrev结合使用。 
+     * 你可以让Emacs自动将文档前n（默认值为八）行内的特定字符串会被自动展开成时间戳。例如将下面的配置加入.emacs,每次保存文件时文件头的last-edit-by: <> 会被展成last-edit-by: lungangfang 04/24/2006 10:20:57> 
+  
+       (add-hook 'write-file-hooks 'time-stamp) 
+       (setq time-stamp-format "%u %02m-%02d-%04y %02H:%02M") 
+       (setq time-stamp-start "\\(Modified\\|last-edit-by\\): *\\\\?") 
+       (setq time-stamp-end "\\\\?>") 
+  
+     * 输入换行符 
+  
+       有时候需要输入换行符（例如将换行符替换成空字符,即将所有行并成一行），用 C-q C-j（而不是'\n'）在mini-buffer中输入换行符。 
+     * ediff 可以比较两、三个目录 
+     * ediff-revision 可以方便的比较CVS中某文件的两个旧版本 
+     * > >> >>> 在eshell重定向 
+  
+       在eshell中>和>>不仅可以重定向到文件中，还可以到buffer中；而>>>则是 eshell所特有的重定向到buffer的当前point的操作符： 
+  
+       eg. Flowing would insert "test" right after the point in buffer whose name is "yourbuffername": 
+  
+       echo "test" >>> #<buffer yourbuffername> 
+  
+     * 
+  
+       (global-auto-revert-mode) 
+  
+       auto-revert when file modified by others 
+     * ascii mode 
+  
+       写程序尤其是编解码程序时，可能会需要查看当前字符的ascii码。ascii.el可以派上用场。 
+     * 用bookmark做书签，便于以后再访问。 
+  
+       C-x r m, C-x r b, C-x r l ... 
+  
+     * M-m 将point移动到本行第一个非空白字符（non-whitespace)。 
+     * C-u C-@ 将光标移至上一次标记（mark）的位置。 
+     * C-x C-x 将光标和标记（mark）的位置互换。 
+     * C-x = 用这组快捷键查看当前文件大小，光标位置等信息（position info） 
+     * C-x [ 
+  
+       移至上一页(C-x ] 移至下一页)。这里的页以分隔符“^L”为准。“^L”是ascii文本文件约定的页分隔符（在ascii格式的RFC中常见） 。 
+     * C-y M-y 将kill-ring中前一项粘贴到当前位置。 
+  
+       C-y将刚才复制的内容粘贴到当前位置，之后紧接着输入M-y则改为粘贴上一次复制的内容，再输入M-y则为上上一次。依此类推。 
+     * C-s C-w 
+  
+       用C-s搜索字符串时，mini-buffer会提示输入要搜的字符串，此时直接C-w则将当前光标至其所在单词末尾的内容作为要搜索的内容。你还可以继续C-w，看看有什么效果。 
+     * C-s M-y 
+  
+       用C-s搜索字符串时，M-y粘贴要搜的内容到mini-buffer 
+     * M-@ 
+  
+       选中区域：当前point至当前word末。M-@的输入方法一般为：同时按住<Alt>、 <shift>两键，然后按数字键<2>。 
+     * C-x C-o (欧） 
+  
+       删除连续的空行，只保留一行。 
+     * M-\ 
+  
+       删除point前后的所有空白字符（空格和tab） 
+     * M-; 
+  
+       对选中区域注释或去除注释。 
+     * C-x C-\ 
+  
+       slashfy 选中区域（在每行末加上对齐的'\'），写makefile或宏定义时挺方便。 
+     * %-l (%-u) 在Dired mode下将文件名改为全小（大）写（l:lower-case, u:upper-case) 
+     * C-c C-a 
+  
+       在eshell中，C-a将带你到行首，C-c C-a才是将光标定位到shell提示符后。如果知道C-c通常用来表示接下来的键是特定于某一mode的快捷键，这个组合就很好理解了，它表示：eshell mode下的C-a 
+     * 改变默认字体 
+  
+       在配置文件中加入 
+  
+       (add-to-list 'default-frame-alist '(font . "the_font")) 
+  
+       其中the_font换成你喜欢且 emacs（系统）中有的字体。例如： 
+  
+       (add-to-list 'default-frame-alist 
+                '(font . "-outline-Courier New-normal-r-normal-normal-*-*-96-96-c-*-iso8859-1")) 
+  
+       如何确定emacs支持哪些字体呢？可以启动emacs后M-x set-default-font 然后按空格键，emacs自动提示功能就会显示出所有可用的字体了。 
+     * 用ispell进行拼写检查 
+  
+       ispell是一个非GNU的开源软件。emacs里已经集成了ispell的接口（.el 文件），如果系统装了ispell（redhat9好像默认就有）就可以在emacs里调用它进行拼写检查：可以是写完后再检查，也可以边写边检查（check on the fly）。更强的是：flyspell-prog-mode 只对程序中的注释进行拼写检查。 
+     * window + cygwin + ntemacss使用tramp 
+  
+       cygwin带的ssh无法和ntemacs，下载plink然后指定它为tramp的方式: 
+  
+       C-x C-f /plink:user@host:path/to/file 
+  
+       或在配置文件中加上： 
+  
+       (setq tramp-default-method "ftp") 
+           (add-to-list 'tramp-default-method-alist '("regexp_for_ips" "" "plink")) 
+  
+     * 让IE的"view|source" 调用emacs打开网页源码 (实际上是调用gnuclient， google "gnuserv" 获取详细信息） 
+  
+       首先确保你正确的配置了gnuserv和gnuclient。然后（下面的步骤来自emacs wiki）： 
+          1. Open regedit.exe 
+          2. Navigate to the key ("folder") HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Internet Explorer 
+          3. If you do not have it already, create a key (RMB -> New -> Key) called "View Source Editor" under it. 
+          4. Open the new key you got and create another new key called "Editor Name" under it. 
+          5. In the (Default) string value on the right hand side in regedit, enter the following, or similar: "C:pgm\emacs-21.3.50.1-20040726-w32\bin\gnuclientw.exe" This works brilliantly and you do not even have to restart IE. 
+     * M-x woman-find-file <ret> manpage_file <ret> 
+  
+       你临时想查看一个 *nix manpage 格式的文件？ woman-find-file会打开指定文件并将其格式化成manpage呈现给你。 
+     * M-x fill-paragraph 
+  
+       这个命令会根据设定的fill column自动对当前段落进行refill。默认它被绑定到“M-q” 
+     * Windows下设置emacs的HOME路径 
+  
+       在windows下，如果直接启动emacs（不是从cygwin启动），emacs会把"C:\"当作你的home 路径。如果你的机器可能有多个人访问（例如公司的机器），你显然更喜欢另外指定home 路径，否则所有人都只能用相同的配置了。做法很简单：定义一个环境变量"HOME"指向你喜欢的路径。要注意这个变量的应用范围应该仅限于个人（相对于系统）。我建议把HOME 设成"c:\Documents and Settings\your_usrid"。 
+     * 将emacs集成到右键菜单 
+  
+       在windows下，双击某文件，操作系统就会用相应的程序打开该文件。可能会有人想到把文本文件的打开方式设为emacs。但这样做的问题是：每打开一个文件就会启动一个emacs实例，即浪费资源又慢（慢到无法忍受）。正确的做法把文件的打开方式设为gnuclientw.exe。现在问题已经解决一半，剩下的问题是对于没有扩展名的文件怎么办？有没有办法在右键菜单里增加一项？有。在 "C:\Documents and Settings"下的每个帐号下都有一个隐藏文件夹"SENDTO"。把gnuclientw的快捷方式复制到这个文件夹下。以后就可以通过 RMB|sendto|gnuclientw 通知emacs打开任意文件、文件夹等。 
+     * 使用 Shift + <arrow> 在不同窗口间切换，这用到windmove.el（已内置于emacs中） 
+  
+       (require 'windmove) 
+       (windmove-default-keybindings) 
+  
+-- 
+  
+※ 来源:·水木社区 newsmth.net·[FROM: 211.151.89.*] 
+查看发信加好友	返回顶部
+
+文章数:1 分页:
+1
+精华帖带附件  
+
+当前论坛上总共有27144人在线，其中注册用户10056人，访客16736人。
+powered by BYR-Team©2009-2013. KBS Dev-Team©2011-2013.
+all rights reserved

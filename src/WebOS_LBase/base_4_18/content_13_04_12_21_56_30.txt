@@ -1,0 +1,463 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+
+
+大程小序
+
+我会编程，童话里，你爱的那个天使...
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+【免费】全新海外营销策论分享        CSDN社区4月技术大分享活动火爆开始      写“书评”赢下载分！ 
+公告：CSDN新版首页上线      欢迎关注CSDN产品客服微博      专访熊攀峰：HTML5时代 Flash仍是座宝藏 
+
+
+
+我为什么要学习python 
+.
+分类： python2013-04-07 21:023131人阅读评论(33)收藏举报
+
+        一开始的时候，我觉得有点气愤，因为当我跟同龄人说我会python的时候，他们一些人认为我就是在装X，一直有这种很不好的风气，比如我说我把OS换成了 ubuntu，用vim，或是emacs的也是在装X，他们一直听着大学里老师的信仰”语言都一样,重要的是编程思维“，所以学过C，C++，JAVA，C#的人，总认为学习另一门语言比如(python)，只不过是在学习另一种写while和for的方式,所以我想在这里写一篇文章谈谈，为什么python很值得你在大学里，或者在以后的工作里一学。
+     首先我们来听听图灵奖获奖得主,Allan Perlis，说过的话，“如果一门语言没有改变你的编程思维，那么它不值得你去学习”。
+     所以，熟练的使用一门语言才能让你有真正的编程思维，你用什么样的编程语言就将决定你的思维,而不是你写的多了，就有那个所谓的编程思维。
+     如果这么说，我们大学的时候，学习了c，c++，java，C#，算是值得学习么？很多时候是不值得，我觉得我们大学的课程就是用java，c#，c++把"C程序设计"又上了一遍.
+     这是因为，学校的老师会C和java之类的，所以要跟着规矩开这门课，（这也就是为什么，许多学校还在教vb，）,这也就是为什么，你所以为的一样就是大家都有For都有while，都有switch..都有Class...都有int 都有float,所谓的不一样就是用C有指针，java没有，这就是为什么教育是失败的，这也就是为什么，我目前认识的几个编程大牛，都不是计算机专业毕业的...
+ python的优点：
+ 简单
+     我所说的简单，是相比于象C和C++这样的语言,你为了编程，要学习许多偏底层的东西.
+     当然，你可能会问，python能干什么呢？python无所不能（当然，它不能帮你找女朋友），你java能做的，我用python都能做，你java做不好的，我python也能做,虽然python被成为脚本语言，但它已经不算脚本了，就像火车已经不是"烧"着跑的了...
+ 动态语言 
+      比如，你脑子中突然有个什么想法，想要去实现它，或者你看见网上某个有趣的东西，想要自己动手去写个demo，那么用python可以很快的实现一个原型，之后你可以继续从这个原型出发去进一步探索，但是如果是java的话......
+      在比如，你在学习一个新的编程范式，或者想要马上做个例子看看，试验某个API,如果你是写java的，你不得不去写一个main，写一些构造，即使有IDE这样的东西，能够为你带来代码生成器，而我做得就是写一段“脚本”，或者打开python交互式解释器就行了。 
+      而且python的第三方库也很多，你想马上就搭建个什么软件出来"也是比较容易的。
+ 高级特性 
+     内置的数据结构，list，tuple，内置的函数，各种方便的操作，让你“自由的表达”，有时候感觉写程序就是“信手拈来”...
+     这在写算法时就能够表现出来，比如我要写一个快速排序：
+ 快速排序的思想就是将一个序列通过基准分为两个序列，然后对着两个序列分别递归..
+ 
+如果用C语言写:
+ 
+
+
+
+
+[cpp] view plaincopy
+01.void q_sort(int numbers[], int left, int right)  
+02.{  
+03.  int pivot, l_hold, r_hold;  
+04.  
+05.  l_hold = left;  
+06.  r_hold = right;  
+07.  pivot = numbers[left];  
+08.  while (left < right)  
+09.  {  
+10.    while ((numbers[right] >= pivot) && (left < right))  
+11.      right--;  
+12.    if (left != right)  
+13.    {  
+14.      numbers[left] = numbers[right];  
+15.      left++;  
+16.    }  
+17.    while ((numbers[left] <= pivot) && (left < right))  
+18.      left++;  
+19.    if (left != right)  
+20.    {  
+21.      numbers[right] = numbers[left];  
+22.      right--;  
+23.    }  
+24.  }  
+25.  numbers[left] = pivot;  
+26.  pivot = left;  
+27.  left = l_hold;  
+28.  right = r_hold;  
+29.  if (left < pivot)  
+30.    q_sort(numbers, left, pivot-1);  
+31.  if (right > pivot)  
+32.    q_sort(numbers, pivot+1, right);  
+33.}   
+
+ 
+
+
+为什么这么长？因为除了表达快速排序的思想，你还要写数组分区，swap交换，for i,j的多一少一，都可能出现错误....
+ 如果是python呢? 
+
+
+
+
+[cpp] view plaincopy
+01.def qsort(lis):  
+02.    if len(lis) == 0:  
+03.    return []  
+04.    else:  
+05.    low = []  
+06.    hig = []  
+07.    for x in lis[1:]:  
+08.        if x < lis[0]:  
+09.        low.append(x)  
+10.        else:  
+11.        hig.append(x)  
+12.    low = qsort(low)  
+13.    hig = qsort(hig)  
+14.    return low+lis[:1]+hig  
+
+ 当然高手可以写的更短:
+ 
+
+
+
+
+
+
+
+[cpp] view plaincopy
+01.def qsort(L):  
+02.   if not L: return []  
+03.   return qsort([x for x in L[1:] if x< L[0]]) + L[0:1] + qsort([x for x in L[1:] if x>=L[0]])  
+
+ 因为动态语言，在使用上，比静态语言要活，你可以自由的表达，但是如果是用java，C++这样的静态语言，想要表达自己的思想， 就没有那么容易. 
+ 学习曲线
+      python很值得你去深入研究，因为你玩得越熟，它给你所带来的回报越高，人们常说，java初学者和java大师写出的代码差不多，但是python初学者，python高手写出来的代码，简直就是天壤之别。
+     
+ 就拿简单的阶乘函数吧.
+ 新手可以这么写:
+ 
+
+
+
+
+[cpp] view plaincopy
+01.def factorial(x):  
+02.    if x == 0:  
+03.        return 1  
+04.    else:  
+05.        return x * factorial(x - 1)  
+
+ 高手这么写:
+ 
+
+
+
+
+[cpp] view plaincopy
+01.f = lambda x: x and x * f(x - 1) or 1  
+
+ FP函数式编程
+ python是面向对象的，也可以面向过程
+ 但下面我们用“函数式编程”来谈谈它的好处
+ 下面是一个计算器的例子，《大话设计模式》的第一章，就是使用这个例子来阐述oop和设计模式的强大，
+ 首先一种被认为糟糕的写法是这样的:
+ 
+(以下代码来自啄木鸟社区，如果有版权问题，请告诉我，我马上删除)
+ 
+
+
+
+
+[cpp] view plaincopy
+01.public class Calculator  
+02.{  
+03.    static public double Foo(char op, double x, double y)  
+04.    {  
+05.    switch(op)  
+06.        case '+': return x+y;  
+07.        break;  
+08.        case '-': return x-y;  
+09.            break;  
+10.        case '*': return x*y;  
+11.        break;  
+12.        case '/': return x/y;  
+13.            break;  
+14.        default:  
+15.        throw new Exception("????")  
+16.    }  
+17.}  
+
+ 恩，不可重用，不可维护，不可扩展，不够灵活。
+ 那些相信“设计模式”和java的狂热分子，要开始改这个代码了.
+ 先来一个接口:
+ 
+
+
+
+
+[cpp] view plaincopy
+01.public interface Ioper  
+02.{  
+03.    double getResult(double x, double y);  
+04.}  
+
+ 
+然后在开始interface这些
+ 
+
+
+
+
+
+
+
+
+[cpp] view plaincopy
+01.public class OperatorAdd interface Ioper  
+02.{  
+03.    public double getResult(double x, double y)  
+04.    {  
+05.    return x+y;   
+06.    }  
+07.}  
+08.  
+09.public class OperatorSub interface Ioper  
+10.{  
+11.    public double getResult(double x, double y)  
+12.    {  
+13.    return x-y;   
+14.    }  
+15.}  
+16.  
+17.public class OperatorMul interface Ioper  
+18.{  
+19.    public double getResult(double x, double y)  
+20.    {  
+21.    return x*y;   
+22.    }  
+23.}  
+24.  
+25.public class OperatorDiv interface Ioper  
+26.{  
+27.    public double getResult(double x, double y)  
+28.    {  
+29.    return x/y;  
+30.    }  
+31.}  
+
+ 之后他们获得了所谓的可重用，可扩展.....
+ 
+
+
+
+
+
+[java] view plaincopy
+01.public class TheMainClass  
+02.{  
+03.    public static void Main()  
+04.    {  
+05.    Ioper cul = new OperatorAdd();//看你如何初始化了，来个工厂？  
+06.    double resu = cul.getResult(3,4);  
+07.    System.out.println(resu);  
+08.    }   
+09.}  
+
+ 现在我来告诉你如何用python来实现...
+ 
+
+
+
+
+
+[python] view plaincopy
+01.def foo(op,x,y):  
+02.    print eval("%d%s%d"%(x,op,y))  
+就这两行...为什么会这样？因为python支持FP（函数式编程），在函数式编程中，函数变成了一等公民。
+ 当然这里面有一定的开玩笑成分，不过，FP编程就是那么神奇,当你在学oop遇到瓶颈，或者oop已经用的很熟练的时候，不妨去学学FP（函数式编程），python就支持函数式编程,当然你也可以尝试下lisp的方言比如（Haskell）.
+ 
+ 所以，如果你学习python，你会越来越迷恋python，无法自拔.
+ Author:aiqier
+ Date:2013/4/6 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+分享到： 
+
+上一篇：50行代码实现贪吃蛇
+ .
+顶8踩0. 
+
+
+查看评论
+ 
+25楼 dacoolbaby 4小时前发表[回复] Python简单，而且有大量的科学计算库可以使用。
+而且单从逻辑开发的角度来说，绝对会比Java，C++开发的要快。
+当PC达到一定速度了以后，开发效率就变得很重要了。在需要优化的地方，用C++就是了。
+
+唯快不破~~24楼 softworm 4小时前发表[回复] 有一点不同意!
+
+"python无所不能（当然，它不能帮你找女朋友）"
+括号里面的话我不同意.Re: 爱德华帝麒 3小时前发表[回复] 回复softworm：难道您......23楼 egametang 4小时前发表[回复] 呵呵，项目大了，python就是渣，给函数改个名都不敢改
+读代码痛苦死了，代码很难自动跳转。python只适合写一些很小的脚本22楼 moonbug1984 5小时前发表[回复] 楼主没做过协同开发！21楼 wsszxx66 6小时前发表[回复] 学习了！！20楼 frank_liu1980 6小时前发表[回复] 个人比较喜欢python，它的语法简洁优雅，表达能力很强。19楼 xiguayipian 7小时前发表[回复] python文言文..... 只要心中有范式，用白话C也能文绉绉。Re: 爱德华帝麒 6小时前发表[回复] 回复xiguayipian：手中无刀，心中也无刀？18楼 drugon 7小时前发表[回复] 说大话不怕掉大牙吗?
+"你java能做的，我用python都能做" --------------Oracle用Java重写了数据库,IBM也用Java重写了他的数据库,你用python重写试试?
+
+不要以为用得多就天下无敌了,各有各的作用,各司其职,各尽其能.Re: 爱德华帝麒 7小时前发表[回复] 回复drugon：不要“断章取义”，谢谢，我是一个即将毕业的大学生，我接触到的编程就是，“你能用java做‘的，我用python也能做”，你看我提python优点的时候，说“python是胶水语言，可以粘模块”了吗？因为我没体会过，所以我就不去说，我体会到的，我就敢说。java的效率，python是比不了，可惜我不才，大学没写过什么“大型”，“仿真”，“模拟‘，管理系统的程序。17楼 luck_apple 7小时前发表[回复] 人生苦短，我用python16楼 爱德华帝麒 7小时前发表[回复] =================================================
+很高兴跟大家探讨，我再声明，写短的目的是对程序的热爱，和一种“爱好”，不是为了，“唉，我写的代码你不懂，你永远不懂爷的黑！”
+=================================================15楼 lion7beckham 8小时前发表[回复] 几个例子不是很好，因为代码不是越短以好呀。比如“f = lambda x: x and x * f(x - 1) or 1 ”不如上面的易懂----当然我没学过python，嘿嘿Re: 爱德华帝麒 8小时前发表[回复] 回复lion7beckham：与人一起开发是不能那样写，这个例子想要表达的是，初学者的python代码，看上去很想是C风格的....比如把list当数组用14楼 zyd544 8小时前发表[回复] 我从turbo c 2.0用到borland c++，ms vc++，c#；从vb6到.net；学习python的ide从tkinter到wxpython。什么方便就用什么。
+
+python是一种平常工作的工具，快速，粘合。用得好可以节省很多日常工作的时间。13楼 ictxiangxin 9小时前发表[回复] 用的都是别人封装的东西，连性能提升和算法优化都无从下手，还有高手菜鸟之分？12楼 oXiaoMei123 11小时前发表[回复] 在公司里用一行代码能表达的一般也不用,多行if else 的写法更方便别人理解.有时候代码是公用,共享,快速理解.可能实用更主要一些;要是仅仅作为研究,..看自己想法吧,总归中规中矩Re: 爱德华帝麒 8小时前发表[回复] 回复oXiaoMei123：恩，还没毕业，这么做完全是因为兴趣11楼 天涯飘雪 12小时前发表[回复] 最近我也一直在学习python，但是比较迷茫，不知道往哪个方向去学习10楼 private3128 12小时前发表[回复] //菜鸟
+def factorial(x): 
+if x == 0: 
+return 1 
+else: 
+return x * factorial(x - 1) 
+
+//高手
+f = lambda x: x and x * f(x - 1) or 1 
+这两种写法语义上是等价的，所谓的高手就是少打两行字？？？9楼 一条直线 12小时前发表[回复] 按照楼主的意思，以后是XXXXXX的天下了，大家赶紧去学啊，这里有最新最全的XXXXXXX培训班，地址：某某，联系电话：某某，欢迎各位同学火热报名Re: 爱德华帝麒 8小时前发表[回复] 回复longjunjiafubiao：我文章的题目是《我为什么要学习python》，不是，《我们要去学习python》8楼 软件设计爱好者 12小时前发表[回复] 每种语言都有它适用的场景，在特定的场景选用适合的语言就OK。Re: 爱德华帝麒 8小时前发表[回复] 回复zh7325：恩，这就像是英语考试作文三段式：
+some peolpe think.......A good
+others think...........B good
+In my opinion.........not only A but also B....7楼 huangzuduan 昨天 23:45发表[回复] 看看最近编程语言排行榜，不是java就是c，为什么py上来，首先不是它不优势，不是它设计不好，而是这市场的需求6楼 做自由的人 昨天 22:43发表[回复] 是啊 可是我还是要学java java都没有搞明白 搞其他的也是白搭 我就是java狂 现在有人言论java要死掉，我觉得无可厚非。人嘛，需要的是专注。5楼 qq806418714 昨天 22:02发表[回复] 我比较好奇博主写个这怎么就能上首页，我怎么就上不去Re: 爱德华帝麒 8小时前发表[回复] 回复qq806418714：我大三开始，就开始在csdn上写博客，现在也有一年半了4楼 改改 昨天 21:04发表[回复] 虽然还不是很了解python这门艺术，但是大学的教育的确如LZ所说，是在用不同的语言重复相同的东西，确实失败了点。3楼 AncientLysine 昨天 21:00发表[回复] 就我个人来说写C/C++的愉悦在于你能明确地感觉到每一笔改动带来的性能提升,而Haskell的愉悦在于作右括号那一瞬间的匹配,Python的愉悦还没找到...我用它去写周末的工程,但是实际上我不知道自己在干什么...2楼 tmackan 昨天 20:41发表[回复] 现在正在学习Python 望与LZ多交流哇。有没什么联系的么？QQ或者其他？1楼 fzyz_sb 昨天 19:41发表[回复] 顶！！！最近我也在学习python，然后把python和Lisp当作我个人以后发展的语言。楼主可以学学lisp，推荐MIT的本科教材SICP.
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+爱德华帝麒
+ 
+
+
+
+
+访问：43743次
+积分：1204分
+排名：第8334名
+.原创：35篇
+转载：3篇
+译文：0篇
+评论：477条
+. 
+文章搜索
+
+. 
+文章分类java(1)
+算法(8)
+c语言(6)
+python(14)
+c++(5)
+心得笔记(9)
+大师分享(3)
+软件工程(1)
+unix/linux(1)
+游戏编程(3)
+ 
+文章存档
+2013年04月(1).
+2013年03月(5).
+2013年01月(8).
+2012年12月(1).
+2012年11月(2).
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+阅读排行90后准程序员写给前辈们的一封信(22382)
+我为什么要学习python(3120)
+兔子生兔子(1816)
+我们应该如何学习编程(1165)
+自己动手写蚁群算法(1080)
+10年编程无师自通（转贴）(1016)
+for循环使用心得(797)
+程序员的误区(三)(761)
+python web编程（URL的转义和解析）(755)
+50行代码实现贪吃蛇(738)
+ 
+评论排行90后准程序员写给前辈们的一封信(361)
+我为什么要学习python(33)
+勉强的一天(17)
+我的简历封面(16)
+我们应该如何学习编程(9)
+用python探索别人的U盘(8)
+for循环使用心得(8)
+50行代码实现贪吃蛇(6)
+自己动手写蚁群算法(5)
+aiqier的水果蛇(一)(3)
+ 
+推荐文章 
+最新评论 用python探索别人的U盘
+云中鹤: 你这个貌似不能自动执行吧，最好电脑一识别到U盘就自动生成文件列表 
+
+我为什么要学习python
+爱德华帝麒: @softworm:难道您...... 
+
+我为什么要学习python
+dacoolbaby: Python简单，而且有大量的科学计算库可以使用。而且单从逻辑开发的角度来说，绝对会比Java，C+... 
+
+我为什么要学习python
+softworm: 有一点不同意!"python无所不能（当然，它不能帮你找女朋友）"括号里面的话我不同意. 
+
+我为什么要学习python
+egametang: 呵呵，项目大了，python就是渣，给函数改个名都不敢改读代码痛苦死了，代码很难自动跳转。pytho... 
+
+我为什么要学习python
+moonbug1984: 楼主没做过协同开发！ 
+
+我为什么要学习python
+wsszxx66: 学习了！！ 
+
+我为什么要学习python
+爱德华帝麒: @xiguayipian:手中无刀，心中也无刀？ 
+
+我为什么要学习python
+frank_liu1980: 个人比较喜欢python，它的语法简洁优雅，表达能力很强。 
+
+我为什么要学习python
+xiguayipian: python文言文..... 只要心中有范式，用白话C也能文绉绉。 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持Copyright © 1999-2012, CSDN.NET, All Rights Reserved  

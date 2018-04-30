@@ -1,0 +1,148 @@
+
+相册广场登录注册关注此空间
+王月朝的博客
+学习日志
+2010-07-21 14:14 【转】linux下qt安装
+Linux下安装Qt
+郑重说明：如果你是按服务器模式装的RedHat，并且安装了全部的软件。恭喜你，按最下面的例子编译一个qt程玩玩吧。不需要进行下面的安装，否则会造成qt程序编译错误。
+前段时间简单的学习了一下Linux下图形编程Qt编程软件，安装方法我来说一下，最令我难忘的是安装Qt编译时间长达漫长两个小时。下面我就来说一下安装Qt的具体步骤：
+
+一、下载Qt源码包到本机，然后解压缩
+#tar zxvf qt-x11-free-3.2.1.tar.gz -C /usr/local //将qt-x11-opensource-src-4.2.3.tar.gz源码包解压缩到/usr/local目录（推荐解压缩至/usr/local目录）
+
+二、进入用户家目录的.bash_profile文件设置Qt环境变量，在这里我们以root用户以例。
+#vi /root/.bash_profile //打开root用户.bash_profile文件
+在root用户.bash_profile文件中设置环境变量，在此文件里面添加如下内容：
+QTDIR=/usr/local/qt-x11-free-3.2.1
+PATH=$QTDIR/bin:$PATH
+MANPATH=$QTDIR/doc/man:$MANPATH
+LD_LIBRARY_PATH=$QTDIR/lib:$LD_LIBRARY_PATH
+export QTDIR PATH MANPATHLD_LIBRARY_PATH
+添加完上面信息后按ESC键，“Shife+:”组合键回到vi编辑器命令行状态，输入wq!（强制保存退出）
+
+三、添加完环境变量后，使环境变量立即生效：#source /root/.bash_profile
+
+四、进入Qt解压缩的目录
+#cd $QTDIR或#cd /usr/local/qt-x11-free-3.2.1都可以，因为在/root/.bash_profile文件已经定义了环境变量QTDIR=/usr/local/qt-x11-free-3.2.1和export QTDIR 。
+
+五、使用configure工具来构建Qt库和它提供的工具：./configure（./configure --help 配置选择的列表。例：-thread选项来创建这个库的一个多纯种版本。）
+
+六、最后一步就要进入漫长的Qt安装编译时间了，有事的就出去办事吧，安装编译时间大约需要两个小时。编译命令：make
+Qt安装过程就是这样了，祝您安装Qt成功！！最后说明一下我的安装环境是Red Hat Linux 9 操作系统。
+编译出错：
+In file included from kernel/qt_x11.h:76,
+                 from kernel/qpsprinter.cpp:97:
+/usr/X11R6/include/X11/Xft/Xft.h:35:31:
+freetype/freetype.h: No such file or directory
+In file included from kernel/qt_x11.h:76,
+                 from kernel/qpsprinter.cpp:97:
+/usr/X11R6/include/X11/Xft/Xft.h:52: syntax error
+before `;' token
+/usr/X11R6/include/X11/Xft/Xft.h:86: 'FT_UInt' is used
+as a type, but is not
+   defined as a type.
+/usr/X11R6/include/X11/Xft/Xft.h:93: 'FT_UInt' is used
+as a type, but is not
+   defined as a type.
+/usr/X11R6/include/X11/Xft/Xft.h:190: parse error
+before `*' token
+/usr/X11R6/include/X11/Xft/Xft.h:295: parse error
+before `*' token
+/usr/X11R6/include/X11/Xft/Xft.h:354: parse error
+before `*' token
+/usr/X11R6/include/X11/Xft/Xft.h:393: parse error
+before `*' token
+/usr/X11R6/include/X11/Xft/Xft.h:399: parse error
+before `*' token
+/usr/X11R6/include/X11/Xft/Xft.h:408: type specifier
+omitted for parameter `
+   FT_UInt'
+/usr/X11R6/include/X11/Xft/Xft.h:408: parse error
+before `,' token
+/usr/X11R6/include/X11/Xft/Xft.h:418: parse error
+before `*' token
+/usr/X11R6/include/X11/Xft/Xft.h:461: parse error
+before `*' token
+make[2]: *** [kernel/qpsprinter.o] Error 1
+make[2]: Leaving directory `/home/qt-2.3.2/src'
+make[1]: *** [sub-src] Error 2
+make[1]: Leaving directory `/home/qt-2.3.2'
+make: *** [init] Error 2
+
+解决方法：
+        cd /usr/include
+         ln -s freetype2/freetype freetype
+首先我们进入Linux的图形界面，打开一个控制终端（在桌面空间处单击鼠标右键，在弹出的单菜中选择“新建控制终端”。），在控制终端里面新建一个.cpp文件，并编写程序，如下：
+#vi HelloWorld.cpp //建立一个HelloWorld.cpp文件
+#include<qapplication.h>
+#include<qlabel.h>
+int main(int argc,char *argv[])
+{
+QApplication app(argc,argv);
+QLabel *label=new QLabel("Hello World!!!",0);
+app.setMainWidget(label);
+label->show();
+return app.exec();
+}
+写完上面的代码后保存退出（wq）vi编辑器。
+#qmake -project //把.cpp文件编译成.pro文件
+#qmake HelloWorld.pro //通过.pro文件自动创建Makefile文件
+#make //编译，生成HelloWorld执行文件
+#./HelloWorld //运行HelloWorld文件
+程序正常运行对话框显示“HelloWorld!!!”，证明Qt安装成功！！
+#Linux
+分享到： 举报 浏览(5099) 评论(3) 转载(3)
+你可能也喜欢
+
+ 
+贺“国足”进球-----足球寿司【2013073】
+ 
+春日的趣味--自制菠萝果酱
+ 
+春天的味道，10种蚕豆花样做法，百吃不厌哦！
+ 
+念春暖。草木萋萋。。。
+ 
+清新快手菜：塔古菜炒蘑菇
+ 
+上菜了——吃不够的泰国菜：香叶肉末
+ 
+GCC安装步骤 1
+本文最近访客
+
+ 
+bzlixinhui
+3月31日
+ 
+weiwei22844
+3月26日
+ 
+qjfcu2
+3月25日
+ 
+364299611
+3月25日
+ 
+xinfei_493
+3月15日
+ 
+wangkang144
+3月11日
+ 
+101250118
+3月11日
+ 
+开个玩笑别当真
+3月8日
+评论
+
+wensnowing谢谢啦2013-01-03 13:50回复
+成吉思进三克油！！！2012-11-30 21:21回复
+linux小小鸟刚刚开始学习QT ，学习了2012-05-22 20:58回复
+帮助中心 | 空间客服 | 投诉中心 | 空间协议
+©2013 Baidu
+
+百度空间，让世界发现你
+向世界展示自己，发布喜爱的图片、文字和音乐
+简单注册登录
+

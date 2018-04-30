@@ -1,0 +1,171 @@
+01.<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">  
+02.<html xmlns="http://www.w3.org/1999/xhtml">  
+03.<head>  
+04.<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />  
+05.<title>无标题文档</title>  
+06.<script type="text/javascript" src="http://api.map.baidu.com/api?v=1.3"></script>  
+07.<style>  
+08.#mapbox{width:850px;height:420px; position:absolute; background-color:#CCC; border:1px solid #9CF; font-size:12px;left:200px; top:50px;}  
+09.#mapbox #map{width:600px;height:400px; float:left;}  
+10.#mapbox #results{width:250px; margin-top:10px; float:right;}  
+11..mapheader{ height:25px;width:250px; float:right; overflow:hidden;}  
+12.#mapbox h2{ margin:1px; padding-left:10px; height:20px; line-height:20px; font-size:12px; color:#0066CC; font-weight:100; background:#9CF; cursor:move}  
+13.#mapbox .close{ display:block; position:absolute; right:10px; top:0px; line-height:22px; text-decoration:none; color:#0000}  
+14.</style>  
+15.</head>  
+16.<body>  
+17.<div id="mapbox">  
+18.<h2 onmousedown="drag(this.parentNode,event)">百度地图<a href="javascript:" onclick="document.getElementById('div').style.display='none'" class="close">×</a></h2>  
+19.<div class="mapheader"><input type="text" id="searchtext" /><input type="button" value="搜索" id="searchbt" onclick="serachlocal()" />  
+20.</div>  
+21.<div id="map"></div>  
+22.<div id="results"></div>  
+23.<div id="mapx"></div>  
+24.<div id="mapy"></div>  
+25.<div id="level"></div>  
+26.</div>  
+27.<script type="text/javascript">   
+28.var map = new BMap.Map("map"); // 创建地图实例   
+29.var point = new BMap.Point(116.404, 39.915); // 创建点坐标   
+30.map.centerAndZoom(point, 15); // 初始化地图，设置中心点坐标和地图级别  
+31.   
+32./*  
+33.1.  
+34.NavigationControl：地图平移缩放控件，默认位于地图左上方，它包含控制地图的平移和缩放的功能。   
+35.OverviewMapControl：缩略地图控件，默认位于地图右下方，是一个可折叠的缩略地图。   
+36.ScaleControl：比例尺控件，默认位于地图左下方，显示地图的比例关系。   
+37.MapTypeControl：地图类型控件，默认位于地图右上方。   
+38.CopyrightControl：版权控件，默认位于地图左下方。   
+39.*/  
+40.//配置控件参数  
+41.//var opts = {type: BMAP_NAVIGATION_CONTROL_SMALL}     
+42.//map.addControl(new BMap.NavigationControl(opts));  
+43.map.addControl(new BMap.NavigationControl());    
+44.map.addControl(new BMap.ScaleControl());     
+45.//map.addControl(new BMap.OverviewMapControl());     
+46.//map.addControl(new BMap.MapTypeControl());     
+47.//map.setCurrentCity("台州");  
+48.  
+49./*  
+50.var marker = new BMap.Marker(point);        // 创建标注     
+51.map.addOverlay(marker);    
+52.  
+53.var opts = {     
+54. //width : 250,     // 信息窗口宽度     
+55. //height: 100,     // 信息窗口高度     
+56. title : "Hello"  // 信息窗口标题     
+57.}     
+58.var infoWindow = new BMap.InfoWindow("World", opts);  // 创建信息窗口对象     
+59.map.openInfoWindow(infoWindow, map.getCenter());      // 打开信息窗口     
+60.*/  
+61.map.enableScrollWheelZoom();//滚轮缩放事件  
+62.//map.enableKeyboard(); //键盘方向键缩放事件  
+63.map.enableContinuousZoom(); // 开启连续缩放效果  
+64.//map.enableInertialDragging();　// 开启惯性拖拽效果   
+65.  
+66.  
+67.map.addEventListener("click", function(e){   //点击事件  
+68.//alert(e.point.lng + ", " + e.point.lat);     
+69. document.getElementById("mapx").innerHTML="鼠标当前x位置:"+e.point.lng;  
+70. document.getElementById("mapy").innerHTML="鼠标当前y位置:"+e.point.lat;  
+71.  document.getElementById("level").innerHTML="缩放等级:"+this.getZoom();  
+72.});    
+73.  
+74.  
+75.map.addEventListener("dragend", function(){   //拖拽事件  
+76. var center = map.getCenter();     
+77. document.getElementById("mapx").innerHTML="拖拽后中心x位置:"+center.lng;  
+78. document.getElementById("mapy").innerHTML="拖拽后中心y位置:"+center.lat;  
+79. document.getElementById("level").innerHTML="缩放等级:"+this.getZoom();  
+80. //alert("地图中心点变更为：" + center.lng + ", " + center.lat);     
+81.});   
+82.  
+83.map.addEventListener("zoomend", function(){   //缩放事件  
+84. //alert("地图缩放至：" + this.getZoom() + "级");     
+85.});    
+86.  
+87./*自定义搜索1*/  
+88.function serachlocal1(){  
+89.    //alert(document.getElementById("searchtext").value);  
+90.    var local = new BMap.LocalSearch(map, {renderOptions:{map: map}});  
+91.    local.search(document.getElementById("searchtext").value);   
+92.}  
+93.  
+94./*自定义搜索2*/  
+95.function serachlocal(){  
+96.    var local = new BMap.LocalSearch(map, {     
+97.    renderOptions: {     
+98.    map: map,     
+99.    panel: "results",//结果容器id  
+100.    autoViewport: true,   //自动结果标注  
+101.    selectFirstResult: true   //指定到第一个目标  
+102.    },     
+103.    pageCapacity: 8     
+104.    });  
+105.    local.search(document.getElementById("searchtext").value);  
+106.}  
+107.  
+108./*自定义搜索回调数据  
+109.var options = {     
+110. onSearchComplete: function(results){     
+111.   if (local.getStatus() == BMAP_STATUS_SUCCESS){     
+112.     // 判断状态是否正确     
+113.     var s = [];     
+114.     for (var i = 0; i < results.getCurrentNumPois(); i ++){     
+115.       s.push(results.getPoi(i).title + ", " + results.getPoi(i).address);     
+116.     }     
+117.     document.getElementById("log").innerHTML = s.join("");     
+118.   }     
+119. }     
+120.};     
+121.var local = new BMap.LocalSearch(map, options);     
+122.local.search("公园"); */  
+123.  
+124.  
+125.function serachlocal3(){  
+126.var myGeo = new BMap.Geocoder();     
+127.// 将地址解析结果显示在地图上，并调整地图视野     
+128.myGeo.getPoint("北京市海淀区上地10街10号", function(point){     
+129. if (point) {     
+130.   map.centerAndZoom(point, 16);     
+131.   map.addOverlay(new BMap.Marker(point));     
+132.   alert(point.lng+"#"+point.lat);  
+133.   var opts = {     
+134. //width : 250,     // 信息窗口宽度     
+135. //height: 100,     // 信息窗口高度     
+136. title : "北京市海淀区上地10街10号"  // 信息窗口标题     
+137.}     
+138.var infoWindow = new BMap.InfoWindow("World", opts);  // 创建信息窗口对象     
+139.map.openInfoWindow(infoWindow, map.getCenter());     
+140. }     
+141.}, "北京市");  
+142.}  
+143.</script>  
+144.  
+145.<script type="text/javascript">  
+146.function drag(obj,e){  
+147.    var e=e ? e : event;  
+148.    var mouse_left=e.clientX-obj.offsetLeft;  
+149.    var mouse_top=e.clientY-obj.offsetTop;  
+150.    var docmousemove=document.onmousemove;  
+151.    var docmouseup=document.onmouseup;  
+152.    document.onselectstart=function(e){return false}  
+153.    document.onmouseup=function(){  
+154.        document.onmousemove=docmousemove;  
+155.        document.onmouseup=docmouseup;  
+156.        document.onselectstart=function(e){return true}  
+157.    }  
+158.    document.onmousemove=function(ev){  
+159.        var ev=ev ? ev : event;  
+160.        if(ev.clientX-mouse_left>0&&document.documentElement.clientWidth-(ev.clientX-mouse_left)-obj.offsetWidth+document.documentElement.scrollLeft>0){  
+161.            obj.style.left=(ev.clientX-mouse_left)+"px";  
+162.        }  
+163.        if(ev.clientY-mouse_top>0&&document.documentElement.clientHeight-(ev.clientY-mouse_top)-obj.offsetHeight+document.documentElement.scrollTop>0){  
+164.            obj.style.top=(ev.clientY-mouse_top)+"px";  
+165.        }  
+166.    }  
+167.}  
+168.</script>  
+169.</body>  
+170.</html>  
+

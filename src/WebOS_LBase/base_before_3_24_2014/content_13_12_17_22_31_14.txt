@@ -1,0 +1,861 @@
+QT tcp Socket 通信开发
+(2011-04-14 13:49:03)
+转载▼
+标签： 
+杂谈  
+
+折腾了很久TCP IP通信机制。
+
+以前虽然看过bsd tcp/ip的so called 基础通信代码。什么bind, listen ,accept , receive, write, read，但是一直没真正理解。
+
+这次由于公司需求，我狠狠地读了代码，并且搬出QT老本行，开始了QT For windows的编程。
+
+这个大体构架是做一个聊天室软件。
+
+每个client都可以给服务器TCP发消息，服务器通过TCP给各个客户端转发消息。
+
+服务器端代码：
+
+Server.cpp   继承 QTcpServer  主要用来listen to some port , 侦听到端口后，继承重写了incomingConnection函数，来new 如下的一个代码
+
+tcpClientSocket.cpp 这个继承QTcpSocket ，用来 server.cpp里被 New 出来，接受各种请求
+
+它重写了函数dataReceived , 即各种客户端发来的请求数据，（注意，这个不是第一步的connect状态，这个是业务逻辑上得请求，比如我给server发送了“你好” ）。
+
+这一步处理好后，便开始给各个客户端分发同样的消息“你好” 。使用方法，很简单，QTcpSocket的write方法即可。
+
+这里的细节重点是，在server.cpp里，每个new出来的TcpClientSocket的指针，我放到一个QLIST< TcpClientSocket * >模板里。这样，只要你不删去这个节点，这个TCP链接就一直存在，嘿嘿，神奇吧。
+
+刚开始我看QT自带example ，fortuneclient and threaded fortune server；我试图着在example的基础上修改代码，一步步达到目的。结果发现他的业务逻辑，总是write后就自动disconnected，我以为不disconnected，就能长链接，结果总是出错。
+
+我一直纳闷，这是为什么呢？我用了个List保存了socket的descriptor，以为留着套接字的描述符，就可以下次再调出来用用。实际呢，必须创建链路的时刻，就保存指针。TCP链接，指针在，链路在。指针亡，链路亡。
+
+这也验证了我的想法，所谓一个真正的通信链路SOCKET的创建，是这样执行下去的。在APP层，我们调用了connect，实际OS对网卡发送了连接对方的信号，这个电子，一路走过去，直到accept , 这一个链路创建了，在网卡开辟了区域了，在系统OS也开辟了内存，两方都为此一直保持着这段数据的存在，指针即维系一个网络TCP链路的关键。
+
+这就意味着，客户端无需写什么侦听代码来接受服务器端的消息，直接保持那个链路，消息自然就可以发过来，触发dataReceived信号。
+
+写完代码后，我测试了一下，3个客户端同时链接TCP服务器端的5566端口，全部成功。
+
+曾经很纠结我的所谓端口只能被一个占用。看来，理论远不如实际来的直接。
+
+最后，我还是贴个代码吧。我知道，当一个人寻找各类消息的时候，代码总是最先看得，谁喜欢看人家博客唠叨半天，不讲大道理啊！
+
+服务器端：
+
+代码结构直接看插图
+
+ 
+
+chatserver.h
+
+*********************
+
+#ifndef CHATSERVER_H
+
+#define CHATSERVER_H
+
+#include <QTcpServer>
+
+#include <QStringList>
+
+#include "tcpclientsocket.h"
+
+class ChatServer : public QTcpServer
+
+{
+
+    Q_OBJECT
+
+public:
+
+    ChatServer(QObject *parent = 0,int port=0);
+
+    void PushMessage();
+
+    QList<TcpClientSocket*> tcpClientSocketList;
+
+signals:
+
+    void updateServer(QString,int);
+
+public slots:
+
+    void updateClients(QString,int);
+
+    void slotDisconnected(int);
+
+protected:
+
+    void incomingConnection(int socketDescriptor);
+
+private:
+
+    QStringList fortunes;
+
+    int onlineDescriptor;
+
+};
+
+#endif // CHATSERVER_H
+
+*********************
+
+chatserver.cpp
+
+*********************
+
+#include "chatserver.h"
+
+#include "chatthread.h"
+
+#include <stdlib.h>
+
+ChatServer::ChatServer(QObject *parent,int port)
+
+        : QTcpServer(parent)
+
+{
+
+    fortunes << tr("Searching for people...")
+
+             << tr("You've find a people. Try say hello!")
+
+             << tr("You've disconnected.");
+
+    listen(QHostAddress::Any,port);
+
+}
+
+void ChatServer::incomingConnection(int socketDescriptor)
+
+{
+
+    TcpClientSocket *tcpClientSocket=new TcpClientSocket(this);
+
+    connect(tcpClientSocket,SIGNAL(updateClients(QString,int)),this,SLOT(updateClients(QString,int)));
+
+    connect(tcpClientSocket,SIGNAL(disconnect(int)),this,SLOT(slotDisconnected(int)));
+
+    tcpClientSocket->setSocketDescriptor(socketDescriptor);
+
+    tcpClientSocketList.append(tcpClientSocket);
+
+ 
+
+}
+
+void ChatServer::updateClients(QString msg, int length)
+
+{
+
+ //   emit updateServer(msg,length);
+
+    for(int i=0;i<tcpClientSocketList.count();i++)
+
+    {
+
+        QTcpSocket *item=tcpClientSocketList.at(i);
+
+        if(item->write(msg.toLatin1(),length)!=length)
+
+        {
+
+            continue;
+
+        }
+
+    }
+
+}
+
+void ChatServer::slotDisconnected(int descriptor)
+
+{
+
+    for (int i=0;i<tcpClientSocketList.count();i++)
+
+    {
+
+        QTcpSocket *item=tcpClientSocketList.at(i);
+
+        if(item->socketDescriptor()==descriptor)
+
+        {
+
+            tcpClientSocketList.removeAt(i);
+
+            return;
+
+        }
+
+    }
+
+    return;
+
+}
+
+void ChatServer::PushMessage()
+
+{
+
+    QString testString;
+
+    testString="fuck u";
+
+    updateClients(testString,testString.length());
+
+ 
+
+}
+
+*********************
+
+chatui.h
+
+*********************
+
+#ifndef CHATUI_H
+
+#define CHATUI_H
+
+#include <QDialog>
+
+#include "chatserver.h"
+
+QT_BEGIN_NAMESPACE
+
+class QLabel;
+
+class QPushButton;
+
+QT_END_NAMESPACE
+
+class ChatUi : public QDialog
+
+{
+
+    Q_OBJECT
+
+public:
+
+    ChatUi(QWidget *parent = 0);
+
+private slots:
+
+    void Test();
+
+private:
+
+    QLabel *statusLabel;
+
+    QPushButton *quitButton;
+
+    QPushButton *testButton;
+
+    ChatServer *server;
+
+};
+
+#endif // CHATUI_H
+
+*********************
+
+chatui.cpp
+
+*********************
+
+#include "chatui.h"
+
+#include "chatserver.h"
+
+#include <QtGui>
+
+#include <QtNetwork>
+
+#include <stdlib.h>
+
+ChatUi::ChatUi(QWidget *parent)
+
+    :QDialog(parent)
+
+{
+
+    statusLabel = new QLabel;
+
+    quitButton=new QPushButton(tr("Quit"));
+
+    quitButton->setAutoDefault(false);
+
+    testButton=new QPushButton(tr("Test"));
+
+    testButton->setAutoDefault(false);
+
+    server=new ChatServer(this,5566);
+
+    if (!server->isListening()) {
+
+        QMessageBox::critical(this, tr("Chat Server"),
+
+                              tr("Unable to start the server: %1.")
+
+                              .arg(server->errorString()));
+
+        close();
+
+        return;
+
+    }
+
+    QString ipAddress;
+
+    QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
+
+    for (int i = 0; i < ipAddressesList.size(); ++i) {
+
+            if (ipAddressesList.at(i) != QHostAddress::LocalHost &&
+
+                ipAddressesList.at(i).toIPv4Address()) {
+
+                ipAddress = ipAddressesList.at(i).toString();
+
+                break;
+
+            }
+
+        }
+
+    if (ipAddress.isEmpty())
+
+            ipAddress = QHostAddress(QHostAddress::LocalHost).toString();
+
+    statusLabel->setText(tr("The server is running on\n\nIP: %1\nport: %2\n\n"
+
+                                "Run the Fortune Client example now.")
+
+                             .arg(ipAddress).arg(server->serverPort()));
+
+    connect(quitButton,SIGNAL(clicked()),this,SLOT(close()));
+
+    connect(testButton,SIGNAL(clicked()),this,SLOT(Test()));
+
+    QHBoxLayout *buttonLayout = new QHBoxLayout;
+
+    buttonLayout->addStretch(1);
+
+    buttonLayout->addWidget(quitButton);
+
+    buttonLayout->addStretch(1);
+
+    buttonLayout->addWidget(testButton);
+
+    buttonLayout->addStretch(1);
+
+    QVBoxLayout *mainLayout = new QVBoxLayout;
+
+    mainLayout->addWidget(statusLabel);
+
+    mainLayout->addLayout(buttonLayout);
+
+    setLayout(mainLayout);
+
+    setWindowTitle(tr("Chat Server"));
+
+}
+
+void ChatUi::Test()
+
+{
+
+    server->PushMessage();
+
+}
+
+*********************
+
+tcpclientsocket.h
+
+*********************
+
+#ifndef TCPCLIENTSOCKET_H
+
+#define TCPCLIENTSOCKET_H
+
+#include <QTcpSocket>
+
+class TcpClientSocket : public QTcpSocket
+
+{
+
+    Q_OBJECT
+
+public:
+
+    TcpClientSocket(QObject* parent=0);
+
+    ~TcpClientSocket();
+
+signals:
+
+    void updateClients(QString,int);
+
+    void disconnected(int);
+
+protected slots:
+
+    void dataReceived();
+
+//    void slotDisconnected();
+
+};
+
+#endif // TCPCLIENTSOCKET_H
+
+*********************
+
+tcpclientsocket.cpp
+
+*********************
+
+#include "tcpclientsocket.h"
+
+TcpClientSocket::TcpClientSocket(QObject* parent)
+
+{
+
+    connect(this,SIGNAL(readyRead()),this,SLOT(dataReceived()));
+
+    connect(this,SIGNAL(disconnected()),this,SLOT(slotDisconnected()));
+
+}
+
+TcpClientSocket::~TcpClientSocket()
+
+{
+
+}
+
+void TcpClientSocket::dataReceived()
+
+{
+
+    while(bytesAvailable()>0)
+
+    {
+
+        char buf[1024];
+
+        int length=bytesAvailable();
+
+        read(buf,length);
+
+        QString msg=buf;
+
+        emit updateClients(msg,length);
+
+    }
+
+}
+
+*********************
+
+下面是客户端代码
+
+client.h
+
+*********************
+
+
+
+
+#ifndef CLIENT_H
+
+#define CLIENT_H
+
+#include <QDialog>
+
+#include <QTcpSocket>
+
+QT_BEGIN_NAMESPACE
+
+class QDialogButtonBox;
+
+class QLabel;
+
+class QLineEdit;
+
+class QPushButton;
+
+class QTcpSocket;
+
+QT_END_NAMESPACE
+
+//! [0]
+
+class Client : public QDialog
+
+{
+
+    Q_OBJECT
+
+public:
+
+    Client(QWidget *parent = 0);
+
+private slots:
+
+    void requestNewFortune();
+
+    void readFortune();
+
+    void displayError(QAbstractSocket::SocketError socketError);
+
+    void enableGetFortuneButton();
+
+    void slotConnected();
+
+private:
+
+    QLabel *hostLabel;
+
+    QLabel *portLabel;
+
+    QLineEdit *hostLineEdit;
+
+    QLineEdit *portLineEdit;
+
+    QLabel *statusLabel;
+
+    QPushButton *getFortuneButton;
+
+    QPushButton *quitButton;
+
+    QDialogButtonBox *buttonBox;
+
+    QTcpSocket *tcpSocket;
+
+    QString currentFortune;
+
+    quint16 blockSize;
+
+#ifdef Q_OS_SYMBIAN
+
+    bool isDefaultIapSet;
+
+#endif
+
+};
+
+//! [0]
+
+#endif
+
+
+*********************
+
+client.cpp
+
+*********************
+
+
+
+
+#include <QtGui>
+
+#include <QtNetwork>
+
+#include "client.h"
+
+#ifdef Q_OS_SYMBIAN
+
+#include "sym_iap_util.h"
+
+#endif
+
+//! [0]
+
+Client::Client(QWidget *parent)
+
+    : QDialog(parent)
+
+{
+
+//! [0]
+
+    hostLabel = new QLabel(tr("&Server name:"));
+
+    portLabel = new QLabel(tr("S&erver port:"));
+
+    // find out which IP to connect to
+
+    QString ipAddress;
+
+    QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
+
+    // use the first non-localhost IPv4 address
+
+    for (int i = 0; i < ipAddressesList.size(); ++i) {
+
+        if (ipAddressesList.at(i) != QHostAddress::LocalHost &&
+
+            ipAddressesList.at(i).toIPv4Address()) {
+
+            ipAddress = ipAddressesList.at(i).toString();
+
+            break;
+
+        }
+
+    }
+
+    // if we did not find one, use IPv4 localhost
+
+    if (ipAddress.isEmpty())
+
+        ipAddress = QHostAddress(QHostAddress::LocalHost).toString();
+
+    hostLineEdit = new QLineEdit(ipAddress);
+
+    portLineEdit = new QLineEdit;
+
+    portLineEdit->setValidator(new QIntValidator(1, 65535, this));
+
+    hostLabel->setBuddy(hostLineEdit);
+
+    portLabel->setBuddy(portLineEdit);
+
+    statusLabel = new QLabel(tr("This examples requires that you run the "
+
+                                "Fortune Server example as well."));
+
+    getFortuneButton = new QPushButton(tr("Get Fortune"));
+
+    getFortuneButton->setDefault(true);
+
+    getFortuneButton->setEnabled(false);
+
+    quitButton = new QPushButton(tr("Quit"));
+
+    buttonBox = new QDialogButtonBox;
+
+    buttonBox->addButton(getFortuneButton, QDialogButtonBox::ActionRole);
+
+    buttonBox->addButton(quitButton, QDialogButtonBox::RejectRole);
+
+//! [1]
+
+    tcpSocket = new QTcpSocket(this);
+
+//! [1]
+
+    connect(hostLineEdit, SIGNAL(textChanged(QString)),
+
+            this, SLOT(enableGetFortuneButton()));
+
+    connect(portLineEdit, SIGNAL(textChanged(QString)),
+
+            this, SLOT(enableGetFortuneButton()));
+
+    connect(getFortuneButton, SIGNAL(clicked()),
+
+            this, SLOT(requestNewFortune()));
+
+    connect(quitButton, SIGNAL(clicked()), this, SLOT(close()));
+
+//! [2] //! [3]
+
+    connect(tcpSocket,SIGNAL(connected()),this,SLOT(slotConnected()));
+
+    connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(readFortune()));
+
+//! [2] //! [4]
+
+    connect(tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)),
+
+//! [3]
+
+            this, SLOT(displayError(QAbstractSocket::SocketError)));
+
+//! [4]
+
+    QGridLayout *mainLayout = new QGridLayout;
+
+    mainLayout->addWidget(hostLabel, 0, 0);
+
+    mainLayout->addWidget(hostLineEdit, 0, 1);
+
+    mainLayout->addWidget(portLabel, 1, 0);
+
+    mainLayout->addWidget(portLineEdit, 1, 1);
+
+    mainLayout->addWidget(statusLabel, 2, 0, 1, 2);
+
+    mainLayout->addWidget(buttonBox, 3, 0, 1, 2);
+
+    setLayout(mainLayout);
+
+    setWindowTitle(tr("Fortune Client"));
+
+    portLineEdit->setFocus();
+
+#ifdef Q_OS_SYMBIAN
+
+    isDefaultIapSet = false;
+
+#endif
+
+//! [5]
+
+}
+
+//! [5]
+
+//! [6]
+
+void Client::requestNewFortune()
+
+{
+
+    getFortuneButton->setEnabled(false);
+
+#ifdef Q_OS_SYMBIAN
+
+    if(!isDefaultIapSet) {
+
+        qt_SetDefaultIap();
+
+        isDefaultIapSet = true;
+
+    }
+
+#endif
+
+    blockSize = 0;
+
+    tcpSocket->abort();
+
+//! [7]
+
+    tcpSocket->connectToHost(hostLineEdit->text(),
+
+                             portLineEdit->text().toInt());
+
+//! [7]
+
+}
+
+//! [6]
+
+//! [8]
+
+void Client::readFortune()
+
+{
+
+    while(tcpSocket->bytesAvailable()>0)
+
+    {
+
+        QByteArray datagram;
+
+        datagram.resize(tcpSocket->bytesAvailable());
+
+        tcpSocket->read(datagram.data(),datagram.size());
+
+        QString msg=datagram.data();
+
+        statusLabel->setText(msg);
+
+        getFortuneButton->setEnabled(true);
+
+    }
+
+   
+
+}
+
+//! [12]
+
+//! [13]
+
+void Client::displayError(QAbstractSocket::SocketError socketError)
+
+{
+
+    switch (socketError) {
+
+    case QAbstractSocket::RemoteHostClosedError:
+
+        QMessageBox::information(this, tr("Fortune Client"),
+
+                                 tr("Romote server closed illegally."));
+
+        break;
+
+    case QAbstractSocket::HostNotFoundError:
+
+        QMessageBox::information(this, tr("Fortune Client"),
+
+                                 tr("The host was not found. Please check the "
+
+                                    "host name and port settings."));
+
+        break;
+
+    case QAbstractSocket::ConnectionRefusedError:
+
+        QMessageBox::information(this, tr("Fortune Client"),
+
+                                 tr("The connection was refused by the peer. "
+
+                                    "Make sure the fortune server is running, "
+
+                                    "and check that the host name and port "
+
+                                    "settings are correct."));
+
+        break;
+
+    default:
+
+        QMessageBox::information(this, tr("Fortune Client"),
+
+                                 tr("The following error occurred: %1.")
+
+                                 .arg(tcpSocket->errorString()));
+
+    }
+
+    getFortuneButton->setEnabled(true);
+
+}
+
+//! [13]
+
+void Client::enableGetFortuneButton()
+
+{
+
+    getFortuneButton->setEnabled(!hostLineEdit->text().isEmpty()
+
+                                 && !portLineEdit->text().isEmpty());
+
+}
+
+void Client::slotConnected()
+
+{
+
+    QString msg="hello,server";
+
+    tcpSocket->write(msg.toLatin1(),msg.length());
+
+    return;
+
+}
+
+
+*********************
+
+
+
+

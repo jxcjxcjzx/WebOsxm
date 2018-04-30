@@ -1,0 +1,46 @@
+
+NextPrevious
+
+Simple Browsing
+
+By writing just a few lines of code using the WebKit, you can embed web content in your application and enable your users to navigate the web. 
+
+The code example below assumes you already have a WebView object inside a window that represents the webpage. You can create a WebView object and attach it to a window either programmatically or by using Interface Builder. Using Interface Builder, drag a WebView from the Library into a window. You should also connect the WebView object to an outlet so that you can send messages to it programmatically.
+
+Next, you load a webpage by sending a loadRequest: message to the main frame of your WebView object, as in this example:
+
+
+
+
+[[webView mainFrame] loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:urlText]]]; 
+
+Here, webView is an instance of WebView and urlText is a valid URL address such as http://www.apple.com. You can do this after the nib file is loaded, so that your WebView object displays a default page.
+
+When you run your application you’ll notice that the URL (if it is valid) is successfully displayed in the window and most links are followed automatically when clicked. Content that contains multiple frames is automatically handled. The WebKit does this by creating a hierarchy of WebFrameView and WebFrame objects to handle frame content—even content that contains QuickTime movies, JavaScript, or Flash movies works.
+
+Even though navigating works, this simple example doesn’t contain many of the features you would expect in a web browser—namely, a text field for typing in URLs, back and forward buttons, a history menu, multiple windows, and status or error messages. You can add some of these features by assigning delegates to your WebView object and implementing delegate methods. Because the delegate methods are informal protocols, you can choose which methods you want to implement.
+
+NextPrevious
+
+
+
+
+--------------------------------------------------------------------------------
+
+
+ © 2003, 2012 Apple Inc. All Rights Reserved. (Last updated: 2012-11-09)
+
+ Did this document help you? YesIt's good, but...Not helpful... 
+
+
+Shop the Apple Online Store (1-800-MY-APPLE), visit an Apple Retail Store, or find a reseller.
+Mailing Lists
+RSS Feeds
+ .
+
+Copyright © 2010 Apple Inc. All rights reserved.
+Terms of Use
+Privacy Policy
+. 
+
+

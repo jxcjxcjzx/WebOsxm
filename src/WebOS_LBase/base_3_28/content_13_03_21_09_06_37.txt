@@ -1,0 +1,359 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+小楼昨夜听雨
+目录视图摘要视图订阅
+2013年7月微软MVP申请开始啦！        专访许长敬之移动互联网      CSDN博客移动开发排行榜 
+【有奖提问】CSDN论坛第1期专家问答开始        来极客头条，推荐你的博客        下载频道3月领任务~赚下载分！
+ Emacs学习手记（2-4）
+2007-12-01 22:35 727人阅读 评论(0) 收藏 举报
+emacsbufferlispstring语言perl
+目录(?)[+]
+ 
+Emacs学习手记（2）
+
+（主要涉及 Emacs LISP初步）
+
+参考：Learning GNU Emacs 3/e，9.8.The Lisp Modes，11.Emacs Lisp Programming
+
+Emacs有三种Lisp模式，其命令名称如下：
+
+ emacs-lisp-mode	 用于Emacs Lisp代码的编辑（文件名.emacs或后缀.el）
+ lisp-mode	 用来编辑另一个Lisp系统的Lisp代码（后缀.l或.lisp）
+ lisp-interaction-mode	 用来编辑和运行Emacs Lisp代码（交互模式）
+本文只讨论 lisp-interaction-mode模式。
+
+缺省情况下*scratch*就是处于这种模式，无后缀的文件名一般也会让Emacs进入Lisp交互模式，当然你可以使用变量auto-mode-alist进行设置。
+
+键 入 M-x lisp-interaction-mode Enter（回车）可以让任何buffer进入Lisp交互模式；如要新建一个Lisp交互buffer，只需键入C-x b（即switch-to-buffer命令），输入buffer名，然后令该buffer进入Lisp交互模式。
+
+Lisp交互模式和 Emacs Lisp模式完全一致，除一个重要特性外：C-j已绑定到eval-print-last-sexp命令上。该命令提取point之前的那个S- expression，对其进行评估，然后在buffer里打印结果。如果要使用其它模式里绑定到C-j的常见功能newline-and- indent，你必须按下Enter，并紧跟Tab键。
+
+记住 S-expression是任何符合Lisp语法的表达式。因此，可以使用 Lisp交互模式的C-j来检查变量的值，确认函数定义，运行函数等等。比如，如果你输入auto-save-interval并按下C-j，就会显示该变量的值（缺省为300）。如果你输入一个defun并在其最右边的括号后按下C-j，Emacs会保存所定义的函数（供以后调用）并输出其名称；这种情况下，C-j类似C-M-x（即eval-defun命令），不过光标必须位于所定义的函数之后（因为有可能在定义前或中间）。如果你调用了一个函数， Emacs就会评估（运行）该表达式并显示函数的所有返回值。
+
+Lisp交互模式的C-j提供了很棒的功能，你可以用它来增量方式开发和调试Emacs Lisp代码；因为Emacs Lisp是种“真正的”Lisp，它甚至可用来开发其它Lisp系统的代码片断。
+基本Lisp实体
+你需要熟悉Lisp基本元素包括函数、变量和atom（原子）。函数是Lisp的唯一程序单元（program unit），涵盖了其它语言的过程、子程序、程序甚至操作符等标记。
+
+函数被定义作上述实体的列表（list），通常是对其它现存函数调用的列表。所有函数都有返回值（return value）（类似Perl函数和non-void Java函数）；函数的返回值就是list里最后一项的值，一般是最后调用的函数返回的值。在其它函数里的函数调用等价于其它语言的语句（statement），函数的语法如下：
+
+function-name argument1 argument2 ...)
+
+等价于Java的：
+
+method_name (argument1, argument2, ...);
+
+这一语法用于所有函数，包括那些等价于其它语言的算术或比较运算符。例如，在Java或Perl里2加4，你会用表达式2+4，而在Lisp里你会使用如下写法：
+
+(+ 2 4)
+
+类似的，4 >= 2的Lisp方式：
+
+(>= 4 2)
+
+Lisp中的变量和其它语言的相似，不过没有类型。Lisp变量能够推测任何类型的值（值本身没有类型，不过变量对其能存放的内容不加任何限制）。
+
+原子（atom）是个任意类型的值，包括整数、浮点（实）数、字符、字符串、布尔值、符号（symbol）和Emacs特殊类型如buffer、window和process。各种atom的语法如下：
+整数：和你常用的一样，有符号，范围-2+27至2+27 - 1；
+浮点数：可用十进制和科学计数法表示的实数。例如5489可写成5489、5.489e3、546.9e1等；
+字符：以问号开头，如 ?a 。Esc、Newline和Tab可分别简写为/e、/n和/t；其它控制字符可以加/C-前缀来表示，例如C-a表示为?/C-a。整数也可用来表示字符，如ASCII表等。
+字符串：用双引号包围；字符串里的引号标记和/需要加上/，"Jane said, /"See Dick run./""是个合法字符串。字符串可以分割成多行，不需特殊语法。结束引号前的所有内容包括所有断行符都是字符串值的一部分。
+布尔值：大部分情况下真值为t，假值为nil，如果能预估到布尔值，则任何非nil值都被看作真值。nil也被用作null或nonvalue。
+
+符号：Lisp实体名，如变量或函数名。有时需要引用实体的名字而非其值，这时可以在名字前加上单引号（'）。
+setq用来赋值给变量，是个函数，而不象其它语言里用来赋值的专门语法=或:=。setq接收两个参数：一个变量名和一个值。也可以进行多次赋值，如：
+(setq thisvar thisvalue
+     thatvar thatvalue
+     theothervar theothervalue)
+也可用其它方法设置值或变量，不过setq是使用最广的方法。
+函数定义
+首先熟悉一下Lisp语法的特殊表示。- 用作“割断”字符用来分隔变量、函数等名称里的字（word），这是Lisp编程惯用法，类似C和Ada里的“_”。
+
+A more important issue has to do with all of the parentheses in Lisp code. Lisp is an old language that was designed before anyone gave much thought to language syntax (it was still considered amazing that you could use any language other than the native processor's binary instruction set), so its syntax is not exactly programmer-friendly. Yet Lisp's heavy use of lists—and thus its heavy use of parentheses—has its advantages, as we'll see toward the end of this chapter.
+
+让我们从一个实例开始。
+1  (defun count-words-buffer ( )
+2    (let ((count 0))
+3      (save-excursion
+4        (goto-char (point-min))
+5        (while (< (point) (point-max))
+6          (forward-word 1)
+7          (setq count (1+ count)))
+8        (message "buffer contains %d words." count))))
+defun：指定函数名和参数来定义函数。注意defun本身是一个函数――被调用时，定义一个新函数。（defun返回把所定义的函数作为一个symbol返回。）函数的参数显示为在括号内的一个名字list；本例，函数没有参数。如果在参数前加关键字&optional就表示参数是optional（可选的）。如果参数是optional的，在函数调用时未指定该参数，则认为其值为nil。
+(let ((var1 value1) (var2 value2) ... )
+  statement-block)
+let：1.定义（或声明）一个变量list；2.变量设置初始值，同setq；3.创建一个语句块（类似函数体），在此块内这些变量可用，let块即这些变量的scope（作用域）。let里定义的变量可用setq改变其值，不过要小心使用setq。
+
+save -excursion：Emacs内建函数，保存光标原来的位置（因为 count-words-buffer函数要移动光标以便计算字数）。调用 save-excursion就是要求Emacs记住实例函数开始执行时的光标位置，并在执行完函数体内的所有语句后返回至初始光标位置。
+
+goto -char：Emacs内建函数，其参数是个（内嵌）函数调用，调用内建函数point-min。point是Emacs内部名称，表示光标的当前位置。 point-min返回当前buffer里第一个字符的位置值，几乎总是1；这样goto-char调用时其参数值为1，效果等同于把point移至 buffer起始处。
+
+(while condition     statement-block)
+
+和let 及save-excursion一样，while也建立了一个语句块。condition是个值（atom、变量或返回一个值的函数）。while对这个值进行测试，如果其值不是nil，则认为条件（condition）为真，语句块得以执行，然后condition再次被测试，之后重复上述过程。当然也可以写个无限循环，如果你试图执行这样的语句，Emacs会挂起，键入C-g终止。
+
+在实例函数中，condition是函数 < ，即带两个参数的小于函数，类似Java或Perl里的<运算符。第一个参数是另一个函数，它返回point的当前字符位置；第二个参数返回 buffer里的最大（最后）字符位置，即buffer的长度。函数 < （和其它关系函数）返回一个布尔值，t 或 nil。
+
+上述循环的语句块由两条语句组成。第6行会把point往前移动一个字（word，即相当于M-f）。第7行，循环计数器加一；函数 1+ 是(+ 1 variable-name)的简写方式。注意第三个右括号（第7行）和while前面的左括号匹配。这样，在计算字数时，while循环会让Emacs 一次一个字（word）遍历整个当前buffer。
+
+实例函数的最后一个语句使用内建函数message在minibuffer里打印一行信息，提示buffer所含的字数。message函数的格式类似C语言。
+
+Message格式字符串
+ 格式字符串	 含义
+ %s	 字符串或symbol
+ %c	 字符
+ %d	 整数
+ %e	 科学计数法表示的浮点数
+ %f	 十进制表示的浮点数
+ %g	 任意格式的浮点数，产生最短的字符串
+将Lisp函数变为Emacs命令
+函 数 count-words-buffer已编写完成，接下来该如何运行？在交互模式中，可以把光标移到函数的结束括号，然后键入C-j（或 Linefeed），让Emacs执行函数定义。你应该看到该函数的名字会再次出现在buffer里；defun函数的返回值就是已定义的符号（即函数名称）。
+
+函数定义之后，可以在Lisp交互窗口中输入一行 (count-words-buffer) ，然后在结束括号后再次按下 C-j 。
+
+如 果你象其它Emacs命令一样用M-x来执行上述函数，M-x count-words-buffer Enter，会得到错误提示信息 [No match]。这是因为你并未在Emacs中“注册”该函数，使其可供交互（interactive）使用。实现这一功能的函数是 interactive ，形式如下：
+
+(interactive "prompt-string")
+
+上述语句必须出现在函数开始处，即紧随defun和文档说明字符串所在行之后。使用 interactive 会让Emacs把函数注册为一个命令，并提示用户输入defun语句中声明的参数。提示字符串为可选。
+
+提示字符串有一个特殊的格式：你要为想提示用户输入的每个参数都提供一段提示字符串，这些段用“/n”分隔。
+
+用于interactive函数的参数代码
+代 码
+提示用户输入
+  b 
+ 现存buffer的名称
+  e 
+ 事件（鼠标动作或 function key press）
+  f 
+ 现存文件的名称
+  n 
+  数字（整数）
+  s 
+ 字符串
+ 	 上述代码都有一个大写的变种
+  B  	 可能不存在的buffer名称
+  F	 可能不存在的文件名称
+  N 
+ 数字，unless command is invoked with a prefix argument, in which case use the prefix argument and skip this prompt
+  S 	 符号  
+示例：
+(defun replace-string (from to)
+  (interactive "sReplace string: /nsReplace string %s with: ")
+  ...)
+回 到 count-words-buffer 命令：它不需参数，因此 interactive 命令不需要提示字符串。另外可以再给我们的命令添加一个文档说明字符串（doc string），它会显示在describe-function（C-h f）之类的在线帮助工具中。Doc string是普通的Lisp字符串，可选，行数长度任意，不过一般来说，第一行是个简要完整的句子，说明命令的功能。注意字符串里的任意双引号前必须加上 / 。
+(defun count-words-buffer ( )
+  "Count the number of words in the current buffer;
+print a message in the minibuffer with the result."
+
+  (interactive)
+  (save-excursion
+    (let ((count 0))
+      (goto-char (point-min))
+      (while (< (point) (point-max))
+        (forward-word 1)
+        (setq count (1+ count)))
+      (message "buffer contains %d words." count))))
+Emacs学习手记（3）
+
+（主要涉及Emacs buffer相关主题）
+
+怎么才能知道Emacs中活动buffer的数量？有三种方法：buffer列表（键入C-x C-b时显示在一窗口中），Buffers菜单（它列出了活动的buffer和浏览这些buffer的命令），还有Buffer弹出菜单（按住Ctrl，单击鼠标左键访问，它根据模式列出buffer）。
+
+Emacs会创建它自己的专用buffer。这些内部buffer的名字一般来说格式为 *buffer name* 。*Help*、*scratch*和*Buffer List*就是Emacs创建的其中一些buffer。
+
+当你启动Emacs时，它会建立两个buffer：
+
+*Messages*
+*scratch*
+
+*Messages* buffer存储了Emacs收集自它启动时从minibuffer里显示的消息；*scratch*是个临时的scratchpad（涂鸦板），以便你有地方输入东西。除非你使用C-x C-w明确的把它写到文件中，否则它不会被保存下来。
+
+当然，一般来说你用Emacs编辑文件时，这些文件就会被拷贝到同名的buffer中。如果你需要获得帮助，则会进入 *Help* buffer。
+
+能在Emacs里打开的buffer数量实际上没有限制。大多数情况下，只显示一个或两个buffer；不过即使你无法看到全部，你在某个Emacs会话里创建的buffer仍处于活动状态。你可以把这些buffer想象成一叠纸，只有放在最上面的那页才显示在你眼前。不过任何时候，你都可以翻到另一页（另一个buffer），或者也可以创建一个新页。
+
+每个buffer都关联一个主模式（major mode），它决定了Emacs在这个buffer里的行为。例如，设计用来书写文本的文本模式（text mode），和Lisp模式的表现就不一样，后者被设计用来编写Lisp程序。
+
+如何操作多个buffer
+
+如 果要新建包含一个文件的buffer，只需键入 C-x C-f 找到该文件。Emacs就会自动新建一个buffer并定位到该buffer。如果该文件已打开，C-x C-f 只是定位到已有buffer中，这一点很有意义，可以避免同一文件存在多个buffer导致混乱。如果键入 C-x C-f 后输入的文件名不存在，Emacs认为你想新建一个文件，并定位到一个空白buffer中。
+
+C-x b：在多个buffer之间进行切换；键入命令后输入buffer名，回车。如果已存在该buffer，则切换到该buffer中；否则以输入的 buffer名新建一个buffer，但是注意这个buffer并没有和文件相关，因此关闭Emacs，它不会给你任何提示。
+
+C-mouse 1：按住Ctrl并单击鼠标左键，会弹出一个Buffer Menu，它会按主模式类型列出活动的buffer供你选择。
+
+C-x ->(<-)：按下C-x后（放开）再按向右（左）方向键可以定位到下（上）一个buffer中。
+
+如何删除buffer
+
+注意：如果你修改了一个buffer（且该buffer和一个文件相关），则Emacs会在删除buffer前询问你是否保存所做修改；如果这个 buffer和文件不相关，则你在该buffer里所做任何修改都会丢失，Emacs认为你不在乎这些buffer因此不作任何提示。因此编辑重要的 buffer之前最好先 C-x C-w 写到文件中，或者用 C-x C-f 新建buffer。
+
+C-x k：kill-buffer命令，删除一个buffer；
+
+M-x kill-some-buffers：删除一些buffer；
+
+如果删除了当前会话里的所有buffer，Emacs会新建一个 *scratch* buffer，总得有个东西显示在屏幕上不是？:P
+
+如何保存buffer
+
+C-x C-s：保存当前buffer；
+
+C-x s：即save-some-buffers命令，一次保存所有buffer；
+
+如何重命名buffer
+
+M-x rename-buffer：重命名buffer；
+
+如何使buffer只读
+
+C-x C-q：切换buffer的read-only和read-write状态；
+
+buffer和window的关系
+
+buffer和window并不是一一对应的，同一个buffer可以有多个window，比如你可以同时在多个window里查看同一buffer的不同部分。Mark是和buffer关联的；而point是和window关联的。
+
+C-x 2：即split-window-vertically命令，水平切分窗口；
+
+C-x 3：垂直切分窗口；
+
+C-x 4 b(f)：在另一个窗口选择另一个buffer（查找另一个文件），这样你可以不用切换到另一个window，就改变其buffer或打开文件；
+
+C-M-v：滚动另一个window（C-v是滚动当前window）；
+
+C-x o：此处 o 表示other（其它），移动光标到另一个window；
+
+C-x 0：删除当前所在的window；
+
+C-x 1：删除当前所在window之外的所有window；
+
+C-x 5 2：新建一个frame；
+Emacs学习手记（4）
+
+（主要涉及Emacs学习从初级到高级的一些文档/书籍）
+
+从初级到高级排列；也可参看我的豆列。
+
+　　❑ Emacs Beginner's HOWTO
+　　http://jeremy.zawodny.com/emacs/
+　　
+　　对Emacs有一个基本的认识和了解，比较全面缺又不拘泥于细节，同时有部分命令快速参考。
+　　
+　　❑ Learning GNU Emacs 3/e
+　　http://www.douban.com/subject/1431970/
+　　
+　　国内已翻译出版了2/e，非常适合初学者，一个个命令和概念娓娓道来，辅之以截屏，甚至可以让你躺在床上学Emacs，不过要让你的手指习惯Emacs最好还是乖乖坐在电脑前边看边实践的好。
+　　
+　　❑ Sams Teach Yourself Emacs in 24 Hours
+　　http://www.douban.com/subject/1432323/
+　　
+　　国内有不少朋友极力推荐此书，没细看。不过一天学惯Emacs的诱惑也挺吸引人的。不凡一天看一小时吧，反正Emacs是这辈子学不完的东东，急个啥。和上面一书属同一层次，截屏也多，每个hour后辅之以练习。
+　　
+　　❑ Writing GNU Emacs Extensions
+　　http://www.douban.com/subject/1432819/
+　　
+　　大致翻了一下内容，涉及Emacs本身（当然主要是剖析一些基本概念而非陷在具体命令/操作上）和Lisp。当然本书也不是要教你Lisp，只是一些基本知识。如果你要进行一些高难度的定制，或许可以从本书开始。上面的HOWTO指南推荐。
+　　
+　　❑ An Introduction to Programming in Emacs Lisp
+　　http://www.douban.com/subject/1432501/
+　　
+　　一本基础级的Emacs Lisp编程介绍，不是专门写给程序员的，不知道这一点是否会让你不那么排斥这本书。Emacs的定制？哦，也可以从此开始嘛。上面的HOWTO指南也推荐了此书。
+　　
+　　❑ Gnu Emacs Lisp Reference Manual
+　　http://www.douban.com/subject/1432583/
+　　
+　　Richard Stallman写（还有其它作者）的，还有的说？Emacs Lisp编程的绝对指南，不过900多页的书啊，你要有思想准备。还好现在的搜索技术了得。全书可自由获取。
+　　
+　　❑ GNU Emacs Manual
+　　http://www.douban.com/subject/1432361/
+　　
+　　又一本官方指南……
+ 
+分享到： 
+上一篇：Emacs入门导引
+下一篇：shell script 控制结构（未完）
+
+查看评论
+
+  暂无评论
+
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+个人资料
+  
+dycwahaha
+ 
+访问：61301次
+积分：1845分
+排名：第4075名
+原创：116篇转载：28篇译文：0篇评论：10条
+文章搜索
+
+文章分类
+Linux(15)
+Symbian(0)
+文章存档
+2010年08月(1)
+2010年07月(1)
+2010年02月(3)
+2010年01月(14)
+2009年01月(1)
+展开
+阅读排行
+linux下yum的使用 (5377)
+关于原码、反码、补码（ZZ）(2905)
+OSI七层框架体系结构和TCP/IP五层结构（ZZ）(2456)
+android 编译系统阅读与分析(1)-envsetup.sh (editing....)(2114)
+我使用过的文本编辑器及其历程（ZT） (2107)
+APUE源代码编译(ZZ+2)(1689)
+anacron与cron(1633)
+Linux文件比较命令(ZZ)(1517)
+关于gtk-config和pkg-config的问题(1246)
+va_list可变参数传递(ZZ)(1013)
+评论排行
+我使用过的文本编辑器及其历程（ZT） (3)
+关于用#include文件和#ifndef，#define防止文件被重复包含(3)
+Symbian OS 资源文件(.rss)(zz)(1)
+android 编译系统阅读与分析(1)-envsetup.sh (editing....)(1)
+APUE源代码编译(ZZ+2)(1)
+OSI七层框架体系结构和TCP/IP五层结构（ZZ）(1)
+Debug和Release之本质区别(0)
+VC6.0编译器参数设置（ZZ）(0)
+VC快捷键大全 (0)
+关于extern "C"的2篇文章(0)
+推荐文章
+
+最新评论
+关于用#include文件和#ifndef，#define防止文件被重复包含
+探子: 写的不错，简洁易懂
+APUE源代码编译(ZZ+2)
+hong78: 好 复 杂 !!
+android 编译系统阅读与分析(1)-envsetup.sh (editing....)
+yewen1: 佩服 实在是佩服。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。
+关于用#include文件和#ifndef，#define防止文件被重复包含
+makefriend7: #pragma once windows下就不要这么麻烦了。。。。
+关于用#include文件和#ifndef，#define防止文件被重复包含
+HumorRat:
+我使用过的文本编辑器及其历程（ZT）
+匿名用户: 其次，编辑器不是用的越多越好，而是找一个把他用到淋漓尽致，能做到这一点的话，恐怕就是Notepad这...
+我使用过的文本编辑器及其历程（ZT）
+匿名用户: 同意楼上的观点。Emacs和Vim都是最强大的编辑器，作者抱着抵触情绪学习怎么学的好呢~？其次，Em...
+OSI七层框架体系结构和TCP/IP五层结构（ZZ）
+匿名用户:
+我使用过的文本编辑器及其历程（ZT）
+qianlongwydh: 可惜了作者对vim 和 Emacs都不熟在心底抵触他们当然学不好了。vim一旦深入了是相当可怕的，以...
+Symbian OS 资源文件(.rss)(zz)
+lian_gong2008: 从中学到不少东西，多谢！
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+ 联系邮箱：webmaster(at)csdn.net
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+
+C#也可以开发苹果和安卓游戏啦！ 
+
+

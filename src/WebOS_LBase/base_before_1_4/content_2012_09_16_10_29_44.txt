@@ -1,0 +1,18 @@
+#include <linux/module.h> 
+#include <linux/init.h> 
+
+#define DRIVER_VERSION "V1.0" 
+#define DRIVER_AUTHOR "AA" 
+#define DRIVER_DESC "Hello world" 
+
+int hello_init(void){ 
+printk("Hello,world! "); 
+return 1; 
+} 
+
+void hello_cleanup(void){ 
+printk("Goodbye cruel world! "); 
+} 
+
+module_init(hello_init); 
+module_exit(hello_cleanup);

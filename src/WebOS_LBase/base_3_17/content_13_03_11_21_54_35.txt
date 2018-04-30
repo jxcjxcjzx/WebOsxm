@@ -1,0 +1,38 @@
+| Home |
+
+Mobile computers are now awesome; editing text with them still sucks. The solution: the Tiled Text engine, an Android compatible framework for making slick, usable mobile text editors.
+The concrete examples on this site are from GIDE (Gestural IDE—written on Tiled Text) which I think proves the concept/engine.
+Tiled Text is not just for code! It could be configured to edit English documents via these units: paragraphs, sentences, clauses/phrases, words, characters (GIDE manipulates classes, members, lines, tokens, characters).
+I have a scheme for inserting new text: how it works (Or scroll down.)
+I can be reached at westoncb@[Google's mail service].com
+
+The technology: Java/OpenGL (via libGDX for Android compatibiliity)/ANTLR/Eclipse. 
+
+Note:
+I talk about Tiled Text as it relates to mobile computing because that's where I see its externally most interesting application. But, fact is I wrote Tiled Text to get around a mouse/keyboard injury I have, and it is, more generally, software for escaping those devices. Things like motion sensors, joysticks, and multi-touch surfaces are relatively interchangeable as input devices enabled by the software. In the video I use a joystick. There are some differences when switching to multi-touch, but the basic idea is the same.
+
+What's There: At present, it is possible to hand to the engine an annoted EBNF grammar (particularly, an ANTLR grammar), which will form the basis of a new app. This app will be able to edit documents conforming to the given grammar. At this point editing consists of moving or deleting document regions. An undo/redo system is in progress. There's also a very general purpose architecture in place that has some operating system-like aspects to it. 
+
+What's not There (Yet): Text generation: with sufficiently structured text, the Tiled Text engine will narrow down the possibilities of what can be inserted at any given point so that the user can select textual constructs from a grid of options, rather than inserting everything one character at a time (this won't work for natural languages; it's for apps like shells and code editors, and perhaps some more exotic things). The engine for doing this is at ~(70% - 80%), but it has not been attached to the UI yet. This and a fuller selection of editing commands (copying, searching, etc.) are the largest remaining tasks.
+Entering New Text with Tiled Text: Rearranging pieces of text is good and fine, but of limited utility without being able to insert new text. Why can't Tiled Text insert new text? Because that part of the program is only partially written! 
+
+Here's how it's going to work from the user's perspective: 
+
+They press the insert button. They are presented with a list of the syntactically valid constructs for inserting into the document at that point. 
+
+They make a selection. The selected construct is entered. This mean's the current insertion point has changed and a new set of options is now valid: a new list immediately replaces the last one. 
+
+That's roughly it. The list is actually displayed as a grid, and each cell has an input symbol associated with it (so you don't have to "move over" to a cell, just fire the input symbol: for instance, with a gesture recognition system, putting your hands in a certain postion selects the third cell). The grid becomes almost like a keyboard at this point, except each symbol on it accomplishes a lot more than inserting a single character.
+Solving Wrist Pain by Writing an IDE: Late in my 19th year I was writing the third iteration of my ongoing game engine project, when I felt the first typing induced twinge. Saw doctors, half-heartedly tried a number of remedies and some ergonomic upgrades, continued programming. Nothing phased it, the pain got worse. After a few months I decided I would have to stop programming, maybe for a year or so. That was okay: I needed to get caught up in mathematics if I was going to be very good with real-time graphics. Took time off, no improvement. Dropped out of school. 
+
+Years passed. I didn't understand compromise then and preferred the prospect of working in another field over being crippled in the one I loved; though I eventually finished a CS degree despite having no real hope of returning to software development. I became more academic in the interim. I thought a lot rather than just building things. I liked philosophy and science (and philosophy of science!) and suspected there was some mathematics out there that would be as good as software. After graduating, my project was to discover why people thought mathematics was beautiful; failing that, at least acquire some rudimentery facility with it. That went so so, made a lot of progress—but it wasn't coding. About a year in, though, while explaining to a friend why coding with the Microsoft Kinect wasn't a real solution (with existing IDE's), the kernal of the idea behind Tiled Text occurred to me. 
+
+And, like the warrior who has put killing behind him, I blew the dust off my keyboard and set to work: my wrists would hold out for a few months until I could build this thing. 
+
+The initial idea was an early form of the code generation concept (didn't understand what a formal grammar was well enough to see how it would relate; thought of making some kind of linguistic constraint description system—thankfully my dad put me off the path of re-inventing the wheel here), but it was augmented in the early days by a few epiphanies. Real, old-fashioned epiphanies: if I were religious I might have thought they were gifts. The first was on the cycling behavior—the other half of the core concept. The second gave the UI concrete form (was still thinking of building it on top of an existing text editor before this). The third mostly related to the architecture, and led to generalizing beyond just code editing. 
+
+Then there was work. And more work. I worked three days a week stocking groceries and four days a week on the project. I did this for about five months, with constant wrist pain. Then I got Type 1 diabetes. I had medical bills in addition to student loans and was barely scraping by. Then I worked for another 9 months or so, with progress slowing some. 
+
+I needed a change. I'd been thinking about moving to Boston for a while, inspired by Paul Graham's comments on it from "Cities and Ambition." And now, here I am, in Harvard Square, excited about whatever's next. I'd like to continue with Tiled Text and GIDE, but I realize that may not be possible. What I really want now is to get in an environment where I can learn from others. I've been working in relative isolation for most of the time I've been programming, but I know the only way for me to progress is working with experts. Of course that will involve typing/mousing, but: ironically, I have learned how to mitigate my wrist pain from mouse/keyboard while working on software to obviate my usage of those devices. 
+
+And, incidentally, when I would procrastinate work on Tiled Text, I would often go to math books. My studies at these times were very fruitfull and I think now that mathematics has a chance at contending with coding, and I have finally seen some glimpses of mathematical structures that should be called beautiful.

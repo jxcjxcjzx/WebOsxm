@@ -1,0 +1,71 @@
+首页 资讯 精华 论坛 问答 博客 专栏 群组 更多 ▼ 您还未登录 ! 登录 注册
+XingJYuan
+博客微博相册收藏留言关于我
+  
+用java将二进制转换ascii码
+
+博客分类： java
+java游戏二进制ascii 
+今天玩程序员闯关游戏最后一关，碰到个难题，一大串二进制数要转换成ascii码。 
+最后想到ASCII码对应的数是十进制数的，可以先把二进制转换成十进制，再强制转换成char类型就好了。 
+于是用到Integer类中的一个方法： 
+static int parseInt(String s, int radix) 
+          使用第二个参数指定的基数，将字符串参数解析为有符号的整数。 
+该方法使用方式：第一个参数应填写以字符串形式表示的二进制数。第二个参数填写“2”，以表示第一个参数是二进制数。该方法返回一个十进制带符号的整数。 
+这里贴出源代码： 
+Java代码  
+import java.io.*;  
+  
+public class ToAscii {  
+  
+    public static void main(String[] args) throws IOException {  
+        BufferedReader br = new BufferedReader(new InputStreamReader(  
+                new FileInputStream("binary.txt")));  
+        String[] ss=null;//用来保存第一行的各项  
+        for(;;) {  
+            String str = br.readLine();  
+            //如果读到文件最后一行之后，则退出循环  
+            if(str==null)  
+                break;  
+            ss=str.split(" ");//每一行的各项用空格分开  
+            for (String s : ss) {  
+                int numasc = Integer.parseInt(s, 2);  
+                System.out.print((char)numasc);//强制转换成char类型，并输出  
+            }  
+        }  
+        br.close();  
+    }  
+}  
+
+
+
+分享到：    
+（转）程序员进步的本质
+2012-11-13 15:13浏览 137评论(0)分类:编程语言相关推荐
+评论
+发表评论
+  您还没有登录,请您登录后再发表评论
+
+xingjiyuan26
+浏览: 236 次
+
+最近访客 更多访客>>
+dylinshi126
+文章分类
+全部博客 (4)
+java (2)
+android (0)
+linux (0)
+社区版块
+我的资讯 (0)
+我的论坛 (0)
+我的问答 (0)
+存档分类
+2013-01 (1)
+2012-12 (1)
+2012-11 (2)
+更多存档...
+最新评论
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ]
+

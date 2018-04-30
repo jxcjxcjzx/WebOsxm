@@ -1,0 +1,172 @@
+Chrome插件开发之一: 搭建基本结构
+
+作者：cmdbuf 发布时间：2010年05月28日发表评论 (1)   2阅读评论
+欢迎喜爱Chrome的谷友进入Chrome插件开发的世界！
+
+你很幸运，因为Chrome插件开发是如此简单，你不需要明白什么是ActiveX，不需要知道什么叫COM，嗯，让他们一边凉快去吧，这里只有HTML & Javascript，这里是互联网的世界！
+
+ 
+
+首先，会英文的同学请浏览一下官方开发文档～：
+
+http://code.google.com/chrome/extensions/getstarted.html
+
+本系列博文主要分享开发重点，具体细节不一一赘述（PS：若无法访问，请f-a-n, q-i-a-n-g……）
+
+1. 文件列表
+
+本文引用项目 urlcmt 作为开发示例（urlcmt是一个可以对任意网页进行评论的Chrome插件，你可以 下载源代码，或 安装此插件），为了让插件正常工作，至少需要这几个文件：
+
+
+
+它们的作用分别是：
+
+icon.png: 插件工具栏图标
+manifest.json: 控制整个插件行为的配置文件
+popup.html: 点击插件图标后弹出的窗口，是插件的主界面
+如果希望插件具有更加合理的结构和功能，则还可以有以下文件：
+
+
+
+他们的作用分别是：
+
+imgs: 存放插件界面图片
+background.html: 在此运行的代码不会因为popup.html窗口消失而停止运行
+icon_128.png: 在插件描述中作为插件的Logo
+main.css: 插件界面元件的样式表
+main.js: 插件中可以使用的js函数
+2. 文件说明
+
+manifest.json 为整个插件的主控文件，基本功能描述如下：
+
+01	{
+02	    "name": "urlcmt",
+03	    "version": "1.0",
+04	    "description": "网页评论 Comment the web !",
+05	    "default_locale": "zh_CN",
+06	    "browser_action": {
+07	        "default_icon": "icon.png",
+08	        "popup": "popup.html"
+09	    },
+10	    "icons": {
+11	        "128": "icon_128.png"
+12	    },
+13	    "permissions": [
+14	        "tabs",
+15	        "http://api.gdfans.net/"
+16	    ]
+17	}
+其中：
+
+第2行: 所有代码思想的核心，它就是插件的名称！
+第3行: 插件版本，发布插件时会生成一串密文，那时会用到
+第4行: 描述信息，会显示在插件属性里
+第5行: 默认编码为中文
+第7行: 指定插件图标的路径
+第8行: 指定 popup.html 文件的路径
+第11行: 指定 128 像素大小的图标的路径
+第14行: 此权限支持读取标签（tab）中的信息
+第15行: 此权限支持向 http://api.gdfans.net/ 发送 Ajax 请求
+popop.html 为整个插件的界面，代码如下：
+
+01	<!DOCTYPE html>
+02	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+03	<link rel="stylesheet" href="main.css" />
+04	<script type="text/javascript" src="./url.js"></script>
+05	<script type="text/javascript" src="./main.js"></script>
+06	 
+07	<body onload="init()">
+08	    <div id="pop_msg" class="align_center colo_aaa valign_center"></div>
+09	    <div class="submit_form align_center">
+10	        <form id="cmt_submit_form" onsubmit="submit_cmt();return false;" action="#" method="POST">
+11	            <textarea rows="1" cols="6" id="cnt" class="align_left"onfocus="show_submit_form();" maxlength="200"></textarea>
+12	            <br />
+13	            <div class="align_right">
+14	                <input type="submit" id="sbmt" value="submit">
+15	            </div>
+16	        </form>
+17	    </div>
+18	    <div id="cmt_cnt"></div>
+19	</body>
+这里注意：
+
+第1行: 加上这个以后，显示插件界面时，不会在底部出现一大片空白区域
+其余都和普通 web 页面开发相同，空的 div 供 Ajax 填充从服务端获取的数据
+3. 实现功能 – 插件初始化
+
+有了 manifest.json 和 popup.html，就可以实现最基本的 hello world 的功能了，接下来需要为插件增加其它功能，这些功能可以用 Javascript & Ajax 实现，对此项技术不太熟悉的同学，请 点击这里 查阅 w3c school 里的教程。
+
+这些 Javascript & Ajax 代码可以写在 main.js 中，因为不仅 popup.html 要用到，后续要介绍的 background.html 中也要用到，所以为了重用起见，还是放在单独的文件里比较好。main.js 中可以包含一个 init() 函数，用以进行插件的初始化工作
+
+1	function init()
+2	{
+3	    // 隐藏编写评论的表单，以增大页面的可用区域
+4	    hide_submit_form();
+5	    // 从服务端获取当前网页的评论数据，并显示在界面上
+6	    refresh_cmt_cnt(1);
+7	};
+然后在 popup.html 的 body 标签中，加上
+
+1	<body onload="init()">
+即可。
+
+4. 实现功能 – 调用 Chrome API
+
+Chrome为插件提供了可以通过 Javascript 调用的 API，在插件的 Js 代码可以直接使用，例如想获取当前标签中的 URL 地址，并向服务端发送 Ajax 请求获取这个 URL 对应的评论信息，可以这么写：
+
+01	function refresh_cmt_cnt(page_no)
+02	{
+03	    // 创建 Ajax 请求对象
+04	    var xhr = new XMLHttpRequest();
+05	 
+06	    // 使用Chrome提供的tab接口获取当前选中的tab的信息
+07	    chrome.tabs.getSelected(null, function(tab) {
+08	        // 当 getSelected 函数执行成功以后会执行到这里
+09	        var cmt_cnt_obj = document.getElementById("cmt_cnt");
+10	 
+11	        // 构造 POST 数据，可以通过 tab.url 来获取标签的 URL 地址
+12	        // encodeURIComponent 函数用来转义特殊字符以免发生冲突
+13	        // 在服务端可以用 PHP 函数 urldecode 再转义回来
+14	        var post_data = 'cmd=1505&alt=json&url=' +
+15	                        encodeURIComponent(tab.url) +
+16	                        '&page_size=5&page_no=' + page_no;
+17	 
+18	        // 指定提交的目标地址
+19	        xhr.open("POST", "http://api.gdfans.net/",
+20	                 true);
+21	        xhr.setRequestHeader("Content-Type",
+22	                             "application/x-www-form-urlencoded");
+23	 
+24	        xhr.onreadystatechange = function() {
+25	            if (xhr.readyState == 4) {
+26	                // 当 Ajax 请求接收完所有返回数据时会执行到这里
+27	                // 因为服务端返回的数据为 json 格式，因此使用前需要解析以下
+28	                var resp = JSON.parse(xhr.responseText);
+29	                if (! resp) {
+30	                    show_popmsg(null, '获取数据失败', 3);
+31	                    return false;
+32	                }
+33	 
+34	                // 解析完成以后就可以读取返回的数据了
+35	                if (resp.result == 1501) {
+36	                    clear_popmsg();
+37	                    return false;
+38	                }
+39	 
+40	                // 将数据显示在页面上
+41	                for (var key in resp.data) {
+42	                    htmltxt += resp.data[key]['cmt'] + ', ';
+43	                }
+44	 
+45	                cmt_cnt_obj.innerHTML = htmltxt + "/n";
+46	            }
+47	        }
+48	 
+49	        // 发送 Ajax 请求，Ajax 执行成功以后会调用上面介绍的代码
+50	        xhr.send(post_data);
+51	    });
+52	 
+53	    return true;
+54	}
+至此一个可以从服务端获取 URL 评论数据的简单插件就制作完成了，只要你熟悉 Web 开发，开发 Chrome 插件就是小菜一碟～
+好了，休息一会，接下来的文章再继续分享其它内容 ^-^

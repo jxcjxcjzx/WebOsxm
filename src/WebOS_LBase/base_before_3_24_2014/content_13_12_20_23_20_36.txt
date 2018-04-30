@@ -1,0 +1,169 @@
+首页 资讯 精华 论坛 问答 博客 专栏 群组 更多 ▼ 您还未登录 ! 登录 注册
+zy19982004
+博客微博相册收藏留言关于我
+  
+Java ClassLoader学习四：ContextClassLoader
+
+博客分类： 设计模式
+ 
+一.ContextClassLoader
+ContextClassLoader只是一个逻辑上的概念，在Java Api里并没有一个叫ContextClassLoader的类。
+JVM默认类加载体系已经能满足大部分情况的使用了，那为什么还需要ContextClassLoader呢。但有时候这样的加载体系并不能满足要求，比喻需要动态加载应用程序开发人员提供的资源时。考虑JDBC的实现，JDK中的JDBC Api是由BootStrap加载的，当我们确定使用某一厂商的JDBC实现时，实现类也会由BootstrapLoader加载，显然BootstrapLoader是加载不了的。于是就出现了ContextClassLoader这个概念。JDBC Api里使用ContextClassLoader去加载实现类，默认情况ContextClassLoader就是AppClassLoader(参考http://zy19982004.iteye.com/blog/1983236)，刚好可以加载位于classpath下的实现类。
+再说的清楚一点，ContextClassLoader就是Thread的一个属性，提供了get和set方法，因此任何地方都可以设置并获得这个ClassLoader。
+Java代码  收藏代码
+private ClassLoader contextClassLoader;  
+在没有显示setContextClassLoader的时候，getContextClassLoader默认返回的是该线程的父线程的ClassLoader。
+Java代码  收藏代码
+public void setContextClassLoader(ClassLoader cl){}  
+public ClassLoader getContextClassLoader() {}  
+其实还有一个办法，把AppClassLoader保存起来，当BootstrapLoader加载不到实现类时，用AppClassLoader去加载。
+二.学习例子
+Java代码  收藏代码
+package com.jyz.study.jdk.classLoader;  
+  
+import java.net.MalformedURLException;  
+import java.net.URL;  
+import java.net.URLClassLoader;  
+  
+/** 
+ *  演示ContextClassLoader的使用 
+ *  @author JoyoungZhang@gmail.com 
+ *   
+ */  
+public class ContextClassLoaderTest {  
+      
+    public static void main(String[] args) throws MalformedURLException, ClassNotFoundException {  
+        System.out.println("MainClass getClassLoader: " + ContextClassLoaderTest.class.getClassLoader());  
+        System.out.println("MainClass getContextClassLoader: " + Thread.currentThread().getContextClassLoader());  
+        Thread innerThread1 = new InnerThread1();  
+        innerThread1.start();  
+    }  
+      
+}  
+  
+class InnerThread1 extends Thread{  
+    @Override  
+    public void run() {  
+        try {  
+            URL[] urls = new URL[1];  
+            urls[0] = new URL("jar:file:/E:/GoogleCode/platform-components/trunk/SourceCode/component-core/target/component-core-1.0.jar!/");  
+            URLClassLoader urlClassLoader = new URLClassLoader(urls);  
+            Class<?> clazz = urlClassLoader.loadClass("com.jyz.component.core.collection.Tuple");  
+            System.out.println(clazz.newInstance());  
+              
+            System.out.println("InnerThread1 getClassLoader: " + clazz.getClassLoader());  
+            System.out.println("InnerThread1 getContextClassLoader: " + Thread.currentThread().getContextClassLoader());  
+              
+            this.setContextClassLoader(urlClassLoader);  
+              
+            Thread innerThread2 = new InnerThread2();  
+            innerThread2.start();  
+        }catch (MalformedURLException e) {  
+            e.printStackTrace();  
+        } catch (ClassNotFoundException e) {  
+            e.printStackTrace();  
+        } catch (InstantiationException e) {  
+            e.printStackTrace();  
+        } catch (IllegalAccessException e) {  
+            e.printStackTrace();  
+        }  
+    }  
+}  
+  
+  
+class InnerThread2 extends Thread{  
+    @Override  
+    public void run() {  
+        try {  
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();  
+            classLoader.loadClass("com.jyz.component.core.collection.Triple");  
+            System.out.println("InnerThread2 getContextClassLoader: " + Thread.currentThread().getContextClassLoader());  
+        } catch (ClassNotFoundException e) {  
+            e.printStackTrace();  
+        }  
+    }  
+}  
+  
+  
+console output:  
+MainClass getClassLoader: sun.misc.Launcher$AppClassLoader@f6a746  
+MainClass getContextClassLoader: sun.misc.Launcher$AppClassLoader@f6a746  
+Tuple[t1:null, t2:null]  
+InnerThread1 getClassLoader: java.net.URLClassLoader@f9f9d8  
+InnerThread1 getContextClassLoader: sun.misc.Launcher$AppClassLoader@f6a746  
+InnerThread2 getContextClassLoader: java.net.URLClassLoader@f9f9d8  
+  
+  
+注释掉36行时console output:  
+MainClass getClassLoader: sun.misc.Launcher$AppClassLoader@f6a746  
+MainClass getContextClassLoader: sun.misc.Launcher$AppClassLoader@f6a746  
+Tuple[t1:null, t2:null]  
+InnerThread1 getClassLoader: java.net.URLClassLoader@f9f9d8  
+InnerThread1 getContextClassLoader: sun.misc.Launcher$AppClassLoader@f6a746  
+java.lang.ClassNotFoundException: com.jyz.component.core.collection.Triple  
+...异常栈信息  
+ 
+
+1 
+顶0 
+踩 分享到：    
+Java日志学习二：Apache Commons Logging ( ... | Java ClassLoader学习三：自定义ClassLoade ...
+2013-12-01 15:23浏览 461评论(0)分类:编程语言相关推荐
+评论
+发表评论
+  您还没有登录,请您登录后再发表评论
+zy19982004的博客
+zy19982004
+浏览: 74424 次
+性别: Icon_minigender_1
+来自: 深圳
+
+最近访客 更多访客>>
+fly_宇光十色的博客fly_宇光十色kobe1029的博客kobe1029dylinshi126的博客dylinshi126answer_ke的博客answer_ke
+文章分类
+全部博客 (137)
+Solr (9)
+Java基础 (20)
+设计模式 (17)
+多线程 (6)
+容器 (12)
+计算机组成原理 (4)
+数据结构与算法 (8)
+Hibernate (6)
+数据库 (6)
+Spring (2)
+Servlet (5)
+面试 (1)
+J2se源码 (1)
+UML (2)
+Hadoop (30)
+日志 (4)
+Linux (4)
+社区版块
+我的资讯 (0)
+我的论坛 (15)
+我的问答 (4)
+存档分类
+2013-12 (4)
+2013-11 (19)
+2013-10 (5)
+更多存档...
+评论排行榜
+Java面试汇总
+Hadoop学习十一：Hadoop-Hdfs RPC总结
+Servlet学习三：不允许直接访问jsp处理方 ...
+Hadoop学习一：Hadoop版本
+最新评论
+中州城主： 谢谢  这个有帮助
+Hibernate学习二：Hibernate对象状态及转换
+jkguowen： 非常谢谢作者，看完您的文章后，一切关于LinkedHashM ...
+容器学习三：LinkedHashMap源码分析
+ljz0898： 太经典了。
+Hadoop学习十一：Hadoop-Hdfs RPC总结
+heipacker： zy19982004 写道heipacker 写道第二点也会发 ...
+Class对象
+zy19982004： heipacker 写道第二点也会发生对类的初始化！ 不会
+Class对象
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ]
+

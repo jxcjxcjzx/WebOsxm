@@ -1,0 +1,1882 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+结构之法 算法之道
+ 
+Google或baidu搜索：“结构之法”，进入本博客
+ 
+
+
+
+
+目录视图
+ 摘要视图
+ 订阅
+ . 
+
+
+
+【免费有礼】欧美最新网络营销技巧分享        博客导入工具      【限时优惠】第五届云计算大会社区门票抢购 
+探究云计算数据中心节能增效之道      专访邓凡平：Android开发路上的快速学习之道      CSDN博客第二期最佳移动开发博主评选 
+
+
+
+程序员编程艺术：第三章续、Top K算法问题的实现 
+. 
+分类： 11.TAOPP（编程艺术） 19.TAOPP algorithms 2011-05-08 17:31 28720人阅读 评论(64) 收藏 举报 
+
+算法编程nullpivotfp搜索引擎
+ 
+
+                     程序员编程艺术：第三章续、Top K算法问题的实现
+
+
+    作者：July，zhouzhenren，yansha。
+    致谢：微软100题实现组，狂想曲创作组。
+    时间：2011年05月08日
+    微博：http://weibo.com/julyweibo 。
+    出处：http://blog.csdn.net/v_JULY_v 。
+    wiki：http://tctop.wikispaces.com/。
+-----------------------------------------------
+
+ 
+
+前奏
+    在上一篇文章，程序员面试题狂想曲：第三章、寻找最小的k个数中，后来为了论证类似快速排序中partition的方法在最坏情况下，能在O（N）的时间复杂度内找到最小的k个数，而前前后后updated了10余次。所谓功夫不负苦心人，终于得到了一个想要的结果。
+
+    简单总结如下（详情，请参考原文第三章）：
+    1、RANDOMIZED-SELECT，以序列中随机选取一个元素作为主元，可达到线性期望时间O（N）的复杂度。
+    2、SELECT，快速选择算法，以序列中“五分化中项的中项”，或“中位数的中位数”作为主元（枢纽元），则不容置疑的可保证在最坏情况下亦为O（N）的复杂度。
+
+    本章，咱们来阐述寻找最小的k个数的反面，即寻找最大的k个数，但此刻可能就有读者质疑了，寻找最大的k个数和寻找最小的k个数，原理不是一样的么?
+
+    是的，的确是一样，但这个寻找最大的k个数的问题的实用范围更广，因为它牵扯到了一个Top K算法问题，以及有关搜索引擎，海量数据处理等广泛的问题，所以本文特意对这个Top K算法问题，进行阐述以及实现（侧重实现，因为那样看起来，会更令人激动人心），算是第三章的续。ok，有任何问题，欢迎随时不吝指正。谢谢。
+
+ 
+
+说明
+
+      关于寻找最小K个数能做到最坏情况下为O（N）的算法及证明，请参考原第三章，寻找最小的k个数，本文的代码不保证O（N）的平均时间复杂度，只是根据第三章有办法可以做到而已（如上面总结的，2、SELECT，快速选择算法，以序列中“五分化中项的中项”，或“中位数的中位数”作为主元或枢纽元的方法，原第三章已经严格论证并得到结果）。
+
+ 
+
+第一节、寻找最小的第k个数
+
+     在进入寻找最大的k个数的主题之前，先补充下关于寻找最k小的数的三种简单实现。由于堆的完整实现，第三章：第五节，堆结构实现，处理海量数据中已经给出，下面主要给出类似快速排序中partition过程的代码实现：
+
+寻找最小的k个数，实现一（下段代码经本文评论下多位读者指出有问题：当a [ i ]=a [ j ]=pivot时，则会产生一个无限循环，在Mark Allen Weiss的数据结构与算法分析C++描述中文版的P209-P210有描述，读者可参看之。特此说明，因本文代码存在问题的地方还有几处，故请待后续统一修正.2012.08.21）：
+
+
+
+
+
+01.//copyright@ mark allen weiss && July && yansha    
+02.//July，yansha、updated，2011.05.08.    
+03.    
+04.//本程序，后经飞羽找出错误，已经修正。    
+05.//随机选取枢纽元，寻找最小的第k个数    
+06.#include <iostream>    
+07.#include <stdlib.h>    
+08.using namespace std;    
+09.    
+10.int my_rand(int low, int high)    
+11.{    
+12.    int size = high - low + 1;    
+13.    return  low + rand() % size;     
+14.}    
+15.    
+16.//q_select places the kth smallest element in a[k]    
+17.int q_select(int a[], int k, int left, int right)  
+18.{  
+19.    if(k > right || k < left)  
+20.    {  
+21.//         cout<<"---------"<<endl;   //为了处理当k大于数组中元素个数的异常情况  
+22.        return false;  
+23.    }  
+24.  
+25.    //真正的三数中值作为枢纽元方法，关键代码就是下述六行  
+26.    int midIndex = (left + right) / 2;  
+27.    if(a[left] < a[midIndex])  
+28.        swap(a[left], a[midIndex]);  
+29.    if(a[right] < a[midIndex])  
+30.        swap(a[right], a[midIndex]);  
+31.    if(a[right] < a[left])  
+32.        swap(a[right], a[left]);  
+33.    swap(a[left], a[right]);  
+34.  
+35.    int pivot = a[right];   //之前是int pivot = right，特此，修正。  
+36.  
+37.  
+38.    // 申请两个移动指针并初始化  
+39.    int i = left;  
+40.    int j = right-1;  
+41.  
+42.    // 根据枢纽元素的值对数组进行一次划分  
+43.    for (;;)  
+44.    {  
+45.        while(a[i] < pivot)  
+46.            i++;  
+47.        while(a[j] > pivot)  
+48.            j--;  
+49.        //a[i] >= pivot, a[j] <= pivot  
+50.        if (i < j)  
+51.            swap(a[i], a[j]);   //a[i] <= a[j]  
+52.        else  
+53.            break;  
+54.    }  
+55.    swap(a[i], a[right]);  
+56.  
+57.    /* 对三种情况进行处理 
+58.    1、如果i=k，即返回的主元即为我们要找的第k小的元素，那么直接返回主元a[i]即可; 
+59.    2、如果i>k，那么接下来要到低区间A[0....m-1]中寻找，丢掉高区间; 
+60.    3、如果i<k，那么接下来要到高区间A[m+1...n-1]中寻找，丢掉低区间。 
+61.    */  
+62.    if (i == k)  
+63.        return true;  
+64.    else if (i > k)  
+65.        return q_select(a, k, left, i-1);  
+66.    else return q_select(a, k, i+1, right);  
+67.}  
+68.    
+69.int main()    
+70.{    
+71.    int i;    
+72.    int a[] = {7, 8, 9, 54, 6, 4, 11, 1, 2, 33};    
+73.    q_select(a, 4, 0, sizeof(a) / sizeof(int) - 1);    
+74.    return 0;    
+75.}    
+
+
+寻找最小的第k个数，实现二：
+
+
+
+
+
+01.//copyright@ July  
+02.//yansha、updated，2011.05.08。  
+03.// 数组中寻找第k小元素，实现二  
+04.#include <iostream>  
+05.using namespace std;  
+06.  
+07.const int numOfArray = 10;  
+08.  
+09.// 这里并非真正随机  
+10.int my_rand(int low, int high)  
+11.{  
+12.    int size = high - low + 1;  
+13.    return low + rand() % size;   
+14.}  
+15.  
+16.// 以最末元素作为主元对数组进行一次划分  
+17.int partition(int array[], int left, int right)      
+18.{                              
+19.    int pos = right;  
+20.    for(int index = right - 1; index >= left; index--)  
+21.    {  
+22.        if(array[index] > array[right])  
+23.            swap(array[--pos], array[index]);  
+24.    }  
+25.    swap(array[pos], array[right]);  
+26.    return pos;  
+27.}  
+28.  
+29.// 随机快排的partition过程   
+30.int random_partition(int array[], int left, int right)          
+31.{  
+32.    // 随机从范围left到right中取一个值作为主元  
+33.    int index = my_rand(left, right);                          
+34.    swap(array[right], array[index]);      
+35.      
+36.    // 对数组进行划分，并返回主元在数组中的位置  
+37.    return partition(array, left, right);                   
+38.}  
+39.  
+40.// 以线性时间返回数组array[left...right]中第k小的元素  
+41.int random_select(int array[], int left, int right, int k)      
+42.{  
+43.    // 处理异常情况  
+44.    if (k < 1 || k > (right - left + 1))  
+45.        return -1;  
+46.      
+47.    // 主元在数组中的位置  
+48.    int pos = random_partition(array, left, right);       
+49.      
+50.    /* 对三种情况进行处理：(m = i - left + 1) 
+51.    1、如果m=k，即返回的主元即为我们要找的第k小的元素，那么直接返回主元array[i]即可; 
+52.    2、如果m>k，那么接下来要到低区间array[left....pos-1]中寻找，丢掉高区间; 
+53.    3、如果m<k，那么接下来要到高区间array[pos+1...right]中寻找，丢掉低区间。 
+54.    */  
+55.    int m = pos - left + 1;  
+56.    if(m == k)  
+57.        return array[pos];                               
+58.    else if (m > k)         
+59.        return random_select(array, left, pos - 1, k);  
+60.    else   
+61.        return random_select(array, pos + 1, right, k - m);  
+62.}  
+63.  
+64.int main()  
+65.{      
+66.    int array[numOfArray] = {7, 8, 9, 54, 6, 4, 2, 1, 12, 33};  
+67.    cout << random_select(array, 0, numOfArray - 1, 4) << endl;  
+68.    return 0;  
+69.}  
+ 
+
+寻找最小的第k个数，实现三：
+
+
+
+
+
+01.//求取无序数组中第K个数，本程序枢纽元的选取有问题，不作推荐。    
+02.//copyright@ 飞羽   
+03.//July、yansha，updated，2011.05.18。     
+04.#include <iostream>    
+05.#include <time.h>   
+06.using namespace std;     
+07.  
+08.int kth_elem(int a[], int low, int high, int k)     
+09.{     
+10.    int pivot = a[low];    
+11.    //这个程序之所以做不到O（N）的最最重要的原因，就在于这个枢纽元的选取。           
+12.    //而这个程序直接选取数组中第一个元素作为枢纽元，是做不到平均时间复杂度为 O（N）的。  
+13.      
+14.    //要 做到，就必须 把上面选取枢纽元的 代码改掉，要么是随机选择数组中某一元素作为枢纽元，能达到线性期望的时间  
+15.    //要么是选取数组中中位数的中位数作为枢纽元，保证最坏情况下，依然为线性O（N）的平均时间复杂度。  
+16.    int low_temp = low;     
+17.    int high_temp = high;     
+18.    while(low < high)     
+19.    {     
+20.        while(low < high && a[high] >= pivot)       
+21.            --high;     
+22.        a[low] = a[high];     
+23.        while(low < high && a[low] < pivot)     
+24.            ++low;     
+25.        a[high] = a[low];     
+26.    }     
+27.    a[low] = pivot;     
+28.      
+29.    //以下就是主要思想中所述的内容     
+30.    if(low == k - 1)      
+31.        return a[low];     
+32.    else if(low > k - 1)      
+33.        return kth_elem(a, low_temp, low - 1, k);     
+34.    else      
+35.        return kth_elem(a, low + 1, high_temp, k);     
+36.}     
+37.  
+38.int main()   //以后尽量不再用随机产生的数组进行测试，没多大必要。  
+39.{  
+40.    for (int num = 5000; num < 50000001; num *= 10)  
+41.    {  
+42.        int *array = new int[num];  
+43.          
+44.        int j = num / 10;  
+45.        int acc = 0;  
+46.        for (int k = 1; k <= num; k += j)  
+47.        {  
+48.            // 随机生成数据  
+49.            srand(unsigned(time(0)));  
+50.            for(int i = 0; i < num; i++)     
+51.                array[i] = rand() * RAND_MAX + rand();      
+52.            //”如果数组本身就是利用随机化产生的话，那么选择其中任何一个元素作为枢轴都可以看作等价于随机选择枢轴，  
+53.            //（虽然这不叫随机选择枢纽）”，这句话，是完全不成立的，是错误的。  
+54.              
+55.            //“因为你总是选择 随机数组中第一个元素 作为枢纽元，不是 随机选择枢纽元”  
+56.            //相当于把上面这句话中前面的 “随机” 两字去掉，就是：  
+57.            //因为 你总是选择数组中第一个元素作为枢纽元，不是 随机选择枢纽元。  
+58.            //所以，这个程序，始终做不到平均时间复杂度为O（N）。  
+59.              
+60.            //随机数组和给定一个非有序而随机手动输入的数组，是一个道理。稍后，还将就程序的运行结果继续解释这个问题。  
+61.            //July、updated，2011.05.18。  
+62.              
+63.            // 计算一次查找所需的时钟周期数  
+64.            clock_t start = clock();  
+65.            int data = kth_elem(array, 0, num - 1, k);  
+66.            clock_t end = clock();  
+67.            acc += (end - start);  
+68.        }  
+69.        cout << "The average time of searching a date in the array size of " << num << " is " << acc / 10 << endl;  
+70.    }  
+71.    return 0;     
+72.}    
+   测试：
+The average time of searching a date in the array size of 5000 is 0
+The average time of searching a date in the array size of 50000 is 1
+The average time of searching a date in the array size of 500000 is 12
+The average time of searching a date in the array size of 5000000 is 114
+The average time of searching a date in the array size of 50000000 is 1159
+Press any key to continue
+
+
+通过测试这个程序，我们竟发现这个程序的运行时间是线性的?
+或许，你还没有意识到这个问题，ok，听我慢慢道来。
+我们之前说，要保证这个算法是线性的，就一定要在枢纽元的选取上下足功夫：
+1、要么是随机选取枢纽元作为划分元素
+2、要么是取中位数的中位数作为枢纽元划分元素
+ 
+现在，这程序直接选取了数组中第一个元素作为枢纽元
+竟然，也能做到线性O（N）的复杂度，这不是自相矛盾么?
+你觉得这个程序的运行时间是线性O（N），是巧合还是确定会是如此?
+
+哈哈，且看1、@well：根据上面的运行结果不能判断线性，如果人家是O(n^1.1) 也有可能啊，而且部分数据始终是拟合，还是要数学证明才可靠。2、@July：同时，随机数组中选取一个元素作为枢纽元！=> 随机数组中随机选取一个元素作为枢纽元（如果是随机选取随机数组中的一个元素作为主元，那就不同了，跟随机选取数组中一个元素作为枢纽元一样了）。3、@飞羽：正是因为数组本身是随机的，所以选择第一个元素和随机选择其它的数是等价的（由等概率产生保证），这第3点，我与飞羽有分歧，至于谁对谁错，待时间让我考证。
+
+关于上面第3点我和飞羽的分歧，在我们进一步讨论之后，一致认定（不过，相信，你看到了上面程序更新的注释之后，你应该有几分领会了）：
+1.我们说输入一个数组的元素，不按其顺序输入：如，1,2,3,4,5,6,7，而是这样输入：5,7,6,4,3，1,2，这就叫随机输入，而这种情况就相当于上述程序主函数中所产生的随机数组。然而选取随机输入的数组或随机数组中第一个元素作为主元，我们不能称之为说是随机选取枢纽元。
+2.因为，随机数产生器产生的数据是随机的，没错，但你要知道，你总是选取随机数组的第一个元素作为枢纽元，这不叫随机选取枢纽元。
+3.所以，上述程序的主函数中随机产生的数组对这个程序的算法而言，没有任何意义，就是帮忙产生了一个随机数组，帮助我们完成了测试，且方便我们测试大数据量而已，就这么简单。
+4.且一般来说，我们看一个程序的 时间复杂度，是不考虑 其输入情况的，即不考虑主函数，正如这个 kth number 的程序所见，你每次都是随机选取数组中第一个元素作为枢纽元，而并不是随机选择枢纽元，所以，做不到平均时间复杂度为O（N）。 
+
+所以：想要保证此快速选择算法为O（N）的复杂度，只有两种途径，那就是保证划分的枢纽元元素的选取是：
+1、随机的（注，此枢纽元随机不等同于数组随机）
+2、五分化中项的中项，或中位数的中位数。
+
+所以，虽然咱们对于一切心知肚明，但上面程序的运行结果说明不了任何问题，这也从侧面再次佐证了咱们第三章中观点的正确无误性。 
+
+updated：
+
+    非常感谢飞羽等人的工作，将上述三个版本综合到了一起（待进一步测试）：
+
+
+
+
+
+01.///下面的代码对July博客中的三个版本代码进行重新改写。欢迎指出错误。    
+02.///先把它们贴在这里，还要进行随机化数据测试。待发...    
+03.    
+04.//modified by 飞羽 at 2011.5.11    
+05./////Top_K_test    
+06.    
+07.//修改了下命名规范，July、updated，2011.05.12。    
+08.#include <iostream>    
+09.#include <stdlib.h>    
+10.using namespace std;    
+11.    
+12.inline int my_rand(int low, int high)    
+13.{    
+14.    int size = high - low + 1;    
+15.    return  low + rand() % size;    
+16.}    
+17.    
+18.int partition(int array[], int left, int right)    
+19.{    
+20.    int pivot = array[right];    
+21.    int pos = left-1;    
+22.    for(int index = left; index < right; index++)    
+23.    {    
+24.        if(array[index] <= pivot)    
+25.            swap(array[++pos], array[index]);    
+26.    }    
+27.    swap(array[++pos], array[right]);    
+28.    return pos;//返回pivot所在位置    
+29.}    
+30.    
+31.bool median_select(int array[], int left, int right, int k)    
+32.{    
+33.    //第k小元素，实际上应该在数组中下标为k-1    
+34.    if (k-1 > right || k-1 < left)       
+35.        return false;    
+36.    
+37.    //真正的三数中值作为枢纽元方法，关键代码就是下述六行    
+38.    int midIndex=(left+right)/2;    
+39.    if(array[left]<array[midIndex])    
+40.        swap(array[left],array[midIndex]);    
+41.    if(array[right]<array[midIndex])    
+42.        swap(array[right],array[midIndex]);    
+43.    if(array[right]<array[left])    
+44.        swap(array[right],array[left]);    
+45.    swap(array[left], array[right]);    
+46.        
+47.    int pos = partition(array, left, right);    
+48.        
+49.    if (pos == k-1)    
+50.        return true;    
+51.    else if (pos > k-1)    
+52.        return median_select(array, left, pos-1, k);    
+53.    else return median_select(array, pos+1, right, k);    
+54.}    
+55.    
+56.bool rand_select(int array[], int left, int right, int k)    
+57.{    
+58.    //第k小元素，实际上应该在数组中下标为k-1    
+59.    if (k-1 > right || k-1 < left)       
+60.        return false;    
+61.    
+62.    //随机从数组中选取枢纽元元素    
+63.    int Index = my_rand(left, right);    
+64.    swap(array[Index], array[right]);    
+65.        
+66.    int pos = partition(array, left, right);    
+67.        
+68.    if (pos == k-1)    
+69.        return true;    
+70.    else if (pos > k-1)    
+71.        return rand_select(array, left, pos-1, k);    
+72.    else return rand_select(array, pos+1, right, k);    
+73.}    
+74.    
+75.bool kth_select(int array[], int left, int right, int k)    
+76.{    
+77.    //直接取最原始的划分操作    
+78.    if (k-1 > right || k-1 < left)       
+79.        return false;    
+80.    
+81.    int pos = partition(array, left, right);    
+82.    if(pos == k-1)    
+83.        return true;    
+84.    else if(pos > k-1)    
+85.        return kth_select(array, left, pos-1, k);    
+86.    else return kth_select(array, pos+1, right, k);    
+87.}    
+88.    
+89.int main()    
+90.{    
+91.    int array1[] = {7, 8, 9, 54, 6, 4, 11, 1, 2, 33};     
+92.    int array2[] = {7, 8, 9, 54, 6, 4, 11, 1, 2, 33};     
+93.    int array3[] = {7, 8, 9, 54, 6, 4, 11, 1, 2, 33};     
+94.        
+95.    int numOfArray = sizeof(array1) / sizeof(int);    
+96.    for(int i=0; i<numOfArray; i++)    
+97.        printf("%d/t",array1[i]);    
+98.        
+99.    int K = 9;    
+100.    bool flag1 = median_select(array1, 0, numOfArray-1, K);    
+101.    bool flag2 = rand_select(array2, 0, numOfArray-1, K);    
+102.    bool flag3 = kth_select(array3, 0, numOfArray-1, K);    
+103.    if(!flag1)     
+104.        return 1;    
+105.    for(i=0; i<K; i++)    
+106.        printf("%d/t",array1[i]);    
+107.    printf("/n");    
+108.        
+109.    if(!flag2)     
+110.        return 1;    
+111.    for(i=0; i<K; i++)    
+112.        printf("%d/t",array2[i]);    
+113.    printf("/n");    
+114.        
+115.    if(!flag3)     
+116.        return 1;    
+117.    for(i=0; i<K; i++)    
+118.        printf("%d/t",array3[i]);    
+119.    printf("/n");    
+120.        
+121.    return 0;    
+122.}    
+
+
+    说明：@飞羽：因为预先设定了K，经过分割算法后，数组肯定被划分为array[0...k-1]和array[k...length-1]，注意到经过Select_K_Version操作后，数组是被不断地分割的，使得比array[k-1]的元素小的全在左边，题目要求的是最小的K个元素，当然也就是array[0...k-1]，所以输出的结果就是前k个最小的数：
+
+7       8       9       54      6       4       11      1       2       33
+4       1       2       6       7       8       9       11      33
+7       6       4       1       2       8       9       11      33
+7       8       9       6       4       11      1       2       33
+Press any key to continue
+
+（更多，请参见：此狂想曲系列tctop修订wiki页面：http://tctop.wikispaces.com/）
+
+
+第二节、寻找最大的k个数
+把之前第三章的问题，改几个字，即成为寻找最大的k个数的问题了，如下所述：
+查找最大的k个元素
+题目描述：输入n个整数，输出其中最大的k个。
+例如输入1，2，3，4，5，6，7和8这8个数字，则最大的4个数字为8，7，6和5。
+
+    分析：由于寻找最大的k个数的问题与之前的寻找最小的k个数的问题，本质是一样的，所以，这里就简单阐述下思路，ok，考验你举一反三能力的时间到了：
+
+
+    1、排序，快速排序。我们知道，快速排序平均所费时间为n*logn，从小到大排序这n个数，然后再遍历序列中后k个元素输出，即可，总的时间复杂度为O（n*logn+k）=O（n*logn）。
+
+    2、排序，选择排序。用选择或交换排序，即遍历n个数，先把最先遍历到得k个数存入大小为k的数组之中，对这k个数，利用选择或交换排序，找到k个数中的最小数kmin（kmin设为k个元素的数组中最小元素），用时O（k）（你应该知道，插入或选择排序查找操作需要O（k）的时间），后再继续遍历后n-k个数，x与kmin比较：如果x>kmin，则x代替kmin，并再次重新找出k个元素的数组中最大元素kmin‘（多谢jiyeyuran 提醒修正）；如果x<kmin，则不更新数组。这样，每次更新或不更新数组的所用的时间为O（k）或O（0），整趟下来，总的时间复杂度平均下来为：n*O（k）=O（n*k）。
+
+    3、维护k个元素的最小堆，原理与上述第2个方案一致，即用容量为k的最小堆存储最先遍历到的k个数，并假设它们即是最大的k个数，建堆费时O（k），并调整堆（费时O（logk））后，有k1>k2>...kmin（kmin设为小顶堆中最小元素）。继续遍历数列，每次遍历一个元素x，与堆顶元素比较，若x>kmin，则更新堆（用时logk），否则不更新堆。这样下来，总费时O（k*logk+（n-k）*logk）=O（n*logk）。此方法得益于在堆中，查找等各项操作时间复杂度均为logk（不然，就如上述思路2所述：直接用数组也可以找出最大的k个元素，用时O（n*k））。
+
+    4、按编程之美第141页上解法二的所述，类似快速排序的划分方法，N个数存储在数组S中，再从数组中随机选取一个数X，把数组划分为Sa和Sb俩部分，Sa>=X>=Sb，如果要查找的k个元素小于Sa的元素个数，则返回Sa中较大的k个元素，否则返回Sa中所有的元素+Sb中最大的k-|Sa|个元素。不断递归下去，把问题分解成更小的问题，平均时间复杂度为O（N）（编程之美所述的n*logk的复杂度有误，应为O（N），特此订正。其严格证明，请参考第三章：程序员面试题狂想曲：第三章、寻找最小的k个数、updated 10次）。
+   .........
+
+   其它的方法，在此不再重复了，同时，寻找最小的k个数借助堆的实现，代码在上一篇文章第三章已有给出，更多，可参考第三章，只要把最大堆改成最小堆，即可。
+
+
+第三节、Top K 算法问题
+3.1、搜索引擎热门查询统计
+
+题目描述：
+    搜索引擎会通过日志文件把用户每次检索使用的所有检索串都记录下来，每个查询串的长度为1-255字节。
+    假设目前有一千万个记录（这些查询串的重复度比较高，虽然总数是1千万，但如果除去重复后，不超过3百万个。一个查询串的重复度越高，说明查询它的用户越多，也就是越热门。），请你统计最热门的10个查询串，要求使用的内存不能超过1G。
+
+    分析：这个问题在之前的这篇文章十一、从头到尾彻底解析Hash表算法里，已经有所解答。方法是:
+
+    第一步、先对这批海量数据预处理，在O（N）的时间内用Hash表完成统计（之前写成了排序，特此订正。July、2011.04.27）；
+    第二步、借助堆这个数据结构，找出Top K，时间复杂度为N‘logK。
+        即，借助堆结构，我们可以在log量级的时间内查找和调整/移动。因此，维护一个K(该题目中是10)大小的小根堆（K1>K2>....Kmin，Kmin设为堆顶元素），然后遍历300万的Query，分别和根元素Kmin进行对比比较（如上第2节思路3所述，若X>Kmin，则更新并调整堆，否则，不更新），我们最终的时间复杂度是：O（N） + N'*O（logK），（N为1000万，N’为300万）。ok，更多，详情，请参考原文。
+
+    或者：采用trie树，关键字域存该查询串出现的次数，没有出现为0。最后用10个元素的最小推来对出现频率进行排序。
+
+    ok，本章里，咱们来实现这个问题，为了降低实现上的难度，假设这些记录全部是一些英文单词，即用户在搜索框里敲入一个英文单词，然后查询搜索结果，最后，要你统计输入单词中频率最大的前K个单词。ok，复杂问题简单化了之后，编写代码实现也相对轻松多了，画的简单示意图（绘制者，yansha），如下：
+
+
+
+完整源码：
+
+
+
+
+
+01.//copyright@yansha &&July  
+02.//July、updated，2011.05.08  
+03.  
+04.//题目描述：  
+05.//搜索引擎会通过日志文件把用户每次检索使用的所有检索串都记录下来，每个查询串的  
+06.//长度为1-255字节。假设目前有一千万个记录（这些查询串的重复度比较高，虽然总数是1千万，但如果  
+07.//除去重复后，不超过3百万个。一个查询串的重复度越高，说明查询它的用户越多，也就是越热门），  
+08.//请你统计最热门的10个查询串，要求使用的内存不能超过1G。  
+09.  
+10.#include <iostream>  
+11.#include <string>  
+12.#include <assert.h>  
+13.using namespace std;  
+14.  
+15.#define HASHLEN 2807303  
+16.#define WORDLEN 30  
+17.  
+18.// 结点指针  
+19.typedef struct node_no_space *ptr_no_space;  
+20.typedef struct node_has_space *ptr_has_space;  
+21.ptr_no_space head[HASHLEN];  
+22.  
+23.struct node_no_space   
+24.{  
+25.    char *word;  
+26.    int count;  
+27.    ptr_no_space next;  
+28.};  
+29.  
+30.struct node_has_space  
+31.{  
+32.    char word[WORDLEN];  
+33.    int count;  
+34.    ptr_has_space next;  
+35.};  
+36.  
+37.// 最简单hash函数  
+38.int hash_function(char const *p)  
+39.{  
+40.    int value = 0;  
+41.    while (*p != '/0')  
+42.    {  
+43.        value = value * 31 + *p++;  
+44.        if (value > HASHLEN)  
+45.            value = value % HASHLEN;  
+46.    }  
+47.    return value;  
+48.}  
+49.  
+50.// 添加单词到hash表  
+51.void append_word(char const *str)  
+52.{  
+53.    int index = hash_function(str);  
+54.    ptr_no_space p = head[index];  
+55.    while (p != NULL)  
+56.    {  
+57.        if (strcmp(str, p->word) == 0)  
+58.        {  
+59.            (p->count)++;  
+60.            return;  
+61.        }  
+62.        p = p->next;  
+63.    }  
+64.      
+65.    // 新建一个结点  
+66.    ptr_no_space q = new node_no_space;  
+67.    q->count = 1;  
+68.    q->word = new char [strlen(str)+1];  
+69.    strcpy(q->word, str);  
+70.    q->next = head[index];  
+71.    head[index] = q;  
+72.}  
+73.  
+74.  
+75.// 将单词处理结果写入文件  
+76.void write_to_file()  
+77.{  
+78.    FILE *fp = fopen("result.txt", "w");  
+79.    assert(fp);  
+80.      
+81.    int i = 0;  
+82.    while (i < HASHLEN)  
+83.    {  
+84.        for (ptr_no_space p = head[i]; p != NULL; p = p->next)  
+85.            fprintf(fp, "%s  %d/n", p->word, p->count);  
+86.        i++;  
+87.    }  
+88.    fclose(fp);  
+89.}  
+90.  
+91.// 从上往下筛选，保持小根堆  
+92.void sift_down(node_has_space heap[], int i, int len)  
+93.{  
+94.    int min_index = -1;  
+95.    int left = 2 * i;  
+96.    int right = 2 * i + 1;  
+97.      
+98.    if (left <= len && heap[left].count < heap[i].count)  
+99.        min_index = left;  
+100.    else  
+101.        min_index = i;  
+102.      
+103.    if (right <= len && heap[right].count < heap[min_index].count)  
+104.        min_index = right;  
+105.      
+106.    if (min_index != i)  
+107.    {  
+108.        // 交换结点元素  
+109.        swap(heap[i].count, heap[min_index].count);  
+110.          
+111.        char buffer[WORDLEN];  
+112.        strcpy(buffer, heap[i].word);  
+113.        strcpy(heap[i].word, heap[min_index].word);  
+114.        strcpy(heap[min_index].word, buffer);  
+115.          
+116.        sift_down(heap, min_index, len);  
+117.    }  
+118.}  
+119.  
+120.// 建立小根堆  
+121.void build_min_heap(node_has_space heap[], int len)  
+122.{  
+123.    if (heap == NULL)  
+124.        return;  
+125.      
+126.    int index = len / 2;  
+127.    for (int i = index; i >= 1; i--)  
+128.        sift_down(heap, i, len);  
+129.}  
+130.  
+131.// 去除字符串前后符号  
+132.void handle_symbol(char *str, int n)  
+133.{  
+134.    while (str[n] < '0' || (str[n] > '9' && str[n] < 'A') || (str[n] > 'Z' && str[n] < 'a') || str[n] > 'z')  
+135.    {  
+136.        str[n] = '/0';  
+137.        n--;  
+138.    }  
+139.      
+140.    while (str[0] < '0' || (str[0] > '9' && str[0] < 'A') || (str[0] > 'Z' && str[0] < 'a') || str[0] > 'z')  
+141.    {  
+142.        int i = 0;  
+143.        while (i < n)  
+144.        {  
+145.            str[i] = str[i+1];  
+146.            i++;  
+147.        }  
+148.        str[i] = '/0';  
+149.        n--;  
+150.    }  
+151.}  
+152.  
+153.int main()  
+154.{  
+155.    char str[WORDLEN];  
+156.    for (int i = 0; i < HASHLEN; i++)  
+157.        head[i] = NULL;  
+158.      
+159.    // 将字符串用hash函数转换成一个整数并统计出现频率  
+160.    FILE *fp_passage = fopen("string.txt", "r");  
+161.    assert(fp_passage);  
+162.    while (fscanf(fp_passage, "%s", str) != EOF)  
+163.    {  
+164.        int n = strlen(str) - 1;  
+165.        if (n > 0)  
+166.            handle_symbol(str, n);  
+167.        append_word(str);  
+168.    }  
+169.    fclose(fp_passage);  
+170.      
+171.    // 将统计结果输入文件  
+172.    write_to_file();  
+173.      
+174.    int n = 10;  
+175.    ptr_has_space heap = new node_has_space [n+1];  
+176.      
+177.    int c;  
+178.      
+179.    FILE *fp_word = fopen("result.txt", "r");  
+180.    assert(fp_word);  
+181.    for (int j = 1; j <= n; j++)  
+182.    {  
+183.        fscanf(fp_word, "%s %d", &str, &c);  
+184.        heap[j].count = c;  
+185.        strcpy(heap[j].word, str);  
+186.    }  
+187.      
+188.    // 建立小根堆  
+189.    build_min_heap(heap, n);  
+190.      
+191.    // 查找出现频率最大的10个单词  
+192.    while (fscanf(fp_word, "%s %d", &str, &c) != EOF)  
+193.    {  
+194.        if (c > heap[1].count)  
+195.        {  
+196.            heap[1].count = c;  
+197.            strcpy(heap[1].word, str);  
+198.            sift_down(heap, 1, n);  
+199.        }  
+200.    }  
+201.    fclose(fp_word);  
+202.      
+203.    // 输出出现频率最大的单词  
+204.    for (int k = 1; k <= n; k++)  
+205.        cout << heap[k].count << " " << heap[k].word << endl;  
+206.      
+207.    return 0;  
+208.}  
+ 
+
+程序测试：咱们接下来，来对下面的通过用户输入单词后，搜索引擎记录下来，“大量”单词记录进行统计（同时，令K=10，即要你找出10个最热门查询的单词）：
+
+
+
+运行结果：根据程序的运行结果，可以看到，搜索引擎记录下来的查询次数最多的10个单词为（注，并未要求这10个数要有序输出）：in（312次），it（384次），a（432），that（456），MPQ（408），of（504），and（624），is（456），the（1008），to（936）。
+
+
+
+    读者反馈from 杨忠胜：3.1节的代码第38行 hash_function(char const *p)有误吧，这样的话，不能修改p的值（但是函数需要修改指针的值），要想不修改*p指向的内容，应该是const char *p; 此外，您程序中的/t,  /n有误，C语言是\t,\n。
+    感谢这位读者的来信，日后统一订正。谢谢。
+
+ 
+
+3.2、统计出现次数最多的数据
+
+题目描述：
+给你上千万或上亿数据（有重复），统计其中出现次数最多的前N个数据。
+
+    分析：上千万或上亿的数据，现在的机器的内存应该能存下（也许可以，也许不可以）。所以考虑采用hash_map/搜索二叉树/红黑树等来进行统计次数。然后就是取出前N个出现次数最多的数据了。当然，也可以堆实现。
+
+    ok，此题与上题类似，最好的方法是用hash_map统计出现的次数，然后再借用堆找出出现次数最多的N个数据。不过，上一题统计搜索引擎最热门的查询已经采用过hash表统计单词出现的次数，特此，本题咱们改用红黑树取代之前的用hash表，来完成最初的统计，然后用堆更新，找出出现次数最多的前N个数据。
+
+    同时，正好个人此前用c && c++ 语言实现过红黑树，那么，代码能借用就借用吧。
+完整代码：
+
+
+
+
+
+01.//copyright@ zhouzhenren &&July  
+02.//July、updated，2011.05.08.  
+03.  
+04.//题目描述：  
+05.//上千万或上亿数据（有重复），统计其中出现次数最多的前N个数据  
+06.  
+07.//解决方案：  
+08.//1、采用红黑树（本程序中有关红黑树的实现代码来源于@July）来进行统计次数。  
+09.//2、然后遍历整棵树，同时采用最小堆更新前N个出现次数最多的数据。  
+10.  
+11.//声明：版权所有，引用必须注明出处。  
+12.#define PARENT(i) (i)/2  
+13.#define LEFT(i)   2*(i)  
+14.#define RIGHT(i)  2*(i)+1  
+15.  
+16.#include <stdio.h>  
+17.#include <stdlib.h>  
+18.#include <string.h>  
+19.  
+20.typedef enum rb_color{ RED, BLACK }RB_COLOR;  
+21.typedef struct rb_node  
+22.{  
+23.    int key;  
+24.    int data;  
+25.    RB_COLOR color;  
+26.    struct rb_node* left;  
+27.    struct rb_node* right;  
+28.    struct rb_node* parent;  
+29.}RB_NODE;  
+30.  
+31.RB_NODE* RB_CreatNode(int key, int data)  
+32.{  
+33.    RB_NODE* node = (RB_NODE*)malloc(sizeof(RB_NODE));  
+34.    if (NULL == node)  
+35.    {  
+36.        printf("malloc error!");  
+37.        exit(-1);  
+38.    }  
+39.      
+40.    node->key = key;  
+41.    node->data = data;  
+42.    node->color = RED;  
+43.    node->left = NULL;  
+44.    node->right = NULL;  
+45.    node->parent = NULL;  
+46.      
+47.    return node;  
+48.}  
+49.  
+50./**  
+51.* 左旋   
+52.* 
+53.*  node           right  
+54.*  / /    ==>     / /  
+55.* a  right     node  y  
+56.*     / /       / /      
+57.*     b  y     a   b     
+58.*/    
+59.RB_NODE* RB_RotateLeft(RB_NODE* node, RB_NODE* root)  
+60.{    
+61.    RB_NODE* right = node->right;    // 指定指针指向 right<--node->right    
+62.      
+63.    if ((node->right = right->left))      
+64.        right->left->parent = node;  // 好比上面的注释图，node成为b的父母  
+65.      
+66.    right->left = node;   // node成为right的左孩子   
+67.      
+68.    if ((right->parent = node->parent))    
+69.    {    
+70.        if (node == node->parent->right)    
+71.            node->parent->right = right;  
+72.        else    
+73.            node->parent->left = right;  
+74.    }    
+75.    else    
+76.        root = right;    
+77.      
+78.    node->parent = right;  //right成为node的父母    
+79.      
+80.    return root;    
+81.}    
+82.  
+83./** 
+84.* 右旋   
+85.* 
+86.*      node            left  
+87.*       / /             / /  
+88.*     left y   ==>     a  node  
+89.*     / /                  / /  
+90.*    a   b                b   y   
+91.*/    
+92.RB_NODE* RB_RotateRight(RB_NODE* node, RB_NODE* root)    
+93.{    
+94.    RB_NODE* left = node->left;    
+95.      
+96.    if ((node->left = left->right))    
+97.        left->right->parent = node;    
+98.      
+99.    left->right = node;    
+100.      
+101.    if ((left->parent = node->parent))    
+102.    {    
+103.        if (node == node->parent->right)      
+104.            node->parent->right = left;    
+105.        else    
+106.            node->parent->left = left;    
+107.    }    
+108.    else    
+109.        root = left;    
+110.      
+111.    node->parent = left;    
+112.      
+113.    return root;    
+114.}    
+115.  
+116./**  
+117.* 红黑树的3种插入情况   
+118.* 用z表示当前结点, p[z]表示父母、p[p[z]]表示祖父, y表示叔叔. 
+119.*/  
+120.RB_NODE* RB_Insert_Rebalance(RB_NODE* node, RB_NODE* root)    
+121.{    
+122.    RB_NODE *parent, *gparent, *uncle, *tmp;  //父母p[z]、祖父p[p[z]]、叔叔y、临时结点*tmp    
+123.      
+124.    while ((parent = node->parent) && parent->color == RED)    
+125.    { // parent 为node的父母，且当父母的颜色为红时    
+126.        gparent = parent->parent;   // gparent为祖父    
+127.          
+128.        if (parent == gparent->left)  // 当祖父的左孩子即为父母时,其实上述几行语句，无非就是理顺孩子、父母、祖父的关系。  
+129.        {  
+130.            uncle = gparent->right; // 定义叔叔的概念，叔叔y就是父母的右孩子。    
+131.            if (uncle && uncle->color == RED) // 情况1：z的叔叔y是红色的    
+132.            {    
+133.                uncle->color = BLACK;   // 将叔叔结点y着为黑色    
+134.                parent->color = BLACK;  // z的父母p[z]也着为黑色。解决z，p[z]都是红色的问题。    
+135.                gparent->color = RED;      
+136.                node = gparent;     // 将祖父当做新增结点z，指针z上移俩层，且着为红色。    
+137.                // 上述情况1中，只考虑了z作为父母的右孩子的情况。    
+138.            }    
+139.            else                     // 情况2：z的叔叔y是黑色的，    
+140.            {       
+141.                if (parent->right == node)  // 且z为右孩子    
+142.                {    
+143.                    root = RB_RotateLeft(parent, root); // 左旋[结点z，与父母结点]    
+144.                    tmp = parent;    
+145.                    parent = node;    
+146.                    node = tmp;     // parent与node 互换角色    
+147.                }    
+148.                // 情况3：z的叔叔y是黑色的，此时z成为了左孩子。    
+149.                // 注意，1：情况3是由上述情况2变化而来的。    
+150.                // ......2：z的叔叔总是黑色的，否则就是情况1了。    
+151.                parent->color = BLACK;   // z的父母p[z]着为黑色    
+152.                gparent->color = RED;    // 原祖父结点着为红色    
+153.                root = RB_RotateRight(gparent, root); // 右旋[结点z，与祖父结点]    
+154.            }    
+155.        }     
+156.          
+157.        else     
+158.        {         
+159.            // 这部分是特别为情况1中，z作为左孩子情况，而写的。    
+160.            uncle = gparent->left;  // 祖父的左孩子作为叔叔结点。[原理还是与上部分一样的]    
+161.            if (uncle && uncle->color == RED)  // 情况1：z的叔叔y是红色的    
+162.            {    
+163.                uncle->color = BLACK;    
+164.                parent->color = BLACK;    
+165.                gparent->color = RED;    
+166.                node = gparent;           // 同上  
+167.            }    
+168.            else                               // 情况2：z的叔叔y是黑色的，    
+169.            {    
+170.                if (parent->left == node)  // 且z为左孩子    
+171.                {    
+172.                    root = RB_RotateRight(parent, root);  // 以结点parent、root右旋    
+173.                    tmp = parent;    
+174.                    parent = node;    
+175.                    node = tmp;       // parent与node 互换角色    
+176.                }     
+177.                // 经过情况2的变化，成为了情况3.    
+178.                parent->color = BLACK;    
+179.                gparent->color = RED;    
+180.                root = RB_RotateLeft(gparent, root);   // 以结点gparent和root左旋    
+181.            }    
+182.        }    
+183.    }    
+184.      
+185.    root->color = BLACK; // 根结点，不论怎样，都得置为黑色。    
+186.    return root;      // 返回根结点。    
+187.}  
+188.  
+189./**  
+190.* 红黑树查找结点   
+191.* rb_search_auxiliary：查找   
+192.* rb_node_t* rb_search：返回找到的结点   
+193.*/  
+194.RB_NODE* RB_SearchAuxiliary(int key, RB_NODE* root, RB_NODE** save)    
+195.{    
+196.    RB_NODE* node = root;  
+197.    RB_NODE* parent = NULL;    
+198.    int ret;    
+199.      
+200.    while (node)    
+201.    {    
+202.        parent = node;    
+203.        ret = node->key - key;    
+204.        if (0 < ret)    
+205.            node = node->left;    
+206.        else if (0 > ret)    
+207.            node = node->right;    
+208.        else    
+209.            return node;    
+210.    }    
+211.      
+212.    if (save)    
+213.        *save = parent;    
+214.      
+215.    return NULL;    
+216.}    
+217.  
+218./**  
+219.* 返回上述rb_search_auxiliary查找结果   
+220.*/  
+221.RB_NODE* RB_Search(int key, RB_NODE* root)    
+222.{    
+223.    return RB_SearchAuxiliary(key, root, NULL);    
+224.}    
+225.  
+226./**  
+227.* 红黑树的插入   
+228.*/  
+229.RB_NODE* RB_Insert(int key, int data, RB_NODE* root)    
+230.{    
+231.    RB_NODE* parent = NULL;  
+232.    RB_NODE* node = NULL;    
+233.      
+234.    parent = NULL;    
+235.    if ((node = RB_SearchAuxiliary(key, root, &parent)))  // 调用RB_SearchAuxiliary找到插入结点的地方    
+236.    {    
+237.        node->data++; // 节点已经存在data值加1  
+238.        return root;    
+239.    }    
+240.      
+241.    node = RB_CreatNode(key, data);  // 分配结点    
+242.    node->parent = parent;        
+243.      
+244.    if (parent)    
+245.    {    
+246.        if (parent->key > key)    
+247.            parent->left = node;    
+248.        else    
+249.            parent->right = node;    
+250.    }    
+251.    else    
+252.    {    
+253.        root = node;    
+254.    }    
+255.      
+256.    return RB_Insert_Rebalance(node, root);   // 插入结点后，调用RB_Insert_Rebalance修复红黑树的性质    
+257.}  
+258.  
+259.typedef struct rb_heap  
+260.{  
+261.    int key;  
+262.    int data;  
+263.}RB_HEAP;  
+264.const int heapSize = 10;  
+265.RB_HEAP heap[heapSize+1];  
+266.  
+267./**  
+268.* MAX_HEAPIFY函数对堆进行更新，使以i为根的子树成最大堆 
+269.*/  
+270.void MIN_HEAPIFY(RB_HEAP* A, const int& size, int i)  
+271.{  
+272.    int l = LEFT(i);  
+273.    int r = RIGHT(i);  
+274.    int smallest = i;  
+275.      
+276.    if (l <= size && A[l].data < A[i].data)  
+277.        smallest = l;  
+278.    if (r <= size && A[r].data < A[smallest].data)  
+279.        smallest = r;  
+280.      
+281.    if (smallest != i)  
+282.    {  
+283.        RB_HEAP tmp = A[i];  
+284.        A[i] = A[smallest];  
+285.        A[smallest] = tmp;  
+286.        MIN_HEAPIFY(A, size, smallest);  
+287.    }  
+288.}  
+289.  
+290./**  
+291.* BUILD_MINHEAP函数对数组A中的数据建立最小堆 
+292.*/  
+293.void BUILD_MINHEAP(RB_HEAP* A, const int& size)  
+294.{  
+295.    for (int i = size/2; i >= 1; --i)  
+296.        MIN_HEAPIFY(A, size, i);  
+297.}  
+298.  
+299.  
+300./* 
+301.3、维护k个元素的最小堆，原理与上述第2个方案一致， 
+302.即用容量为k的最小堆存储最先在红黑树中遍历到的k个数，并假设它们即是最大的k个数，建堆费时O（k）， 
+303.然后调整堆（费时O（logk））后，有k1>k2>...kmin（kmin设为小顶堆中最小元素）。 
+304.继续中序遍历红黑树，每次遍历一个元素x，与堆顶元素比较，若x>kmin，则更新堆（用时logk），否则不更新堆。 
+305.这样下来，总费时O（k*logk+（n-k）*logk）=O（n*logk）。 
+306.此方法得益于在堆中，查找等各项操作时间复杂度均为logk）。 
+307.*/  
+308.  
+309.//中序遍历RBTree  
+310.void InOrderTraverse(RB_NODE* node)    
+311.{  
+312.    if (node == NULL)    
+313.    {    
+314.        return;    
+315.    }    
+316.    else    
+317.    {    
+318.        InOrderTraverse(node->left);    
+319.        if (node->data > heap[1].data) // 当前节点data大于最小堆的最小元素时，更新堆数据  
+320.        {  
+321.            heap[1].data = node->data;  
+322.            heap[1].key = node->key;  
+323.            MIN_HEAPIFY(heap, heapSize, 1);  
+324.        }  
+325.        InOrderTraverse(node->right);    
+326.    }  
+327.}   
+328.  
+329.void RB_Destroy(RB_NODE* node)  
+330.{  
+331.    if (NULL == node)  
+332.    {  
+333.        return;  
+334.    }  
+335.    else  
+336.    {  
+337.        RB_Destroy(node->left);  
+338.        RB_Destroy(node->right);  
+339.        free(node);  
+340.        node = NULL;  
+341.    }  
+342.}  
+343.  
+344.int main()  
+345.{  
+346.    RB_NODE* root = NULL;  
+347.    RB_NODE* node = NULL;    
+348.      
+349.    // 初始化最小堆  
+350.    for (int i = 1; i <= 10; ++i)  
+351.    {  
+352.        heap[i].key = i;  
+353.        heap[i].data = -i;  
+354.    }  
+355.    BUILD_MINHEAP(heap, heapSize);  
+356.      
+357.    FILE* fp = fopen("data.txt", "r");  
+358.    int num;  
+359.    while (!feof(fp))  
+360.    {  
+361.        fscanf(fp, "%d", &num);  
+362.        root = RB_Insert(num, 1, root);  
+363.    }  
+364.    fclose(fp);  
+365.      
+366.    InOrderTraverse(root);   //递归遍历红黑树  
+367.    RB_Destroy(root);  
+368.      
+369.    for (i = 1; i <= 10; ++i)  
+370.    {  
+371.        printf("%d/t%d/n", heap[i].key, heap[i].data);  
+372.    }     
+373.    return 0;  
+374.}   
+ 
+
+程序测试：咱们来对下面这个小文件进行测试：
+
+
+
+运行结果：如下图所示，
+
+
+
+ 
+
+问题补遗：
+
+    ok，由于在遍历红黑树采用的是递归方式比较耗内存，下面给出一个非递归遍历的程序（下述代码若要运行，需贴到上述程序之后，因为其它的代码未变，只是在遍历红黑树的时候，采取非递归遍历而已，同时，主函数的编写也要稍微修改下）：
+
+
+
+
+
+01.//copyright@ zhouzhenren  
+02.//July、updated，2011.05.08.  
+03.#define STACK_SIZE 1000  
+04.typedef struct  
+05.{                                              // 栈的结点定义  
+06.    RB_NODE** top;  
+07.    RB_NODE** base;  
+08.}*PStack, Stack;  
+09.  
+10.bool InitStack(PStack& st)                       // 初始化栈  
+11.{  
+12.    st->base = (RB_NODE**)malloc(sizeof(RB_NODE*) * STACK_SIZE);  
+13.    if (!st->base)  
+14.    {  
+15.        printf("InitStack error!");  
+16.        exit(1);  
+17.    }  
+18.    st->top = st->base;  
+19.    return true;  
+20.}  
+21.  
+22.bool Push(PStack& st, RB_NODE*& e)                    // 入栈  
+23.{  
+24.    if (st->top - st->base >= STACK_SIZE)  
+25.        return false;  
+26.    *st->top = e;  
+27.    st->top++;  
+28.    return true;  
+29.}  
+30.  
+31.bool Pop(PStack& st, RB_NODE*& e)                     // 出栈  
+32.{  
+33.    if (st->top == st->base)  
+34.    {  
+35.        e = NULL;  
+36.        return false;  
+37.    }  
+38.    e = *--st->top;  
+39.    return true;  
+40.}  
+41.  
+42.bool StackEmpty(PStack& st)                     // 栈是否为空  
+43.{  
+44.    if (st->base == st->top)  
+45.        return true;  
+46.    else  
+47.        return false;  
+48.}  
+49.  
+50.bool InOrderTraverse_Stack(RB_NODE*& T)                 // 中序遍历  
+51.{  
+52.    PStack S = (PStack)malloc(sizeof(Stack));  
+53.    RB_NODE* P = T;  
+54.    InitStack(S);  
+55.    while (P != NULL || !StackEmpty(S))  
+56.    {  
+57.        if (P != NULL)  
+58.        {  
+59.            Push(S, P);  
+60.            P = P->left;  
+61.        }  
+62.        else  
+63.        {  
+64.            Pop(S, P);  
+65.            if (P->data > heap[1].data) // 当前节点data大于最小堆的最小元素时，更新堆数据  
+66.            {  
+67.                heap[1].data = P->data;  
+68.                heap[1].key = P->key;  
+69.                MIN_HEAPIFY(heap, heapSize, 1);  
+70.            }  
+71.            P = P->right;  
+72.        }  
+73.    }  
+74.    free(S->base);  
+75.    S->base = NULL;  
+76.    free(S);  
+77.    S = NULL;  
+78.      
+79.    return true;  
+80.}  
+81.  
+82.bool PostOrderTraverse_Stack(RB_NODE*& T)               //后序遍历  
+83.{  
+84.    PStack S = (PStack)malloc(sizeof(Stack));  
+85.    RB_NODE* P = T;  
+86.    RB_NODE* Pre = NULL;  
+87.    InitStack(S);  
+88.    while (P != NULL || !StackEmpty(S))  
+89.    {  
+90.        if (P != NULL) // 非空直接入栈  
+91.        {  
+92.            Push(S, P);  
+93.            P = P->left;  
+94.        }  
+95.        else  
+96.        {  
+97.            Pop(S, P); // 弹出栈顶元素赋值给P  
+98.            if (P->right == NULL || P->right == Pre) // P的右子树空或是右子树是刚访问过的  
+99.            { // 节点，则释放当前节点内存  
+100.                free(P);  
+101.                Pre = P;  
+102.                P = NULL;  
+103.            }  
+104.            else // 反之，当前节点重新入栈，接着判断右子树  
+105.            {  
+106.                Push(S, P);  
+107.                P = P->right;  
+108.            }  
+109.        }  
+110.    }  
+111.    free(S->base);  
+112.    S->base = NULL;  
+113.    free(S);  
+114.    S = NULL;  
+115.      
+116.    return true;  
+117.}  
+118.  
+119.//主函数稍微修改如下：  
+120.int main()  
+121.{  
+122.    RB_NODE* root = NULL;  
+123.    RB_NODE* node = NULL;    
+124.      
+125.    // 初始化最小堆  
+126.    for (int i = 1; i <= 10; ++i)  
+127.    {  
+128.        heap[i].key = i;  
+129.        heap[i].data = -i;  
+130.    }  
+131.    BUILD_MINHEAP(heap, heapSize);  
+132.      
+133.    FILE* fp = fopen("data.txt", "r");  
+134.    int num;  
+135.    while (!feof(fp))  
+136.    {  
+137.        fscanf(fp, "%d", &num);  
+138.        root = RB_Insert(num, 1, root);  
+139.    }  
+140.    fclose(fp);  
+141.      
+142.      //若上面的程序后面加上了上述的非递归遍历红黑树的代码，那么以下几行代码，就得修改如下：  
+143.    //InOrderTraverse(root); //此句去掉（递归遍历树）  
+144.    InOrderTraverse_Stack(root); // 非递归遍历树  
+145.      
+146.    //RB_Destroy(root); //此句去掉（通过递归释放内存）  
+147.    PostOrderTraverse_Stack(root); // 非递归释放内存  
+148.      
+149.    for (i = 1; i <= 10; ++i)  
+150.    {  
+151.        printf("%d/t%d/n", heap[i].key, heap[i].data);  
+152.    }     
+153.    return 0;  
+154.}   
+
+
+updated：
+
+ 后来，我们狂想曲创作组中的3又用hash+堆实现了上题，很明显比采用上面的红黑树，整个实现简洁了不少，其完整源码如下：
+
+完整源码：
+
+
+
+
+
+01.//Author: zhouzhenren  
+02.//Description: 上千万或上亿数据（有重复），统计其中出现次数最多的钱N个数据  
+03.  
+04.//Algorithm： 采用hash_map来进行统计次数+堆（找出Top K）。  
+05.//July，2011.05.12。纪念汶川地震三周年，默哀三秒。  
+06.  
+07.#define PARENT(i) (i)/2  
+08.#define LEFT(i)   2*(i)  
+09.#define RIGHT(i)  2*(i)+1  
+10.  
+11.#define HASHTABLESIZE 2807303  
+12.#define HEAPSIZE 10  
+13.#define A 0.6180339887  
+14.#define M 16384     //m=2^14  
+15.  
+16.#include <stdio.h>  
+17.#include <stdlib.h>  
+18.  
+19.typedef struct hash_node  
+20.{  
+21.    int data;  
+22.    int count;  
+23.    struct hash_node* next;  
+24.}HASH_NODE;  
+25.HASH_NODE* hash_table[HASHTABLESIZE];  
+26.  
+27.HASH_NODE* creat_node(int& data)  
+28.{  
+29.    HASH_NODE* node = (HASH_NODE*)malloc(sizeof(HASH_NODE));  
+30.      
+31.    if (NULL == node)  
+32.    {  
+33.        printf("malloc node failed!/n");  
+34.        exit(EXIT_FAILURE);  
+35.    }  
+36.      
+37.    node->data = data;  
+38.    node->count = 1;  
+39.    node->next = NULL;  
+40.    return node;  
+41.}  
+42.  
+43./**  
+44.* hash函数采用乘法散列法 
+45.* h(k)=int(m*(A*k mod 1)) 
+46.*/  
+47.int hash_function(int& key)    
+48.{    
+49.    double result = A * key;  
+50.    return (int)(M * (result - (int)result));    
+51.}  
+52.  
+53.void insert(int& data)  
+54.{  
+55.    int index = hash_function(data);  
+56.    HASH_NODE* pnode = hash_table[index];  
+57.    while (NULL != pnode)  
+58.    {   // 以存在data，则count++  
+59.        if (pnode->data == data)  
+60.        {  
+61.            pnode->count += 1;  
+62.            return;  
+63.        }  
+64.        pnode = pnode->next;  
+65.    }  
+66.      
+67.    // 建立一个新的节点，在表头插入  
+68.    pnode = creat_node(data);  
+69.    pnode->next = hash_table[index];  
+70.    hash_table[index] = pnode;  
+71.}  
+72.  
+73./**  
+74.* destroy_node释放创建节点产生的所有内存 
+75.*/  
+76.void destroy_node()  
+77.{  
+78.    HASH_NODE* p = NULL;  
+79.    HASH_NODE* tmp = NULL;  
+80.    for (int i = 0; i < HASHTABLESIZE; ++i)  
+81.    {  
+82.        p = hash_table[i];  
+83.        while (NULL != p)  
+84.        {  
+85.            tmp = p;  
+86.            p = p->next;  
+87.            free(tmp);  
+88.            tmp = NULL;  
+89.        }  
+90.    }  
+91.}  
+92.  
+93.typedef struct min_heap  
+94.{  
+95.    int count;  
+96.    int data;  
+97.}MIN_HEAP;  
+98.MIN_HEAP heap[HEAPSIZE + 1];  
+99.  
+100./**  
+101.* min_heapify函数对堆进行更新，使以i为跟的子树成最大堆 
+102.*/  
+103.void min_heapify(MIN_HEAP* H, const int& size, int i)  
+104.{  
+105.    int l = LEFT(i);  
+106.    int r = RIGHT(i);  
+107.    int smallest = i;  
+108.      
+109.    if (l <= size && H[l].count < H[i].count)  
+110.        smallest = l;  
+111.    if (r <= size && H[r].count < H[smallest].count)  
+112.        smallest = r;  
+113.      
+114.    if (smallest != i)  
+115.    {  
+116.        MIN_HEAP tmp = H[i];  
+117.        H[i] = H[smallest];  
+118.        H[smallest] = tmp;  
+119.        min_heapify(H, size, smallest);  
+120.    }  
+121.}  
+122.  
+123./**  
+124.* build_min_heap函数对数组A中的数据建立最小堆 
+125.*/  
+126.void build_min_heap(MIN_HEAP* H, const int& size)  
+127.{  
+128.    for (int i = size/2; i >= 1; --i)  
+129.        min_heapify(H, size, i);  
+130.}  
+131.  
+132./**  
+133.* traverse_hashtale函数遍历整个hashtable，更新最小堆 
+134.*/  
+135.void traverse_hashtale()  
+136.{  
+137.    HASH_NODE* p = NULL;  
+138.    for (int i = 0; i < HASHTABLESIZE; ++i)  
+139.    {  
+140.        p = hash_table[i];  
+141.        while (NULL != p)  
+142.        {   // 如果当前节点的数量大于最小堆的最小值，则更新堆  
+143.            if (p->count > heap[1].count)  
+144.            {  
+145.                heap[1].count = p->count;  
+146.                heap[1].data = p->data;  
+147.                min_heapify(heap, HEAPSIZE, 1);  
+148.            }  
+149.            p = p->next;  
+150.        }  
+151.    }  
+152.}  
+153.  
+154.int main()  
+155.{  
+156.    // 初始化最小堆  
+157.    for (int i = 1; i <= 10; ++i)  
+158.    {  
+159.        heap[i].count = -i;  
+160.        heap[i].data = i;  
+161.    }  
+162.    build_min_heap(heap, HEAPSIZE);  
+163.      
+164.    FILE* fp = fopen("data.txt", "r");  
+165.    int num;  
+166.    while (!feof(fp))  
+167.    {  
+168.        fscanf(fp, "%d", &num);  
+169.        insert(num);  
+170.    }  
+171.    fclose(fp);  
+172.      
+173.    traverse_hashtale();  
+174.      
+175.    for (i = 1; i <= 10; ++i)  
+176.    {  
+177.        printf("%d/t%d/n", heap[i].data, heap[i].count);  
+178.    }  
+179.      
+180.    return 0;  
+181.}   
+ 
+
+程序测试：对65047kb的数据量文件，进行测试统计（不过，因其数据量实在太大，半天没打开）：
+
+
+
+运行结果：如下，
+
+
+
+ 
+
+ 
+
+第四节、海量数据处理问题一般总结
+
+      关于海量数据处理的问题，一般有Bloom filter，Hashing，bit-map，堆，trie树等方法来处理。更详细的介绍，请查看此文：十道海量数据处理面试题与十个方法大总结。
+
+ 
+
+ 
+
+余音
+
+      反馈：此文发布后，走进搜索引擎的作者&&深入搜索引擎-海量信息的压缩、索引和查询的译者，梁斌老师，对此文提了点意见，如下：1、首先TopK问题，肯定需要有并发的，否则串行搞肯定慢，IO和计算重叠度不高。其次在IO上需要一些技巧，当然可能只是验证算法，在实践中IO的提升会非常明显。最后上文的代码可读性虽好，但机器的感觉可能就会差，这样会影响性能。2、同时，TopK可以看成从地球上选拔k个跑的最快的，参加奥林匹克比赛，各个国家自行选拔，各个大洲选拔，层层选拔，最后找出最快的10个。发挥多机多核的优势。
+
+      预告：程序员面试题狂想曲、第四章，本月月底之前发布（尽最大努力）。
+
+ 
+
+修订
+
+
+     程序员面试题狂想曲-tctop（the crazy thingking of programers）的修订wiki（http://tctop.wikispaces.com/）已于今天建立，我们急切的想得到读者的反馈，意见，建议，以及更好的思路，算法，和代码优化的建议。所以，
+•如果你发现了狂想曲系列中的任何一题，任何一章（http://t.cn/hgVPmH）中的错误，问题，与漏洞，欢迎告知给我们，我们将感激不尽，同时，免费赠送本blog内的全部博文集锦的CHM文件1期；
+•如果你能对狂想曲系列的创作提供任何建设性意见，或指导，欢迎反馈给我们，并真诚邀请您加入到狂想曲的wiki修订工作中；
+•如果你是编程高手，对狂想曲的任何一章有自己更好的思路，或算法，欢迎加入狂想曲的创作组，以为千千万万的读者创造更多的价值，更好的服务。
+
+ Ps：狂想曲tctop的wiki修订地址为：http://tctop.wikispaces.com/。欢迎围观，更欢迎您加入到狂想曲的创作或wiki修订中。
+
+联系July
+•email，zhoulei0907@yahoo.cn
+•blog，http://blog.csdn.net/v_JULY_v 。
+•weibo，http://weibo.com/julyweibo 。
+
+作者按：有任何问题，或建议，欢迎以上述联系方式call me，真诚的谢谢各位。
+      July、狂想曲创作组，二零一一年五月十日。 
+
+ 
+
+--------------------------------------------------------------------------------
+
+ 
+
+版权所有，本人对本blog内所有任何内容享有版权及著作权。实要转载，请以链接形式注明出处。
+ 
+分享到： 
+
+上一篇：程序员编程艺术：第三章、寻找最小的k个数
+ 下一篇：程序员编程艺术：第四章、现场编写类似strstr/strcpy/strpbrk的函数
+ . 
+
+
+查看评论
+ 
+42楼 Raul_77 2012-12-14 01:02发表 [回复] 初步看了一下楼主的代码，感觉不是很严谨。
+1，void build_min_heap(MIN_HEAP* H, const int& size) const int &处用引用的目的是什么？这里只是传递一个值而已，而非需要对变量进行修改操作。
+2， FILE* fp = fopen("data.txt", "r"); 
+int num; 
+while (!feof(fp)) 
+{ 
+fscanf(fp, "%d", &num); 
+insert(num); 
+} 
+fclose(fp); 
+
+fopen以"r"打开文件的如何能写？而且如果文件不存在，该当若何？Re: v_JULY_v 2012-12-14 01:06发表 [回复] 回复Raul_77：提议全部收到，十分感谢！
+有任何其它问题，欢迎继续指正！41楼 ailunfeisite1 2012-12-01 01:37发表 [回复] 写得很好。梁老师的建议也很好。40楼 DayDayUp1103 2012-10-30 21:56发表 [回复] hash + 堆的那个程序中，堆节点向下调整的函数好像有点问题，有时间的话请楼主再仔细看看。39楼 dltdltdlt 2012-08-21 08:14发表 [回复] 实现一中这段代码
+for (;;) 
+{ 
+while(a[i] < pivot) 
+i++; 
+while(a[j] > pivot) 
+j--; 
+if (i < j) 
+swap(a[i], a[j]); 
+else 
+break; 
+} 
+
+当所有元素都相同时会产生死循环的！Re: v_JULY_v 2012-08-21 09:25发表 [回复] 回复dltdltdlt：谢谢，我看了下，早就有读者指出了问题，未注意，在文章中说明下。38楼 luxiaoxun 2012-07-20 18:23发表 [回复] 3.1的代码38行 hash_function(char const *p) 代码没有误，char const *p和const char *p是一样的，限定的都是*p而不是p回复v_JULY_v：37楼 Kunikda 2012-07-01 21:55发表 [回复] 学习了！求topK，用维护k个元素的最小堆的算法，时间复杂度为O（n*logk）。个人觉得直接维护n个元素的最大堆，做K次堆调整，每次复杂度为O(logn)，总的复杂度为O(k*logn)；当n远比K大的时候，会效果更好一些吧，不知道我想的对不对。Re: v_JULY_v 2012-07-02 18:34发表 [回复] 回复kunikida：你说的，是对的，据具体情况选择一种思路。无非就是比较选择n*logk 与k*logn 的大小36楼 titer1 2012-06-18 23:13发表 [回复] 
+引用“zhizichina”的评论：在你讨论的top k算法中，基本上都是很全面。但是对于每一种思路和方法适用于什么情况性能会最好，可否...
+
+其实，我也在总结这个问题，哪位网友有好的线索，请告知一下哈。35楼 titer1 2012-06-18 23:11发表 [回复] 最近又看了v_july_v 的topK算法解释，写了自己的读书笔试，
+在这里傍个大腿，
+有空的同学到这里坐坐看看，指教指教：
+
+66算法系列-66漫谈topK 问题
+http://blog.chinaunix.net/uid-10780339-id-3247343.htmlRe: titer1 2012-06-19 08:11发表 [回复] 回复titer1：这是 66算法系列-66漫谈topK 问题 @csdn博客地址
+http://blog.csdn.net/titer1/article/details/767494734楼 yangshenghit 2012-04-23 16:43发表 [回复] 3.1的代码38行 hash_function(char const *p)有误吧，这样的话，不能修改p的值，要想不修改*p指向的内容，应该是const char *p; 还有85行不应该是/n,应该是\n吧。33楼 爱喝水 2011-11-01 15:59发表 [回复] 
+
+
+
+01.for (;;)     
+02.    {      
+03.        while(a[i] < pivot)    
+04.            i++;    
+05.        while(a[j] > pivot)    
+06.            j--;    
+07.        if (i < j)     
+08.            swap(a[i], a[j]);     
+09.        else       
+10.            break;       
+11.    }  
+
+当a[i]=a[j]=pivot时不就陷入死循环了吗Re: jeffen1987 2012-06-06 16:04发表 [回复] 回复winstar53：这段代码确实有问题的，在Mark Allen Weiss的数据结构与算法分析C++描述中文版的P209-P210就有描述，当a [ i ]=a [ j ]=pivot时，则会产生一个无限循环。32楼 zhizichina 2011-10-22 22:09发表 [回复] 在你讨论的top k算法中，基本上都是很全面。但是对于每一种思路和方法适用于什么情况性能会最好，可否给一个建议。我也知道就事论事会很难而且可能有成千上万种情况，但如果能把这些情况汇总一下的话可能会更好一点。
+我稍微想了一下可以分a：k值较大或较小的情况；b：数据量很大或很少（相对很少）的情况；c：数据中的卫星数据很复杂或很简单的情况（比如其中都是重复的数，况且每个数都小于100的10^10个数）等等。31楼 daisyhouj 2011-08-18 13:47发表 [回复] int midIndex = (left + right) / 2; 
+if(a[left] < a[midIndex]) 
+swap(a[left], a[midIndex]); 
+if(a[right] < a[midIndex]) 
+swap(a[right], a[midIndex]); 
+if(a[right] < a[left]) 
+swap(a[right], a[left]); 
+swap(a[midIndex], a[right]); 
+楼主，我怎么觉得你这样取出来的值为三个中最小的呢？是不是应该最后为
+ int midIndex = (left + right) / 2; 
+if(a[left] < a[midIndex]) 
+swap(a[left], a[midIndex]); 
+if(a[right] < a[midIndex]) 
+swap(a[right], a[midIndex]); 
+if(a[right] >a[left]) 
+swap(a[right], a[left]); 
+就可以了 ？这样最右边的才是中值Re: ellaqi 2012-07-01 16:13发表 [回复] 跟你的看法一样回复daisyhouj：30楼 simple_blue 2011-06-23 10:32发表 [回复] if(a[left] &lt; a[midIndex]) 
+if(a[right] &lt; a[midIndex]) 
+if(a[right] &lt; a[left]) 
+这段代码逻辑上似乎有问题，不知道是不是我搞错了，实质是不是3个数排序，如果用if 是不是要有6个if
+感谢楼主无私奉献！29楼 simple_blue 2011-06-23 09:23发表 [回复] [e01][e01][e01][e01][e01]28楼 abc137508277 2011-06-20 09:47发表 [回复] 三数中值做为枢纽元方法，那六行代码目的是a[left]&lt;a[midindex]&lt;a[right],第一句是不是应该是if(a[midindex]&lt;a[left]) swap(&amp;a[left],&amp;a[midindex])？27楼 源远流长 2011-06-07 17:42发表 [回复] 如果事先是没有统计过的log日志，就不是这么简单了。Re: v_JULY_v 2011-06-07 17:53发表 [回复] 回复 duck_genuine：[e03]，有任何建议，还望多多指教。Re: 源远流长 2011-06-08 18:30发表 [回复] 回复 v_JULY_v：应该对关键词作map，写入不同的文件，然后对每一个单独的文件再map计算，再用堆排序，取出每一个文件的前几名，整合26楼 v_JULY_v 2011-05-18 22:12发表 [回复] 修正了第一节里寻找最小的第k个数实现三，中的一处严重的bug。25楼 v_JULY_v 2011-05-18 10:51发表 [回复] 一个经过独立思考而坚持错误观点的人比一个不假思索而接受正确观点的人更值得肯定。任何人，有任何问题，欢迎随时提出来。24楼 fifa3012 2011-05-17 10:26发表 [回复] top k算法，实际应用最多的是最小堆，对于大数据量，快速选择法空间复杂度过大，实际应用场合数据往往无法全部放入内存。Re: v_JULY_v 2011-05-17 10:33发表 [回复] 回复 fifa3012：[e03]23楼 kaiding100 2011-05-16 10:33发表 [回复] [e01]22楼 wxq208 2011-05-15 12:47发表 [回复] 要好好收藏21楼 chenhuan05 2011-05-15 10:24发表 [回复] 这个厉害，要好好收藏20楼 v5 2011-05-15 00:45发表 [回复] [e01][e02][e03]19楼 jiiming 2011-05-12 23:42发表 [回复] 高人，拜读了[e01][e03]18楼 v_JULY_v 2011-05-12 20:50发表 [回复] 文章的3.2、统计出现次数最多的数据部分，已更新，添上了hash+堆的实现。17楼 yinchuandong 2011-05-12 16:42发表 [回复] [e01]16楼 eaglex 2011-05-12 11:25发表 [回复] 对原文中的这句话有点小疑问：
+上千万或上亿的数据，现在的机器的内存应该能存下。
+觉得这句话可能有欠考虑，当然瑕不掩瑜。Re: v_JULY_v 2011-05-12 14:34发表 [回复] 回复 eaglex：好的，我加几个字。谢谢你15楼 eaglex 2011-05-12 11:22发表 [回复] 刚被人推荐这个博客，这篇确实实用性很强，看的很过瘾，刚大致过了下，受益颇深，主要是数据结构方面。我个人觉得很多算法都比较成熟了，常见的问题是是算法的定制化和数据结构的选取实现。Re: v_JULY_v 2011-05-12 14:33发表 [回复] 回复 eaglex：[e03]14楼 aben_2005 2011-05-12 09:50发表 [回复] 关注[e04]13楼 heyu158 2011-05-11 21:48发表 [回复] 标记一下！[e01]12楼 ma_thilda 2011-05-11 13:46发表 [回复] [e01] a有人能告诉下，为什么JULY可以这么帅??? 为什么? !!Re: v_JULY_v 2011-05-11 13:47发表 [回复] 回复 ma_thilda：因为戴的是手冢的头像，[e04]Re: ma_thilda 2011-05-11 14:28发表 [回复] 回复 v_JULY_v：了解了，真的很帅。气场 好强~~~ 我要经常来学习了！11楼 v_JULY_v 2011-05-11 10:37发表 [回复] 已updated，有任何问题，欢迎随时不吝指正。10楼 v_JULY_v 2011-05-09 12:05发表 [回复] to fifa3012：在第三章中，SELECT，快速选择算法，以序列中“五分化中项的中项”，或“中位数的中位数”作为主元（枢纽元），则不容置疑的可保证在最坏情况下亦为O（N）的复杂度。本文的代码不保证O（N）的平均时间复杂度，只是根据第三章有办法可以做到而已。9楼 fifa3012 2011-05-09 11:44发表 [回复] 请问如何证明你的最小K个数算法复杂度是O（N）的？Re: v_JULY_v 2011-05-09 12:03发表 [回复] 回复 fifa3012：证明以此文程序员面试题狂想曲：第三章、寻找最小的k个数，为准。8楼 lanboyj 2011-05-09 11:29发表 [回复] 还有，这个程序要是加上所有的大小写转换就好了，比如“A”就可以和“a&quot;认为是一个单词，呵呵Re: yanshazi 2011-05-09 15:09发表 [回复] 回复 lanboyj：恩，不区分大小写，可以先把所有大写字符转换成小写字符，然后再进行hash操作。7楼 lanboyj 2011-05-09 11:28发表 [回复] 请教楼主，在搜索引擎热门查询统计程序里，在求哈希函数时，为什么要用到value = value * 31 + *p++， 这里的31是怎么确定的呢？谢谢！Re: eaglex 2011-05-12 11:20发表 [回复] 回复 lanboyj：BKDR算法是常见的hash算法中的速度较快效果较好的，也是java的String的hash实现方法，可以见Java的String类的hashcode方法。Re: v_JULY_v 2011-05-12 20:22发表 [回复] 回复 eaglex：[e03]Re: eaglex 2011-05-12 11:19发表 [回复] 回复 lanboyj：这里是一个常见的hash实现算法BKDR，刚好我之前稍微研究过，使用31,3131,31...31形式的数作为乘数是一个类似启发式的经验型的选取，至今没有人能证明使用素质比合数好，但是从结果上看效果确实不错。Re: yanshazi 2011-05-09 15:05发表 [回复] 回复 lanboyj：这是利用乘法求hash值，在字符串使用乘数31只是个人偏好，也可以是其他素数。Re: lanboyj 2011-05-09 17:17发表 [回复] 回复 yanshazi：感谢，非常感谢！6楼 khil_wang 2011-05-09 10:45发表 [回复] 今天抽空看完[e01]5楼 v_JULY_v 2011-05-09 00:24发表 [回复] 凡是发现本blog内任何一篇文章，尤其是此狂想曲系列文章中的任何一个问题，错误，或漏洞，都免费赠送本blog全部博文集锦的CHM文件1期。4楼 奋斗小子 2011-05-08 22:38发表 [回复] 上一次面试就问我怎么在10亿个整数中找最大的100万个数...Re: v_JULY_v 2011-05-08 22:40发表 [回复] 回复 lanyan822：[e04]3楼 v_JULY_v 2011-05-08 22:29发表 [回复] 上文所有的代码，只是实现了功能而已，还有很多的优化工作，要做。2楼 yanshazi 2011-05-08 20:38发表 [回复] 梁斌老师的话蛮有启发的[e01]1楼 十一文 2011-05-08 18:20发表 [回复] [e01][e01][e01][e01]先占位@呵呵 再看！Re: v_JULY_v 2011-05-08 18:22发表 [回复] 回复 xming4321：恭喜，占到了sf，
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料 
+
+v_JULY_v 
+
+
+
+
+
+
+访问：4195632次
+ 积分：25982分
+ 排名：第50名
+ . 原创：134篇
+ 转载：0篇
+ 译文：5篇
+ 评论：10137条
+ . 
+博客公告 ①.本blog开通于2010年10月11日，高级C /Algorithms交流群：149977547；北京程序员联盟：172727781。②.狂热算法，热爱数据挖掘，关注机器学习、统计分析，爱好文学数学。③.微博：研究者July，邮箱：zhoulei0907@yahoo.cn，July，二零一三年三月二十九日。 
+我的微博 
+文章分类 03.Algorithms（实现）(9) 
+01.Algorithms（研究）(27) 
+02.Algorithms（后续）(22) 
+04.Algorithms（讨论）(1) 
+05.MS 100' original(7) 
+06.MS 100' answers(13) 
+07.MS 100' classify(4) 
+08.MS 100' one Keys(6) 
+09.MS 100' follow-up(3) 
+10.MS 100' comments(4) 
+11.TAOPP（编程艺术）(26) 
+12.TAOPP string(6) 
+13.TAOPP array(10) 
+14.TAOPP list(2) 
+15.stack/heap/queue(0) 
+16.TAOPP tree(1) 
+17.TAOPP c/c++(2) 
+18.TAOPP function(2) 
+19.TAOPP algorithms(7) 
+20.number operations(1) 
+21.Essays(8) 
+22.Big Data Processing(5) 
+23.Redis/MongoDB(0) 
+24.data structures(12) 
+25.Red-black tree(7) 
+26.Image Processing(3) 
+27.Architecture design(4) 
+28.Source analysis(3) 
+29.Recommend&Search(4) 
+30.Machine L&Data Mining(5) 
+
+博客专栏 
+
+
+
+
+微软面试100题系列 
+文章：17篇
+ 阅读：1246089 
+
+
+
+
+
+程序员编程艺术 
+文章：24篇
+ 阅读：859697 
+
+
+
+
+
+经典算法研究 
+文章：32篇
+ 阅读：1110603 
+
+阅读排行 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(186260) 
+九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(141609) 
+教你如何迅速秒杀掉：99%的海量数据处理面试题(137438) 
+横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(127653) 
+从B树、B+树、B*树谈到R 树(122026) 
+十道海量数据处理面试题与十个方法大总结(101549) 
+九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(87330) 
+十一、从头到尾彻底解析Hash表算法(78387) 
+微软公司等数据结构+算法面试100题(第1-100题)全部出炉(75912) 
+支持向量机通俗导论（理解SVM的三层境界）(74609) 
+
+评论排行 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(371) 
+九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(361) 
+九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(331) 
+当今世界最为经典的十大算法--投票进行时(320) 
+从B树、B+树、B*树谈到R 树(264) 
+横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(263) 
+十三个经典算法研究与总结、目录+索引(216) 
+我的大学生涯(214) 
+程序员编程艺术第一章、左旋转字符串(203) 
+三五杆枪，可干革命，三五个人，可以创业(198) 
+
+最新评论 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦 
+v_JULY_v: @q1w2ok11:替我感谢你的同事:-) 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦 
+q1w2ok11: 同事推荐，太给力了，必须好好学习，楼主辛苦 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦 
+kiritor: 谢谢博主的分享,先收藏了 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦 
+v_JULY_v: @zhouqinxiong:哪个学校呢？替我谢谢你的老师:-) 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦 
+zhouqinxiong: 老师推荐的，lz，你的博客非常给力 
+
+快速排序算法 
+康天崽: 太给力了，我喜欢，爱死你了 
+
+我的大学生涯 
+msjcool: 看完楼主的经历，感觉自己弱爆了 
+
+B树的C实现 
+hao138548: 好贴 
+
+教你如何迅速秒杀掉：99%的海量数据处理面试题 
+xiyandeng: 虽然看得不是很懂，以后可以慢慢消化！感谢博主啊 
+
+程序员编程艺术第一章、左旋转字符串 
+dusx1981: void RightShift4(string &str, int k){ int len = st... 
+
+
+01、本blog索引 3、微软100题维护地址
+1、微软100题横空出世
+5、经典算法研究系列
+7、红黑树系列集锦
+6、程序员编程艺术系列
+2、微软面试全部100题
+0、经典4大原创系列集锦
+4、微软100题下载地址
+ 
+02、Google or baidu? Google搜--"结构之法"（My BLOG）
+baidu 搜--"结构之法"（My BLOG）
+ 
+03、个人标签 本BLOG RSS订阅
+zhoulei0907@yahoo.cn
+csdn blog订阅排行榜
+TAOPP修订wiki
+julymsn@live.cn
+电子工程网专家VIP
+ 博客园blog-成为推荐博客
+ ITpub-代码优化专家
+ 
+04、我的驻点 01. 为学论坛-万物皆数 终生为学
+ 02、Harry
+ 03、NoSQLFan
+ 04、酷勤网
+ 05、52nlp
+ 06、北大朋友的挖掘乐园
+ 07、跟Sophia_qing一起读硕士
+ 08、面试问答社区51nod
+ 09、韩寒
+ 10、我的有鱼
+ 11、曾经的叛逆与年少
+ 12、老D之MongoDB源码分析
+ 14、code4app:iOS代码示例
+ 17、斯坦福机器学习公开课
+ 18、TheItHome算法版块版主
+ 19、36氪--关注互联网创业
+ 20、德问--编程是一种艺术创作
+ 21、善科网
+ 22、百度搜索研发部
+ 23、淘宝搜索技术博客
+ 24、interviewstreet
+ 25、LeetCode
+ 26、Team_Algorithms人人小组
+ 
+文章存档 
+2013年03月(1).
+2012年12月(1).
+2012年11月(1).
+2012年09月(1).
+2012年06月(1).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持Copyright © 1999-2012, CSDN.NET, All Rights Reserved  

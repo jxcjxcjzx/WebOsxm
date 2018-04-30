@@ -1,0 +1,594 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+老萧的专栏
+
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年1月当选微软MVP名单揭晓！    智能开发框架 JEECG 作者张代浩专访
+ 2012CSDN博客之星火热出炉！      2013年全国百所高校巡讲讲师招募 
+
+
+
+HOG（方向梯度直方图） 
+.
+ 分类： 图像处理机器学习2011-11-29 15:304241人阅读评论(2)收藏举报
+ 
+trainingannotationsdescriptorimageeachperformance
+
+  
+结合这周看的论文,我对这周研究的Histogram of oriented gradients(HOG)谈谈自己的理解：
+ 
+HOG descriptors 是应用在计算机视觉和图像处理领域，用于目标检测的特征描述器。这项技术是用来计算局部图像梯度的方向信息的统计值。这种方法跟边缘方向直方图（edge orientation histograms）、尺度不变特征变换（scale-invariant feature transform descriptors）以及形状上下文方法（ shape contexts）有很多相似之处，但与它们的不同点是：HOG描述器是在一个网格密集的大小统一的细胞单元（dense grid of uniformly spaced cells）上计算，而且为了提高性能，还采用了重叠的局部对比度归一化（overlapping local contrast normalization）技术。
+ 
+这篇文章的作者Navneet Dalal和Bill Triggs是法国国家计算机技术和控制研究所French National Institute for Research in Computer Science and Control (INRIA)的研究员。他们在这篇文章中首次提出了HOG方法。这篇文章被发表在2005年的CVPR上。他们主要是将这种方法应用在静态图像中的行人检测上，但在后来，他们也将其应用在电影和视频中的行人检测，以及静态图像中的车辆和常见动物的检测。
+ 
+HOG描述器最重要的思想是：在一副图像中，局部目标的表象和形状（appearance and shape）能够被梯度或边缘的方向密度分布很好地描述。具体的实现方法是：首先将图像分成小的连通区域，我们把它叫细胞单元。然后采集细胞单元中各像素点的梯度的或边缘的方向直方图。最后把这些直方图组合起来就可以构成特征描述器。为了提高性能，我们还可以把这些局部直方图在图像的更大的范围内（我们把它叫区间或block）进行对比度归一化（contrast-normalized），所采用的方法是：先计算各直方图在这个区间（block）中的密度，然后根据这个密度对区间中的各个细胞单元做归一化。通过这个归一化后，能对光照变化和阴影获得更好的效果。
+ 
+与其他的特征描述方法相比，HOG描述器后很多优点。首先，由于HOG方法是在图像的局部细胞单元上操作，所以它对图像几何的（geometric）和光学的（photometric）形变都能保持很好的不变性，这两种形变只会出现在更大的空间领域上。其次，作者通过实验发现，在粗的空域抽样（coarse spatial sampling）、精细的方向抽样（fine orientation sampling）以及较强的局部光学归一化（strong local photometric normalization）等条件下，只要行人大体上能够保持直立的姿势，就容许行人有一些细微的肢体动作，这些细微的动作可以被忽略而不影响检测效果。综上所述，HOG方法是特别适合于做图像中的行人检测的。
+ 
+ 
+ 
+上图是作者做的行人检测试验，其中（a）表示所有训练图像集的平均梯度（average gradient across their training images）；（b）和（c）分别表示：图像中每一个区间（block）上的最大最大正、负SVM权值；（d）表示一副测试图像；（e）计算完R-HOG后的测试图像；（f）和（g）分别表示被正、负SVM权值加权后的R-HOG图像。
+ 
+算法的实现：
+ 
+色彩和伽马归一化（color and gamma normalization）
+ 
+作者分别在灰度空间、RGB色彩空间和LAB色彩空间上对图像进行色彩和伽马归一化，但实验结果显示，这个归一化的预处理工作对最后的结果没有影响，原因可能是：在后续步骤中也有归一化的过程，那些过程可以取代这个预处理的归一化。所以，在实际应用中，这一步可以省略。
+ 
+梯度的计算（Gradient computation）
+ 
+最常用的方法是：简单地使用一个一维的离散微分模板（1-D centered, point discrete derivative mask）在一个方向上或者同时在水平和垂直两个方向上对图像进行处理，更确切地说，这个方法需要使用下面的滤波器核滤除图像中的色彩或变化剧烈的数据（color or intensity data）
+ 
+ 
+ 
+作者也尝试了其他一些更复杂的模板，如3×3 Sobel 模板，或对角线模板（diagonal masks），但是在这个行人检测的实验中，这些复杂模板的表现都较差，所以作者的结论是：模板越简单，效果反而越好。作者也尝试了在使用微分模板前加入一个高斯平滑滤波，但是这个高斯平滑滤波的加入使得检测效果更差，原因是：许多有用的图像信息是来自变化剧烈的边缘，而在计算梯度之前加入高斯滤波会把这些边缘滤除掉。
+ 
+构建方向的直方图（creating the orientation histograms）
+ 
+第三步就是为图像的每个细胞单元构建梯度方向直方图。细胞单元中的每一个像素点都为某个基于方向的直方图通道（orientation-based histogram channel）投票。投票是采取加权投票（weighted voting）的方式，即每一票都是带权值的，这个权值是根据该像素点的梯度幅度计算出来。可以采用幅值本身或者它的函数来表示这个权值，实际测试表明：使用幅值来表示权值能获得最佳的效果，当然，也可以选择幅值的函数来表示，比如幅值的平方根（square root）、幅值的平方（square of the gradient magnitude）、幅值的截断形式（clipped version of the magnitude）等。细胞单元可以是矩形的（rectangular），也可以是星形的（radial）。直方图通道是平均分布在0-1800（无向）或0-3600（有向）范围内。作者发现，采用无向的梯度和9个直方图通道，能在行人检测试验中取得最佳的效果。
+ 
+把细胞单元组合成大的区间（grouping the cells together into larger blocks）
+ 
+由于局部光照的变化（variations of illumination）以及前景-背景对比度（foreground-background contrast）的变化，使得梯度强度（gradient strengths）的变化范围非常大。这就需要对梯度强度做归一化，作者采取的办法是：把各个细胞单元组合成大的、空间上连通的区间（blocks）。这样以来，HOG描述器就变成了由各区间所有细胞单元的直方图成分所组成的一个向量。这些区间是互有重叠的，这就意味着：每一个细胞单元的输出都多次作用于最终的描述器。区间有两个主要的几何形状——矩形区间（R-HOG）和环形区间（C-HOG）。R-HOG区间大体上是一些方形的格子，它可以有三个参数来表征：每个区间中细胞单元的数目、每个细胞单元中像素点的数目、每个细胞的直方图通道数目。作者通过实验表明，行人检测的最佳参数设置是：3×3细胞/区间、6×6像素/细胞、9个直方图通道。作者还发现，在对直方图做处理之前，给每个区间（block）加一个高斯空域窗口（Gaussian spatial window）是非常必要的，因为这样可以降低边缘的周围像素点（pixels around the edge）的权重。
+ 
+R-HOG跟SIFT描述器看起来很相似，但他们的不同之处是：R-HOG是在单一尺度下、密集的网格内、没有对方向排序的情况下被计算出来（are computed in dense grids at some single scale without orientation alignment）；而SIFT描述器是在多尺度下、稀疏的图像关键点上、对方向排序的情况下被计算出来（are computed at sparse, scale-invariant key image points and are rotated to align orientation）。补充一点，R-HOG是各区间被组合起来用于对空域信息进行编码（are used in conjunction to encode spatial form information），而SIFT的各描述器是单独使用的（are used singly）。
+ 
+C-HOG区间（blocks）有两种不同的形式，它们的区别在于：一个的中心细胞是完整的，一个的中心细胞是被分割的。如右图所示：
+ 
+作者发现C-HOG的这两种形式都能取得相同的效果。C-HOG区间（blocks）可以用四个参数来表征：角度盒子的个数（number of angular bins）、半径盒子个数（number of radial bins）、中心盒子的半径（radius of the center bin）、半径的伸展因子（expansion factor for the radius）。通过实验，对于行人检测，最佳的参数设置为：4个角度盒子、2个半径盒子、中心盒子半径为4个像素、伸展因子为2。前面提到过，对于R-HOG，中间加一个高斯空域窗口是非常有必要的，但对于C-HOG，这显得没有必要。C-HOG看起来很像基于形状上下文（Shape Contexts）的方法，但不同之处是：C-HOG的区间中包含的细胞单元有多个方向通道（orientation channels），而基于形状上下文的方法仅仅只用到了一个单一的边缘存在数（edge presence count）。
+ 
+区间归一化（Block normalization）
+ 
+作者采用了四中不同的方法对区间进行归一化，并对结果进行了比较。引入v表示一个还没有被归一化的向量，它包含了给定区间（block）的所有直方图信息。| | vk | |表示v的k阶范数，这里的k去1、2。用e表示一个很小的常数。这时，归一化因子可以表示如下：
+ 
+L2-norm: 
+
+L1-norm: 
+
+L1-sqrt: 
+
+还有第四种归一化方式：L2-Hys，它可以通过先进行L2-norm，对结果进行截短（clipping），然后再重新归一化得到。作者发现：采用L2-Hys, L2-norm, 和 L1-sqrt方式所取得的效果是一样的，L1-norm稍微表现出一点点不可靠性。但是对于没有被归一化的数据来说，这四种方法都表现出来显著的改进。
+ 
+SVM分类器（SVM classifier）
+ 
+最后一步就是把提取的HOG特征输入到SVM分类器中，寻找一个最优超平面作为决策函数。作者采用的方法是：使用免费的SVMLight软件包加上HOG分类器来寻找测试图像中的行人。
+ 
+
+zz from http://hi.baidu.com/ykaitao_handsome/blog/item/d7a2c3156e368a0a4b90a745.html
+ 
+ 
+ 
+本文来自CSDN博客，转载请标明出处：http://blog.csdn.net/forsiny/archive/2010/03/22/5404268.aspx
+ 
+posted @ 2011-06-01 13:51 我陪你面朝大海 阅读(403) 评论(0) 编辑
+ 
+
+
+（转）peopledetect学习，来自opencv中文论坛 
+
+OpenCV2.0提供了行人检测的例子，用的是法国人Navneet　Dalal最早在CVPR2005会议上提出的方法。
+ 最近正在学习它，下面是自己的学习体会，希望共同探讨提高。
+ 1、VC 2008 Express下安装OpenCV2.0--可以直接使用2.1，不用使用CMake进行编译了，避免编译出错
+       这是一切工作的基础，感谢版主提供的参考：http://www.opencv.org.cn/index.php/VC_2008_Expressä¸‹å®‰è£…OpenCV2.0
+ 2、体会该程序
+ 在DOS界面，进入如下路径：　C:\OpenCV2.0\samples\c　　peopledetect.exe　filename.jpg
+ 其中filename.jpg为待检测的文件名
+ 3、编译程序
+ 　创建一个控制台程序，从C:\OpenCV2.0\samples\c下将peopledetect.cpp加入到工程中；按步骤1的方法进行设置。编译成功，但是在DEBUG模式下生成的EXE文件运行出错，很奇怪 。
+ 改成RELEASE模式后再次编译，生成的EXE文件可以运行。
+ 4程序代码简要说明
+ 1) getDefaultPeopleDetector() 获得3780维检测算子（105 blocks with 4 histograms each and 9 bins per histogram there are 3,780 values）--（为什么是105blocks？）
+ 2).cv::HOGDescriptor hog;　创建类的对象　一系列变量初始化 　
+ winSize(64,128), blockSize(16,16), blockStride(8,8),
+ cellSize(8,8), nbins(9), derivAperture(1), winSigma(-1),
+ histogramNormType(L2Hys), L2HysThreshold(0.2), gammaCorrection(true)
+ 3). 调用函数：detectMultiScale(img, found, 0, cv::Size(8,8), cv::Size(24,16), 1.05, 2);　
+ 　　参数分别为待检图像、返回结果列表、门槛值hitThreshold、窗口步长winStride、图像padding margin、比例系数、门槛值groupThreshold；通过修改参数发现，就所用的某图片，参数0改为0.01就检测不到，改为0.001可以；1.05改为1.1就不行，1.06可以；2改为1可以，0.8以下不行，（24,16）改成（0,0）也可以，（32,32）也行
+ 该函数内容如下
+ (1) 得到层数　levels　
+ 某图片（530，402）为例，lg(402/128)/lg1.05=23.4　则得到层数为24
+ 　(2)　循环levels次，每次执行内容如下
+ HOGThreadData& tdata = threadData[getThreadNum()];
+ Mat smallerImg(sz, img.type(), tdata.smallerImgBuf.data);
+ 　　　　调用以下核心函数
+ detect(smallerImg, tdata.locations, hitThreshold, winStride, padding);
+ 其参数分别为，该比例下图像、返回结果列表、门槛值、步长、margin
+ 该函数内容如下：
+ (a)得到补齐图像尺寸paddedImgSize
+ (b)创建类的对象　HOGCache cache(this, img, padding, padding, nwindows == 0, cacheStride); 在创建过程中，首先初始化 HOGCache::init,包括：计算梯度 descriptor->computeGradient、得到块的个数105、每块参数个数36　
+ 　　　 (c)获得窗口个数nwindows，以第一层为例，其窗口数为（530＋32*2-64）/8＋1、（402＋32*2-128）/8＋1　＝67*43＝2881，其中（32,32）为winStride参数，也可用（24,16）
+ (d)在每个窗口执行循环，内容如下
+ 在105个块中执行循环，每个块内容为：通过getblock函数计算HOG特征并归一化，36个数分别与算子中对应数进行相应运算；判断105个块的总和　s >= hitThreshold 则认为检测到目标　
+ 4）主体部分感觉就是以上这些，但很多细节还需要进一步弄清。
+ 5、原文献写的算法流程
+ 文献NavneetDalalThesis.pdf　78页图5.5描述了The complete object detection algorithm.
+ 前2步为初始化，上面基本提到了。后面2步如下
+ For each scale Si = [Ss, SsSr, . . . , Sn]
+ (a) Rescale the input image using bilinear interpolation
+ (b) Extract features (Fig. 4.12) and densely scan the scaled image with stride Ns for　object/non-object detections
+ (c) Push all detections with t(wi) > c to a list
+ Non-maximum suppression
+ (a) Represent each detection in 3-D position and scale space yi
+ (b) Using (5.9), compute the uncertainty matrices Hi for each point
+ (c) Compute the mean shift vector (5.7) iteratively for each point in the list until it converges to a mode
+ (d) The list of all of the modes gives the final fused detections
+ (e) For each mode compute the bounding box from the final centre point and scale
+ 
+以下内容节选自文献NavneetDalalThesis.pdf，把重要的部分挑出来了。其中保留了原文章节号，便于查找。
+ 
+4. Histogram of Oriented Gradients Based Encoding of Images
+ Default Detector.
+ As a yardstick for the purpose of comparison, throughout this section we compare results to our
+ default detector which has the following properties: input image in RGB colour space (without
+ any gamma correction); image gradient computed by applying [?1, 0, 1] filter along x- and yaxis
+ with no smoothing; linear gradient voting into 9 orientation bins in 0_–180_; 16×16 pixel
+ blocks containing 2×2 cells of 8×8 pixel; Gaussian block windowing with _ = 8 pixel; L2-Hys
+ (Lowe-style clipped L2 norm) block normalisation; blocks spaced with a stride of 8 pixels (hence
+ 4-fold coverage of each cell); 64×128 detection window; and linear SVM classifier. We often
+ quote the performance at 10?4 false positives per window (FPPW) – the maximum false positive
+ rate that we consider to be useful for a real detector given that 103–104 windows are tested for
+ each image.
+ 4.3.2 Gradient Computation
+ The simple [?1, 0, 1] masks give the best performance.
+ 4.3.3 Spatial / Orientation Binning
+ Each pixel contributes a weighted vote for orientation based on the orientation of the gradient element centred on it.
+ The votes are accumulated into orientation bins over local spatial regions that we call cells.
+ To reduce aliasing, votes are interpolated trilinearly between the neighbouring bin centres in both orientation and position.
+ Details of the trilinear interpolation voting procedure are presented in Appendix D.
+ The vote is a function of the gradient magnitude at the pixel, either the magnitude itself, its square, its
+ square root, or a clipped form of the magnitude representing soft presence/absence of an edge at the pixel. In practice, using the magnitude itself gives the best results.
+ 4.3.4 Block Normalisation Schemes and Descriptor Overlap
+ good normalisation is critical and including overlap significantly improves the performance.
+ Figure 4.4(d) shows that L2-Hys, L2-norm and L1-sqrt all perform equally well for the person detector.
+ such as cars and motorbikes, L1-sqrt gives the best results. 
+4.3.5 Descriptor Blocks
+ R-HOG.
+ For human detection, 3×3 cell blocks of 6×6 pixel cells perform best with 10.4% miss-rate
+ at 10?4 FPPW. Our standard 2×2 cell blocks of 8×8 cells are a close second. 
+We find 2×2 and 3×3 cell blocks work best. 
+4.3.6 Detector Window and Context
+ Our 64×128 detection window includes about 16 pixels of margin around the person on all four
+ sides. 
+4.3.7 Classifier
+ By default we use a soft (C=0.01) linear SVM trained with SVMLight [Joachims 1999].We modified
+ SVMLight to reduce memory usage for problems with large dense descriptor vectors.
+ ---------------------------------
+ 5. Multi-Scale Object Localisation
+ the detector scans the image with a detection window at all positions and scales, running the classifier in each window and fusing multiple overlapping detections to yield the final object detections.
+ We represent detections using kernel density estimation (KDE) in 3-D position and scale space. KDE is a data-driven process where continuous densities are evaluated by applying a smoothing kernel to observed data points. The bandwidth of the smoothing kernel defines the local neighbourhood. The detection scores are incorporated by weighting the observed detection points by their score values while computing the density estimate. Thus KDE naturally incorporates the first two criteria. The overlap criterion follows from the fact that detections at very different scales or positions are far off in 3-D position and scale space, and are thus not smoothed together. The modes (maxima) of the density estimate correspond to the positions and scales of final detections.
+ Let xi = [xi, yi] and s0i denote the detection position and scale, respectively, for the i-th detection.
+ the detections are represented in 3-D space as y = [x, y, s], where s = log(s’). 
+the variable bandwidth mean shift vector is defined as (5.7)
+ 
+For each of the n point the mean shift based iterative procedure is guaranteed to converge to a mode2.
+ Detection Uncertainty Matrix Hi.
+ One key input to the above mode detection algorithm is the amount of uncertainty Hi to be associated with each point. We assume isosymmetric covariances, i.e. the Hi’s are diagonal matrices.
+ Let diag [H] represent the 3 diagonal elements of H. We use scale dependent covariance
+ matrices such that diag 
+[Hi] = [(exp(si)_x)2, (exp(si)_y)2, (_s)2] (5.9)
+ where _x, _y and _s are user supplied smoothing values. 
+
+The term t(wi) provides the weight for each detection. For linear SVMs we usually use threshold = 0.
+ the smoothing parameters _x, _y,and _s used in the non-maximum suppression stage. These parameters can have a significant impact on performance so proper evaluation is necessary. For all of the results here, unless otherwise noted, a scale ratio of 1.05, a stride of 8 pixels, and _x = 8, _y = 16, _s = log(1.3) are used as default values.
+ A scale ratio of 1.01 gives the best performance, but significantly slows the overall process.
+ Scale smoothing of log(1.3)–log(1.6) gives good performance for most object classes.
+ We group these mode candidates using a proximity measure. The final location is the ode corresponding to the highest density.
+ ----------------------------------------------------
+ 附录　A. INRIA Static Person Data Set
+ The (centred and normalised) positive windows are supplied by the user, and the initial set of negatives is created once and for all by randomly sampling negative images.A preliminary classifier is thus trained using these. Second, the preliminary detector is used to exhaustively scan the negative training images for hard examples (false positives). The classifier is then re-trained using this augmented training set (user supplied positives, initial negatives and hard examples) to produce the final detector.
+ INRIA Static Person Data Set
+ As images of people are highly variable, to learn an effective classifier, the positive training examples need to be properly normalized and centered to minimize the variance among them. For this we manually annotated all upright people in the original images.
+ The image regions belonging to the annotations were cropped and rescaled to 64×128 pixel image windows. On average the subjects height is 96 pixels in these normalised windows to allow for an approximately16 pixel margin on each side. In practise we leave a further 16 pixel margin around each side of the image window to ensure that flow and gradients can be computed without boundary effects. The margins were added by appropriately expanding the annotations on each side before cropping the image regions.
+ 
+//<------------------------以上摘自datal的博士毕业论文
+ 
+关于INRIA Person Dataset的更多介绍，见以下链接
+ http://pascal.inrialpes.fr/data/human/
+ Original Images
+             Folders 'Train' and 'Test' correspond, respectively, to original training and test images. Both folders have three sub folders: (a) 'pos' (positive training or test images), (b) 'neg' (negative training or test images), and (c) 'annotations' (annotation files for positive images in Pascal Challenge format). 
+Normalized Images
+         Folders 'train_64x128_H96' and 'test_64x128_H96' correspond to normalized dataset as used in above referenced paper. Both folders have two sub folders: (a) 'pos' (normalized positive training or test images centered on the person with their left-right reflections), (b) 'neg' (containing original negative training or test images). Note images in folder 'train/pos' are of 96x160 pixels (a margin of 16 pixels around each side), and images in folder 'test/pos' are of 70x134 pixels (a margin of 3 pixels around each side). This has been done to avoid boundary conditions (thus to avoid any particular bias in the classifier). In both folders, use the centered 64x128 pixels window for original detection task.
+ Negative windows
+         To generate negative training windows from normalized images, a fixed set of 12180 windows (10 windows per negative image) are sampled randomly from 1218 negative training photos providing the initial negative training set. For each detector and parameter combination, a preliminary detector is trained and all negative training images are searched exhaustively (over a scale-space pyramid) for false positives (`hard examples'). All examples with score greater than zero are considered hard examples. The method is then re-trained using this augmented set (initial 12180 + hard examples) to produce the final detector. The set of hard examples is subsampled if necessary, so that the descriptors of the final training set fit into 1.7 GB of RAM for SVM training.
+ 
+//------------------------------------------------------______________>
+ 
+原作者对 OpenCV2.0 peopledetect 进行了2次更新
+ https://code.ros.org/trac/opencv/changeset/2314/trunk
+ 最近一次改为如下：
+ ---------------------
+ #include "cvaux.h"
+ #include "highgui.h"
+ #include <stdio.h>
+ #include <string.h>
+ #include <ctype.h>
+ using namespace cv;
+ using namespace std;
+ int main(int argc, char** argv)
+ {
+ Mat img;
+ FILE* f = 0;
+ char _filename[1024];
+ if( argc == 1 )
+ {
+ printf("Usage: peopledetect (<image_filename> | <image_list>.txt)\n");
+ return 0;
+ }
+ img = imread(argv[1]);
+ if( img.data )
+ {
+ strcpy(_filename, argv[1]);
+ }
+ else
+ {
+ f = fopen(argv[1], "rt");
+ if(!f)
+ {
+ fprintf( stderr, "ERROR: the specified file could not be loaded\n");
+ return -1;
+ }
+ }
+ HOGDescriptor hog;
+ hog.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
+ for(;;)
+ {
+ char* filename = _filename;
+ if(f)
+ {
+ if(!fgets(filename, (int)sizeof(_filename)-2, f))
+ break;
+ //while(*filename && isspace(*filename))
+ // ++filename;
+ if(filename[0] == '#')
+ continue;
+ int l = strlen(filename);
+ while(l > 0 && isspace(filename[l-1]))
+ --l;
+ filename[l] = '\0';
+ img = imread(filename);
+ }
+ printf("%s:\n", filename);
+ if(!img.data)
+ continue;
+ fflush(stdout);
+ vector<Rect> found, found_filtered;
+ double t = (double)getTickCount();
+ // run the detector with default parameters. to get a higher hit-rate
+ // (and more false alarms, respectively), decrease the hitThreshold and
+ // groupThreshold (set groupThreshold to 0 to turn off the grouping completely).
+ int can = img.channels();
+ hog.detectMultiScale(img, found, 0, Size(8,8), Size(32,32), 1.05, 2);
+ t = (double)getTickCount() - t;
+ printf("tdetection time = %gms\n", t*1000./cv::getTickFrequency());
+ size_t i, j;
+ for( i = 0; i < found.size(); i++ )
+ {
+ Rect r = found[i];
+ for( j = 0; j < found.size(); j++ )
+ if( j != i && (r & found[j]) == r)
+ break;
+ if( j == found.size() )
+ found_filtered.push_back(r);
+ }
+ for( i = 0; i < found_filtered.size(); i++ )
+ {
+ Rect r = found_filtered[i];
+ // the HOG detector returns slightly larger rectangles than the real objects.
+ // so we slightly shrink the rectangles to get a nicer output.
+ r.x += cvRound(r.width*0.1);
+ r.width = cvRound(r.width*0.1）;
+ r.y += cvRound(r.height*0.07);
+ r.height = cvRound(r.height*0.1）;
+ rectangle(img, r.tl(), r.br(), cv::Scalar(0,255,0), 3);
+ }
+ imshow("people detector", img);
+ int c = waitKey(0) & 255;
+ if( c == 'q' || c == 'Q' || !f)
+ break;
+ }
+ if(f)
+ fclose(f);
+ return 0;
+ }
+ 
+更新后可以批量检测图片！
+ 
+
+将需要批量检测的图片，构造一个TXT文本，文件名为filename.txt, 其内容如下
+ 1.jpg
+ 2.jpg
+ ......
+ 
+然后在DOS界面输入 peopledetect filename.txt ，　即可自动检测每个图片。
+ 
+//////////////////////////////////////////////////////////////////------------------------------Navneet Dalal的OLT工作流程描述
+ 
+Navneet Dalal在以下网站提供了INRIA Object Detection and Localization Toolkit
+ http://pascal.inrialpes.fr/soft/olt/
+ Wilson Suryajaya Leoputra提供了它的windows版本
+ http://www.computing.edu.au/~12482661/hog.html
+ 需要　Copy all the dll's (boost_1.34.1*.dll, blitz_0.9.dll, opencv*.dll) into "<ROOT_PROJECT_DIR>/debug/"
+ Navneet Dalal提供了linux下的可执行程序，借别人的linux系统，运行一下，先把总体流程了解了。
+ 下面结合OLTbinaries\readme和OLTbinaries\HOG\record两个文件把其流程描述一下。
+ 1.下载 INRIA person detection database 解压到OLTbinaries\；把其中的'train_64x128_H96' 重命名为 'train' ； 'test_64x128_H96' 重命名为 'test'.
+ 2．在linux下运行 'runall.sh' script.
+ 等待结果出来后，打开matlab 运行 plotdet.m 可绘制 DET曲线；
+ ------这是一步到位法--------------------------------------------------
+ -------此外，它还提供了分步执行法-------------------------------------
+ 1、由pos.lst列表提供的图片，计算正样本R－HOG特征，pos.lst列表格式如下
+ train/pos/crop_000010a.png
+ train/pos/crop_000010b.png
+ train/pos/crop_000011a.png
+ ------以下表示-linux下执行语句（下同）------
+ ./bin//dump_rhog -W 64,128 -C 8,8 -N 2,2 -B 9 -G 8,8 -S 0 --wtscale 2 --maxvalue 0.2 -- epsilon 1 --fullcirc 0 -v 3 --proc rgb_sqrt --norm l2hys -s 1 train/pos.lst 　HOG/train_pos.RHOG
+ 2.计算负样本R－HOG特征
+ ./bin//dump_rhog -W 64,128 -C 8,8 -N 2,2 -B 9 -G 8,8 -S 0 --wtscale 2 --maxvalue 0.2 -- epsilon 1 --fullcirc 0 -v 3 --proc rgb_sqrt --norm l2hys -s 10 train/neg.lst HOG/train_neg.RHOG
+ 3.训练
+ ./bin//dump4svmlearn -p HOG/train_pos.RHOG -n HOG/train_neg.RHOG HOG/train_BiSVMLight.blt -v
+ 4.创建　model file: HOG/model_4BiSVMLight.alt 
+./bin//svm_learn -j 3 -B 1 -z c -v 1 -t 0 HOG/train_BiSVMLight.blt HOG/model_4BiSVMLight.alt
+ 5.创建文件夹
+ mkdir -p HOG/hard
+ 6.分类
+ ./bin//classify_rhog train/neg.lst HOG/hard/list.txt HOG/model_4BiSVMLight.alt -d HOG/hard/hard_neg.txt -c HOG/hard/hist.txt -m 0 -t 0 --no_nonmax 1 --avsize 0 --margin 0 --scaleratio 1.2 -l N -W 64,128 -C 8,8 -N 2,2 -B 9 -G 8,8 -S 0 --wtscale 2 --maxvalue 0.2 --
+ epsilon 1 --fullcirc 0 -v 3 --proc rgb_sqrt --norm l2hys
+ --------
+ false +/- 分类结果会写入 HOG/hard/hard_neg.txt
+ 7.　将hard加入到neg,再次计算RHOG特征
+ ./bin//dump_rhog -W 64,128 -C 8,8 -N 2,2 -B 9 -G 8,8 -S 0 --wtscale 2 --maxvalue 0.2 -- epsilon 1 --fullcirc 0 -v 3 --proc rgb_sqrt --norm l2hys -s 0 HOG/hard/hard_neg.txt OG/train_hard_neg.RHOG --poscases 2416 --negcases 12180 --dumphard 1 --hardscore 0 -- memorylimit 1700
+ 8.再次训练
+ ./bin//dump4svmlearn -p HOG/train_pos.RHOG -n HOG/train_neg.RHOG -n HOG/train_hard_neg.RHOG HOG/train_BiSVMLight.blt -v 4
+ 9.得到最终的模型
+ ./bin//svm_learn -j 3 -B 1 -z c -v 1 -t 0 HOG/train_BiSVMLight.blt HOG/model_4BiSVMLight.alt
+ Opencv中用到的3780 个值，应该就在这个模型里面model_4BiSVMLight.alt，不过它的格式未知，无法直接读取，但是可以研究svm_learn程序是如何生成它的;此外，该模型由程序classify_rhog调用，研究它如何调用，估计是一个解析此格式的思路
+ 10.创建文件夹
+ mkdir -p HOG/WindowTest_Negative
+ 11.负样本检测结果
+ ./bin//classify_rhog -W 64,128 -C 8,8 -N 2,2 -B 9 -G 8,8 -S 0 --wtscale 2 --maxvalue 0.2 --epsilon 1 --fullcirc 0 -v 3 --proc rgb_sqrt --norm l2hys -p 1 --no_nonmax 1 --nopyramid 0 - -scaleratio 1.2 -t 0 -m 0 --avsize 0 --margin 0 test/neg.lst HOG/WindowTest_Negative/list.txt HOG/model_4BiSVMLight.alt -c HOG/WindowTest_Negative/histogram.txt
+ 12.创建文件夹
+ mkdir -p HOG/WindowTest_Positive
+ 13.正样本检测结果
+ ./bin//classify_rhog -W 64,128 -C 8,8 -N 2,2 -B 9 -G 8,8 -S 0 --wtscale 2 --maxvalue 0.2 --　epsilon 1 --fullcirc 0 -v 3 --proc rgb_sqrt --norm l2hys -p 1 --no_nonmax 1 --nopyramid 1 -t 0 -m 0 --avsize 0 --margin 0 test/pos.lst HOG/WindowTest_Positive/list.txt 　HOG/model_4BiSVMLight.alt -c HOG/WindowTest_Positive/histogram.txt
+ 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
+如何制作训练样本
+ 
+分析了原作者的数据集，结合网上一些资料，下面描述如何制作训练样本
+ 1、如何从原始图片生成样本
+ 对比INRIAPerson\INRIAPerson\Train\pos（原始图片），INRIAPerson\train_64x128_H96\pos（生成样本）可以发现，作者从原始图片裁剪出一些站立的人，要求该人不被遮挡，然后对剪裁的图片left-right reflect。以第一张图片为例crop001001，它剪裁了2个不被遮挡的人，再加上原照片，共3张，再加左右镜像，总共6张。
+ 2、裁剪
+ 　可利用基于opencv1.0的程序imageclipper，进行裁剪并保存,它会自动生成文件名并保存在同一路径下新生成的imageclipper文件夹下。
+ 3.改变图片大小
+ 　可以利用Acdsee软件，Tools/open in editor,进去后到Resize选项;　tools/rotate还可实现left-right reflect
+ 
+自己编了一个程序，批量改变图片大小，代码见下一楼
+ 
+4. 制作pos.lst列表
+ 　 进入dos界面，定位到需要制作列表的图片文件夹下，输入 dir /b> pos.lst，即可生成文件列表；
+ 
+/////////////////////////
+ 
+#include "cv.h"
+ #include "highgui.h"
+ #include "cvaux.h"
+ 
+
+int main(int argc,char * argv[])
+ {
+ IplImage* src ;
+ IplImage* dst = 0;
+ 
+CvSize dst_size;
+ 
+FILE* f = 0;
+ char _filename[1024];
+ int l;
+ 
+f = fopen(argv[1], "rt");
+ if(!f)
+ {
+ fprintf( stderr, "ERROR: the specified file could not be loaded\n");
+ return -1;
+ }
+ 
+for(;;)
+ {
+ char* filename = _filename;
+ if(f)
+ {
+ if(!fgets(filename, (int)sizeof(_filename)-2, f))
+ break;
+ if(filename[0] == '#')
+ continue;
+ l = strlen(filename);
+ while(l > 0 && isspace(filename[l-1]))
+ --l;
+ filename[l] = '\0';
+ src=cvLoadImage(filename,1);
+ }
+ 
+dst_size.width = 96;
+ dst_size.height = 160;
+ dst=cvCreateImage(dst_size,src->depth,src->nChannels);
+ cvResize(src,dst,CV_INTER_LINEAR);//////////////////
+ char* filename2 = _filename;char* filename3 = _filename; filename3="_96x160.jpg";
+ strncat(filename2, filename,l-4); 
+strcat(filename2, filename3);
+ 
+cvSaveImage(filename2, dst);
+ 
+}
+ if(f)
+ fclose(f);
+ 
+cvWaitKey(-1);
+ cvReleaseImage( &src );
+ cvReleaseImage( &dst );
+ 
+return 0;
+ }
+ 
+ 
+ 
+分享到： 
+
+上一篇：sift特征向量
+下一篇：opencv cvhog详解
+ . 
+
+
+查看评论
+ 
+2楼 lnsySeasonZ 2013-01-11 16:27发表[回复] 讲得简单明了，好文章1楼 lixing1412 2012-07-23 14:34发表[回复] 拜读了 感谢！
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+pp5576155
+ 
+
+
+
+访问：16138次
+积分：241分
+排名：千里之外
+.原创：6篇
+转载：8篇
+译文：0篇
+评论：9条
+. 
+文章搜索
+
+. 
+文章分类C++学习(4)
+图像处理(3)
+算法学习(1)
+机器学习(6)
+笔试面试题收集(1)
+个人情感(0)
+学习笔记(1)
+ 
+文章存档
+2012年02月(2).
+2011年12月(1).
+2011年11月(7).
+2011年10月(3).
+2011年09月(1).
+. 
+阅读排行HOG（方向梯度直方图）(4241)
+opencv cvhog详解(3368)
+目标跟踪综述(1906)
+智能视觉技术(1429)
+CVPR 2011 全部论文标题和摘要(1310)
+sift特征向量(717)
+OpenCV粒子滤波代码学习(714)
+2011年百度软件研发工程师广州笔试面试题(607)
+颜色直方图, HSV直方图, histogram bins(504)
+《调试九法：软硬件错误的排查之道》学习笔记(213)
+ 
+评论排行opencv cvhog详解(5)
+HOG（方向梯度直方图）(2)
+目标跟踪综述(1)
+OpenCV粒子滤波代码学习(1)
+智能视觉技术(0)
+CVPR 2011 全部论文标题和摘要(0)
+sift特征向量(0)
+使用计数器的智能指针模板例子(0)
+c++深入专题1--句柄(0)
+颜色直方图, HSV直方图, histogram bins(0)
+ 
+推荐文章 
+最新评论 opencv cvhog详解
+xiaojidan2011: 楼主 分析的很详细 
+
+HOG（方向梯度直方图）
+lnsySeasonZ: 讲得简单明了，好文章 
+
+OpenCV粒子滤波代码学习
+shi_tou126: 我想请问您一下“float* DynamMatr; // 线性动态系统矩阵：Matrix of th... 
+
+opencv cvhog详解
+mjcheng8879: 博主，为什么img中会有像（-5，-6）像素的负坐标呢，难道不是左上角作为坐标原点吗 
+
+opencv cvhog详解
+mjcheng8879: 博主，checkDetectorSize() 这个函数中detectorSize = svmDete... 
+
+HOG（方向梯度直方图）
+lixing1412: 拜读了 感谢！ 
+
+目标跟踪综述
+yang_xian521: 这参考文献和索引怎么感觉对应不上。。。太遗憾了 
+
+opencv cvhog详解
+pp5576155: 有用到多线程 
+
+opencv cvhog详解
+zhaodewei: 非常感谢您的分享~ 请问，OpenCV在计算HOG的时候就使用了多线程是吗？ 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

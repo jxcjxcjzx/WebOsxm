@@ -1,0 +1,324 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+keyboardOTA的专栏
+
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+博客专家信息更新登记表        社区专家谈 12306      CSDN社区程序员回乡见闻活动火爆开始！ 
+专访周家安：我的十年编程自学之路        2013年全国百所高校巡讲讲师招募 
+
+
+
+Lisp语言：在Windows环境下使用什么编辑器 
+.
+ 分类： Lisp2012-12-09 23:13657人阅读评论(0)收藏举报
+
+ 
+前面一篇博文讲述了Windows环境下CLisp的安装，文章链接如下：
+
+http://blog.csdn.net/keyboardota/article/details/8237185
+
+安装了CLisp环境后，我们可以使用任何一种文本编辑器编写Lisp程序，然后在CLisp环境中通过(load "c:\your-path\your-lisp-file.lisp")来加载Lisp程序文件，并对程序文件中的Lisp代码进行测试。如果运行Lisp程序发现问题，则重新通过文本编辑器修改Lisp程序，保存后在CLisp中重新加载。虽然这种“一般编辑器”+CLisp的环境比较简陋，不过进行一般性学习还是可以的。
+
+ 
+
+以上的环境使用一段时间以后就会有一个编辑器选择的问题，因为我们如果只是拿Windows下的记事本程序来写Lisp程序的话，会发现程序写起来比较麻烦，最主要的问题是配对的括号不会高亮显示。对于Lisp编程来讲，配对括号高亮是第一个，也是最重要的要求。在Lisp程序里有那么多括号，如果编程的时候选中一个括号而编辑系统不会高亮显示配对的另一个括号的话，那会是件讨厌的事情，程序一长的话你的大部分时间会花在数括号上。
+
+除了括号配对功能，如果编辑器可以识别Lisp关键字并进行高亮处理当然就更好了。
+
+ 
+
+按以上要求，找什么编辑器好呢？
+
+首先Windows自带的notepad（记事本）,writepad（写字板）什么的，没看到括号高亮的功能，不考虑它们，像上面说到的作为一般性学习还可以，真正写Lisp程序就不能用了。
+
+Word？Word我们就不去考查了吧，用Word写程序可能会有人笑话我吧。
+
+ 
+
+然后再看看常用的UltraEdit和EditPlus，好消息是UltraEdit和EditPlus都支持括号配对功能，不过两个都需要配置一下才行，配置方法如下：
+
+EditPlus上启用括号配对功能比较简单，启动EditPlus后选择“视图->匹配括号高亮”就可以了。而且括号高亮显示比较明显，使用比较方便。
+
+UltraEdit上启用括号配对功能麻烦一点，启动UltraEdit后，可以在“视图->查看方式（高亮文件类型）”中选择高亮的语言类型，有“语言1”到“语言20”这些20种语言可以选择，缺省情况下选择“语言1”就可以支持括号配对，不过启用后括号高亮显示不是很明显，灰色的高亮显示，需要仔细看才能看到。如果设置“语言1”以后配对的括号不高亮显示，可以在“高级->配置”中进行进一步的配置，在“配置”窗口中选择“编辑器显示->语法高亮”，然后选择“启用括号自动匹配”就可以了。
+
+缺省情况下EditPlus和UltraEdit对Lisp的其它语法高亮处理都表现一般。
+
+总体来讲UltraEdit和EditPlus都可以作为初步的Lisp编辑器使用，好处是一般Windows环境下的程序员都比较熟悉UltraEdit或者是EditPlus，使用起来比较容易上手，不会因为编辑器的原因对学习Lisp 语言产生畏难心理。
+
+ 
+
+另外一个考察对象就是Eclipse，因为太多数Windows上的程序员都很熟悉它。可以肯定的是像Eclipse这种扩展能力超强的集成编程环境要支持Lisp的话一定是没有问题的。不过随便启动某个版本的Eclipse，发现缺省情况下不支持括号配对功能，对Lisp也缺乏其它关键字高亮支持。所以也不建议使用Eclipse作为Lisp的编辑器，毕竟我们只是需要一个编辑器而已，动用Eclipse并进行一系列配置功能在似乎有点不划算。
+
+ 
+
+如果学习Lisp一段时间以后，希望使用高级一点的编辑器，就可以考虑“编辑器之神”和“神之编辑器”了。
+
+ 
+
+“编辑器之神”就是VIM了，对Lisp的支持可以说非常好了，我个人使用起来觉得特别方便。不过大家可能会有疑问，Windows下使用什么VIM呀，那不是Linux上的东西吗？其实有个东西叫GVIM，可以在Windows环境下完美运行，下载地址如下：
+
+http://prdownloads.sourceforge.net/portablegvim/GVim_Portable_7.1.0.exe?download
+
+官方网站如下：
+
+http://portablegvim.sourceforge.net/
+
+不过，对于Windows程序员来讲，学习使用VIM会是一件痛苦的事情，刚打开的是可能都无法开始输入。所以不是特别建议Windows程序员使用VIM学习Lisp程序。
+
+ 
+
+然后是“神之编辑器”Emacs！想装吗？想装个大牛吗？用Emacs吧！！ :-)
+
+Emacs可以说是Lisp最理想的编辑器了，重要的一点是Emacs内置Lisp支持，叫ELisp，可以通过Lisp语言对Emacs进行扩展。不过，我们现在讨论学习Lisp使用什么编辑器，就暂时不考虑Emacs的扩展了。
+
+一般建议使用Emacs是建议使用Emacs+SLIME，把Emacs当做Lisp集成编程环境。我个人倒是不建议初学者直接使用Emacs+SLIME，主要是配置比较麻烦，还有是因为Emacs中窗口，buffer的概念比较特殊。
+
+刚开始可以考虑使用Emacs+"Clisp命令行"的方式进行学习，在Emacs中对Lisp程序进行编辑，然后在CLisp命令行中通过(load "c:\your-path\your-file-name.lsip")的方式加载，然后进行测试。
+
+把Emacs当做一个简单的编辑器的话，一般的工作都可以通过鼠标加菜单完成，不需要马上去学习各种C+x, C+f这样的快捷键。这样比较符合Windows程序员的习惯。
+
+当然，括号配对功能和语法高亮还是要加上，可以通过一下步骤进行设置。
+
+1. 启动Emacs
+
+2. 选择“Options -> C+x C+c C+v Cut and paste(CUA)”，这个设置可以让Emacs支持Ctrl+c拷贝这样的惯常操作。
+
+3. 点击“Optoins -> save Options”，这样可以让Emacs保存配置，并在窗口下方显示“Wrote c:/Users/xxx/AppData/Roaming/.emacs”字样的提示，这样你可以找到你的Emacs使用的是哪个.emacs配置文件。
+
+4. 使用一般的编辑器打开第3步出现的.emacs文件，我的就是“c:/Users/xxx/AppData/Roaming/.emacs”
+
+5. 在该文件中加上下面两行代码，分别启动括号配对和语法高亮
+
+(show-paren-mode 1) ; hight light the bracket
+
+(global-font-lock-mode t) ; hight light lisp key words
+6. 保存.emacs文件并重启Emacs，这样你的Emacs就可以开始为你工作了。
+
+ 
+
+最后，建议学习Lisp的程序员在有条件的情况下都去学习使用Emacs，对以后的Lisp学习会有很大的帮助，虽然学习Emacs的使用确实有点困难。
+
+即使在对Lisp学习没有形成太大帮助的情况下，学习使用Emacs还是可以给你带来一点好处，那就是————装！咱用“神”的编辑器不是？
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+ 
+分享到： 
+
+上一篇：解决BlackBerry 9900模拟器显示屏花屏的问题。
+下一篇：BlackBerry Cascades 正式版已经发布！
+ .
+顶1踩0. 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+keyboardOTA
+ 
+
+
+
+
+
+访问：201709次
+积分：4106分
+排名：第1095名
+.原创：160篇
+转载：0篇
+译文：0篇
+评论：488条
+. 
+文章搜索
+
+. 
+博客专栏
+
+
+
+
+BB10 Cascades 开发
+文章：30篇
+阅读：19196 
+
+
+
+
+
+Lisp进阶
+文章：21篇
+阅读：19931 
+
+
+
+
+
+BlackBerry PlayBook NDK开发入门
+文章：20篇
+阅读：23728 
+
+
+
+
+
+在BlackBerry上使用OpenGL绘图
+文章：12篇
+阅读：8103 
+
+文章分类blackberry(71)
+playbook(29)
+qnx(68)
+Lisp(20)
+BB10(30)
+Cascades(29)
+BeagleBoard(15)
+Ubuntu(17)
+c语言(13)
+Qt(7)
+ARM(9)
+汇编(6)
+OpenGL(14)
+Android(9)
+图形编程(2)
+杂谈(7)
+Ruby on Rails(2)
+Hadoop(2)
+cocos2d(3)
+Linux(2)
+ 
+文章存档
+2013年03月(1).
+2013年01月(10).
+2012年12月(13).
+2012年11月(2).
+2012年10月(7).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+阅读排行程序员，不要让微博占用你太多时间。(15470)
+有关“中国技术落后一代”的讨论(10394)
+如何将Android应用移植到BlackBerry PlayBook上。(5945)
+从头开始为BeagleBoard编译Android系统(5570)
+我的第一个Android应用(3989)
+平台之上还是平台之下？QNX学习的分水岭。(3768)
+在Ubuntu上安装Ruby On Rails(3439)
+中国的技术真的是落后人家一代吗？(3001)
+Lisp编程环境的搭建(2756)
+BlackBerry PlayBook NDK 2.0 使用Cocos2dx详细步骤(2720)
+ 
+评论排行程序员，不要让微博占用你太多时间。(145)
+有关“中国技术落后一代”的讨论(88)
+在BeagleBoard上运行QNX系统（总结）(17)
+中国的技术真的是落后人家一代吗？(13)
+移动网络环境下ReadBuffer的使用。(13)
+从头开始为BeagleBoard编译Android系统(12)
+如何将Android应用移植到BlackBerry PlayBook上。(9)
+有关QNX和BBX(9)
+Lisp语言: 在Windows下搭建CLisp环境(8)
+Lisp编程环境的搭建(8)
+ 
+推荐文章 
+最新评论 BeagleBoard XM 开发板入手
+achenal: 我也准备买一块开发板，学习QNX。不知PandaBoard好还是BeagleBoard合适一些。以前... 
+
+通过QNX Momentics直接将程序上传到QNX虚拟机上
+achenal: post build上传到目标机没试过，比拷贝粘贴文件方便。这个VxWorks Tornado也有，... 
+
+将QNX应用上传到QNX虚拟机上
+achenal: qconn还是很强大的，执行命令，传文件。。。在IDE中直接拷贝粘贴文件即可，不需要用FTP。发现E... 
+
+分析linaro-media-create 创建的qemu模拟sd卡文件。
+ShengYongjie: Scratched my itch, very nice! Thanks. 
+
+程序员，不要让微博占用你太多时间。
+peterason123456789: 深有同感，闲暇之余，还有此等雅兴，就此而侃，八错八错。 
+
+BB10 Cascades: 如何在QML中访问C++中的数据。
+peterason123456789: 受教了啊，支持。 
+
+BB10 Cascades: 如何解决json文件中中文乱码的问题
+bbStu_qqx: 您好，请问如何把ListView的dataModel保存到json文件中，这个函数不太会用，主要是第... 
+
+BB10 Cascades: 如何在QML中访问C++中的数据。
+keyboardOTA: @bbStu_qqx:时间，精力允许的情况下尽量坚持吧。 
+
+BB10 Cascades: 如何在QML中访问C++中的数据。
+bbStu_qqx: @keyboardOTA:谢谢，已经解决了。请问您还会更新博文吗？ 
+
+BB10 Cascades: 如何在QML中访问C++中的数据。
+keyboardOTA: @bbStu_qqx:c++代码写在系统为你创建的以项目名开头的类文件中，在里面找到下面的语句，然后... 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

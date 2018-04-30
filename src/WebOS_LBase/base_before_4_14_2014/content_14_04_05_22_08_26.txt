@@ -1,0 +1,834 @@
+
+GPIO Library
+  mikroPascal PRO for ARM Libraries > Hardware Libraries > 
+  
+GPIO Library
+
+GPIO library includes a set of routines for easier handling of the General Purpose Input/Output (GPIO) pin functions.
+
+All MCUs, except x00 family, provide a layer of protection against accidental programming of critical hardware peripherals. Protection is currently provided for the NMI pin (PB7) and the four JTAG/SWD pins (PC[3:0]). 
+Therefore these pins need to be unlocked before their function can be changed.
+
+Caution : It is possible to create a software sequence that prevents the debugger from connecting to the Stellaris® microcontroller. 
+If the program code loaded into flash immediately changes the JTAG pins to their GPIO functionality, the debugger may not have enough time to connect and halt the controller before the JTAG pin functionality switches.
+
+As a result, the debugger may be locked out of the part. This issue can be avoided with a software routine that restores JTAG functionality based on an external or software trigger. 
+Or, if possible, by simply adding few seconds delay at the beginning of your code.
+
+Library Routines
+
+GPIO_Clk_Enable
+GPIO_Clk_Disable
+GPIO_Unlock
+GPIO_Lock
+GPIO_Config
+GPIO_Set_Pin_Mode
+GPIO_Digital_Input
+GPIO_Digital_Output
+GPIO_Analog_Input
+GPIO_Alternate_Function_Enable
+__mE_Lib_GPIO
+GPIO_Clk_Enable
+
+Prototype	
+procedure GPIO_Clk_Enable(port : ^dword);
+
+Description	
+This routine enables clock on the desired port.
+
+Parameters	
+port: desired port on which the clock will be enabled.
+Returns	
+Nothing.
+
+Requires	
+Nothing.
+
+Example	
+Stellaris
+
+// Enable clock on GPIO_PORTB
+GPIO_Clk_Enable(@GPIO_PORTB);
+STM32
+
+// Enable clock on GPIOE
+GPIO_Clk_Enable(@GPIOE_BASE);
+Notes	
+None.
+
+GPIO_Clk_Disable
+
+Prototype	
+procedure GPIO_Clk_Disable(port : ^dword);
+
+Description	
+This routine disables clock on the desired port.
+
+Parameters	
+port: desired port on which the clock will be disabled.
+Returns	
+Nothing.
+
+Requires	
+Nothing.
+
+Example	
+Stellaris
+
+// Enable clock on GPIO_PORTB
+GPIO_Clk_Disable(@GPIO_PORTB);
+STM32
+
+// Enable clock on GPIOE
+GPIO_Clk_Disable(@GPIOE_BASE);
+Notes	
+None.
+
+GPIO_Lock
+
+Prototype	
+procedure GPIO_Lock(commit_pins : byte);
+
+Description	
+The function locks desired GPIO pins. The pins that can be locked are NMI pin, GPIO_PORTB.7 and JTAG pins, GPIO_PORTC[0..3].
+
+This routine is valid only for Stellaris devices.
+
+Parameters	
+commit_pins: pins on which the routine will be applied :
+Value	Description
+_GPIO_COMMIT_PIN_B7	GPIO_PORTB.7 pin
+_GPIO_COMMIT_PIN_C0	GPIO_PORTC.0 pin
+_GPIO_COMMIT_PIN_C1	GPIO_PORTC.1 pin
+_GPIO_COMMIT_PIN_C2	GPIO_PORTC.2 pin
+_GPIO_COMMIT_PIN_C3	GPIO_PORTC.3 pin
+_GPIO_COMMIT_PIN_D7	GPIO_PORTD.7 pin
+_GPIO_COMMIT_PIN_F0	GPIO_PORTF.0 pin
+Returns	
+Nothing.
+
+Requires	
+Nothing.
+
+Example	
+// Lock JTAG pins by OR-ing the individual bits
+GPIO_Lock(_GPIO_COMMIT_PIN_C0 or _GPIO_COMMIT_PIN_C1 or _GPIO_COMMIT_PIN_C2 or _GPIO_COMMIT_PIN_C3);
+Notes	
+This routine is valid only for Stellaris devices.
+
+GPIO_Unlock
+
+Prototype	
+procedure GPIO_Unlock(commit_pins : byte);
+
+Description	
+The function unlocks desired GPIO pins. The pins that can be unlocked are NMI pin, GPIO_PORTB.7 and JTAG pins, GPIO_PORTC[0..3].
+
+This routine is valid only for Stellaris devices.
+
+Parameters	
+commit_pins: pins on which the routine will be applied :
+Value	Description
+_GPIO_COMMIT_PIN_B7	GPIO_PORTB.7 pin
+_GPIO_COMMIT_PIN_C0	GPIO_PORTC.0 pin
+_GPIO_COMMIT_PIN_C1	GPIO_PORTC.1 pin
+_GPIO_COMMIT_PIN_C2	GPIO_PORTC.2 pin
+_GPIO_COMMIT_PIN_C3	GPIO_PORTC.3 pin
+_GPIO_COMMIT_PIN_D7	GPIO_PORTD.7 pin
+_GPIO_COMMIT_PIN_F0	GPIO_PORTF.0 pin
+Returns	
+Nothing.
+
+Requires	
+Nothing.
+
+Example	
+// Unlock JTAG pins by OR-ing the individual bits
+GPIO_Unlock(_GPIO_COMMIT_PIN_C0 or _GPIO_COMMIT_PIN_C1 or _GPIO_COMMIT_PIN_C2 or _GPIO_COMMIT_PIN_C3);
+Notes	
+This routine is valid only for Stellaris devices.
+
+GPIO_Config
+
+Prototype	// for Stellaris MCUs with alternative PORT functions on GPIO pins
+function GPIO_Config(port : ^dword; pin_mask : byte; dir : byte; config : word; pin_code : byte) : byte;
+
+// for Stellaris MCUs with dedicated PORT functions
+function GPIO_Config(port : ^dword; pin_mask : byte; dir : byte; config : word;) : byte;
+
+// for ST MCUs
+procedure GPIO_Config(port : ^dword; pin_mask : word; config : dword);
+
+Description	
+The function will configure the desired pins according to the parameters used.
+
+Parameters	
+port: port we wish to use.
+pin_mask: pins we wish to configure.
+Stellaris
+
+Value	Description
+_GPIO_PINMASK_0	Pin 0 mask.
+_GPIO_PINMASK_1	Pin 1 mask.
+_GPIO_PINMASK_2	Pin 2 mask.
+_GPIO_PINMASK_3	Pin 3 mask.
+_GPIO_PINMASK_4	Pin 4 mask.
+_GPIO_PINMASK_5	Pin 5 mask.
+_GPIO_PINMASK_6	Pin 6 mask.
+_GPIO_PINMASK_7	Pin 7 mask.
+_GPIO_PINMASK_ALL	All pins masked.
+STM32
+
+Value	Description
+_GPIO_PINMASK_0	Pin 0 mask.
+_GPIO_PINMASK_1	Pin 1 mask.
+_GPIO_PINMASK_2	Pin 2 mask.
+_GPIO_PINMASK_3	Pin 3 mask.
+_GPIO_PINMASK_4	Pin 4 mask.
+_GPIO_PINMASK_5	Pin 5 mask.
+_GPIO_PINMASK_6	Pin 6 mask.
+_GPIO_PINMASK_7	Pin 7 mask.
+_GPIO_PINMASK_8	Pin 8 mask.
+_GPIO_PINMASK_9	Pin 9 mask.
+_GPIO_PINMASK_10	Pin 10 mask.
+_GPIO_PINMASK_11	Pin 11 mask.
+_GPIO_PINMASK_12	Pin 12 mask.
+_GPIO_PINMASK_13	Pin 13 mask.
+_GPIO_PINMASK_14	Pin 14 mask.
+_GPIO_PINMASK_15	Pin 15 mask.
+_GPIO_PINMASK_LOW	Low 8 port pins masked.
+_GPIO_PINMASK_HIGH	High 8 port pins masked.
+_GPIO_PINMASK_ALL	All pins masked.
+dir: direction of the desired pins :
+Stellaris
+
+Value	Description
+_GPIO_DIR_INPUT	Set pin as input.
+_GPIO_DIR_OUTPUT	Set pin as output.
+_GPIO_DIR_NO_CHANGE	No changes to pin direction.
+config: desired function and configuration of the pin :
+Stellaris
+
+Value	Description
+_GPIO_CFG_PULL_UP	Configure pin(s) as pull-up.
+_GPIO_CFG_PULL_DOWN	Configure pin(s) as pull-down.
+_GPIO_CFG_ALT_FUNCTION	Pin(s) have alternative, non-GPIO function, such as UART, SPI, I2C...
+_GPIO_CFG_OPEN_DRAIN	Configure pin(s) as open-drain.
+_GPIO_CFG_DRIVE_2mA	2mA pin output drive strength.
+_GPIO_CFG_DRIVE_4mA	4mA pin(s) output drive strength.
+_GPIO_CFG_DRIVE_8mA	8mA pin(s) output drive strength.
+_GPIO_CFG_SLEW_RATE	Slew rate control. Only available when 8mA drive strength option is used.
+_GPIO_CFG_DIGITAL_ENABLE	Configure pin(s) as digital I/O.
+_GPIO_CFG_ISOLATION_DISABLE	Configure pin(s) as analog input.
+_GPIO_CFG_ADC_SRC_TRIGGER	Configure pin(s) for ADC trigger (available only for Cortex M4 devices).
+_GPIO_CFG_ADV_SPI	Configure pin(s) for SPI function.
+_GPIO_CFG_ADV_I2C	Configure pin(s) for I2C function.
+_GPIO_CFG_ADV_UART	Configure pin(s) for UART function.
+_GPIO_CFG_ADV_CCP	Configure pin(s) for CCP function.
+_GPIO_CFG_ADV_CAN	Configure pin(s) for CAN function.
+_GPIO_CFG_ADV_AIN	Configure pin(s) for analog input.
+STM32
+
+Value	Description
+_GPIO_CFG_MODE_INPUT	Set pin as input.
+_GPIO_CFG_MODE_OUTPUT	Set pin as output.
+_GPIO_CFG_PULL_UP	Configure pin(s) as pull-up.
+_GPIO_CFG_PULL_DOWN	Configure pin(s) as pull-down.
+_GPIO_CFG_PULL_NO	Configure pin(s) with no pull/down function (floating).
+_GPIO_CFG_ALT_FUNCTION	Pin(s) have alternative, non-GPIO function, such as UART, SPI, I2C...
+_GPIO_CFG_MODE_ANALOG	Configure pin(s) for analog.
+_GPIO_CFG_OTYPE_OD	Configure pin(s) as open-drain.
+_GPIO_CFG_OTYPE_PP	Configure pin(s) as push-pull.
+_GPIO_CFG_SPEED_400KHZ	Configure pin(s) for 400 kHz clock.
+_GPIO_CFG_SPEED_2MHZ	Configure pin(s) for 2 MHz clock.
+_GPIO_CFG_SPEED_10MHZ	Configure pin(s) for 10 MHz clock.
+_GPIO_CFG_SPEED_25MHZ	Configure pin(s) for 25 MHz clock.
+_GPIO_CFG_SPEED_40MHZ	Configure pin(s) for 40 MHz clock.
+_GPIO_CFG_SPEED_50MHZ	Configure pin(s) for 50 MHz clock.
+_GPIO_CFG_SPEED_100MHZ	Configure pin(s) for 100 MHz clock.
+_GPIO_CFG_SPEED_MAX	Configure pin(s) for maximal clock speed.
+_GPIO_CFG_DIGITAL_OUTPUT	Configure pin(s) as digital output.
+_GPIO_CFG_DIGITAL_INPUT	Configure pin(s) as digital input.
+_GPIO_CFG_ANALOG_INPUT	Configure pin(s) as analog input.
+Returns	
+0 - if there were no errors,
+1 - if an error occured.
+Requires	
+Nothing.
+
+Example	
+Stellaris
+
+// Configure GPIO_PORTB.0 and GPIO_PORTB.7 pins as digital output, 8mA output drive strength :
+GPIO_Config(@GPIO_PORTB, _GPIO_PINMASK_0 or _GPIO_PINMASK_7, _GPIO_DIR_OUTPUT, _GPIO_CFG_DIGITAL_ENABLE or _GPIO_CFG_DRIVE_8mA, _GPIO_PINCODE_NONE);
+
+// Configure ADC on GPIO_PORTE.6 :
+GPIO_Config(@GPIO_PORTE, _GPIO_PINMASK_6, _GPIO_DIR_INPUT, _GPIO_CFG_ISOLATION_DISABLE or _GPIO_CFG_ALT_FUNCTION, _GPIO_PINCODE_NONE);
+
+// Configure SPI on GPIO_PORTA :
+GPIO_Config(@GPIO_PORTA,
+            _GPIO_PINMASK_2 or _GPIO_PINMASK_4 or _GPIO_PINMASK_5,
+            _GPIO_DIR_NO_CHANGE,
+            _GPIO_CFG_DIGITAL_ENABLE or _GPIO_CFG_ALT_FUNCTION or _GPIO_CFG_DRIVE_8mA,
+            _GPIO_PINCODE_1);
+
+// This is analog to : 
+GPIO_Config(@GPIO_PORTA,
+            _GPIO_PINMASK_2 or _GPIO_PINMASK_4 or _GPIO_PINMASK_5,
+            _GPIO_DIR_NO_CHANGE,
+            _GPIO_CFG_ADV_SPI,
+            _GPIO_PINCODE_1);
+STM32
+
+// Configure GPIOA_BASE.0 and GPIOA_BASE.7 pins as digital input :
+GPIO_Config(@GPIOA_BASE, 
+            _GPIO_PINMASK_0 or _GPIO_PINMASK_7, 
+            _GPIO_CFG_MODE_INPUT or _GPIO_CFG_PULL_NO);
+
+// This is analog to : 
+GPIO_Config(@GPIOA_BASE, 
+            _GPIO_PINMASK_0 or _GPIO_PINMASK_7, 
+            _GPIO_CFG_DIGITAL_INPUT);
+
+// Configure GPIOA_BASE.0 and GPIOA_BASE.7 pins as digital output :
+GPIO_Config(@GPIOA_BASE, 
+            _GPIO_PINMASK_0 or _GPIO_PINMASK_7, 
+            _GPIO_CFG_MODE_OUTPUT or _GPIO_CFG_SPEED_MAX or _GPIO_CFG_OTYPE_PP);
+
+// This is analog to : 
+GPIO_Config(@GPIOA_BASE, 
+            _GPIO_PINMASK_0 or _GPIO_PINMASK_7, 
+            _GPIO_CFG_DIGITAL_OUTPUT);
+
+// Configure GPIO_PORTA.0 as analog pin :
+GPIO_Config(@GPIOA_BASE, 
+            _GPIO_PINMASK_0,
+            _GPIO_CFG_MODE_ANALOG or _GPIO_CFG_PULL_NO);
+
+// This is analog to : 
+GPIO_Config(@GPIOA_BASE, 
+            _GPIO_PINMASK_0,
+            _GPIO_CFG_ANALOG_INPUT);
+
+// Configure SPI on GPIOC :
+GPIO_Config(@GPIOC_BASE,
+            _GPIO_PINMASK_10 or _GPIO_PINMASK_11 or _GPIO_PINMASK_12,
+            _GPIO_CFG_MODE_ALT_FUNCTION or _GPIO_CFG_OTYPE_PP or _GPIO_CFG_SPEED_50MHZ);
+
+// This is analog to : 
+GPIO_Config(@GPIOC_BASE,
+            _GPIO_PINMASK_10 or _GPIO_PINMASK_11 or _GPIO_PINMASK_1,
+            __SPI_CONFIG);
+Notes	
+None.
+
+GPIO_Set_Pin_Mode
+
+Prototype	
+procedure GPIO_Set_Pin_Mode(port_base : ^dword; pin : word; config : dword;);
+
+Description	
+The procedure will configure the desired pin according to the parameters used.
+
+This routine is valid only for ST devices.
+
+Parameters	
+port_base: address of the port we wish to use.
+pin: pins we wish to configure.
+Value	Description
+_GPIO_PIN_0	Pin 0 .
+_GPIO_PIN_1	Pin 1 .
+_GPIO_PIN_2	Pin 2 .
+_GPIO_PIN_3	Pin 3 .
+_GPIO_PIN_4	Pin 4 .
+_GPIO_PIN_5	Pin 5 .
+_GPIO_PIN_6	Pin 6 .
+_GPIO_PIN_7	Pin 7 .
+_GPIO_PIN_8	Pin 8 .
+_GPIO_PIN_9	Pin 9 .
+_GPIO_PIN_10	Pin 10 .
+_GPIO_PIN_11	Pin 11 .
+_GPIO_PIN_12	Pin 12 .
+_GPIO_PIN_13	Pin 13 .
+_GPIO_PIN_14	Pin 14 .
+_GPIO_PIN_15	Pin 15 .
+config: desired function and configuration of the pin :
+Value	Description
+_GPIO_CFG_MODE_INPUT	Set pin as input.
+_GPIO_CFG_MODE_OUTPUT	Set pin as output.
+_GPIO_CFG_PULL_UP	Configure pin(s) as pull-up.
+_GPIO_CFG_PULL_DOWN	Configure pin(s) as pull-down.
+_GPIO_CFG_PULL_NO	Configure pin(s) with no pull/down function (floating).
+_GPIO_CFG_ALT_FUNCTION	Pin(s) have alternative, non-GPIO function, such as UART, SPI, I2C...
+_GPIO_CFG_MODE_ANALOG	Configure pin(s) for analog input.
+_GPIO_CFG_OTYPE_OD	Configure pin(s) as open-drain.
+_GPIO_CFG_OTYPE_PP	Configure pin(s) as push-pull.
+_GPIO_CFG_SPEED_400KHZ	Configure pin(s) for 400 kHz clock.
+_GPIO_CFG_SPEED_2MHZ	Configure pin(s) for 2 MHz clock.
+_GPIO_CFG_SPEED_10MHZ	Configure pin(s) for 10 MHz clock.
+_GPIO_CFG_SPEED_25MHZ	Configure pin(s) for 25 MHz clock.
+_GPIO_CFG_SPEED_40MHZ	Configure pin(s) for 40 MHz clock.
+_GPIO_CFG_SPEED_50MHZ	Configure pin(s) for 50 MHz clock.
+_GPIO_CFG_SPEED_100MHZ	Configure pin(s) for 100 MHz clock.
+_GPIO_CFG_SPEED_MAX	Configure pin(s) for maximal clock speed.
+Returns	
+Nothing.
+
+Requires	
+Nothing.
+
+Example	
+GPIO_Set_Pin_Mode(@GPIOE_BASE, _GPIO_PIN_0, _GPIO_CFG_MODE_OUTPUT or _GPIO_CFG_PULL_UP);
+Notes	
+None.
+
+GPIO_Digital_Input
+
+Prototype	// for Stellaris MCUs :
+function GPIO_Digital_Input(port : ^dword; pin_mask : byte) : byte;
+
+// for ST MCUs :
+procedure GPIO_Digital_Input(port : ^dword; pin_mask : dword);
+
+Description	
+The function configures desired pins as digital input.
+
+Parameters	
+port: desired port on which the function will be applied.
+pin_mask: desired pin(s) on which the function will be applied :
+Stellaris
+
+Value	Description
+_GPIO_PINMASK_0	Pin 0 mask.
+_GPIO_PINMASK_1	Pin 1 mask.
+_GPIO_PINMASK_2	Pin 2 mask.
+_GPIO_PINMASK_3	Pin 3 mask.
+_GPIO_PINMASK_4	Pin 4 mask.
+_GPIO_PINMASK_5	Pin 5 mask.
+_GPIO_PINMASK_6	Pin 6 mask.
+_GPIO_PINMASK_7	Pin 7 mask.
+_GPIO_PINMASK_ALL	All pins masked.
+STM32
+
+Value	Description
+_GPIO_PINMASK_0	Pin 0 mask.
+_GPIO_PINMASK_1	Pin 1 mask.
+_GPIO_PINMASK_2	Pin 2 mask.
+_GPIO_PINMASK_3	Pin 3 mask.
+_GPIO_PINMASK_4	Pin 4 mask.
+_GPIO_PINMASK_5	Pin 5 mask.
+_GPIO_PINMASK_6	Pin 6 mask.
+_GPIO_PINMASK_7	Pin 7 mask.
+_GPIO_PINMASK_8	Pin 8 mask.
+_GPIO_PINMASK_9	Pin 9 mask.
+_GPIO_PINMASK_10	Pin 10 mask.
+_GPIO_PINMASK_11	Pin 11 mask.
+_GPIO_PINMASK_12	Pin 12 mask.
+_GPIO_PINMASK_13	Pin 13 mask.
+_GPIO_PINMASK_14	Pin 14 mask.
+_GPIO_PINMASK_15	Pin 15 mask.
+_GPIO_PINMASK_LOW	Low 8 port pins masked.
+_GPIO_PINMASK_HIGH	High 8 port pins masked.
+_GPIO_PINMASK_ALL	All pins masked.
+Returns	
+0 - if there were no errors,
+1 - if an error occured.
+Requires	
+Nothing.
+
+Example	
+Stellaris
+
+// Set GPIO_PORTE poins 0 and 1 as digital input
+GPIO_Digital_Input(@GPIO_PORTE, _GPIO_PINMASK_0 or _GPIO_PINMASK_1);
+
+// This is analog to :
+GPIO_Config(@GPIO_PORTE,
+            _GPIO_PINMASK_0 or _GPIO_PINMASK_1,
+            _GPIO_DIR_INPUT,
+            _GPIO_CFG_DIGITAL_ENABLE,
+            _GPIO_PINCODE_NONE);
+STM32
+
+// Set GPIOC pins 0 and 1 as digital input
+GPIO_Digital_Input(@GPIOC_BASE, _GPIO_PINMASK_0 or _GPIO_PINMASK_1);
+
+// This is analog to :
+GPIO_Config(@GPIOC_BASE,
+            _GPIO_PINMASK_0 or _GPIO_PINMASK_1,
+            _GPIO_CFG_MODE_INPUT or _GPIO_CFG_PULL_NO);
+Notes	
+None.
+
+GPIO_Digital_Output
+
+Prototype	// for Stellaris MCUs :
+function GPIO_Digital_Output(port : ^dword; pin_mask : byte) : byte;
+
+// for ST MCUs :
+procedure GPIO_Digital_Output(port : ^dword; pin_mask : dword);
+
+Description	
+The function configures desired pin(s) as digital output.
+
+Parameters	
+port: desired port on which the function will be applied.
+pin_mask: desired pin(s) on which the function will be applied :
+Stellaris
+
+Value	Description
+_GPIO_PINMASK_0	Pin 0 mask.
+_GPIO_PINMASK_1	Pin 1 mask.
+_GPIO_PINMASK_2	Pin 2 mask.
+_GPIO_PINMASK_3	Pin 3 mask.
+_GPIO_PINMASK_4	Pin 4 mask.
+_GPIO_PINMASK_5	Pin 5 mask.
+_GPIO_PINMASK_6	Pin 6 mask.
+_GPIO_PINMASK_7	Pin 7 mask.
+_GPIO_PINMASK_ALL	All pins masked.
+STM32
+
+Value	Description
+_GPIO_PINMASK_0	Pin 0 mask.
+_GPIO_PINMASK_1	Pin 1 mask.
+_GPIO_PINMASK_2	Pin 2 mask.
+_GPIO_PINMASK_3	Pin 3 mask.
+_GPIO_PINMASK_4	Pin 4 mask.
+_GPIO_PINMASK_5	Pin 5 mask.
+_GPIO_PINMASK_6	Pin 6 mask.
+_GPIO_PINMASK_7	Pin 7 mask.
+_GPIO_PINMASK_8	Pin 8 mask.
+_GPIO_PINMASK_9	Pin 9 mask.
+_GPIO_PINMASK_10	Pin 10 mask.
+_GPIO_PINMASK_11	Pin 11 mask.
+_GPIO_PINMASK_12	Pin 12 mask.
+_GPIO_PINMASK_13	Pin 13 mask.
+_GPIO_PINMASK_14	Pin 14 mask.
+_GPIO_PINMASK_15	Pin 15 mask.
+_GPIO_PINMASK_LOW	Low 8 port pins masked.
+_GPIO_PINMASK_HIGH	High 8 port pins masked.
+_GPIO_PINMASK_ALL	All pins masked.
+Returns	
+0 - if there were no errors,
+1 - if an error occured.
+Requires	
+Nothing.
+
+Example	
+Stellaris
+
+// Set GPIO_PORTD pin 1 as digital output
+GPIO_Digital_Output(@GPIO_PORTD, _GPIO_PINMASK_1);
+
+// This is analog to :
+GPIO_Config(@GPIO_PORTD,
+            _GPIO_PINMASK_1,
+            _GPIO_DIR_OUTPUT,
+            _GPIO_CFG_DIGITAL_ENABLE or _GPIO_CFG_DRIVE_8mA,
+            _GPIO_PINCODE_NONE);
+STM32
+
+// Set GPIOC pins 0 and 1 as digital output
+GPIO_Digital_Output(@GPIOC_BASE, _GPIO_PINMASK_0 or _GPIO_PINMASK_1);
+
+// This is analog to :
+GPIO_Config(@GPIOC_BASE,
+            _GPIO_PINMASK_0 or _GPIO_PINMASK_1,
+            _GPIO_CFG_MODE_OUTPUT or _GPIO_CFG_SPEED_MAX or _GPIO_CFG_OTYPE_PP);
+Notes	
+None.
+
+GPIO_Analog_Input
+
+Prototype	// for Stellaris MCUs
+function GPIO_Analog_Input(port : ^dword; pin_mask : byte) : byte;
+
+// for ST MCUs
+procedure GPIO_Analog_Input(port : ^dword; pin_mask : dword);
+
+Description	
+The function configures desired pin(s) as analog input.
+
+Parameters	
+port: desired port on which the function will be applied.
+pin_mask: desired pin(s) on which the function will be applied :
+Stellaris
+
+Value	Description
+_GPIO_PINMASK_0	Pin 0 mask.
+_GPIO_PINMASK_1	Pin 1 mask.
+_GPIO_PINMASK_2	Pin 2 mask.
+_GPIO_PINMASK_3	Pin 3 mask.
+_GPIO_PINMASK_4	Pin 4 mask.
+_GPIO_PINMASK_5	Pin 5 mask.
+_GPIO_PINMASK_6	Pin 6 mask.
+_GPIO_PINMASK_7	Pin 7 mask.
+_GPIO_PINMASK_ALL	All pins masked.
+STM32
+
+Value	Description
+_GPIO_PINMASK_0	Pin 0 mask.
+_GPIO_PINMASK_1	Pin 1 mask.
+_GPIO_PINMASK_2	Pin 2 mask.
+_GPIO_PINMASK_3	Pin 3 mask.
+_GPIO_PINMASK_4	Pin 4 mask.
+_GPIO_PINMASK_5	Pin 5 mask.
+_GPIO_PINMASK_6	Pin 6 mask.
+_GPIO_PINMASK_7	Pin 7 mask.
+_GPIO_PINMASK_8	Pin 8 mask.
+_GPIO_PINMASK_9	Pin 9 mask.
+_GPIO_PINMASK_10	Pin 10 mask.
+_GPIO_PINMASK_11	Pin 11 mask.
+_GPIO_PINMASK_12	Pin 12 mask.
+_GPIO_PINMASK_13	Pin 13 mask.
+_GPIO_PINMASK_14	Pin 14 mask.
+_GPIO_PINMASK_15	Pin 15 mask.
+_GPIO_PINMASK_LOW	Low 8 port pins masked.
+_GPIO_PINMASK_HIGH	High 8 port pins masked.
+_GPIO_PINMASK_ALL	All pins masked.
+Returns	
+0 - if there were no errors,
+1 - if an error occured.
+Requires	
+Nothing.
+
+Example	
+Stellaris
+
+// Set GPIO_PORTE pins 0 and 1 as analog input
+GPIO_Analog_Input(@GPIO_PORTE, _GPIO_PINMASK_0 or _GPIO_PINMASK_1);
+
+// This is analog to :
+GPIO_Config(@GPIO_PORTE,
+            _GPIO_PINMASK_0 or _GPIO_PINMASK_1,
+            _GPIO_DIR_INPUT,
+            _GPIO_CFG_ISOLATION_DISABLE or _GPIO_CFG_ALT_FUNCTION,
+            _GPIO_PINCODE_NONE);
+STM32
+
+// Set GPIOA_BASE pin 0 as analog input
+GPIO_Analog_Input(@GPIOA_BASE, _GPIO_PINMASK_0);
+
+// This is analog to :
+GPIO_Config(@GPIOA_BASE, 
+            _GPIO_PINMASK_0,
+            _GPIO_CFG_MODE_ANALOG or _GPIO_CFG_PULL_NO);
+Notes	
+None.
+
+GPIO_Alternate_Function_Enable
+
+Prototype	
+procedure GPIO_Alternate_Function_Enable(module : ^const Module_Struct);
+
+Description	
+This routine enables desired alternative function on GPIO pins using a predefined internal module pinout as a parameter. 
+The list of the predefined module pinouts can be found on the bottom of this page.
+
+Parameters	
+Module_Struct: desired module pinout.
+Returns	
+Nothing.
+
+Requires	
+This routine is available only for MCUs with alternative PORT functions on GPIO pins.
+
+Example	
+Stellaris
+
+// Enable SPI0 on GPIO_PORTA
+GPIO_Alternate_Function_Enable(@_GPIO_MODULE_SPI0_A245);
+STM32
+
+// Enable SPI3 on PORTB
+GPIO_Alternate_Function_Enable(@_GPIO_MODULE_SPI3_PB345);
+Notes	
+This routine is available only for MCUs with alternative PORT functions.
+
+__mE_Lib_GPIO
+
+Prototype	
+function __mE_Lib_GPIO(port : ^dword; pin_mask : byte; dir : byte; config : word) : byte;
+
+Description	
+The function is used for the internal use by compiler. It will configure pins according to the parameters passed.
+
+This routine is valid only for Stellaris devices.
+
+Stellaris Cortex M3 Module Pinouts
+
+Advanced Peripheral Bus
+
+ADC Module Pinouts for Cortex M3 - Advanced Peripheral Bus
+_GPIO_MODULE_AIN0	_GPIO_MODULE_AIN1	_GPIO_MODULE_AIN2	_GPIO_MODULE_AIN3
+_GPIO_MODULE_AIN4	_GPIO_MODULE_AIN5	_GPIO_MODULE_AIN6	_GPIO_MODULE_AIN7
+_GPIO_MODULE_AIN8	_GPIO_MODULE_AIN9	_GPIO_MODULE_AIN10	_GPIO_MODULE_AIN11
+_GPIO_MODULE_AIN12	_GPIO_MODULE_AIN13	_GPIO_MODULE_AIN14	_GPIO_MODULE_AIN15
+SPI Module Pinouts for Stellaris Cortex M3 - Advanced Peripheral Bus
+SPI0	_GPIO_MODULE_SPI0_A245		
+SPI1	_GPIO_MODULE_SPI1_E023	_GPIO_MODULE_SPI1_F245	_GPIO_MODULE_SPI1_H467
+I2C Module Pinouts for Stellaris Cortex M3 - Advanced Peripheral Bus
+I2C0	_GPIO_MODULE_I2C0_B23			
+I2C1	_GPIO_MODULE_I2C1_A01	_GPIO_MODULE_I2C1_A67	_GPIO_MODULE_I2C1_G01	_GPIO_MODULE_I2C1_J01
+UART Module Pinouts for Stellaris Cortex M3 - Advanced Peripheral Bus
+UART0	_GPIO_MODULE_UART0_A01					
+UART1	_GPIO_MODULE_UART1_A01	_GPIO_MODULE_UART1_B01	_GPIO_MODULE_UART1_B45	_GPIO_MODULE_UART1_C67	_GPIO_MODULE_UART1_D01	_GPIO_MODULE_UART1_D23
+UART2	_GPIO_MODULE_UART2_D01	_GPIO_MODULE_UART2_D56	_GPIO_MODULE_UART2_G01			
+CCP Module Pinouts for Stellaris Cortex M3 - Advanced Peripheral Bus
+CCP0	_GPIO_MODULE_CCP0_B0	_GPIO_MODULE_CCP0_B2	_GPIO_MODULE_CCP0_B5	_GPIO_MODULE_CCP0_C6	_GPIO_MODULE_CCP0_C7		
+_GPIO_MODULE_CCP0_D3	_GPIO_MODULE_CCP0_D4	_GPIO_MODULE_CCP0_F4	_GPIO_MODULE_CCP0_J2	_GPIO_MODULE_CCP0_J7		
+CCP1	_GPIO_MODULE_CCP1_A6	_GPIO_MODULE_CCP1_B1	_GPIO_MODULE_CCP1_B6	_GPIO_MODULE_CCP1_C4	_GPIO_MODULE_CCP1_C5		
+_GPIO_MODULE_CCP1_D7	_GPIO_MODULE_CCP1_E3	_GPIO_MODULE_CCP1_F6	_GPIO_MODULE_CCP1_J6			
+CCP2	_GPIO_MODULE_CCP2_B1	_GPIO_MODULE_CCP2_B5	_GPIO_MODULE_CCP2_C4	_GPIO_MODULE_CCP2_D1	_GPIO_MODULE_CCP2_D5	_GPIO_MODULE_CCP2_E1	
+_GPIO_MODULE_CCP2_E2	_GPIO_MODULE_CCP2_E4	_GPIO_MODULE_CCP2_F5	_GPIO_MODULE_CCP2_J5			
+CCP3	_GPIO_MODULE_CCP3_A7	_GPIO_MODULE_CCP3_B2	_GPIO_MODULE_CCP3_C5	_GPIO_MODULE_CCP3_C6	_GPIO_MODULE_CCP3_D4	_GPIO_MODULE_CCP3_E0	
+_GPIO_MODULE_CCP3_E4	_GPIO_MODULE_CCP3_F1	_GPIO_MODULE_CCP3_G4				
+CCP4	_GPIO_MODULE_CCP4_A7	_GPIO_MODULE_CCP4_C4	_GPIO_MODULE_CCP4_C7	_GPIO_MODULE_CCP4_D5	_GPIO_MODULE_CCP4_E2	_GPIO_MODULE_CCP4_F7	_GPIO_MODULE_CCP4_J4
+CCP5	_GPIO_MODULE_CCP5_B5	_GPIO_MODULE_CCP5_B6	_GPIO_MODULE_CCP5_C4	_GPIO_MODULE_CCP5_D2	_GPIO_MODULE_CCP5_E5	_GPIO_MODULE_CCP5_G7	_GPIO_MODULE_CCP5_G5
+CCP6	_GPIO_MODULE_CCP6_B5	_GPIO_MODULE_CCP6_D0	_GPIO_MODULE_CCP6_D2	_GPIO_MODULE_CCP6_E1	_GPIO_MODULE_CCP6_H0	_GPIO_MODULE_CCP6_J3	
+CCP7	_GPIO_MODULE_CCP7_B6	_GPIO_MODULE_CCP7_D1	_GPIO_MODULE_CCP7_D3	_GPIO_MODULE_CCP7_E3	_GPIO_MODULE_CCP7_H1		
+CAN Module Pinouts for Stellaris Cortex M3 - Advanced Peripheral Bus
+_GPIO_MODULE_CAN0_D01	_GPIO_MODULE_CAN0_A45	_GPIO_MODULE_CAN0_A67	_GPIO_MODULE_CAN0_B45
+Advanced High-Performance Bus
+
+ADC Module Pinouts for Stellaris Cortex M3 - Advanced High-Performance Bus
+_GPIO_MODULE_AIN0	_GPIO_MODULE_AIN1	_GPIO_MODULE_AIN2	_GPIO_MODULE_AIN3
+_GPIO_MODULE_AIN4	_GPIO_MODULE_AIN5	_GPIO_MODULE_AIN6	_GPIO_MODULE_AIN7
+_GPIO_MODULE_AIN8	_GPIO_MODULE_AIN9	_GPIO_MODULE_AIN10	_GPIO_MODULE_AIN11
+_GPIO_MODULE_AIN12	_GPIO_MODULE_AIN13	_GPIO_MODULE_AIN14	_GPIO_MODULE_AIN15
+SPI Module Pinouts for Stellaris Cortex M3 - Advanced High-Performance Bus
+SPI0	_GPIO_MODULE_SPI0_A245		
+SPI1	_GPIO_MODULE_SPI1_E023	_GPIO_MODULE_SPI1_F245	_GPIO_MODULE_SPI1_H467
+I2C Module Pinouts for Stellaris Cortex M3 - Advanced High-Performance Bus
+I2C0	_GPIO_MODULE_I2C0_B23			
+I2C1	_GPIO_MODULE_I2C1_A01	_GPIO_MODULE_I2C1_A67	_GPIO_MODULE_I2C1_G01	_GPIO_MODULE_I2C1_J01
+UART Module Pinouts for Stellaris Cortex M3 - Advanced High-Performance Bus
+UART0	_GPIO_MODULE_UART0_A01					
+UART1	_GPIO_MODULE_UART1_A01	_GPIO_MODULE_UART1_B01	_GPIO_MODULE_UART1_B45	_GPIO_MODULE_UART1_C67	_GPIO_MODULE_UART1_D01	_GPIO_MODULE_UART1_D23
+UART2	_GPIO_MODULE_UART2_D01	_GPIO_MODULE_UART2_D56	_GPIO_MODULE_UART2_G01			
+CCP Module Pinouts for Stellaris Cortex M3 - Advanced High-Performance Bus
+CCP0	_GPIO_MODULE_CCP0_B0	_GPIO_MODULE_CCP0_B2	_GPIO_MODULE_CCP0_B5	_GPIO_MODULE_CCP0_C6	_GPIO_MODULE_CCP0_C7		
+_GPIO_MODULE_CCP0_D3	_GPIO_MODULE_CCP0_D4	_GPIO_MODULE_CCP0_F4	_GPIO_MODULE_CCP0_J2	_GPIO_MODULE_CCP0_J7		
+CCP1	_GPIO_MODULE_CCP1_A6	_GPIO_MODULE_CCP1_B1	_GPIO_MODULE_CCP1_B6	_GPIO_MODULE_CCP1_C4	_GPIO_MODULE_CCP1_C5		
+_GPIO_MODULE_CCP1_D7	_GPIO_MODULE_CCP1_E3	_GPIO_MODULE_CCP1_F6	_GPIO_MODULE_CCP1_J6			
+CCP2	_GPIO_MODULE_CCP2_B1	_GPIO_MODULE_CCP2_B5	_GPIO_MODULE_CCP2_C4	_GPIO_MODULE_CCP2_D1	_GPIO_MODULE_CCP2_D5	_GPIO_MODULE_CCP2_E1	
+_GPIO_MODULE_CCP2_E2	_GPIO_MODULE_CCP2_E4	_GPIO_MODULE_CCP2_F5	_GPIO_MODULE_CCP2_J5			
+CCP3	_GPIO_MODULE_CCP3_A7	_GPIO_MODULE_CCP3_B2	_GPIO_MODULE_CCP3_C5	_GPIO_MODULE_CCP3_C6	_GPIO_MODULE_CCP3_D4	_GPIO_MODULE_CCP3_E0	
+_GPIO_MODULE_CCP3_E4	_GPIO_MODULE_CCP3_F1	_GPIO_MODULE_CCP3_G4				
+CCP4	_GPIO_MODULE_CCP4_A7	_GPIO_MODULE_CCP4_C4	_GPIO_MODULE_CCP4_C7	_GPIO_MODULE_CCP4_D5	_GPIO_MODULE_CCP4_E2	_GPIO_MODULE_CCP4_F7	_GPIO_MODULE_CCP4_J4
+CCP5	_GPIO_MODULE_CCP5_B5	_GPIO_MODULE_CCP5_B6	_GPIO_MODULE_CCP5_C4	_GPIO_MODULE_CCP5_D2	_GPIO_MODULE_CCP5_E5	_GPIO_MODULE_CCP5_G7	_GPIO_MODULE_CCP5_G5
+CCP6	_GPIO_MODULE_CCP6_B5	_GPIO_MODULE_CCP6_D0	_GPIO_MODULE_CCP6_D2	_GPIO_MODULE_CCP6_E1	_GPIO_MODULE_CCP6_H0	_GPIO_MODULE_CCP6_J3	
+CCP7	_GPIO_MODULE_CCP7_B6	_GPIO_MODULE_CCP7_D1	_GPIO_MODULE_CCP7_D3	_GPIO_MODULE_CCP7_E3	_GPIO_MODULE_CCP7_H1		
+CAN Module Pinouts for Stellaris Cortex M3 - Advanced High-Performance Bus
+_GPIO_MODULE_CAN0_D01	_GPIO_MODULE_CAN0_A45	_GPIO_MODULE_CAN0_A67	_GPIO_MODULE_CAN0_B45
+Cortex M4 Module Pinouts - Advanced High-Performance Bus
+
+ADC Module Pinouts for Cortex M4 - Advanced High-Performance Bus
+_GPIO_MODULE_AIN0_AHB	_GPIO_MODULE_AIN1_AHB	_GPIO_MODULE_AIN2_AHB	_GPIO_MODULE_AIN3_AHB
+_GPIO_MODULE_AIN4_AHB	_GPIO_MODULE_AIN5_AHB	_GPIO_MODULE_AIN6_AHB	_GPIO_MODULE_AIN7_AHB
+_GPIO_MODULE_AIN8_AHB	_GPIO_MODULE_AIN9_AHB	_GPIO_MODULE_AIN10_AHB	_GPIO_MODULE_AIN11_AHB
+_GPIO_MODULE_AIN12_AHB	_GPIO_MODULE_AIN13_AHB	_GPIO_MODULE_AIN14_AHB	_GPIO_MODULE_AIN15_AHB
+_GPIO_MODULE_AIN16_AHB	_GPIO_MODULE_AIN17_AHB	_GPIO_MODULE_AIN18_AHB	_GPIO_MODULE_AIN19_AHB
+_GPIO_MODULE_AIN20_AHB	_GPIO_MODULE_AIN21_AHB	_GPIO_MODULE_AIN22_AHB	_GPIO_MODULE_AIN23_AHB
+SPI Module Pinouts for Stellaris Cortex M4 - Advanced High-Performance Bus
+SPI0	_GPIO_MODULE_SPI0_A245_AHB		
+SPI1	_GPIO_MODULE_SPI1_D023_AHB	_GPIO_MODULE_SPI1_F012_AHB	
+SPI2	_GPIO_MODULE_SPI2_B467_AHB	_GPIO_MODULE_SPI2_H467_AHB	
+SPI2	_GPIO_MODULE_SPI3_D023_AHB	_GPIO_MODULE_SPI3_H023_AHB	_GPIO_MODULE_SPI3_K023_AHB
+I2C Module Pinouts for Stellaris Cortex M4 - Advanced High-Performance Bus
+I2C0	_GPIO_MODULE_I2C0_B23_AHB	
+I2C1	_GPIO_MODULE_I2C1_A67_AHB	_GPIO_MODULE_I2C1_G45_AHB
+I2C2	_GPIO_MODULE_I2C2_E45_AHB	_GPIO_MODULE_I2C2_F67_AHB
+I2C3	_GPIO_MODULE_I2C3_D01_AHB	_GPIO_MODULE_I2C3_G01_AHB
+I2C4	_GPIO_MODULE_I2C4_G23_AHB	
+I2C5	_GPIO_MODULE_I2C5_B67_AHB	_GPIO_MODULE_I2C5_G67_AHB
+UART Module Pinouts for Stellaris Cortex M4 - Advanced High-Performance Bus
+UART0	_GPIO_MODULE_UART0_A01_AHB	
+UART1	_GPIO_MODULE_UART1_B01_AHB	_GPIO_MODULE_UART1_C45_AHB
+UART2	_GPIO_MODULE_UART2_D67_AHB	_GPIO_MODULE_UART2_G45_AHB
+UART3	_GPIO_MODULE_UART3_C67_AHB	
+UART4	_GPIO_MODULE_UART4_C45_AHB	_GPIO_MODULE_UART4_J01_AHB
+UART5	_GPIO_MODULE_UART5_E45_AHB	_GPIO_MODULE_UART5_J23_AHB
+UART6	_GPIO_MODULE_UART6_D45_AHB	_GPIO_MODULE_UART6_J45_AHB
+UART7	_GPIO_MODULE_UART7_E01_AHB	_GPIO_MODULE_UART7_K45_AHB
+CCP Module Pinouts for Stellaris Cortex M4 - Advanced High-Performance Bus
+CCP0	CCP1
+Timer0	_GPIO_MODULE_T0CCP0_F0_AHB	_GPIO_MODULE_T0CCP1_F1_AHB
+_GPIO_MODULE_T0CCP0_B6_AHB	_GPIO_MODULE_T0CCP1_B7_AHB
+_GPIO_MODULE_T0CCP0_L0_AHB	_GPIO_MODULE_T0CCP1_L1_AHB
+Timer1	_GPIO_MODULE_T1CCP0_B4_AHB	_GPIO_MODULE_T1CCP1_B5_AHB
+_GPIO_MODULE_T1CCP0_L2_AHB	_GPIO_MODULE_T1CCP1_F3_AHB
+_GPIO_MODULE_T1CCP0_F2_AHB	_GPIO_MODULE_T1CCP1_J1_AHB
+_GPIO_MODULE_T1CCP0_J0_AHB	_GPIO_MODULE_T1CCP1_L3_AHB
+Timer2	_GPIO_MODULE_T2CCP0_B0_AHB	_GPIO_MODULE_T2CCP1_B1_AHB
+_GPIO_MODULE_T2CCP0_F4_AHB	_GPIO_MODULE_T2CCP1_F5_AHB
+_GPIO_MODULE_T2CCP0_J2_AHB	_GPIO_MODULE_T2CCP1_J3_AHB
+_GPIO_MODULE_T2CCP0_L4_AHB	_GPIO_MODULE_T2CCP1_L5_AHB
+Timer3	_GPIO_MODULE_T3CCP0_B2_AHB	_GPIO_MODULE_T3CCP1_B3_AHB
+_GPIO_MODULE_T3CCP0_F6_AHB	_GPIO_MODULE_T3CCP1_F7_AHB
+_GPIO_MODULE_T3CCP0_J4_AHB	_GPIO_MODULE_T3CCP1_J5_AHB
+_GPIO_MODULE_T3CCP0_L6_AHB	_GPIO_MODULE_T3CCP1_L7_AHB
+Timer4	_GPIO_MODULE_T4CCP0_C0_AHB	_GPIO_MODULE_T4CCP1_C1_AHB
+_GPIO_MODULE_T4CCP0_G0_AHB	_GPIO_MODULE_T4CCP1_G1_AHB
+_GPIO_MODULE_T4CCP0_M0_AHB	_GPIO_MODULE_T4CCP1_M1_AHB
+_GPIO_MODULE_T4CCP0_P0_AHB	
+Timer5	_GPIO_MODULE_T5CCP0_C2_AHB	_GPIO_MODULE_T5CCP1_C3_AHB
+_GPIO_MODULE_T5CCP0_G2_AHB	_GPIO_MODULE_T5CCP1_G3_AHB
+_GPIO_MODULE_T5CCP0_M2_AHB	_GPIO_MODULE_T5CCP1_M3_AHB
+_GPIO_MODULE_T5CCP0_P2_AHB	
+ST Cortex M3 Module Pinouts
+
+ADC Module Pinouts for ST Cortex M3
+_GPIO_MODULE_AIN0	_GPIO_MODULE_AIN1	_GPIO_MODULE_AIN2	_GPIO_MODULE_AIN3
+_GPIO_MODULE_AIN4	_GPIO_MODULE_AIN5	_GPIO_MODULE_AIN6	_GPIO_MODULE_AIN7
+_GPIO_MODULE_AIN8	_GPIO_MODULE_AIN9	_GPIO_MODULE_AIN10	_GPIO_MODULE_AIN11
+_GPIO_MODULE_AIN12	_GPIO_MODULE_AIN13	_GPIO_MODULE_AIN14	_GPIO_MODULE_AIN15
+SPI Module Pinouts for ST Cortex M3
+SPI1	_GPIO_MODULE_SPI1_PA567	_GPIO_MODULE_SPI1_PB345
+SPI2	_GPIO_MODULE_SPI2_PB13_14_15	_GPIO_MODULE_SPI2_PD134
+SPI3	_GPIO_MODULE_SPI3_PB345	_GPIO_MODULE_SPI3_PC10_11_12
+I2C Module Pinouts for ST Cortex M3
+I2C1	_GPIO_MODULE_I2C1_PB67	_GPIO_MODULE_I2C1_PB89	
+I2C2	_GPIO_MODULE_I2C2_PB10_11	_GPIO_MODULE_I2C2_PF01	_GPIO_MODULE_I2C2_PH45
+I2C3	_GPIO_MODULE_I2C3_PH78		
+UART Module Pinouts for ST Cortex M3
+UART1	_GPIO_MODULE_USART1_PA9_10	_GPIO_MODULE_USART1_PB67	
+UART2	_GPIO_MODULE_USART2_PA23	_GPIO_MODULE_USART2_PD56	
+UART3	_GPIO_MODULE_USART3_PB10_11	_GPIO_MODULE_USART3_PC10_11	_GPIO_MODULE_USART3_PD89
+UART4	_GPIO_MODULE_UART4_PA01	_GPIO_MODULE_UART4_PC10_11	
+UART5	_GPIO_MODULE_UART5_PC12_PD2		
+UART6	_GPIO_MODULE_USART6_PC67	_GPIO_MODULE_USART6_PG9_14	
+CAN Module Pinouts for ST Cortex M3
+CAN1	_GPIO_MODULE_CAN1_PA11_12	_GPIO_MODULE_CAN1_PB89	_GPIO_MODULE_CAN1_PD01	_GPIO_MODULE_CAN1_PI9_PH13
+CAN2	_GPIO_MODULE_CAN2_PB56	_GPIO_MODULE_CAN1_PB89		
+SWD/JTAG Enable/Disable Constants
+_GPIO_MODULE_SWJ_JTAGENABLE	_GPIO_MODULE_SWJ_JTAGDISABLE
+ST Cortex M4 Module Pinouts
+
+ADC Module Pinouts for ST Cortex M4
+_GPIO_MODULE_AIN0	_GPIO_MODULE_AIN1	_GPIO_MODULE_AIN2	_GPIO_MODULE_AIN3
+_GPIO_MODULE_AIN4	_GPIO_MODULE_AIN5	_GPIO_MODULE_AIN6	_GPIO_MODULE_AIN7
+_GPIO_MODULE_AIN8	_GPIO_MODULE_AIN9	_GPIO_MODULE_AIN10	_GPIO_MODULE_AIN11
+_GPIO_MODULE_AIN12	_GPIO_MODULE_AIN13	_GPIO_MODULE_AIN14	_GPIO_MODULE_AIN15
+SPI Module Pinouts for ST Cortex M4
+SPI1	_GPIO_MODULE_SPI1_PA567	_GPIO_MODULE_SPI1_PB345
+SPI2	_GPIO_MODULE_SPI2_PB13_14_15	
+SPI3	_GPIO_MODULE_SPI3_PB345	_GPIO_MODULE_SPI3_PC10_11_12
+I2C Module Pinouts for ST Cortex M4
+I2C1	_GPIO_MODULE_I2C1_PB67	_GPIO_MODULE_I2C1_PB89	
+I2C2	_GPIO_MODULE_I2C2_PB10_11	_GPIO_MODULE_I2C2_PF01	_GPIO_MODULE_I2C2_PH45
+I2C3	_GPIO_MODULE_I2C3_PH78		
+UART Module Pinouts for ST Cortex M4
+UART1	_GPIO_MODULE_USART1_PA9_10	_GPIO_MODULE_USART1_PB67	
+UART2	_GPIO_MODULE_USART2_PA23	_GPIO_MODULE_USART2_PD56	
+UART3	_GPIO_MODULE_USART3_PB10_11	_GPIO_MODULE_USART3_PC10_11	_GPIO_MODULE_USART3_PD89
+UART4	_GPIO_MODULE_UART4_PA01	_GPIO_MODULE_UART4_PC10_11	
+UART5	_GPIO_MODULE_UART5_PC12_PD2		
+UART6	_GPIO_MODULE_USART6_PC67	_GPIO_MODULE_USART6_PG9_14	
+CAN Module Pinouts for ST Cortex M4
+CAN1	_GPIO_MODULE_CAN1_PA11_12	_GPIO_MODULE_CAN1_PB89	_GPIO_MODULE_CAN1_PD01	_GPIO_MODULE_CAN1_PI9_PH13
+CAN2	_GPIO_MODULE_CAN2_PB56	_GPIO_MODULE_CAN1_PB89		
+Copyright (c) 2002-2012 mikroElektronika. All rights reserved. 
+What do you think about this topic ? Send us feedback!
+Want more examples and libraries?  
+Find them on  

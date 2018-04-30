@@ -1,0 +1,50 @@
+我的Android笔记（八）—— 使用Jsoup解析Html
+
+分类： Android Java 2012-03-18 16:50 8808人阅读 评论(16) 收藏 举报
+androidlistviewhtmlstringurlexception
+想要做一个看新闻的应用，类似Cnbeta客户端的东西。大致思路如下：根据链接获取新闻列表页的html代码，然后解析，找到所有的新闻标题和新闻链接用listView显示，当点击ListView的Item再加载相应的新闻内容。
+
+
+
+其中获取html代码，可以使用如下代码实现：
+
+
+	public String getHtmlString(String urlString) {
+		try {
+			URL url = new URL(urlString);
+			URLConnection ucon = url.openConnection();
+			InputStream instr = ucon.getInputStream();
+			BufferedInputStream bis = new BufferedInputStream(instr);
+			ByteArrayBuffer baf = new ByteArrayBuffer(500);
+			int current = 0;
+			while ((current = bis.read()) != -1) {
+				baf.append((byte) current);
+			}
+			return EncodingUtils.getString(baf.toByteArray(), "gbk");
+		} catch (Exception e) {
+			return "";
+		}
+	}
+传入一个网页链接，将返回此链接的html代码（String）。
+
+
+然后就是解析此html代码了。经过google，发现了java的一个很好用的解析html的库，Jsoup：http://jsoup.org/
+
+很容易使用，方法类似javascript和JQuery。只需先构建一个Jsoup的Document对象，然后就可以像使用js一个解析html了
+
+
+String htmlString = getHtmlString("http://www.cnbeta.com");
+Document document = Jsoup.parse(htmlString);
+比如要获取cnbeta的html的title，只需：
+String title = document.head().getElementsByTag("title").text();
+
+另外构建Document的时候也可以直接使用URL，像这样：
+
+Document doc = Jsoup.parse(new URL("http://www.cnbeta.com"), 5000);
+其中5000是连接网络的超时时间。
+
+
+有关Jsoup的下载和更多介绍，见其官网：http://jsoup.org/
+
+
+我写的一个demo，点击按钮后会加载然后显示cnbeta首页的所有新闻标题和链接地址，下载：http://download.csdn.net/detail/barryhappy/4151450 ，zip包里有jsoup的jar包，导入项目后可能需要手动导入此jar包。

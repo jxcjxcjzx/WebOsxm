@@ -1,0 +1,2356 @@
+
+
+
+
+wantianpei的专栏
+
+
+
+
+
+ 
+
+
+
+•目录视图
+•摘要视图
+•订阅
+ 
+
+
+
+CSDN2013年度博客之星评选      文思海辉第一届在线编程大赛      消灭0回答，赢下载分      订阅CSDN社区周刊，及时了解社区精华内容      办公大师系列经典丛书 诚聘译者     
+ 
+
+
+电源管理之pmu驱动分析 
+
+分类： 原创2013-04-25 16:47485人阅读评论(0)收藏举报
+
+
+
+ 
+
+电源管理芯片可以为多设备供电，且这些设备电压电流有所不同。为这些设备提供的稳压器代码模型即为regulator。
+ 
+说白了regulator就是稳压器，它提供电源供给．简单的可以gpio操作，高电平开电，低电平关电．一般的还包括电流值，
+ 
+电压值等．
+ 
+一般regulator有两种不同的电源,即:ldo和sd.
+ 
+Ldo适合电压要求比较稳,但是功率不是很大的设备.
+ 
+Sd适合功率要求比较大,但可以接受较小的纹波的设备.
+ 
+除此之外pmu还可能集成,charger,battery,音频功放等等.
+ 
+ 
+ 
+首先我们分析pmu驱动的平台设备注册部分．
+ 
+我以max77663这款pmu芯片为分析对象，　cpu用的是nvidia的tegra3．
+ 
+Pmu的板级初始化文件：kernel\arch\arm\mach-tegra\board-kai-power.c
+ 
+主要代码如下：
+ 
+#define PMC_CTRL             0x0
+ 
+#define PMC_CTRL_INTR_LOW         (1 << 17)
+ 
+#define REBOOT_FLAG"rebooting"
+ 
+#define DEVICE_PATH  "/dev/block/platform/sdhci-tegra.3/by-name/UDE"
+ 
+static structregulator_consumer_supply max77663_sd0_supply[] = {
+ 
+  REGULATOR_SUPPLY("vdd_cpu",NULL),
+ 
+};
+ 
+ 
+ 
+static structregulator_consumer_supply max77663_sd1_supply[] = {
+ 
+  REGULATOR_SUPPLY("vdd_core",NULL),
+ 
+};
+ 
+ 
+ 
+static struct regulator_consumer_supplymax77663_sd2_supply[] = {
+ 
+  REGULATOR_SUPPLY("vdd_gen1v8",NULL),
+ 
+  REGULATOR_SUPPLY("avdd_hdmi_pll",NULL),
+ 
+  REGULATOR_SUPPLY("avdd_usb_pll",NULL),
+ 
+  REGULATOR_SUPPLY("avdd_osc",NULL),
+ 
+  REGULATOR_SUPPLY("vddio_sys",NULL),
+ 
+  REGULATOR_SUPPLY("vddio_sdmmc","sdhci-tegra.3"),
+ 
+  REGULATOR_SUPPLY("pwrdet_sdmmc4",NULL),
+ 
+  REGULATOR_SUPPLY("vddio_uart",NULL),
+ 
+  REGULATOR_SUPPLY("pwrdet_uart",NULL),
+ 
+  REGULATOR_SUPPLY("vddio_bb",NULL),
+ 
+  REGULATOR_SUPPLY("pwrdet_bb",NULL),
+ 
+  REGULATOR_SUPPLY("vddio_lcd_pmu",NULL),
+ 
+  REGULATOR_SUPPLY("pwrdet_lcd",NULL),
+ 
+  REGULATOR_SUPPLY("vddio_audio",NULL),
+ 
+  REGULATOR_SUPPLY("pwrdet_audio",NULL),
+ 
+  REGULATOR_SUPPLY("vddio_cam",NULL),
+ 
+  REGULATOR_SUPPLY("pwrdet_cam",NULL),
+ 
+  REGULATOR_SUPPLY("vddio_sdmmc","sdhci-tegra.2"),
+ 
+  REGULATOR_SUPPLY("pwrdet_sdmmc3",NULL),
+ 
+  REGULATOR_SUPPLY("vddio_vi",NULL),
+ 
+  REGULATOR_SUPPLY("pwrdet_vi",NULL),
+ 
+  REGULATOR_SUPPLY("vcore_nand",NULL),
+ 
+  REGULATOR_SUPPLY("pwrdet_nand",NULL),
+ 
+};
+ 
+ 
+ 
+static structregulator_consumer_supply max77663_sd3_supply[] = {
+ 
+  REGULATOR_SUPPLY("vdd_ddr3l_1v35",NULL),
+ 
+};
+ 
+ 
+ 
+static structregulator_consumer_supply max77663_ldo0_supply[] = {
+ 
+  REGULATOR_SUPPLY("vdd_ddr_hs",NULL),
+ 
+};
+ 
+ 
+ 
+static structregulator_consumer_supply max77663_ldo1_supply[] = {
+ 
+};
+ 
+ 
+ 
+static structregulator_consumer_supply max77663_ldo2_supply[] = {
+ 
+  REGULATOR_SUPPLY("vdd_ddr_rx",NULL),
+ 
+};
+ 
+ 
+ 
+static structregulator_consumer_supply max77663_ldo3_supply[] = {
+ 
+  REGULATOR_SUPPLY("vmmc",NULL),
+ 
+};
+ 
+ 
+ 
+static structregulator_consumer_supply max77663_ldo4_supply[] = {
+ 
+  REGULATOR_SUPPLY("vdd_rtc",NULL),
+ 
+};
+ 
+ 
+ 
+static structregulator_consumer_supply max77663_ldo5_supply[] = {
+ 
+  REGULATOR_SUPPLY("vdd_sensor_2v8",NULL),
+ 
+};
+ 
+ 
+ 
+static structregulator_consumer_supply max77663_ldo6_supply[] = {
+ 
+  REGULATOR_SUPPLY("vddio_sdmmc","sdhci-tegra.0"),
+ 
+  REGULATOR_SUPPLY("pwrdet_sdmmc1",NULL),
+ 
+};
+ 
+ 
+ 
+static structregulator_consumer_supply max77663_ldo7_supply[] = {
+ 
+  REGULATOR_SUPPLY("avdd_dsi_csi",NULL),
+ 
+  REGULATOR_SUPPLY("pwrdet_mipi",NULL),
+ 
+};
+ 
+ 
+ 
+static struct regulator_consumer_supplymax77663_ldo8_supply[] = {
+ 
+  REGULATOR_SUPPLY("avdd_plla_p_c_s",NULL),
+ 
+  REGULATOR_SUPPLY("avdd_pllm",NULL),
+ 
+  REGULATOR_SUPPLY("avdd_pllu_d",NULL),
+ 
+  REGULATOR_SUPPLY("avdd_pllu_d2",NULL),
+ 
+  REGULATOR_SUPPLY("avdd_pllx",NULL),
+ 
+};
+ 
+ 
+ 
+static structmax77663_regulator_fps_cfg max77663_fps_cfgs[] = {
+ 
+  {
+ 
+            .src= FPS_SRC_0,
+ 
+            .en_src= FPS_EN_SRC_EN0,
+ 
+            .time_period= FPS_TIME_PERIOD_DEF,
+ 
+  },
+ 
+  {
+ 
+            .src= FPS_SRC_1,
+ 
+            .en_src= FPS_EN_SRC_EN1,
+ 
+            .time_period= FPS_TIME_PERIOD_DEF,
+ 
+  },
+ 
+  {
+ 
+            .src= FPS_SRC_2,
+ 
+            .en_src= FPS_EN_SRC_EN0,
+ 
+            .time_period= FPS_TIME_PERIOD_DEF,
+ 
+  },
+ 
+};
+ 
+ 
+ 
+#define MAX77663_PDATA_INIT(_id,_min_uV, _max_uV, _supply_reg,                   \
+ 
+                         _always_on, _boot_on, _apply_uV,                  \
+ 
+                         _init_apply, _init_enable, _init_uV,          \
+ 
+                         _fps_src, _fps_pu_period, _fps_pd_period,_flags) \
+ 
+  staticstruct max77663_regulator_platform_data max77663_regulator_pdata_##_id = \
+ 
+  {                                                                         \
+ 
+            .init_data= {                                                   \
+ 
+                     .constraints= {                                     \
+ 
+                              .min_uV= _min_uV,                            \
+ 
+                              .max_uV= _max_uV,                          \
+ 
+                              .valid_modes_mask= (REGULATOR_MODE_NORMAL |  \
+ 
+                                                      REGULATOR_MODE_STANDBY), \
+ 
+                              .valid_ops_mask= (REGULATOR_CHANGE_MODE |    \
+ 
+                                                    REGULATOR_CHANGE_STATUS |  \
+ 
+                                                    REGULATOR_CHANGE_VOLTAGE), \
+ 
+                              .always_on= _always_on,                \
+ 
+                              .boot_on= _boot_on,                         \
+ 
+                              .apply_uV= _apply_uV,                      \
+ 
+                     },                                                     \
+ 
+                     .num_consumer_supplies=                       \
+ 
+                              ARRAY_SIZE(max77663_##_id##_supply),      \
+ 
+                     .consumer_supplies= max77663_##_id##_supply,        \
+ 
+                     .supply_regulator= _supply_reg,             \
+ 
+            },                                                               \
+ 
+            .init_apply= _init_apply,                             \
+ 
+            .init_enable= _init_enable,                                 \
+ 
+            .init_uV= _init_uV,                                       \
+ 
+            .fps_src= _fps_src,                                      \
+ 
+            .fps_pu_period= _fps_pu_period,                     \
+ 
+            .fps_pd_period= _fps_pd_period,                     \
+ 
+            .fps_cfgs= max77663_fps_cfgs,                                 \
+ 
+            .flags= _flags,                                      \
+ 
+  }
+ 
+ 
+ 
+MAX77663_PDATA_INIT(sd0,  600000, 3387500, NULL, 1, 0, 0,0, 0, -1,FPS_SRC_NONE, -1, -1, EN2_CTRL_SD0);
+ 
+ 
+ 
+MAX77663_PDATA_INIT(sd1,  800000, 1587500, NULL, 1, 0, 0,1, 1, -1,FPS_SRC_1, FPS_POWER_PERIOD_1, FPS_POWER_PERIOD_6, 0);
+ 
+ 
+ 
+MAX77663_PDATA_INIT(sd2,  1800000, 1800000, NULL, 1, 0, 0,1, 1, -1,FPS_SRC_0, -1, -1, 0);
+ 
+ 
+ 
+MAX77663_PDATA_INIT(sd3,  600000, 3387500, NULL, 1, 0, 0,1, 1, -1,FPS_SRC_0, -1, -1, 0);
+ 
+ 
+ 
+MAX77663_PDATA_INIT(ldo0, 800000,2350000, max77663_rails(sd3), 1, 0, 0,1, 1, -1, FPS_SRC_1, -1, -1, 0);
+ 
+ 
+ 
+MAX77663_PDATA_INIT(ldo1, 800000,2350000, max77663_rails(sd3), 0, 0, 0,0, 0, -1, FPS_SRC_NONE, -1, -1, 0);
+ 
+ 
+ 
+MAX77663_PDATA_INIT(ldo2, 800000,3950000, NULL, 1, 0, 0,1, 1, -1, FPS_SRC_1, -1, -1, 0);
+ 
+ 
+ 
+MAX77663_PDATA_INIT(ldo3, 800000,3950000, NULL, 1, 0, 0,1, 1, -1, FPS_SRC_1, -1, -1, 0);
+ 
+ 
+ 
+MAX77663_PDATA_INIT(ldo4, 800000,1587500, NULL, 0, 0, 0,1, 1, 1000000, FPS_SRC_0, -1, -1, LDO4_EN_TRACKING);
+ 
+ 
+ 
+MAX77663_PDATA_INIT(ldo5, 800000,2800000, NULL, 0, 0, 0,1, 1, -1, FPS_SRC_NONE, -1, -1, 0);
+ 
+ 
+ 
+MAX77663_PDATA_INIT(ldo6, 800000,3950000, NULL, 0, 0, 0,0, 0, -1, FPS_SRC_NONE, -1, -1, 0);
+ 
+ 
+ 
+MAX77663_PDATA_INIT(ldo7, 800000,3950000, max77663_rails(sd3), 0, 0, 0,0, 0, -1, FPS_SRC_NONE, -1, -1, 0);
+ 
+ 
+ 
+MAX77663_PDATA_INIT(ldo8, 800000,3950000, max77663_rails(sd3), 0, 0, 0,1, 1, -1, FPS_SRC_1, -1, -1, 0);
+ 
+ 
+ 
+#define MAX77663_REG(_id, _data)                                               \
+ 
+  {                                                                         \
+ 
+            .name= "max77663-regulator",                                 \
+ 
+            .id= MAX77663_REGULATOR_ID_##_id,                           \
+ 
+            .platform_data= &max77663_regulator_pdata_##_data,   \
+ 
+            .pdata_size= sizeof(max77663_regulator_pdata_##_data),         \
+ 
+  }
+ 
+ 
+ 
+#define MAX77663_RTC()                                                         \
+ 
+  {                                                                         \
+ 
+            .name= "max77663-rtc",                                             \
+ 
+            .id= 0,                                                     \
+ 
+  }
+ 
+ 
+ 
+static struct mfd_cellmax77663_subdevs[] = {
+ 
+  MAX77663_REG(SD0,sd0),
+ 
+  MAX77663_REG(SD1,sd1),
+ 
+  MAX77663_REG(SD2,sd2),
+ 
+  MAX77663_REG(SD3,sd3),
+ 
+  MAX77663_REG(LDO0,ldo0),
+ 
+  MAX77663_REG(LDO1,ldo1),
+ 
+  MAX77663_REG(LDO2,ldo2),
+ 
+  MAX77663_REG(LDO3,ldo3),
+ 
+  MAX77663_REG(LDO4,ldo4),
+ 
+  MAX77663_REG(LDO5,ldo5),
+ 
+  MAX77663_REG(LDO6,ldo6),
+ 
+  MAX77663_REG(LDO7,ldo7),
+ 
+  MAX77663_REG(LDO8,ldo8),
+ 
+  MAX77663_RTC(),
+ 
+};
+ 
+ 
+ 
+static structmax77663_gpio_config max77663_gpio_cfgs[] = {
+ 
+  {
+ 
+            .gpio= MAX77663_GPIO0,
+ 
+            .dir= GPIO_DIR_OUT,
+ 
+            .dout= GPIO_DOUT_LOW,
+ 
+            .out_drv= GPIO_OUT_DRV_PUSH_PULL,
+ 
+            .alternate= GPIO_ALT_DISABLE,
+ 
+  },
+ 
+  {
+ 
+            .gpio= MAX77663_GPIO1,
+ 
+            .dir= GPIO_DIR_IN,
+ 
+            .dout= GPIO_DOUT_LOW,
+ 
+            .out_drv= GPIO_OUT_DRV_PUSH_PULL,
+ 
+            .alternate= GPIO_ALT_DISABLE,
+ 
+  },
+ 
+  {
+ 
+            .gpio= MAX77663_GPIO2,
+ 
+            .dir= GPIO_DIR_OUT,
+ 
+            .dout= GPIO_DOUT_HIGH,
+ 
+            .out_drv= GPIO_OUT_DRV_OPEN_DRAIN,
+ 
+            .alternate= GPIO_ALT_DISABLE,
+ 
+  },
+ 
+  {
+ 
+            .gpio= MAX77663_GPIO3,
+ 
+            .dir= GPIO_DIR_OUT,
+ 
+            .dout= GPIO_DOUT_LOW,
+ 
+            .out_drv= GPIO_OUT_DRV_OPEN_DRAIN,
+ 
+            .alternate= GPIO_ALT_ENABLE,
+ 
+  },
+ 
+  {
+ 
+            .gpio= MAX77663_GPIO4,
+ 
+            .dir= GPIO_DIR_OUT,
+ 
+            .dout= GPIO_DOUT_HIGH,
+ 
+            .out_drv= GPIO_OUT_DRV_PUSH_PULL,
+ 
+            .alternate= GPIO_ALT_ENABLE,
+ 
+  },
+ 
+  {
+ 
+            .gpio= MAX77663_GPIO5,
+ 
+            .dir= GPIO_DIR_OUT,
+ 
+            .dout= GPIO_DOUT_LOW,
+ 
+            .out_drv= GPIO_OUT_DRV_PUSH_PULL,
+ 
+            .alternate= GPIO_ALT_DISABLE,
+ 
+  },
+ 
+  {
+ 
+            .gpio= MAX77663_GPIO6,
+ 
+            .dir= GPIO_DIR_IN,
+ 
+            .alternate= GPIO_ALT_DISABLE,
+ 
+  },
+ 
+  {
+ 
+            .gpio= MAX77663_GPIO7,
+ 
+            .dir= GPIO_DIR_OUT,
+ 
+            .dout= GPIO_DOUT_LOW,
+ 
+            .out_drv= GPIO_OUT_DRV_OPEN_DRAIN,
+ 
+            .alternate= GPIO_ALT_DISABLE,
+ 
+  },
+ 
+};
+ 
+ 
+ 
+static structmax77663_platform_data max7763_pdata = {
+ 
+  .irq_base = MAX77663_IRQ_BASE,
+ 
+  .gpio_base       = MAX77663_GPIO_BASE,
+ 
+  .flags=SLP_MONITORS_ENABLE|SLP_LPM_ENABLE,
+ 
+  .num_gpio_cfgs       = ARRAY_SIZE(max77663_gpio_cfgs),
+ 
+  .gpio_cfgs         = max77663_gpio_cfgs,
+ 
+ 
+ 
+  .num_subdevs = ARRAY_SIZE(max77663_subdevs),
+ 
+  .sub_devices    = max77663_subdevs,
+ 
+ 
+ 
+  .rtc_i2c_addr   = 0x68,
+ 
+ 
+ 
+  .use_power_off        = true,
+ 
+};
+ 
+ 
+ 
+static struct i2c_board_info__initdata max77663_regulators[] = {
+ 
+  {
+ 
+            /*The I2C address was determined by OTP factory setting */
+ 
+            I2C_BOARD_INFO("max77663",0x3c),
+ 
+            .irq            = INT_EXTERNAL_PMU,
+ 
+            .platform_data         = &max7763_pdata,
+ 
+  },
+ 
+};
+ 
+ 
+ 
+static int __initkai_max77663_regulator_init(void)
+ 
+{
+ 
+  void__iomem *pmc = IO_ADDRESS(TEGRA_PMC_BASE);
+ 
+  u32pmc_ctrl;
+ 
+ 
+ 
+  /*configure the power management controller to trigger PMU
+ 
+   * interrupts when low */
+ 
+  pmc_ctrl= readl(pmc + PMC_CTRL);
+ 
+  writel(pmc_ctrl| PMC_CTRL_INTR_LOW, pmc + PMC_CTRL);
+ 
+ 
+ 
+  i2c_register_board_info(4,max77663_regulators,
+ 
+                              ARRAY_SIZE(max77663_regulators));
+ 
+ 
+ 
+  return0;
+ 
+}
+ 
+ 
+ 
+static structregulator_consumer_supply fixed_reg_en_1v8_cam_supply[] = {      
+ 
+  REGULATOR_SUPPLY("vdd_1v8_cam1",NULL),
+ 
+};
+ 
+ 
+ 
+static structregulator_consumer_supply fixed_reg_en_cam1_ldo_supply[] = {     
+ 
+  REGULATOR_SUPPLY("vdd_cam1",NULL),
+ 
+};
+ 
+ 
+ 
+ 
+ 
+static structregulator_consumer_supply fixed_reg_en_3v3_sys_a01_supply[] = {
+ 
+  REGULATOR_SUPPLY("vdd_3v3",NULL),
+ 
+  REGULATOR_SUPPLY("vdd_3v3_devices",NULL),
+ 
+  REGULATOR_SUPPLY("debug_cons",NULL),
+ 
+  REGULATOR_SUPPLY("pwrdet_pex_ctl",NULL),
+ 
+  REGULATOR_SUPPLY("vddio_gmi",NULL),
+ 
+};
+ 
+ 
+ 
+static structregulator_consumer_supply fixed_reg_en_avdd_hdmi_usb_a01_supply[] = {
+ 
+  REGULATOR_SUPPLY("avdd_hdmi",NULL),
+ 
+  REGULATOR_SUPPLY("avdd_usb",NULL),
+ 
+};
+ 
+ 
+ 
+static structregulator_consumer_supply fixed_reg_en_vddio_vid_supply[] = {
+ 
+  REGULATOR_SUPPLY("vdd_hdmi_con",NULL),
+ 
+};
+ 
+ 
+ 
+static structregulator_consumer_supply fixed_reg_en_vdd_sdmmc1_supply[] = {
+ 
+  REGULATOR_SUPPLY("vddio_sd_slot","sdhci-tegra.0"),
+ 
+};
+ 
+ 
+ 
+static structregulator_consumer_supply fixed_reg_en_3v3_fuse_supply[] = {
+ 
+  REGULATOR_SUPPLY("vdd_fuse",NULL),
+ 
+};
+ 
+ 
+ 
+/* Macro for defining fixedregulator sub device data */
+ 
+#define FIXED_SUPPLY(_name)"fixed_reg_"#_name
+ 
+#define FIXED_REG(_id, _var,_name, _in_supply, _always_on, _boot_on,     \
+ 
+  _gpio_nr,_active_high, _boot_state, _millivolts)  \
+ 
+  staticstruct regulator_init_data ri_data_##_var =                  \
+ 
+  {                                                                         \
+ 
+            .supply_regulator= _in_supply,                                   \
+ 
+            .num_consumer_supplies=                                \
+ 
+                     ARRAY_SIZE(fixed_reg_##_name##_supply),                   \
+ 
+            .consumer_supplies= fixed_reg_##_name##_supply,   \
+ 
+            .constraints= {                                              \
+ 
+                     .valid_modes_mask= (REGULATOR_MODE_NORMAL |         \
+ 
+                                        REGULATOR_MODE_STANDBY),     \
+ 
+                     .valid_ops_mask= (REGULATOR_CHANGE_MODE |      \
+ 
+                                        REGULATOR_CHANGE_STATUS|    \
+ 
+                                        REGULATOR_CHANGE_VOLTAGE), \
+ 
+                     .always_on= _always_on,                         \
+ 
+                     .boot_on= _boot_on,                                  \
+ 
+            },                                                               \
+ 
+  };                                                                        \
+ 
+  staticstruct fixed_voltage_config fixed_reg_##_var##_pdata =   \
+ 
+  {                                                                         \
+ 
+            .supply_name= FIXED_SUPPLY(_name),                            \
+ 
+            .microvolts= _millivolts * 1000,                         \
+ 
+            .gpio= _gpio_nr,                                           \
+ 
+            .enable_high= _active_high,                              \
+ 
+            .enabled_at_boot= _boot_state,                               \
+ 
+            .init_data= &ri_data_##_var,                                     \
+ 
+  };                                                                        \
+ 
+  staticstruct platform_device fixed_reg_##_var##_dev = {    \
+ 
+            .name= "reg-fixed-voltage",                              \
+ 
+            .id= _id,                                                 \
+ 
+            .dev= {                                                    \
+ 
+                     .platform_data= &fixed_reg_##_var##_pdata,     \
+ 
+            },                                                               \
+ 
+  }
+ 
+ 
+ 
+/* A01 specific */
+ 
+FIXED_REG(1, en_3v3_sys_a01,        en_3v3_sys_a01,              NULL,
+ 
+  1,      0,      MAX77663_GPIO_BASE+ MAX77663_GPIO3,        true,         1,      3300);
+ 
+FIXED_REG(2,en_avdd_hdmi_usb_a01, en_avdd_hdmi_usb_a01, FIXED_SUPPLY(en_3v3_sys_a01),
+ 
+  0,      0,      MAX77663_GPIO_BASE+ MAX77663_GPIO2,        true,         0,      3300);
+ 
+FIXED_REG(4, en_vddio_vid_a01,     en_vddio_vid,           NULL,
+ 
+  0,      0,      TEGRA_GPIO_PB2,                             true,         0,      5000);
+ 
+FIXED_REG(9,  en_vdd_sdmmc1_a01, en_vdd_sdmmc1,                FIXED_SUPPLY(en_3v3_sys_a01),
+ 
+  0,      0,      TEGRA_GPIO_PC6,                             true,         0,      3300);
+ 
+FIXED_REG(10, en_3v3_fuse_a01,   en_3v3_fuse,            FIXED_SUPPLY(en_3v3_sys_a01),
+ 
+  0,      0,      TEGRA_GPIO_PC1,                             true,         0,      3300);
+ 
+ 
+ 
+FIXED_REG(11, en_1v8_cam_a01,   en_1v8_cam,            NULL,
+ 
+  0,      0,      TEGRA_GPIO_PS0,                              true,         0,      1800);
+ 
+ 
+ 
+FIXED_REG(12, en_cam1_ldo_a01,  en_cam1_ldo,           FIXED_SUPPLY(en_3v3_sys_a01),  
+ 
+  0,      0,      TEGRA_GPIO_PR6,                             true,         0,      2800);
+ 
+/*
+ 
+ * Creating the fixed regulator device tables
+ 
+ */
+ 
+ 
+ 
+#define ADD_FIXED_REG(_name)     (&fixed_reg_##_name##_dev)
+ 
+ 
+ 
+/* A01 specific */
+ 
+#define E1565_A01_FIXED_REG \
+ 
+  ADD_FIXED_REG(en_3v3_sys_a01),                \
+ 
+  ADD_FIXED_REG(en_avdd_hdmi_usb_a01),  \
+ 
+  ADD_FIXED_REG(en_vddio_vid_a01),    \
+ 
+  ADD_FIXED_REG(en_vdd_sdmmc1_a01),      \
+ 
+  ADD_FIXED_REG(en_3v3_fuse_a01),     \
+ 
+  ADD_FIXED_REG(en_1v8_cam_a01),\
+ 
+  ADD_FIXED_REG(en_cam1_ldo_a01)
+ 
+ 
+ 
+/* Gpio switch regulator platformdata for Kai A01 */
+ 
+static struct platform_device*fixed_reg_devs_a01[] = {
+ 
+  E1565_A01_FIXED_REG
+ 
+};
+ 
+ 
+ 
+static int __initkai_fixed_regulator_init(void)
+ 
+{
+ 
+  inti;
+ 
+  structboard_info board_info;
+ 
+  structplatform_device **fixed_reg_devs;
+ 
+  intnfixreg_devs;
+ 
+ 
+ 
+  tegra_get_board_info(&board_info);
+ 
+ 
+ 
+ 
+ 
+  fixed_reg_devs= fixed_reg_devs_a01;
+ 
+  nfixreg_devs= ARRAY_SIZE(fixed_reg_devs_a01);
+ 
+ 
+ 
+ 
+ 
+  for(i = 0; i < nfixreg_devs; ++i) {
+ 
+            intgpio_nr;
+ 
+            structfixed_voltage_config *fixed_reg_pdata =
+ 
+                     fixed_reg_devs[i]->dev.platform_data;
+ 
+            gpio_nr= fixed_reg_pdata->gpio;
+ 
+ 
+ 
+  }
+ 
+ 
+ 
+  printk("kai_fixed_regulator_initnfixreg_devs=%d\n",nfixreg_devs);
+ 
+ 
+ 
+  returnplatform_add_devices(fixed_reg_devs, nfixreg_devs);
+ 
+}
+ 
+subsys_initcall_sync(kai_fixed_regulator_init);
+ 
+ 
+ 
+int __initkai_regulator_init(void)
+ 
+{
+ 
+  void__iomem *pmc = IO_ADDRESS(TEGRA_PMC_BASE);
+ 
+  u32pmc_ctrl;
+ 
+  intret;
+ 
+ 
+ 
+  /*configure the power management controller to trigger PMU
+ 
+   * interrupts when low */
+ 
+ 
+ 
+  pmc_ctrl= readl(pmc + PMC_CTRL);
+ 
+  writel(pmc_ctrl| PMC_CTRL_INTR_LOW, pmc + PMC_CTRL);
+ 
+ 
+ 
+  ret= kai_max77663_regulator_init();
+ 
+  if(ret < 0)
+ 
+            returnret;
+ 
+ 
+ 
+  return0;
+ 
+}
+ 
+分析：
+ 
+ 
+ 
+首先看__init函数int __initkai_regulator_init(void)
+ 
+->kai_max77663_regulator_init(); //max77663设备初始化函数
+ 
+->i2c_register_board_info(4,max77663_regulators,ARRAY_SIZE(max77663_regulators)); //注册i2c硬件信息
+ 
+->static structi2c_board_info __initdata max77663_regulators[] = {
+ 
+  {
+ 
+            /* The I2C address was determined byOTP factory setting */
+ 
+            I2C_BOARD_INFO("max77663",0x3c),   //i2c地址
+ 
+            .irq            =INT_EXTERNAL_PMU,           //pmu中断
+ 
+            .platform_data         = &max7763_pdata, //要传的平台数据,
+ 
+  },
+ 
+};
+ 
+接下来看平台数据:
+ 
+static structmax77663_platform_data max7763_pdata = {
+ 
+  .irq_base =MAX77663_IRQ_BASE,
+ 
+  .gpio_base       =MAX77663_GPIO_BASE,
+ 
+  .flags=SLP_MONITORS_ENABLE|SLP_LPM_ENABLE,
+ 
+  .num_gpio_cfgs       =ARRAY_SIZE(max77663_gpio_cfgs),
+ 
+  .gpio_cfgs         =max77663_gpio_cfgs,
+ 
+ 
+ 
+  .num_subdevs =ARRAY_SIZE(max77663_subdevs),
+ 
+  .sub_devices    =max77663_subdevs,
+ 
+ 
+ 
+  .rtc_i2c_addr   =0x68, //rtc i2c地址
+ 
+ 
+ 
+  .use_power_off        =true,
+ 
+};
+ 
+  max77663_gpio_cfgs函数主要是一些gpio引脚的初始化.
+ 
+  接下来最重要的函数是: max77663_subdevs
+ 
+static structmfd_cell max77663_subdevs[] = {
+ 
+  MAX77663_REG(SD0, sd0),
+ 
+  MAX77663_REG(SD1, sd1),
+ 
+……….
+ 
+};
+ 
+MAX77663_REG它是一个宏,我们展开看一下.
+ 
+#defineMAX77663_REG(_id, _data)                                              \
+ 
+  {                                                                         \
+ 
+            .name ="max77663-regulator",                                 \
+ 
+            .id = MAX77663_REGULATOR_ID_##_id,                           \
+ 
+            .platform_data =&max77663_regulator_pdata_##_data,   \
+ 
+            .pdata_size =sizeof(max77663_regulator_pdata_##_data),         \
+ 
+  }
+ 
+ 
+ 
+很明显他是要给一些参数赋值.
+ 
+不过，到这里好像我们的跟踪断了... 
+
+不用着急我们再看下面一个宏.
+ 
+MAX77663_PDATA_INIT(sd0,  600000, 3387500, NULL, 1, 0, 0,0, 0, -1,FPS_SRC_NONE, -1, -1, EN2_CTRL_SD0);
+ 
+MAX77663_PDATA_INIT(sd1,  800000, 1587500, NULL, 1, 0, 0,1, 1, -1,FPS_SRC_1, FPS_POWER_PERIOD_1, FPS_POWER_PERIOD_6, 0);
+ 
+……
+ 
+先猜想一下,这个应该是赋值的地方.接下来我们看MAX77663_PDATA_INIT是一个什么东东.
+ 
+ 
+ 
+#defineMAX77663_PDATA_INIT(_id, _min_uV, _max_uV, _supply_reg,                  \
+ 
+                         _always_on, _boot_on, _apply_uV,                  \
+ 
+                         _init_apply, _init_enable, _init_uV,          \
+ 
+                         _fps_src, _fps_pu_period, _fps_pd_period,_flags) \
+ 
+  static struct max77663_regulator_platform_datamax77663_regulator_pdata_##_id = \
+ 
+  {                                                                         \
+ 
+            .init_data = {                                                   \
+ 
+                     .constraints = {                                     \
+ 
+                              .min_uV = _min_uV,                            \
+ 
+                              .max_uV = _max_uV,                          \
+ 
+                              .valid_modes_mask= (REGULATOR_MODE_NORMAL |  \
+ 
+                                                      REGULATOR_MODE_STANDBY), \
+ 
+                              .valid_ops_mask =(REGULATOR_CHANGE_MODE |    \
+ 
+                                                    REGULATOR_CHANGE_STATUS |  \
+ 
+                                                    REGULATOR_CHANGE_VOLTAGE), \
+ 
+                              .always_on =_always_on,                \
+ 
+                              .boot_on =_boot_on,                         \
+ 
+                              .apply_uV =_apply_uV,                      \
+ 
+                     },                                                     \
+ 
+                     .num_consumer_supplies =                       \
+ 
+                              ARRAY_SIZE(max77663_##_id##_supply),      \
+ 
+                     .consumer_supplies =max77663_##_id##_supply,        \
+ 
+                     .supply_regulator =_supply_reg,             \
+ 
+            },                                                               \
+ 
+            .init_apply = _init_apply,                             \
+ 
+            .init_enable = _init_enable,                                 \
+ 
+            .init_uV = _init_uV,                                       \
+ 
+            .fps_src = _fps_src,                                      \
+ 
+            .fps_pu_period = _fps_pu_period,                     \
+ 
+            .fps_pd_period = _fps_pd_period,                     \
+ 
+            .fps_cfgs = max77663_fps_cfgs,                                 \
+ 
+            .flags = _flags,                                      \
+ 
+  }
+ 
+哇~~~ 这又是一个宏.
+ 
+不用头晕.
+ 
+我们对比一个这两个东东: 1.                                        .platform_data =  &max77663_regulator_pdata_##_data,        
+ 
+2.               staticstruct max77663_regulator_platform_data   max77663_regulator_pdata_##_id =
+ 
+明白了,程序执行MAX77663_REG(SD0, sd0),这一句的时候
+ 
+会执行这个&max77663_regulator_pdata_##_data, (注意,data=sd0)
+ 
+然后会执行max77663_regulator_pdata_##_id  (_id传过来的是值是sd0)
+ 
+就等于执行了这个宏:
+ 
+#defineMAX77663_PDATA_INIT(_id, _min_uV, _max_uV, _supply_reg,                  \
+ 
+                         _always_on, _boot_on, _apply_uV,                  \
+ 
+                         _init_apply, _init_enable, _init_uV,          \
+ 
+                         _fps_src, _fps_pu_period, _fps_pd_period,_flags) \
+ 
+         static structmax77663_regulator_platform_data max77663_regulator_pdata_##_id =
+ 
+这个宏是怎么赋值参数的, 参数在哪里传进来呢?
+ 
+答案就是这个宏: MAX77663_PDATA_INIT
+ 
+别忘记了这个函数max77663_regulator_pdata_##_id ,传进来的_id=sd0
+ 
+那么等于这组参数会被调用:
+ 
+MAX77663_PDATA_INIT(sd0, 600000, 3387500, NULL, 1, 0, 0,0, 0, -1, FPS_SRC_NONE, -1, -1,EN2_CTRL_SD0);
+ 
+好了,在这里参数值传进来了,可以赋值了.
+ 
+赋值:
+ 
+#defineMAX77663_PDATA_INIT(_id, _min_uV, _max_uV, _supply_reg,                  \
+ 
+                         _always_on, _boot_on, _apply_uV,                  \
+ 
+                         _init_apply, _init_enable, _init_uV,          \
+ 
+                         _fps_src, _fps_pu_period, _fps_pd_period,_flags) \
+ 
+  static struct max77663_regulator_platform_datamax77663_regulator_pdata_##_id = \
+ 
+  {                                                                         \
+ 
+            .init_data = {                                                   \
+ 
+                     .constraints = {                                     \
+ 
+                              .min_uV = _min_uV,                            \
+ 
+                              .max_uV = _max_uV,                          \
+ 
+                              .valid_modes_mask= (REGULATOR_MODE_NORMAL |  \
+ 
+                                                      REGULATOR_MODE_STANDBY), \
+ 
+                              .valid_ops_mask =(REGULATOR_CHANGE_MODE |    \
+ 
+                                                    REGULATOR_CHANGE_STATUS |  \
+ 
+                                                    REGULATOR_CHANGE_VOLTAGE), \
+ 
+                              .always_on =_always_on,                \
+ 
+                              .boot_on =_boot_on,                         \
+ 
+                              .apply_uV =_apply_uV,                      \
+ 
+                     },                                                     \
+ 
+                     .num_consumer_supplies =                       \
+ 
+                              ARRAY_SIZE(max77663_##_id##_supply),      \
+ 
+                     .consumer_supplies =max77663_##_id##_supply,        \
+ 
+                     .supply_regulator =_supply_reg,             \
+ 
+            },                                                               \
+ 
+            .init_apply = _init_apply,                             \
+ 
+            .init_enable = _init_enable,                                 \
+ 
+            .init_uV = _init_uV,                                       \
+ 
+            .fps_src = _fps_src,                                      \
+ 
+            .fps_pu_period = _fps_pu_period,                     \
+ 
+            .fps_pd_period = _fps_pd_period,                     \
+ 
+            .fps_cfgs = max77663_fps_cfgs,                                 \
+ 
+            .flags = _flags,                                      \
+ 
+  }
+ 
+ 
+ 
+接下来我们需要关心消费者的问题,就是我们注册了regulator,谁去使用它呢?
+ 
+注意这个函数: .consumer_supplies = max77663_##_id##_supply,       \
+ 
+又是一个宏, ##_id## ,我们知道了,刚刚我们传进来的_id是sd0,那么该函数就是:max77663_sd0_supply.
+ 
+查找一下函数试试～～～
+ 
+～～～找到了．
+ 
+static struct regulator_consumer_supply max77663_sd0_supply[] ={
+ 
+         REGULATOR_SUPPLY("vdd_cpu",NULL),
+ 
+};
+ 
+ 
+ 
+static struct regulator_consumer_supply max77663_sd1_supply[] ={
+ 
+         REGULATOR_SUPPLY("vdd_core",NULL),
+ 
+};
+ 
+….
+ 
+Ok! 终于对上了.
+ 
+REGULATOR_SUPPLY("vdd_cpu", NULL),
+ 
+"vdd_cpu"是代表一路regulator
+ 
+后面的NULL代表消费者，　
+ 
+注意一个regulator可以包括很多消费者的．
+ 
+为NULL那我们get的时候就不用关心消费者,只关心是哪一路regulator就好
+ 
+ 
+ 
+其它路的regulator流程完全一样．
+ 
+ 
+ 
+还有一点要特别指出的是:
+ 
+#defineMAX77663_REG(_id, _data)                                              \
+ 
+  {                                                                         \
+ 
+            .name ="max77663-regulator",                                 \
+ 
+            .id = MAX77663_REGULATOR_ID_##_id,                           \
+ 
+            .platform_data =&max77663_regulator_pdata_##_data,   \
+ 
+            .pdata_size =sizeof(max77663_regulator_pdata_##_data),         \
+ 
+  }
+ 
+这个宏它会多次被调用, 就是说他有多路regulator的平台设备name都一样, .name ="max77663-regulator".
+ 
+那么我们可以大胆的设想一下,是不是平台驱动会probe很多次?
+ 
+Yes,答案是肯定的,这个等我们分析平台驱动的时候就会知道.
+ 
+ 
+ 
+ 
+ 
+到这里为止平台设备注册成功了．下一步需要关心驱动了．
+ 
+Regulator驱动:     kernel\drivers\regulator\max77663-regulator.c
+ 
+                                     kernel\include\linux\regulator\max77663-regulator.h
+ 
+首先看init函数:
+ 
+static int __init max77663_regulator_init(void)
+ 
+{
+ 
+         returnplatform_driver_register(&max77663_regulator_driver);
+ 
+}
+ 
+注册了一个max77663_regulator_driver的平台驱动.
+ 
+ 
+ 
+static struct platform_driver max77663_regulator_driver = {
+ 
+         .probe =max77663_regulator_probe,
+ 
+         .remove =__devexit_p(max77663_regulator_remove),
+ 
+         .driver = {
+ 
+                   .name ="max77663-regulator",
+ 
+                   .owner =THIS_MODULE,
+ 
+         },
+ 
+};
+ 
+重点关心probe函数: .probe = max77663_regulator_probe,
+ 
+static int max77663_regulator_probe(struct platform_device*pdev)
+ 
+{
+ 
+         structregulator_desc *rdesc;
+ 
+         structmax77663_regulator *reg;
+ 
+         int ret = 0;
+ 
+ 
+ 
+         if ((pdev->id< 0) || (pdev->id >= MAX77663_REGULATOR_ID_NR)) {
+ 
+                   dev_err(&pdev->dev,"Invalid device id %d\n", pdev->id);
+ 
+                   return-ENODEV;
+ 
+         }
+ 
+ 
+ 
+         rdesc =&max77663_rdesc[pdev->id];
+ 
+         reg =&max77663_regs[pdev->id];
+ 
+         reg->dev =&pdev->dev;
+ 
+         reg->pdata =dev_get_platdata(&pdev->dev);
+ 
+ 
+ 
+         dev_dbg(&pdev->dev,"probe: name=%s\n", rdesc->name);
+ 
+ 
+ 
+         ret =max77663_regulator_preinit(reg);
+ 
+         if (ret) {
+ 
+                   dev_err(&pdev->dev,"probe: Failed to preinit regulator %s\n",
+ 
+                            rdesc->name);
+ 
+                   returnret;
+ 
+         }
+ 
+ 
+ 
+         reg->rdev =regulator_register(rdesc, &pdev->dev,
+ 
+                                            &reg->pdata->init_data, reg);
+ 
+         if(IS_ERR(reg->rdev)) {
+ 
+                   dev_err(&pdev->dev,"probe: Failed to register regulator %s\n",
+ 
+                            rdesc->name);
+ 
+                   returnPTR_ERR(reg->rdev);
+ 
+         }
+ 
+ 
+ 
+         return 0;
+ 
+}
+ 
+这几条用于得到平台设备传过来的平台数据:
+ 
+         rdesc =&max77663_rdesc[pdev->id];
+ 
+         reg =&max77663_regs[pdev->id];
+ 
+         reg->dev =&pdev->dev;
+ 
+         reg->pdata =dev_get_platdata(&pdev->dev);
+ 
+注意这里只传过来一路regulator的信息,所以我们之前的猜想完全是对的,
+ 
+就是这个probe函数会多次被调用,每一路regulator设备会调用一次.
+ 
+那么是不是意味着这不是一个驱动而是一组驱动呢?
+ 
+嗯,或许你可以这样理解.
+ 
+这里我们分析一路就好了,其它的也就完全一样了.
+ 
+其中这两句比较重要:
+ 
+         rdesc =&max77663_rdesc[pdev->id];
+ 
+         reg =&max77663_regs[pdev->id];
+ 
+先看rdesc =&max77663_rdesc[pdev->id];
+ 
+static struct regulator_descmax77663_rdesc[MAX77663_REGULATOR_ID_NR] = {
+ 
+         REGULATOR_DESC(SD0,sd0),
+ 
+         REGULATOR_DESC(DVSSD0,dvssd0),
+ 
+……
+ 
+};
+ 
+我们展开宏: REGULATOR_DESC
+ 
+#define REGULATOR_DESC(_id, _name)                           \
+ 
+         [MAX77663_REGULATOR_ID_##_id]= {          \
+ 
+                   .name =max77663_rails(_name),           \
+ 
+                   .id =MAX77663_REGULATOR_ID_##_id,        \
+ 
+                   .ops =&max77663_ldo_ops,            \
+ 
+                   .type =REGULATOR_VOLTAGE,                \
+ 
+                   .owner =THIS_MODULE,                           \
+ 
+         }
+ 
+ 
+ 
+明白了,他是注册了一个opration操作函数.
+ 
+static struct regulator_ops max77663_ldo_ops = {
+ 
+         .set_voltage =max77663_regulator_set_voltage,
+ 
+         .get_voltage =max77663_regulator_get_voltage,
+ 
+         .enable =max77663_regulator_enable,
+ 
+         .disable =max77663_regulator_disable,
+ 
+         .is_enabled =max77663_regulator_is_enabled,
+ 
+         .set_mode =max77663_regulator_set_mode,
+ 
+         .get_mode =max77663_regulator_get_mode,
+ 
+};
+ 
+看见了没有?这是有设置regulator的电压,和得到电压,以及enabled等函数.
+ 
+很明显,这些函数是留给消费者使用的.
+ 
+好了,消费者怎么使用的问题有了头绪了,可是还有一个问题,硬件信息呢?
+ 
+接下来我们看: reg =&max77663_regs[pdev->id];
+ 
+static struct max77663_regulatormax77663_regs[MAX77663_REGULATOR_ID_NR] = {
+ 
+         REGULATOR_SD(SD0,    SDX, SD0, 600000, 3387500, 12500),
+ 
+         REGULATOR_SD(DVSSD0,SDX, NONE, 600000, 3387500, 12500),
+ 
+……
+ 
+}
+ 
+这好像是设置一些电压,电流值的,怎么这么熟悉呢?
+ 
+对了,我们在平台设备注册的时候见过类似的.
+ 
+MAX77663_PDATA_INIT(sd0, 600000, 3387500, NULL, 1, 0, 0,0, 0, -1, FPS_SRC_NONE, -1, -1,EN2_CTRL_SD0);
+ 
+……
+ 
+继续展开宏:REGULATOR_SD
+ 
+#define REGULATOR_LDO(_id, _type, _min_uV, _max_uV, _step_uV) \
+ 
+         [MAX77663_REGULATOR_ID_##_id]= {                   \
+ 
+                   .id =MAX77663_REGULATOR_ID_##_id,                 \
+ 
+                   .type =REGULATOR_TYPE_LDO_##_type,               \
+ 
+                   .volt_mask= LDO_VOLT_MASK,                         \
+ 
+                   .regs ={                                         \
+ 
+                            [VOLT_REG]= {                                     \
+ 
+                                     .addr= MAX77663_REG_##_id##_CFG, \
+ 
+                            },                                            \
+ 
+                            [CFG_REG]= {                              \
+ 
+                                     .addr= MAX77663_REG_##_id##_CFG2, \
+ 
+                            },                                            \
+ 
+                            [FPS_REG]= {                               \
+ 
+                                     .addr= MAX77663_REG_FPS_##_id,       \
+ 
+                            },                                            \
+ 
+                   },                                                     \
+ 
+                   .min_uV= _min_uV,                                     \
+ 
+                   .max_uV= _max_uV,                                   \
+ 
+                   .step_uV= _step_uV,                                  \
+ 
+                   .regulator_mode= REGULATOR_MODE_NORMAL,       \
+ 
+                   .power_mode= POWER_MODE_NORMAL,             \
+ 
+                   .power_mode_mask= LDO_POWER_MODE_MASK,               \
+ 
+                   .power_mode_shift= LDO_POWER_MODE_SHIFT,        \
+ 
+         }
+ 
+好了,这就是要设置的硬件信息了,电压值,寄存器地址都有了.
+ 
+寄存器.regs = {                                            \
+ 
+                            [VOLT_REG]= {                                     \
+ 
+                                     .addr= MAX77663_REG_##_id##_CFG, \
+ 
+                            },                                            \
+ 
+                            [CFG_REG]= {                              \
+ 
+                                     .addr= MAX77663_REG_##_id##_CFG2, \
+ 
+                            },                                            \
+ 
+                            [FPS_REG]= {                               \
+ 
+                                     .addr= MAX77663_REG_FPS_##_id,       \
+ 
+                            },                        
+ 
+我们猜想一下这三个词的意思:
+ 
+ VOLT_REG  电压寄存器
+ 
+CFG_REG   config寄存器
+ 
+FPS_REG   频率寄存器
+ 
+…..先到这吧.
+ 
+ 
+ 
+大家一定也想到了:
+ 
+         rdesc =&max77663_rdesc[pdev->id];
+ 
+         reg =&max77663_regs[pdev->id];
+ 
+这两个值好像有着某种对应关系, 一个可以提供操作函数,一个可以提供硬件的操作信息.那他们俩合在一起的话驱动不就完整了吗?
+ 
+ 
+ 
+接下来看这个函数:
+ 
+ret = max77663_regulator_preinit(reg);
+ 
+顾名思义,对这些传过来的数据进行初始化.
+ 
+ 
+ 
+staticint max77663_regulator_preinit(struct max77663_regulator *reg)
+ 
+{
+ 
+         struct max77663_regulator_platform_data*pdata = _to_pdata(reg);
+ 
+         struct device *parent =_to_parent(reg);
+ 
+         int i;
+ 
+         u8 val, mask;
+ 
+         int ret;
+ 
+ 
+ 
+         /* Update registers */
+ 
+         for (i = 0; i <= FPS_REG; i++) {
+ 
+                   ret = max77663_read(parent,reg->regs[i].addr,
+ 
+                                         &reg->regs[i].val, 1, 0);
+ 
+                   if (ret < 0) {
+ 
+                            dev_err(reg->dev,
+ 
+                                     "preinit:Failed to get register 0x%x\n",
+ 
+                                     reg->regs[i].addr);
+ 
+                            return ret;
+ 
+                   }
+ 
+         }
+ 
+ 
+ 
+         /* Update FPS source */
+ 
+         if (reg->regs[FPS_REG].addr ==MAX77663_REG_FPS_NONE)
+ 
+                   reg->fps_src =FPS_SRC_NONE;
+ 
+         else
+ 
+                   reg->fps_src =(reg->regs[FPS_REG].val & FPS_SRC_MASK)
+ 
+                                     >>FPS_SRC_SHIFT;
+ 
+ 
+ 
+         dev_dbg(reg->dev, "preinit:initial fps_src=%s\n",
+ 
+                   fps_src_name(reg->fps_src));
+ 
+ 
+ 
+         /* Update power mode */
+ 
+         max77663_regulator_get_power_mode(reg);
+ 
+ 
+ 
+         /* Check Chip Identification */
+ 
+         ret = max77663_read(parent,MAX77663_REG_CID5, &val, 1, 0);
+ 
+         if (ret < 0) {
+ 
+                   dev_err(reg->dev,"preinit: Failed to get register 0x%x\n",
+ 
+                            MAX77663_REG_CID5);
+ 
+                   return ret;
+ 
+         }
+ 
+ 
+ 
+         /* If metal revision is less thanrev.3,
+ 
+          * set safe_down_uV for stable down scaling. */
+ 
+         if ((reg->type == REGULATOR_TYPE_SD)&&
+ 
+                            ((val &CID_DIDM_MASK) >> CID_DIDM_SHIFT) <= 2)
+ 
+                   reg->safe_down_uV =SD_SAFE_DOWN_UV;
+ 
+         else
+ 
+                   reg->safe_down_uV = 0;
+ 
+ 
+ 
+         /* Set FPS */
+ 
+         ret =max77663_regulator_set_fps_cfgs(reg, pdata->fps_cfgs,
+ 
+                                                     pdata->num_fps_cfgs);
+ 
+         if (ret < 0) {
+ 
+                   dev_err(reg->dev,"preinit: Failed to set FPSCFG\n");
+ 
+                   return ret;
+ 
+         }
+ 
+ 
+ 
+         /* N-Channel LDOs don't supportLow-Power mode. */
+ 
+         if ((reg->type ==REGULATOR_TYPE_LDO_N) &&
+ 
+                            (pdata->flags& GLPM_ENABLE))
+ 
+                   pdata->flags &=~GLPM_ENABLE;
+ 
+ 
+ 
+         /* To prevent power rail turn-off whenchange FPS source,
+ 
+          * it must set power mode to NORMAL beforechange FPS source to NONE
+ 
+          * from SRC_0, SRC_1 and SRC_2. */
+ 
+         if ((reg->fps_src != FPS_SRC_NONE)&& (pdata->fps_src == FPS_SRC_NONE)
+ 
+                            &&(reg->power_mode != POWER_MODE_NORMAL)) {
+ 
+                   val = (pdata->flags &GLPM_ENABLE) ?
+ 
+                         POWER_MODE_GLPM : POWER_MODE_NORMAL;
+ 
+                   ret =max77663_regulator_set_power_mode(reg, val);
+ 
+                   if (ret < 0) {
+ 
+                            dev_err(reg->dev,"preinit: Failed to "
+ 
+                                     "setpower mode to POWER_MODE_NORMAL\n");
+ 
+                            return ret;
+ 
+                   }
+ 
+         }
+ 
+ 
+ 
+         ret =max77663_regulator_set_fps_src(reg, pdata->fps_src);
+ 
+         if (ret < 0) {
+ 
+                   dev_err(reg->dev,"preinit: Failed to set FPSSRC to %d\n",
+ 
+                            pdata->fps_src);
+ 
+                   return ret;
+ 
+         }
+ 
+ 
+ 
+         ret = max77663_regulator_set_fps(reg);
+ 
+         if (ret < 0) {
+ 
+                   dev_err(reg->dev,"preinit: Failed to set FPS\n");
+ 
+                   return ret;
+ 
+         }
+ 
+ 
+ 
+         /* Set initial state */
+ 
+         if (!pdata->init_apply)
+ 
+                   goto skip_init_apply;
+ 
+ 
+ 
+         if (pdata->init_uV >= 0) {
+ 
+                   ret =max77663_regulator_do_set_voltage(reg, pdata->init_uV,
+ 
+                                                                 pdata->init_uV);
+ 
+                   if (ret < 0) {
+ 
+                            dev_err(reg->dev,"preinit: Failed to set voltage to "
+ 
+                                     "%d\n",pdata->init_uV);
+ 
+                            return ret;
+ 
+                   }
+ 
+         }
+ 
+ 
+ 
+         if (pdata->init_enable)
+ 
+                   val = (pdata->flags &GLPM_ENABLE) ?
+ 
+                         POWER_MODE_GLPM : POWER_MODE_NORMAL;
+ 
+         else
+ 
+                   val = POWER_MODE_DISABLE;
+ 
+ 
+ 
+         ret =max77663_regulator_set_power_mode(reg, val);
+ 
+         if (ret < 0) {
+ 
+                   dev_err(reg->dev,
+ 
+                            "preinit:Failed to set power mode to %d\n", val);
+ 
+                   return ret;
+ 
+         }
+ 
+ 
+ 
+skip_init_apply:
+ 
+         if (reg->type == REGULATOR_TYPE_SD){
+ 
+                   val = 0;
+ 
+                   mask = 0;
+ 
+ 
+ 
+                   if (pdata->flags &SD_SLEW_RATE_MASK) {
+ 
+                            mask |= SD_SR_MASK;
+ 
+                            if (pdata->flags& SD_SLEW_RATE_SLOWEST)
+ 
+                                     val |=(SD_SR_13_75 << SD_SR_SHIFT);
+ 
+                            else if(pdata->flags & SD_SLEW_RATE_SLOW)
+ 
+                                     val |=(SD_SR_27_5 << SD_SR_SHIFT);
+ 
+                            else if(pdata->flags & SD_SLEW_RATE_FAST)
+ 
+                                     val |=(SD_SR_55 << SD_SR_SHIFT);
+ 
+                            else
+ 
+                                     val |=(SD_SR_100 << SD_SR_SHIFT);
+ 
+                   }
+ 
+ 
+ 
+                   mask |= SD_FPWM_MASK;
+ 
+                   if (pdata->flags &SD_FORCED_PWM_MODE)
+ 
+                            val |= SD_FPWM_MASK;
+ 
+ 
+ 
+                   mask |= SD_FSRADE_MASK;
+ 
+                   if (pdata->flags &SD_FSRADE_DISABLE)
+ 
+                            val |=SD_FSRADE_MASK;
+ 
+ 
+ 
+                   ret =max77663_regulator_cache_write(reg,
+ 
+                                     reg->regs[CFG_REG].addr,mask, val,
+ 
+                                     &reg->regs[CFG_REG].val);
+ 
+                   if (ret < 0) {
+ 
+                            dev_err(reg->dev,"preinit: "
+ 
+                                     "Failedto set register 0x%x\n",
+ 
+                                     reg->regs[CFG_REG].addr);
+ 
+                            return ret;
+ 
+                   }
+ 
+ 
+ 
+                   if ((reg->id ==MAX77663_REGULATOR_ID_SD0)
+ 
+                                     &&(pdata->flags & EN2_CTRL_SD0)) {
+ 
+                            val =POWER_MODE_DISABLE;
+ 
+                            ret =max77663_regulator_set_power_mode(reg, val);
+ 
+                            if (ret < 0) {
+ 
+                                     dev_err(reg->dev,"preinit: "
+ 
+                                               "Failedto set power mode to %d for "
+ 
+                                               "EN2_CTRL_SD0\n",val);
+ 
+                                     return ret;
+ 
+                            }
+ 
+ 
+ 
+                            ret =max77663_regulator_set_fps_src(reg, FPS_SRC_NONE);
+ 
+                            if (ret < 0) {
+ 
+                                     dev_err(reg->dev,"preinit: "
+ 
+                                               "Failedto set FPSSRC to FPS_SRC_NONE "
+ 
+                                               "forEN2_CTRL_SD0\n");
+ 
+                                     return ret;
+ 
+                            }
+ 
+                   }
+ 
+         }
+ 
+ 
+ 
+         if ((reg->id ==MAX77663_REGULATOR_ID_LDO4)
+ 
+                            &&(pdata->flags & LDO4_EN_TRACKING)) {
+ 
+                   val = TRACK4_MASK;
+ 
+                   ret = max77663_write(parent,MAX77663_REG_LDO_CFG3, &val, 1, 0);
+ 
+                   if (ret < 0) {
+ 
+                            dev_err(reg->dev,"preinit: "
+ 
+                                     "Failedto set register 0x%x\n",
+ 
+                                     MAX77663_REG_LDO_CFG3);
+ 
+                            return ret;
+ 
+                   }
+ 
+         }
+ 
+ 
+ 
+         return 0;
+ 
+}
+ 
+ 
+ 
+哇,好像有点长.
+ 
+         structmax77663_regulator_platform_data *pdata = _to_pdata(reg);
+ 
+         struct device*parent = _to_parent(reg);
+ 
+第一句是得到平台设备数据,在平台设备注册的时候也有一个max77663_regulator_platform_data哦,可别忘记了.
+ 
+第二句是得到一个父regulator,你的regulator可以给子的regulator供电嘛.好像也没看见怎么使用,不用管了.
+ 
+/* Update registers */
+ 
+         for (i = 0; i<= FPS_REG; i++) {
+ 
+                   ret =max77663_read(parent, reg->regs[i].addr,
+ 
+                                         &reg->regs[i].val, 1, 0);
+ 
+                   if (ret< 0) {
+ 
+                            dev_err(reg->dev,
+ 
+                                     "preinit:Failed to get register 0x%x\n",
+ 
+                                     reg->regs[i].addr);
+ 
+                            returnret;
+ 
+                   }
+ 
+         }
+ 
+ 
+ 
+         /* Update FPSsource */
+ 
+         if(reg->regs[FPS_REG].addr == MAX77663_REG_FPS_NONE)
+ 
+                   reg->fps_src= FPS_SRC_NONE;
+ 
+         else
+ 
+                   reg->fps_src= (reg->regs[FPS_REG].val & FPS_SRC_MASK)
+ 
+                                     >>FPS_SRC_SHIFT;
+ 
+ 
+ 
+         dev_dbg(reg->dev,"preinit: initial fps_src=%s\n",
+ 
+                   fps_src_name(reg->fps_src));
+ 
+ 
+ 
+         /* Update powermode */
+ 
+         max77663_regulator_get_power_mode(reg);
+ 
+这一部分好像都是更新什么寄存器, 都是读的我们不管它.
+ 
+Pmu珍对某个cpu出厂都会预设一组参数进去的,保证cpu最低限度的正常上电时序.
+ 
+….
+ 
+ret = max77663_regulator_set_fps_cfgs(reg,pdata->fps_cfgs,pdata->num_fps_cfgs);
+ 
+进函数:
+ 
+ 
+ 
+static int  max77663_regulator_set_fps_cfgs(structmax77663_regulator *reg,
+ 
+                                     structmax77663_regulator_fps_cfg *fps_cfgs,
+ 
+                                     intnum_fps_cfgs)
+ 
+{
+ 
+         ……
+ 
+                   ret =max77663_regulator_set_fps_cfg(reg, &fps_cfgs[i]);
+ 
+…..
+ 
+}
+ 
+很明显,设置 config寄存器.
+ 
+接着往下看:
+ 
+….
+ 
+ret = max77663_regulator_set_power_mode(reg, val);
+ 
+….
+ 
+ret = max77663_regulator_set_fps_src(reg, pdata->fps_src);
+ 
+….
+ 
+ret = max77663_regulator_set_fps(reg);
+ 
+….
+ 
+ret = max77663_regulator_do_set_voltage(reg,pdata->init_uV,pdata->init_uV);
+ 
+….
+ 
+不想看了,写的很长,但无非全是些初始化操作,什么config寄存器呀,频率寄存器呀,电压寄存器呀.
+ 
+初始化函数到此为止吧.
+ 
+我们接着probe函数往下看:
+ 
+         reg->rdev =regulator_register(rdesc, &pdev->dev,&reg->pdata->init_data,reg);
+ 
+这就是注册regulator了.
+ 
+和我们之前说的一样.
+ 
+         rdesc =&max77663_rdesc[pdev->id];
+ 
+         reg =&max77663_regs[pdev->id];
+ 
+这两个结构合作了, 一个有硬件,寄存器配制信息,一个有opration操作函数,驱动完整了.
+ 
+接下个完成各自的opration操作函数就ok了.
+ 
+ 
+ 
+static struct regulator_ops max77663_ldo_ops = {
+ 
+         .set_voltage =max77663_regulator_set_voltage,
+ 
+         .get_voltage =max77663_regulator_get_voltage,
+ 
+         .enable =max77663_regulator_enable,
+ 
+         .disable =max77663_regulator_disable,
+ 
+         .is_enabled =max77663_regulator_is_enabled,
+ 
+         .set_mode =max77663_regulator_set_mode,
+ 
+         .get_mode =max77663_regulator_get_mode,
+ 
+};
+ 
+到此为止,流程全通了,实现这些函数应该没难度,和平常写函数的思路大同小异.
+ 
+其实max77663驱动除了,regulator驱动部分还有.
+ 
+Regulator驱动:     kernel\drivers\regulator\max77663-regulator.c
+ 
+                                     kernel\include\linux\regulator\max77663-regulator.h
+ 
+rtc驱动:        kernel\drivers\rtc\rtc-max77663.c
+ 
+max77663  core驱动:     kernel\drivers\mfd\max77663-core.c
+ 
+                                kernel\linux\mfd\max77663-core.h
+ 
+细心的人一定发现了,我们在平台设备注册的时候有两个i2c地址,
+ 
+其中一个是regulator的i2c地址,另一个则是rtc的i2c地址.
+ 
+max77663  Core驱动其实是包括了一些regulator的具体硬件最终的操作,我们的opration的最终操作函数会调用到里面.
+ 
+ 
+ 
+这些部分和平常的驱动几乎一样,所以也没有必要分析了.
+ 
+Regulator讲完了,pmu的流程其实都已经清楚了.
+ 
+ 
+ 
+最后还要就是regulator怎么使用?我们注册了regulator,也初始化了它,还注册了opration函数.但并没有消费者真正去使用它.
+ 
+记得我们刚学linux驱动的时候,有一个file_opration函数,
+ 
+这里的操作函数是让上层c语言应用程序调用的.
+ 
+可是我们这里的opration函数不是这样的,他是给其它模块使用的.即:其它驱动程序使用.
+ 
+比如:触摸屏它使用了一路regulator,他在机器suspend的时候要求关电(或者说低电),在机器开屏的时候才要求上电使用.
+ 
+那么:
+ 
+使用过程是这样的:
+ 
+1.我们先注册一个全局的regulator
+ 
+static struct regulator *dsi_reg = NULL;
+ 
+ 
+ 
+2.然后get regulator
+ 
+dsi_reg = regulator_get(NULL, "avdd_dsi_csi");
+ 
+这个我们应该有印象,在平台设备注册的时候我们有注册它.
+ 
+如:
+ 
+static struct regulator_consumer_supply max77663_ldo7_supply[] ={
+ 
+         REGULATOR_SUPPLY("avdd_dsi_csi",NULL),
+ 
+         REGULATOR_SUPPLY("pwrdet_mipi",NULL),
+ 
+};
+ 
+Ok,之前我们注册了它,现在我们得到它
+ 
+ 
+ 
+ 
+ 
+3.给它上电就使能它
+ 
+regulator_enable(dsi_reg);
+ 
+ 
+ 
+4.我们不再需要的时候就禁止它,以及放回它的使用权.
+ 
+         regulator_disable(dsi_reg);
+ 
+         regulator_put(dsi_reg);
+ 
+ 
+ 
+还有一些操作函数如:
+ 
+int regulator_get_voltage(struct regulator *regulator)
+ 
+int regulator_set_current_limit(struct regulator *regulator,intmin_uA, int max_uA)
+ 
+….
+ 
+具体请参考: kernel\drivers\regulator\core.c
+ 
+Over!
+ 
+
+
+
+更多 
+
+•上一篇：关于linux regulator dirver(1) fixed regulator
+•下一篇：Android系统Recovery工作原理之使用update.zip升级过程分析（一）---update.zip包的制作
+ 
+顶1踩0 
+
+
+查看评论
+ 
+
+
+
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+核心技术类目
+
+ 全部主题 Java VPN Android iOS ERP IE10 Eclipse CRM JavaScript Ubuntu NFC WAP jQuery 数据库 BI HTML5 Spring Apache Hadoop .NET API HTML SDK IIS Fedora XML LBS Unity Splashtop UML components Windows Mobile Rails QEMU KDE Cassandra CloudStack FTC coremail OPhone CouchBase 云计算 iOS6 Rackspace Web App SpringSide Maemo Compuware 大数据 aptech Perl Tornado Ruby Hibernate ThinkPHP Spark HBase Pure Solr Angular Cloud Foundry Redis Scala Django Bootstrap
+ 
+
+
+
+
+个人资料 
+
+wantianpei 
+
+
+
+
+◦访问：35045次
+◦积分：730分
+◦排名：第18423名
+ ◦原创：19篇
+◦转载：52篇
+◦译文：8篇
+◦评论：24条
+ 
+文章搜索
+
+ 
+文章分类 • 原创(18) 
+
+文章存档 
+•2013年11月(1)
+•2013年10月(1)
+•2013年08月(2)
+•2013年06月(2)
+•2013年05月(15)
+•2013年04月(5)
+•2013年01月(5)
+•2012年10月(1)
+•2012年09月(2)
+•2012年08月(9)
+•2012年07月(4)
+•2012年06月(29)
+•2012年05月(3)
+ 
+阅读排行 • c++的thread类(c++线程简单用法）(2337) 
+• ext4格式 打包/解包(2263) 
+• jni的JNIEnv指针和jobject指针(1888) 
+• bcm4330蓝牙分析总结(1839) 
+• Android电池架构分析(1595) 
+• Android"重力加速度传感器"从驱动到应用层全程分析(1318) 
+• Android.mk 杂乱分析(1052) 
+• linux为什么要引入平台驱动(982) 
+• eclipse快速加入android全部源码(972) 
+• 基于linux下的dm9000网卡移植全分析(831) 
+
+评论排行 • Android"重力加速度传感器"从驱动到应用层全程分析(4) 
+• Android电池架构分析(3) 
+• 只有一个Service或Broadcast Reciver的android应用(3) 
+• bcm4330蓝牙分析总结(3) 
+• jni的JNIEnv指针和jobject指针(3) 
+• linux为什么要引入平台驱动(2) 
+• 基于linux下的dm9000网卡移植全分析(2) 
+• android定制化开关机动画、铃音(1) 
+• linux中断响应和处理过程分析(1) 
+• typedef 函数指针的用法(1) 
+
+推荐文章 
+最新评论 •jni的JNIEnv指针和jobject指针
+meitianainid: 顶一下，写得不错 
+
+•基于linux下的dm9000网卡移植全分析
+sddzycnqjn: @zhutoubenben:请问你看到哪里分析为什么是 +0x300h 了？ 
+
+•linux中断响应和处理过程分析
+shen332401890: 学习了 谢谢楼主 
+
+•android定制化开关机动画、铃音
+stra09: 试一下，楼主辛苦了 
+
+•linux为什么要引入平台驱动
+BYD123: 没有从技术层面讲解，扯扯皮而已。 
+
+•jni的JNIEnv指针和jobject指针
+dl6655: 说得不错，学习了 
+
+•jni的JNIEnv指针和jobject指针
+shen332401890: 看完了 还是不太明白，不过还是谢谢楼主分享~！ 
+
+•typedef 函数指针的用法
+ll124884135: 发现好多地方都有用到！嘿嘿！比较实用哦！相当于重载了函数. 
+
+•Android"重力加速度传感器"从驱动到应用层全程分析
+wantianpei: @lansefeiyang08:android提供了sensors.h这个文件，告诉你android... 
+
+•Android"重力加速度传感器"从驱动到应用层全程分析
+lansefeiyang08: 1、1.3 Java Framework例如类SensorManager，它作为系统的守护进程在初始... 
+
+
+
+
+
+

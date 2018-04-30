@@ -1,0 +1,310 @@
+
+
+
+
+
+Screenshots
+ Propaganda
+ Users
+ Licensing
+ Blog
+ Forum
+ DocumentationLearning
+
+
+
+ Using vvvv
+
+
+
+
+
+
+ Topics
+
+
+
+
+
+
+
+
+
+
+
+ Node Reference
+ Devvvveloping
+
+
+
+
+
+
+ Website
+ 
+Contributions
+ Downloads
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+vvvv » Documentation » Learning » Tutorials
+» Wave Simulation
+
+
+
+
+Wave Simulation
+
+
+
+
+
+
+
+
+This page explains the algorithm behind grid based wave simulations.
+ 
+1-Dimensional Case:
+ 
+Think of a 1-d wave like this:
+ 
+
+
+now the main idea is that a wave can be approximated by a row of individual points, which can just move up and downwards. seen together they will form the wave.
+ 
+each point can move up- and downwards.
+ but after what mechanism?
+ 
+this also not too difficult.
+ 
+1. newton
+ 
+every point has a position in y and a velocity with which it is moving up and downwards. positive velocities mean the point is moving upwards, negative downwards.
+ 
+in each frame a new position is calculated by adding the velocity:
+ 
+p = p_lastframe + v
+ 
+now also the velocity is calculated after newtons idea. the velocity of the point can be altered by adding acceleration:
+ 
+v = v_lastframe + a
+ 
+so this is just the basic newton model of moving particles in space. and at the moment the points don't influence each other. they are just prepared to be accelerated up- or downwards. 
+
+the second step will be to calculate the acceleration of each point.
+ 
+2. neighbours
+ 
+the idea is that every point is connected to the neighbour points by springs:
+ 
+
+
+and this is the amazing part: every point is just being pushed around by its neighbour via these strings. with this mechanism energy (like one oscillating point) will be transfered through the whole string system of connected points.
+ 
+each point just tends to move into the middle of its neighbours so that both springs (to the left and to the right of each point) are perfectly relaxed.
+ 
+it depends on the strength of the strings (and of the mass of each point) in what amount this force on each particle will influence its acceleration.
+ we need the difference between each point and its neighbours:
+ 
+delta_p = (p_left - p) + (p_right - p)
+         = p_left + p_right - 2*p 
+ we need to accelerate the point into this direction:
+ 
+a = attack * delta_p
+ 
+attack is just a global variable which decides how jittery the system is.
+ ah, and the system should slow down after a while
+ 
+v = (v_lastframe + a) * slowdown
+ 
+if a value for slowdown like 0.99 is chosen a point will loose 1% of its energy in each frame. (also try 0.999)
+ 
+3. put all together
+ 
+p = p_lastframe + v
+ v = (v_lastframe + a) * slowdown
+ 
+=>
+ p = p_lastframe + (v_lastframe + a) * slowdown
+ 
+a = attack * delta_p
+ delta_p = p_left + p_right - 2*p 
+
+delta_p is also computed with values of the last frame.
+ p_left means p_left_lastframe ... p means p_lastframe
+ 
+=>
+ a = attack * (p_left + p_right - 2*p_lastframe)
+ 
+p = p_lastframe + (v_lastframe + a) * slowdown
+ a = attack * (p_left + p_right - 2*p)
+ 
+=>
+ p = p_lastframe + (v_lastframe + (attack * (p_left + p_right - 2*p_lastframe))) * slowdown
+ 
+that's it!
+ 
+a patch
+ 
+a patch, which works with a 1-d spread and does exactly the stuff described above is downloadable here: 
+
+tiki-download_file.php?fileId=559wave 1d.v4p (18.35 Kb)</a>
+ 
+some tricks:
+ to modulate the wave we just need a spread of values.
+ to get p_lastframe we put that spread into a framedelay.
+ because we don't want to handle the velocity in a second spread we can substitute v_lastframe:
+ 
+v_lastframe = p_lastframe - p_beforelastframe (we need another framedelay)
+ to get p_left and p_right we have to shift the spread.
+ 
+2-Dimensional Case:
+ 
+in the 2d case everything is the same. only each point has 4 neighbours:
+ 
+p = p_lastframe + (v_lastframe + (attack * (p_left + p_right + p_top + p_bottom - 4*p_lastframe))) * slowdown
+ 
+a shader
+ 
+some tricks:
+ it works with a texture in which every pixel stores its actual wave height = position p.
+ if we put that in a queue (texture) we get p_lastframe.
+ the neighbours can be reached be altering the texturecoordinates when doing the 2D texture lookup in the pixelshader.
+ we also use the trick to substitute v_lastframe with
+ 
+v_lastframe = p_lastframe - p_beforelastframe
+ that means we need the texture of the last frame and the texture before the last frame. so the queue has to store 2 textures.. 
+
+download the wave simulation:
+ tiki-download_file.php?fileId=578wave01.zip (6.50 Kb)</a>
+ tiki-download_file.php?fileId=1200wave02.zip (13.71 Kb)</a>
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+3-Dimensional Case
+ 
+a plugin that extends this algorithm to 3 dimensions can be found in the addonpack at the downloads site.
+
+
+
+
+anonymous user login
+
+ 
+
+
+
+
+
+Shoutbox
+
+
+
+
+
+
+~9h ago
+
+Hadasi:http://www.escapemotions.com/experiments/flame/index.html
+ 
+
+
+~10h ago
+
+tonfilm: you can listen to the #techno #jazz #liveset from #vvvvX at #lamf here on #soundcloud : https://soundcloud.com/tonfilmtechno/tonfilm-techno-live-on-vvvvx
+ 
+
+
+~17h ago
+
+matka: thanks vux 
+
+
+
+~18h ago
+
+vux: And here is part 2 :) https://vimeo.com/56469381
+ 
+
+
+~22h ago
+
+vux: Part 1 online: https://vimeo.com/56462513 upload Part 2 soon 
+
+
+
+~1d ago
+
+metrowave: Has anybody tried 'ACCELL ULTRAAV'? http://www.ebay.co.uk/itm/ACCELL-ULTRAAV-BETTER-THAN-MATROX-TRIPLEHEAD2GO-LAPTOP-MACKBOOK-/261147971924?pt=PCC_Video_TV_Cards&hash=item3ccda1d154
+ 
+
+
+~2d ago
+
+metrowave: @vux: the video tutorials are very much appreciated! 
+
+
+
+~2d ago
+
+manolito: @ventolinmono: vlagshipstore is un-occupied at the moment. we will be back in 2013. 
+
+
+
+~2d ago
+
+yair: @skyliner , im at #brvrbt, near the soldering workshops. say hi 
+
+
+
+~2d ago
+
+fibo: @vux: big step forward HLSL coding in v4 
+
+read more
+ follow on twitter
+
+ 
+
+impressum | Page created by gregsn, last modification by tonfilm on 21.03.12 [20:45 UTC], read 13396 times 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.

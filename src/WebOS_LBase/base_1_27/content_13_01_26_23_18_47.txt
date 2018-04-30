@@ -1,0 +1,521 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+星星的技术专栏
+
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年1月当选微软MVP名单揭晓！    智能开发框架 JEECG 作者张代浩专访
+ 2012CSDN博客之星火热出炉！      2013年全国百所高校巡讲讲师招募 
+
+
+
+利用commons-email发送邮件的简单例子 
+.
+ 分类： Java相关2009-12-05 15:48271人阅读评论(0)收藏举报
+
+ 
+1.这个是Email类
+ 
+
+
+
+[c-sharp] view plaincopy
+01.import java.util.ArrayList;  
+02.import java.util.List;  
+03.  
+04.public class Email {  
+05.  
+06.    public enum KIND {  
+07.        HTML, TEXT  
+08.    }  
+09.  
+10.    private String host;  
+11.    private List<String> to;  
+12.    private String from;  
+13.    private String subject;  
+14.    private String htmlContent;  
+15.    private String textContent;  
+16.    private KIND type;  
+17.  
+18.    public Email() {  
+19.        to = new ArrayList<String>();  
+20.    }  
+21.  
+22.    public void setKind(KIND kind) {  
+23.        this.type = kind;  
+24.    }  
+25.  
+26.    public KIND getKind() {  
+27.        return type;  
+28.    }  
+29.  
+30.    public String getHost() {  
+31.        return host;  
+32.    }  
+33.  
+34.    public void setHost(String host) {  
+35.        this.host = host;  
+36.    }  
+37.  
+38.    public String[] getTo() {  
+39.        return to.toArray(new String[to.size()]);  
+40.    }  
+41.  
+42.    public void addTo(String receiver) {  
+43.        to.add(receiver);  
+44.    }  
+45.  
+46.    public String getFrom() {  
+47.        return from;  
+48.    }  
+49.  
+50.    public void setFrom(String from) {  
+51.        this.from = from;  
+52.    }  
+53.  
+54.    public String getSubject() {  
+55.        return subject;  
+56.    }  
+57.  
+58.    public void setSubject(String subject) {  
+59.        this.subject = subject;  
+60.    }  
+61.  
+62.    public String getHtmlContent() {  
+63.        return htmlContent;  
+64.    }  
+65.  
+66.    public void setHtmlContent(String htmlContent) {  
+67.        this.htmlContent = htmlContent;  
+68.    }  
+69.  
+70.    public String getTextContent() {  
+71.        return textContent;  
+72.    }  
+73.  
+74.    public void setTextContent(String textContent) {  
+75.        this.textContent = textContent;  
+76.    }  
+77.  
+78.  
+79.}  
+
+ 
+ 
+ 
+2.以下是发送类
+ 
+客户调用sendEmail方法向Email队列中添加邮件，而发送类有一个线程负责每2秒中检查邮件队列，如果不为空，取出邮件并发送
+ 
+
+
+
+[java] view plaincopy
+01.import java.util.ArrayList;  
+02.import java.util.LinkedList;  
+03.import java.util.List;  
+04.import java.util.Queue;  
+05.  
+06.import org.apache.commons.mail.EmailException;  
+07.import org.apache.commons.mail.HtmlEmail;  
+08.import org.apache.commons.logging.Log;  
+09.import org.apache.commons.logging.LogFactory;  
+10.  
+11.public class MailSender {  
+12.  
+13.    private final static Log logger = LogFactory.getLog(MailSender.class);  
+14.  
+15.    private final static MailSender unique = new MailSender();  
+16.  
+17.    public static MailSender getInstance() {  
+18.        return unique;  
+19.    }  
+20.  
+21.    private int totalSent = 0;  
+22.    private int succSent = 0;  
+23.    private int failSent = 0;  
+24.    private Queue<Email> queue;  
+25.  
+26.    private MailSender() {  
+27.        queue = new LinkedList<Email>();  
+28.        realSend();  
+29.    }  
+30.  
+31.    public int getTotalSent() {  
+32.        return totalSent;  
+33.    }  
+34.  
+35.    public int getSuccSent() {  
+36.        return succSent;  
+37.    }  
+38.  
+39.    public int getFailSent() {  
+40.        return failSent;  
+41.    }  
+42.  
+43.    public void sendEmail(Email email) {  
+44.        synchronized(queue) {  
+45.          queue.add(email);  
+46.        }  
+47.        if (logger.isDebugEnabled()) {  
+48.            logger.debug("Enqueue one email succ");  
+49.        }  
+50.    }  
+51.  
+52.    public void sendEmail(Email[] emails) {  
+53.        synchronized (queue) {  
+54.          for (int i = 0; i < emails.length; i++) {  
+55.              queue.add(emails[i]);  
+56.          }  
+57.        }  
+58.        if (logger.isDebugEnabled()) {  
+59.            logger.debug("Enqueue emails[" + emails.length + "] succ");  
+60.        }  
+61.    }  
+62.  
+63.    private void realSend() {  
+64.        Runnable run = new Runnable() {  
+65.            public void run() {  
+66.                while (true) {  
+67.                    List<Email> emails = new ArrayList<Email>();  
+68.                    synchronized (queue) {  
+69.                        while (queue.peek() != null) {  
+70.                            emails.add(queue.poll());  
+71.                        }  
+72.                    }  
+73.                    if (logger.isDebugEnabled()) {  
+74.                        logger.debug("Get Email Count=" + emails.size());  
+75.                    }  
+76.                    for (Email email : emails) {  
+77.                        try {  
+78.                            if (email.getKind() == Email.KIND.HTML) {  
+79.                                sendHtmlEmail(email);  
+80.                            }  
+81.                            else {  
+82.                                sendTextEmail(email);  
+83.                            }  
+84.                            if (logger.isDebugEnabled()) {  
+85.                                logger.debug("Send Email Succ");  
+86.                            }  
+87.                            succSent++;  
+88.                        }  
+89.                        catch (EmailException e) {  
+90.                            logger.error("Send Email Error", e);  
+91.                            failSent++;  
+92.                        }  
+93.                        totalSent++;  
+94.                    }  
+95.                    try {  
+96.                        Thread.sleep(2 * 1000);  
+97.                    }  
+98.                    catch (InterruptedException e) {  
+99.                        logger.error("Sleep Error", e);  
+100.                    }  
+101.                    if (logger.isDebugEnabled()) {  
+102.                        logger.debug("TotalSent=" + totalSent + ";SuccSent=" + succSent + ";FailSent=" + failSent);  
+103.                    }  
+104.                }  
+105.            }  
+106.        };  
+107.        Thread thread = new Thread(run);  
+108.        thread.setDaemon(true);  
+109.        thread.setPriority(Thread.MIN_PRIORITY);  
+110.        thread.start();  
+111.    }  
+112.  
+113.    private void sendHtmlEmail(Email email) throws EmailException {  
+114.        HtmlEmail sender = new HtmlEmail();  
+115.        sender.setHostName(email.getHost());  
+116.        String[] to = email.getTo();  
+117.        for (int i = 0; i < to.length; i++) {  
+118.            sender.addTo(to[i]);  
+119.        }  
+120.        sender.setFrom(email.getFrom());  
+121.        sender.setSubject(email.getSubject());  
+122.        sender.setHtmlMsg(email.getHtmlContent());  
+123.        sender.setTextMsg(email.getTextContent());  
+124.        sender.send();  
+125.    }  
+126.  
+127.    private void sendTextEmail(Email email) throws EmailException {  
+128.        HtmlEmail sender = new HtmlEmail();  
+129.        sender.setHostName(email.getHost());  
+130.        String[] to = email.getTo();  
+131.        for (int i = 0; i < to.length; i++) {  
+132.            sender.addTo(to[i]);  
+133.        }  
+134.        sender.setFrom(email.getFrom());  
+135.        sender.setSubject(email.getSubject());  
+136.        sender.setTextMsg(email.getTextContent());  
+137.        sender.send();  
+138.    }  
+139.  
+140.}  
+ 
+
+ 
+ 
+3.测试类
+ 
+
+
+
+[java] view plaincopy
+01.import java.util.ArrayList;  
+02.import java.util.List;  
+03.import org.junit.Test;  
+04.  
+05.public class TestMailSender {  
+06.      
+07.    private static final int SEND_COUNT = 10;  
+08.      
+09.    @Test  
+10.    public void testEmailSender() {  
+11.        String html = "<html><body><p><font color='blue'>This is a test email.</font></p></body></html>";  
+12.        String msg = "This is a test email.";  
+13.        String subject = "Test Email";  
+14.        String host = "yoursmtphost";  
+15.        String from = "senderaddress@yourdomain";  
+16.        String to = "toaddress@todomain";  
+17.        final List<Email> emails = new ArrayList<Email>();  
+18.        for (int i = 0; i < SEND_COUNT; i++) {  
+19.            Email email = new Email();  
+20.            email.setHost(host);  
+21.            email.setFrom(from);  
+22.            email.addTo(to);  
+23.            email.setSubject(subject);  
+24.            if (i % 2 == 0) {  
+25.                email.setKind(Email.KIND.HTML);  
+26.                email.setHtmlContent(html);  
+27.                email.setTextContent(msg);  
+28.            } else {  
+29.                email.setKind(Email.KIND.TEXT);  
+30.                email.setTextContent(msg);  
+31.            }  
+32.            emails.add(email);  
+33.        }  
+34.          
+35.        final MailSender sender = MailSender.getInstance();  
+36.        Thread thread1 = new Thread() {  
+37.            public void run() {  
+38.                for (int i = 0; i < SEND_COUNT / 2; i++) {  
+39.                    sender.sendEmail(emails.get(i));  
+40.                }  
+41.            }  
+42.        };  
+43.        Thread thread2 = new Thread() {  
+44.            public void run() {  
+45.                for (int i = SEND_COUNT / 2; i < SEND_COUNT; i++) {  
+46.                    sender.sendEmail(emails.get(i));  
+47.                }  
+48.            }  
+49.        };  
+50.        thread1.start();  
+51.        thread2.start();  
+52.          
+53.        try {  
+54.            Thread.sleep(20 * 1000);  
+55.        } catch (InterruptedException e) {  
+56.            e.printStackTrace();  
+57.        }  
+58.          
+59.        int totalSent = sender.getTotalSent();  
+60.        int succSent = sender.getSuccSent();  
+61.        int failSent = sender.getFailSent();  
+62.          
+63.        assertEquals("TotalSent should be " + SEND_COUNT, SEND_COUNT, totalSent);  
+64.        assertEquals("SuccSent should be 0", 0, succSent);  
+65.        assertEquals("FailSent should be " + SEND_COUNT, SEND_COUNT, failSent);  
+66.    }  
+67.      
+68.}  
+ 
+
+分享到： 
+
+上一篇：Spring的HibernateDaoSupport及用hibernate执行原生SQL
+下一篇：maven编译时找不到类文件的解决
+ . 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+冬冬
+ 
+
+
+
+访问：202818次
+积分：5410分
+排名：第661名
+.原创：338篇
+转载：24篇
+译文：0篇
+评论：86条
+. 
+文章搜索
+
+. 
+文章分类C &amp; C++(14)
+HTML &amp; CSS &amp; JS(7)
+Java相关(169)
+JDK命令(9)
+JVM(2)
+Linux&amp;Unix(91)
+NoSQL(1)
+Perl(3)
+PHP(8)
+SVN&amp;CVS(14)
+Throuble Shooting(27)
+Windows(5)
+代码质量(2)
+其他(6)
+协议(14)
+并发编程(11)
+收藏(1)
+数据库(75)
+架构(4)
+编程风格(2)
+网络(23)
+设计模式(28)
+软件安装及配置(12)
+软件测试(3)
+软件过程(1)
+邮件(2)
+面向对象(1)
+Linux&Unix(1)
+ 
+文章存档
+2011年08月(3).
+2011年06月(5).
+2011年05月(11).
+2011年04月(1).
+2011年03月(1).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+阅读排行neo4j使用指南(5034)
+java.lang.NoClassDefFoundError: javax/el/ELException(4997)
+FusionCharts在Java中的基本使用（2）(4868)
+Spring的JUnit错误：NoSuchBeanDefinitionException: No unique bean of type,expected single matching bean but found 2 [dataSource1,data(4761)
+Spring的HibernateDaoSupport及用hibernate执行原生SQL(4508)
+FusionCharts在Java中的基本使用（1）(4400)
+Timer的schedule和scheduleAtFixedRate方法的区别解析(3246)
+linux增加根分区大小(3023)
+memcached client -- spymemcached使用(2800)
+jhat命令(2394)
+ 
+评论排行FusionCharts在Java中的基本使用（2）(8)
+FusionCharts在Java中的基本使用（1）(8)
+通过HTTP抓取QQ好友过程(7)
+Tomcat6配置使用SSL双向认证（使用openssl生成证书）(5)
+Java利用MSNP协议登录MSN(5)
+用commons的HttpClient和FileUpload写的文件上传下载类(4)
+JMX管理Tomcat和Resin(3)
+com.ibatis.sqlmap.client.SqlMapException: There is no statement named 语句名 in this SqlMap.(3)
+Java利用MSNP协议取得MSN联系人(3)
+JDK中设计模式(3)
+ 
+推荐文章 
+最新评论 从开源代码中看Java编程风格及注释
+sunchaohehe: 代码贴了这么多，没必要 
+
+log4j中debug和trace层级
+花心小薯: 打错字了，是：isTraceEnabled方法 
+
+log4j中debug和trace层级
+花心小薯: 真的么。。。我都不知都什么时候使用isTrceEnable方法。望楼主指教！谢谢！ 
+
+FusionCharts在Java中的基本使用（1）
+liangjie5305579: 也遇到1，2楼的问题，把 中的type改成language，不报js了，但就是不显示图片，该导的东... 
+
+FusionCharts在Java中的基本使用（2）
+woof_1128: 正好需要，亲，谢谢 
+
+取163邮箱联系人
+lansoul1987: 博主，http://code.google.com/p/jcontactfetcher/是不是还不提... 
+
+Tomcat6配置使用SSL双向认证（使用openssl生成证书）
+avalon: 很不错，终于找得到一个讲得清晰点的教程了！ 
+
+velocity基础
+Zhuyuanyuan19920126: 谢谢分享、、、、 
+
+FusionCharts在Java中的基本使用（2）
+xiexinxing522008: 我要让caption的字体更大点，改怎么做呢？ 
+
+chroot jail下运行tomcat
+gongyilun: 用启动root用户的chroot没什么用吧。最好运行受限用户的chroot，加入--userspec... 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

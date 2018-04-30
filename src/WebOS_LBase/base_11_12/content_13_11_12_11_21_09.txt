@@ -1,0 +1,322 @@
+首页开源项目 讨论区 代码博客翻译资讯移动开发 招聘城市圈 当前访客身份：游客 [ 登录 | 加入开源中国 ]
+开源中国讨论区
+当前位置：
+讨论区 » 技术分享	 » JavaCC
+搜 索
+红薯
+使用JavaCC做语法分析
+红薯 发表于 2009-12-10 23:29 3年前, 1回/2316阅, 最后回答: 11个月前
+开源中国诚邀您参加 Cloud Foundry 中国群英会！（北京、上海、杭州、成都、深圳）
+
+本系列的文章的宗旨是让大家能够写出自己的编译器，解释器或者脚本引擎，所以每到理论介绍到一个程度后，我都会来讨论实践问题。理论方面，编译原理的教材已经是够多了，而实践的问题却很少讨论。
+
+ 前几节文章只讨论到了词法分析和LL文法分析，关键的LR文法分析这里却还没有讲，我们先不要管复杂的LR文法和算法，让我们使用LL算法来实际做一些东西后再说。本文将介绍一个在JAVA上广泛使用的LL算法分析工具Javacc.（这是我唯一能找到的使用LL算法的语法分析器构造工具）。这一节的文章并非只针对JAVA开发者，如果你是C/C++开发者，那么也请你来看看这个JAVA下的优秀工具，或许你将来也用得着它。
+
+Lex 和yacc这两个工具是经典的词法分析和语法分析工具，但是它们都是基于C语言下面的工具，而使用JAVA的朋友们就用不上了。但是JAVA下已经有了 lex和yacc的替代品javacc（ Java Compiler Compiler ） . 同时javacc也是使用LL算法的工具，我们也可以实践一下前面学的LL算法。
+
+首先声明我不是一个JAVA专家，我也是刚刚才接触JAVA.Java里面或许有很多类似javacc一样的工具，但是据我所知，javacc还是最广泛，最标准的JAVA下的词法语法分析器。
+
+Javacc 的获取同lex和yacc一样，javacc也是一个免费可以获取的通用工具，它可以在很多JAVA相关的工具下载网站下载，当然，javacc所占的磁 盘空间比起lex和yacc更大一些，里面有标准的文档和examples.相对lex和yacc来说，javacc做得更人性化，更容易一些。如果你实 在找不到javacc，还是可以联系我，我这里有。现在最新的就是javacc 3.2版本。
+
+Javacc 的原理
+
+Javacc 可以同时完成对text的词法分析和语法分析的工作，使用起来相当方便。同样，它和lex和yacc一样，先输入一个按照它规定的格式的文件，然后 javacc根据你输入的文件来生成相应的词法分析于语法分析程序。同时，新版本的Javacc除了常规的词法分析和语法分析以外，还提供JJTree等 工具来帮助我们建立语法树。总之，Javacc在很多地方做得都比lex和yacc要人性化，这个在后面的输入文件格式中也能体现出来。
+
+Javacc 的输入文件
+
+Javacc 的输入文件格式做得比较简单。每个非终结符产生式对应一个Class中的函数，函数中可以嵌入相应的识别出该终结符文法时候的处理代码（也叫动作）。这个与YACC中是一致的。
+
+Javacc 的输入文件中，有一系列的系统参数，比如其中lookahead可以设置成大于1的整数，那么就是说，它可以为我们生成LL（k）算法 （k>=1），而不是简单的递归下降那样的LL（1）算法了。要知道，LL（2）文法比起前面讨论的LL（1）文法判断每个非终结符时候需要看前面 两个记号而不是一个，那么对于文法形式的限制就更少。不过LL（2）的算法当然也比LL（1）算法慢了不少。作为一般的计算机程序设计语言，LL（1）算 法已经是足够了。就算不是LL（1）算法，我们也可以通过前面讲的左提公因式把它变成一个LL（1）文法来处理。不过既然javacc都把 lookahead选择做出来了，那么在某些特定的情况下，我们可以直接调整一个lookahead的参数就可以，而不必纠正我们的文法。
+
+下面我们来看看Javacc中自带的example中的例子。
+
+例5.1
+
+这个例子可以在javacc-3.2/doc/examples/SimpleExamples/Simple1.jj看到
+
+PARSER_BEGIN(Simple1)
+publicclassSimple1{
+publicstaticvoidmain(Stringargs[])throwsParseException{
+Simple1parser=newSimple1(System.in);
+parser.Input();
+}
+}
+PARSER_END(Simple1)
+voidInput():
+{}
+{
+MatchedBraces()("n"|"r")*<EOF>
+}
+voidMatchedBraces():
+{}
+{
+"{"[MatchedBraces()]"}"
+}
+
+设置好javacc的bin目录后，在命令提示符下输入
+
+javacc Simple1.jj
+
+然后 javacc 就会为你生成下面几个 java 源代码文件
+
+Simple1.java
+Simple1TokenManager.java
+Simple1Constants.java
+SimpleCharStream.java
+Token.java
+TokenMgrError.java
+
+其中Simple1就是你的语法分析器的对象，它的构造函数参数就是要分析的输入流，这里的是System.in.
+
+class Simple1 就定义在标记 PARSER_BEGIN（Simple1）
+
+PARSER_END（Simple1） 之间。
+
+但是必须清楚的是，PARSER_BEGIN和PARSER_END中的名字必须是词法分析器的名字（这里是Simple1）。
+
+PARSER_END 下面的定义就是文法非终结符号的定义了。
+
+Simple1 的文法基本就是：
+
+Input -> MatchedBraces （"n"|"r"）* <EOF>
+
+MatchedBraces -> “ { ” MatchedBraces “ } ”
+
+从它的定义我们可以看到 ， 每个非终结符号对于一个过程 .
+
+比如 Input 的过程
+
+voidInput():
+{}
+{
+MatchedBraces()("n"|"r")*<EOF>
+}
+
+在定义 void Input 后面记住需要加上一个冒号 “：”， 然后接下来是两个块 {} 的定义 .
+
+第一个 {} 中的代码是定义数据 ， 初试化数据的代码 . 第二个 {} 中的部分就是真正定义 Input 的产生式了 .
+
+每个产生式之间用 “|” 符号连接 .
+
+注意 ： 这里的产生式并非需要严格 BNF 范式文法 ， 它的文法既可以是 BNF， 同时还可以是混合了正则表达式中的定义方法 . 比如上面的
+
+Input -> MatchedBraces （"n"|"r"）* <EOF>
+
+中 （“n”|“r”）* 就是个正则表达式 ， 表示的是 n 或者 r 的 0 个到无限个的重复的记号 .
+
+而 <EOF> 是 javacc 系统定义的记号 （TOKEN）， 表示文件结束符号 .
+
+除了 <EOF>， 无论是系统定义的 TOKEN， 还是自定义的 TOKEN， 里面的 TOKEN 都是以 <token‘s name> 的方式表示 .
+
+每个非终结符号 （Input 和 MatchedBraces） 都会在 javacc 生成的 Simple1.java 中形成 Class Simple1 的成员函数 . 当你在外部调用 Simple1 的 Input， 那么语法分析器就会开始进行语法分析了 .
+
+例 5.2
+
+在 javacc 提供的 example 里面没有 .javacc 提供的 example 里面提供的例子中 SimpleExamples 过于简单 ， 而其它例子又过于庞大 . 下面我以我们最常见的数学四则混合运算的文法来构造一个 javacc 的文法识别器 . 这个例子是我自己写的 ， 十分简单 ，。 其中还包括了文法识别同时嵌入的构建语法树 Parse-Tree 的代码 . 不过由于篇幅的原因 ， 我并没有给出全部的代码 ， 这里只给了 javacc 输入部分相关的代码 . 而 Parse-tree 就是一个普通的 4 叉树 ，3 个 child，1 个 next（ 平行结点 ）， 相信大家在学习数据结构的时候应该都是学过的 . 所以这里就省略过去了 .
+
+在大家看这些输入代码之前 ， 我先给出它所使用的文法定义 ， 好让大家有个清楚的框架 .
+
+Expression->Term{AddopTerm}
+Addop->"+"|"-"
+Term->Factor{MulopFactor}
+Mulop->"*"|"/"
+Factor->ID|NUM|"("Expression")"
+
+这里的文法可能和BNF范式有点不同。{}的意思就是0次到无限次重复，它跟我们在学习正则表达式的时候的“*”符号相同，所以，在Javacc中的文法表示的时候，{…}部分的就是用（…）*来表示。
+
+为了让词法分析做得更简单 ， 我们通常都不会在文法分析的时候 ， 使用 “（”，“）” 等字符号串来表示终结符号 ， 而需要转而使用 LPAREN ， RPAREN 这样的整型符号来表示 .
+
+PARSER_BEGIN(Grammar)
+publicclassGrammarimplementsNodeType{
+publicParseTreeNodeGetParseTree(InputStreamin)throwsParseException
+{
+Grammarparser=newGrammar(in);
+returnparser.Expression();
+}
+
+}
+PARSER_END(Grammar)
+SKIP:
+{
+""|"t"|"n"|"r"
+}
+TOKEN:
+{
+<ID:["a"-"z","A"-"Z","_"](["a"-"z","A"-"Z","_","0"-"9"])*>
+|　<NUM:(["0"-"9"])+>
+|　<PLUS:　"+">
+|　<MINUS:　"-">
+|　<TIMERS:"*">
+|　<OVER:　"/">
+|　<LPAREN:"(">
+|　<RPAREN:")">
+}
+
+ParseTreeNodeExpression():
+{
+ParseTreeNodeParseTree=null;
+ParseTreeNodenode;
+}
+{　　　　　　　　
+(node=Simple_Expression()
+{
+if(ParseTree==null)
+ParseTree=node;
+else
+{
+ParseTreeNodet;
+t=ParseTree;
+while(t.next!=null)
+t=t.next;
+t.next=node;
+}
+}
+)*
+{returnParseTree;}
+<EOF>
+}
+ParseTreeNodeSimple_Expression():
+{
+ParseTreeNodenode;
+ParseTreeNodet;
+intop;
+}
+{
+node=Term(){}
+(
+op=addop()t=Term()
+{
+ParseTreeNodenewNode=newParseTreeNode();
+newNode.nodetype=op;
+newNode.child[0]=node;
+newNode.child[1]=t;
+switch(op)
+{
+casePlusOP:
+newNode.name="Operator:+";
+break;
+caseMinusOP:
+newNode.name="Operator:-";
+break;
+}
+node=newNode;
+}
+)*
+{returnnode;}
+}
+intaddop():{}
+{
+<PLUS>{returnPlusOP;}
+|　<MINUS>{returnMinusOP;}
+}
+ParseTreeNodeTerm():
+{
+ParseTreeNodenode;
+ParseTreeNodet;
+intop;
+}
+{
+node=Factor(){}
+(
+op=mulop()t=Factor()
+{
+ParseTreeNodenewNode=newParseTreeNode();
+newNode.nodetype=op;
+newNode.child[0]=node;
+newNode.child[1]=t;
+switch(op)
+{
+caseTimersOP:
+newNode.name="Operator:*";
+break;
+caseOverOP:
+newNode.name="Operator:/";
+break;
+}
+node=newNode;
+}
+)*
+{
+returnnode;
+}
+}
+intmulop():{}
+{
+<TIMERS>{returnTimersOP;}
+|<OVER>{returnOverOP;　}
+}
+ParseTreeNodeFactor():
+{
+ParseTreeNodenode;
+Tokent;
+}
+{
+t=<ID>
+{
+node=newParseTreeNode();
+node.nodetype=IDstmt;
+node.name=t.image;
+returnnode;
+}
+|
+t=<NUM>
+{
+node=newParseTreeNode();
+node.nodetype=NUMstmt;
+node.name=t.image;
+node.value=Integer.parseInt(t.image);
+returnnode;
+}
+|
+<LPAREN>node=Simple_Expression()<RPAREN>
+{
+returnnode;
+}
+}
+
+其中 SKIP 中的定义就是在进行词法分析的同时 ， 忽略掉的记号 .TOKEN 中的 ， 就是需要在做词法分析的时候 ， 识别的词法记号 . 当然 ， 这一切都是以正则表达式来表示的 .
+
+这个例子就有多个非终结符号 ， 可以看出 ， 我们需要为每个非终结符号写出一个过程 . 不同的非终结符号的识别过程中可以互相调用 .
+
+以 Simple_Expression（） 过程为例 ， 它的产生式是 Expression -> Term { addop Term }， 而在 javacc 的输入文件格式是，它的识别是这样写的 node=Term（）{} （ op=addop（） t=Term（）{ … }）* 前面说过，这里的 “*” 符号和正则表达式是一样的，就是 0 次到无限次的重复 . 那么 Simple_Expression 等于文法 Term Addop Term Addop Term Addop Term … 而 Addop 也就相当于 PLUS 和 MINUS 两个运算符号 . 这里我们在写 Expression 的文法的时候，同时还使用了赋值表达式，因为这个和 Yacc 不同的时候， Javacc 把文法识别完全地做到了函数过程中，那么如果我们要识别 Simple_Expression 的文法，就相当于按顺序识别 Term 和 Addop 两个文法 ， 而识别那个文法，就相当于调用那两个非终结符的识别函数 . 正是这一点，我觉得 Javacc 的文法识别处理上就很接近程序的操作过程 ， 我们不需要像 YACC 那样使用严格的文法表示格式，复杂的系统参数了 .
+
+关于 Yacc 的使用，其实比 Javacc 要复杂，还需要考虑到和词法分析器接口的问题，这个我会在以后细细讲到 .
+
+至于其它的文法操作解释我就不再多说了 ， 如果要说 ， 就是再写上十篇这样的文章也写不完 . 本文只能给读者们一个方向 ， 至于深入的研究 ， 还是请大家看 javacc 提供的官方文档资料 .
+
+标签：	 JavaCC
+补充话题说明»
+分享到 收藏11举报踩 0 | 顶 0
+按默认排序 | 显示最新评论 | 回页面顶部 共有1个评论 发表评论»
+liangxiaoliangxiao 回答于 2012-12-04 16:55 举报
+学习了
+有帮助(0) | 没帮助(0) | 评论(0) | 引用此评论
+非会员用户
+
+  
+
+回评论顶部 | 回页面顶部
+ 
+有什么技术问题吗？ 我要提问
+全部(5021)...红薯的其他问题
+2013年最后一场源创会 11月30日 —— 珠海，期待你的光临
+(5回/464阅,2小时前)
+开源中国 Cloud Foundry 群英会（上海站）
+(3回/53阅,昨天(18:14))
+开源中国 Cloud Foundry 群英会（杭州站）
+(3回/37阅,昨天(18:07))
+开源中国 Cloud Foundry 群英会（北京站）
+(0回/47阅,昨天(17:59))
+PostgreSQL 9.4 存储 JSON 的速度已经比 MongoDB 更快
+(23回/1181阅,4天前)
+
+ 
+类似的话题
+JavaCC 简易教程
+(1回/3675阅,3年前)
+JavaCC 简介
+(0回/1670阅,4年前)
+Eclipse中javacc插件的安装配置及使用
+(1回/1996阅,3年前)
+© 开源中国(OsChina.NET) | 关于我们 | 广告联系 | @新浪微博 | 开源中国手机版 | 粤ICP备12009483号-3	开源中国手机客户端：AndroidiPhoneWP7
+

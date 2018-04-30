@@ -1,0 +1,75 @@
+kmalloc、vmalloc、malloc的区别
+
+分类： C/C++ 2010-10-22 10:48 8521人阅读 评论(0) 收藏 举报
+modulevmware存储linuxx86
+简单的说：
+
+kmalloc和vmalloc是分配的是内核的内存,malloc分配的是用户的内存
+kmalloc保证分配的内存在物理上是连续的,vmalloc保证的是在虚拟地址空间上的连续,malloc不保证任何东西(这点是自己猜测的,不一定正确)
+kmalloc能分配的大小有限,vmalloc和malloc能分配的大小相对较大
+内存只有在要被DMA访问的时候才需要物理上连续
+vmalloc比kmalloc要慢
+ 
+
+详细的解释：
+
+      对于提供了MMU（存储管理器，辅助操作系统进行内存管理，提供虚实地址转换等硬件支持）的处理器而言，Linux提供了复杂的存储管理系统，使得进程所能访问的内存达到4GB。
+
+      进程的4GB内存空间被人为的分为两个部分--用户空间与内核空间。用户空间地址分布从0到3GB(PAGE_OFFSET，在0x86中它等于0xC0000000)，3GB到4GB为内核空间。
+
+      内核空间中，从3G到vmalloc_start这段地址是物理内存映射区域（该区域中包含了内核镜像、物理页框表mem_map等等），比如我们使用 的 VMware虚拟系统内存是160M，那么3G～3G+160M这片内存就应该映射物理内存。在物理内存映射区之后，就是vmalloc区域。对于 160M的系统而言，vmalloc_start位置应在3G+160M附近（在物理内存映射区与vmalloc_start期间还存在一个8M的gap 来防止跃界），vmalloc_end的位置接近4G(最后位置系统会保留一片128k大小的区域用于专用页面映射)
+
+      kmalloc和get_free_page申请的内存位于物理内存映射区域，而且在物理上也是连续的，它们与真实的物理地址只有一个固定的偏移，因此存在较简单的转换关系，virt_to_phys()可以实现内核虚拟地址转化为物理地址：
+   #define __pa(x) ((unsigned long)(x)-PAGE_OFFSET)
+   extern inline unsigned long virt_to_phys(volatile void * address)
+   {
+       　return __pa(address);
+   }
+上面转换过程是将虚拟地址减去3G（PAGE_OFFSET=0XC000000）。
+
+与之对应的函数为phys_to_virt()，将内核物理地址转化为虚拟地址：
+   #define __va(x) ((void *)((unsigned long)(x)+PAGE_OFFSET))
+   extern inline void * phys_to_virt(unsigned long address)
+   {
+       　return __va(address);
+   }
+virt_to_phys()和phys_to_virt()都定义在include/asm-i386/io.h中。
+
+而vmalloc申请的内存则位于vmalloc_start～vmalloc_end之间，与物理地址没有简单的转换关系，虽然在逻辑上它们也是连续的，但是在物理上它们不要求连续。
+
+我们用下面的程序来演示kmalloc、get_free_page和vmalloc的区别：
+#include <linux/module.h>
+#include <linux/slab.h>
+#include <linux/vmalloc.h>
+MODULE_LICENSE("GPL");
+unsigned char *pagemem;
+unsigned char *kmallocmem;
+unsigned char *vmallocmem;
+
+int __init mem_module_init(void)
+{
+//最好每次内存申请都检查申请是否成功
+//下面这段仅仅作为演示的代码没有检查
+pagemem = (unsigned char*)get_free_page(0);
+printk("<1>pagemem addr=%x", pagemem);
+
+kmallocmem = (unsigned char*)kmalloc(100, 0);
+printk("<1>kmallocmem addr=%x", kmallocmem);
+
+vmallocmem = (unsigned char*)vmalloc(1000000);
+printk("<1>vmallocmem addr=%x", vmallocmem);
+
+return 0;
+}
+
+void __exit mem_module_exit(void)
+{
+free_page(pagemem);
+kfree(kmallocmem);
+vfree(vmallocmem);
+}
+
+module_init(mem_module_init);
+module_exit(mem_module_exit);
+
+我们的系统上有160MB的内存空间，运行一次上述程序，发现pagemem的地址在0xc7997000（约3G+121M）、kmallocmem 地址在0xc9bc1380（约3G+155M）、vmallocmem的地址在0xcabeb000（约3G+171M）处，符合前文所述的内存布局。

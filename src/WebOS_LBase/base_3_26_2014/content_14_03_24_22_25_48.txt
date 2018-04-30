@@ -1,0 +1,160 @@
+Linux驱动开发之input子系统[原] (2008-10-19 12:21:47)转载▼
+标签： linux 驱动 输入子系统 杂谈	分类： 嵌入式及Linux
+本文对mousedev、Amimouse和input子系统进行分析，旨在提纲挈领，给出它们之间的调用关系（或者说关联）。阅读本文，需要与阅读Linux 2.6内核源码交叉进行，除非你是超人。
+ 
+背景：
+Amimouse，是指Amiga计算机的鼠标。“Amiga计算机为高分辨率，快速的图形响应，多媒体任务，特别是游戏方面做了专门设计。处理器是摩托罗拉的680x0系列处理器。是第一代具有真彩显示的计算机之一。自带Amiga操作系统。1985年在Commodore Business Machines中出现后，Amiga就成为了高分辨率，快速用户响应接口，以及适合游戏的计算机的同义词。”（摘自baidu百科）
+ 
+先介绍几个重要的数据结构：
+input_handler：Mousedev.c中注册，是一类设备的驱动器，它可以为若干个input_dev提供驱动。
+input_dev：Amimouse.c中注册，是某个具体设备。注册时，会寻找能够处理该设备的input_handler
+input_handle：把上面两者关联起来的，也就是指出某个具体input_dev归哪个input_handler管理。
+ 
+1.初始化
+1.1 Mousedev初始化
+ 
+// Mousedev.c
+static int __init mousedev_init(void)
+{
+    input_register_handler(&mousedev_handler);
+ 
+    memset(&mousedev_mix, 0, sizeof(struct mousedev));
+    INIT_LIST_HEAD(&mousedev_mix.list);
+    init_waitqueue_head(&mousedev_mix.wait);
+    mousedev_table[MOUSEDEV_MIX] = &mousedev_mix;
+    mousedev_mix.exist = 1;
+    mousedev_mix.minor = MOUSEDEV_MIX;
+ 
+    devfs_mk_cdev(MKDEV(INPUT_MAJOR, MOUSEDEV_MINOR_BASE + MOUSEDEV_MIX),
+           S_IFCHR|S_IRUGO|S_IWUSR, "input/mice");
+    class_device_create(input_class,
+           MKDEV(INPUT_MAJOR, MOUSEDEV_MINOR_BASE + MOUSEDEV_MIX), NULL, "mice");
+ 
+#ifdef CONFIG_INPUT_MOUSEDEV_PSAUX
+    if (!(psaux_registered = !misc_register(&psaux_mouse)))
+       printk(KERN_WARNING "mice: could not misc_register the device\n");
+#endif
+ 
+    printk(KERN_INFO "mice: PS/2 mouse device common for all mice\n");
+ 
+    return 0;
+}
+ 
+input_register_handler()主要完成两个任务：
+1、把input_handler按次设备号放到input_handler数组input_table里，
+2、再用当前所有的输入设备input_dev与input_handler适配。我们先假设注册input_handler时还没有一个input_dev在链表中，即注册时不需要进行驱动器适配。
+ 
+1.2 Amimouse初始化
+ 
+//Amimouse.c
+static int __init amimouse_init(void)
+{
+    if (!MACH_IS_AMIGA || !AMIGAHW_PRESENT(AMI_MOUSE))
+       return -ENODEV;
+ 
+    amimouse_dev.evbit[0] = BIT(EV_KEY) | BIT(EV_REL);
+    amimouse_dev.relbit[0] = BIT(REL_X) | BIT(REL_Y);
+    amimouse_dev.keybit[LONG(BTN_LEFT)] = BIT(BTN_LEFT) | BIT(BTN_MIDDLE) | BIT(BTN_RIGHT);
+    amimouse_dev.open = amimouse_open;
+    amimouse_dev.close = amimouse_close;
+ 
+    amimouse_dev.name = amimouse_name;
+    amimouse_dev.phys = amimouse_phys;
+    amimouse_dev.id.bustype = BUS_AMIGA;
+    amimouse_dev.id.vendor = 0x0001;
+    amimouse_dev.id.product = 0x0002;
+    amimouse_dev.id.version = 0x0100;
+ 
+    input_register_device(&amimouse_dev);
+ 
+    printk(KERN_INFO "input: %s at joy0dat\n", amimouse_name);
+    return 0;
+}
+ 
+ 
+mousedev_init(Mousedev.c)和amimouse_init(Amimouse.c)的关系：
+1、mousedev_init注册input_handler，并初始化input_handler->connect为mousedev_connect。
+2、amimouse_init注册input_dev，在调用input_register_device()，该函数内部会通过匹配，找到该input_dev所对应的input_handler（也就是寻找能够处理该设备的handler），然后调用该input_handler的connect函数，也即mousedev_connect()。
+3、Mousedev.c是可以理解为通用的鼠标类驱动。
+4、Amimouse.c是某个具体的鼠标驱动，它需要mousedev提供的某些函数、数据结构。
+注：读input_register_device()的源码时，会发现它初始化了一个timer，这里不用去管他，因为该timer对键盘等设备有用，对鼠标无用。
+ 
+在mousedev_connect()中，会打开具体的鼠标设备，它通过调用input_open_device()实现：
+ 
+// input.c
+int input_open_device(struct input_handle *handle)
+{
+    struct input_dev *dev = handle->dev;
+    int err;
+ 
+    err = down_interruptible(&dev->sem);
+    if (err)
+       return err;
+ 
+    handle->open++;
+ 
+    if (!dev->users++ && dev->open)
+       err = dev->open(dev);
+ 
+    if (err)
+       handle->open--;
+ 
+    up(&dev->sem);
+ 
+    return err;
+}
+ 
+蓝色部分dev->open(dev)，也就是调用input_dev的open函数，即amimouse_open()。
+ 
+amimouse_open()的功能主要是，从寄存器中获取当前鼠标的X/Y坐标（保存在两个表示X/Y坐标的全局变量中），并注册一个中断amimouse_interrupt。
+ 
+写到这里，有必要把调用关系拿出来晒一下了：
+amimouse_init()
+|-- input_register_device()
+|   |-- mousedev_connect()
+|   |   |-- input_open_device()
+|   |   |   |-- amimouse_open()
+|   |-- input_link_handle()
+ 
+input_link_handle()，把input_handle分别与input_handler和input_dev关联起来，这样：
+1、input_handler可以知道自己的input_handle，
+2、input_dev也可以知道自己的input_handle。
+ 
+至此，初始化结束。
+ 
+2.打开鼠标
+当系统打开一个设备时如"/dev/input/mouse0"，虚拟文件系统会调用input类设备file->f_op的open函数。这里，该open函数是input_open_file()。
+ 
+input_open_file()，把file->f_op更新为新的file_operations，这里，也就是input_handler的file_operations，即mousedev_fops。
+ 
+static struct file_operations mousedev_fops = {
+    .owner =   THIS_MODULE,
+    .read =    mousedev_read,
+    .write =   mousedev_write,
+    .poll =    mousedev_poll,
+    .open =    mousedev_open,
+    .release = mousedev_release,
+    .fasync =  mousedev_fasync,
+};
+ 
+ 
+input_open_file()更新file->f_op后，再调用open函数，即mousedev_open()。
+ 
+mousedev_open()主要是创建一个mousedev_list链表（初始化该链表的部分字段），然后调用input_open_device()，做些input_handle->open++以及input_dev->user++等操作。
+ 
+3.鼠标中断
+前面提到的amimouse_open()，会注册一个中断amimouse_interrupt()。
+amimouse_interrupt()发生时，会把数据存在一块固定地址（比如全局变量），等待用户读取（也就是后面说到的mousedev_read()）。
+ 
+无敌的调用关系图又要出场了：
+amimouse_interrupt()
+|-- input_report_rel()、input_report_key()、input_sync()
+|   |-- input_event()
+|   |   |-- mousedev_event()
+|   |   |   |-- mousedev_rel_event()、mousedev_key_event()、mousedev_notify_readers()
+ 
+4.读取鼠标
+读取鼠标位置时，同打开文件一样，系统会调用file的f_op函数集的函数，但此时f_op已经在打开时赋值为Mousedev的操作集指针了，既mousedev_fops，其中的read函数为mousedev_read()。
+ 
+mousedev_read()把相关的X/Y坐标等数据，返回给用户。
+还有一点要注意，mousedev_read()中，需要等待事件list->mousedev->wait，如果不满足，那么阻塞。而在前面提到的鼠标中断函数里，会定期调用input_sync()，也即调用mousedev_notify_readers()，该函数会使能该事件，唤醒mousedev_read()。

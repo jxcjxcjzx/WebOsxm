@@ -1,0 +1,375 @@
+
+
+豆瓣
+登录注册 
+
+
+Android@douban
+
+•豆瓣安卓小站
+•存档
+ 
+
+
+> 软件评测 
+
+您的浏览器不支持javascript，不能使用此页面的全部功能。 请换用其他浏览器或者开启对javascript的支持。 
+
+
+
+
+
+Android App定位和规避内存泄露方法研究
+ 2011-08-17 16:11:58
+ 
+
+
+工作中刚好用到，网上搜到的，觉得不错，与大家分享
+Android App定位和规避内存泄露方法研究（转载）
+
+1.内容
+本文档包含如下内容:
+如何确定App存在内存泄露
+如何定位App的内存泄露位置
+怎样避免内存泄露
+2.名词解释
+App：Application
+VSS - Virtual Set Size 虚拟耗用内存（包含共享库占用的内存）
+RSS - Resident Set Size 实际使用物理内存（包含共享库占用的内存）
+PSS - Proportional Set Size 实际使用的物理内存（比例分配共享库占用的内存）
+USS - Unique Set Size 进程独自占用的物理内存（不包含共享库占用的内存）
+3.Android查看内存的工具
+DDMS查看系统内存
+在sdk/ android-sdk_eng._linux-x86/tools下，启动ddms，
+./ddms
+通过ddms的sysInfo，如下图，我们可以看到系统内存目前的分布情况，这是一个饼状图，
+从图中看BaiduReader大概占用了12%，10M左右的内存。
+
+
+使用procrank查看进程内存
+procrank 命令可以获得当前系统中各进程的内存使用快照，这里有PSS，USS，VSS，RSS。我们一般观察Uss来反映一个Process的内存使用情况，Uss 的大小代表了只属于本进程正在使用的内存大小，这些内存在此Process被杀掉之后，会被完整的回收掉，
+Vss和Rss对查看某一Process自身内存状况没有什么价值，因为他们包含了共享库的内存使用，而往往共享库的资源占用比重是很大的，这样就稀释了对Process自身创建内存波动。
+而Pss是按照比例将共享内存分割，某一Process对共享内存的占用情况。
+procrank 的代码在 /system/extras/procrank,,在模拟器或者设备上的运行文件位/system/xbin
+在adb shell之后，我们运行procrank下图是Help
+
+下图是BaiduReader运行下的所有进程的内存使用列表
+从上图我们可以看到，所有的后台守护进程都比基于dalvik的虚拟机进程要小的多，zygote是虚拟机收个进程，由它来负责folk生成其他的虚拟机进程，而刚才PSS中谈到的共享库，其实就是由Zygote加载的，而其他虚拟机进程与Zygote共享这些内存。
+
+使用脚本配合procrank跟踪内存变化
+使用procrank来跟踪某进程的使用哪个情况我们常常借助与脚本。这样就可以查看某一段时间的内存变化。
+如创建一个文件：trackmem.sh chmod 775 trackmem.sh
+内容如下：
+#!/bin/bash
+
+while true; do 
+adb shell procrank | grep "com.baidu.BaiduReader"
+sleep 1 
+done
+运行该脚本：
+./trackmem.sh
+
+        这个脚本的用途是每1秒钟让系统输出一次BaiduReader的内存使用状况，如下图：
+
+
+观察USS的变化，从7M多提高到了9M多，这是由于打开了一个比较消耗资源的阅读界面，之后的操作时，不断的重复打开关闭这个界面（Activity），会发现内存只会偶尔的下降一点，而不会跟随GC的回收策略，当Acitivity被关闭之后，相关的资源会一并回收，所以我们判断这个Activity很可能存在内存泄露。
+
+怎样判断是否存在内存泄露
+AndroidApp是基于虚拟机的，其内存管理都是由Dalvik代为管理的，GC的回收不是及时的，比如一个Activity被Finish掉之后，其内存的引用对象会在下次GC回收的时候，通过回收算法计算，如果这部分内存已经属于可回收的对象，那么这些垃圾对象会被一并回收，所以内存的趋势图大概如下：
+
+
+
+如果我们怀疑某一次操作或者某个界面存在内存泄露，一般的查找方法是重复这个操作，或者重复打开关闭这个界面，理论上，每次关闭都会对应一次大的内存释放，而如果存在内存泄露的情况，举例如下图，在重复打开关闭Reader的阅读界面的时候，内存一直在向上爬升，也就是说每次关闭这个Activity的时候，有些应该释放的内存没有被释放掉 
+
+
+
+
+
+
+
+
+
+
+
+
+如何定位内存泄露的位置
+查找内存泄露一种比较土但比较彻底的方法就是代码走查，我们可以一行行的分析对象的创建去留等等，但会很耗时间，也比较迷茫
+这里给出一种通过工具来查找的方法，但此方法只适用于Java层的查找，C/C++是没用的，也就是说只针对与被虚拟机来管理的进程和内存。
+        现在向大家引荐Eclipse Memory Analyzer tool(MAT)，，可以直接使用RCP版本或者安装其eclipse的插件，下载地址是http://www.eclipse.org/mat/downloads.php 。
+Mat的解析文件是hprof文件。 这个文件存放了某Process的内存快照
+如何从手机或者模拟器获得hprof文件呢？
+adb shell 
+#ps (找一下要Kill的进程号)
+# chmod 777 /data/misc 
+# kill -10 进程号
+
+这样会在/data/misc目录下生成一个带当前时间的hprof文件，比如 
+heap-dump-tm1291023618-pid1059.hprof
+但是这个文件不能直接被mat读取，我们需要借助android提供的工具hprof-conv 来把上面的hprof转化为mat可以读取的格式。
+首先将文件pull到当前目录
+adb pull /data/misc/heap-dump-tm1291023618-pid1059.hprof ./
+然后借助hprof-conv转换一下格式，此工具在sdk/android-sdk_eng._linux-x86/tools下面.
+./hprof-conv heap-dump-tm1291023618-pid1059.hprof readershot.hprof
+
+用mat或eclipse打开（如果装mat插件的话） ，选择[Leak Suspects Report]，如图 ：
+这样就Mat就会为我们自动生成一个泄露推测报告，如下图，
+从报告中报告的三个问题，我们大约可以断定这些地方存在一些问题，
+
+从上图中Suspect1中，可以看到由class loader加载的HashMap有内存聚集，大概分配了1.6M的内存，所以对照代码中的HashMapEntry，就可以准确定位到有可能存在内存泄露的地方，通过逻辑判断这部分是否有优化的可能。
+这里顺便介绍一下dalvik.system.PahtClassLoader,这个是Android中Dalvik的系统类和程序类的装载器，所有的.dex都需要通过它的装载之后生成我们所需要的对象。
+
+
+
+另外Mat还提供了其他的视图，比如上图可以通过类名/Class loadeer来展示各类所占用的堆空间大小,所占内存的比例，对象的数目，通过这些参数我们也可以判断哪些对象可能是不太正常的。
+简单介绍一下ShallowHeap和RetainedHeap。
+Shallow size就是对象本身占用内存的大小，不包含对其他对象的引用，也就是对象头加成员变量（不是成员变量的值）的总和。在32位系统上，对象头占用8字节，int占用4字节，不管成员变量（对象或数组）是否引用了其他对象（实例）或者赋值为null它始终占用4字节。
+Retained size是该对象自己的shallow size，加上从该对象能直接或间接访问到对象的shallow size之和。换句话说，retained size是该对象被GC之后所能回收到内存的总和。
+
+
+借助于Mat堆内存快照的分析，我们基本可以定位Java层的内存泄露的问题，Mat是个很强悍的工具，更多的用法请参考http://dev.eclipse.org/blogs/memoryanalyzer/。
+
+而还有一些内存泄露通过Mat是查不出来的，比如native的代码，对C/C++是无能为力的，对于这些问题是本文无法涵盖的，相关可以参考valgrind（http://valgrind.org/）
+
+
+如何避免内存泄露
+AndroidSDK中有一篇文章专门写了怎样避免内存泄露，这篇文章的中文翻译我贴在了下面。除了下文中提到的Context和View的强引用，还有一些需要注意点：
+1：BraodcastReceiver，ContentObserver，FileObserver在Activity onDeatory或者某类声明周期结束之后一定要unregister掉，否则这个Activity/类会被system强引用，不会被内存回收。
+2：不要直接对Activity进行直接引用作为成员变量，如果不得不这么做，请用private WeakReference<Activity> mActivity来做，相同的，对于Service等其他有自己声明周期的对象来说，直接引用都需要谨慎考虑是否会存在内存泄露的可能;
+3：很多内存泄露是由于循环引用造成的，比如a中包含了b，b包含了c，c又包含a，这样只要一个对象存在其他肯定会一直常驻内存，这要从逻辑上来分析是否需要这样的设计。
+
+
+下文来自http://androidappdocs.appspot.com/resources/articles/avoiding-memory-leaks.html
+Avoiding Memory Leaks
+避免内存泄露
+        Android应用程序，至少是在 T-Mobile G1上，是被分配了16M的Heap。对于手机来说，这已经是很多内存了，但是对开发者而言，却显的很少。尽管你没有打算用光所有的内存，也应该尽量少用内存以至于其他应用程序不被杀掉。越多的应用程序被Android保存在内存里，用户在切换程序的时候就越快。作为我工作的一部分，我遇到的大部分 Android应用程序中的内存泄露问题都是因为相同的原因：对 Context保持一个长生命周期的引用。
+        在Android里，一个Context被用于很多操作，但是大部分是用于加载和访问资源。这就是为什么所有的widget在他们的构造里都接收一个Context的参数。在一个典型的Android应用程序里，你经常用到两种Context，Activity 和Application。开发者经常把前者传到需要Context的类和方法里。
+@Override
+protected void onCreate(Bundle state) {
+ super.onCreate(state);
+ TextView label = new TextView(this);
+ label.setText("Leaks are bad");
+ setContentView(label);
+}
+        这就意味views有一个对这个activity的引用，也就是保持了该Activity里的所有引用，经常是整个view体系和它所有的资源。因此如果你"泄露"了Context（"泄露"意思是你保存了一个引用，因此阻止了GC收集它），你就泄露了很多内存。如果你不注意的话，泄露整个Activity真的很容易。
+        当屏幕的orientation变化时，默认情况下系统会销毁当前的activity再创建一个保存原来状态的新activity，这时Android会从资源中重新加载这个application的UI。现在假设你写的一个application里有一个很大的bitmap，你又不想每次转屏都重新加载。最简单的方式就是把它保存为一个static变量：
+private static Drawable sBackground;
+@Override
+protected void onCreate(Bundle state) {
+ super.onCreate(state);
+ TextView label = new TextView(this);
+ label.setText("Leaks are bad");
+ if (sBackground == null) {
+  sBackground = getDrawable(R.drawable.large_bitmap);
+ }
+ label.setBackgroundDrawable(sBackground);
+ setContentView(label);
+}
+        这个代码非常快，但是也是非常错误的，它泄露了屏幕旋转前的activity。当一个 Drawable附到一个view上时，view就被作为一个callback设置到drawable上。在上面一小断代码里，就意味着该drawable有一个对textview的引用，而这个textview又有对这个activity（就是这个context）的引用，而这个activity里有很多对其他对象的引用（取决你的代码）。
+        这个例子是一个泄露Context的最简单的情况，你可以在 Home screen's source code（方法unbindDrawables()）看到当一个activity被销毁时我们是怎么工作的，我们会设置保存drawable的callback为null。有很多情况可以造成一系列context泄漏，它们会很快地耗光你的内存，这些非常不好。
+        有两个简单的方法来避免context相关的内存泄露。最明显的方法是避免context超过自己的使用范围。上面的例子表明对外部静态变量的引用同样危险。第二种解决方法是用Application context。这个context会存活在整个application生命周期中，它不依靠activity的生命周期。如果你想保存一个需要context的长生命周期的对象，记住使用Application context。你可以通过调用 Context.getApplicationContext() 或者Activity.getApplication()来获得它。 
+        总之，为了避免context相关的内存泄露，记得下面的步骤：
+不要在context-activity里保存长生命周期的引用 (对于activity的引用，应该有和这个activiy相同的生命周期)
+试着使用Application context来代替context-activity
+如果你不想控制非静态内部类的生命周期，就要避免在一个activity里使用它，而要用一个静态的内部类，对外部的这个activity有一个弱引用。这种解决方法有一个实例: ViewRoot和它的内部类中有一个对外部类的WeakReference。 
+GC对内存泄露是无能为力的。
+
+参考资料
+How to avoid memory leak
+How to use Eclipse Memory Analyzer to analyze JVM Memeory
+valgrind
+MAT Wiki
+Understanding Weak References译文
+Java HotSpot VM Options
+Shallow and retained sizes
+JVM Memory Structure
+ 
+
+
+
+分享到    
+推荐 24人 
+
+41人 喜欢 喜欢
+ 
+
+
+
+
+
+2011-08-17 16:17:23被阿北拉黑的人(反广场舞主义者。) 
+
+说说小米吧
+
+
+
+> 删除
+ 
+
+
+
+
+2011-08-17 16:31:14另一张床(我们爱过吗 、、 只是睡过吧…) 
+
+这是给专业人士看的吗？ 手机小白肿么办ya~~
+
+
+
+> 删除
+ 
+
+
+
+
+2011-08-17 16:32:12Bear (-_-|||) 
+
+很好的文章
+
+
+
+> 删除
+ 
+
+
+
+
+2011-08-17 16:53:36Feya (看到好吃的就不知道啥叫矜持) 
+
+哈哈，没想到还有人给推荐，看来不止我一人用到这个哈
+
+
+
+> 删除
+ 
+
+
+
+
+2011-08-17 16:58:44蝲蝲蛄
+
+图呢= =
+
+
+
+> 删除
+ 
+
+
+
+
+2011-08-17 17:38:40牛☣博恩(（╯#-_-)╯~~~~~~~~~~~~~╧═╧) 
+
+手机没有root权限，对此毫无压力
+
+
+
+> 删除
+ 
+
+
+
+
+2011-08-17 18:07:13夏天的布兰
+
+手机要先root哦？
+
+
+
+> 删除
+ 
+
+
+
+
+2011-08-17 18:07:41夏天的布兰
+
+手机要先root哦？
+
+
+
+> 删除
+ 
+
+
+
+
+2011-08-17 23:46:05蘇蘇丶(破碎的笑总是捏不到一起的) 
+
+m
+
+
+
+> 删除
+ 
+
+
+
+
+2011-08-18 08:46:10林五の(小孩子要懂得去包容大人。) 
+
+学术帖~~
+
+
+
+> 删除
+ 
+
+
+
+
+2011-08-18 08:51:40Hu (一切都好) 
+
+有图版 http://wenku.baidu.com/view/bf788a02b52acfc789ebc9c4.html
+
+
+
+> 删除
+ 
+
+
+
+
+2011-08-18 11:33:00Guo (RunLoop) 
+
+mark
+
+
+
+> 删除
+ 
+
+
+
+
+2012-01-23 19:02:52长安城的常先生(嘿！) 
+
+mark
+
+
+
+> 删除
+ 
+
+> 我来回应 
+
+
+Android@douban的日记  ( 全部) 
+•Android自动化测试软件
+•Android自动化测试初探（五）: 再述模拟键盘鼠标事件（adb shell 实现）
+•Android自动化测试初探（四）: 模拟键盘鼠标事件（Socket+Instrumentation实现）
+•Android自动化测试初探（三）: 架构实现
+•Android自动化测试初探（二）: Hierarchyviewer 捕获Element的实现原理
+ 
+
+
+
+推荐这篇日记的豆列  ( 全部) 
+•实用贴(惊悚病)
+
+
+
+
+ 关于豆瓣· 在豆瓣工作· 联系我们· 免责声明· 帮助中心· 开发者· 移动应用· 豆瓣广告 © 2005－2013 douban.com, all rights reserved
+ 
+ 
+
+ 

@@ -1,0 +1,286 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+yigelangmandeshiren的专栏
+
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年1月当选微软MVP名单揭晓！    智能开发框架 JEECG 作者张代浩专访
+ 2012CSDN博客之星火热出炉！      2013年全国百所高校巡讲讲师招募 
+
+
+
+【Android】监听sdcard状态 
+.
+ 分类： Android技术2012-11-04 01:05179人阅读评论(0)收藏举报
+
+
+
+
+[java] view plaincopyprint?
+01.public class MyService extends Service {  
+02.  
+03.    private static final String TAG = "MyService";  
+04.    File imagepath;  
+05.  
+06.    @Override  
+07.    public IBinder onBind(Intent intent) {  
+08.        return null;  
+09.    }  
+10.  
+11.    @Override  
+12.    public void onCreate() {  
+13.        super.onCreate();  
+14.        Log.i(TAG, "服务启动...");  
+15.        // 在IntentFilter中选择你要监听的行为  
+16.        IntentFilter intentFilter = new IntentFilter(Intent.ACTION_MEDIA_MOUNTED);// sd卡被插入，且已经挂载  
+17.        intentFilter.setPriority(1000);// 设置最高优先级  
+18.        intentFilter.addAction(Intent.ACTION_MEDIA_UNMOUNTED);// sd卡存在，但还没有挂载  
+19.        intentFilter.addAction(Intent.ACTION_MEDIA_REMOVED);// sd卡被移除  
+20.        intentFilter.addAction(Intent.ACTION_MEDIA_SHARED);// sd卡作为 USB大容量存储被共享，挂载被解除  
+21.        intentFilter.addAction(Intent.ACTION_MEDIA_BAD_REMOVAL);// sd卡已经从sd卡插槽拔出，但是挂载点还没解除  
+22.        intentFilter.addAction(Intent.ACTION_MEDIA_SCANNER_STARTED);// 开始扫描  
+23.        intentFilter.addAction(Intent.ACTION_MEDIA_SCANNER_FINISHED);// 扫描完成  
+24.        intentFilter.addDataScheme("file");  
+25.        registerReceiver(broadcastRec, intentFilter);// 注册监听函数  
+26.        Log.i(TAG, "sd状态改变");  
+27.    }  
+28.  
+29.    private final BroadcastReceiver broadcastRec = new BroadcastReceiver() {  
+30.        @Override  
+31.        public void onReceive(Context context, Intent intent) {  
+32.            String action = intent.getAction();  
+33.            if (action.equals("android.intent.action.MEDIA_MOUNTED"))// SD  
+34.            // 卡已经成功挂载  
+35.            {  
+36.                imagepath = android.os.Environment.getExternalStorageDirectory();// 你的SD卡路径  
+37.                Toast.makeText(MyService.this, "我的卡已经成功挂载", 0).show();  
+38.            } else if (action.equals("android.intent.action.MEDIA_REMOVED")// 各种未挂载状态  
+39.                    || action.equals("android.intent.action.ACTION_MEDIA_UNMOUNTED")  
+40.                    || action.equals("android.intent.action.ACTION_MEDIA_BAD_REMOVAL")) {  
+41.                imagepath = android.os.Environment.getDataDirectory();// 你的本地路径  
+42.                Toast.makeText(MyService.this, "我的各种未挂载状态", 0).show();  
+43.            }else if (action.equals(Intent.ACTION_MEDIA_SCANNER_STARTED)){//开始扫描  
+44.                Toast.makeText(MyService.this, "开始扫描...", 0).show();  
+45.            }else if (action.equals(Intent.ACTION_MEDIA_SCANNER_FINISHED)){//扫描完成  
+46.                Toast.makeText(MyService.this, "扫描完成...", 0).show();  
+47.            }else if (action.equals(Intent.ACTION_MEDIA_SHARED)){//扩展介质的挂载被解除 (unmount)。因为它已经作为 USB 大容量存储被共享  
+48.                Toast.makeText(MyService.this, " USB 大容量存储被共享...", 0).show();  
+49.            }else {  
+50.                Toast.makeText(MyService.this, "其他状态...", 0).show();  
+51.            }  
+52.            Log.i(TAG, "imagepath---" + imagepath);  
+53.        }  
+54.    };  
+55.      
+56.    public void onDestroy() {  
+57.        unregisterReceiver(broadcastRec);//取消注册  
+58.    };  
+59.  
+60.}  
+
+
+
+[html] view plaincopyprint?
+01.<?xml version="1.0" encoding="utf-8"?>  
+02.<manifest xmlns:android="http://schemas.android.com/apk/res/android"  
+03.    package="cn.ls"  
+04.    android:versionCode="1"  
+05.    android:versionName="1.0" >  
+06.  
+07.    <uses-sdk android:minSdkVersion="10" />  
+08.  
+09.    <!-- 在SDCard中创建与删除文件权限 -->  
+10.    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />  
+11.    <!-- 往SDCard写入数据权限 -->  
+12.    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />  
+13.  
+14.    <application  
+15.        android:icon="@drawable/ic_launcher"  
+16.        android:label="@string/app_name" >  
+17.        <activity  
+18.            android:name=".Android_sdcActivity"  
+19.            android:label="@string/app_name" >  
+20.            <intent-filter>  
+21.                <action android:name="android.intent.action.MAIN" />  
+22.  
+23.                <category android:name="android.intent.category.LAUNCHER" />  
+24.            </intent-filter>  
+25.        </activity>  
+26.          
+27.          
+28.         <!-- 注册服务 -->  
+29.        <service android:name=".service.MyService">  
+30.            <intent-filter>  
+31.                <action android:name="cn.ls.service.myservice.action" />  
+32.                <category android:name="android.intent.category.DEFAULT" />  
+33.            </intent-filter>  
+34.        </service>  
+35.  
+36.        <!-- 在SDCard中创建与删除文件权限 -->  
+37.    </application>  
+38.  
+39.</manifest>  
+
+ 
+
+分享到： 
+
+上一篇：【JavaWeb】commons-codec包简介
+下一篇：【Android】Intent action大全
+ . 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+poet
+ 
+
+
+
+
+访问：25151次
+积分：897分
+排名：第10563名
+.原创：58篇
+转载：64篇
+译文：0篇
+评论：6条
+. 
+文章搜索
+
+. 
+文章分类Hibernate(2)
+Java核心技术(17)
+Java Web 技术(14)
+javascript(0)
+数据库(5)
+Struts2(2)
+Android技术(34)
+生活杂谈(1)
+数据结构与算法(11)
+计算机组成原理(0)
+计算机网络(0)
+操作系统(0)
+离散数学(0)
+概率论与数理统计(0)
+ 
+文章存档
+2013年01月(1).
+2012年12月(17).
+2012年11月(15).
+2012年10月(2).
+2012年09月(2).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+阅读排行The Myeclipse executable launcher was unable to locate its companion shared library(2897)
+添加文件到Sdcard出现Failed to push selection: Invalid argument问题(2008)
+【JAVA核心技术】新I/O(1527)
+You must perform a full uninstall of the application(1370)
+Android中Activity跳转问题(877)
+Java获取当前日期的前一个月，前一天的时间(756)
+Android有效解决加载大图片时内存溢出问题VMRuntime(663)
+JAVA中四个二进制位从操作符即（&按位与、|按位货、^按位异或、~按位取反）(575)
+【Android】用ImageView显示本地和网上的图片(538)
+ListView自定义适配器(521)
+ 
+评论排行添加文件到Sdcard出现Failed to push selection: Invalid argument问题(2)
+【Android】DSS 搭建手机流媒体服务器(1)
+TELNET FTP 访问网页(1)
+doc 下解决mysql 中文乱码问题(1)
+Android有效解决加载大图片时内存溢出问题VMRuntime(1)
+【JAVA核心技术】本地方法(0)
+【Android】pull解析器用法(0)
+【Android】自定义seekbar样式(0)
+【JavaWeb】Gson简要使用笔记(0)
+【JavaWeb】Cookie(0)
+ 
+推荐文章 
+最新评论 【Android】DSS 搭建手机流媒体服务器
+eebb88: 非常感谢，学习了 
+
+添加文件到Sdcard出现Failed to push selection: Invalid argument问题
+wushinian123: 只你导入的文件的文件名不能使中文的 
+
+Android有效解决加载大图片时内存溢出问题VMRuntime
+hudashi: 兄弟，VMRuntime.getRuntime().setMinimumHeapSize(CWJ_H... 
+
+TELNET FTP 访问网页
+xiaokui_hyz: 我输入GET/HTTP/1.1HOST:指令后没有连接成功呀显示的是：失去了跟主机的连接。请大牛指点... 
+
+添加文件到Sdcard出现Failed to push selection: Invalid argument问题
+gaohongijj: 我的提示是Failed to push selection: Invalid argument，“路... 
+
+doc 下解决mysql 中文乱码问题
+moran_moon: 
+
+
+技术之窗 博客园
+ http://marshal.easymorse.com/archives/3024 
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

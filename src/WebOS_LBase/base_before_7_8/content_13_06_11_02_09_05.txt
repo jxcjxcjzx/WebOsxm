@@ -1,0 +1,414 @@
+
+ 
+	
+
+ 
+DISTROS	SYSADMIN	MOBILE	SOFTWARE	DATACENTER	HPC	DEVELOPMENT	LMTV
+ 	
+
+Command Line Magic: Scripting, Part One
+Creating shell scripts is the lazy (smart) system administrator's way to automate and build intelligence into repetitive tasks.
+By Ken Hess
+Monday, June 27th, 2011
+
+
+ 
+This scripting miniseries will help you learn some basic scripting and perhaps launch you on a more productive career in Linux system administration. If you find yourself typing the same commands over and over again, do yourself a favor and write a script to do it. Smart administrators have scripts for everything. There are three things you have to remember about scripting: Don’t test your scripts on production systems, document the script’s action, and name the script descriptively. This week’s article introduces you to simple shell scripting.
+
+There’s no great secret to creating good scripts. You don’t have to be afraid of criticism about script security, programming style, or which editor you use to create them. You don’t need to be a programmer or even a Linux expert to create some pretty cool scripts. All you really must do is test your scripts, document your scripts, and give your scripts descriptive names.
+
+Test your scripts to make sure they work like you expect them to. Document your scripts inside and outside the script so that you don’t forget what the script’s original purpose is and that anyone else using the script will know how to use it. Name your scripts such that its functionality is at least hinted at from the name.
+
+Those of you who are new to Linux might ask, “Why do I need to create scripts?” The answer is simple, you don’t need to but once you’re worn out from typing the same commands several times per day, you’ll want to create them.
+
+Scripts help you manage your system(s) more efficiently. And, the rule of thumb is, that if you’re typing it, you can script it.
+
+The Basics
+
+I only use the Bourne-Again Shell (BASH)* for scripting. It’s the default shell in Linux and it has the best features from the other major shells. But don’t worry if you don’t use BASH, you can still write scripts that use BASH, even if you use a different user shell. The prerequisites for gaining the most out of this series are that you know how to use basic shell commands. For example, cd, ls, ps, cat, chmod and a command line text editor such as vi, emacs, or nano.
+
+I only use the vi** editor in the examples.
+
+This series is interactive, so you’ll need access to a Linux system, physical or virtual, with which to work. If you’re required to use root user privileges or sudo access, I’ll note that in the example.
+
+At the Command Line
+
+To keep my scripts in this separate from everything else, I created an area in my home directory for them under scripts/intro. Shell scripts are simply commands contained in a file (a shell script file) that run as if you had run them individually at the command line. Enough introduction, let’s get started with some shell scripts.
+
+Open your favorite text editor and enter some commands into it on a one command per line basis. To run the script within a BASH shell, enter #!/bin/bash.
+
+#!/bin/bash
+This line, which must be the first line in your script, is the only line that may begin with the # (shell) symbol. Placed anywhere else in the script and the shell interpreter ignores it and anything on the line after it. This is the comment symbol everywhere but on the first line. Continue by adding some commands as shown.
+
+#!/bin/bash
+touch file.txt
+echo "Hello World" >> file.txt
+echo "Create another file" > file2.txt
+ls -la
+cat file.txt
+echo " "
+cat file2.txt
+Save the file with a descriptive name (no spaces) and with a .sh at the end of the name. For example, file_create.sh. The file is simply a text file, not a script at this point. Do you know why? It’s because the file permissions don’t allow execution. To change the behavior, enter the following command:
+
+$ chmod +x file_create.sh
+Now, execute the file and allow it to create the two files and display their contents.
+
+./file_create.sh
+
+total 20
+drwxr-xr-x 2 khess khess 4096 2011-05-30 16:01 .
+drwxr-xr-x 3 khess khess 4096 2011-05-30 15:35 ..
+-rw-r--r-- 1 khess khess   20 2011-05-30 16:01 file2.txt
+-rwxr-xr-x 1 khess khess  141 2011-05-30 15:55 file_create.sh
+-rw-r--r-- 1 khess khess   12 2011-05-30 16:01 file.txt
+Hello World
+
+Create another file
+As demonstrated in the script, you can enter as many commands as you want into a script. They will execute one after the other, from top to bottom, until the script completes.
+
+For a practical application of the script you created, try this one that checks the lastlog and then mails you the list of user who’ve logged in during the current month.
+
+#!/bin/bash
+
+echo $HOSTNAME > logins.txt
+echo " " >> logins.txt
+last >> logins.txt
+mail ken@kenhess.com < logins.txt
+Note that this file records the hostname to help you identify which hosts your messages originate from, in case you have more than one that you manage.
+
+Interactive Scripting
+
+What if you need more flexibility in your scripts that you just can't program to run autonomously? You program them to run interactively and provide the intelligence as needs and circumstances change.
+
+This script prompts you for a filename, some initial content for the file, and then writes the provided information to the specified filename.
+
+#!/bin/bash
+
+echo "Enter the name of the file you wish to create."
+read FILENAME
+echo "Enter any info you want to enter into the file."
+read INFO
+touch $FILENAME
+echo $INFO >> $FILENAME
+cat $FILENAME
+Grant execute permission to the file and run it. Does it produce the expected results? Do you see any other useful applications for the scripts you've learned today? How about interactively adding information into a database?
+
+Next week, you'll gain considerably more experience writing scripts now that all of the trivia and introductory material is out of the way. If you have particular problems you'd like to solve, use the Comments section to address them. Other readers might have some good ideas or I can tackle them in upcoming posts. Try out a few scripts on your own from the ones you've learned here and post them for others to use.
+
+Remember, that we're an interactive, positive community that wants to foster open communications. Everyone comes in from a different place and it's our job to nurture learning and discovery. Until next week, happy scripting!
+
+* Watch for my upcoming, Korn Shell tale post.
+
+** It's the first one I learned from old UNIX nerds who thought that vi is the only editor. What can I say?
+
+Kenneth Hess is a Linux evangelist and freelance technical writer on a variety of open source topics including Linux, SQL, databases, and web services. Ken can be reached via his website at http://www.kenhess.com. Practical Virtualization Solutions by Kenneth Hess and Amy Newman is available now.
+
+Comments on "Command Line Magic: Scripting, Part One"
+
+	dragonwisard
+“I only use the vi** editor in the examples.”
+I don’t see anywhere in the examples where you make any reference to vi… so why even bring this up? You’re gonna start a holy war for nothing.
+
+Also, shouldn’t you explain a bit about the syntax and operators you’re using or do you expect that the reader is already an expert at BASH?
+
+You should explain > vs >> and when to use $. I see a lot of noobs get frustrated over $ in their first scripts.
+
+June 28th, 2011 at 6:23 am
+Reply
+	subramanyam
+It would be better if you differentiate between # and $. I thought it will be useful for the people who are familiar with Shell scripting. If it for the first time users you should explain the syntax and the operators .And also you should tell what are the basic commands which will be helpful while writing shell scripting.
+
+June 28th, 2011 at 7:38 am
+Reply
+	srinu.matta5
+# is used for comment the line except the line #!/bin/sh
+$ is a value substitution. if we write $variable then it gives value of the variable.
+
+September 20th, 2011 at 1:37 am
+Reply
+	pyeniemi
+Why do you give such silly examples (like the interactive…)?
+No need to “touch” the file, when you will simply append $INFO to it.
+
+June 28th, 2011 at 9:23 am
+Reply
+	
+“touch” allows your script to error out in case the directory is read-only for your user rather than waiting for the user to enter some text then find out it errored out after a long input.
+
+December 9th, 2011 at 5:05 pm
+Reply
+	doricman
+I keep Richard Blum’s “Linux Command Line and Shell Scripting Bible” handy any time I need “Command Line Magic”.
+The Bible is a great investment for a refresh and helping hand.
+
+June 28th, 2011 at 9:24 am
+Reply
+	hardy59
+Come on, this is sort of a scripting appetizer which might attract Linux newbies to get themselves a book or to read some online tutorial on shell scripting. Also I wouldn’t start with syntax and rules and stuff for exactly that reason. And finally: Linux newbies will never start a holy war on editors, this is the domain of smartarses.
+
+June 28th, 2011 at 9:24 am
+Reply
+	goarilla
+I think this was mostly useless.
+No offense but a few points:
+
+- you make it very clear that this is for bash
+yet your title makes it seem like it’s sh scripting,
+which is i think something you should do: you should teach
+generic shell scripting, common idioma’s, printf instead of echo, posix, etc …
+
+- you start by giving the moronic hell world example;
+I can tolerate that if it’s for a language that needs a buildchain
+and where compiling and running is necessary eg: C*, java, haskell, … but please not for shell.
+But then you continue to a pseudo-useful example and call it a day. It’s the second example that wets the beaks of the new ones even though
+they probably have never heard about the last command. That’s wrong imho give them a few more.
+
+June 28th, 2011 at 11:16 am
+Reply
+	
+I don’t remember him asking if you can “tolerate” anything. Get over yourself. He’s helping newbies.
+
+November 8th, 2011 at 6:20 pm
+Reply
+	rrohbeck
+Everything you need to know about bash scripting (I still use it as a reference after many years):
+http://tldp.org/LDP/abs/html/index.html
+It’s not a gentle introduction though.
+
+June 28th, 2011 at 12:07 pm
+Reply
+	
+Well, for this article’s target audience, maybe this one would be a better place to start,
+http://tldp.org/LDP/Bash-Beginners-Guide/html/index.html
+
+Good call linking to tldp (The Linux Documentation Project http://tldp.org/ ). It’s been rather a while since I checked it out — and it looks like the material is now being updated more regularly (for a while it was kind of lagging). I highly recommend it. It’s a really great site for anyone able to study on their own, from newbie to guru.
+
+December 8th, 2011 at 9:38 pm
+Reply
+	
+What is the error you are gitteng? Is the initial mysql connection succeeding?Edit: I managed to catch your errors. Here's what you're gitteng -Warning: mysql_query(): supplied argument is not a valid MySQL-Link resource in /home/content/w/e/e/weeklydraft/html/register.php on line 15Warning: mysql_numrows(): supplied argument is not a valid MySQL result resource in /home/content/w/e/e/weeklydraft/html/register.php on line 16Warning: mysql_query(): supplied argument is not a valid MySQL-Link resource in /home/content/w/e/e/weeklydraft/html/register.php on line 27Take a look at the code at those line numbers, and make sure the connection variable you are passing to the mysql_* functions is the same as the variable you are setting in database.php.
+
+February 6th, 2012 at 8:01 pm
+Reply
+	
+80RXqq yakgsubuaewv
+
+February 7th, 2012 at 2:11 am
+Reply
+	hennuz
+*ahem* (perl) *cough* – going back to square one…(sound of throat clearing)
+
+June 29th, 2011 at 1:58 am
+Reply
+	maximilianh
+This is not a great introduction into bash scripting. I don’t see any sense in this article.
+
+June 29th, 2011 at 5:44 pm
+Reply
+	khess
+I’ll bet that if I gave away solid gold coins, some people would have a problem with them not being silver. I don’t have enough money to test that theory.
+
+June 30th, 2011 at 8:02 pm
+Reply
+	odalcet
+Good job Khess (same as raultman). Keep going!
+
+July 14th, 2011 at 11:53 am
+Reply
+	raultman
+Khess, don’t let the other comments phase you. Everyone these days thinks they are better than everyone else. Keep doig what you are doing…
+
+July 1st, 2011 at 8:00 am
+Reply
+	turbopro
+Khess, please continue with the program. There shall be those of us who will benefit from and make good use of the knowledge that you share with us here.
+
+merci beaucoup
+
+July 1st, 2011 at 9:35 am
+Reply
+	mtabholt
+Khess — Wow! Sounds like lots of people missed their morning coffee! :)
+Good tutorial, and great starting point for people who are not familiar with scripting. Keep it up!
+
+July 2nd, 2011 at 7:54 am
+Reply
+	rocteur
+This article is called command line magic so I expected to find magic but it is a tutorial for people who have never tried to write a script. The article should be renamed….
+
+July 5th, 2011 at 6:28 am
+Reply
+	mikemeek
+It’s PART ONE, PEOPLE! Let the man talk before you begin ranting about omissions. How many things can you include in a first article?
+
+And please, no condescending messages, the man’s trying to help (which he does.) Those of you dissatisfied with the article don’t need it.
+
+Excellent piece, as usual, Ken. Keep ‘em coming.
+
+July 7th, 2011 at 6:09 am
+Reply
+	wayneBC
+Excellent piece, I’m new to scripting and this has taken out all the doubt i had about it being worthwhile. Keep up the good work
+
+July 17th, 2011 at 4:57 am
+Reply
+	Cookie_Monstr
+Its a start so lets keep it up.
+
+August 9th, 2011 at 4:47 pm
+Reply
+	karank
+wtf
+
+September 26th, 2011 at 12:11 am
+Reply
+	dtigue
+I liked it. I often have to check a book or website to remember exactly how to do this or that. But for someone who never has written a script this shows them how one might look and what could be accomplished.
+
+October 12th, 2011 at 8:56 pm
+Reply
+	eib
+great first time intro for me, thanks!
+
+October 14th, 2011 at 8:57 pm
+Reply
+	
+Nice article. Where’s part two?
+
+November 7th, 2011 at 9:22 am
+Reply
+	
+Thank you, Mr. Hess. I wouldn’t let what those naysayers rant on about dissuade me. This is a perfect primer for aspiring administrators. Everybody has to learn it from somewhere, and it looks like the user two up from my post is one of those who have benefited from it. As for the naysayers, my aunt had the perfect saying for you. You think your hot sh!t on a silver platter, yet I see a cold turd on a paper plate.
+
+November 8th, 2011 at 6:17 pm
+Reply
+	
+I will suggest Debian Squeeze to any one who is looking for rock solid stability. biomass pellet
+
+November 17th, 2011 at 7:45 pm
+Reply
+	
+Hey listen, all of us started out somewhere and this small starter is as good a place as any. For all of you that can’t “understand” that this can and is helpful to those that don’t know… please look at all the comments that are grateful for this post. No it’s not “magic” to some of us and hasn’t been for 20+ years to fewer of us, but it is to new Linux users and new script writers. It is very much magic to them.
+
+You may not like it but this simple part 1 has taught some things already:
+
+1. The first line contains a line that determines what shell is used.
+2. Commands run on the command line are written the same way in their script.
+3. Variables can be created easily and values in them can be reused all through their script.
+4. That they can redirect any output into a file.
+
+However, that said I would like to add (for clearification) the following things to this tutorial:
+
+1. The line #!/bin/bash is often called the “shabang” (‘http://en.wikipedia.org/wiki/Shebang_(Unix)‘) and can be any interpreter or shell (/usr/bin/perl, /bin/ksh, etc…)
+2. Redirection using ‘>’ or ‘>>’ will overwrite (>) or append (>>).
+3. Creating a variable in bash (and most shells) is done without the special character $, you only prepend the $ to the variable name when you want the shell to give you the value contained within the variable (MY_VAR=”Some value”; echo “$MY_VAR”).
+4. Google is your friend, if you have questions there are literally millions of pages of answers found on google!
+
+December 8th, 2011 at 11:14 pm
+Reply
+	
+Command line always produces magical results when GUI gives you expected results. We are working as database dba and we always use commandline instead of GUI because GUI grabs so much bandwidth which is not available in our country. We need to identify shell first to start any work of shell script or command execution. Recently I have read good article on our company’s site about identify your shell.
+
+December 29th, 2011 at 6:25 am
+Reply
+	
+
+Really extremely very new to Linux/Unix. I read one book, and have been noodling around with GUI Linux. But even I understand the basics of > and >>, especially when used with cat. Don’t mean to site the enemy, but similar to | with MS-___!
+
+Good reading
+
+khess
+
+March 29th, 2012 at 9:34 pm
+Reply
+	
+
+I’m extremely new to Linux/Unix. I read one book, and just started using GUI Linux OSs 2 years ago. But even I understand > and >>, especially when used with cat. Hate to bring up the enemy but similar to | with MS-_ _ _!
+
+khess Good reading,
+
+BillopenSUSEfan
+
+March 29th, 2012 at 9:42 pm
+Reply
+	
+thank you =)
+
+June 12th, 2012 at 10:30 am
+Reply
+	
+I love what you guys are up too. This sort of clever work and
+exposure! Keep up the amazing works guys I’ve you guys to blogroll.
+
+June 24th, 2012 at 1:59 pm
+Reply
+	
+Nice intro… On to part 2 now.
+
+July 9th, 2012 at 12:05 pm
+Reply
+	
+Nice intro. On to part 2 now.
+
+July 9th, 2012 at 12:06 pm
+Reply
+	
+I don’t recommend this as a way to avoid buying music, but it’s a good tool to have handy for tracks that you can’t find for purchase. For instance, live performances on YouTube that aren’t on album somewhere.wedding photo
+wedding blog
+wedding site
+
+December 12th, 2012 at 12:39 am
+Reply
+	
+I love it when folks get together and share opinions.
+Great site, stick with it!
+
+February 4th, 2013 at 11:36 pm
+Reply
+Leave a Reply
+
+Your email address will not be published. Required fields are marked *
+
+Name *
+
+Email *
+
+Website
+
+Comment
+
+You may use these HTML tags and attributes: <a href="" title=""> <abbr title=""> <acronym title=""> <b> <blockquote cite=""> <cite> <code> <del datetime=""> <em> <i> <q cite=""> <strike> <strong>
+
+
+
+
+ 
+Software
+	Stick a Fork in Flock: Why it Failed
+	CentOS 5.6 Finally Arrives: Is It Suitable for Business Use?
+	Rooting a Nook Color: Is it Worth It?
+System Administration
+	Scripting, Part Two: Looping for Fun and Profit
+	Command Line Magic: Scripting, Part One
+	Making the Evolutionary Leap from Meerkat to Narwhal
+Storage
+	Extended File Attributes Rock!
+	Checksumming Files to Find Bit-Rot
+	What's an inode?
+
+ 
+Mobile
+	Putting Text to Speech to Work
+	Look Who's Talking: Android Edition
+	Upgrading Android: A Guided Tour
+HPC
+	A Little (q)bit of Quantum Computing
+	Emailing HPC
+	Chasing The Number
+
+
+ 
+
+Property of Quinstreet Enterprise.
+Terms of Service | Licensing & Reprints | About Us | Privacy Policy | Advertise
+Copyright 2013 QuinStreet Inc. All Rights Reserved.

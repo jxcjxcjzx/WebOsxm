@@ -1,0 +1,181 @@
+LARAVEL中文网
+首页
+关于
+扩展包
+学习
+英雄榜
+下载
+文档版本：Laravel 3.2.13
+
+
+目录
+
+Laravel概览
+更新日志
+安装与设置
+系统需求
+安装
+服务器设置
+基本设置
+环境
+友好的链接（URL）
+路由
+基础
+通配符（Wildcards）
+404事件（The 404 Event）
+过滤器（Filters）
+模式过滤器（Pattern Filters）
+全局过滤器（Global Filters）
+路由组（Route Groups）
+命名路由（Named Routes）
+HTTPS路由（HTTPS Routes）
+扩展包路由（Bundle Routes）
+控制器路由（Controller Routing）
+命令行路由测试（CLI Route Testing）
+控制器
+基础
+控制器路由（Controller Routing）
+扩展包控制器（Bundle Controllers）
+动作过滤器（Action Filters）
+嵌套控制器（Nested Controllers）
+RESTful控制器（RESTful Controllers）
+依赖注入（Dependency Injection）
+控制器工厂（Controller Factory）
+模型与工具库
+视图与回应（Responses）
+基础
+给视图绑定数据
+嵌套视图
+命名视图
+视图组装器
+重定向
+带有数据的重定向
+下载
+错误
+管理资源文件
+模版
+分页
+构建HTML
+构建Forms
+输入与Cookies
+输入
+文件
+Old Input
+Redirecting With Old Input
+Cookies
+扩展包
+基础
+新建扩展包
+注册扩展包
+扩展包与类的加载
+启动扩展包
+扩展包路由
+使用扩展包
+扩展包中的资源文件
+安装扩展包
+升级扩展包
+自动加载类
+错误与日志
+Profiler
+运行时配置
+检测请求（Requests）的属性
+生成URL
+事件
+数据校验
+文件处理
+字符串处理
+本地化
+加密
+IoC容器
+单元测试
+数据库
+
+配置
+原始查询方式（Raw Queries）
+Fluent查询构造器
+Eloquent对象关系模型（ORM）
+数据库表构造器（Schema Builder）
+迁移（Migrations）
+Redis
+缓存
+
+配置
+使用方法
+Sessions
+
+配置
+使用方法
+验证
+
+配置
+使用方法
+Artisan命令行工具
+
+任务（Tasks）
+基础
+创建与运行任务
+扩展包中的任务（Tasks）
+命令行选项
+指令集
+贡献
+
+Laravel on GitHub
+Command Line
+TortoiseGit
+LARAVEL DOCUMENTATION
+
+前言
+使用Laravel将是一种享受!
+Laravel优于其它PHP框架
+框架结构
+Laravel社区
+许可证
+
+前言
+欢迎阅读Laravel文档。这份文档既可以作为入门指南，也可以作为Laravel功能特色的参考手册。如果你迫不及待想要开始Laravel之旅的话，可以直接跳到你想看的章节，不过，我们还是强烈建议你按顺序阅读这份文档，这样能让你循序渐进的打好基础，而且，每一章节都是后后续章节的基础。
+
+
+使用Laravel将是一种享受!
+
+Laravel是一套功能强大的PHP开发框架，并且着重于灵活性和语法的表现力。对于初学者，Laravel像其他流行、轻量级框架一样易学、易用；对于经验丰富的同学，Laravel能让你体验代码模块化的好处。Laravel的灵活性能让你随心所欲的更新、重构你用应用；Laravel富于表现力的语法能让你或你的团队的代码简洁、容易阅读。
+
+
+Laravel优于其它PHP框架
+
+Laravel在很多方面优于其它框架，以下列出的就是其中的一部分：
+
+Bundle是Laravel的扩展包组织形式或称呼。Laravel的扩展包仓库已经相当成熟了，可以很容易的帮你把扩展包（bundle）安装到你的应用中。你可以选择下载一个扩展包（bundle）然后拷贝到bundles目录，或者通过命令行工具“Artisan”自动安装。
+在Laravel中已经具有了一套高级的PHP ActiveRecord实现 -- Eloquent ORM。它能方便的将“约束（constraints）”应用到关系的双方，这样你就具有了对数据的完全控制，而且享受到ActiveRecord的所有便利。Eloquent原生支持Fluent中查询构造器（query-builder）的所有方法。
+应用逻辑（Application Logic）可以在控制器（controllers）中实现，也可以直接集成到路由（route）声明中，并且语法和Sinatra框架类似。Laravel的设计理念是：给开发者以最大的灵活性，既能创建非常小的网站也能构建大型的企业应用。
+反向路由（Reverse Routing）赋予你通过路由（routes）名称创建链接（URI)的能力。只需使用路由名称（route name），Laravel就会自动帮你创建正确的URI。这样你就可以随时改变你的路由（routes），Laravel会帮你自动更新所有相关的链接。
+Restful控制器（Restful Controllers）是一项区分GET和POST请求逻辑的可选方式。比如在一个用户登陆逻辑中，你声明了一个get_login()的动作（action）来处理获取登陆页面的服务；同时也声明了一个post_login()动作（action）来校验表单POST过来的数据，并且在验证之后，做出重新转向（redirect）到登陆页面还是转向控制台的决定。
+自动加载类（Class Auto-loading）简化了类（class）的加载工作，以后就可以不用去维护自动加载配置表和非必须的组件加载工作了。当你想加载任何库（library）或模型（model）时，立即使用就行了，Laravel会自动帮你加载需要的文件。
+视图组装器（View Composers）本质上就是一段代码，这段代码在视图（View）加载时会自动执行。最好的例子就是博客中的侧边随机文章推荐，“视图组装器”中包含了加载随机文章推荐的逻辑，这样，你只需要加载内容区域的视图（view）就行了，其它的事情Laravel会帮你自动完成。
+反向控制容器（IoC container）提供了生成新对象、随时实例化对象、访问单例（singleton）对象的便捷方式。反向控制（IoC）意味着你几乎不需要特意去加载外部的库（libraries），就可以在代码中的任意位置访问这些对象，并且不需要忍受繁杂、冗余的代码结构。
+迁移（Migrations）就像是版本控制（version control）工具，不过，它管理的是数据库范式，并且直接集成在了Laravel中。你可以使用“Artisan”命令行工具生成、执行“迁移”指令。当你的小组成员改变了数据库范式的时候，你就可以轻松的通过版本控制工具更新当前工程，然后执行“迁移"指令即可，好了，你的数据库已经是最新的了！
+单元测试（Unit-Testing）是Laravel中很重要的部分。Laravel自身就包含数以百计的测试用例，以保障任何一处的修改不会影响其它部分的功能，这就是为什么在业内Laravel被认为是最稳版本的原因之一。Laravel也提供了方便的功能，让你自己的代码容易的进行单元测试。通过Artisan命令行工具就可以运行所有的测试用例。
+自动分页（Automatic Pagination）功能避免了在你的业务逻辑中混入大量无关分页配置代码。方便的是不需要记住当前页，只要从数据库中获取总的条目数量，然后使用limit/offset获取选定的数据，最后调用‘paginate’方法，让Laravel将各页链接输出到指定的视图（View)中即可，Laravel会替你自动完成所有工作。Laravel的自动分页系统被设计为容易实现、易于修改。虽然Laravel可以自动处理这些工作，但是不要忘了调用相应方法和手动配置分页系统哦！
+上面提到的只是Laravel优于其它框架的几点。在这份文档中包含了Laravel所有的特性和更多优点。
+
+
+框架结构
+
+Laravel's directory structure is designed to be familiar to users of other popular PHP frameworks. Web applications of any shape or size can easily be created using this structure similarly to the way that they would be created in other frameworks.
+
+However due to Laravel's unique architecture, it is possible for developers to create their own infrastructure that is specifically designed for their application. This may be most beneficial to large projects such as content-management-systems. This kind of architectural flexibility is unique to Laravel.
+
+Throughout the documentation we'll specify the default locations for declarations where appropriate.
+
+
+Laravel社区
+
+Laravel is lucky to be supported by rapidly growing, friendly and enthusiastic community. The Laravel Forums are a great place to find help, make a suggestion, or just see what other people are saying.
+
+Many of us hang out every day in the #laravel IRC channel on FreeNode. Here's a forum post explaining how you can join us. Hanging out in the IRC channel is a really great way to learn more about web-development using Laravel. You're welcome to ask questions, answer other people's questions, or just hang out and learn from other people's questions being answered. We love Laravel and would love to talk to you about it, so don't be a stranger!
+
+
+许可证
+
+Laravel is open-sourced software licensed under the MIT License.
+
+首页 关于 扩展包 中文手册 开发者API Laravel开发QQ群：280907494 Powered By Bootstrap 京ICP备11008151号  GitHub 上

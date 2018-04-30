@@ -1,0 +1,597 @@
+
+
+
+
+结构之法 算法之道
+
+Google或baidu搜索：“结构之法”，进入本博客
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+《这些年，我们读过的技术经典图书》主题有奖征文       专访李铁军：从医生到金山首席安全专家的转变      独一无二的职位：开源社区经理        CSDN博客第三期云计算最佳博主评选
+ 
+
+
+一步一图一代码，一定要让你真正彻底明白红黑树 
+.
+ 分类： 25.Red-black tree24.data structures2011-01-09 10:0822330人阅读评论(45)收藏举报
+ 
+structinsertdelete算法null数据结构
+
+ 
+
+          一步一图一代码，一定要让你真正彻底明白红黑树
+ 
+ 
+ 
+作者：July   二零一一年一月九日
+ 
+-----------------------------
+ 
+本文参考：
+I、  The Art of Computer Programming Volume I
+II、 Introduction to Algorithms, Second Edition
+III、The Annotated STL Sources
+IV、 Wikipedia
+V、  Algorithms In C Third Edition 
+
+VI、 本人写的关于红黑树的前三篇文章：
+ 
+第一篇：教你透彻了解红黑树：
+http://blog.csdn.net/v_JULY_v/archive/2010/12/29/6105630.aspx
+第二篇：红黑树算法的层层剖析与逐步实现
+http://blog.csdn.net/v_JULY_v/archive/2010/12/31/6109153.aspx
+第三篇：教你彻底实现红黑树：红黑树的c源码实现与剖析
+http://blog.csdn.net/v_JULY_v/archive/2011/01/03/6114226.aspx
+ 
+---------------------------------------------
+前言：
+1、有读者反应，说看了我的前几篇文章，对红黑树的了解还是不够透彻。
+2、我个人觉得，如果我一步一步，用图+代码来阐述各种插入、删除情况，可能会更直观易懂。
+3、既然写了红黑树，那么我就一定要把它真正写好，让读者真正彻底明白红黑树。
+ 
+本文相对我前面红黑树相关的3篇文章，主要有以下几点改进：
+1.图、文字叙述、代码编写，彼此对应，明朗而清晰。
+2.宏观总结，红黑树的性质与插入、删除情况的认识。
+3.代码来的更直接，结合图，给你最直观的感受，彻底明白红黑树。
+ 
+ok，首先，以下几点，你现在应该是要清楚明白了的：
+I、红黑树的五个性质：
+1）每个结点要么是红的，要么是黑的。
+2）根结点是黑的。
+3）每个叶结点，即空结点（NIL）是黑的。
+4）如果一个结点是红的，那么它的俩个儿子都是黑的。
+5）对每个结点，从该结点到其子孙结点的所有路径上包含相同数目的黑结点。
+
+ 
+II、红黑树插入的几种情况：
+情况1，z的叔叔y是红色的。
+情况2：z的叔叔y是黑色的，且z是右孩子
+情况3：z的叔叔y是黑色的，且z是左孩子
+ 
+III、红黑树删除的几种情况。
+情况1：x的兄弟w是红色的。
+情况2：x的兄弟w是黑色的，且w的俩个孩子都是黑色的。
+情况3：x的兄弟w是黑色的，且w的左孩子是红色，w的右孩子是黑色。
+情况4：x的兄弟w是黑色的，且w的右孩子是红色的。
+ 
+除此之外，还得明确一点：
+IV、我们知道，红黑树插入、或删除结点后，
+可能会违背、或破坏红黑树的原有的性质，
+所以为了使插入、或删除结点后的树依然维持为一棵新的红黑树，
+那就要做俩方面的工作：
+1、部分结点颜色，重新着色
+2、调整部分指针的指向，即左旋、右旋。
+ 
+V、并区别以下俩种操作：
+1)红黑树插入、删除结点的操作，RB-INSERT(T, z)，RB-DELETE(T, z)
+2).红黑树已经插入、删除结点之后，
+为了保持红黑树原有的红黑性质而做的恢复与保持红黑性质的操作。
+如RB-INSERT-FIXUP(T, z)，RB-DELETE-FIXUP(T, x)
+ 
+以上这5点，我已经在我前面的2篇文章，都已阐述过不少次了，希望，你现在已经透彻明了。
+ 
+---------------------------------------------------------------------
+ 
+本文，着重图解分析红黑树插入、删除结点后为了维持红黑性质而做修复工作的各种情况。
+[下文各种插入、删除的情况，与我的第二篇文章，红黑树算法的实现与剖析相对应]
+ 
+ok，开始。
+一、在下面的分析中，我们约定：
+要插入的节点为，N
+父亲节点，P
+祖父节点，G
+叔叔节点，U
+兄弟节点，S
+ 
+如下图所示，找一个节点的祖父和叔叔节点:
+node grandparent(node n)     //祖父
+ 
+{
+     return n->parent->parent;
+ }
+ 
+ node uncle(node n)              //叔叔
+ 
+{
+     if (n->parent == grandparent(n)->left)
+         return grandparent(n)->right;
+     else
+         return grandparent(n)->left;
+ }
+ 
+
+
+ 
+ 
+二、红黑树插入的几种情况
+情形1: 新节点N位于树的根上，没有父节点
+void insert_case1(node n) {
+     if (n->parent == NULL)
+         n->color = BLACK;
+     else
+         insert_case2(n);
+ }
+ 
+情形2: 新节点的父节点P是黑色
+void insert_case2(node n) {
+     if (n->parent->color == BLACK)
+         return; /* 树仍旧有效 */
+     else
+         insert_case3(n);
+ }
+ 
+
+
+ 
+情形3:父节点P、叔叔节点U，都为红色，
+[对应第二篇文章中，的情况1：z的叔叔是红色的。]
+void insert_case3(node n) {
+     if (uncle(n) != NULL && uncle(n)->color == RED) {
+         n->parent->color = BLACK;
+         uncle(n)->color = BLACK;
+         grandparent(n)->color = RED;
+         insert_case1(grandparent(n));   //因为祖父节点可能是红色的，违反性质4，递归情形1.
+     }
+     else
+         insert_case4(n);   //否则，叔叔是黑色的，转到下述情形4处理。
+ 
+
+
+此时新插入节点N做为P的左子节点或右子节点都属于上述情形3,上图仅显示N做为P左子的情形。
+ 
+ 
+ 
+情形4: 父节点P是红色，叔叔节点U是黑色或NIL; 
+插入节点N是其父节点P的右孩子，而父节点P又是其父节点的左孩子。
+[对应我第二篇文章中，的情况2：z的叔叔是黑色的，且z是右孩子]
+void insert_case4(node n) {
+     if (n == n->parent->right && n->parent == grandparent(n)->left) {
+         rotate_left(n->parent);
+         n = n->left;
+     } else if (n == n->parent->left && n->parent == grandparent(n)->right) {
+         rotate_right(n->parent);
+         n = n->right;
+     }
+     insert_case5(n);    //转到下述情形5处理。
+ 
+
+
+ 
+ 
+情形5: 父节点P是红色，而叔父节点U 是黑色或NIL，
+要插入的节点N 是其父节点的左孩子，而父节点P又是其父G的左孩子。
+[对应我第二篇文章中，情况3：z的叔叔是黑色的，且z是左孩子。]
+void insert_case5(node n) {
+     n->parent->color = BLACK;
+     grandparent(n)->color = RED;
+     if (n == n->parent->left && n->parent == grandparent(n)->left) {
+         rotate_right(grandparent(n));
+     } else {
+         /* 反情况，N 是其父节点的右孩子，而父节点P又是其父G的右孩子 */
+         rotate_left(grandparent(n));
+     }
+ }
+ 
+
+
+ 
+ 
+ 
+ 
+三、红黑树删除的几种情况
+上文我们约定，兄弟节点设为S，我们使用下述函数找到兄弟节点:
+struct node * sibling(struct node *n)  //找兄弟节点
+{
+        if (n == n->parent->left)
+                return n->parent->right;
+        else
+                return n->parent->left;
+}
+ 
+情况1: N 是新的根。
+void
+delete_case1(struct node *n)
+{
+        if (n->parent != NULL)
+                delete_case2(n);
+}
+
+ 
+ 
+情形2：兄弟节点S是红色
+[对应我第二篇文章中，情况1：x的兄弟w是红色的。]
+void delete_case2(struct node *n)
+{
+        struct node *s = sibling(n);
+ 
+        if (s->color == RED) {
+                n->parent->color = RED;
+                s->color = BLACK;
+                if (n == n->parent->left)
+                        rotate_left(n->parent);  //左旋
+                else
+                        rotate_right(n->parent);
+        } 
+        delete_case3(n);
+}
+ 
+
+
+ 
+ 
+情况 3: 兄弟节点S是黑色的，且S的俩个儿子都是黑色的。但N的父节点P，是黑色。
+[对应我第二篇文章中，情况2：x的兄弟w是黑色的，且兄弟w的俩个儿子都是黑色的。
+(这里，父节点P为黑)]
+void delete_case3(struct node *n)
+{
+        struct node *s = sibling(n);
+ 
+        if ((n->parent->color == BLACK) &&
+            (s->color == BLACK) &&
+            (s->left->color == BLACK) &&
+            (s->right->color == BLACK)) {
+                s->color = RED;
+                delete_case1(n->parent);
+        } else
+                delete_case4(n);
+}
+ 
+
+
+ 
+ 
+情况4: 兄弟节点S 是黑色的、S 的儿子也都是黑色的，但是 N 的父亲P，是红色。
+[还是对应我第二篇文章中，情况2：x的兄弟w是黑色的，且w的俩个孩子都是黑色的。
+(这里，父节点P为红)]
+void delete_case4(struct node *n)
+{
+        struct node *s = sibling(n);
+ 
+        if ((n->parent->color == RED) &&
+            (s->color == BLACK) &&
+            (s->left->color == BLACK) &&
+            (s->right->color == BLACK)) {
+                s->color = RED;
+                n->parent->color = BLACK;
+        } else
+                delete_case5(n);
+}
+ 
+
+
+ 
+ 
+情况5: 兄弟S为黑色，S 的左儿子是红色，S 的右儿子是黑色，而N是它父亲的左儿子。
+//此种情况，最后转化到下面的情况6。
+[对应我第二篇文章中，情况3：x的兄弟w是黑色的，w的左孩子是红色，w的右孩子是黑色。]
+void delete_case5(struct node *n)
+{
+        struct node *s = sibling(n);
+ 
+        if  (s->color == BLACK) 
+                if ((n == n->parent->left) &&
+                    (s->right->color == BLACK) &&
+                    (s->left->color == RED)) { 
+                        // this last test is trivial too due to cases 2-4.
+                        s->color = RED;
+                        s->left->color = BLACK;
+                        rotate_right(s);
+                } else if ((n == n->parent->right) &&
+                           (s->left->color == BLACK) &&
+                           (s->right->color == RED)) {
+                       // this last test is trivial too due to cases 2-4.
+                        s->color = RED;
+                        s->right->color = BLACK;
+                        rotate_left(s);
+                }
+        }
+        delete_case6(n);  //转到情况6。
+ 
+
+
+ 
+ 
+情况6: 兄弟节点S是黑色，S的右儿子是红色，而 N 是它父亲的左儿子。
+[对应我第二篇文章中，情况4:x的兄弟w是黑色的，且w的右孩子时红色的。]
+void delete_case6(struct node *n)
+{
+        struct node *s = sibling(n);
+ 
+        s->color = n->parent->color;
+        n->parent->color = BLACK;
+ 
+        if (n == n->parent->left) {
+                s->right->color = BLACK;
+                rotate_left(n->parent);
+        } else {
+                s->left->color = BLACK;
+                rotate_right(n->parent);
+        }
+}
+
+ 
+//呵呵，画这12张图，直接从中午画到了晚上。希望，此文能让你明白。
+ 
+ 
+ 
+四、红黑树的插入、删除情况时间复杂度的分析
+因为每一个红黑树也是一个特化的二叉查找树，
+因此红黑树上的只读操作与普通二叉查找树上的只读操作相同。
+然而，在红黑树上进行插入操作和删除操作会导致不再符合红黑树的性质。
+ 
+恢复红黑树的属性需要少量(O(log n))的颜色变更(实际是非常快速的)和
+不超过三次树旋转(对于插入操作是两次)。
+虽然插入和删除很复杂，但操作时间仍可以保持为 O(log n) 次。
+ 
+
+ok，完。
+ 
+后记：
+此红黑树系列，前前后后，已经写了4篇文章，如果读者读完了这4篇文章，
+对红黑树有一个相对之前来说，比较透彻的理解，
+那么，也不枉费，我花这么多篇幅、花好几个钟头去画红黑树了。
+ 
+真正理解一个数据结构、算法，最紧要的还是真正待用、实践的时候体会。
+欢迎，各位，将现在、或以后学习、工作中运用此红黑树结构、算法的经验与我分享。
+谢谢。:D。
+----------------------------------------
+ 
+ 
+ 
+        作者声明:
+        本人July对本博客所有文章和资料享有版权，转载、或引用任何内容请注明出处。
+        向您的厚道致敬。谢谢。二零一一年一月九日。
+ 
+
+上一篇：程序员的美：极致与疯狂
+下一篇：永久勘误:微软等面试100题答案V0.2版[第1-20题答案]
+ . 
+
+
+查看评论
+ 
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+个人资料 
+
+v_JULY_v 
+
+
+
+
+访问：4771609次
+积分：27387分
+排名：第46名
+ . 原创：138篇
+转载：0篇
+译文：5篇
+评论：10756条
+ . 
+
+博客公告 ①.本blog开通于2010年10月11日，高级C++/算法交流群：128691433；北京程序员联盟：172727781。②.狂热算法，热爱数据挖掘，关注机器学习、统计分析，爱好文学数学。③.微博：研究者July，邮箱：zhoulei97@aliyun.com，或zhoulei0907@yahoo.cn，July，二零一三年八月七日。 
+我的微博 
+文章分类 03.Algorithms（实现）(9) 
+01.Algorithms（研究）(27) 
+02.Algorithms（后续）(22) 
+04.Algorithms（讨论）(1) 
+05.MS 100' original(7) 
+06.MS 100' answers(13) 
+07.MS 100' classify(4) 
+08.MS 100' one Keys(6) 
+09.MS 100' follow-up(3) 
+10.MS 100' comments(4) 
+11.TAOPP（编程艺术）(29) 
+12.TAOPP string(8) 
+13.TAOPP array(12) 
+14.TAOPP list(2) 
+15.stack/heap/queue(0) 
+16.TAOPP tree(1) 
+17.TAOPP c/c++(2) 
+18.TAOPP function(2) 
+19.TAOPP algorithms(7) 
+20.number operations(1) 
+21.Essays(8) 
+22.Big Data Processing(5) 
+23.Redis/MongoDB(0) 
+24.data structures(12) 
+25.Red-black tree(7) 
+26.Image Processing(3) 
+27.Architecture design(4) 
+28.Source analysis(3) 
+29.Recommend&Search(4) 
+30.Machine L&Data Mining(5) 
+
+博客专栏
+
+
+
+
+数据挖掘十大算法系列
+文章：5篇
+阅读：277416 
+
+
+
+
+
+微软面试100题系列
+文章：17篇
+阅读：1412267 
+
+
+
+
+
+程序员编程艺术
+文章：27篇
+阅读：1022204 
+
+
+
+
+
+经典算法研究
+文章：32篇
+阅读：1254721 
+
+阅读排行 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(217908) 
+教你如何迅速秒杀掉：99%的海量数据处理面试题(170893) 
+九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(166897) 
+从B树、B+树、B*树谈到R 树(142708) 
+横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(137238) 
+十道海量数据处理面试题与十个方法大总结(113474) 
+支持向量机通俗导论（理解SVM的三层境界）(102790) 
+九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(94309) 
+十一、从头到尾彻底解析Hash表算法(89258) 
+微软公司等数据结构+算法面试100题(第1-100题)全部出炉(84427) 
+
+评论排行 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(409) 
+九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(368) 
+九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(339) 
+当今世界最为经典的十大算法--投票进行时(322) 
+从B树、B+树、B*树谈到R 树(279) 
+横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(267) 
+我的大学生涯(236) 
+程序员编程艺术第一章、左旋转字符串(223) 
+十三个经典算法研究与总结、目录+索引(218) 
+支持向量机通俗导论（理解SVM的三层境界）(215) 
+
+最新评论 程序员编程艺术第三十二~三十三章：最小操作数，木块砌墙问题
+u011916787: 问一个关于C++的问题，使用vector的时候为什么有时候初始化了之后需要resize(),而有时候... 
+
+程序员编程艺术第三十二~三十三章：最小操作数，木块砌墙问题
+u011916787: 问一下，这一个算法你大约想多久啊，我看现成的解答都要看半天，哎~~~ 
+
+从Hadoop框架与MapReduce模式中谈海量数据处理（含淘宝技术架构）
+yutianzuijin: @RunZhi1989:惊现俊哥！ 
+
+程序员编程艺术：第二章、字符串是否包含及匹配/查找/转换/拷贝问题
+ken_lover: @likefxy:这个方法有问题 
+
+程序员编程艺术第一章、左旋转字符串
+ken_lover: 将问题提高到数学方法实现，思考问题层次立马advanced了 
+
+从Trie树（字典树）谈到后缀树（10.28修订）
+hanchengxi: “还要提到一个节约时间的方法. 当我们遍历所有后缀时, 如果某个后缀的某个儿子跟待加字符(新前缀最后... 
+
+全新整理：微软、Google等公司的面试题及解答、第161-170题
+ilogo1: 放鸡蛋那个题，应该DP一下，在条件限制下的完全背包问题。 
+
+微软面试100题2010年版全部答案集锦（含下载地址）
+hasayake0302: 看了博主的帖子受益匪浅感觉Q48和Q51解法欠妥Q48：仅靠“a >= k && k > a”还不足... 
+
+程序员编程艺术：第十章、如何给10^7个数据量的磁盘文件排序
+yankai0219: 关于这个题目中K路归并时所采用的算法。在您的原文中，K路归并时就是采用数组比较获得最小值，复杂度为O... 
+
+程序员编程艺术第三十四~三十五章：格子取数问题，完美洗牌算法
+v_JULY_v: @k578522915:没记录最大值？ 
+
+
+01、本blog索引 3、微软100题维护地址
+1、微软100题横空出世
+5、经典算法研究系列
+7、红黑树系列集锦
+6、程序员编程艺术系列
+2、微软面试全部100题
+0、经典5大原创系列集锦
+4、微软100题下载地址
+ 
+02、Google or baidu? Google搜--"结构之法"（My BLOG）
+baidu 搜--"结构之法"（My BLOG）
+ 
+03、我的驻点 01. 为学论坛-万物皆数 终生为学
+ 02、Harry
+ 03、NoSQLFan
+ 04、酷勤网
+ 05、52nlp
+ 06、北大朋友的挖掘乐园
+ 07、跟Sophia_qing一起读硕士
+ 08、caopengcs
+ 08、面试问答社区51nod
+ 09、韩寒
+ 11、曾经的叛逆与年少
+ 12、老D之MongoDB源码分析
+ 14、code4app:iOS代码示例
+ 17、斯坦福机器学习公开课
+ 18、TheItHome算法版块版主
+ 19、36氪--关注互联网创业
+ 20、德问--编程是一种艺术创作
+ 21、善科网
+ 22、百度搜索研发部
+ 23、淘宝搜索技术博客
+ 24、interviewstreet
+ 25、LeetCode
+ 26、Team_Algorithms人人小组
+ 
+文章存档 
+2013年08月(2).
+2013年06月(1).
+2013年03月(1).
+2012年12月(1).
+2012年11月(1).
+2012年09月(1).
+2012年06月(1).
+2012年05月(2).
+2012年04月(1).
+2012年03月(2).
+2012年02月(2).
+2012年01月(2).
+2011年12月(5).
+2011年11月(1).
+2011年10月(7).
+2011年09月(3).
+2011年08月(11).
+2011年07月(4).
+2011年06月(7).
+2011年05月(10).
+2011年04月(7).
+2011年03月(17).
+2011年02月(11).
+2011年01月(18).
+2010年12月(14).
+2010年11月(6).
+2010年10月(5).
+ . 
+
+
+. 

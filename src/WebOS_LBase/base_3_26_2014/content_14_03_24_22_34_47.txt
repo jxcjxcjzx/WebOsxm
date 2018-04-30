@@ -1,0 +1,535 @@
+OpenGL API 简介
+
+分类： Mobile Software Dev.（移动软件开发：Android...） 2011-01-02 18:39 616人阅读 评论(0) 收藏 举报
+api扩展windows工具网格存储
+OpenGL API 简介
+
+
+
+	开发基于OpenGL的应用程序，必须先了解OpenGL的库函数。它采用C语言风格，提供大量的函数来进行图形的处理和显示。OpenGL库函数的命名方式非常有规律。所有OpenGL函数采用了以下格式：
+
+<库前缀><根命令><可选的参数个数><可选的参数类型>
+
+　　库前缀有gl、glu、aux、glut、wgl、glx、agl等等，分别表示该函数属于OpenGL那个开发库，从函数名后面中还可以看出需要多少个参数以及参数的类型。I代表int型，f代表float型，d代表double型，u代表无符号整型。例如glVertex3fv()表示了该函数属于gl库，参数是三个float型参数指针。我们用glVertex*()
+
+来表示这一类函数。
+
+　　OpenGL函数库相关的API有核心库(gl)、实用库(glu)、辅助库(aux)、实用工具库(glut)、窗口库(glx、agl、wgl)和扩展函数库等。从图可以看出，gl是核心，glu是对gl的部分封装。glx、agl、wgl 是针对不同窗口系统的函数。glut是为跨平台的OpenGL程序的工具包，比aux功能强大。扩展函数库是硬件厂商为实现硬件更新利用OpenGL的扩展机制开发的函数。下面逐一对这些库进行详细介绍。
+
+1．OpenGL核心库
+
+　　核心库包含有115个函数，函数名的前缀为gl。这部分函数用于常规的、核心的图形处理。此函数由gl.dll来负责解释执行。由于许多函数可以接收不同数以下几类。据类型的参数，因此派生出来的函数原形多达300多个。核心库中的函数主要可以分为以下几类函数：
+
+·                                 绘制基本几何图元的函数：glBegain()、glEnd()、glNormal*()、glVertex*()；
+
+·                                 矩阵操作、几何变换和投影变换的函数：如矩阵入栈函数glPushMatrix()，矩阵出栈函数glPopMatrix()，装载矩阵函数glLoadMatrix()，矩阵相乘函数glMultMatrix()，当前矩阵函数glMatrixMode()和矩阵标准化函数glLoadIdentity()，几何变换函数glTranslate*()、glRotate*()和glScale*()，投影变换函数glOrtho()、glFrustum()和视口变换函数glViewport()；
+
+·                                 颜色、光照和材质的函数：如设置颜色模式函数glColor*()、glIndex*()，设置光照效果的函数glLight*() 、glLightModel*()和设置材质效果函数glMaterial()；
+
+·                                 显示列表函数：主要有创建、结束、生成、删除和调用显示列表的函数glNewList()、glEndList()、glGenLists()、glCallList()和glDeleteLists()；
+
+·                                 纹理映射函数：主要有一维纹理函数glTexImage1D()、二维纹理函数glTexImage2D()、设置纹理参数、纹理环境和纹理坐标的函数glTexParameter*()、glTexEnv*()和glTetCoord*()；
+
+·                                 特殊效果函数：融合函数glBlendFunc()、反走样函数glHint()和雾化效果glFog*()；
+
+·                                 光栅化、象素操作函数：如象素位置glRasterPos*()、线型宽度glLineWidth()、多边形绘制模式glPolygonMode()，读取象素glReadPixel()、复制象素glCopyPixel()；
+
+·                                 选择与反馈函数：主要有渲染模式glRenderMode()、选择缓冲区glSelectBuffer()和反馈缓冲区glFeedbackBuffer()；
+
+·                                 曲线与曲面的绘制函数：生成曲线或曲面的函数glMap*()、glMapGrid*()，求值器的函数glEvalCoord*() glEvalMesh*()；
+
+·                                 状态设置与查询函数：glGet*()、glEnable()、glGetError()。
+
+2．OpenGL实用库The OpenGL Utility Library (GLU)
+
+　　包含有43个函数，函数名的前缀为glu。OpenGL提供了强大的但是为数不多的绘图命令，所有较复杂的绘图都必须从点、线、面开始。Glu 为了减轻繁重的编程工作，封装了OpenGL函数，Glu函数通过调用核心库的函数，为开发者提供相对简单的用法，实现一些较为复杂的操作。此函数由glu.dll来负责解释执行。OpenGL中的核心库和实用库可以在所有的OpenGL平台上运行。主要包括了以下几种：
+
+·                                 辅助纹理贴图函数：gluScaleImage() 、gluBuild1Dmipmaps()、gluBuild2Dmipmaps()；
+
+·                                 坐标转换和投影变换函数：定义投影方式函数gluPerspective()、gluOrtho2D() 、gluLookAt()，拾取投影视景体函数gluPickMatrix()，投影矩阵计算gluProject()和gluUnProject()；
+
+·                                 多边形镶嵌工具：gluNewTess()、gluDeleteTess()、gluTessCallback()、gluBeginPolygon()、gluTessVertex()、gluNextContour()、gluEndPolygon()；
+
+·                                 二次曲面绘制工具，主要有绘制球面、锥面、柱面、圆环面gluNewQuadric()、gluSphere()、gluCylinder()、gluDisk()、gluPartialDisk()、gluDeleteQuadric()；
+
+·                                 非均匀有理B样条绘制工具：主要用来定义和绘制Nurbs曲线和曲面，包括gluNewNurbsRenderer()、gluNurbsCurve()、gluBeginSurface()、gluEndSurface()、gluBeginCurve()、gluNurbsProperty()；
+
+·                                 错误反馈工具：获取出错信息的字符串gluErrorString()。
+
+3．OpenGL辅助库
+
+　　包含有31个函数，函数名前缀为aux。这部分函数提供窗口管理、输入输出处理以及绘制一些简单三维物体。此函数由glaux.dll来负责解释执行。创建aux库是为了学习和编写OpenGL程序，它更像是一个用于测试创意的预备基础接管。Aux库在windows实现有很多错误，因此很容易导致频繁的崩溃。在跨平台的编程实例和演示中，aux很大程度上已经被glut库取代。OpenGL中的辅助库不能在所有的OpenGL平台上运行。
+
+　　辅助库函数主要包括以下几类：
+
+·                                 窗口初始化和退出函数：auxInitDisplayMode()和auxInitPosition()；
+
+·                                 窗口处理和时间输入函数：auxReshapeFunc()、auxKeyFunc()和auxMouseFunc()；
+
+·                                 颜色索引装入函数：auxSetOneColor()；
+
+·                                 三维物体绘制函数：包括了两种形式网状体和实心体，如绘制立方体auxWireCube()和 auxSolidCube()。这里以网状体为例，长方体auxWireBox()、环形圆纹面auxWireTorus()、圆柱auxWireCylinder()、二十面体auxWireIcosahedron()、八面体auxWireOctahedron()、四面体auxWireTetrahedron()、十二面体auxWireDodecahedron()、圆锥体auxWireCone()和茶壶auxWireTeapot()；
+
+·                                 背景过程管理函数：auxIdleFunc()；
+
+·                                 程序运行函数：auxMainLoop()。
+
+4．OpenGL工具库 OpenGL Utility Toolkit
+
+　　包含大约30多个函数，函数名前缀为glut。glut是不依赖于窗口平台的OpenGL工具包，由Mark KLilgrad在SGI编写（现在在Nvidia），目的是隐藏不同窗口平台API的复杂度。 函数以glut开头，它们作为aux库功能更强的替代品，提供更为复杂的绘制功能，此函数由glut.dll来负责解释执行。由于glut中的窗口管理函数是不依赖于运行环境的，因此OpenGL中的工具库可以在X-Window, Windows NT, OS/2等系统下运行，特别适合于开发不需要复杂界面的OpenGL示例程序。对于有经验的程序员来说，一般先用glut理顺3D图形代码，然后再集成为完整的应用程序。
+
+　　这部分函数主要包括：
+
+·                                 窗口操作函数：窗口初始化、窗口大小、窗口位置函数等[glutInit()、glutInitDisplayMode()、glutInitWindowSize()、glutInitWindowPosition()]；
+
+·                                 回调函数：响应刷新消息、键盘消息、鼠标消息、定时器函数[GlutDisplayFunc()、glutPostRedisplay()、glutReshapeFunc()、glutTimerFunc()、glutKeyboardFunc()、glutMouseFunc()]；
+
+·                                 创建复杂的三维物体：这些和aux库的函数功能相同；
+
+·                                 菜单函数：创建添加菜单的函数GlutCreateMenu()、glutSetMenu()、glutAddMenuEntry()、glutAddSubMenu()和glutAttachMenu()；
+
+·                                 程序运行函数：glutMainLoop()。
+
+5．Windows专用库
+
+　　针对windows平台的扩展，包含有16个函数，函数名前缀为wgl。这部分函数主要用于连接OpenGL和Windows ，以弥补OpenGL在文本方面的不足。 Windows专用库只能用于Windows环境中。
+
+　　这类函数主要包括以下几类：
+
+·                                 绘图上下文相关函数：wglCreateContext()、wglDeleteContext()、wglGetCurrentContent()、wglGetCurrentDC()、wglDeleteContent()；
+
+·                                 文字和文本处理函数：wglUseFontBitmaps()、wglUseFontOutlines()；
+
+·                                 覆盖层、地层和主平面层处理函数：wglCopyContext()、wglCreateLayerPlane()、wglDescribeLayerPlane()、wglReakizeLayerPlatte()；
+
+·                                 其他函数：wglShareLists()、wglGetProcAddress()。
+
+6．Win32 API函数库
+
+　　包含有6个函数，函数名无专用前缀，是win32扩展函数。这部分函数主要用于处理像素存储格式和双帧缓存；这6个函数将替换Windows GDI中原有的同样的函数。Win32API函数库只能用于Windows 95/98/NT环境中。
+
+7．X窗口专用库
+
+　　是针对Unix和Linux的扩展函数。包括渲染上下文、绘制图元、显示列表、纹理贴图等；
+
+·                                 初始化：glXQueryExtension()；
+
+·                                 渲染上下文函数：glXCreateContext()、glXDestroyContext()、glXCopyContext()、glXMakeCurrent()、glXCreateGLXPixmap()；
+
+·                                 执行：glXWaitGL()、glXWaitX()；
+
+·                                 缓冲区和字体：glXSwapBuffers()、glXUseXFont()。
+
+8．其他扩展库
+
+　　这些函数可能是新的OpenGL函数，并没有在标准OpenGL库中实现，或者它们是用来扩展已存在的OpenGL函数的功能。和glu、glx和wgl一样，这些OpenGL扩展是由硬件厂商和厂商组织开发的。OpenGL扩展(OpenGL Extention)包含了大量的扩展API函数。
+
+　　随着硬件的更新，硬件厂商首先向SGI申请登记新的扩展，编写规格说明书（specification）。然后按照说明书进行开发扩展程序。不同的OpenGL实现（OpenGL Implementation）支持的扩展可能不一样，只有随着某一扩展的推广与应用以及硬件技术的提高该扩展才会在所有的OpenGL实现中被给予支持，从而最终成为OpenGL标准库的一部分。扩展由SGI维护，在SGI网站上列出了目前公开的已注册的扩展及其官方说明书。扩展源由扩展函数的后缀来指明(或使用扩展常量后缀)。例如，后缀WIN表明一个符合Windows规范的扩展，EXT或ARB后缀表明该扩展由多个卖主定义。
+
+下面给出OpenGL官方规定的命名规则：
+
+·                                 ARB – OpenGL Architecture Review Board正式核准的扩展，往往由厂商开发的扩展发展而来，如果同时存在厂商开发的扩展和ARB扩展，应该优先使用ARB扩展；
+
+·                                 EXT – 多家OpenGL厂商同意支持的扩展；
+
+·                                 HP – Hewlett-Packard 惠普；
+
+·                                 IBM – International Business Machines ；
+
+·                                 KTX – Kinetix, maker of 3D Studio Max ；
+
+·                                 INTEL – Intel 公司；
+
+·                                 NV – NVIDIA 公司；
+
+·                                 MESA – Brian Paul’s freeware portable OpenGL implementation ；
+
+·                                 SGI – Silicon Graphics公司开发的扩展；
+
+·                                 SGIX – Silicon Graphics (experimental) 公司开发的实验性扩展；
+
+·                                 SUN – Sun Microsystems；
+
+·                                 WIN – Microsoft 。
+
+　　由于OpenGL扩展在针对不同平台和不同驱动，OpenGL不可能把所有的接口程序全部放到gl.h、glx.h、wgl.h中，而是将这些函数头放在了glext.h、glxext.h和wglext.h中。这些扩展被看作时OpenGL核心库规范的增加和修改。
+
+OpenGl核心函数库
+
+glAccum 操作累加缓冲区 
+glAddSwapHintRectWIN 定义一组被SwapBuffers拷贝的三角形 
+glAlphaFunc允许设置alpha检测功能 
+glAreTexturesResident 决定特定的纹理对象是否常驻在纹理内存中 
+glArrayElement 定义一个被用于顶点渲染的数组成分 
+glBegin,glEnd 定义一个或一组原始的顶点 
+glBindTexture 允许建立一个绑定到目标纹理的有名称的纹理 
+glBitmap 绘制一个位图 
+glBlendFunc 特殊的像素算法 
+glCallList 执行一个显示列表 
+glCallLists 执行一列显示列表 
+glClear 用当前值清除缓冲区 
+GlClearAccum 为累加缓冲区指定用于清除的值 
+glClearColor 为色彩缓冲区指定用于清除的值 
+glClearDepth 为深度缓冲区指定用于清除的值 
+glClearStencil 为模板缓冲区指定用于清除的值 
+glClipPlane 定义被裁剪的一个平面几何体 
+glColor 设置当前色彩 
+glColorMask 允许或不允许写色彩组件帧缓冲区 
+glColorMaterial 使一个材质色彩指向当前的色彩 
+glColorPointer 定义一列色彩 
+glColorTableEXT 定义目的一个调色板纹理的调色板的格式和尺寸 
+glColorSubTableEXT 定义目的纹理的调色板的一部分被替换 
+glCopyPixels 拷贝帧缓冲区里的像素 
+glCopyTexImage1D 将像素从帧缓冲区拷贝到一个单空间纹理图象中 
+glCopyTexImage2D 将像素从帧缓冲区拷贝到一个双空间纹理图象中 
+glCopyTexSubImage1D 从帧缓冲区拷贝一个单空间纹理的子图象 
+glCopyTexSubImage2D 从帧缓冲区拷贝一个双空间纹理的子图象 
+glCullFace 定义前面或后面是否能被精选 
+glDeleteLists 删除相邻一组显示列表 
+glDeleteTextures 删除命名的纹理 
+glDepthFunc 定义用于深度缓冲区对照的数据 
+glDepthMask 允许或不允许写入深度缓冲区 
+glDepthRange 定义z值从标准的设备坐标映射到窗口坐标 
+glDrawArrays 定义渲染多个图元 
+glDrawBuffer 定义选择哪个色彩缓冲区被绘制 
+glDrawElements 渲染数组数据中的图元 
+glDrawPixels 将一组像素写入帧缓冲区 
+glEdgeFlag 定义一个边缘标志数组 
+glEdgeFlagPointer 定义一个边缘标志数组 
+glEnable, glDisable 打开或关闭OpenGL的特殊功能 
+glEnableClientState,glDisableClientState 分别打开或关闭数组 
+glEvalCoord 求解一维和二维贴图 
+glEvalMesh1,glEvalMesh2 求解一维和二维点或线的网格 
+glEvalPoint1,glEvalPoint2 生成及求解一个网格中的单点 
+glFeedbackBuffer 控制反馈模式 
+glFinish 等待直到OpenGL执行结束 
+glFlush 在有限的时间里强制OpenGL的执行 
+glFogf,glFogi,glFogfv,glFogiv 定义雾参数 
+glFrontFace 定义多边形的前面和背面 
+glFrustum 当前矩阵乘上透视矩阵 
+glGenLists 生成一组空的连续的显示列表 
+glGenTextures 生成纹理名称 
+glGetBooleanv,glGetDoublev,glGetFloatv,glGetIntegerv 返回值或所选参数值 
+glGetClipPlane 返回特定裁减面的系数 
+glGetColorTableEXT 从当前目标纹理调色板得到颜色表数据 
+glGetColorTableParameterfvEXT,glGetColorTableParameterivEXT 从颜色表中得到调色板参数 
+glGetError 返回错误消息 
+glGetLightfv,glGetLightiv 返回光源参数值 
+glGetMapdv,glGetMapfv,glGetMapiv 返回求值程序参数 
+glGetMaterialfv,glGetMaterialiv 返回材质参数 
+glGetPixelMapfv,glGetpixelMapuiv,glGetpixelMapusv 返回特定的像素图 
+glGetPointerv 返回顶点数据数组的地址 
+glGetPolygonStipple 返回多边形的点图案 
+glGetString 返回描述当前OpenGl连接的字符串 
+glGetTexEnvfv 返回纹理环境参数 
+glGetTexGendv,glGetTexGenfv,glGetTexGeniv 返回纹理坐标生成参数 
+glGetTexImage 返回一个纹理图象 
+glGetTexLevelParameterfv,glGetTexLevelParameteriv 返回特定的纹理参数的细节级别 
+glGetTexParameterfv,glGetTexParameteriv 返回纹理参数值 
+glHint 定义实现特殊的线索 
+glIndex 建立当前的色彩索引 
+glIndexMask 控制写色彩索引缓冲区里的单独位 
+GlIndexPointer 定义一个颜色索引数组 
+glInitName 初始化名字堆栈 
+glInterleavedArrays 同时定义和允许几个在一个大的数组集合里的交替数组 
+glIsEnabled 定义性能是否被允许 
+glIsList 检测显示列表的存在 
+glIsTexture 确定一个名字对应一个纹理 
+glLightf,glLighti,glLightfv,glLightiv 设置光源参数 
+glLightModelf,glLightModeli,glLightModelfv,glLightModeliv 设置光线模型参数 
+glLineStipple 设定线点绘图案 
+glLineWidth 设定光栅线段的宽 
+glListBase 为glcallList设定显示列表的基础 
+glLoadIdentity 用恒等矩阵替换当前矩阵 
+glLoadMatrixd,glLoadMatrif 用一个任意矩阵替换当前矩阵 
+glLoadName 将一个名字调入名字堆栈 
+glLogicOp 为色彩索引渲染定义一个逻辑像素操作 
+glMap1d,glMap1f 定义一个一维求值程序 
+glMap2d,glMap2f 定义一个二维求值程序 
+glMapGrid1d,glMapGrid1f,glMapgrid2d,glMapGrid2f 定义一个一维或二维网格 
+glMaterialf,glMateriali,glMateriafv,glMaterialiv 为光照模型定义材质参数 
+glMatrixMode 定义哪一个矩阵是当前矩阵 
+glMultMatrixd,glMultMatrixf 用当前矩阵与任意矩阵相乘 
+glNewList,glEndList 创建或替换一个显示列表 
+glNormal 设定当前顶点法向 
+glNormalPointer 设定一个法向数组 
+glOrtho 用垂直矩阵与当前矩阵相乘 
+glPassThrough 在反馈缓冲区做记号 
+glPixelMapfv,glPixelMapuiv,glPixelMapusv 设定像素交换图 
+glPixelStoref,glpixelStorei 设定像素存储模式 
+glPixelTransferf,glPixelTransferi 设定像素存储模式 
+glPixelZoom 设定像素缩放因数 
+glPointSize 设定光栅点的直径 
+glPolygonMode 选择一个多边形的光栅模式 
+glPolygonOffset 设定OpenGL用于计算深度值的比例和单元 
+glPolygonStipple 设定多边形填充图案 
+glPrioritizeTextures 设定纹理固定的优先级 
+glPushAttrib,glPopAttrib 属性堆栈的压入和弹出操作 
+glPushClientAttrib,glPopClientAttrib 在客户属性堆栈存储和恢复客户状态值 
+glPushmatrix,glPopMatrix 矩阵堆栈的压入和弹出操作 
+glPushName,glPopName 名字堆栈的压入和弹出操作 
+glRasterPos 定义像素操作的光栅位置 
+glreadBuffer 为像素选择一个源色彩缓冲区 
+glReadPixels 从帧缓冲区读取一组数据 
+glRectd,glRectf,glRecti,glRects,glRectdv,glRectfv,glRectiv,glRectsv 绘制一个三角形 
+glRenderMode定义光栅模式 
+glRotated,glRotatef 将旋转矩阵与当前矩阵相乘 
+glScaled,glScalef 将一般的比例矩阵与当前矩阵相乘 
+glScissor 定义裁减框 
+glSelectBuffer 为选择模式值建立一个缓冲区 
+glShadeModel 选择平直或平滑着色 
+glStencilFunc 为模板测试设置功能和参照值 
+glStencilMask 控制在模板面写单独的位 
+glStencilOp 设置激活模式测试 
+glTexCoord 设置当前纹理坐标 
+glTexCoordPointer 定义一个纹理坐标数组 
+glTexEnvf,glTexEnvi,glTexEnvfv,glTexEnviv 设定纹理坐标环境参数 
+glTexGend,glTexgenf,glTexGendv,glTexGenfv,glTexGeniv 控制纹理坐标的生成 
+glTexImage1D 定义一个一维的纹理图象 
+glTexImage2D 定义一个二维的纹理图 
+glTexParameterf,glTexParameteri,glTexParameterfv,glTexParameteriv 设置纹理参数 
+glTexSubImage1D 定义一个存在的一维纹理图像的一部分,但不能定义新的纹理 
+glTexSubImage2D 定义一个存在的二维纹理图像的一部分,但不能定义新的纹理 
+glTranslated,glTranslatef 将变换矩阵与当前矩阵相乘 
+glVertex 定义一个顶点 
+glVertexPointer 设定一个顶点数据数组 
+glViewport 设置视窗
+
+[OpenGL应用函数库]
+
+
+gluBeginCurve,gluEndCurve 定义一条不一至的有理的NURBS曲线 
+gluBeginPolygon,gluEndPolygon 定义一个非凸多边形 
+gluBeginSurface,gluEndSurface 定义一个NURBS曲线 
+gluBeginTrim,gluEndTrim 定义一个NURBS整理循环 
+gluBuild1Dmipmaps 建立一维多重映射 
+gluBuild2Dmipmaps 建立二维多重映射 
+gluCylinder 绘制一个圆柱 
+gluDeleteNurbsRenderer 删除一个NURBS对象 
+gluDeleQuadric 删除一个二次曲面对象 
+gluDeleteTess 删除一个镶嵌对象 
+gluDisk 绘制一个盘子 
+gluErrorString 根据OpenGL或GLU错误代码产生错误字符串 
+gluGetNutbsProperty 得到一个NURBS属性 
+gluGetString 得到一个描述GLU版本号或支持GLU扩展调用的字符串 
+gluGetTessProperty 得到一个镶嵌对象 
+gluLoadSamplingMatrices 加载NUMRBS例子和精选矩阵 
+gluLookAt 设定一个变换视点 
+gluNewNurbsRenderer 创建一个NURBS对象 
+gluNewQuadric 建立一个二次曲面对象 
+gluNewTess 建立一个镶嵌对象 
+gluNextContour 为其他轮廓的开始做标记 
+gluNurbsCallback 为NURBS对象设定一个回调 
+gluNnrbsCurve 设定一个NuRBS曲线的形状 
+gluNurbsProperty 设定一个NURBS属性 
+gluNurbsSurface 定义一个NURBS表面的形状 
+gluOrtho2D 定义一个二位正交投影矩阵 
+gluPartialDisk 绘制一个盘子的弧 
+gluPerspective 设置一个透视投影矩阵 
+gluPickMatrix 定义一个拾取区间 
+gluProject 将对象坐标映射为窗口坐标 
+gluPwlCurve 描述一个分段线性NURBS修剪曲线 
+gluQuadricCallback 为二次曲面对象定义一个回调 
+gluQuadricDrawStyle 为二次曲面设定合适的绘制风格 
+gluQuadricNormals 定义二次曲面所用的法向的种类 
+gluQuadricOrientation 定义二次曲面内部或外部方向 
+gluQuadricTexture 定义是否带二次其面做纹理帖图 
+gluScaleImage 将图象变换为任意尺寸 
+gluSphere 绘制一个球体 
+gluTessBeginContour,gluTessEndContour 划定一个边界描述 
+gluTessBeginPolygon,gluTessEndPolygon 划定一个多边形描述 
+gluTessCallback 为镶嵌对象定义一个回调 
+gluTessNormal 为一个多边行形定义法向 
+gluTessProperty 设置镶嵌对象的属性 
+gluTessVertex 定义在一个多边形上的顶点 
+gluUnProject 将窗口坐标映射为对象坐标
+
+ 
+
+ 
+
+ 
+
+glAccum 操作累加缓冲区
+glAddSwapHintRectWIN 定义一组被SwapBuffers拷贝的三角形
+glAlphaFunc允许设置alpha检测功能
+glAreTexturesResident 决定特定的纹理对象是否常驻在纹理内存中
+glArrayElement 定义一个被用于顶点渲染的数组成分
+glBegin,glEnd 定义一个或一组原始的顶点
+glBindTexture 允许建立一个绑定到目标纹理的有名称的纹理
+glBitmap 绘制一个位图
+glBlendFunc 特殊的像素算法
+glCallList 执行一个显示列表
+glCallLists 执行一列显示列表
+glClear 用当前值清除缓冲区
+GlClearAccum 为累加缓冲区指定用于清除的值
+glClearColor 为色彩缓冲区指定用于清除的值
+glClearDepth 为深度缓冲区指定用于清除的值
+glClearStencil 为模板缓冲区指定用于清除的值
+glClipPlane 定义被裁剪的一个平面几何体
+glColor 设置当前色彩
+glColorMask 允许或不允许写色彩组件帧缓冲区
+glColorMaterial 使一个材质色彩指向当前的色彩
+glColorPointer 定义一列色彩
+glColorTableEXT 定义目的一个调色板纹理的调色板的格式和尺寸
+glColorSubTableEXT 定义目的纹理的调色板的一部分被替换
+glCopyPixels 拷贝帧缓冲区里的像素
+glCopyTexImage1D 将像素从帧缓冲区拷贝到一个单空间纹理图象中
+glCopyTexImage2D 将像素从帧缓冲区拷贝到一个双空间纹理图象中
+glCopyTexSubImage1D 从帧缓冲区拷贝一个单空间纹理的子图象
+glCopyTexSubImage2D 从帧缓冲区拷贝一个双空间纹理的子图象
+glCullFace 定义前面或后面是否能被精选
+glDeleteLists 删除相邻一组显示列表
+glDeleteTextures 删除命名的纹理
+glDepthFunc 定义用于深度缓冲区对照的数据
+glDepthMask 允许或不允许写入深度缓冲区
+glDepthRange 定义z值从标准的设备坐标映射到窗口坐标
+glDrawArrays 定义渲染多个图元
+glDrawBuffer 定义选择哪个色彩缓冲区被绘制
+glDrawElements 渲染数组数据中的图元
+glDrawPixels 将一组像素写入帧缓冲区
+glEdgeFlag 定义一个边缘标志数组
+glEdgeFlagPointer 定义一个边缘标志数组
+glEnable, glDisable 打开或关闭OpenGL的特殊功能
+glEnableClientState,glDisableClientState 分别打开或关闭数组
+glEvalCoord 求解一维和二维贴图
+glEvalMesh1,glEvalMesh2 求解一维和二维点或线的网格
+glEvalPoint1,glEvalPoint2 生成及求解一个网格中的单点
+glFeedbackBuffer 控制反馈模式
+glFinish 等待直到OpenGL执行结束
+glFlush 在有限的时间里强制OpenGL的执行
+glFogf,glFogi,glFogfv,glFogiv 定义雾参数
+glFrontFace 定义多边形的前面和背面
+glFrustum 当前矩阵乘上透视矩阵
+glGenLists 生成一组空的连续的显示列表
+glGenTextures 生成纹理名称
+glGetBooleanv,glGetDoublev,glGetFloatv,glGetIntegerv 返回值或所选参数值
+glGetClipPlane 返回特定裁减面的系数
+glGetColorTableEXT 从当前目标纹理调色板得到颜色表数据
+glGetColorTableParameterfvEXT,glGetColorTableParameterivEXT 从颜色表中得到调色板参数
+glGetError 返回错误消息
+glGetLightfv,glGetLightiv 返回光源参数值
+glGetMapdv,glGetMapfv,glGetMapiv 返回求值程序参数
+glGetMaterialfv,glGetMaterialiv 返回材质参数
+glGetPixelMapfv,glGetpixelMapuiv,glGetpixelMapusv 返回特定的像素图
+glGetPointerv 返回顶点数据数组的地址
+glGetPolygonStipple 返回多边形的点图案
+glGetString 返回描述当前OpenGl连接的字符串
+glGetTexEnvfv 返回纹理环境参数
+glGetTexGendv,glGetTexGenfv,glGetTexGeniv 返回纹理坐标生成参数
+glGetTexImage 返回一个纹理图象
+glGetTexLevelParameterfv,glGetTexLevelParameteriv 返回特定的纹理参数的细节级别
+glGetTexParameterfv,glGetTexParameteriv 返回纹理参数值
+glHint 定义实现特殊的线索
+glIndex 建立当前的色彩索引
+glIndexMask 控制写色彩索引缓冲区里的单独位
+GlIndexPointer 定义一个颜色索引数组
+glInitName 初始化名字堆栈
+glInterleavedArrays 同时定义和允许几个在一个大的数组集合里的交替数组
+glIsEnabled 定义性能是否被允许
+glIsList 检测显示列表的存在
+glIsTexture 确定一个名字对应一个纹理
+glLightf,glLighti,glLightfv,glLightiv 设置光源参数
+glLightModelf,glLightModeli,glLightModelfv,glLightModeliv 设置光线模型参数
+glLineStipple 设定线点绘图案
+glLineWidth 设定光栅线段的宽
+glListBase 为glcallList设定显示列表的基础
+glLoadIdentity 用恒等矩阵替换当前矩阵
+glLoadMatrixd,glLoadMatrif 用一个任意矩阵替换当前矩阵
+glLoadName 将一个名字调入名字堆栈
+glLogicOp 为色彩索引渲染定义一个逻辑像素操作
+glMap1d,glMap1f 定义一个一维求值程序
+glMap2d,glMap2f 定义一个二维求值程序
+glMapGrid1d,glMapGrid1f,glMapgrid2d,glMapGrid2f 定义一个一维或二维网格
+glMaterialf,glMateriali,glMateriafv,glMaterialiv 为光照模型定义材质参数
+glMatrixMode 定义哪一个矩阵是当前矩阵
+glMultMatrixd,glMultMatrixf 用当前矩阵与任意矩阵相乘
+glNewList,glEndList 创建或替换一个显示列表
+glNormal 设定当前顶点法向
+glNormalPointer 设定一个法向数组
+glOrtho 用垂直矩阵与当前矩阵相乘
+glPassThrough 在反馈缓冲区做记号
+glPixelMapfv,glPixelMapuiv,glPixelMapusv 设定像素交换图
+glPixelStoref,glpixelStorei 设定像素存储模式
+glPixelTransferf,glPixelTransferi 设定像素存储模式
+glPixelZoom 设定像素缩放因数
+glPointSize 设定光栅点的直径
+glPolygonMode 选择一个多边形的光栅模式
+glPolygonOffset 设定OpenGL用于计算深度值的比例和单元
+glPolygonStipple 设定多边形填充图案
+glPrioritizeTextures 设定纹理固定的优先级
+glPushAttrib,glPopAttrib 属性堆栈的压入和弹出操作
+glPushClientAttrib,glPopClientAttrib 在客户属性堆栈存储和恢复客户状态值
+glPushmatrix,glPopMatrix 矩阵堆栈的压入和弹出操作
+glPushName,glPopName 名字堆栈的压入和弹出操作
+glRasterPos 定义像素操作的光栅位置
+glreadBuffer 为像素选择一个源色彩缓冲区
+glReadPixels 从帧缓冲区读取一组数据
+glRectd,glRectf,glRecti,glRects,glRectdv,glRectfv,glRectiv,glRectsv 绘制一个三角形
+glRenderMode定义光栅模式
+glRotated,glRotatef 将旋转矩阵与当前矩阵相乘
+glScaled,glScalef 将一般的比例矩阵与当前矩阵相乘
+glScissor 定义裁减框
+glSelectBuffer 为选择模式值建立一个缓冲区
+glShadeModel 选择平直或平滑着色
+glStencilFunc 为模板测试设置功能和参照值
+glStencilMask 控制在模板面写单独的位
+glStencilOp 设置激活模式测试
+glTexCoord 设置当前纹理坐标
+glTexCoordPointer 定义一个纹理坐标数组
+glTexEnvf,glTexEnvi,glTexEnvfv,glTexEnviv 设定纹理坐标环境参数
+glTexGend,glTexgenf,glTexGendv,glTexGenfv,glTexGeniv 控制纹理坐标的生成
+glTexImage1D 定义一个一维的纹理图象
+glTexImage2D 定义一个二维的纹理图
+glTexParameterf,glTexParameteri,glTexParameterfv,glTexParameteriv 设置纹理参数
+glTexSubImage1D 定义一个存在的一维纹理图像的一部分,但不能定义新的纹理
+glTexSubImage2D 定义一个存在的二维纹理图像的一部分,但不能定义新的纹理
+glTranslated,glTranslatef 将变换矩阵与当前矩阵相乘
+glVertex 定义一个顶点
+glVertexPointer 设定一个顶点数据数组
+glViewport 设置视窗[OpenGL应用函数库]
+gluBeginCurve,gluEndCurve 定义一条不一至的有理的NURBS曲线
+gluBeginPolygon,gluEndPolygon 定义一个非凸多边形
+gluBeginSurface,gluEndSurface 定义一个NURBS曲线
+gluBeginTrim,gluEndTrim 定义一个NURBS整理循环
+gluBuild1Dmipmaps 建立一维多重映射
+gluBuild2Dmipmaps 建立二维多重映射
+gluCylinder 绘制一个圆柱
+gluDeleteNurbsRenderer 删除一个NURBS对象
+gluDeleQuadric 删除一个二次曲面对象
+gluDeleteTess 删除一个镶嵌对象
+gluDisk 绘制一个盘子
+gluErrorString 根据OpenGL或GLU错误代码产生错误字符串
+gluGetNutbsProperty 得到一个NURBS属性
+gluGetString 得到一个描述GLU版本号或支持GLU扩展调用的字符串
+gluGetTessProperty 得到一个镶嵌对象
+gluLoadSamplingMatrices 加载NUMRBS例子和精选矩阵
+gluLookAt 设定一个变换视点
+gluNewNurbsRenderer 创建一个NURBS对象
+gluNewQuadric 建立一个二次曲面对象
+gluNewTess 建立一个镶嵌对象
+gluNextContour 为其他轮廓的开始做标记
+gluNurbsCallback 为NURBS对象设定一个回调
+gluNnrbsCurve 设定一个NuRBS曲线的形状
+gluNurbsProperty 设定一个NURBS属性
+gluNurbsSurface 定义一个NURBS表面的形状
+gluOrtho2D 定义一个二位正交投影矩阵
+gluPartialDisk 绘制一个盘子的弧
+gluPerspective 设置一个透视投影矩阵
+gluPickMatrix 定义一个拾取区间
+gluProject 将对象坐标映射为窗口坐标
+gluPwlCurve 描述一个分段线性NURBS修剪曲线
+gluQuadricCallback 为二次曲面对象定义一个回调
+gluQuadricDrawStyle. 为二次曲面设定合适的绘制风格
+gluQuadricNormals 定义二次曲面所用的法向的种类
+gluQuadricOrientation 定义二次曲面内部或外部方向
+gluQuadricTexture 定义是否带二次其面做纹理帖图
+gluScaleImage 将图象变换为任意尺寸
+gluSphere 绘制一个球体
+gluTessBeginContour,gluTessEndContour 划定一个边界描述
+gluTessBeginPolygon,gluTessEndPolygon 划定一个多边形描述
+gluTessCallback 为镶嵌对象定义一个回调
+gluTessNormal 为一个多边行形定义法向
+gluTessProperty 设置镶嵌对象的属性
+gluTessVertex 定义在一个多边形上的顶点
+gluUnProject 将窗口坐标映射为对象坐标

@@ -1,0 +1,383 @@
+
+
+
+华夏35度
+ 
+Data Mining,NLP,Search Engine
+
+
+JMeter使用总结
+
+
+
+ 
+使用JMeter做压力测试
+ 
+1．下载Jmeter
+ 
+地址：http://jmeter.apache.org/download_jmeter.cgi 
+ 
+2．启动jmeter
+ 
+运行bin/jmeter.bat
+ 
+3．添加线程组
+ 
+在TestPlan节点上右键，Add-->Threads(Users)-->Thread Group。
+ 
+
+
+Number of Threads (Users)：要模拟的并发用户量。
+Ramp Up Period (in seconds)：在多长时间内均匀启动所有的线程。比如Number of Threads设为10，Ramp Up Period设为1，则jmeter每隔0.1秒启动1个线程。
+Loop Count：单用户任务重复执行的次数。可以设为Forever，这样jmeter就不会自动停止，需要强制终止。
+还可以设置Scheduler Configuration。这里有两组设置：指定StartTime和End Time让jmeter在特定的时间区段内执行工作；Startup Delay表示从当前时刻开始延迟多长时间开始运行，Duration设定运行时长。
+ 
+4．用jmetr向服务器发送Java Request
+ 
+当然传统的方法是让jmeter向服务器发送Http Request或FTP Request，但这里不作展示。
+ 
+假如我们要模拟多用户并发向Zookeeper Cluster发送查询znode的请求，首先要写1个程序来指定单用户的请求行为。
+ 
+新建一个Java Project，导入jmeter/lib/ext下的两个jar包：ApacheJMeter_core.jar和ApacheJMeter_java.jar。
+ 
+
+
+
+
+
+?
+
+
+
+
+
+package test;
+
+ 
+
+import org.apache.jmeter.config.Arguments;
+
+import org.apache.jmeter.protocol.java.sampler.AbstractJavaSamplerClient;
+
+import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;
+
+import org.apache.jmeter.samplers.SampleResult;
+
+import org.apache.zookeeper.ZooKeeper;
+
+ 
+
+public class Create extends AbstractJavaSamplerClient{
+
+    private String nodePath=null;
+
+    private String timeout_str=null;
+
+    private SampleResult results;
+
+     
+
+     //设置传入的参数，可以设置多个，已设置的参数会显示到Jmeter的参数列表中
+
+    public Arguments getDefaultParameters() {
+
+        Arguments params = new Arguments();
+
+        params.addArgument("nodePath","");
+
+        params.addArgument("timeout_str", "5000");
+
+        return params;
+
+    }
+
+     
+
+    //初始化方法，实际运行时每个线程仅执行一次，在测试方法运行前执行
+
+    public void setupTest(JavaSamplerContext arg0) {
+
+        results = new SampleResult();
+
+        nodePath = arg0.getParameter("nodePath");   //获取在Jmeter中设置的参数值
+
+        if (nodePath != null && nodePath.length() > 0) {
+
+            results.setSamplerData(nodePath);
+
+        }
+
+        timeout_str=arg0.getParameter("timeout_str");
+
+        if (timeout_str != null && timeout_str.length() > 0) {
+
+            results.setSamplerData(timeout_str);
+
+        }
+
+    }
+
+ 
+
+     //测试执行的循环体，根据线程数和循环次数的不同可执行多次
+
+    @Override
+
+    public SampleResult runTest(JavaSamplerContext arg0) {
+
+        int timeout=Integer.parseInt(timeout_str);
+
+        boolean success=true;
+
+        results.sampleStart();      //事务的起点
+
+        try {
+
+            ZooKeeper zkp=new ZooKeeper("localhost:2181",timeout,null);
+
+            zkp.getData(nodePath, false, null);
+
+            zkp.close();
+
+        } catch (Exception e) {
+
+            success=false;
+
+        }finally{
+
+            results.sampleEnd();    //事务的终点
+
+            results.setSuccessful(success);     //设置本次事务成功或失败
+
+        }
+
+        return results;
+
+    }
+
+     
+
+    //结束方法，实际运行时每个线程仅执行一次，在测试方法运行结束后执行
+
+    public void teardownTest(JavaSamplerContext arg0) {
+
+    }
+
+} 
+
+
+将project导出为jar包，放到jmeter/lib/ext下，重启jmeter。
+ 
+在Thread Group上是右击，Add-->Sampler-->Java Request。
+ 
+
+
+设置nodePath和timeout的值。
+ 
+5．添加Listener
+ 
+在TestPlan上右击，Add-->Listener-->Aggregate Report。Jmeter生成的报告有多种，这里以Aggregate Report为例。
+ 
+
+
+可以指定将report保存到某个文件，如上图中所示保存到report.csv，在非GUI模式下运行Jmeter这是非常必要的。
+ 
+ 
+ 
+可以在bin/jmeter.properties中设置report文件的默认格式，你可能要经常要更改这两项配置：jmeter.save.saveservice.output_format=csv #默认有文件格式为jtl jmeter.save.saveservice.default_delimiter=\t #默认使用","作为域之间的分隔符
+ 
+ 
+ 
+点击Configure可以自己定义report中你所关心的数据项。
+ 
+
+
+比如我只关心每个请求是否成功，以及每个请求所用的时间，所以只勾选了两项。
+ 
+6．为Jmeter安装PerfMon插件
+ 
+PerfMon用来监控Server的CPU、I/O、Memory等情况。
+ 
+1. 插件下载地址：http://code.google.com/p/jmeter-plugins/wiki/PerfMon 
+ 
+2. 把JMeterPlugins.jar放到jmeter客户端的jmeter/lib/ext下。
+ 
+3. 启动jmeter，添加Listener时你就看到PerfMon Metrics Collectors了。
+ 
+4. 另外还需要把下载下来的PerfMon解压后放到所有的被测试的服务器上，并运JMeterPlugins/serverAgent/startAgent.sh，默认工作在4444端口。
+ 
+5. 使用PerfMon截图：
+ 
+
+
+再次提醒一下，在非GUI模式下运行Jmeter时指定把result保存到一个文件是非常必要的。
+ 
+7．非GUI模式下运行Jmeter
+ 
+具体方法是：先在GUI模式下创建TestPlan，保存为jmx文件。命令行启动jmeter：./ApacheJMeter -n -t testplan.jmx (选项-n表示non-GUI，-t指定TestPlan文件)。运行结束后Aggregate Report和PerfMon Metrics Collector就会保存在你指定的文件中。把保存PerfMon Metrics Collector的文件拖到Jmerter GUI中就可以看到CUP等使用状况拆线图了。
+ 
+8．远程启动jmeter
+ 
+应用进场景：用一台机器（称为JMeter客户端）上的jmeter同时启动另外几台机器（称为JMeter远程服务器）上的jmeter。
+ 
+1. 保证jmeter客户端和jmeter远程服务器采用相同版本的jmeter和JVM。
+ 
+2. jmeter客户端和jmeter远程服务器最好在同一个网段内。
+ 
+3. 在jmeter远程服务器上运行JMETER_HOME/bin/jmeter-server （UNIX）或者JMETER_HOME/bin/jmeter-server.bat（Windows）脚本 。
+ 
+4. 在jmeter客户端上修改/bin/jmeter.properties文件，找到属性"remote_hosts"，使用JMeter远程服务器的IP地址作为其属性值。可以添加多个服务器的IP地址，以逗号作为分隔。 
+例如：
+#remote_hosts=127.0.0.1
+remote_hosts=9.115.210.2:1099,9.115.210.3:1099,9.115.210.4:1099
+# RMI port to be used by the server (must start rmiregistry with same port)
+server_port=1099
+ 
+5. 在jmeter客户端上启动jmeter:
+./jmeter -n -t plan.jmx -r #选项-r表示远程启动(remote)
+jmeter客户端会自动向jmeter远程服务器上分发测试计划。
+ 
+ 
+
+原文来自:博客园（华夏35度）http://www.cnblogs.com/zhangchaoyang 作者:Orisun
+ 
+
+
+
+分类: Java
+ 
+
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+
+
+
+
+Orisun
+ 关注 - 7
+ 粉丝 - 137 
+
+
+
++加关注 
+
+
+0
+
+0
+
+
+ (请您对文章做出评价) 
+
+
+« 博主上一篇：读《成长比成功更重要》
+» 博主下一篇：机器学习问题方法总结
+
+ 
+posted on 2012-06-01 14:35 Orisun 阅读(3321) 评论(0)  编辑 收藏
+ 
+
+
+
+刷新评论刷新页面返回顶部
+ 
+
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+
+IE10：全面支持HTML5，让你创造更多
+找优秀程序员，就在博客园
+
+ 
+博客园首页博问新闻闪存程序员招聘知识库
+ 
+
+
+
+
+
+最新IT新闻:
+ · 华为智能手机出货量位列三甲 超越诺基亚RIM
+ · 宽2.8公里 旧金山海湾大桥将成全球最大灯景工程
+ · 微软邮件泄露GTA5发布日期？
+ · WindowsAndroid在PC上运行Android
+ · 三星要求苹果公开iOS6源代码 苹果称“荒唐”
+» 更多新闻...
+
+最新知识库文章:
+
+ · Couchbase 与 Membase, CouchDB 的关系
+ · 360的困兽之斗——重新探讨奇虎商业模式
+ · Map Reduce – the Free Lunch is not over?
+ · 从游戏设计机制以及玩家心理特征谈互联网产品设计理念
+ · 浏览器的重绘与重排
+
+» 更多知识库文章... 
+
+
+
+
+
+
+导航
+ 博客园
+ 首页
+ 联系
+ 订阅
+ 管理
+ 
+
+
+公告
+ 
+
+有问题请直接在文章下评论，方便交流。
+昵称：Orisun
+园龄：3年1个月
+粉丝：137
+关注：7
++加关注
+ 
+
+统计
+ 随笔 - 14 
+文章 - 249 
+评论 - 140 
+
+
+
+搜索
+
+ 
+ 
+文章分类(254)
+Algorithms(43) 
+Android(13) 
+C/C++(19) 
+DataBase(5) 
+Distributed(19) 
+DM,NLP,AI(46) 
+Embed(9) 
+Java(9) 
+Linux(48) 
+script(11) 
+Search Engine(21) 
+Web(9) 
+Windows(2) 
+
+最新评论
+ 
+
+1. Re:FP-Tree算法的实现
+您好，首先谢谢，写的真的很好！就是有一点问题，楼主你的“（1）从FP-Tree中找到所有的“牛奶”节点，向上遍历它的祖先节点，得到4条路径：”有点问题。应该改为“（1）从FP-Tree中找到所有的“牛奶”节点，向上遍历它的祖先节点及他的子孙节点，得到4条路径：”不然的话，“最后两项输出肯定没有“（纯属自己的看法，也不知道对不对，希望楼主海涵）。--许许多多life
+2. Re:LibSVM使用指南
+@ggzwtj多谢赐教--Orisun
+3. Re:LibSVM使用指南
+前面的数是ai，你看SVM的原理（或者是libsvm的源码）的时候就知道了。当然，如果有多个label的时候，前面就不只一个小数了。：）--ggzwtj
+4. Re:用Hadoop1.0.3实现KMeans算法
+@Orisun呵呵，我是初学者，因为我尝试了用空格做分隔符结果一直有错，后来才看到hadoop streaming默认分隔键值对是用的tab分隔符，所以实现写接口不用tab会出错，不知道是不是这个意思--Uncle Lee
+5. Re:文章关键词提取算法
+我在你原来代码的基础上修改了一下，我把同义词词林中同一行的所有同义词分别作为key（值还是这一整行数据）插入了数据库，但是对结果影响很小。--yla
+ 
+Powered by: 
+博客园
+Copyright © Orisun 
+

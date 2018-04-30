@@ -1,0 +1,353 @@
+babyos （一）——利用BIOS 中断INT 0x10显示字符和字符串
+
+分类： BabyOS 2012-12-24 01:35 1212人阅读 评论(6) 收藏 举报
+BIOS中断INT 0x10字符模式
+注：以下程序系原创，使用AT&T格式汇编来调用BIOS 0x10中断，如有错误，欢迎指正。表达能力较差，写的不好，但若能帮助一二访客，幸甚。
+
+
+使用BIOS 显示服务（Video Service）--INT 10H，下面主要探究字符显示模式。
+
+BIOS中断在保护模式下是不能用的，故不能在Linux中测试，所以写了个简单的boot loader，并在虚拟机中运行程序。
+
+
+1.以电传的方式写入字符串（AH=0x13）
+
+------------------------------------------------------------------
+			INT 0x10功能0x13
+--------------------------------------------------------------
+描述：
+	以电传打字机的方式显示字符串
+接受参数：
+	AH			0x13
+	AL			显示模式
+	BH			视频页
+	BL			属性值（如果AL=0x00或0x01）
+	CX			字符串的长度
+	DH,DL		屏幕上显示起始位置的行、列值
+	ES:BP		字符串的段:偏移地址
+返回值：
+	无
+显示模式（AL）：
+	0x00:字符串只包含字符码，显示之后不更新光标位置，属性值在BL中
+	0x01:字符串只包含字符码，显示之后更新光标位置，属性值在BL中
+	0x02:字符串包含字符码及属性值，显示之后不更新光标位置
+	0x03:字符串包含字符码及属性值，显示之后更新光标位置
+-------------------------------------------------------------------
+
+示例：
+# A bootsect, which print a string by BIOS interrupt video services(int 0x10)
+
+.section .text
+.global _start
+.code16
+
+_start:
+	movw	%cx,	%ax
+	movw	%ax,	%ds
+	movw	%ax,	%es
+
+	movw	$msgstr,%bp
+	movw	len,	%cx
+	movb	$0x05,	%dh
+	movb	$0x08,	%dl
+	movb	$0x01,	%al
+	movb	$0x13,	%ah
+	movb	$0x01,	%bl
+	movb	$0x00,	%bh
+
+	int		$0x10
+1:
+	jmp		1b
+
+msgstr:
+	.asciz	"Hello babyos(print by BIOS int 0x10:0x13, mode 0x01)!"
+len:
+	.int	. - msgstr
+
+	.org	0x1fe,	0x90
+	.word	0xaa55
+
+makefile:
+all: boot.img
+
+boot.o: boot.s
+	as -o $@ $<
+
+boot: boot.o
+	ld --oformat binary -N -Ttext 0x7c00 -o $@ $<
+
+boot.img: boot
+	dd if=boot of=boot.img bs=512 count=1
+
+clean:
+	rm ./boot ./boot.img ./boot.o
+
+运行：
+
+
+
+
+2.通过功能号0x09探究色彩控制
+
+上面的显示为什么是红色呢？我们可以通过实验来看一下颜色控制。
+
+------------------------------------------------------------------------
+			INT 0x10功能0x09
+-------------------------------------------------------------------
+描述：
+	显示字符并设置其属性
+接受参数：
+	AH			0x09
+	AL			字符的ASCII码
+	BH			视频页
+	BL			属性值
+	CX			重复次数
+返回值：
+	无
+注意：
+	在显示字符之后并不前进光标。在文本和图形模式下均可调用该功能
+	显示完字符后，如果还要继续显示字符，必须调用INT 0x10功能0x02前进光标
+-------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+			INT 0x10功能0x02
+-------------------------------------------------------------------
+描述：
+	把光标定位在选定视频页的特定行列位置
+接受参数：
+	AH			0x02
+	DH，DL		行、列值
+	BH			视频页
+返回值：
+	无
+注意：
+	在80x25模式下，DH范围0～24，DL范围0～79
+-------------------------------------------------------------------------
+
+示例：
+实现一个从第4行～7行，第8列～71列，显示‘A’～‘Z’的程序，共显示256个字符，使用BL（0～255）
+C 伪代码：
+cx = 0x04;
+bh = 0x00;
+
+dh = 0x04;
+dl = 0x08;
+al = 'A';
+
+for (bl = 0; bl < 256; bl++)
+{
+	print_char();
+	
+	al++;
+	if (al == 'Z')
+		al = 'A';
+	
+	dl++;
+	if (dl == 72)
+	{
+		dh++;
+		dl = 4;
+	}
+	
+	set_cursor();
+}
+汇编代码：
+# A bootsect, which print a colorful chars by BIOS INT 0x10, 0x09
+
+.section .text
+.global _start
+.code16
+
+_start:
+	movw	%cx,	%ax
+	movw	%ax,	%ds
+	movw	%ax,	%es
+
+	movw	$0x01,	%cx		# 字符显示重复次数
+	movb	$0x00,	%bh		# 视频页
+	
+	movb	$0x04,	%dh		# 显示起始行
+	movb	$0x08,	%dl		# 显示起始列
+	
+	movb	$'A',	%al		# 显示字符
+	movb	$0x00,	%bl		# 属性值
+
+1:
+	call	print_char
+	incb	%al
+	cmpb	$'Z',	%al
+	jne		2f
+	movb	$'A',	%al
+2:	
+	incb	%dl
+	cmpb	$72,	%dl
+	jne		3f
+	movb	$8,		%dl
+	incb	%dh
+3:
+	call	set_cursor
+	incb	%bl
+	cmp		$256,	%bl
+	jne		1b
+	jmp		1f
+
+print_char:
+	movb	$0x09,	%ah
+	int		$0x10
+	ret
+
+set_cursor:
+	movb	$0x02,	%ah
+	int		$0x10
+	ret
+
+1:
+	jmp		1b
+
+	.org	0x1fe,	0x90
+	.word	0xaa55
+
+结果：
+
+
+可以显式地验证色彩控制BL：
+7		6		5		4		3		2		1		0
+I       R		G		B		I		R		G		B
+闪烁    R		G		B		I		R		G		B
+
+如上图所示，7～4位为背景色，I表示高亮，RGB表示红绿蓝，若显卡支持闪烁，则位7表示是否闪烁。
+色彩混合：
+-----------------------------------------------------------
+混合的三种基色		不开启亮度位		开启亮度位
+-------------------------------------------------------
+红+绿+蓝			浅灰				白色
+绿+蓝				青色				浅青
+红+蓝				洋红				浅洋红
+红+绿				棕色				黄色
+无色彩				黑色				暗灰
+-----------------------------------------------------------
+
+3.清屏
+
+可以发现屏幕上有许多Bochs的打印信息，看着不爽，想办法去掉它们。
+
+利用0x06号功能，上卷全部行，则可清屏。
+
+-----------------------------------------------------------
+INT 0x10 功能0x06
+------------------------------------------------------
+描述：
+上卷窗口
+参数：
+AH 6
+AL 上卷的行数（0表示全部）
+BH 空白区域的视频属性
+CH，CL 窗口左上角的行列位置
+DH，DL 窗口右下角的行列位置
+返回值：
+无
+------------------------------------------------------------
+示例：
+# A bootsect, which print a colorful chars by BIOS INT 0x10, 0x09
+
+.section .text
+.global _start
+.code16
+
+_start:
+	movw	%cx,	%ax
+	movw	%ax,	%ds
+	movw	%ax,	%es
+
+	call	clear_screen	# 清屏
+
+	movw	$0x01,	%cx		# 字符显示重复次数
+	movb	$0x00,	%bh		# 视频页
+	
+	movb	$0x04,	%dh		# 显示起始行
+	movb	$0x08,	%dl		# 显示起始列
+	
+	movb	$'A',	%al		# 显示字符
+	movb	$0x00,	%bl		# 属性值
+
+1:
+	call	print_char		# 打印字符
+	incb	%al				# 下一个字符
+	cmpb	$'Z',	%al		# 是否该重新从‘A’开始
+	jne		2f
+	movb	$'A',	%al
+2:	
+	incb	%dl				# 下一个位置
+	cmpb	$72,	%dl		# 是否到下一行
+	jne		3f
+	movb	$8,		%dl
+	incb	%dh
+3:
+	call	set_cursor		# 设置光标位置
+	incb	%bl				# 下一种属性
+	cmp		$0,		%bl		# 是否256种属性用完
+	jne		1b
+	jmp		1f				# 结束
+
+clear_screen:				# 清屏函数
+	movb	$0x06,	%ah		# 功能号0x06
+	movb	$0,		%al		# 上卷全部行，即清屏
+	movb	$0,		%ch		# 左上角行
+	movb	$0,		%ch		# 左上角列	
+	movb	$24,	%dh		# 右下角行
+	movb	$79,	%dl		# 右下角列
+	movb	$0x07,	%bh		# 空白区域属性
+	int		$0x10
+	ret
+
+print_char:
+	movb	$0x09,	%ah		# 功能号0x09
+	int		$0x10
+	ret
+
+set_cursor:
+	movb	$0x02,	%ah		# 功能号0x02
+	int		$0x10
+	ret
+
+1:
+	jmp		1b
+
+	.org	0x1fe,	0x90
+	.word	0xaa55
+
+结果：
+
+
+
+4.直接写显存绘制字符串：
+
+示例：
+#---------------------------------------------------------------
+# 直接写显存显示一些文字函数：
+#	显示计算机当前工作的显示模式	
+draw_some_text:
+	# 设置ES，DS的值
+	movw	$VIDEO_SEG_TEXT,%ax
+	movw	%ax,			%es
+	xorw	%ax,			%ax
+	movw	%ax,			%ds
+
+
+	# 计算字符显示位置的显存地址(目标地址)
+	movw	$((80*TEXT_ROW+TEXT_COL) * 2),	%di
+	
+	# 源字符串地址
+	leaw	msgstr,			%si
+	
+	movb	$TEXT_COLOR,	%al		# 属性值（颜色）
+	movw	len,			%cx		# 显示的字符个数
+
+
+draw_a_char:			
+	movsb
+	stosb
+	loop	draw_a_char
+
+
+	ret

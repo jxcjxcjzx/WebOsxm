@@ -1,0 +1,222 @@
+
+·ChinaUnix首页 ·论坛 ·博客 
+	
+	Linux首页 | Linux新闻 | Linux论坛 | Linux文档 | Linux下载 | Linux博客 | Linux搜索 | 开源项目孵化平台 | 《开源时代》	
+新手入门 | 安装启动 | 管理员指南 | 开发手册 | 桌面应用 | 程序开发 | 数据库 | 网络技术| CentOS | Fedora | MySQL | Apache | Ubuntu | Gentoo| OSCON08
+  Linux时代 >> 技术文档 >> 新手入门
+ 
+修复 Grub 指南
+来源: ChinaUnix博客 　日期： 2007.03.11 11:27　(共有条评论) 我要评论
+ 
+
+                                修复 Grub 指南
+http://hi.baidu.com/nowis/blog/item/3291f719930c467adab4bdb1.html
+
+1、下载工具
+如果你将 Grub 安装到了 MBR，重新安装 Windows XP/2K 等会将 MBR 清除，那么怎么修复 MBR 中的 Grub 引导记录呢？这里介绍的方法是使用 Grub4DOS 这个DOS下的工具，最新版本的 Grub4DOS 可以在 
+这里
+下载到，下来之后可以用 win 下的 WinRAR、WinZIP 或 Linux 下的 tar zxvf 命令解开，将其中的 grub.exe 放在你的一个 fat/fat32 分区中（如 D:\grub4dos)。
+2、重新启动到 DOS，你可以用 DOS 启动软盘或光盘（我想一般都有一张 win98或 winme 光盘吧）。然后键入：
+代码：
+d:\grub4dos\grub.exe
+这样就进入了 Grub 环境，你可以看到一个 gurb> 提示符，下面要做的就是恢复你的 Grub 引导记录
+3、在 Grub> 提示符下键入 
+代码:
+root (hdx, y)
+kernel (hdx, y)/boot/yourkernelname ro root=/dev/hdxx
+第一个命令是指定你的 /boot 分区位置，如果你的 /boot 没有单独分区，那么就是你的 / 分区。
+第二个命令指定内核位置，具体位置根据自己的实际情况确定。
+第三个命令是将 Grub 引导记录写入 MBR 。
+如果你对自己的 Linux 分区位置不十分清楚，你可以使用 TAB 键补全功能来查看确定。
+执行完 setup 命令后成功会看到 succeed ! 字样。
+现在你就可以重启进入 Grub 了。
+4、如果你只是想启动 Linux 而不是修复 Grub，那么你可以在进入 DOS 后键入下面命令启动你的 Linux 系统。
+代码:d:\grub4dos\grub.exe --config-file=(hdx,y)/boot/grub/grub.conf
+当GRUB被破坏时，如何恢复？如安装Linux后，再重新安装Windows 98，则会破坏GRUB，怎样才能恢复GRUB？
+【答】：①用安装光盘启动,选升级安装,再只选安装GRUB行了。
+②用引导盘启动,在“BOOT：”输入linux rescue，也就是进入求援模式，到出现#命令提示符时，输入chroot /mnt/sysimage
+然后再输入grub-install /dev/had
+使用Linux安装盘修复GRUB
+引自：http://blog.csdn.net/Wasingmon/archive/2006/12/15/1443809.aspx
+在装有windows和Linux双操作系统的机器中，经常我们会因为重装Windows而将GRUB从MBR上清除掉.这样启动的时候不会出现启动菜单选项,导致Linux不能重新引导,用如下方法可解决此问题: 
+解决过程: 
+1.把安装盘的第一张放到光驱，然后重新启动机器，在BOIS中把系统用光驱来引导。  
+2.等安装界面出来后，按［F4］键，也就是linux rescue模式。  
+3.经过简单配置之后,然后会出现这样的字符  
+sh#  
+4.这样我们我们就可以操作GRUB了
+sh#grub  
+会出现这样的字符  
+grub>  
+我们就可以在这样的字符后面，输入  
+grub>root (hdX,Y)  
+grub>setup (hd0)  
+如果成功会有一个successful... 
+解释一下这里的几个参数: 
+这里的X，如果是一个盘，就是0，如果你所安装的linux的根分区在第二个硬盘上，那X就是1了；
+Y，就是装有linux系统所在的根分区,这里如果只知道linux在哪个硬盘,但不清楚在哪个分区上时,可以先输入root (hd0,然后用［TAB］键来补齐，这时会列出磁盘的分区情况,选择linux所在的分区就行了。  
+setup (hd0)就是把GRUB写到硬盘的MBR上。  
+   windows重装后修复grub.[转载] 
+引自：http://123mp3.cn/do/12to/326do.htm
+
+windows重装后总是会有这样的问题的.  
+  
+没有软驱如何修复grub/lilo引导菜单？   
+a.进入linux的安装界面。   
+b.按Ctrl+Alt+F2切换到控制台。   
+c.mkdir a建立目录a   
+d.mount /dev/hdax a把linux根分区mount到目录a上（hdax是你的根分区）   
+e.chroot a   
+f.执行/sbin/grub-install /dev/hdx(x=a,b,c,d) 或/sbin/lilo即可以重写引导。   
+g.exit退出chroot，umount a把根分区umount掉，rm a -rf 把目录a删除，Ctrl+Alt+Del重起    
+Fedora Core 3修复grub
+http://www.fwq168.com/caozuo/ShowArticle.asp?ArticleID=228
+最近在制作usb上运行的linux时，安装boot loader时误将grub安装在hd0（我的fedora core3的安装硬盘），导致grub无法加载fc3，经过一番努力，终于修复成功，下面是我的做法：
+1、用fc3第一张安装盘从光驱启动
+2、出现
+  boot：
+  按F5
+3、输入
+  linux rescue
+  回车
+4、引导linux，出现
+  ＃
+  提示符
+5、改变根文件系统，输入命令：
+  ＃chroot /mnt/sysimage
+  这样就加载了原来的fc3的根文件系统
+6、输入
+  ＃grub
+7、配置grub
+  >root (hd0,0)   
+  >setup (hd0,0)
+  >quit
+
+注：（hd0，0）中hd0是指安装fc3的第一个硬盘，linux中用hda表示，而grub用hd0表示，以此类推，具体看自己的linux安装在哪
+个硬盘；0指第一个分区，即boot分区，linux用hda1表示，而grub则用（hd0，0）表示。关键在第二步setup（hd0，0）中，也应
+该加上后面的那个0，否则如setup（hd0）将不能修复。
+8、安装grub
+  ＃grub-install hd0
+9、重启
+  ＃quit
+  ＃quit
+10、修复成功
+重装系统后，如何修复grub
+http://blog.csdn.net/armlearner/archive/2007/01/31/1499328.aspx
+                如果机子先装WINDOWS再装LINUX，刚在安装LINUX过程中会提示安装grub.
+若是相反,则WINDOWS系统会重写MBR,此时会出现开机识别不出LINUX系统.此时应该怎样解决?
+以下以机子上装有RH9.0和WINDOWS操作系统为列讲解如何修复GRUB:
+1.找到RedHat或是Fedora第一张安装盘.
+2.从光盘启动,出现第一个安装界面时,按linux rescue模式进入
+3.输入linux rescue
+4.出现#时,输入chroot   /mnt/sysimage  按Enter
+5.再输入grub-install   /dev/hda
+6.重启ok
+http://topic.csdn.net/t/20040128/20/2684418.html
+我的xp重装后，MBR被覆盖，linux进不去。以前是从硬盘装的linux9,我没有光盘。也没有软驱。现在该怎莫修复grub?   
+         我不想重装linux.尝试从硬盘修复了几次，是有个升级的选项，也选了用grub创建引导程序,但修复安装完没有任何变化，纳闷:(   
+         快来帮帮我，只要不重装能进linux就好
+首先，搞到loadlin.exe和一个内核，如vmlinuz，这一般光盘里都有，你从iso文件里弄吧。都拷贝出来放在某个目录里，如c:\loadlin\。然后进入真正的dos，   
+   cd   \loadlin   
+   loadlin.exe   vmlinuz   root=/dev/hdXX   
+   hdXX就是指你的linux所在的分区，如hda5。   
+如何恢复LINUX的引导   
+      
+   用linux安装盘启动,boot=后面输入linux   rescue   root=/dev/hd?      
+   例：   
+   grub>   find   /boot/vmlinuz            ；查找/boot/vmlinuz   
+   (hd0,7)                                    ；运行结果告知/boot/vmlinuz位置   
+   grub>   root   (hd0,7)         
+   grub>   kernel   /boot/vmlinuz   root=/dev/hda8      ；注意是hda8，不是hda7，要加1   
+   grub>   boot   
+      
+   重启动后，你可以重新安装grub到mbr，还可以使用ntloader作启动管理器。   
+   使用ntloader：   
+   进入   Linux后，执行   dd   if=/dev/hda(X)   of=路径与文件名   bs=512   count=1      
+   说明：   
+   a.   这条命令是将   Linux   的启动扇区存为一个文件      
+   b.   (X)   指的是   Linux   安装的   Boot   分区(如:Hda8   对应   Redhat   )      
+   c.   路径与文件名是存放文件的位置与文件名      
+   例：   
+   a.dd   if=/dev/hda8   of=/redhat.lnx   bs=512   count=1   
+   b.将刚刚做好的文件拷贝redhat.lnx到Windows   的   C   盘(Hda1)      
+   c.修改   C盘下的   boot.ini   文件添加最后两行例如：      
+   [boot   loader]      
+   timeout=15      
+   default=multi(0)disk(0)rdisk(0)partition(1)\WINDOWS      
+   [operating   systems]      
+   multi(0)disk(0)rdisk(0)partition(1)\WINDOWS="Microsoft   Windows   2000   Professional"   /fastdetect      
+   multi(0)disk(0)rdisk(0)partition(2)\WINDOWS="Windows   XP   Professional"   /fastdetect      
+   c:\Redhat.lnx="Redhat   9.0“      
+      
+   d.重启动，菜单就会出现了。      
+      
+  这样安装的好处在于   Linux与   Windows   互不干扰，即使要重装   Windows，也不会影响  
+Linux，只要备份那两个文件   (redhat.lnx   与   Magic.lnx),   重装完后放回   C盘，再按上面的方法修改
+  boot.ini   即可。   
+      
+grub被覆盖，在没有软驱和启动光盘情况恢复grub过程。小结一下：   
+   一。   想办法进入linux   
+   下载了grub   for   NTLDR工具   test004版   
+   用法:   
+                  1.   解压缩后把BOOTGRUB和GRLDR两个文件放在C:\下   
+                  2。修改BOOT.INI   最后添加一行         C:\BOOTGRUB="BOOT   GRUB"   
+                  3.   重起后选择进入grub      如下   
+                           grub>   find   /boot/vmlinuz   
+                                 ;如：显示（hd0,1）   
+                           grub>root   (hd0,7)   
+                           grub>kernel   /boot/vmlinuz   root=/dev/hda2      ;注意   加1   
+                  grub>boot                                        
+                  :   OK，顺利进入linux   
+   二.执行   /sbin/grub-install   /dev/hda      ；完成grub安装
+                
+                
+                
+                
+
+本文来自ChinaUnix博客，如果查看原文请点：http://blog.chinaunix.net/u/24475/showart_256830.html
+　 发表评论 查看评论(共有条评论)
+ 
+ 	
+
+
+
+最新资讯	更多>> 
+· 谷歌劝说诺基亚采用Android操作..
+· Apache 基金会确认退出 JCP 执..
+· Chrome 10 新功能探秘：新增GP..
+· 金山宣布开源其安全软件
+· 女黑客在开源会议上抱受骚扰
+· 21款值得关注的Linux游戏
+· 马化腾：腾讯半年后彻底转型，..
+· [多图] Chrome OS 预发布版本多..
+· Lubuntu 11.04 默认应用抢先一览
+· Red Hat宣布收购云计算软件提供..
+论坛热点	更多>> 
+· do_execve时候用户栈中参数的..
+· swapinfo -atm 问题
+· Linux 的优点简述
+· VM虚拟机上得Red Hat Linux上..
+· 我看成了上海男人喜欢女人毛..
+· 校车展览，看了你就知道
+· 在遇到他之前，唯一需要做的..
+· GRUB的疑问
+· 从来没有人真正付足书价——..
+· 云存储 vs 网盘
+文档更新	更多>> 
+· orcale queue
+· 谁可以推荐几本经典的操作系统的..
+· 【北京】某物联网公司招云计算应..
+· 【北京】某物联网公司招云计算应..
+· 谁能推荐几本关于操作系统的书
+· 如何添加网络接口eth1
+· 葡萄牙语入门教材的选取与经验分享
+· 葡萄牙语就业前景分析
+· 葡萄牙语学习经验交流
+· Щ
+ 
+关于我们 | 联系方式 | 广告合作 | 诚聘英才 | 网站地图 | 友情链接 | 免费注册
+Copyright © 2001-2009 ChinaUnix.net All Rights Reserved
+
+感谢所有关心和支持过ChinaUnix的朋友们
+京ICP证:060528号

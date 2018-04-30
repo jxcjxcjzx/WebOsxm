@@ -1,0 +1,785 @@
+
+C'est la vie
+随笔 - 90, 文章 - 1, 评论 - 51, 引用 - 0
+Java反射机制
+一、什么是反射机制 
+        简单的来说，反射机制指的是程序在运行时能够获取自身的信息。在java中，只要给定类的名字， 
+    那么就可以通过反射机制来获得类的所有信息。 
+二、哪里用到反射机制 
+        有些时候，我们用过一些知识，但是并不知道它的专业术语是什么，在刚刚学jdbc时用过一行代码， 
+    Class.forName("com.mysql.jdbc.Driver.class").newInstance();但是那时候只知道那行代码是生成 
+    驱动对象实例，并不知道它的具体含义。听了反射机制这节课后，才知道，原来这就是反射，现在很多开 
+    框架都用到反射机制，hibernate、struts都是用反射机制实现的。 
+三、反射机制的优点与缺点 
+        为什么要用反射机制？直接创建对象不就可以了吗，这就涉及到了动态与静态的概念， 
+    静态编译：在编译时确定类型，绑定对象,即通过。 
+    动态编译：运行时确定类型，绑定对象。动态编译最大限度发挥了java的灵活性，体现了多 
+    态的应用，有以降低类之间的藕合性。 
+    一句话，反射机制的优点就是可以实现动态创建对象和编译，体现出很大的灵活性，特别是在J2EE的开发中 
+    它的灵活性就表现的十分明显。比如，一个大型的软件，不可能一次就把把它设计的很完美，当这个程序编 
+    译后，发布了，当发现需要更新某些功能时，我们不可能要用户把以前的卸载，再重新安装新的版本，假如 
+    这样的话，这个软件肯定是没有多少人用的。采用静态的话，需要把整个程序重新编译一次才可以实现功能 
+    的更新，而采用反射机制的话，它就可以不用卸载，只需要在运行时才动态的创建和编译，就可以实现该功 
+    能。 
+       它的缺点是对性能有影响。使用反射基本上是一种解释操作，我们可以告诉JVM，我们希望做什么并且它 
+    满足我们的要求。这类操作总是慢于只直接执行相同的操作。 
+四、利用反射机制能获得什么信息 
+         一句话，类中有什么信息，它就可以获得什么信息，不过前提是得知道类的名字，要不就没有后文了 
+    首先得根据传入的类的全名来创建Class对象。 
+    Class c=Class.forName("className");注明：className必须为全名，也就是得包含包名，比如，cn.netjava.pojo.UserInfo; 
+    Object obj=c.newInstance();//创建对象的实例 
+    OK，有了对象就什么都好办了，想要什么信息就有什么信息了。   
+    获得构造函数的方法 
+    Constructor getConstructor(Class[] params)//根据指定参数获得public构造器
+
+    Constructor[] getConstructors()//获得public的所有构造器
+
+    Constructor getDeclaredConstructor(Class[] params)//根据指定参数获得public和非public的构造器
+
+    Constructor[] getDeclaredConstructors()//获得public的所有构造器 
+    获得类方法的方法 
+    Method getMethod(String name, Class[] params),根据方法名，参数类型获得方法
+
+    Method[] getMethods()//获得所有的public方法
+
+    Method getDeclaredMethod(String name, Class[] params)//根据方法名和参数类型，获得public和非public的方法
+
+    Method[] getDeclaredMethods()//获得所以的public和非public方法 
+    获得类中属性的方法 
+    Field getField(String name)//根据变量名得到相应的public变量
+
+    Field[] getFields()//获得类中所以public的方法
+
+    Field getDeclaredField(String name)//根据方法名获得public和非public变量
+
+    Field[] getDeclaredFields()//获得类中所有的public和非public方法 
+    常用的就这些，知道这些，其他的都好办…… 
+五、用反射机制能干什么事 
+        刚开始在使用jdbc时侯，在编写访问数据库时写到想吐，有八个表，每个表都有增删改查中操作 
+    那时候还不知道有反射机制这个概念，所以就对不同的表创建不同的dao类,这样不仅开发速率地，而且代码 
+    冗余的厉害，最要命的是看着差不多的，然后直接复制修改，由于容易犯各种低级的错误（大小写啊，多一 
+    个或少一个字母啊……）,一个错误就可以让你找半天。 
+        有了java反射机制，什么都好办了，只需要写一个dao类，四个方法，增删改查，传入不同的对象，就OK啦， 
+    无需为每一个表都创建dao类，反射机制会自动帮我们完成剩下的事情，这就是它的好处。说白了，反射机制就是专门 
+    帮我们做那些重复的有规则的事情，所以现在很多的自动生成代码的软件就是运用反射机制来完成的，只要你按照规则 
+    输入相关的参数，所以低级的程序员慢慢的就被抹杀了，为什么？因为代码都不用写了，随便一个人都会开发，还要程 
+    序员干什么啊？所以我们只有一条出路，那就是努力努力再努力，成为高级程序员，专门开发傻瓜软件，让其他程序员  到 一边凉快去，呵呵~ 
+六、用反射机制实现对数据库数据的增、查例子 
+    基本原理；保存数据时，把需要保存的对象的属性值全部取出来再拼凑sql语句 
+                 查询时，将查询到的数据全部包装成一个java对象。 
+    游戏规则：俗话说的好，无规矩不成方圆，特别是程序来说，它只能做有规则的事情，没有规则的它干不了，好，那就 
+              先定规则 
+              1）数据库的每一个表对象一个pojo类，表中的每一个字段对应pojo类的中的一个属性。 
+                 并且pojo类的名字和表的名字相同，属性名和字段名相同，大小写没有关系，因为数据库一般不区分大小写  
+              2）为pojo类中的每一个属性添加标准的set和get方法。 
+    有了游戏规则，那么开始游戏吧。
+
+1、首先数据库的有一个表，假设数据库名称为：blogsystem,里面的一个表名userinfo。如图：
+
+
+
+2、创建对应的pojo类：
+
+?
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+package cn.netjava.pojo;
+ 
+public class UserInfo {
+private int id;
+private String name;
+private String pwd;
+private int age;
+ 
+@Override
+public String toString() {
+    return "UserInfo [id=" + id + ", name=" + name + ", pwd=" + pwd + ", age="
+            + age + "]";
+}
+public int getId() {
+    return id;
+}
+public void setId(int id) {
+    this.id = id;
+}
+public String getName() {
+    return name;
+}
+public void setName(String name) {
+    this.name = name;
+}
+public String getPwd() {
+    return pwd;
+}
+public void setPwd(String pwd) {
+    this.pwd = pwd;
+}
+public int getAge() {
+    return age;
+}
+public void setAge(int age) {
+    this.age = age;
+}
+ 
+}
+2、编写获得数据库连接的工厂类：
+?
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+package cn.netjava.factory;
+ 
+import java.sql.Connection;
+import java.sql.DriverManager;
+ 
+public class Connect2DBFactory {
+    public static Connection getDBConnection() {
+        Connection conn = null;
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            String url = "jdbc:mysql://localhost:3306/blogsystem";
+            String user = "root";
+            String password = "netjava";
+            conn = DriverManager.getConnection(url, user, password);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+ 
+        return conn;
+    }
+}
+ 
+
+3、好戏开始啦，编写操作数据库的dao类
+
+?
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+package cn.netjava.session;
+ 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+ 
+import cn.netjava.factory.Connect2DBFactory;
+import cn.netjava.pojo.UserInfo;
+ 
+public class NetJavaSession {
+    /**
+     * 解析出保存对象的sql语句
+     *
+     * @param object
+     *            ：需要保存的对象
+     * @return：保存对象的sql语句
+     */
+    public static String getSaveObjectSql(Object object) {
+        // 定义一个sql字符串
+        String sql = "insert into ";
+        // 得到对象的类
+        Class c = object.getClass();
+        // 得到对象中所有的方法
+        Method[] methods = c.getMethods();
+        // 得到对象中所有的属性
+        Field[] fields = c.getFields();
+        // 得到对象类的名字
+        String cName = c.getName();
+        // 从类的名字中解析出表名
+        String tableName = cName.substring(cName.lastIndexOf(".") + 1,
+                cName.length());
+        sql += tableName + "(";
+        List<String> mList = new ArrayList<String>();
+        List vList = new ArrayList();
+        for (Method method : methods) {
+            String mName = method.getName();
+            if (mName.startsWith("get") && !mName.startsWith("getClass")) {
+                String fieldName = mName.substring(3, mName.length());
+                mList.add(fieldName);
+                System.out.println("字段名字----->" + fieldName);
+                try {
+                    Object value = method.invoke(object, null);
+                    System.out.println("执行方法返回的值：" + value);
+                    if (value instanceof String) {
+                        vList.add("\"" + value + "\"");
+                        System.out.println("字段值------>" + value);
+                    } else {
+                        vList.add(value);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        for (int i = 0; i < mList.size(); i++) {
+            if (i < mList.size() - 1) {
+                sql += mList.get(i) + ",";
+            } else {
+                sql += mList.get(i) + ") values(";
+            }
+        }
+        for (int i = 0; i < vList.size(); i++) {
+            if (i < vList.size() - 1) {
+                sql += vList.get(i) + ",";
+            } else {
+                sql += vList.get(i) + ")";
+            }
+        }
+ 
+        return sql;
+    }
+ 
+    public static List getDatasFromDB(String tableName, int Id) {
+ 
+        return null;
+ 
+    }
+ 
+    /**
+     * 将对象保存到数据库中
+     *
+     * @param object
+     *            ：需要保存的对象
+     * @return：方法执行的结果;1:表示成功，0:表示失败
+     */
+    public int saveObject(Object object) {
+        Connection con = Connect2DBFactory.getDBConnection();
+        String sql = getSaveObjectSql(object);
+        try {
+            // Statement statement=(Statement) con.createStatement();
+            PreparedStatement psmt = con.prepareStatement(sql);
+            psmt.executeUpdate();
+            return 1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+ 
+    /**
+     * 从数据库中取得对象
+     *
+     * @param arg0
+     *            ：对象所属的类
+     * @param id
+     *            ：对象的id
+     * @return:需要查找的对象
+     */
+    public Object getObject(String className, int Id) {
+        // 得到表名字
+        String tableName = className.substring(className.lastIndexOf(".") + 1,
+                className.length());
+        // 根据类名来创建Class对象
+        Class c = null;
+        try {
+            c = Class.forName(className);
+ 
+        } catch (ClassNotFoundException e1) {
+ 
+            e1.printStackTrace();
+        }
+        // 拼凑查询sql语句
+        String sql = "select * from " + tableName + " where Id=" + Id;
+        System.out.println("查找sql语句：" + sql);
+        // 获得数据库链接
+        Connection con = Connect2DBFactory.getDBConnection();
+        // 创建类的实例
+        Object obj = null;
+        try {
+ 
+            Statement stm = con.createStatement();
+            // 得到执行查寻语句返回的结果集
+            ResultSet set = stm.executeQuery(sql);
+            // 得到对象的方法数组
+            Method[] methods = c.getMethods();
+            // 遍历结果集
+            while (set.next()) {
+                obj = c.newInstance();
+                // 遍历对象的方法
+                for (Method method : methods) {
+                    String methodName = method.getName();
+                    // 如果对象的方法以set开头
+                    if (methodName.startsWith("set")) {
+                        // 根据方法名字得到数据表格中字段的名字
+                        String columnName = methodName.substring(3,
+                                methodName.length());
+                        // 得到方法的参数类型
+                        Class[] parmts = method.getParameterTypes();
+                        if (parmts[0] == String.class) {
+                            // 如果参数为String类型，则从结果集中按照列名取得对应的值，并且执行改set方法
+                            method.invoke(obj, set.getString(columnName));
+                        }
+                        if (parmts[0] == int.class) {
+                            method.invoke(obj, set.getInt(columnName));
+                        }
+                    }
+ 
+                }
+            }
+ 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return obj;
+    }
+}
+ 
+
+4、开始测试效果怎么样：
+
+?
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+package cn.netjava.tester;
+ 
+import cn.netjava.pojo.UserInfo;
+import cn.netjava.session.NetJavaSession;
+ 
+public class Tester {
+    public static void main(String args[]) {
+        //获得NetJavaSession对象
+        NetJavaSession session = new NetJavaSession();
+        //创建一个UserInfo对象
+        UserInfo user = new UserInfo();
+        //设置对象的属性
+        user.setId(6988);
+        user.setAge(44);
+        user.setPwd("pwd");
+        user.setName("champion");
+        //将对象保存到数据库中
+        String sql = session.getSaveObjectSql(user);
+        System.out.println("保存对象的sql语句：" + sql);
+        //查找对象
+        UserInfo userInfo = (UserInfo) session.getObject(
+                "cn.netjava.pojo.UserInfo", 6988);
+        System.out.println("获取到的信息：" + userInfo);
+ 
+    }
+}
+ 
+
+5、打印出来的结果：
+
+
+
+七、总节一下
+
+      总的来说，java反射机制是一个很好用的东西，用它可以解决很多死的东西，因为反射机制的灵活行很大，有了他，我们就不要花太多的时间来写操做数据库的代码了，而是方法更多的时间在项目的逻辑功能上，这个可以很大的减少开发时间，而且代码的可读性好。先在的很多开源框架都是才用的反射机制，它只要配置文件，然后按规则来调用他的方法就可以了。
+
+分类: java
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+C'est la vie
+关注 - 9
+粉丝 - 66
++加关注
+6 0
+(请您对文章做出评价)
+« 博主上一篇：cmwap联网失败与移动的推送页
+» 博主下一篇：PendingIntent和Intent的区别
+posted on 2012-03-29 12:12 C'est la vie 阅读(2117) 评论(9) 编辑 收藏
+
+评论
+
+#1楼   
+use ubuntu,shangfa,haha,your artilce is very wonderful
+支持(0)反对(0)
+2012-03-30 15:46 | liuminghai  
+#2楼   
+这种想法我很喜欢，希望楼主继续发表这类文章，引用1楼的那句话“your artilce is very wonderful”
+支持(0)反对(0)
+2012-03-31 22:33 | 阿薰  
+#3楼   
+学习了
+支持(0)反对(0)
+2012-04-01 18:33 | youkid90  
+#4楼   
+粗略的看了一下,提几个看法
+1.如果pojo中有的属性和数据库对不上, 你的sql生成就会有问题。
+比如有的字段可能是临时标识,在数据库不存在,但是你都给反射了。
+比如有的boolean在数据库是0,1存储,数据库类型对不上。
+比如有的枚举在pojo显示的String, 在数据量是用0 ,1,2,3这样存储。
+这就是为什么框架要制定指定pojo字段和数据库table column的匹配关系,以及类型等信息。
+2.你的反射获取SQL的操作不应该做在Dao里。应该有专门的辅助类或者工具类。
+3.获取到的jdbc资源,比如connection和resultSet在用完以后需要关闭来释放资源。否则服务器长期运行,会造成严重的性能问题。
+4.现在使用java设计,如果能使用泛型最好。
+5.对于需要被反射的类,应该做缓存来存储他的class、field、和method信息,甚至Sql语句的缓存,比如我每次操作user类都需要反射他的内部属性和method信息,也是很大的开销。
+支持(0)反对(0)
+2012-04-20 10:04 | 小喜  
+#5楼[楼主]   
+@小喜
+你指出的对，谢谢你，也受教了，有时间我再仔细改改，不过这是篇学习总结的帖子对于封装什么的没必要扣的那么细，如果做的繁琐了反而不利于理解，见谅
+支持(0)反对(0)
+2012-04-20 12:06 | C'est la vie  
+#6楼   
+@C'est la vie
+嗯
+支持(0)反对(0)
+2012-04-20 12:12 | 小喜  
+#7楼   
+非常不错！看了很受启发
+支持(0)反对(0)
+2012-05-25 22:57 | honghuaxueyue  
+#8楼   
+博主篇篇都是经典 啊！
+支持(0)反对(0)
+2012-05-27 22:17 | honghuaxueyue  
+#9楼   
+反射机制形容得不错，也很清楚！！ 可是这个例子没举好！！
+支持(0)反对(0)
+2013-02-18 10:21 | 寂寥的出生在1874  
+刷新评论刷新页面返回顶部
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+博客园首页博问新闻闪存程序员招聘知识库
+
+最新IT新闻:
+· 胡润富豪榜：盖茨跌出前三 华人入围多
+· Google 推出网页版新游戏，用手机操作
+· 初出茅庐的 E Ink 手机，也许会有大市场
+· 这可能是世界上第一辆“3D打印”的汽车
+· EA未来的游戏都将整合微交易系统
+» 更多新闻...
+最新知识库文章:
+· 如何成为强大的程序员？
+· Xen 虚拟机架构
+· NoSQL的现状
+· 为什么很多人工作都不开心？
+· 不用IDE写C#的Hello World
+» 更多知识库文章...
+
+导航
+博客园
+首页
+新随笔
+联系
+订阅 
+管理
+<	2012年3月	>
+日	一	二	三	四	五	六
+26	27	28	29	1	2	3
+4	5	6	7	8	9	10
+11	12	13	14	15	16	17
+18	19	20	21	22	23	24
+25	26	27	28	29	30	31
+1	2	3	4	5	6	7
+公告
+昵称：C'est la vie
+园龄：2年8个月
+粉丝：66
+关注：9
++加关注
+搜索
+ 
+我的标签
+随笔分类(78)
+android(43)
+coco2d-x(1)
+hibernate(2)
+html5(1)
+ios(15)
+java(7)
+javascript
+jquery(1)
+jsp(3)
+linux(1)
+sql
+struts(2)
+UML(1)
+windows(1)
+xml
+相册
+test
+截图
+最新评论
+1. Re:Java反射机制
+反射机制形容得不错，也很清楚！！  可是这个例子没举好！！
+--寂寥的出生在1874
+2. Re:Android Touch事件传递机制解析
+很不错，一下子就明白了。。
+--shuyahui2010
+3. Re:android布局属性详解
+很有用
+--tangqq
+4. Re:android_launcher的源码详细分析
+为什么动态增加屏幕不行啊，按照你的说法
+--崔彦凯
+5. Re:如何在AVD上安装apk软件
+注：是apk文件名中最好不要有中文
+--Surge_Wong
+阅读排行榜
+1. java动态代理（JDK和cglib）(25758)
+2. android布局属性详解(22149)
+3. hibernate配置文件hibernate.cfg.xml的详细解释(15011)
+4. android 4.0.3最新源码下载编译(14457)
+5. android 定时器的实现(9967)
+6. IOS上的socket通信(9074)
+7. android4.0.3 修改启动动画和开机声音(7548)
+8. 使用JSP生成验证码(4923)
+9. 让你的模拟器不再卡：VirtualBox安裝 Android-x86 4.0(4592)
+10. struts2拦截器(3820)
+推荐排行榜
+1. java动态代理（JDK和cglib）(18)
+2. android布局属性详解(7)
+3. Java反射机制(6)
+4. android4.0.3 修改启动动画和开机声音(3)
+5. 使用JSP生成验证码(3)
+6. 对Session和Cookie的区分与理解(2)
+7. hibernate配置文件hibernate.cfg.xml的详细解释(2)
+8. jQuery3D全景效果展示插件(2)
+9. Android偏移动画-转圈的Button(2)
+10. 对乱码问题的处理(2)
+Powered by: 
+博客园 
+Copyright © C'est la vie

@@ -1,0 +1,241 @@
+ 博客首页登录注册谁说刘备是正义的化身?  发博文  博文        ×推荐：大溪地奢华蜜月之旅悦博副刊:中国式相亲
+推荐：大溪地奢华蜜月之旅悦博副刊:中国式相亲互联网旁观者
+http://blog.sina.com.cn/netreview [订阅][手机订阅]首页 博文目录 图片 关于我个人资料 
+ 黄言之 
+Qing 微博 
+加好友 发纸条 
+
+写留言 加关注 
+
+
+博客等级： 博客积分：284 博客访问：27,949 关注人气：52 
+精彩图文 
+新年打造一颗富有禅意的蛋
+搔首弄姿喵星人
+
+新浪Qing
+
+大眼睛的大萌神
+
+新浪Qing
+
+无脸男的真实
+
+新浪Qing
+
+照片还是插画？
+
+新浪Qing
+
+镜头下最美柏芝
+
+新浪Qing
+
+天使的纯净表情
+
+新浪Qing
+
+
+查看更多>>
+相关博文 
+顺产的宝宝记性好
+好孕妈妈
+四大美女之一【貂蝉】的真实模样
+微三国
+更多>>
+推荐博文 
+肖鹰：是春晚退掉赵本山
+肖鹰的博客
+灵魂在别处（虚构）
+李银河
+第九百二十七篇•污染
+马未都
+火车盒饭贵又难吃的惊人真相（图
+熊一亮
+贪官未必比我坏
+何家弘
+运20直追美国C-17，中国远
+dingshengma
+春节前又一次残剧
+黎明开智
+我们是演员吗？
+王志安
+方舟子谈优卡丹风波：儿童感冒要
+方舟子
+【视频】日本超级偶像AKB48
+旅猿
+
+
+新加坡百万富翁诞生记
+
+
+雾霾天去海边做深呼吸
+
+
+实拍印度大壶节盛况
+
+
+赌城纸醉金迷第一夜
+
+
+回家过年
+
+
+尼泊尔淘货天堂
+
+查看更多>>
+正文 字体大小：大 中 小 
+Deep Learning 基础知识 (2013-01-22 12:21:57)转载▼标签： 杂谈 分类： 数据挖掘  
+Deep Learning是机器学习研究中的新领域，其目的是让机器学习更加接近人工智能。这里有两篇综述文档：
+
+Brief introduction to Machine Learning for AI 
+Introduction to Deep Learning algorithms 
+ 
+
+下面这篇文档则是关于Deep learning的最新介绍文档：
+
+Yoshua Bengio, Learning Deep Architectures for AI, Foundations and Trends in Machine Learning, 2(1), 2009
+
+ 
+Depth
+The computations involved in producing an output from an input can be represented by a flow graph: a flow graph is a graph representing a computation, in which each node represents an elementary computation and a value (the result of the computation, applied to the values at the children of that node). Consider the set of computations allowed in each node and possible graph structures and this defines a family of functions. Input nodes have no children. Output nodes have no parents.
+
+The flow graph for the expression  could be represented by a graph with two input nodes  and  , one node for the division  taking  and  as input (i.e. as children), one node for the square (taking only  as input), one node for the addition (whose value would be  and taking as input the nodes  and  , and finally one output node computing the sinus, and with a single input coming from the addition node.
+
+A particular property of such flow graphs is depth: the length of the longest path from an input to an output.
+
+Traditional feedforward neural networks can be considered to have depth equal to the number of layers (i.e. the number of hidden layers plus 1, for the output layer). Support Vector Machines (SVMs) have depth 2 (one for the kernel outputs or for the feature space, and one for the linear combination producing the output).
+
+Motivations for Deep Architectures
+The main motivations for studying learning algorithms for deep architectures are the following:
+
+Insufficient depth can hurt（深度不足会出现问题） 
+The brain has a deep architecture（人脑实际是一个深度结构） 
+Cognitive processes seem deep（认知过程是深度的，逐层抽象） 
+Insufficient depth can hurt
+Depth 2 is enough in many cases (e.g. logical gates, formal [threshold] neurons, sigmoid-neurons, Radial Basis Function [RBF] units like in SVMs) to represent any function with a given target accuracy. But this may come with a price: that the required number of nodes in the graph (i.e. computations, and also number of parameters, when we try to learn the function) may grow very large. Theoretical results showed that there exist function families for which in fact the required number of nodes may grow exponentially with the input size. This has been shown for logical gates, formal neurons, and RBF units. In the latter case Hastad has shown families of functions which can be efficiently (compactly) represented with  nodes (for  inputs) when depth is  , but for which an exponential number () of nodes is needed if depth is restricted to  .
+
+One can see a deep architecture as a kind of factorization. Most randomly chosen functions can’t be represented efficiently, whether with a deep or a shallow architecture. But many that can be represented efficiently with a deep architecture cannot be represented efficiently with a shallow one (see the polynomials example in the Bengio survey paper). The existence of a compact and deep representation indicates that some kind of structure exists in the underlying function to be represented. If there was no structure whatsoever, it would not be possible to generalize well.
+
+The brain has a deep architecture
+For example, the visual cortex is well-studied and shows a sequence of areas each of which contains a representation of the input, and signals flow from one to the next (there are also skip connections and at some level parallel paths, so the picture is more complex). Each level of this feature hierarchy represents the input at a different level of abstraction, with more abstract features further up in the hierarchy, defined in terms of the lower-level ones.
+
+Note that representations in the brain are in between dense distributed and purely local: they are sparse: about 1% of neurons are active simultaneously in the brain. Given the huge number of neurons, this is still a very efficient (exponentially efficient) representation.
+
+Cognitive processes seem deep
+Humans organize their ideas and concepts hierarchically. 
+Humans first learn simpler concepts and then compose them to represent more abstract ones. 
+Engineers break-up solutions into multiple levels of abstraction and processing 
+It would be nice to learn / discover these concepts (knowledge engineering failed because of poor introspection?). Introspection of linguistically expressible concepts also suggests a sparse representation: only a small fraction of all possible words/concepts are applicable to a particular input (say a visual scene).
+
+Breakthrough in Learning Deep Architectures
+Before 2006, attempts at training deep architectures failed: training a deep supervised feedforward neural network tends to yield worse results (both in training and in test error) then shallow ones (with 1 or 2 hidden layers).
+
+Three papers changed that in 2006, spearheaded by Hinton’s revolutionary work on Deep Belief Networks (DBNs):
+
+Hinton, G. E., Osindero, S. and Teh, Y., A fast learning algorithm for deep belief nets Neural Computation 18:1527-1554, 2006 
+Yoshua Bengio, Pascal Lamblin, Dan Popovici and Hugo Larochelle, Greedy Layer-Wise Training of Deep Networks, in J. Platt et al. (Eds), Advances in Neural Information Processing Systems 19 (NIPS 2006), pp. 153-160, MIT Press, 2007 
+Marc’Aurelio Ranzato, Christopher Poultney, Sumit Chopra and Yann LeCun Efficient Learning of Sparse Representations with an Energy-Based Model, in J. Platt et al. (Eds), Advances in Neural Information Processing Systems (NIPS 2006), MIT Press, 2007 
+The following key principles are found in all three papers:
+
+Unsupervised learning of representations is used to (pre-)train each layer. 
+Unsupervised training of one layer at a time, on top of the previously trained ones. The representation learned at each level is the input for the next layer. 
+Use supervised training to fine-tune all the layers (in addition to one or more additional layers that are dedicated to producing predictions). 
+Deep Learning算法的核心思想：
+
+无监督学习用于每一层网络的（预）训练（(pre-)train） 
+每次用无监督学习训练一层，将其训练结果作为其下一层的输入 
+用监督学习去调整所有层 
+ 
+
+The DBNs use RBMs for unsupervised learning of representation at each layer. The Bengio et al paper explores and compares RBMs and auto-encoders (neural network that predicts its input, through a bottleneck internal layer of representation). The Ranzato et al paper uses sparse auto-encoder (which is similar to sparse coding) in the context of a convolutional architecture. Auto-encoders and convolutional architectures will be covered later in the course.
+
+Since 2006, a plethora of other papers on the subject of deep learning has been published, some of them exploiting other principles to guide training of intermediate representations. See Learning Deep Architectures for AI for a survey.
+
+ 
+
+--------------------------
+
+
+Deep Learning是多层次表示和抽象的学习，有助于理解图像、声音、文本等数据。要深入了解deep learning算法，可以看下面的示例：
+
+The monograph or review paper Learning Deep Architectures for AI (Foundations & Trends in Machine Learning, 2009). 
+The ICML 2009 Workshop on Learning Feature Hierarchies webpage has a list of references. 
+The LISA public wiki has a reading list and a bibliography. 
+Geoff Hinton has readings from last year’s NIPS tutorial. 
+Theano的使用手册
+
+Theano是一个python库，能够更容易的写deep learning的模型，同时也提供了一些GPU上训练的选项。
+
+建议先读Theano basic tutorial，然后通读Getting Started chapter（介绍了符号、算法中使用的数据集下载，以及我们使用的随机梯度下降法的优化算法）。
+
+The purely supervised learning algorithms are meant to be read in order:
+
+Logistic Regression - using Theano for something simple 
+Multilayer perceptron - introduction to layers 
+Deep Convolutional Network - a simplified version of LeNet5 
+The unsupervised and semi-supervised learning algorithms can be read in any order (the auto-encoders can be read independently of the RBM/DBN thread):
+
+Auto Encoders, Denoising Autoencoders - description of autoencoders 
+Stacked Denoising Auto-Encoders - easy steps into unsupervised pre-training for deep nets 
+Restricted Boltzmann Machines - single layer generative RBM model 
+Deep Belief Networks - unsupervised generative pre-training of stacked RBMs followed by supervised fine-tuning 
+Building towards including the mcRBM model, we have a new tutorial on sampling from energy models:
+
+HMC Sampling - hybrid (aka Hamiltonian) Monte-Carlo sampling with scan() 
+Building towards including the Contractive auto-encoders tutorial, we have the code for now: 
+Contractive auto-encoders code - There is some basic doc in the code. 
+ 
+
+参考文献：
+
+http://deeplearning.net/tutorial/
+
+http://www.iro.umontreal.ca/~pift6266/H10/notes/deepintro.html
+
+分享： 分享到新浪Qing 0
+喜欢
+
+阅读(29)┊ 评论 (0)┊ 收藏(0) ┊转载(0) ┊ 喜欢▼ ┊打印┊举报 已投稿到：  排行榜  
+
+转载列表：
+转载 
+转载是分享博文的一种常用方式...
+
+前一篇：Web App和Native App 谁将是未来后一篇：NoSQL误用和常见陷阱分析评论 重要提示：警惕虚假中奖信息|[商讯]我有明星气势签名[发评论]当第一个评论者吧！  抢沙发>>
+
+发评论 [商讯]爱心签名换梦想，天天派奖|[商讯]提高博客人气新方法
+  更多>>
+
+登录名： 密码： 找回密码 注册 记住登录状态
+昵   称：
+
+ 分享到微博    评论并转载此博文
+
+验证码： 请点击后输入验证码 收听验证码 
+匿名评论发评论 
+以上网友发言只代表其个人观点，不代表新浪网的观点或立场。
+< 前一篇
+Web App和Native App 谁将是未来后一篇 >
+NoSQL误用和常见陷阱分析
+  新浪BLOG意见反馈留言板　不良信息反馈　电话：4006900000 提示音后按1键（按当地市话标准计费）　欢迎批评指正
+
+新浪简介 | About Sina | 广告服务 | 联系我们 | 招聘信息 | 网站律师 | SINA English | 会员注册 | 产品答疑 
+
+Copyright © 1996 - 2013 SINA Corporation, All Rights Reserved
+
+新浪公司 版权所有
+
+
+X分享到...选择其他平台 >>
+365
+长微博
+微语录
+九宫格
+发照片
+发视频
+发商品
+博文博主音乐视频播主 最近喜欢了的博主：
+加载中…Qing博客转载原文采编长微博分享到新浪Qing分享到新浪微博为了您的账号安全，请绑定邮箱
+分享到X
+腾讯微博一键通新浪微博QQ空间人人网天涯凤凰微博朋友网人民微博豆瓣网搜狐微博新华微博手机网易微博开心网百度空间QQ好友更多平台... (130)bShare幻灯播放关闭

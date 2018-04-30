@@ -1,0 +1,172 @@
+Chinaunix首页　| 　论坛　| 　问答　| 　博客 登录 | 注册
+    
+我爱罗apple
+写此博客的初衷是为了复习先前学过的知识，总结一下知识脉络。但现在有个特别的想法，就是随时记录自己出现的问题和解决问题的想法
+2013第三季度“ChinaUnix博客之星”评选
+2013 Hadoop中国技术峰会（11.22-11.23，北京）
+第三届Oracle技术嘉年华（11.17-11.18，北京）
+首页　| 　博文目录　| 　关于我
+
+wbq_unix
+博客访问： 42352
+博文数量： 39
+博客积分： 2071
+博客等级： 大尉
+技术积分： 447
+用 户 组： 普通用户
+注册时间： 2010-11-20 12:08
+
+文章分类
+全部博文（39）
+
+NVR（2）
+驱动专用夹（0）
+平台专用夹（20）
+ARM专用夹（4）
+项目专用夹（1）
+Linux技术专用夹（4）
+C技术专用夹（6）
+转载专用夹（2）
+未分配的博文（0）
+文章存档
+2011年（2）
+
+2010年（37）
+
+我的朋友
+最近访客
+
+Ice_Bzer
+
+进击的菜
+
+zyx19870
+
+y3609313
+
+盛装舞步
+
+钱建文
+
+jasonwan
+
+kelici
+
+bj我心飞
+订阅
+推荐博文
+·写作与才情无关——leo鉴书28...
+·stm32f4 关于内部flash存储数...
+·Linux下oracle11g数据库的安...
+·自动化部署工具PUPPET介绍...
+·分布式监控系统ganglia配置文...
+热词专题
+·libpqso4下载
+·freebsd 无线网卡列表
+·在windows下编译linux内核...
+·broken options were detecte...
+·IntelliJ IDEA 1112 web热部...
+ VLC源码分析总结 2011-11-18 17:21:13
+分类： C/C++
+VLC源码分析总结
+1． 概述
+VLC属于Video LAN开源项目组织中的一款全开源的流媒体服务器和多媒体播放器。作为流媒体服务器，VLC跨平台，支持多操作系统和计算机体系结构；作为多媒体播放器，VLC可以播放多种格式的媒体文件。主要包括有：WMV、ASF、MPG、MP、AVI、H.264等多种常见媒体格式。
+VLC采用全模块化结构，在系统内部，通过动态的载入所需的模块，放入一个module_bank的结构体中统一管理，连VLC的Main模块也是通过插件的方式动态载入的（通过module_InitBank函数在初始化建立module_bank时）。对于不支持动态载入插件的系统环境中，VLC也可以采用builtin的方式，在VLC启动的时候静态载入所需要的插件，并放入module_bank统一管理。
+VLC的模块分成很多类别主要有：access、access_filter、access_output、audio_filter、audio_mixer、audio_output、codec、control、demux、gui、misc、mux、packetizer、stream_output、video_filter、video_output、interface、input、playlist等（其中黑体为核心模块）。VLC无论是作为流媒体服务器还是多媒体播放器，它的实质思路就是一个“播放器”，之所以这么形象描述，是因为（The core gives a framework to do the media processing, from input (files, network streams) to output (audio or video, on ascreen or a network), going through various muxers, demuxers, decoders and filters. Even the interfaces are plugins for LibVLC. It is up to the developer to choose which module will be loaded. 摘于官网说明）它实质处理的是ES、PES、PS、TS等流间的转换、传输与显示。对于流媒体服务器，如果从文件作为输入即：PS->DEMUX->ES->MUX->TS；对于多媒体播放器如果采用UDP方式传输即：TS->DEMUX->ES。
+2． 插件管理框架
+在VLC中每种类型的模块中都有一个抽象层/结构体，在抽象层或结构体中定义了若干操作的函数指针，通过这些函数指针就能实现模块的动态载入，赋值相关的函数指针的函数地址，最后通过调用函数指针能调用实际模块的操作。
+对于VLC所有的模块中，有且仅有一个导出函数：vlc_entry__(MODULE_NAME)。（其中MODULE_NAME为宏定义，对于main模块，在\include\modules_inner.h中定义为main）动态载入模块的过程是：使用module_Need函数，在module_bank中根据各个插件的capability等相关属性，寻找第一个能满足要求并激活的模块。所谓激活是指，调用插件的初始化函数成功。对于各个插件的初始化函数和析构函数均在vlc_entry__(MODULE_NAME)函数中指定了相关函数地址。因此载入各个插件（动态库）的过程，就成为了解析动态库文件，并找到其中vlc_entry__函数的地址，然后运行。这样各个模块的激活函数就会赋值各个操作的函数地址，以待后面函数动态调用。
+具体函数调用过程如下：
+l  Main模块的载入过程：
+int main( int i_argc, char *ppsz_argv[] )（src\vlc.c）－>i_ret = VLC_Init( 0, i_argc, ppsz_argv )－>module_InitBank( p_vlc )（src\libvlc.c void __module_InitBank( vlc_object_t *p_this )）－> module_LoadMain( p_this )（src\misc\modules.c）－>AllocateBuiltinModule( p_this, vlc_entry__main )－>pf_entry( p_module )（激活了main模块，以上为main模块的载入过程，对于main模块调用的实际函数为导出函数vlc_entry__main，其它模块导出的均为vlc_entry__0_8_6）
+l  Module_Need函数实现载入任意模块的过程：
+module_t * __module_Need( vlc_object_t *p_this, const char *psz_capability,
+                          const char *psz_name, vlc_bool_t b_strict )（src\misc\modules.c）－> vlc_list_find（将所有已经载入的模块查询出来）－>然后循环，根据capability查找第一个最合适的module－>AllocatePlugin（动态载入所需要的插件，该函数会在动态库所在目录，遍历所有动态库文件，）－>p_module->pf_activate（调用激活函数）
+l  VLC_Init函数流程：
+module_InitBank－>module_LoadBuiltins（载入静态插件）－>module_LoadPlugins（载入动态插件－>VLC_AddIntf（添加interface插件，VLC会静态载入hotkeys模块）
+在VLC中根据处理任务不同，会静态载入不同的模块，main、memcpy、hotkeys等；动态载入的模块根据处理任务不同，差异很大。
+3． VLC流媒体服务器体系结构
+以下主要讨论VLC作为流媒体服务器时的体系结构。针对一个节目单文件，调试其运行过程，并最后给出总结。
+该实例的播放节目单为如下：
+New br broadcast enabled
+Setup br input /mnt/hgfs/movie/caiyan.mpg
+Setup br output #standard{mux=ts,access=udp,url=234.0.1.4,sap,name=ch1}
+在例子中，通过VLC提供API：libvlc_new，libvlc_vlm_new，libvlc_vlm_play_media，libvlc_vlm_load_file等（有些API是自己添加的）可以完成对广播节目br的播放。
+下面让我们仔细看看通过这几个接口，VLC内部到底是怎么工作完成了流媒体发布的。
+1.  首先程序调用libvlc_new（\src\control\core.c）接口，实现创建一个VLC运行实例libvlc_instance_t，该实例在程序运行过程中唯一。
+2.  在libvlc_new接口中，调用了VLC_Init函数实现具体的初始化工作。
+3.  VLC_Init（\src\libvlc.c）函数中，首先通过system_Init函数完成传入参数对系统的相关初始化，接着通过module_InitBank（\src\misc\modules.c）函数初始化module_bank结构体，并创建了main模块，然后通过module_LoadBuiltins载入静态模块，通过module_LoadPlugins（\src\misc\modules.c）函数载入动态模块，通过module_Need（\src\misc\modules.c）函数载入并激活memcpy模块，通过playlist_Create（\src\playlist\playlist.c）函数，创建了一个playlist播放管理的线程，其线程处理函数为RunThread（\src\playlist\playlist.c），通过VLC_AddIntf（\src\libvlc.c）函数添加并激活hotkeys模块，最后根据系统设置定义了宏HAVE_X11_XLIB_H，因此还需要添加screensaver模块。
+4.  总结：此时加载的模块有main，hotkeys，screensaver，memcpy；多创建了一个线程，用于管理playlist，该线程无限循环，直到p_playlist->b_die状态为止。
+5.  其次程序中调用libvlc_vlm_new接口，创建VLM对象（该接口为自己添加的）。
+6.  该接口调用的是vlm_New（\src\misc\vlm.c）函数，实现VLM对象的创建，函数返回值是指向vlm_t的指针。
+7.  Vlm_new函数中，创建了一个vlm管理线程，线程处理函数为Manage（\src\misc\vlm.c）。该函数循环处理当前各种媒体（vod、broadcast、schedule）的播放实例，控制其每个播放细节（如：从一个input切换到下一个input；schedule周期循环调度等）。与playlist线程不同的是，Manage主要针对播放实例的操作，而RunThread主要针对播放列表的管理，也就是说VLC管理是分级的，播放列表级和播放列表中媒体播放实例级。
+8.  其次程序调用libvlc_vlm_load_file接口，载入播放节目单（该接口也为自己添加，播放节目单如上所述）。
+9.  该接口调用的是vlm_Load（\src\misc\vlm.c）函数，在该函数中，依次调用如下函数：stream_UrlNew、stream_Seek、stream_Read、Load，以下详细介绍各个函数作用。
+a)   首先是stream_UrlNew（\src\input\stream.c）函数。先调MRLSplit（\src\input\input.c）函数完成对access、demux和path的解析。具体对于本例解析的结果为：access= " ",demux=" ",path=" aa"。然后调用access2_New（\src\input\access.c）函数创建一个access_t结构体并初始化。具体运行时载入模块的相关参数是：capability="access2"，name="access_file"，psz_filename=access/libaccess_file_plugin.so。最后调用stream_AccessNew（\src\input\stream.c）函数，创建stream_t结构体对象，并初始化对象中所有函数指针；
+b)   再调用stream_Seek（\include\vlc_stream.h）内联函数，设置起始位置；
+c)   再调用stream_Size（\include\vlc_stream.h）获得大小；
+d)   再调用stream_Read(\include\vlc_stream.h)，读取到缓冲区；
+e)   最后调用Load（\src\misc\vlm.c），完成实际的载入节目单。对于节目单文件，是一行行解析，并调用ExecuteCommand（\src\misc\vlm.c）完成解析的。Load函数的调用仅仅是设置了相关参数，如：设置input字符串值，设置output字符串值，设置mux的值及与播放相关的enabled、loop等参数。Load工作仅仅是为了下一步发布流做准备的。
+10. 程序中调用libvlc_vlm_play_media接口，将节目流发布出去。（自己添加接口）
+11. 在libvlc_vlm_play_media接口中，实质是创建了命令“control br play”再调用vlm_ExecuteCommand（\src\misc\vlm.c），完成对命令的执行，根据命令类型，由vlm_MediaControl（\src\misc\vlm.c）函数处理。
+12. 在vlm_MediaControl函数中，会调用vlc_input_item_Init（\include\vlc_input.h）函数完成播放实例的初始化，并调用input_CreateThread2（\src\input\input.c）函数完成播放线程的创建。该线程的处理函数为Run（\src\input\input.c）。
+13. Run线程是整个VLC作为流媒体服务器的核心。其主要分为如下几个步骤：Init、MainLoop和End。其中MainLoop是一个无限循环，是完成流媒体的整个发布过程。
+a)   首先调用Init（\src\input\input.c）函数，初始化相关统计参数；
+b)   其次再调用input_EsOutNew（\src\input\es_out.c）函数，初始化es_out_t结构体对象和es_out_sys_t结构体对象，并设置相关函数指针；
+c)   再调用InputSourceInit（\src\input\input.c）函数，初始化input_thread_t对象中的input_source_t对象，主要有access_t、stream_t、demux_t三个结构体对象；
+d)   总结此时各个模块实际载入的情况：
+1)   (access_t)type="access"，name="access_filter"，capability="access2"，psz_filename="access/libaccess_file_plugin.so"；
+2)   (stream_t)type="stream"，pf_read="AStreamReadStream"，pf_seek="AStreamPeekStream"，pf_control="AStreamControl"，pf_destory="AStreamDestory"；
+3)   (demux_t)type="demux"，capability="demux2"，shortcuts="ps"；
+4)   (sout_instance_t)type="stream out"，psz_capability="sout stream"，shortcut="stream_out_standard"，psz_filename="/stream_out/libstream_out_standard_plugin.so"；
+5)   (es_out_t)pf_add="ESOutAdd"，pf_send="ESOutSend"，pf_del="ESOutDel"，pf_control="ESOutControl"；
+e)   再调用MainLoop（\src\input\input.c）函数，完成读取、解复用、解码、复用和传输；
+f)   MainLoop函数为无限循环，直到input_thread_t对象存在b_die、b_error、b_eof时为止。在该函数中，存在如下行代码：
+i_ret=p_input->input.p_demux->pf_demux(p_input->input.p_demux);
+        它就是流媒体服务器运行的起点，所有的后续操作都会在该函数中继续衍生。
+g)   Pf_demux调用的是（\modules\demux\ps.c）中的Demux函数，在该函数中主要完成如下操作：
+1)   先调用ps_pkt_resynch（\modules\demux\ps.c）函数，完成PS流中数据包重新同步（这里应该涉及到多媒体相关知识，需要补补）；
+2)   再调用ps_pkt_read（\modules\demux\ps.c）函数，最终调用stream_Block函数，这个函数内部会根据实际情况，调用stream_t模块中的pf_read或pf_block函数，函数结果会返回一个读取的buffer；
+3)   根据数据包的i_code的值，做不同的处理，对于音视频数据流，调用es_out_Send（\include\vlc_es_out.h）函数处理；
+4)   es_out_Send一个抽象层函数，其通过函数指针，实际调用的是EsOutSend（\src\input\es_out.c）函数；
+5)   EsOutSend函数最终会调用input_DecoderDecode（\src\input\decoder.c）函数；
+6)   input_DecoderDecode函数会调用DecoderDecode（\src\input\decoder.c）函数完成解码；
+7)   DecoderDecode函数会调用pf_packetize（\modules\packetizer\mpegvideo.c）函数实现PES的打包；
+8)   DecoderDecode函数会调用sout_InputSendBuffer（\src\stream_output\stream_output.c）函数，实现发送；
+9)   sout_InputSendBuffer函数中的pf_send指针，指向的是（\modules\stream_out\standard.c）Send函数；
+10)  Send函数调用的是流化输出（stream_output）的抽象层（\src\stream_output\stream_output.c）中的sout_MuxSendBuffer函数，首先将要发送的数据放入fifo队列中，然后调用pf_mux函数指针，完成多路复用；
+11)  Pf_mux函数指针指向的是（\modules\mux\mpeg\ts.c）的Mux函数，完成多路复用后，最终调用（\modules\mux\mpeg\ts.c）TSSchedule函数，准备调度发送了；
+12)  TSSchedule函数中调用了TSDate（\modules\mux\mpeg\ts.c）函数；
+13)  TSDate函数中调用了流化输出（stream_output）的抽象层（\src\stream_output\stream_output.c）中的sout_AccessOutWrite函数，最终调用pf_write函数完成数据输出；
+14)  pf_write函数指向的是（\modules\access_output\udp.c）中的Write函数，完成数据UDP发送，这样数据就转换称TS流输出了；
+15)  总结：pf_demux函数为流媒体所有操作的起点，通过该处衍生了很多其他模块的处理，从上面的分析可以看出，系统实质就是PS、ES、PES和TS几种流间的转换，针对应用场合（主要指做服务器或客户端）的不同，转换的方式不同。
+ 
+阅读(4265) | 评论(0) | 转发(2) |
+0
+上一篇：LIVE555 使用流程
+下一篇：没有了
+相关热门文章
+建立各部门联动机制
+两篇很牛的vim使用技巧...
+分析十种网站推广方法...
+Linux spi驱动分析----子系统(...
+Linux SPI驱动分析(一)----子...
+test123
+编写安全代码——小心有符号数...
+使用openssl api进行加密解密...
+一段自己打印自己的c程序...
+sql relay的c++接口
+求助：如何用Linux架设ISATAP...
+ linux chown 不能修改属主？...
+系统对拷
+如何访问内网资源，通过http代...
+MYSQL 如何创建相同表结构不同...
+给主人留下些什么吧！~~
+评论热议
+请登录后评论。
+登录 注册
+关于我们 | 关于IT168 | 联系方式 | 广告合作 | 法律声明 | 免费注册
+Copyright 2001-2010 ChinaUnix.net All Rights Reserved 北京皓辰网域网络信息技术有限公司. 版权所有
+感谢所有关心和支持过ChinaUnix的朋友们
+京ICP证041476号 京ICP证060528号
+

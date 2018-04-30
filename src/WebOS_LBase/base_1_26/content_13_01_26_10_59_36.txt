@@ -1,0 +1,83 @@
+MATLAB norm函数的用法
+文章来源：不详 作者：佚名 
+
+--------------------------------------------------------------------------------
+
+该文章讲述了MATLAB norm函数的用法.
+
+
+
+
+ 
+
+
+
+格式：n=norm(A,p)
+ 功能：norm函数可计算几种不同类型的矩阵范数,根据p的不同可得到不同的范数
+ 
+以下是Matlab中help norm 的解释
+ 
+NORM   Matrix or vector norm.
+     For matrices...
+       NORM(X) is the largest singular value of X, max(svd(X)).
+       NORM(X,2) is the same as NORM(X).
+       NORM(X,1) is the 1-norm of X, the largest column sum,
+                       = max(sum(abs(X))).
+       NORM(X,inf) is the infinity norm of X, the largest row sum,
+                       = max(sum(abs(X'))).
+       NORM(X,'fro') is the Frobenius norm, sqrt(sum(diag(X'*X))).
+       NORM(X,P) is available for matrix X only if P is 1, 2, inf or 'fro'.
+     For vectors...
+       NORM(V,P) = sum(abs(V).^P)^(1/P).
+       NORM(V) = norm(V,2).
+       NORM(V,inf) = max(abs(V)).
+       NORM(V,-inf) = min(abs(V)).
+ 
+
+
+1、如果A为矩阵
+  
+ 
+n=norm(A) 《Simulink与信号处理》
+ 
+返回A的最大奇异值，即max(svd(A))
+ 
+n=norm(A,p) 
+ 
+根据p的不同，返回不同的值
+ 
+ 
+ 
+
+
+
+
+ p
+
+ 返回值
+
+
+
+ 1
+
+ 返回A中最大一列和，即max(sum(abs(A)))
+
+
+
+ 2
+
+ 返回A的最大奇异值，和n=norm(A)用法一样
+
+
+
+inf 
+
+返回A中最大一行和，即max(sum(abs(A’)))
+
+
+
+ ‘fro’
+
+ A和A‘的积的对角线和的平方根，即sqrt(sum(diag(A'*A)))
+
+本文来自: 高校自动化网(Www.zdh1909.com) 详细出处参考(转载请保留本链接)：http://www.zdh1909.com/html/matlab/14936.html

@@ -1,0 +1,184 @@
+
+S喵の部屋
+投稿
+私信
+RSS
+存档
+[渣教程]chrome插件制作入门
+制作插件真的很简单！当然，以下基本条件必须具备：首先你要有chrome浏览器（废话！）；接着你要会html，js，css等基本前端开发的技能；然后就够了！
+
+这篇文章用我自己写的一个抓取（这个名词听起来很高端）别的网站页面的一段内容的插件作为例子。首先，新建一个文件夹，取名PixivDayRanking（我插件的名字），这个文件夹就是这个插件的根目录，涉及到的所有文件都应该在这个文件夹内。
+
+
+
+
+第一步，创建一个名字叫做manifest.json的文件，用记事本打开编辑，输入以下内容：
+{
+  "name": "Pixiv日榜排名插件测试版",           /程序名称
+  "version": "1.0",                            //版本信息
+  "description": "该插件用于查看Pixiv日榜排名",//程序描述
+  "background_page": "background.html",        //这个html页面用来保存插件的主要逻辑
+  "permissions": [                             //权限设置，用来定义所需的网络信息，实现跨越
+"tabs", "http:/*","notifications"
+],
+  "browser_action": {                          //浏览器行为
+    "default_icon": "icon.gif",                //在浏览器上的小图标
+   "popup": "PixivRanking.html"        //点击上面的小图标后弹出的那个小窗口页面
+  }
+}
+这个文件相当于整个插件的配置文件，用于配置这个插件所需的一些信息、资源。上面的注释提供了一些简单的描述。chrome插件的所有配置信息可以去官网查看，还有很多其他类型的配置信息，这里就不多讲了。
+
+下面我们要开始编写整个插件最重要的一个文件：background.html了。在这个文件中，我将编写这个插件的主要逻辑代码，使用了jQuery库，用到了Ajax方法。因为在chrome里面支持跨域，所以用起来很方便。另外，chrome支持HTML5，所以放心的使用HTML5的一些功能吧！这个文件的结构如下：
+<html>
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" 
+type="text/javascript"></script>
+<script type="text/javascript">
+//获取数据的主体方法
+function GetRankList(){
+}
+//获取字符串长度
+function getLength(str) { 
+     }
+     //过滤掉页面上一些标签、脚本、IFrame、CSS引用等
+     function stripAllscript(s) { 
+     }
+     function stripBody(s){
+     }
+     function stripIframe(s){
+     }
+     function stripLink(s){
+     }
+</script>
+</head>
+<body>
+<div>
+<ul id="showChrome">
+</ul>
+</div>
+</body>
+</html>
+可以看出来，这根一个普通的html页面基本没什么区别。下面主要讲一下GetRankList方法，其他几个方法无非就是截取字符，去除一些对本插件功能无用的一些标签而已，实现起来没什么难度，就不贴代码了: )
+function GetRankList(){
+//首页获取日榜
+$.get("http://www.pixiv.net/", function(data, textStatus){
+if(textStatus == "success"){
+var content = null;
+var reg = '</head>';
+var len1 = data.indexOf(reg);
+content = data.substring(len1+getLength(reg));
+content = stripAllscript(content);
+content = stripAllscript(content);//去除所有脚本
+content = stripIframe(content);//去除iframe
+content = stripLink(content);//去除<link>标签
+content = stripBody(content); //去除闭合body和html
+content = content.replace("</body>","").replace("</html>","");
+$("#showChrome").html(content);
+//P站登录跟未登录 排名模块用的不同DOM
+var rankList = $("#showChrome .ranklist").html();
+if(rankList == null){
+rankList = $("#showChrome .ranking:eq(0)");
+var fristThreeRankItems = rankList.find(".rank-detail");
+fristThreeRankItems.each(function(){
+var item = $(this);
+item.find("a:eq(0)").addClass("ran_img");
+var newHtml = item.find("h2").html()+"<br>"+item.find(".user").html()+"<br>"+"<span class='ranknum'>"+ item.find(".rank").html() +"</span>";
+item.find("h2").remove();
+item.find(".rank").remove();
+item.find(".user").remove();
+item.append("<p class='ran_text'>"+ newHtml + "</p><div class='clear'></div>");
+});
+var smallRankItems = rankList.find("li[class='rank']");
+smallRankItems.each(function(){
+var item = $(this);
+var newHtml = "<span class='ranknumsmall'>"+                                                                     item.find(".rank").html() +"</span>";
+item.find(".rank").remove();
+item.find("a").before(newHtml);
+});
+rankList.find("li").removeClass();
+rankList = $("#showChrome .ranking:eq(0)").html();
+}
+$("#showChrome").html(rankList);
+$("#showChrome img").each(function(){
+var src = $(this).attr("data-src");
+$(this).attr("src", src);
+$(this).removeAttr("data-src");
+});
+$("#showChrome a").each(function(){
+var href = "http://www.pixiv.net/" + $(this).attr("href");
+$(this).attr("href", href).attr("target", "_blank");
+});
+var rankList = $("#showChrome").html();
+if(localStorage["repData"] != null){
+if(localStorage["repData"] != rankList){
+localStorage["repData"] = rankList;
+}
+}
+else{
+localStorage["repData"] = rankList;
+}
+}
+else{
+localStorage["repData"] = null;
+}
+});
+}
+简单讲一下这个方法的思路：
+首先通过jQuery ajax去获取目标页面整个页面的内容。
+去除不需要的脚本标签、link标签、iframe等等。
+通过jQuery解析所需要的数据，然后重新组装成需要的结构。这里碰到过一个问题，那就是Pixiv（就是我获取的目标页面的网站）的首页dom结构，登录与非登录状态下，结构不一样，虽然只是标签跟样式换了下，但处理起来还是很麻烦...我这里只是做了个简单的判断，然后单独处理。这种方式虽然逻辑简单，但是代码量太多了。后面如果找到了更好的方法，我将更新这个方法。
+最终，我组装出了所需要的数据结构，这里我使用了HTML5的localStorage本地存储，讲这个数据结构保存到localStorage中去，供插件的popup页面调用。
+
+OK，到这里为止，这个插件的核心已经编写完毕。接下来就是用popup页面输出这个结果。
+接下来创建一个名字叫做PixivRanking.html的文件，用记事本编辑打开，输入下面的代码：
+<style type="text/css">
+</style>
+<!DOCTYPE html>
+<body>
+<ul class="listUl" id="rankPlace" ranktype="day"></ul>
+</body>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script> 
+<script language="javascript">
+var background = chrome.extension.getBackgroundPage();
+background.GetRankList();
+//background.GetNewManList();
+if(localStorage["repData"] === "null"){
+$("#rankPlace").html("数据传输出错了喵！");
+    }
+else{
+        $("#rankPlace").html(localStorage["repData"]);
+$("#rankPlace").append("<a class='linkMore' href='http://www.pixiv.net/ranking.php' target='_blank'>更多</a>");
+    }
+$("li:even").css("background","#F8F8F8");
+$(".changeRank").bind("click",function(){
+var ranktype = $(this).attr("ranktype");
+//alert(ranktype);
+$("[ranktype=" + ranktype + "]").css("display","block");
+$(".listUl").not("[ranktype=" + ranktype + "]").css("display","none");
+});
+</script>
+可以看出来，这特么就是一个html页面啊！css代码我就不贴了，有骗字数的嫌疑...
+这里的思路是：
+先准备好一个容器：<ul id="rankPlace"></ul>，用于最终输出数据；
+chrome.extension.getBackgroundPage()，用来获取插件的BackgroundPage对象，也就是上面我们创建的那个background.html。这个方法是chrome的扩展API，详细可以查看官方API文档，这里不做过多解释；
+取到BackgroundPage对象后，就可以访问到background.html中的方法了！是不是很方便！这是chrome插件开发中的一个重要技巧，就是可以互相调用不同页面中的js方法；
+最后用脚本访问localStorage，将取到的数据插入到之前准备好的标签容器中。
+
+OK大功告成！额，等等，怎样才能看到效果呢？！
+好吧，最后一步，打开chrome，点击右上角的扳手->工具->扩展程序，然后在扩展程序页面中，勾选开发人员模式这个勾选框，然后点击载入正在开发的扩展程序，然后选到最先创建的那个PixivDayRanking文件夹。然后chrome上就有了一个小图标！真帅！赶紧点击看看！
+
+这简直酷毙了！
+怎么样，有没有觉得写一个chrome插件很简单呢？基本跟普通前端开发没有什么太大的区别，唯一需要熟悉的就是manifest的配置以及chrome浏览器的一些API。赶紧动手来制作你自己的chrome插件吧！ : )
+
+
+
+本文采用 知识共享署名-非商业性使用-相同方式共享 2.5 中国大陆许可协议 进行许可。
+转载时请注明出处：http://blog.sina.com.cn/s/blog_6fae3d7601010cu4.html
+
+< >
+S喵の部屋 ❤ 点点网
+December 23, 8:38 am
+chrome
+插件开发
+前端开发
+

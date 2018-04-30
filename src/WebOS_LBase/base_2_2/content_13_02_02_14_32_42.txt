@@ -1,0 +1,656 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  Help
+ Feedback
+ Sign In 
+
+
+
+
+
+
+
+
+Recent Topics
+
+All Forums
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Search
+
+ 
+
+New Topic 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Programming Questions 
+
+
+
+
+pop1040 
+
+
+
+
+
+tank targeting AI
+
+in Programming Questions • 2 months ago   
+
+For one of my sketches, I have some tanks that fire at the opposing side.  To do this I wrote an AI for the tank that controls firing and wheel movement.  The issue is that the first shot by a tank aiming left sometimes goes too far down.  Can anyone figure it out?
+
+
+
+the AI:
+
+
+
+Copy code
+1.
+2.  void AI(ArrayList<Tank> targets,boolean side){
+3.    Vec2 target = new Vec2();
+4.    boolean hasTarget = true;      //changed to false if there is no enemy
+5.    float targetIDr = 0;           //stores the distance from a tank
+6.    float targetIDl = 0;
+7.    Vec2 targetIDrv = new Vec2();  //stores the actual position of a target
+8.    Vec2 targetIDlv = new Vec2();
+9.    Vec2 b = this.getCenter();     //its own postion;
+10.    if(side){
+11.      for (int i = targets.size()-1; i >= 0; i--) {  //runs through targets to find closest
+12.        Tank e = targets.get(i);
+13.        Vec2 a = e.getCenter();                      //get the center of the current tank
+14.        if(a.x > b.x){                               //sets different values based on the side it is
+15.          if(getDistance(a.x,a.y,b.x,b.y) < targetIDr || targetIDr == 0){  //sets values if it is closer that the previouse closest
+16.            targetIDrv = a;
+17.            targetIDr = getDistance(a.x,a.y,b.x,b.y);
+18.          }
+19.        }else{
+20.          if(getDistance(a.x,a.y,b.x,b.y) < targetIDl || targetIDl == 0){
+21.            targetIDlv = a;
+22.            targetIDl = getDistance(a.x,a.y,b.x,b.y);
+23.          }
+24.        }
+25.      }
+26.    }else{
+27.      for (int i = 0; i <= targets.size()-1; i++) {
+28.        Tank e = targets.get(i);
+29.        Vec2 a = e.getCenter();
+30.        if(a.x > b.x){
+31.          if(getDistance(a.x,a.y,b.x,b.y) < targetIDr || targetIDr == 0){
+32.            targetIDrv = a;
+33.            targetIDr = getDistance(a.x,a.y,b.x,b.y);
+34.          }
+35.        }else{
+36.          if(getDistance(a.x,a.y,b.x,b.y) < targetIDl || targetIDl == 0){
+37.            targetIDlv = a;
+38.            targetIDl = getDistance(a.x,a.y,b.x,b.y);
+39.          }
+40.        }
+41.      }
+42.    }
+43.    if(side){
+44.      if(targetIDr != 0){  //sets target if there is a tank to the right
+45.        target = targetIDrv;
+46.      }else if(targetIDl != 0){
+47.        target = targetIDlv;  //else set target to the left
+48.      }else{
+49.        hasTarget = false;    //if there isn't any tanks, it doesn't do anything
+50.      }
+51.    }else{
+52.      if(targetIDl != 0){  //reverce for the other direction
+53.        target = targetIDlv;
+54.      }else if(targetIDr != 0){
+55.        target = targetIDrv;
+56.      }else{
+57.        hasTarget = false;
+58.      }
+59.    }
+60.    if(hasTarget){  //if there is a tank, do the AI
+61.      if(target.x > this.getCenter().x){  //which way is the target
+62.        if(abs(target.x - this.getCenter().x) > 200){  //trys to get to best postion
+63.          this.setSpeed(-PI*2);
+64.        }else if(abs(target.x - this.getCenter().x) < 150){
+65.          this.setSpeed(PI*2);
+66.        }else{
+67.          this.setSpeed(0);
+68.        }
+69.      }else{
+70.        if(abs(target.x - this.getCenter().x) > 200){
+71.          this.setSpeed(PI*2);
+72.        }else if(abs(target.x - this.getCenter().x) < 150){
+73.          this.setSpeed(-PI*2);
+74.        }else{
+75.          this.setSpeed(0);
+76.        }
+77.      }
+78.      if(abs(target.x - this.getCenter().x) <= 300){  //is it within 300 pixels?
+79.        if(firetimer == 40){  //don't wana fire every tick
+80.          float temp_distance = target.x - this.getCenter().x;  //horizontal distance
+81.          float temp_deg;  //stores the angle of firing
+82.          if(temp_distance > 0){  //is it to the left or right?
+83.            temp_deg = map(temp_distance,0,400,-10,10) + map(constrain(target.y - this.getCenter().y,-200,200),-200,200,70,-60);  //maps vertical and horizontal distance to angle
+84.          }else{
+85.            temp_deg = map(temp_distance,-400,0,190,170) + map(constrain(target.y - this.getCenter().y,-200,200),-200,200,-70,60);
+86.          }
+87.          particles.add(new Particle(this.getCenter().x,this.getCenter().y-35,cos(radians(temp_deg))*20,sin(radians(temp_deg))*20,3,10));  //spawn partical with velocity , Args: (posX,posY,velocityX,velocityY,partical size, damage it will cause)
+88.          if(sPlayers.size() < 30){  //is there less than 30 audio players?
+89.            sPlayers.add(minim.loadFile("shot.mp3", 2048));  //play the shot noise
+90.            AudioPlayer a = sPlayers.get(sPlayers.size()-1);
+91.            a.play();
+92.          }
+93.        }
+94.      }
+95.      firetimer++;  //increase fire timer;
+96.      if(firetimer >= 80){  //reset it after a while
+97.        firetimer = 0;
+98.      }
+99.    }
+100.  }
+
+if you want an easy way to test it, here is the entire sketch:
+
+http://www.mediafire.com/download.php?hjy4n517qkk51fy
+
+note: you will need the library PBox2D
+
+ 
+1 
+
+Reply 
+
+
+Replies(4) 
+
+
+
+
+Chrisir 
+
+
+
+
+
+Re: tank targeting AI
+ 
+2 months ago 
+
+
+that is a pretty complex code and you are probably the person who understands it best...
+So it is hard for us to install PBox2D, install your sketch and then try to understand it and then help you...
+
+could you therefore tell us the line numbers (or edit your post and mark it bold in your code) that are relevant for your question?
+Where is he aiming left?Are we talking about target setting?
+
+Thank you!
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+pop1040 
+
+
+
+
+
+Re: tank targeting AI
+ 
+2 months ago 
+
+good point. I wasn't that clear
+
+
+
+This part of the code is part of a Class called Tank.  Tank is a instance of one rectangle and two circles that are being simulated fully.  The code itself is called by the main loop every time the program executes provided the game is active (not in a menu) and not paused.  "Left" and "Right" refers to which side of the tank the target is located at.  So if the nearest tank is to the right, however its priority is set to Left, it will move towards and shoot at the nearest tank to the left.  The first part of the code detects the nearest tank to the left and to the right. Then it sets the target point to the nearest tank on the side it is prioritized to (set by the Boolean) and if there is no enemy on that side, it will go for the closest tank on the other side.  The second part of the code will cause the tank to set its motor speed (which controls two joints connecting the rectangle to the two circles) to drive in the direction of the enemy but not if it is too close and if it is too close, it reverses its direction to drive away.  The last part of the code calculates the angle to fire at and then fires provided the enemy is close enough.  
+
+
+
+
+Let me know if there is anything else I forgot to explain
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+Chrisir 
+
+
+
+
+
+Re: tank targeting AI
+ 
+2 months ago 
+
+
+
+
+
+first shot by a tank aiming left sometimes goes too far down. 
+line numbers?
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+pop1040 
+
+
+
+
+
+Re: tank targeting AI
+ 
+2 months ago 
+
+I have no idea what is the issue, but from some trouble shooting code, I think it may be the part where it finds the location of a target (don't take my word on it).  I suppose the lines would be 1 -59 but the problem could be anywhere in this part of my sketch. 
+
+
+
+By-the-way: to clarify what I meant by "first shot by tank aiming left", I meant that the first shot fired by a tank that is aiming at an enemy to its left ( enemy X position < self X position ) will about half the time fire about 20 deg. to low.  
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Top Reply 
+
+
+
+
+
+
+Statistics
+ 
+4 Replies
+327  Views
+1 Followers
+ 
+
+
+
+Tags 
+
+
+
+ai 
+
+
+Actions
+ 
+Permalink
+ 
+
+Related Posts
+ 
+Trouble with scanning pixels[] 
+AI-File Export Problem 
+Vector gradients and clipping masks 
+Tic Tac Toe 
+Autonomous Agents 
+
+
+© 2012 ZOHO Corp.
+All Rights Reserved.
+Privacy
+Terms & Conditions
+ 
+RSS
+ 
+Powered by
+
+
+ 
+
+
+
+
+
+
+
+
+

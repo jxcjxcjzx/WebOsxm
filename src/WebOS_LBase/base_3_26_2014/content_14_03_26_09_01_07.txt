@@ -1,0 +1,60 @@
+linux中 likely与unlikely
+
+分类： Liux Kernel Function 2012-03-22 19:57 5735人阅读 评论(2) 收藏 举报
+linuxbranch编译器compilergccfunction
+看内核时总遇到if(likely( )){}或是if(unlikely( ))这样的语句，最初不解其意，现在有所了解，所以也想介绍一下。
+
+likely() 与 unlikely()是内核（我看的是2.6.22.6版本，2.6的版本应该都有）中定义的两个宏。位于/include/linux/compiler.h中，
+具体定义如下：
+#define likely(x) __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
+
+__builtin_expect是gcc（版本>=2.96，网上写的，我没验证过）中提供的一个预处理命令（这个名词也是网上写的，我想叫函数更好些），有利于代码优化。gcc(version 4.4.0)具体定义如下：
+long __builtin_expect (long exp, long c) [Built-in Function]
+
+注解为：
+You may use __builtin_expect to provide the compiler with branch prediction information. In general, you should prefer to use actual profile feedback for this (‘-fprofile-arcs’), as programmers are notoriously bad at predicting how their programs actually perform. However, there are applications in which this data is hard to collect.The return value is the value of exp, which should be an integral expression. The semantics of the built-in are that it is expected that exp == c.
+
+它的意思是：我们可以使用这个函数人为告诉编绎器一些分支预测信息“exp==c” 是“很可能发生的”。
+
+#define likely(x) __builtin_expect(!!(x), 1)也就是说明x==1是“经常发生的”或是“很可能发生的”。
+使用likely ，执行if后面语句的可能性大些，编译器将if{}是的内容编译到前面, 使用unlikely ，执行else后面语句的可能性大些,编译器将else{}里的内容编译到前面。这样有利于cpu预取,提高预取指令的正确率,因而可提高效率。
+
+举个例子(内核版本2.6.22.6)：/kernel/shed.c中有一段：
+if (likely(!active_balance)) {
+/* We were unbalanced, so reset the balancing interval */
+sd->balance_interval = sd->min_interval;
+} else {
+/*
+* If we've begun active balancing, start to back off. This
+* case may not be covered by the all_pinned logic if there
+* is only 1 task on the busy runqueue (because we don't call
+* move_tasks).
+*/
+if (sd->balance_interval max_interval)
+sd->balance_interval *= 2;
+}
+
+编译过程中，会将if后面{}里的内容编译到前面，else 后面{}里的内容编译到后面。若将likely换成unlikely 则正好相反。
+
+总之,likely与unlikely互换或不用都不会影响程序的正确性。但可能会影响程序的效率。
+
+
+if(likely(foo))  //认为foo通常为1
+
+if(unlikely(foo)) //认为foo通常为0
+
+
+感谢各位光顾！
+不知道有没有写清楚，望指正！
+疑惑：
+为什么likely或是unlikely要定义成__builtin_expect(!!(x), 1)，而不直接用__builtin_expect(x, 1)？" !!(x) "与" x "有什么不同？
+
+另外内核2.6.31.5中likely和unlikely还有一种定义:
+# ifndef likely
+# define likely(x) (__builtin_constant_p(x) ? !!(x) : __branch_check__(x, 1))
+# endif
+
+# ifndef unlikely
+# define unlikely(x) (__builtin_constant_p(x) ? !!(x) : __branch_check__(x, 0))
+# endif

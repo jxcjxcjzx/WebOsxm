@@ -1,0 +1,165 @@
+  
+ 
+       
+   热门职位：程序员 美工 市场 策划   
+  
+
+脚本AI与脚本引擎  
+2009年11月12日 17:11:25 　 【发表评论/查看评论】  
+
+译者：leexuany
+
+    This chapter discusses some of the techniques you can use to apply a scripting system to the problem of game AI, and the benefits you can reap from doing this. At its most basic level, you can think of scripting as a very simple programming language tailored to a specific task related to the game in enables the game designers rather than the game programmers to write and refine much of the game mechanics. Players also can use scripting to create or modify their own game worlds or levels. Taken a step further, you can use a scripting system in a massively multiplayer online role-playing game (MMORPG) to alter the game behavior while the game is actually being played.
+
+    这一章讨论一些如何应用脚本系统到游戏AI问题中去的技术，以及这样做你能获得哪些好处。在最基础的层次上，你可以认为脚本是一种非常简单的为游戏中特殊的任务描述而定制的编程语言，它可以让游戏设计者而不是游戏程序员编写和精制大部分的游戏结构。玩家同样可以使用脚本来创建或修改他们自己的游戏世界和等级。进一步说，当游戏实际上正在运行着的时候，你可以在一个MMORPG中使用脚本来改变游戏的行为。
+
+    You can take several approaches when implementing a scripting system. A sophisticated scripting system might interface an already existing scripting language, such as Lua or Python, for example, with the actual game engine. Some games create a proprietary scripting language designed for the needs of the individual game. Although it's sometimes beneficial to use those methods, it's easier to have the game parse standard text files containing the scripting commands. Employing this approach, you can create scripts using any standard text editor. In a real game, the scripts can be read in and parsed when the game first starts, or at some other specified time. For example, scripts that control creatures or events in a dungeon can be read in and parsed when the player actually enters the dungeon area.
+
+    在实现一个脚本系统时，你可以使用几种方法。实际的游戏引擎中一个复杂完善的脚本系统可以使用一种已经存在的脚本语言，例如Lua或者Python。一些游戏为了特殊需要创建自己的脚本语言。有时候它不仅有利于使用那些方法(?)，还可以方便的让游戏解析含有脚本命令的标准文本文件。采用这种方法，你可以使用任何标准的文本编辑器来创建脚本。在真正的游戏中，这些脚本可以在游戏开始时或者其他特定的时间读取进来并被解析。例如，当玩家进入地牢的区域时控制地牢中人和事件的脚本被读取并解析。
+
+    In the scope of game AI, you can use scripting to alter opponent attributes, behavior, responses, and game events. This chapter looks at all these uses.
+
+    在游戏AI中，你可以使用脚本来修改对手的属性、行为、反应以及游戏事件。这一章将着眼于所有这些应用。
+
+Scripting Techniques
+脚本技术
+
+    The actual scripting language used in a game is ultimately up to the game designers and programmers. It can resemble preexisting languages such as C or C++, or it can take a totally approach; perhaps even a graphical rather than a text-based approach. Deciding how the scripting system looks and works depends primarily on who will be using the scripting system. If your target is the end player, a more natural language or graphical approach might be beneficial. If the system is primarily for the designers and programmers, it might not be beneficial to spend your development time on a complex and time-consuming natural language parsing system. A quick and dirty approach might be better.
+
+    一个真正应用于游戏的脚本语言是从根本上服务于游戏设计者和程序员的。它可以类似于先前存在的语言像C和C++，或者完全与之相同；或许甚至是图形上的而不是文字上的相似。脚本系统看上去像什么和怎样工作从根本上取决于谁将要使用它。如果你的目标是一个最终的玩家，那么一个更类似于自然语言或者图形化的方法也许不错。如果这个系统是针对于设计者和程序员的，那么浪费你宝贵的开发时间在一个复杂的耗时的（译者认为是指运行效率）自然语言解析系统上是不明智的。一个快的脏的（？！dirty怎么翻译）方法会好一点。
+
+    You also should consider other factors when developing a scripting system. Perhaps you want the script to be easy to read and write for the game designers, but not necessarily for the game player. In this case, you might want to use a form of encryption. You also could develop a script compiler so that the end result is less readable to humans.
+
+    在开发一个脚本系统时你还应当考虑其他一些因素。或许你希望对于设计者来说脚本是易于读和写的，而对于玩家却不是必需的。因此，你可能想要使用一种形式的加密。你同样可以开发一个脚本的编译器，那样最终的结果对（旁）人来说就不是那么容易读懂了。
+
+    In this chapter we create simple scripting commands and save them in standard text files. We want to avoid the need for a complex language parser, but at the same time we have been careful to choose a vocabulary that makes it relatively easy for humans to read and write the scripts. In other words, we use words that accurately reflect the aspect of the game that the script is altering.
+
+    在这一章我们将要创建简单的脚本命令并把它们存储在标准的文本文件里。我们希望避免对一个复杂语言分析器的需求，与此同时我们还要小心地选取一个词汇集来使人们读写脚本相对的简单些。换句话说，我们在脚本中使用正确的词汇来精确地反映游戏的样子。
+
+Scripting Opponent Attributes
+脚本控制的对手的属性
+
+    It's common and beneficial to specify all the basic attributes of each AI opponent by using some type of scripting. This makes it easy to tweak the AI opponents throughout the development and testing process. If all the vital data were hardcoded into the program, you would have to recompile for even the most basic change.
+
+    通过使用一些类型的脚本可以方便的指定每一个AI对手（由AI控制的对手）所有的基本属性。这使得在整个开发和测试过程中调整AI对手（的属性）变得容易。如果所有重要的数据是被硬编码在程序中的，你将不得不重新编译哪怕是最基本的变动。
+
+    In general, you can script opponent attributes such as intelligence, speed, strength, courage, and magical ability. In really comes down to the type of game you're developing. Of course, the game engine ultimately will use these attributes whenever a computer-controlled friend or foe interacts with the player. For example, an opponent that has a higher intelligence attribute would be expected to behave differently from one of lower intelligence. Perhaps a more intelligent opponent would use a more sophisticated pathfinding algorithm to track down a player, while a less intelligent opponent might become easily confused when trying to reach the player.
+
+    一般而言，你可以把对手的属性诸如智慧、速度、力量、精神以及不可思议的能力编写进脚本里。但这到底包括哪些就要依你所开发的游戏类型而定了。当然，无论何时，只要玩家与电脑控制的朋友或敌人相遇，游戏引擎最终都会使用到这些属性。例如，一个有着较高智慧属性的对手与那些较低智慧的对手的预期行为不同。也许，一个有着更高智慧的对手会使用一个更加高级、完善、狡猾的寻路算法追捕到玩家，而一个低智慧的对手试图接近玩家的方法是那样的简单并且缺乏智慧。
+
+    Example 8-1 shows a basic script you can use to set game attributes.
+
+    例8-1展示了一个你能用来设置游戏属性的基础的脚本
+
+Example 8-1. Basic script to set attributes
+
+CREATURE=1;
+INTELLIGENCE=20;
+STRENGTH=75;
+SPEED=50;
+END
+
+    In this example, our script parser has to interpret five commands. The first, CREATURE, indicates which AI opponent is being set. The next three, INTELLIGENCE, STRENGTH, and SPEED, are the actual attributes being set. The final command, END, tells the script parser that we are finished with that creature. Anything that follows comprises a new and separate block of commands.
+
+    在这个例子中，我们的脚本解释器需要解释5条命令。第一条，CREATURE指出哪一个AI对手将要被设置。接下来的三条INTELLIGENCE、STRENGTH、SPEED是实际被设置的属性。最后的一个命令END告诉脚本解释器对这个AI对手的设置结束了。之后的任何东西都是由新的独立的命令块组成的。
+
+    It would be just as easy to include the numbers 1,20,75,50 in a file and thus avoid any need for parsing the script text. That approach works and developers use it frequently, but it does have some disadvantages. First, you lose quite a bit of readability. Second, and most important, your scripting system can increase in complexity to the point where specifying attributes by just including their numerical values in a file becomes impractical. Example 8-2 shows how a script can become more complicated by using a conditional statement.
+
+    你可以简单的在文件中包含1、20、75、50这样的数字，从而避免对解析脚本的需求。这种方法很奏效并且开发者经常使用它，但是它存在一些缺点。首先，你损失了相当的可读性。其次，也是最重要的，你的脚本系统可能增长，复杂到仅仅通过在文件中包含它们的数值来指定属性变得不切实际的地步。例8-2展示了如何通过使用一个条件语句来使脚本变得复杂。
+
+    Example 8-2. Conditional script to set attributes
+
+CREATURE=1;
+If (LEVEL<5)
+  BEGIN
+    INTELLIGENCE=20;
+    STRENGTH=75;
+    SPEED=50;
+  END
+ELSE
+  BEGIN
+    INTELLIGENCE=40;
+    STRENGTH=150;
+    SPEED=100;
+  END
+
+A    s shown in Example 8-2, we now have conditional statements that initialize the creature attributes to different values depending on the current game level.
+
+    正如例8-2所示，我们使用条件语句来根据当前的游戏等级来初始化人的属性。
+
+
+
+
+
+第一页 上一页 1 2 3 4 5 下一页 最后一页  
+
+
+ 
+【编辑：布谷布谷】  
+
+ 
+ 
+ 热门招聘  
+·上海易门信息技术有限公司 
+·佛山市小顽猴数码科技有限公司 
+·北京天赋精诚科技有限公司 
+·上海那弩数码科技有限公司 
+·成都魔方软件有限公司 
+·上海一橡信息科技有限公司 
+·上海上启信息科技有限公司 
+·乐升科技股份有限公司 
+·上海酷娱网络技术有限公司 
+·畅游福州分公司（www.17173.com） 
+·无锡梵天信息技术股份有限公司 
+·济南金圭网络技术有限公司 
+·文化傳信科技有限公司 
+·成都天雄科技有限公司 
+·趣游福州公司 
+ 
+ 
+
+最新应聘信息  
+曾 * * 游戏测试员 本科 
+丁 * * 游戏3D设计师 本科 
+余 * * 游戏3D设计师 大专 
+许 * * 游戏原画设计师 本科 
+叶 * * 游戏原画设计师 本科 
+姜 * * 游戏原画设计师 本科 
+石 * * 客户端开发工程师 大专 
+蔡 * * 游戏3D设计师 本科 
+郝 * * 游戏原画设计师 大专 
+徐 * * 游戏原画设计师 本科 
+ 
+ 
+
+相关新闻  
+Epic虚幻引擎3开发包免费下载 (6) 
+
+创意！史上最怪异的十大游戏 (3) 
+
+游戏该使用何种语言开发 (30) 
+
+网络游戏开发当中的大忌 (23) 
+
+游戏开发真功夫 鱼与熊掌的取舍 (30) 
+
+游戏和现实的关系（节选） (26) 
+
+制作让人感动哭泣的游戏 (30) 
+
+揭秘开心农场开发团队：仅15万元创业基金 (28) 
+
+游戏开发真功夫：细节决定成败 (12) 
+
+网游从山寨到创新之间的距离 (3)
+ 
+ 
+
+ 
+ 
+
+ © 2001-2009 www.17173.com All Rights Reserved.
+建议意见：玩家留言区　商务合作：客户留言区
+广告专线：0591-87878497　客服电话：0591-87826743 关于我们 设为首页 玩家客服 
+
+2207075 

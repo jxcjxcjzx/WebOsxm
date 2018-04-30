@@ -1,0 +1,55 @@
+2012CSDN博客之星火热出炉！      2013年全国百所高校巡讲讲师招募 
+
+
+
+【JavaWeb】commons-codec包简介 
+.
+ 分类： Java Web 技术2012-11-03 20:0057人阅读评论(0)收藏举报
+
+
+包含一些通用的编码解码算法。包括一些语音编码器，Hex,Base64
+ 
+
+commons-codec包可以从apache下载，最新版是1.3
+ 
+不可逆算法
+ 
+1.MD5
+ 
+<!---->String str = "abc";
+ DigestUtils.md5Hex(str);
+ 
+附.net生成MD5的方法，生成内容跟java一致：
+ 
+<!---->String str = "abc";
+ FormsAuthentication.HashPasswordForStoringInConfigFile(str, "MD5");
+ 
+ 
+ 
+2.SHA1
+ 
+<!---->String str = "abc";
+ DigestUtils.shaHex(str);
+ 
+附.net生成SHA1的方式，生成内容跟java一致：
+ 
+<!---->String str = "abc";
+ FormsAuthentication.HashPasswordForStoringInConfigFile(str, "SHA1");
+ 
+ 
+ 
+可逆算法
+ 
+常规加密解密算法：BASE64
+ 
+加密
+ 
+<!---->String str= "abc"; // abc为要加密的字符串
+ byte[] b = Base64.encodeBase64(str.getBytes(), true);
+ System.out.println(new String(b));
+ 
+解密
+ 
+<!---->String str = "YWJj"; // YWJj为要解密的字符串
+ byte[] b = Base64.decodeBase64(str.getBytes());
+ System.out.println(new String(b));

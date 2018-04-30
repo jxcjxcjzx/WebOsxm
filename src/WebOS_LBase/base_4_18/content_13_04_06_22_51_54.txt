@@ -1,0 +1,266 @@
+首页 | 互联网 | IT动态 | IT培训 | Cisco | Windows | Linux | Java | .Net | Oracle | 软件测试 | C/C++ | 嵌入式 | 存储世界服务器 | 华为 | 网络设备 | IDC | 安全 | 求职招聘 | 数字网校 | 北大青鸟 | 技术专题 | 电子书下载 | 教学视频 | 源码下载 | 搜索 | 博客 | 活动沙龙 | 论坛
+
+ 	
+	
+ 
+
+	
+首页		资讯动态		C语言		C++编程		C∕C++开发应用		VC++		C++Builder		专题		下载		博客		论坛
+
+您现在的位置： 中国IT实验室 >> C∕C＋＋频道 >> C＋＋编程 >> 基础入门 >> 正文
+从逆向分析角度看C++的析构函数
+做IT就要做精英,至少4000/月吧?
+JAVAV工程师权威认证
+[上海央邦]学一送一,超值! 【安博亚威】CCIE考试通过率第一！
+定向委培RHCA,通过考试年薪10W
+Windows高级工程师的培训地
+中国IT实验室收集整理 佚名 2013-3-17 0:43:51 保存本文 推荐给好友 收藏本页
+欢迎进入C/C++编程社区论坛，与300万技术人员互动交流 >>进入
+　　有这么一段C++代码：
+　　[cpp] view plaincopyprint?
+　　01.#include <cstdio>
+　　02.
+　　03.class CExample {
+　　04.  int x, y;
+　　05.
+　　06.public:
+　　07.  CExample(int va, int vb) {
+　　08.    x = va;
+　　09.    y = vb;
+　　10.  }
+　　11.  CExample(const CExample& C) {
+　　12.    x = C.x;
+　　13.    y = C.y;
+　　14.  }
+　　15.  ~CExample() {
+　　16.    printf("~CExample()\n");
+　　17.  }
+　　18.
+　　19.  void Show () {
+　　20.    printf("%d, %d\n", x, y);
+　　21.    return ;
+　　22.  }
+　　23.};
+　　24.
+　　25.void fun(CExample E) {
+　　26.  printf("In F(CExample)\n");
+　　27.  return ;
+　　28.}
+　　29.
+　　30.int main() {
+　　31.  CExample A(100, 200);
+　　32.  CExample B = A;
+　　33.  B.Show();
+　　34.  fun(A);
+　　35.  return 0;
+　　36.}
+　　#include <cstdio>
+　　class CExample {
+　　int x, y;
+　　public:
+　　CExample(int va, int vb) {
+　　x = va;
+　　y = vb;
+　　}
+　　CExample(const CExample& C) {
+　　x = C.x;
+　　y = C.y;
+　　}
+　　~CExample() {
+　　printf("~CExample()\n");
+　　}
+　　void Show () {
+　　printf("%d, %d\n", x, y);
+　　return ;
+　　}
+　　};
+　　void fun(CExample E) {
+　　printf("In F(CExample)\n");
+　　return ;
+　　}
+　　int main() {
+　　CExample A(100, 200);
+　　CExample B = A;
+　　B.Show();
+　　fun(A);
+　　return 0;
+　　}
+　　运行结果：
+
+ 
+　　编译调试的环境是 VC 6.0，注释如下：
+　　main 函数：
+　　[plain] view plaincopyprint?
+　　01.30:   int main() {
+　　02.00401130   push        ebp
+　　03.00401131   mov         ebp,esp
+　　04.00401133   push        0FFh
+　　05.00401135   push        offset __ehhandler$_main (00413422)
+　　06.0040113A   mov         eax,fs:[00000000]
+　　07.00401140   push        eax
+　　08.00401141   mov         dword ptr fs:[0],esp
+　　09.00401148   sub         esp,5Ch
+　　10.0040114B   push        ebx
+　　11.0040114C   push        esi
+　　12.0040114D   push        edi
+　　13.0040114E   lea         edi,[ebp-68h]
+　　14.00401151   mov         ecx,17h
+　　15.00401156   mov         eax,0CCCCCCCCh
+　　16.0040115B   rep stos    dword ptr [edi]              ; 以上代码为建立堆栈，EBP = 1245000
+　　17.31:     CExample A(100, 200);
+　　18.0040115D   push        0C8h                 ; 将 200 压入堆栈中
+　　19.00401162   push        64h                  ; 将 100 压入堆栈中
+　　20.00401164   lea         ecx,[ebp-14h]                ; EBP-14h 是 A 的内存地址，占 8 个字节，将该地址保存到 ECX 寄存器中
+　　21.00401167   call        @ILT+0(CExample::CExample) (00401005)    ; 调用构造函数 CExample(int, int)
+　　22.0040116C   mov         dword ptr [ebp-4],0
+　　23.32:     CExample B = A;
+　　24.00401173   lea         eax,[ebp-14h]                ; 将 A 的内存地址保存到 EAX 寄存器中
+　　25.00401176   push        eax                  ; 将 EAX 压入堆栈中
+　　26.00401177   lea         ecx,[ebp-1Ch]                ; EBP-1Ch 是 B 的内存地址，占 8 个字节，将该地址保存到 ECX 寄存器中
+　　27.0040117A   call        @ILT+20(CExample::CExample) (00401019)   ; 调用拷贝构造函数，将A中的值复制到 B 的内存空间中，
+　　28.
+　　29.                                ; 细心观察一下栈地址就能明白
+　　30.0040117F   mov         byte ptr [ebp-4],1
+　　31.33:     B.Show();
+　　32.00401183   lea         ecx,[ebp-1Ch]
+　　33.00401186   call        @ILT+25(CExample::Show) (0040101e)
+　　34.34:     fun(A);
+　　35.0040118B   sub         esp,8                    ; ESP = 1244884, ESP - 8 = 1244876；ESP-8 是开辟的一块内存，
+　　36.                                ; 在调用fun之前，先调用拷贝构造函数对 A 进行拷贝，拷贝的内容就
+　　37.                                ; 存放在这块内存空间中（一个CExample对象，记为Temp）
+　　38.0040118E   mov         ecx,esp                  ; ECX 寄存器保存 Temp 对象的内存地址
+　　39.00401190   mov         dword ptr [ebp-20h],esp          ; EBP-20h 这块空间保存 Temp 对象的内存地址
+　　40.00401193   lea         edx,[ebp-14h]                ; EDX 寄存器保存 A 对象的内存地址
+　　41.00401196   push        edx                  ; ESP = 1244872，将 A 的内存地址压入栈
+　　42.00401197   call        @ILT+20(CExample::CExample) (00401019)   ; ESP = 1244868，函数返回地址压入栈，调用拷贝构造函数
+　　43.0040119C   mov         dword ptr [ebp-28h],eax          ; ESP = 1244876, EBP - 28h = 1244876，保存 Temp 的内存地址
+　　44.0040119F   call        @ILT+15(fun) (00401014)          ; ESP = 1244872，函数返回地址压入栈，调用fun函数
+　　45.004011A4   add         esp,8                    ; __cdecl 规则，恢复堆栈段，EBP = 1245000
+　　46.35:     return 0;
+　　47.004011A7   mov         dword ptr [ebp-24h],0
+　　48.004011AE   mov         byte ptr [ebp-4],0
+　　49.004011B2   lea         ecx,[ebp-1Ch]                ; EBP - 1Ch 是 B 的内存地址，保存到 ECX 中
+　　50.004011B5   call        @ILT+5(CExample::~CExample) (0040100a)   ; 调用析构函数，销毁对象 B
+　　51.004011BA   mov         dword ptr [ebp-4],0FFFFFFFFh
+　　52.004011C1   lea         ecx,[ebp-14h]                ; EBP - 14h 是 A 的内存地址，保存到 ECX 中
+　　53.004011C4   call        @ILT+5(CExample::~CExample) (0040100a)   ; 调用析构函数，销毁对象 A
+　　54.004011C9   mov         eax,dword ptr [ebp-24h]
+　　55.36:   }
+　　30:   int main() {
+　　00401130   push        ebp
+　　00401131   mov         ebp,esp
+　　00401133   push        0FFh
+　　00401135   push        offset __ehhandler$_main (00413422)
+　　0040113A   mov         eax,fs:[00000000]
+　　00401140   push        eax
+　　00401141   mov         dword ptr fs:[0],esp
+　　00401148   sub         esp,5Ch
+　　0040114B   push        ebx
+　　0040114C   push        esi
+　　0040114D   push        edi
+　　0040114E   lea         edi,[ebp-68h]
+　　00401151   mov         ecx,17h
+　　00401156   mov         eax,0CCCCCCCCh
+　　0040115B   rep stos    dword ptr [edi]; 以上代码为建立堆栈，EBP = 1245000
+　　31:     CExample A(100, 200);
+[1] [2] [3] 下一页
+ 
+  【责编:ivy】
+
+相关文章
+C++的内联函数应放在哪
+Qt: C++中的单例
+C/C++：函数指针
+C/C++：Effective C++
+C/C++：读取文件小细节
+C/C++：命令行输入不回显
+C/C++：清空输入缓冲区
+C++：浮点数的存储方式
+17_5数组的排序
+c++ vector 使用效率问题
+编辑推荐
+· [ASP．NET].net知识结构
+· [VB．NET]VB.NET委托的使用
+· [C#]c# Winform 保存修改后的配置
+· [ASP．NET]ASP运行环境--.NetBox
+· [C#]C#特性学习与使用
+· [ASP．NET]asp.net使用Mysql乱码处理
+· [C#]把Array说透
+· [VB．NET]VB中用ADO对象动态创建数据库和表
+· [C#]winform c#写ini文件
+· [ASP．NET]浅析ASP.NET的IIS映射
+
+相关产品和培训
+
+文章评论
+
+　友情推荐链接
+·华硕网络交换机
+·金浪网络交换机
+·联想交换机报价
+·联想交换机价格
+·lenovo交换机
+·IDC资讯大全
+·机房品质万里行
+·IDC托管必备知识
+·网站推广优化
+·全国IDC报价
+
+　认证培训
+· Linux进入紧缺人才培训体系
+· 深圳CIW470培训＋考试3000元
+· No.1高薪热门职业【网络系统集成】
+· 全能网管思科微软黄金组合
+· “紧缺人才培养计划”上海地区启动
+· [上海]交大慧谷CCNP培训特价3990元
+
+ 
+　专题推荐
+
+　·深入浅出讲解轻型数据库系统
+　·浅水也能摸鱼--JAVA虚拟机
+　·QT编程基础入门到精通
+　·汇编语言的准备知识(1)
+　·Java EE 6规范中文版
+　·Oracle 10g OCP考证秘笈
+　·算法分析与设计之五大常用算法
+　·开发必备 漫谈Java加密保护
+　·嵌入式开发--ARM技术专题
+　·C/C++指针，认真了解，灵活运用
+　今日更新
+· 逆向角度看C++的析构函数
+· C++的内联函数应放在哪
+· Qt: C++中的单例
+· C：在终端里输出正玄余玄
+· C/C++：函数指针
+· C中随机读写文件
+· C/C++：Effective C++
+· C/C++：读取文件小细节
+· C/C++：命令行输入不回显
+· C/C++：清空输入缓冲区
+　社区讨论
+
+　博客论点
+
+　频道精选
+· 新版CCNA考试大纲 07年8月1日生效
+· 新手学习宝典：Linux常用命令全集
+· 知已知彼，深入了解系统安全知识
+· 从入门到精通 java初学者实践系列教程
+· 共同学习——Oracle入门基础专题
+· ADO.net与PowerBuilder的综合比较
+· 评论：中国互联网“钱”途何在？
+· 中科院：龙芯要成"中国奔腾" 能卖1亿颗
+　C/C++频道相关导航
+C语言： 
+基础入门 | 编程技巧 | 实例编程
+C++编程： 
+基础入门 | 实例编程 |编程技巧
+C++开发应用： 
+多媒体开发 | 游戏开发 | 数据库开发 | 网络通信 
+组件编程 | 系统应用 | 界面开发
+资讯动态:
+VC++:
+C++Builder:
+
+

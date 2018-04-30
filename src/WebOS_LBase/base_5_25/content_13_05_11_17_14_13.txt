@@ -1,0 +1,1403 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+结构之法 算法之道
+ 
+Google或baidu搜索：“结构之法”，进入本博客
+ 
+
+
+
+
+目录视图
+ 摘要视图
+ 订阅
+ . 
+
+
+
+【免费有礼】欧美最新网络营销技巧分享        博客导入工具      【限时优惠】第五届云计算大会社区门票抢购 
+探究云计算数据中心节能增效之道      专访邓凡平：Android开发路上的快速学习之道      CSDN博客第二期最佳移动开发博主评选 
+
+
+
+程序员编程艺术：第十章、如何给10^7个数据量的磁盘文件排序 
+. 
+2011-05-28 16:25 27136人阅读 评论(124) 收藏 举报 
+
+磁盘编程filefpmerge算法
+ 
+
+
+                 第十章、如何给10^7个数据量的磁盘文件排序
+
+
+作者:July，yansha，5，编程艺术室。
+出处：http://blog.csdn.net/v_JULY_v 。
+
+ 
+
+前奏
+
+    经过几天的痛苦沉思，最终决定，把原程序员面试题狂想曲系列正式更名为程序员编程艺术系列，同时，狂想曲创作组更名为编程艺术室。之所以要改名，我们考虑到三点：1、为面试服务不能成为我们最终或最主要的目的，2、我更愿把解答一道道面试题，ACM题等各类程序设计题目的过程，当做一种艺术来看待，3、艺术的提炼本身是一个非常非常艰难的过程，但我们乐意接受这个挑战。
+
+    ok，如果任何人对本编程艺术系列有任何意见，或发现了本编程艺术系列任何问题，漏洞，bug，欢迎随时提出，我们将虚心接受并感激不尽，以为他人创造更好的价值，更好的服务。
+
+ 
+
+第一节、如何给磁盘文件排序
+问题描述：
+输入：一个最多含有n个不重复的正整数（也就是说可能含有少于n个不重复正整数）的文件，其中每个数都小于等于n，且n=10^7。
+输出：得到按从小到大升序排列的包含所有输入的整数的列表。
+条件：最多有大约1MB的内存空间可用，但磁盘空间足够。且要求运行时间在5分钟以下，10秒为最佳结果。
+
+分析：下面咱们来一步一步的解决这个问题，
+    1、归并排序。你可能会想到把磁盘文件进行归并排序，但题目要求你只有1MB的内存空间可用，所以，归并排序这个方法不行。
+    2、位图方案。熟悉位图的朋友可能会想到用位图来表示这个文件集合。例如正如编程珠玑一书上所述，用一个20位长的字符串来表示一个所有元素都小于20的简单的非负整数集合，边框用如下字符串来表示集合{1,2,3,5,8,13}：
+
+0 1 1 1 0 1 0 0 1 0 0 0 0 1 0 0 0 0 0 0 
+
+上述集合中各数对应的位置则置1，没有对应的数的位置则置0。
+
+    参考编程珠玑一书上的位图方案，针对我们的10^7个数据量的磁盘文件排序问题，我们可以这么考虑，由于每个7位十进制整数表示一个小于1000万的整数。我们可以使用一个具有1000万个位的字符串来表示这个文件，其中，当且仅当整数i在文件中存在时，第i位为1。采取这个位图的方案是因为我们面对的这个问题的特殊性：1、输入数据限制在相对较小的范围内，2、数据没有重复，3、其中的每条记录都是单一的整数，没有任何其它与之关联的数据。
+    所以，此问题用位图的方案分为以下三步进行解决：
+•第一步，将所有的位都置为0，从而将集合初始化为空。
+•第二步，通过读入文件中的每个整数来建立集合，将每个对应的位都置为1。
+•第三步，检验每一位，如果该位为1，就输出对应的整数。
+
+    经过以上三步后，产生有序的输出文件。令n为位图向量中的位数（本例中为1000 0000），程序可以用伪代码表示如下：
+
+
+
+
+
+01.//磁盘文件排序位图方案的伪代码  
+02.//copyright@ Jon Bentley  
+03.//July、updated，2011.05.29。  
+04.  
+05.//第一步，将所有的位都初始化为0  
+06.for i ={0,....n}      
+07.   bit[i]=0;  
+08.//第二步，通过读入文件中的每个整数来建立集合，将每个对应的位都置为1。  
+09.for each i in the input file     
+10.   bit[i]=1;  
+11.  
+12.//第三步，检验每一位，如果该位为1，就输出对应的整数。  
+13.for i={0...n}      
+14.  if bit[i]==1        
+15.    write i on the output file  
+
+    上面只是为了简单介绍下位图算法的伪代码之抽象级描述。显然，咱们面对的问题，可不是这么简单。下面，我们试着针对这个要分两趟给磁盘文件排序的具体问题编写完整代码，如下。
+
+
+
+
+01.//copyright@ yansha  
+02.//July、2010.05.30。  
+03.//位图方案解决10^7个数据量的文件的排序问题  
+04.//如果有重复的数据，那么只能显示其中一个 其他的将被忽略  
+05.#include <iostream>  
+06.#include <bitset>  
+07.#include <assert.h>  
+08.#include <time.h>  
+09.using namespace std;  
+10.  
+11.const int max_each_scan = 5000000;  
+12.  
+13.int main()  
+14.{  
+15.    clock_t begin = clock();  
+16.    bitset<max_each_scan> bit_map;  
+17.    bit_map.reset();  
+18.      
+19.    // open the file with the unsorted data  
+20.    FILE *fp_unsort_file = fopen("data.txt", "r");  
+21.    assert(fp_unsort_file);  
+22.    int num;  
+23.  
+24.    // the first time scan to sort the data between 0 - 4999999  
+25.    while (fscanf(fp_unsort_file, "%d ", &num) != EOF)  
+26.    {  
+27.        if (num < max_each_scan)  
+28.            bit_map.set(num, 1);  
+29.    }  
+30.      
+31.    FILE *fp_sort_file = fopen("sort.txt", "w");  
+32.    assert(fp_sort_file);  
+33.    int i;  
+34.      
+35.    // write the sorted data into file  
+36.    for (i = 0; i < max_each_scan; i++)  
+37.    {  
+38.        if (bit_map[i] == 1)  
+39.            fprintf(fp_sort_file, "%d ", i);  
+40.    }  
+41.      
+42.    // the second time scan to sort the data between 5000000 - 9999999  
+43.    int result = fseek(fp_unsort_file, 0, SEEK_SET);  
+44.    if (result)  
+45.        cout << "fseek failed!" << endl;  
+46.    else  
+47.    {  
+48.        bit_map.reset();  
+49.        while (fscanf(fp_unsort_file, "%d ", &num) != EOF)  
+50.        {  
+51.            if (num >= max_each_scan && num < 10000000)  
+52.            {  
+53.                num -= max_each_scan;  
+54.                bit_map.set(num, 1);  
+55.            }  
+56.        }  
+57.        for (i = 0; i < max_each_scan; i++)  
+58.        {  
+59.            if (bit_map[i] == 1)  
+60.                fprintf(fp_sort_file, "%d ", i + max_each_scan);  
+61.        }  
+62.    }  
+63.      
+64.    clock_t end = clock();  
+65.    cout<<"用位图的方法，耗时："<<endl;  
+66.    cout << (end - begin) / CLK_TCK << "s" << endl;  
+67.    fclose(fp_sort_file);  
+68.    fclose(fp_unsort_file);  
+69.    return 0;  
+70.}  
+
+ 而后测试了一下上述程序的运行时间，采取位图方案耗时14s，即14000ms：
+
+
+
+
+本章中，生成大数据量（1000w）的程序如下，下文第二节的多路归并算法的c++实现和第三节的磁盘文件排序的编程实现中，生成的1000w数据量也是用本程序产生的，且本章内生成的1000w数据量的数据文件统一命名为“data.txt”。
+
+
+
+
+01.//purpose:  生成随机的不重复的测试数据  
+02.//copyright@ 2011.04.19 yansha  
+03.//1000w数据量，要保证生成不重复的数据量，一般的程序没有做到。  
+04.//但，本程序做到了。  
+05.//July、2010.05.30。  
+06.#include <iostream>  
+07.#include <time.h>  
+08.#include <assert.h>  
+09.using namespace std;  
+10.  
+11.const int size = 10000000;  
+12.int num[size];  
+13.  
+14.int main()  
+15.{  
+16.    int n;  
+17.    FILE *fp = fopen("data.txt", "w");  
+18.    assert(fp);  
+19.  
+20.    for (n = 1; n <= size; n++)    
+21.        //之前此处写成了n=0;n<size。导致下面有一段小程序的测试数据出现了0，特此订正。  
+22.        num[n] = n;  
+23.    srand((unsigned)time(NULL));  
+24.    int i, j;  
+25.  
+26.    for (n = 0; n < size; n++)  
+27.    {  
+28.        i = (rand() * RAND_MAX + rand()) % 10000000;  
+29.        j = (rand() * RAND_MAX + rand()) % 10000000;  
+30.        swap(num[i], num[j]);  
+31.    }  
+32.  
+33.    for (n = 0; n < size; n++)  
+34.        fprintf(fp, "%d ", num[n]);  
+35.    fclose(fp);  
+36.    return 0;  
+37.}  
+
+    不过很快，我们就将意识到，用此位图方法，严格说来还是不太行，空间消耗10^7/8还是大于1M（1M=1024*1024空间，小于10^7/8）。
+    既然如果用位图方案的话，我们需要约1.25MB（若每条记录是8位的正整数的话，则10000000/(1024*1024*8) ~= 1.2M）的空间，而现在只有1MB的可用存储空间，那么究竟该作何处理呢?
+
+updated && correct：
+
+   @yansha： 上述的位图方案，共需要扫描输入数据两次，具体执行步骤如下：
+•第一次，只处理1—4999999之间的数据，这些数都是小于5000000的，对这些数进行位图排序，只需要约5000000/8=625000Byte，也就是0.625M，排序后输出。
+•第二次，扫描输入文件时，只处理4999999-10000000的数据项，也只需要0.625M（可以使用第一次处理申请的内存）。
+因此，总共也只需要0.625M
+
+位图的的方法有必要强调一下，就是位图的适用范围为针对不重复的数据进行排序，若数据有重复，位图方案就不适用了。
+
+    3、多路归并。诚然，在面对本题时，还可以通过计算分析出可以用如2的位图法解决，但实际上，很多的时候，我们都面临着这样一个问题，文件太大，无法一次性放入内存中计算处理，那这个时候咋办呢？分而治之，大而化小，也就是把整个大文件分为若干大小的几块，然后分别对每一块进行排序，最后完成整个过程的排序。k趟算法可以在kn的时间开销内和n/k的空间开销内完成对最多n个小于n的无重复正整数的排序。
+
+    比如可分为2块（k=2，1趟反正占用的内存只有1.25/2M），1~4999999，和5000000~9999999。先遍历一趟，首先排序处理1~4999999之间的整数（用5000000/8=625000个字的存储空间来排序0~4999999之间的整数），然后再第二趟，对5000001~1000000之间的整数进行排序处理。在稍后的第二节、第三节、第四节，我们将详细阐述并实现这种多路归并排序磁盘文件的方案。
+    4、读者思考。经过上述思路3的方案之后，现在有两个局部有序的数组了，那么要得到一个完整的排序的数组，接下来改怎么做呢?或者说，如果是K路归并，得到k个排序的子数组，把他们合并成一个完整的排序数组，如何优化？或者，我再问你一个问题，K路归并用败者树 和 胜者树 效率有什么差别?这些问题，请读者思考。
+
+ 
+
+第二节、多路归并算法的c++实现
+
+    本节咱们暂抛开咱们的问题，阐述下有关多路归并算法的c++实现问题。在稍后的第三节，咱们再来具体针对咱们的磁盘文件排序问题阐述与实现。
+
+    在了解多路归并算法之前，你还得了解归并排序的过程，因为下面的多路归并算法就是基于这个流程的。其实归并排序就是2路归并，而多路归并算法就是把2换成了k，即多（k）路归并。下面，举个例子来说明下此归并排序算法，如下图所示，我们对数组8 3 2 6 7 1 5 4进行归并排序：
+
+
+
+
+    归并排序算法简要介绍：
+一、思路描述：
+    设两个有序的子文件(相当于输入堆)放在同一向量中相邻的位置上：R[low..m]，R[m+1..high]，先将它们合并到一个局部的暂存向量R1(相当于输出堆)中，待合并完成后将R1复制回R[low..high]中。
+     
+    二路归并排序的过程是：
+    (1)把无序表中的每一个元素都看作是一个有序表，则有n个有序子表；
+    (2)把n个有序子表按相邻位置分成若干对（若n为奇数，则最后一个子表单独作为一组），每对中的两个子表进行归并，归并后子表数减少一半；
+    (3)反复进行这一过程，直到归并为一个有序表为止。
+
+    二路归并排序过程的核心操作是将一维数组中相邻的两个有序表归并为一个有序表。
+
+二、分类：
+    归并排序可分为：多路归并排序、两路归并排序 。
+    若归并的有序表有两个，叫做二路归并。一般地，若归并的有序表有k个，则称为k路归并。二路归并最为简单和常用，既适用于内部排序，也适用于外部排序。本文着重讨论外部排序下的多（K）路归并算法。
+
+三、算法分析： 
+    1、稳定性:归并排序是一种稳定的排序。
+    2、存储结构要求:可用顺序存储结构。也易于在链表上实现。
+    3、时间复杂度: 对长度为n的文件，需进行lgn趟二路归并，每趟归并的时间为O(n)，故其时间复杂度无论是在最好情况下还是在最坏情况下均是O(nlgn)。。
+    4、空间复杂度:需要一个辅助向量来暂存两有序子文件归并的结果，故其辅助空间复杂度为O(n)，显然它不是就地排序。
+       注意:若用单链表做存储结构，很容易给出就地的归并排序。
+    
+    总结：与快速排序相比，归并排序的最大特点是，它是一种稳定的排序方法。归并排序一般多用于外排序。但它在内排方面也占有重要地位，因为它是基于比较的时间复杂度为O(N*Log(N))的排序算法中唯一稳定的排序，所以在需要稳定内排序时通常会选择归并排序。归并排序不要求对序列可以很快地进行随机访问，所以在链表排序的实现中很受欢迎。
+
+    好的，介绍完了归并排序后，回到咱们的问题。由第一节，我们已经知道，当数据量大到不适合在内存中排序时，可以利用多路归并算法对磁盘文件进行排序。
+
+    我们以一个包含很多个整数的大文件为例，来说明多路归并的外排序算法基本思想。假设文件中整数个数为N(N是亿级的)，整数之间用空格分开。首先分多次从该文件中读取M（十万级）个整数，每次将M个整数在内存中使用快速排序之后存入临时文件，然后使用多路归并将各个临时文件中的数据再次整体排好序后存入输出文件。显然，该排序算法需要对每个整数做2次磁盘读和2次磁盘写。以下是本程序的流程图：
+
+
+
+    本程序是基于以上思想对包含大量整数文件的从小到大排序的一个简单实现，这里没有使用内存缓冲区，在归并时简单使用一个数组来存储每个临时文件的第一个元素。下面是多路归并排序算法的c++实现代码（在第四节，将给出多路归并算法的c实现）： 
+
+
+
+
+01.//copyright@ 纯净的天空 && yansha    
+02.//5、July，updated，2010.05.28。    
+03.#include <iostream>    
+04.#include <ctime>    
+05.#include <fstream>    
+06.//#include "ExternSort.h"using namespace std;    
+07.//使用多路归并进行外排序的类    
+08.//ExternSort.h    
+09./** 大数据量的排序* 多路归并排序* 以千万级整数从小到大排序为例* 一个比较简单的例子，没有建立内存缓冲区*/    
+10.#ifndef EXTERN_SORT_H    
+11.#define EXTERN_SORT_H    
+12.  
+13.#include <cassert>class ExternSort    
+14.{    
+15.public:    
+16.    void sort()    
+17.    {    
+18.        time_t start = time(NULL);    
+19.        //将文件内容分块在内存中排序，并分别写入临时文件      
+20.        int file_count = memory_sort();    
+21.        //归并临时文件内容到输出文件    
+22.        merge_sort(file_count);    
+23.        time_t end = time(NULL);printf("total time:%f/n", (end - start) * 1000.0/ CLOCKS_PER_SEC);    
+24.    }    
+25.      
+26.    //input_file:输入文件名    
+27.    //out_file:输出文件名    
+28.    //count: 每次在内存中排序的整数个数    
+29.    ExternSort(const char *input_file, const char * out_file, int count)    
+30.    {    
+31.        m_count = count;    
+32.        m_in_file = new char[strlen(input_file) + 1];    
+33.        strcpy(m_in_file, input_file);    
+34.        m_out_file = new char[strlen(out_file) + 1];    
+35.        strcpy(m_out_file, out_file);    
+36.    }    
+37.    virtual ~ExternSort()    
+38.    {    
+39.        delete [] m_in_file;    
+40.        delete [] m_out_file;    
+41.    }    
+42.private:    
+43.    int m_count;     
+44.    //数组长度char *m_in_file;      
+45.    //输入文件的路径    
+46.    char *m_out_file;     
+47.    //输出文件的路径    
+48.protected:    
+49.    int read_data(FILE* f, int a[], int n)    
+50.    {    
+51.        int i = 0;    
+52.        while(i < n && (fscanf(f, "%d", &a[i]) != EOF))     
+53.            i++;    
+54.        printf("read:%d integer/n", i);    
+55.        return i;    
+56.    }    
+57.    void write_data(FILE* f, int a[], int n)    
+58.    {    
+59.        for(int i = 0; i < n; ++i)    
+60.            fprintf(f, "%d ", a[i]);    
+61.    }    
+62.    char* temp_filename(int index)    
+63.    {    
+64.        char *tempfile = new char[100];    
+65.        sprintf(tempfile, "temp%d.txt", index);    
+66.        return tempfile;    
+67.    }    
+68.    static int cmp_int(const void *a, const void *b)    
+69.    {    
+70.        return *(int*)a - *(int*)b;    
+71.    }    
+72.  
+73.    int memory_sort()    
+74.    {    
+75.        FILE* fin = fopen(m_in_file, "rt");    
+76.        int n = 0, file_count = 0;int *array = new int[m_count];    
+77.          
+78.        //每读入m_count个整数就在内存中做一次排序，并写入临时文件    
+79.        while(( n = read_data(fin, array, m_count)) > 0)    
+80.        {    
+81.            qsort(array, n, sizeof(int), cmp_int);   //这里，调用了库函数阿，在第四节的c实现里，不再调qsort。      
+82.            char *fileName = temp_filename(file_count++);    
+83.            FILE *tempFile = fopen(fileName, "w");    
+84.            free(fileName);    
+85.            write_data(tempFile, array, n);    
+86.            fclose(tempFile);    
+87.        }    
+88.        delete [] array;    
+89.        fclose(fin);    
+90.        return file_count;    
+91.    }    
+92.      
+93.    void merge_sort(int file_count)    
+94.    {    
+95.        if(file_count <= 0)     
+96.            return;    
+97.        //归并临时文件FILE *fout = fopen(m_out_file, "wt");    
+98.        FILE* *farray = new FILE*[file_count];    
+99.        int i;    
+100.        for(i = 0; i < file_count; ++i)    
+101.        {    
+102.            char* fileName = temp_filename(i);    
+103.            farray[i] = fopen(fileName, "rt");    
+104.            free(fileName);    
+105.        }    
+106.        int *data = new int[file_count];    
+107.        //存储每个文件当前的一个数字    
+108.        bool *hasNext = new bool[file_count];    
+109.        //标记文件是否读完    
+110.        memset(data, 0, sizeof(int) * file_count);    
+111.        memset(hasNext, 1, sizeof(bool) * file_count);    
+112.        for(i = 0; i < file_count; ++i)    
+113.        {    
+114.            if(fscanf(farray[i], "%d", &data[i]) == EOF)    
+115.                //读每个文件的第一个数到data数组    
+116.                hasNext[i] = false;    
+117.        }    
+118.  
+119.        while(true)    
+120.        {    
+121.            //求data中可用的最小的数字，并记录对应文件的索引    
+122.            int min = data[0];    
+123.            int j = 0;    
+124.            while (j < file_count && !hasNext[j])    
+125.                j++;    
+126.            if (j >= file_count)      
+127.                //没有可取的数字，终止归并    
+128.                break;    
+129.            for(i = j + 1; i < file_count; ++i)    
+130.            {    
+131.                if(hasNext[i] && min > data[i])    
+132.                {    
+133.                    min = data[i];    
+134.                    j = i;    
+135.                }    
+136.            }    
+137.            if(fscanf(farray[j], "%d", &data[j]) == EOF)     
+138.                //读取文件的下一个元素    
+139.                hasNext[j] = false;    
+140.            fprintf(fout, "%d ", min);    
+141.        }    
+142.  
+143.        delete [] hasNext;    
+144.        delete [] data;    
+145.        for(i = 0; i < file_count; ++i)    
+146.        {    
+147.            fclose(farray[i]);    
+148.        }  
+149.        delete [] farray;    
+150.        fclose(fout);    
+151.    }    
+152.};    
+153.#endif    
+154.  
+155.//测试主函数文件    
+156./** 大文件排序* 数据不能一次性全部装入内存* 排序文件里有多个整数，整数之间用空格隔开*/    
+157.  
+158.const unsigned int count = 10000000;     
+159.// 文件里数据的行数const unsigned int number_to_sort = 1000000;     
+160.//在内存中一次排序的数量    
+161.const char *unsort_file = "unsort_data.txt";     
+162.//原始未排序的文件名    
+163.const char *sort_file = "sort_data.txt";     
+164.//已排序的文件名    
+165.void init_data(unsigned int num);     
+166.  
+167.//随机生成数据文件    
+168.  
+169.int main(int argc, char* *argv)    
+170.{    
+171.    srand(time(NULL));    
+172.    init_data(count);    
+173.    ExternSort extSort(unsort_file, sort_file, number_to_sort);    
+174.    extSort.sort();    
+175.    system("pause");    
+176.    return 0;    
+177.}    
+178.  
+179.void init_data(unsigned int num)    
+180.{    
+181.    FILE* f = fopen(unsort_file, "wt");    
+182.    for(int i = 0; i < num; ++i)    
+183.        fprintf(f, "%d ", rand());    
+184.    fclose(f);    
+185.}   
+
+
+程序测试：读者可以继续用小文件小数据量进一步测试。
+
+ 
+
+第三节、磁盘文件排序的编程实现
+
+    ok，接下来，我们来编程实现上述磁盘文件排序的问题，本程序由两部分构成：
+1、内存排序
+由于要求的可用内存为1MB，那么每次可以在内存中对250K的数据进行排序，然后将有序的数写入硬盘。
+那么10M的数据需要循环40次，最终产生40个有序的文件。
+2、归并排序
+1.将每个文件最开始的数读入(由于有序，所以为该文件最小数)，存放在一个大小为40的first_data数组中；
+2.选择first_data数组中最小的数min_data，及其对应的文件索引index；
+3.将first_data数组中最小的数写入文件result，然后更新数组first_data(根据index读取该文件下一个数代替min_data)；
+4.判断是否所有数据都读取完毕，否则返回2。 
+
+所以，本程序按顺序分两步，第一步、Memory Sort，第二步、Merge Sort。程序的流程图，如下图所示（感谢F的绘制）。
+
+
+
+然后，编写的完整代码如下：
+
+
+
+
+01.//copyright@ yansha  
+02.//July、updated，2011.05.28。  
+03.#include <iostream>  
+04.#include <string>  
+05.#include <algorithm>  
+06.#include <time.h>  
+07.using namespace std;  
+08.  
+09.int sort_num = 10000000;  
+10.int memory_size = 250000;    
+11.  
+12.//每次只对250k个小数据量进行排序  
+13.int read_data(FILE *fp, int *space)  
+14.{  
+15.    int index = 0;  
+16.    while (index < memory_size && fscanf(fp, "%d ", &space[index]) != EOF)  
+17.        index++;  
+18.    return index;  
+19.}  
+20.  
+21.void write_data(FILE *fp, int *space, int num)  
+22.{  
+23.    int index = 0;  
+24.    while (index < num)  
+25.    {  
+26.        fprintf(fp, "%d ", space[index]);  
+27.        index++;  
+28.    }  
+29.}  
+30.  
+31.// check the file pointer whether valid or not.  
+32.void check_fp(FILE *fp)  
+33.{  
+34.    if (fp == NULL)  
+35.    {  
+36.        cout << "The file pointer is invalid!" << endl;  
+37.        exit(1);  
+38.    }  
+39.}  
+40.  
+41.int compare(const void *first_num, const void *second_num)  
+42.{  
+43.    return *(int *)first_num - *(int *)second_num;  
+44.}  
+45.  
+46.string new_file_name(int n)  
+47.{  
+48.    char file_name[20];  
+49.    sprintf(file_name, "data%d.txt", n);  
+50.    return file_name;  
+51.}  
+52.  
+53.int memory_sort()  
+54.{  
+55.    // open the target file.  
+56.    FILE *fp_in_file = fopen("data.txt", "r");  
+57.    check_fp(fp_in_file);  
+58.    int counter = 0;  
+59.    while (true)  
+60.    {  
+61.        // allocate space to store data read from file.  
+62.        int *space = new int[memory_size];  
+63.        int num = read_data(fp_in_file, space);  
+64.        // the memory sort have finished if not numbers any more.  
+65.        if (num == 0)  
+66.            break;  
+67.  
+68.        // quick sort.  
+69.        qsort(space, num, sizeof(int), compare);  
+70.        // create a new auxiliary file name.  
+71.        string file_name = new_file_name(++counter);  
+72.        FILE *fp_aux_file = fopen(file_name.c_str(), "w");  
+73.        check_fp(fp_aux_file);  
+74.  
+75.        // write the orderly numbers into auxiliary file.  
+76.        write_data(fp_aux_file, space, num);  
+77.        fclose(fp_aux_file);  
+78.        delete []space;  
+79.    }  
+80.    fclose(fp_in_file);  
+81.  
+82.    // return the number of auxiliary files.  
+83.    return counter;  
+84.}  
+85.  
+86.void merge_sort(int file_num)  
+87.{  
+88.    if (file_num <= 0)  
+89.        return;  
+90.    // create a new file to store result.  
+91.    FILE *fp_out_file = fopen("result.txt", "w");  
+92.    check_fp(fp_out_file);  
+93.  
+94.    // allocate a array to store the file pointer.  
+95.    FILE **fp_array = new FILE *[file_num];  
+96.    int i;  
+97.    for (i = 0; i < file_num; i++)  
+98.    {  
+99.        string file_name = new_file_name(i + 1);  
+100.        fp_array[i] = fopen(file_name.c_str(), "r");  
+101.        check_fp(fp_array[i]);  
+102.    }  
+103.  
+104.    int *first_data = new int[file_num];     
+105.    //new出个大小为0.1亿/250k数组，由指针first_data指示数组首地址  
+106.    bool *finish = new bool[file_num];  
+107.    memset(finish, false, sizeof(bool) * file_num);  
+108.  
+109.    // read the first number of every auxiliary file.  
+110.    for (i = 0; i < file_num; i++)  
+111.        fscanf(fp_array[i], "%d ", &first_data[i]);  
+112.    while (true)  
+113.    {  
+114.        int index = 0;  
+115.        while (index < file_num && finish[index])  
+116.            index++;  
+117.  
+118.        // the finish condition of the merge sort.  
+119.        if (index >= file_num)  
+120.            break;  
+121.        //主要的修改在上面两行代码，就是merge sort结束条件。  
+122.        //要保证所有文件都读完，必须使得finish[0]...finish[40]都为真  
+123.        //July、yansha，555，2011.05.29。  
+124.  
+125.        int min_data = first_data[index];  
+126.        // choose the relative minimum in the array of first_data.  
+127.        for (i = index + 1; i < file_num; i++)  
+128.        {  
+129.            if (min_data > first_data[i] && !finish[i])     
+130.                //一旦发现比min_data更小的数据first_data[i]  
+131.            {  
+132.                min_data = first_data[i];      
+133.                //则置min_data<-first_data[i]index = i;                     
+134.                //把下标i 赋给index。  
+135.            }  
+136.        }  
+137.  
+138.        // write the orderly result to file.  
+139.        fprintf(fp_out_file, "%d ", min_data);  
+140.        if (fscanf(fp_array[index], "%d ", &first_data[index]) == EOF)  
+141.            finish[index] = true;  
+142.    }  
+143.  
+144.    fclose(fp_out_file);  
+145.    delete []finish;  
+146.    delete []first_data;  
+147.    for (i = 0; i < file_num; i++)  
+148.        fclose(fp_array[i]);  
+149.    delete [] fp_array;  
+150.}  
+151.  
+152.int main()  
+153.{  
+154.    clock_t start_memory_sort = clock();  
+155.    int aux_file_num = memory_sort();  
+156.    clock_t end_memory_sort = clock();  
+157.    cout << "The time needs in memory sort: " << end_memory_sort - start_memory_sort << endl;  
+158.    clock_t start_merge_sort = clock();  
+159.    merge_sort(aux_file_num);  
+160.    clock_t end_merge_sort = clock();  
+161.    cout << "The time needs in merge sort: " << end_merge_sort - start_merge_sort << endl;  
+162.    system("pause");  
+163.    return 0;  
+164.}  
+
+其中，生成数据文件data.txt的代码在第一节已经给出。
+
+程序测试：
+
+    1、咱们对1000W数据进行测试，打开半天没看到数据，
+
+    2、编译运行上述程序后，data文件先被分成40个小文件data[1....40]，然后程序再对这40个小文件进行归并排序，排序结果最终生成在result文件中，自此result文件中便是由data文件的数据经排序后得到的数据。
+
+
+
+    3、且，我们能看到，data[i]，i=1...40的每个文件都是有序的，如下图：
+
+
+
+    4、最终的运行结果，如下，单位统一为ms：
+
+
+
+    由上观之，我们发现，第一节的位图方案的程序效率是最快的，约为14s，而采用上述的多路归并算法的程序运行时间约为25s。时间主要浪费在读写磁盘IO上，且程序中用的库函数qsort也耗费了不少时间。所以，总的来说，采取位图方案是最佳方案。
+
+
+小数据量测试：
+
+    我们下面针对小数据量的文件再测试一次，针对20个小数据，每趟对4个数据进行排序，即5路归并，程序的排序结果如下图所示。
+
+运行时间：
+
+0ms，可以忽略不计了，毕竟是对20个数的小数据量进行排序：
+
+
+
+沙海拾贝：
+
+    我们不在乎是否能把一个软件产品或一本书最终完成，我们更在乎的是，在完成这个产品或创作这本书的过程中，读者学到了什么，能学到什么?所以，不要一味的马上就想得到一道题目的正确答案，请跟着我们一起逐步走向山巅。
+
+第四节、多路归并算法的c实现
+
+    本多路归并算法的c实现原理与上述c++实现一致，不同的地方体现在一些细节处理上，且对临时文件的排序，不再用系统提供的快排，即上面的qsort库函数，是采用的三数中值的快速排序（个数小于3用插入排序）的。而我们知道，纯正的归并排序其实就是比较排序，在归并过程中总是不断的比较，为了从两个数中挑小的归并到最终的序列中。ok，此程序的详情请看：
+
+
+
+
+01.//copyright@ 555  
+02.//July、2011.05.29。  
+03.#include <assert.h>  
+04.#include <time.h>   
+05.#include <stdio.h>     
+06.#include <memory.h>  
+07.#include <stdlib.h>  
+08.  
+09.void swap_int(int* a,int* b)  
+10.{      
+11.    int c;      
+12.    c = *a;      
+13.    *a = *b;      
+14.    *b = c;  
+15.}  
+16.  
+17.//插入排序  
+18.void InsertionSort(int A[],int N)  
+19.{      
+20.    int j,p;      
+21.    int tmp;     
+22.    for(p = 1; p < N; p++)      
+23.    {         
+24.        tmp = A[p];  
+25.        for(j = p;j > 0 && A[j - 1] >tmp;j--)          
+26.        {              
+27.            A[j] = A[j - 1];          
+28.        }         
+29.          
+30.        A[j] = tmp;     
+31.    }  
+32.}  
+33.  
+34.//三数取中分割法  
+35.int Median3(int A[],int Left,int Right)  
+36.{  
+37.    int Center = (Left + Right) / 2;  
+38.    if (A[Left] > A[Center])  
+39.        swap_int(&A[Left],&A[Center]);  
+40.    if (A[Left] > A[Right])  
+41.        swap_int(&A[Left],&A[Right]);  
+42.    if (A[Center] > A[Right])  
+43.        swap_int(&A[Center],&A[Right]);  
+44.    swap_int(&A[Center],&A[Right - 1]);  
+45.    return A[Right - 1];  
+46.}  
+47.  
+48.//快速排序  
+49.void QuickSort(int A[],int Left,int Right)  
+50.{  
+51.    int i,j;  
+52.    int Pivot;  
+53.    const int Cutoff = 3;  
+54.    if (Left + Cutoff <= Right)  
+55.    {  
+56.        Pivot = Median3(A,Left,Right);  
+57.        i = Left;  
+58.        j = Right - 1;  
+59.        while (1)  
+60.        {  
+61.            while(A[++i] < Pivot){;}  
+62.            while(A[--j] > Pivot){;}  
+63.            if (i < j)  
+64.                swap_int(&A[i],&A[j]);  
+65.            else  
+66.                break;  
+67.        }  
+68.        swap_int(&A[i],&A[Right - 1]);   
+69.          
+70.        QuickSort(A,Left,i - 1);  
+71.        QuickSort(A,i + 1,Right);  
+72.    }  
+73.    else  
+74.    {  
+75.        InsertionSort(A+Left,Right - Left + 1);  
+76.    }  
+77.}  
+78.  
+79.//const int  KNUM  = 40;          
+80.//分块数  
+81.const int  NUMBER = 10000000;   
+82.//输入文件最大读取的整数的个数  
+83.//为了便于测试，我决定改成小文件小数据量进行测试。  
+84.const int  KNUM  = 4;          
+85.//分块数const int  NUMBER = 100;   
+86.//输入文件最大读取的整数的个数  
+87.const char *in_file = "infile.txt";  
+88.const char *out_file = "outfile.txt";  
+89.//#define OUTPUT_OUT_FILE_DATA  
+90.//数据量大的时候,没必要把所有的数全部打印出来，所以可以把上面这句注释掉。  
+91.void  gen_infile(int n)  
+92.{  
+93.    int i;  
+94.    FILE *f = fopen(in_file, "wt");   
+95.    for(i = 0;i < n; i++)  
+96.        fprintf(f,"%d ",rand());  
+97.    fclose(f);  
+98.}  
+99.  
+100.int  read_data(FILE *f,int a[],int n)  
+101.{  
+102.    int i = 0;  
+103.    while ((i < n) && (fscanf(f,"%d",&a[i]) != EOF))    
+104.        i++;  
+105.    printf("read: %d integer/n",i);  
+106.    return i;  
+107.}  
+108.  
+109.void  write_data(FILE *f,int a[],int n)  
+110.{  
+111.    int i;for(i = 0; i< n;i++)  
+112.        fprintf(f,"%d ",a[i]);  
+113.}  
+114.  
+115.char* temp_filename(int index)  
+116.{  
+117.    char *tempfile = (char*) malloc(64*sizeof(char));  
+118.    assert(tempfile);  
+119.    sprintf(tempfile, "temp%d.txt", index);  
+120.    return tempfile;  
+121.}  
+122.  
+123.//K路串行读取  
+124.void k_num_read(void)  
+125.{  
+126.    char* filename;  
+127.    int i,cnt,*array;  
+128.    FILE* fin;  
+129.    FILE* tmpfile;  
+130.    //计算knum,每路应读取的整数个数int n = NUMBER/KNUM;  
+131.    if (n * KNUM < NUMBER)n++;  
+132.  
+133.    //建立存储分块读取的数据的数组  
+134.    array = (int*)malloc(n * sizeof(int));assert(array);  
+135.    //打开输入文件  
+136.    fin = fopen(in_file,"rt");  
+137.    i = 0;  
+138.      
+139.    //分块循环读取数据,并写入硬盘上的临时文件  
+140.    while ( (cnt = read_data(fin,array,n))>0)  
+141.    {  
+142.        //对每次读取的数据,先进行快速排序,然后写入硬盘上的临时文件  
+143.        QuickSort(array,0,cnt - 1);  
+144.        filename = temp_filename(i++);  
+145.        tmpfile = fopen(filename,"w");  
+146.        free(filename);  
+147.        write_data(tmpfile,array,cnt);  
+148.        fclose(tmpfile);  
+149.    }  
+150.    assert(i == KNUM);  
+151.    //没有生成K路文件时进行诊断  
+152.    //关闭输入文件句柄和临时存储数组  
+153.    fclose(fin);  
+154.    free(array);  
+155.}  
+156.  
+157.//k路合并(败者树)  
+158.void k_num_merge(void)  
+159.{  
+160.    FILE *fout;  
+161.    FILE **farray;  
+162.    char *filename;  
+163.    int  *data;  
+164.    char *hasNext;  
+165.    int i,j,m,min;  
+166.#ifdef OUTPUT_OUT_FILE_DATAint id;  
+167.#endif  
+168.    //打开输出文件  
+169.    fout = fopen(out_file,"wt");  
+170.    //打开各路临时分块文件  
+171.    farray = (FILE**)malloc(KNUM*sizeof(FILE*));  
+172.    assert(farray);  
+173.    for(i = 0; i< KNUM;i++)  
+174.    {  
+175.        filename = temp_filename(i);  
+176.        farray[i] = fopen(filename,"rt");  
+177.        free(filename);  
+178.    }  
+179.      
+180.    //建立KNUM个元素的data,hasNext数组,存储K路文件的临时数组和读取结束状态  
+181.    data = (int*)malloc(KNUM*sizeof(int));  
+182.    assert(data);  
+183.    hasNext = (char*)malloc(sizeof(char)*KNUM);  
+184.    assert(hasNext);  
+185.    memset(data, 0, sizeof(int) * KNUM);  
+186.    memset(hasNext, 1, sizeof(char) * KNUM);  
+187.      
+188.    //读K路文件先读取第一组数据,并对读取结束的各路文件设置不可再读状态  
+189.    for(i = 0; i < KNUM; i++)  
+190.    {  
+191.        if(fscanf(farray[i], "%d", &data[i]) == EOF)  
+192.        {  
+193.            hasNext[i] = 0;  
+194.        }  
+195.    }  
+196.      
+197.    //读取各路文件,利用败者树从小到大输出到输出文件  
+198.#ifdef OUTPUT_OUT_FILE_DATAid = 0;  
+199.#endif  
+200.      
+201.    j  = 0;F_LOOP:  
+202.    if (j < KNUM)      
+203.        //以下这段代码嵌套过深，日后应尽量避免此类问题。  
+204.    {  
+205.        while(1==1)  
+206.        {  
+207.            min = data[j];  
+208.            m = j;  
+209.            for(i = j+1; i < KNUM; i++)  
+210.            {  
+211.                if(hasNext[i] == 1  && min > data[i])  
+212.                {  
+213.                    min = data[i];m = i;  
+214.                }  
+215.            }  
+216.  
+217.            if(fscanf(farray[m], "%d", &data[m]) == EOF)   
+218.            {  
+219.                hasNext[m] = 0;  
+220.            }  
+221.            fprintf(fout, "%d ", min);  
+222.#ifdef OUTPUT_OUT_FILE_DATAprintf("fout :%d  %d/n",++id,min);  
+223.#endif  
+224.            if (m == j && hasNext[m] == 0)  
+225.            {  
+226.                for (i = j+1; i < KNUM; i++)  
+227.                {  
+228.                    if (hasNext[m] != hasNext[i])  
+229.                    {  
+230.                        m = i;  
+231.                        //第i个文件未读完,从第i个继续往下读  
+232.                        break;  
+233.                    }  
+234.                }  
+235.                if (m != j)  
+236.                {  
+237.                    j = m;  
+238.                    goto F_LOOP;  
+239.                }  
+240.                break;  
+241.            }  
+242.        }  
+243.    }  
+244.      
+245.    //关闭分配的数据和数组      
+246.    free(hasNext);     
+247.    free(data);         
+248.    for(i = 0; i < KNUM; ++i)     
+249.    {          
+250.        fclose(farray[i]);     
+251.    }     
+252.    free(farray);      
+253.    fclose(fout);  
+254.}  
+255.  
+256.int main()      
+257.{     
+258.    time_t start = time(NULL),end,start_read,end_read,start_merge,end_merge;  
+259.    gen_infile(NUMBER);      
+260.    end = time(NULL);     
+261.    printf("gen_infile data time:%f/n", (end - start) * 1000.0/ CLOCKS_PER_SEC);  
+262.    start_read = time(NULL);k_num_read();      
+263.    end_read = time(NULL);     
+264.    printf("k_num_read time:%f/n", (end_read - start_read) * 1000.0/ CLOCKS_PER_SEC);  
+265.    start_merge = time(NULL);  
+266.    k_num_merge();      
+267.    end_merge = time(NULL);      
+268.    printf("k_num_merge time:%f/n", (end_merge - start_merge) * 1000.0/ CLOCKS_PER_SEC);     
+269.    end = time(NULL);     
+270.    printf("total time:%f/n", (end - start) * 1000.0/ CLOCKS_PER_SEC);      
+271.    return 0;    
+272.}    
+
+程序测试：
+
+在此，我们先测试下对10000000个数据的文件进行40趟排序，然后再对100个数据的文件进行4趟排序（读者可进一步测试）。如弄几组小点的数据,输出ID和数据到屏幕，再看程序运行效果。
+1.10个数, 4组
+2.40个数, 5组
+3.55个数, 6组
+4.100个数, 7组
+
+
+
+
+
+ 
+
+（备注：1、以上所有各节的程序运行环境为windows xp + vc6.0 + e5200 cpu 2.5g主频，2、感谢5为本文程序所作的大量测试工作）
+
+全文总结：
+
+1、关于本章中位图和多路归并两种方案的时间复杂度及空间复杂度的比较，如下：
+
+              时间复杂度       空间复杂度
+位图         O(N)               0.625M
+多位归并   O(Nlogn)        1M    
+
+（多路归并，时间复杂度为O（k*n/k*logn/k ），严格来说，还要加上读写磁盘的时间，而此算法绝大部分时间也是浪费在这上面）
+
+2、bit-map
+
+适用范围：可进行数据的快速查找，判重，删除，一般来说数据范围是int的10倍以下
+基本原理及要点：使用bit数组来表示某些元素是否存在，比如8位电话号码
+扩展：bloom filter可以看做是对bit-map的扩展
+
+问题实例：
+1)已知某个文件内包含一些电话号码，每个号码为8位数字，统计不同号码的个数。
+8位最多99 999 999，大概需要99m个bit，大概10几m字节的内存即可。
+2)2.5亿个整数中找出不重复的整数的个数，内存空间不足以容纳这2.5亿个整数。
+
+将bit-map扩展一下，用2bit表示一个数即可，0表示未出现，1表示出现一次，2表示出现2次及以上。或者我们不用2bit来进行表示，我们用两个bit-map即可模拟实现这个2bit-map。
+
+3、[外排序适用范围]大数据的排序，去重基本原理及要点：外排序的归并方法，置换选择败者树原理，最优归并树扩展。问题实例：1).有一个1G大小的一个文件，里面每一行是一个词，词的大小不超过16个字节，内存限制大小是1M。返回频数最高的100个词。这个数据具有很明显的特点，词的大小为16个字节，但是内存只有1m做hash有些不够，所以可以用来排序。内存可以当输入缓冲区使用。 
+
+4、海量数据处理
+
+    有关海量数据处理的方法或面试题可参考此文，十道海量数据处理面试题与十个方法大总结。日后，会逐步实现这十个处理海量数据的方法。同时，送给各位一句话，解决问题的关键在于熟悉一个算法，而不是某一个问题。熟悉了一个算法，便通了一片题目。
+
+本章完。
+
+    updated：有一读者朋友针对本文写了一篇文章为，海量数据多路归并排序的c++实现（归并时利用了败者树），地址为：http://www.cnblogs.com/harryshayne/archive/2011/07/02/2096196.html。谢谢，欢迎参考。
+
+
+--------------------------------------------------------------------------------
+    版权所有，本人对本blog内所有任何内容享有版权及著作权。网络转载，请以链接形式注明出处。 
+分享到： 
+
+上一篇：程序员编程艺术：第九章、闲话链表追赶问题
+ 下一篇：程序员编程艺术：三之三续、求数组中给定下标区间内的第K小（大）元素
+ . 
+
+
+查看评论
+ 
+70楼 keary093 5天前 16:08发表 [回复] 请问可否使用基数排序来解决这个问题？
+大致思路是：先每次从unsort_data.txt中读取1M的数字到内存中，然后根据个位数排序，将排好序的1M数字分别存入磁盘上的0.txt，1.txt……9.txt当中。个位排完序后，再从0.txt开始一直至9.txt，每次仍读取1M大小的数字至内存，根据十位数排序，排好序后存入1_0.txt，1_1.txt…1_9.txt中。排完后0.txt至9.txt可以删除。以此类推~
+基数排序的时间复杂度是O(dn)，在此题中为O(7*n)，即O(n)，比归并要快，所以我认为这个可能可行~69楼 lij0526 2013-03-09 18:20发表 [回复] 还有，楼主在程序中大量使用了fopen等函数，需要引用头文件stdio.h68楼 lij0526 2013-03-09 18:11发表 [回复] 你好，我看了您生成1000万个测试数据的程序，感觉在i和j这会不会溢出呢？
+i和j都是int，这样一处理后有可能变成负值，导致后面的swap中数组取值时出现越界。67楼 kjs008 2012-12-05 15:41发表 [回复] 1.位图法内存需要1.25M，需要结合hash读2次。
+2.编程珠玑上面的快速排序法读了40次的原始数据，应该可以用类似与桶排序的方法，hash到40个临时文件。读2次就可以了。66楼 AspirinVagrant 2012-12-03 16:26发表 [回复] 将多路归并排序倒过来，进行分布式排序，不过效率比多路归并差一点。
+ 最大堆最小堆是可以的，只不过要将树进行修改，改为外存上的数据结构，将每个内节点加上缓冲区。复杂度和多路归并排序一样，但具体的实验结果要比多路归并差一点。65楼 kuaiwei2005 2012-11-29 17:55发表 [回复] for (n = 1; n <= size; n++) 
+//之前此处写成了n=0;n<size。导致下面有一段小程序的测试数据出现了0，特此订正。 
+num[n] = n; 
+数组下表越界了，应该是 
+for (n = 0; n < size; n++)
+ num[n] = n + 1;64楼 CPPAlien 2012-10-09 09:10发表 [回复] 生成随机数文件中的
+for(n = 1;n <= size;n ++)
+ num[n] = n;
+这样写是不是数组越界了，63楼 SKATE11 2012-09-15 00:16发表 [回复] 楼主是哪个学校的 现在哪工作啊 真心崇拜你62楼 titer1 2012-08-17 11:33发表 [回复] 我将第二节、多路归并算法的c++实现 的
+程序实际运行了下，
+我想测试最多可以分成多少个文件，//文件的极限
+结果报fscanf错误，
+
+详细帖子在
+http://topic.csdn.net/u/20120817/11/5907c6a3-83c8-47e4-b806-5ea55c75d82d.html61楼 v_JULY_v 2012-07-23 00:04发表 [回复] 感谢風過無痕的来信，谢谢：
+hi
+ july，看到你的博客《程序员编程艺术：第十章、如何给10^7个数据量的磁盘文件排序》，下面回复一些人说生成测
+试数据那段代码有问题，就写了个，测试了10、100、1000个不重复的随机数的生成，应该没有问题，现把代码发给你。祝：工作顺利
+
+
+
+
+01.//生成随机的不重复的测试数据  
+02.#include <iostream>  
+03.#include <time.h>  
+04.#include <assert.h>  
+05.using namespace std;  
+06.//产生[i,u]区间的随机数  
+07.int randint(int l, int u)  
+08.{  
+09. return l+(RAND_MAX*rand()+rand())%(u-l+1);  
+10.}  
+11. //1000W的int,大约4M的数据，如果放在mian内，在我的机子上好像是栈溢出了，放在全局空间就没问题  
+12.const int size = 10000000;  
+13.int num[size];  
+14.int main()  
+15.{  
+16.    int i, j;  
+17.    FILE *fp = fopen("data.txt", "w");  
+18.    assert(fp);  
+19.    for (i = 0; i < size; i++)  
+20.        num[i] = i+1;  
+21.    srand((unsigned)time(NULL));  
+22.    for (i = 0; i < size; i++)  
+23.    {  
+24.        j = randint(i, size-1);  
+25.        int t = num[i]; num[i] = num[j]; num[j] = t;  
+26.        //swap(num[i], num[j]);  
+27.    }  
+28.    for (i = 0; i < size; i++)  
+29.        fprintf(fp, "%d ", num[i]);  
+30.    fclose(fp);  
+31.    return 0;  
+32.}  
+Re: SuperFC 2012-07-23 17:04发表 [回复] 回复v_JULY_v：洗牌算法！60楼 luxiaoxun 2012-07-21 14:42发表 [回复] 回复v_JULY_v：string new_file_name(int n) 
+{ 
+char file_name[20]; 
+sprintf(file_name, "data%d.txt", n); 
+return file_name; 
+}
+代码没有问题，返回的是string，函数返回前调用string的拷贝构造函数用file_name生成了string59楼 yishengjun2025 2012-05-22 15:35发表 [回复] 第四节 k_num_merge对多路归并运用败者树的部分,好像没有用到败者树.(ps:编程艺术我觉得挺好的)58楼 cys1991 2012-05-05 22:18发表 [回复] 兄弟 你什么时候开始研究算法的啊 感觉你研究的不错呀57楼 盖世天才 2012-05-05 16:55发表 [回复] string new_file_name(int n) 
+{ 
+char file_name[20]; 
+sprintf(file_name, "data%d.txt", n); 
+return file_name; 
+} 这段代码不对吧？数组是存在栈区的，函数调用返回，栈区空间随时会被收回。。。应该改成指针，用的是堆区内存，就没问题了56楼 hpghy123456 2012-05-05 14:46发表 [回复] 什么时候出本书呀！强烈建议55楼 qm1004 2012-04-25 11:32发表 [回复] 
+
+
+
+01.//外排有错  
+02. int min = data[0];    //改为min=MAX_INT  
+03.            int j = 0;      
+04.            while (j < file_count && !hasNext[j])      
+05.                j++;      
+06.            if (j >= file_count)          
+07.                break;      
+08.            for(i = j + 1; i < file_count; ++i)  //改为i=j    
+09.            {      
+10.                if(hasNext[i] && min > data[i])      
+11.                {      
+12.                    min = data[i];      
+13.                    j = i;      
+14./*外排这一段实现是错的，当只剩最后一个文件还有数据的时//候，就不会进入该if语句，这时每次读入的就是data[0]*/  
+15.                }      
+16.            }     
+17.            /*增加 min=data[j]，在只剩最后一个文件是也能保证全部输出 */  
+18.            if(fscanf(farray[j], "%d", &data[j]) == EOF)         
+19.                hasNext[j] = false;      
+20.            fprintf(fout, "%d ", min);     
+Re: luxiaoxun 2012-07-21 14:44发表 [回复] 回复qm1004：C语言版的应该没有问题，测试过了54楼 qm1004 2012-04-24 23:02发表 [回复] for (n = 1; n <= size; n++) 
+//之前此处写成了n=0;n<size。导致下面有一段小程序的测试数据出现了0，特此订正。 
+num[n] = n; 
+
+这里明显有错吧，最大能到num[size]=size，不溢出了吗。Re: v_JULY_v 2012-07-23 00:05发表 [回复] 回复qm1004：具体哪一节哪一段代码？53楼 zhaochengliang123 2012-03-23 16:31发表 [回复] 跪拜52楼 michaelscofielddong 2011-12-14 21:41发表 [回复] 50楼说的对。51楼 zhoujiealex 2011-11-25 10:16发表 [回复] 为什么评论没了50楼 zhoujiealex 2011-11-25 10:15发表 [回复] for (n = 1; n <= size; n++) 
+//之前此处写成了n=0;n<size。导致下面有一段小程序的测试数据出现了0，特此订正。 
+num[n] = n; 
+
+
+这里初始化：num[0]没用吗？ 还有 num[size]=size; 越界了。 
+看你的注释，是故意这么做的？ 这么多人没提出来。我都怀疑自己问题了。。。。。。。。。。
+ 这里int num[size]在全局区分配了空间，没问题。所以运行没有出现stack corrupt。 如果num在函数里（这里栈不够，纯虚为了说明越界），就会出现问题了。49楼 lezardfu 2011-11-08 16:44发表 [回复] K路归并时，可以使用小顶堆来稍微提升运行速度。即：每次取走堆顶数据，同一文件的后续数据入堆，维护堆。为什么这么想？因为K路归并在CLRS里面是讲完堆之后的课后习题之一...48楼 whspecial 2011-10-30 14:01发表 [回复] 按照作者的意思，是不是在做二路归并外部排序的时候，每次从两个文件中读出两个数字，比较大小，将较小的那个写入新文件？这样的话，频繁的读写磁盘，开销会较大。
+我想到的是可以一次读入内存一半大小的数据，例如内存大小为10M，两个待排序的文件是1G，两个文件都是有序的。从文件A读出5M数字，从文件B读出5M数字，在内存中进行排序后，将前5M数字一次性写入结果文件；再从文件A读出5M数字，与前面内存中剩余的5M数字一起排序，将前5M数字一次性写入结果文件，这样循环下去直到处理完毕。。。
+不知道大家对这个方法有什么看法？47楼 lzc52151 2011-10-08 22:29发表 [回复] 如果对磁盘I/O读写有了解的话，稍加利用效率会更好。1G的文件排序可以两分半左右。Re: v_JULY_v 2011-10-08 22:32发表 [回复] 回复lzc52151：多谢指教。46楼 parakpurple 2011-09-09 21:35发表 [回复] 代码贴得太乱了Re: v_JULY_v 2011-10-08 22:32发表 [回复] 回复parakpurple：嗯，没想到新版blog中代码乱了，我重新排下版。45楼 dennis82828 2011-07-29 17:27发表 [回复] 搂主很多算法思想跟《编程珠玑》以及《算法导论》中的不谋而合，若有参考，应该注明出处。
+
+搂主将各种算法加以实践，并贴出实际效果，使本人及其他广大读者受益匪浅。44楼 qqmsyz520 2011-06-25 15:38发表 [回复] 这个 没必要了啊 直接输出1 到 n就行 这就是排序的结果
+何必那么复杂呢
+你的题目就没取好Re: v_JULY_v 2011-06-25 17:16发表 [回复] 回复 qqmsyz520：结果要求排序，且存储空间有限制。看清题意。Re: qqmsyz520 2011-06-27 10:25发表 [回复] 回复 v_JULY_v：从1到n不是排序结果么，而且也没有超过内存限制。
+难道你所谓的排序就是一定要把数据读入内存，再处理才叫排序？
+题目有此性质为何不用？
+那请问你：一个文件中存放n个升序排列的的整数，请你对他进行升序排列，请问你怎么做。Re: yanshazi 2011-06-27 11:11发表 [回复] 回复 qqmsyz520：题目讲最多含有n个不重复正整数，也就是说可能含有少于n个不重复正整数，试问直接输出1到n可行么！Re: qqmsyz520 2011-06-27 11:21发表 [回复] 回复 yanshazi：是的。。 我的错43楼 jingfang 2011-06-23 16:39发表 [回复] [e01]42楼 luuillu 2011-06-14 19:21发表 [回复] 我用桶排序方法试验了一下。执行时间与归并排序差不多。http://blog.csdn.net/luuillu/archive/2011/06/14/6544476.aspxRe: v_JULY_v 2011-06-14 19:37发表 [回复] 回复 luuillu：[e10]，日后有空看下。41楼 jn989 2011-06-14 17:41发表 [回复] 你好，很喜欢你的博客！
+有个问题，在你生成随机的不重复的n=10000000个测试用的数时，方法很巧妙但是不一定是完全随机的吧？那个for循环里每次都随机取两个下标交换的方法你可以证明生成任何一个排列的概率都是1/(n!)吗？——这个是完全随机排列的定义（我没证出来）Re: v_JULY_v 2011-06-14 18:19发表 [回复] 回复 jn989：恩，之前试过一个取随机数的方法，后来发现不行，有重复。最终才用了贴在上面的取随机不重复数的方法，应该是没有问题的。Re: jn989 2011-06-14 21:28发表 [回复] 回复 v_JULY_v：可以这样吗？用一次random，即从头往后扫描，每次将当前元素和后面的任一一个随机元素对调，即：
+for i 1 to n
+do swap (num[i], num[Random(i, n)])
+具体可以参照《算法导论》中第5章生成随机数列的方法(证明也可参考之)，呵呵Re: keyoflov 2011-11-23 14:09发表 [回复] 回复jn989：个人认为楼上生成方法可行，楼主的交换方法证明不出来啊40楼 zxf1028cumt 2011-06-14 11:04发表 [回复] 2.5亿个整数中找出不重复的整数的个数，内存空间不足以容纳这2.5亿个整数。我认为没有必要用2位表示一个数，1位就够了，0表示该数没出现或出现2次及以上，1表示出现1次，置位的时候用异或！Re: jn989 2011-06-14 21:26发表 [回复] 回复 zxf1028cumt：如何实现呢？当映射到某位为0时它究竟是表示没出现还是出现2次呢？这时异或1后为1，那究竟是出现1次还是3次呢？如何解决歧义？Re: v_JULY_v 2011-06-14 11:11发表 [回复] 回复 zxf1028cumt：[e03]39楼 jicheng687 2011-06-12 12:27发表 [回复] lz,如果n个有可能重复的正整数，请问有什么解决方法？Re: v_JULY_v 2011-06-12 12:33发表 [回复] 回复 jicheng687：可以用思路3的多路归并方法。有重复的数仅仅是限制了不能用位图的方案而已。38楼 cwm5511 2011-06-04 10:09发表 [回复] 学习了，谢谢！！！37楼 ruizeng88 2011-06-03 14:40发表 [回复] [e03]36楼 lovewhatilove 2011-06-03 09:28发表 [回复] 感觉问题的探索还是不够深，跟MS的编程之美的探索有差距。看完你的问题之后，你的解决思路我都已经清楚了。没有得到意外的收获~
+
+不过还是鼓励下，希望后面写的更好，就这个问题，我觉得应该还有探索下去的办法~Re: v_JULY_v 2011-06-05 17:59发表 [回复] 回复 lovewhatilove：我从来都是希望无限探索下去，有的时候，确也感技不从心。若有何指导，望不吝赐教。Re: lovewhatilove 2011-06-14 13:14发表 [回复] 回复 v_JULY_v：客气了，加油~我暂时也没思路，也没空闲时间去思考这些了（我的方向不是在这里）Re: v_JULY_v 2011-06-05 17:58发表 [回复] 回复 lovewhatilove：恩，非常非常宝贵的意见，如果你对此磁盘文件的排序问题，有任何好的思路，或建议，欢迎随时提供，再次谢谢你。35楼 iicup 2011-06-01 07:37发表 [回复] 对于限制内存为1MB这种要求的程序，效率分析应该重于实际测试。因为我们的实际应用的计算机内存都是远远大于1MB的，这样一来，由于操作系统缓存的作用，我们实测的外存读写速度将接近内存读写速度。实际测试的就是内存排序的速度了。Re: v_JULY_v 2011-06-01 08:57发表 [回复] 回复 iicup：恩，是的，效率分析。不知你对本文程序的效率分析有何具体阐述?34楼 algorithm__ 2011-05-31 16:57发表 [回复] 太发奋了，一个多月不见，又写了这么多精品文章。csdn上一枝独秀额Re: algorithm__ 2011-05-31 16:58发表 [回复] 回复 algorithm__：且是仅此一枝。33楼 algorithm__ 2011-05-31 16:57发表 [回复] [e10]32楼 algorithm__ 2011-05-31 16:56发表 [回复] 写得非常之有味阿，用算法指导实际问题，不断寻求高效的算法解决问题，这就是计算机艺术的本质阿。Lz好好加油拉，，Re: v_JULY_v 2011-05-31 17:02发表 [回复] 回复 algorithm__：谢谢。31楼 algorithm__ 2011-05-31 16:55发表 [回复] 好久没来看了。回来了。Re: v_JULY_v 2011-05-31 17:03发表 [回复] 回复 algorithm__：的确好久，没见到你了，欢迎回来，:D。30楼 SealedSheep 2011-05-31 16:43发表 [回复] 在程序运行前记录处理器运行过的周期数(QueryPerformanceCounter)，运行后记录处理器运行过的周期数，以二者之差除以处理器主频(QueryPerformanceFrequency)就可以得到精度为 1/处理器主频 s 的时间了。Re: v_JULY_v 2011-05-31 17:02发表 [回复] 回复 jimmysheep：恩，多谢你的建议，日后注意考虑，[e10]29楼 SealedSheep 2011-05-31 16:43发表 [回复] 受益匪浅，提点小建议，对于时间小于1ms的算法其实时间也是可以计算的.28楼 v_JULY_v 2011-05-31 13:24发表 [回复] 欢迎，各位提出或留下实际工作中遇到的编程问题，以便让我们有实现它的机会。27楼 xingxi_200 2011-05-31 11:29发表 [回复] [e01][e01]26楼 jinjiating 2011-05-30 22:45发表 [回复] [e01][e01][e01][e10]非常感谢，学到新知识了25楼 v_JULY_v 2011-05-30 21:27发表 [回复] 谢谢，ou 修正下，[e10]24楼 ssduer 2011-05-30 21:24发表 [回复] [e01]谢谢楼主！
+另，流程图上面一段有个错字：牌号序 应为 排好序
+[e03]23楼 v_JULY_v 2011-05-30 19:28发表 [回复] 修正了本文第一节有关位图方案的一个非常严重的bug。向各位读者，表示道歉。对不起，是我们失职了。sorry。22楼 v_JULY_v 2011-05-30 17:07发表 [回复] 此文在此编程艺术系列中如此之重要，却没发现..21楼 v_JULY_v 2011-05-30 13:40发表 [回复] 感谢csmjj 提出的意见，原文思路三稍稍修改处理了下。20楼 sjtlqy 2011-05-30 13:17发表 [回复] 还得好好把归并排序给看看！csdn上也就楼主的文字值得一看了！其他的没什么本质阿[e04]Re: v_JULY_v 2011-05-30 13:22发表 [回复] 回复 sjtlqy：过分称赞了，[e10]Re: v_JULY_v 2011-05-30 13:22发表 [回复] 回复 v_JULY_v：归并排序，争取日后有机会时好好写一篇文章。19楼 v_JULY_v 2011-05-30 13:05发表 [回复] 如果各位在某一段时间内无法评论时，欢迎把任何意见发到我的邮箱，zhoulei0907@yahoo.cn。18楼 zhoujk 2011-05-30 12:44发表 [回复] [e07]输入：一个含有n个不重复的正整数的文件，其中每个数都小于n，根据抽屉原理，直接输出 1 ～ n-1 就行了啊?Re: v_JULY_v 2011-06-01 10:58发表 [回复] 回复 zhoujk：关键是题目要求对文件中的数据进行排序。17楼 iicup 2011-05-30 06:48发表 [回复] 归并排序，需要读写外存log(N/内存容量)次，位图方法，需要遍历外存N/(内存容量）次，具体到10^7, 归并需要5次，位图需要2次。Re: csusheep 2011-06-01 17:10发表 [回复] 回复 iicup：[e01][e01][e01] 哈，有道理哈Re: v_JULY_v 2011-06-01 17:51发表 [回复] 回复 csusheep：难道是我搞错拉?Re: iicup 2011-06-01 07:31发表 [回复] 回复 iicup：
+原来理解错了，2路归并需要5次，多路归并只需要两次，一次是250KB的排序，一次是多路归并。但是归并算法比位图法要多一次写外存。Re: v_JULY_v 2011-06-01 08:56发表 [回复] 回复 iicup：多路归并，每次250kb，需要归并40次。16楼 iicup 2011-05-30 06:44发表 [回复] 归并排序，需要读写外存log(N/内存容量)次，位图方法，需要遍历外存N/(内存容量）次，具体到10^N, 归并需要5次，位图需要2次。15楼 iicup 2011-05-29 17:26发表 [回复] 如果数据总数已经接近10^7， 位图方法仍然是最好的方式,1MB的位数=1024*1024*8=8388608,第一遍只处理小于这个范围的数,第遍处理大于这个范围的数. 这样只需要扫描外存2遍,写一遍.Re: csmjj 2011-05-29 22:01发表 [回复] 回复 iicup：我也觉得这个方法可行，共需要扫描输入数据两次，比如：第一次只处理那些1—4999999的数据，这些数都是小于5000000的，对这些数位图排序，只需要约0.625M，排序后输出。
+第二次扫描输入文件时，只处理那些大于4999999的数据项，也只需要0.625M。Re: yanshazi 2011-05-30 19:24发表 [回复] 回复 csmjj：你的思路是可以的，文章已更新[e03]Re: wxy_joly 2011-05-29 22:35发表 [回复] 回复 csmjj：这样做, (1) 你的位图排序就很复杂 (2) 位图的作用已经完全失去. 位图排序的意义在于,在内存足够的情况下,一次性装载数据到位图数组,然后利用位序于数字一一对应来输出. 只有这种情况,才是位图处理的合适场所.Re: v_JULY_v 2011-05-30 10:27发表 [回复] 回复 wxy_joly：[e03]Re: csmjj 2011-05-30 12:50发表 [回复] 回复 v_JULY_v：个人觉得文中第一节的多路归并与编程珠玑上习题5答案的解法并不相同，按文中例子所说，对输入分块，第一趟处理的是1~4999999的数据块（而不是数据大小为1~4999999的数据），这些数据的范围是1~10^7,需要1.25M（用位图的话），不用位图则更大。Re: csmjj 2011-05-30 12:42发表 [回复] 回复 v_JULY_v：个人觉得文中第一节第3小点的多路归并有点问题，按文中所说，对输入分块，第一趟处理的是1~4999999的数据块（儿不是数据大小为1~4999999的数据），这些数据的范围是1~10^7,需要1.25M（用位图的话），不用位图则更大。Re: csmjj 2011-05-30 09:21发表 [回复] 回复 wxy_joly：我一直觉得本博客的文章很好，所以很关注。留言只是提个建议，觉得这个方法可行，至于复杂度如何，跟本文方法相比优劣如何，我就不知道了（或许可以再写文章对比下）。查了下，编程珠玑 1.6节 第5题 就是这么个情况。Re: v_JULY_v 2011-05-30 19:27发表 [回复] 回复 csmjj：是的，向您表示道歉，我们犯了个非常严重的错误，谢谢你，朋友，[e10]Re: csmjj 2011-05-30 19:50发表 [回复] 回复 v_JULY_v：不客气，刚巧正在看编程珠玑，就发现了一点点问题。Re: v_JULY_v 2011-05-30 19:57发表 [回复] 回复 csmjj：恩，有问题，欢迎随时经常交流。Re: v_JULY_v 2011-05-30 10:27发表 [回复] 回复 csmjj：恩，谢谢。你说的这个思路就是文章中第一节所提到的多路归并算法。编程珠玑1.6节习题5也就是这个方法。[e10]Re: csmjj 2011-05-30 12:40发表 [回复] 回复 v_JULY_v：个人觉得文中第一节第3小点的多路归并有点问题，按文中所说，对输入分块，第一趟处理的是1~4999999的数据块（而不是数据范围为1~4999999的数据），这些数据的范围是1~10^7,需要1.25M（用位图的话），不用位图则更大。Re: wxy_joly 2011-05-29 22:35发表 [回复] 回复 csmjj：按你说的方案,我们按最一般的情况来处理, 就是输入文件数据是完全混乱无序的. 你扫描一道文件后,按你说的对位图排序,输出到目标文件中,然后(必须)关闭文件句柄后再打开来扫描第二道, 然后排序,然后将数据追加到目标文件已有数据之后.Re: v_JULY_v 2011-05-29 18:51发表 [回复] 回复 iicup：如果用位图方案的话，我们需要约1.25MB。而题目中已明确说明，只有1M的内存空间可供使用。14楼 csmjj 2011-05-29 17:24发表 [回复] 提个问题：文中生成的数数不重复的数么？ （当然重复与否，本中的归并都可以实现排序。 但不重复的话，可以用位图。）Re: v_JULY_v 2011-05-30 11:47发表 [回复] 回复 csmjj：是的，不重复的，即不相同的数。你说的没错。13楼 iicup 2011-05-29 17:16发表 [回复] 对于10^7,的每个正整数,需要3BYTE来存储
+1MB最多存储349525个数字, 如果数据总数小于这个数,
+则可使用普通的内存排序算法. 但是整数需要特殊处理.12楼 v_JULY_v 2011-05-29 14:04发表 [回复] 全文测试完毕。。Re: iicup 2011-06-01 07:39发表 [回复] 回复 v_JULY_v：
+对于限制内存为1MB这种要求的程序，效率分析应该重于实际测试。因为我们的实际应用的计算机内存都是远远大于1MB的，这样一来，由于操作系统缓存的作用，我们实测的外存读写速度将接近内存读写速度。实际测试的就是内存排序的速度了。Re: v_JULY_v 2011-06-01 08:52发表 [回复] 回复 iicup：[e03]11楼 happyjw 2011-05-29 13:16发表 [回复] [e01]10楼 panchax 2011-05-29 12:59发表 [回复] 问题描述：
+输入：一个含有n个不重复的正整数的文件，其中每个数都小于n，且n=10^7。
+
+这问题描述有矛盾吧：n个；不重复；正整数；小于nRe: v_JULY_v 2011-05-29 14:04发表 [回复] 回复 panchax：且，每个数小于等于n。谢谢你，朋友，[e10]Re: zhoujk 2011-05-30 12:42发表 [回复] 回复 v_JULY_v：
+输入：一个含有n个不重复的正整数的文件，其中每个数都小于n，且n=10^7。 这问题描述有矛盾吧：n个；不重复；正整数；小于等于n，抽屉原理，直接输出 1 ～ n-1 就行了啊?Re: v_JULY_v 2011-05-31 21:59发表 [回复] 回复 zhoujk：关键是我们要对文件中的数据进行排序，朋友。Re: zhoujk 2011-09-07 23:51发表 [回复] 一个含有n个不重复的正整数的文件，其中每个数都小于n，这个文件是不成立的，不存在这样的集合(根据抽屉原理)。
+如果把这个改成"一个含有n个不重复的正整数的文件，其中每个数都小于等于n“则可以成立。它的排序结果是:1,2,3,4,5...N.
+如果把题目改成："一个含有n-1个不重复的正整数的文件，其中每个数都小于n"，则它的排序结果为 1,2,3,4...N-1Re: v_JULY_v 2011-05-29 13:20发表 [回复] 回复 panchax：恩，对，应该改为最多含有n个不重复的正整数的文件。谢谢你。Re: v_JULY_v 2011-05-29 13:18发表 [回复] 回复 panchax：没有问题。意思就是这样。9楼 panchax 2011-05-29 12:57发表 [回复] 问题描述：
+输入：一个含有n个不重复的正整数的文件，其中每个数都小于n，且n=10^7。
+
+这问题描述有误吧。 n个；正整数；不重复；小于n8楼 v_JULY_v 2011-05-29 12:48发表 [回复] 全文测试完毕。7楼 v_JULY_v 2011-05-29 12:46发表 [回复] 全文测试完毕。6楼 qiuyeziyaya 2011-05-29 10:09发表 [回复] [e01]收藏下好好研究了。呵呵。辛苦了。。5楼 hw_lap 2011-05-29 02:25发表 [回复] 分块+位图应该可以做得很简洁。4楼 十一文 2011-05-29 01:24发表 [回复] [e01]前排 占位！[e04]3楼 v_JULY_v 2011-05-28 22:48发表 [回复] 程序已经添补上去了。2楼 gbb21 2011-05-28 19:50发表 [回复] 艺术这个词已经被用烂了，大而不实～Re: v_JULY_v 2011-05-28 19:57发表 [回复] 回复 gbb21：给点实质性的意见吧，朋友Re: gbb21 2011-05-29 05:10发表 [回复] 回复 v_JULY_v：名字你得自己想，我说什么名字有新意，什么名字土～ 好名字么，举例说明，那个刘未鹏的C++的罗浮宫就是个好名字～1楼 zhengzhoudaxue2 2011-05-28 16:49发表 [回复] 最大堆最小堆也行的！Re: v_JULY_v 2011-05-28 18:47发表 [回复] 回复 zhengzhoudaxue2：不行的。请详述?
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料 
+
+v_JULY_v 
+
+
+
+
+
+
+访问：4195702次
+ 积分：25982分
+ 排名：第50名
+ . 原创：134篇
+ 转载：0篇
+ 译文：5篇
+ 评论：10137条
+ . 
+博客公告 ①.本blog开通于2010年10月11日，高级C /Algorithms交流群：149977547；北京程序员联盟：172727781。②.狂热算法，热爱数据挖掘，关注机器学习、统计分析，爱好文学数学。③.微博：研究者July，邮箱：zhoulei0907@yahoo.cn，July，二零一三年三月二十九日。 
+我的微博 
+文章分类 03.Algorithms（实现）(9) 
+01.Algorithms（研究）(27) 
+02.Algorithms（后续）(22) 
+04.Algorithms（讨论）(1) 
+05.MS 100' original(7) 
+06.MS 100' answers(13) 
+07.MS 100' classify(4) 
+08.MS 100' one Keys(6) 
+09.MS 100' follow-up(3) 
+10.MS 100' comments(4) 
+11.TAOPP（编程艺术）(26) 
+12.TAOPP string(6) 
+13.TAOPP array(10) 
+14.TAOPP list(2) 
+15.stack/heap/queue(0) 
+16.TAOPP tree(1) 
+17.TAOPP c/c++(2) 
+18.TAOPP function(2) 
+19.TAOPP algorithms(7) 
+20.number operations(1) 
+21.Essays(8) 
+22.Big Data Processing(5) 
+23.Redis/MongoDB(0) 
+24.data structures(12) 
+25.Red-black tree(7) 
+26.Image Processing(3) 
+27.Architecture design(4) 
+28.Source analysis(3) 
+29.Recommend&Search(4) 
+30.Machine L&Data Mining(5) 
+
+博客专栏 
+
+
+
+
+微软面试100题系列 
+文章：17篇
+ 阅读：1246112 
+
+
+
+
+
+程序员编程艺术 
+文章：24篇
+ 阅读：859726 
+
+
+
+
+
+经典算法研究 
+文章：32篇
+ 阅读：1110619 
+
+阅读排行 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(186260) 
+九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(141609) 
+教你如何迅速秒杀掉：99%的海量数据处理面试题(137438) 
+横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(127653) 
+从B树、B+树、B*树谈到R 树(122026) 
+十道海量数据处理面试题与十个方法大总结(101549) 
+九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(87330) 
+十一、从头到尾彻底解析Hash表算法(78387) 
+微软公司等数据结构+算法面试100题(第1-100题)全部出炉(75912) 
+支持向量机通俗导论（理解SVM的三层境界）(74609) 
+
+评论排行 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(371) 
+九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(361) 
+九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(331) 
+当今世界最为经典的十大算法--投票进行时(320) 
+从B树、B+树、B*树谈到R 树(264) 
+横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(263) 
+十三个经典算法研究与总结、目录+索引(216) 
+我的大学生涯(214) 
+程序员编程艺术第一章、左旋转字符串(203) 
+三五杆枪，可干革命，三五个人，可以创业(198) 
+
+最新评论 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦 
+v_JULY_v: @q1w2ok11:替我感谢你的同事:-) 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦 
+q1w2ok11: 同事推荐，太给力了，必须好好学习，楼主辛苦 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦 
+kiritor: 谢谢博主的分享,先收藏了 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦 
+v_JULY_v: @zhouqinxiong:哪个学校呢？替我谢谢你的老师:-) 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦 
+zhouqinxiong: 老师推荐的，lz，你的博客非常给力 
+
+快速排序算法 
+康天崽: 太给力了，我喜欢，爱死你了 
+
+我的大学生涯 
+msjcool: 看完楼主的经历，感觉自己弱爆了 
+
+B树的C实现 
+hao138548: 好贴 
+
+教你如何迅速秒杀掉：99%的海量数据处理面试题 
+xiyandeng: 虽然看得不是很懂，以后可以慢慢消化！感谢博主啊 
+
+程序员编程艺术第一章、左旋转字符串 
+dusx1981: void RightShift4(string &str, int k){ int len = st... 
+
+
+01、本blog索引 3、微软100题维护地址
+1、微软100题横空出世
+5、经典算法研究系列
+7、红黑树系列集锦
+6、程序员编程艺术系列
+2、微软面试全部100题
+0、经典4大原创系列集锦
+4、微软100题下载地址
+ 
+02、Google or baidu? Google搜--"结构之法"（My BLOG）
+baidu 搜--"结构之法"（My BLOG）
+ 
+03、个人标签 本BLOG RSS订阅
+zhoulei0907@yahoo.cn
+csdn blog订阅排行榜
+TAOPP修订wiki
+julymsn@live.cn
+电子工程网专家VIP
+ 博客园blog-成为推荐博客
+ ITpub-代码优化专家
+ 
+04、我的驻点 01. 为学论坛-万物皆数 终生为学
+ 02、Harry
+ 03、NoSQLFan
+ 04、酷勤网
+ 05、52nlp
+ 06、北大朋友的挖掘乐园
+ 07、跟Sophia_qing一起读硕士
+ 08、面试问答社区51nod
+ 09、韩寒
+ 10、我的有鱼
+ 11、曾经的叛逆与年少
+ 12、老D之MongoDB源码分析
+ 14、code4app:iOS代码示例
+ 17、斯坦福机器学习公开课
+ 18、TheItHome算法版块版主
+ 19、36氪--关注互联网创业
+ 20、德问--编程是一种艺术创作
+ 21、善科网
+ 22、百度搜索研发部
+ 23、淘宝搜索技术博客
+ 24、interviewstreet
+ 25、LeetCode
+ 26、Team_Algorithms人人小组
+ 
+文章存档 
+2013年03月(1).
+2012年12月(1).
+2012年11月(1).
+2012年09月(1).
+2012年06月(1).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持Copyright © 1999-2012, CSDN.NET, All Rights Reserved  

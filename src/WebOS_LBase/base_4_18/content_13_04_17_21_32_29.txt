@@ -1,0 +1,83 @@
+#include<iostream.h>
+ 
+void MPsort(double array[],int length){
+
+	//ð�ݷ�����
+	
+	cout<<"�㵱ǰѡ��Ϊð�ݷ�����"<<endl;
+	//����һ���м����������м�ֵ
+	double temp;
+	//���ѭ�����ƱȽϴ���
+	for(int i=0;i<length-1;i++){
+		//�ڲ�ѭ������ÿ��Ҫ�Ƚ϶��ٴ� 
+		for(int j=0;j<length-i-1;j++){
+		
+			if(array[j]>array[j+1])
+			{temp=array[j];array[j]=array[j+1];array[j+1]=temp;}
+		}
+			cout<<"��"<<i+1<<"�˱Ƚϣ�";
+			for(int q=0;q<length;q++)
+				cout<<array[q]<<" ";
+			cout<<endl;
+	}
+	
+}
+void XZsort(double array[],int length){
+
+	//ѡ������
+
+	cout<<"�㵱ǰѡ��Ϊѡ������"<<endl;
+	int i,j,k,temp;
+	//���ѭ�����ƱȽϴ���
+	for(i=0;i<length-1;i++){
+	
+		//k�������"��ǰ"��С��Ԫ�����
+		k=i;
+		for(j=i+1;j<length;j++)
+			if(array[k]>array[j])		
+				//k���"��ǰ"��С��Ԫ�����
+				k=j;
+		//�ѵ�ǰ��С��Ԫ�ش����array[i]��
+		temp=array[k];array[k]=array[i];array[i]=temp;
+		cout<<"��"<<i+1<<"�˱Ƚϣ�";
+			for(int q=0;q<length;q++)
+				cout<<array[q]<<" ";
+			cout<<endl;
+	}
+}
+void main(){
+
+	//����һ����������Ҫ�������
+	double array[1000];
+	int k;
+	int choice;
+	cout<<"��������Ҫ���������,����-1(����)��Ϊ�����־��"<<endl;
+	//������Ҫ���е�������k�������ݳ���
+		for(k=0;;k++){
+			
+			cin>>array[k];
+			if(array[k]<0)
+				break;
+		}
+	cout<<"����ǰΪ��";
+	for(int i=0;i<k;i++){
+		
+		cout<<array[i]<<"  ";
+	}
+	cout<<endl;
+	cout<<"��ѡ�����򷽷���"<<endl;
+	cout<<"1��ð�ݷ�����"<<endl;
+	cout<<"2��ѡ������"<<endl;
+	cin>>choice;
+	if(choice==1)
+	MPsort(array,k);
+	if(choice==2)
+	XZsort(array,k);
+	cout<<"�����Ϊ��";
+	for(int j=0;j<k;j++){
+	
+	
+			cout<<array[j]<<"  ";
+	}
+	cout<<endl;
+}

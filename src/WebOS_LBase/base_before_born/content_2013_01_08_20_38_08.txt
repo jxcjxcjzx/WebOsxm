@@ -1,0 +1,191 @@
+
+
+您还未登录！|登录|注册|帮助
+
+    首页
+    业界
+    移动
+    云计算
+    研发
+    论坛
+    博客
+    下载
+    更多
+
+reaL's Blog
+OK, LET'S GO !
+
+    目录视图
+    摘要视图
+    订阅
+
+2013年1月当选微软MVP名单揭晓！    CSDN博客频道年终送好礼获奖名单公布！
+2012CSDN博客之星评选正式上线      2000元大奖征异构开发博文
+获取进程用户名
+分类： windows 2011-05-05 17:27 476人阅读 评论(0) 收藏 举报
+
+      无意间看到一个贴子，http://topic.csdn.net/u/20100623/04/a5581400-bb9b-481e-8147-7533b8af147d.html，有讨论到获取进程用户名的问题，便记了下来。其中 Tr0j4n 给出的方法我试了一下，可以获取到系统进程的许多信息，但是通过函数 WinStationGetProcessSid 获取进程的 SID 的时候程序就崩溃了，找了一下也没有找到函数 WinStationGetProcessSid 的相关信息，所以这个方法没有走通。
+
+      以下代码是通过函数 WTSEnumrateProcesses 来获取进程用户名的。
+
+ 
+
+[cpp] view plaincopy
+
+    #include <Windows.h>  
+    #include <stdio.h>  
+    #include <WtsApi32.h>  
+    #pragma comment( lib, "Wtsapi32.lib" )  
+      
+    int main( void )  
+    {  
+        DWORD               dwCount         = 0;  
+        PWTS_PROCESS_INFO   pi              = { 0 };  
+        int                 i               = 0;  
+        DWORD               dwSize          = 0;  
+        char                username[128]   = { 0 };  
+        SID_NAME_USE        nameuse         = SidTypeUser;  
+      
+        if( WTSEnumerateProcesses(NULL, 0, 1, &pi, &dwCount) ) {  
+            for( i = 0; i < dwCount; i++ ) {  
+                printf( "Process Name: %s/n", pi[i].pProcessName );  
+                printf( "Process Id:   %d/n", pi[i].ProcessId );  
+                printf( "Session Id:   %d/n", pi[i].SessionId );  
+      
+                memset( username, 0, sizeof(char) * 128 );  
+                dwSize = 128;  
+                if( LookupAccountSid(NULL, pi[i].pUserSid, username, &dwSize, NULL, &dwSize, &nameuse) )  
+                    printf( "User Name:    %s/n/n", username );  
+                else  
+                    printf( "User Name:    Unknown/n/n" );  
+            }  
+        }  
+      
+        WTSFreeMemory( pi );  
+        return 0;  
+    }  
+
+ 
+
+运行效果如下：
+
+分享到：
+上一篇：使用 detours 做 api hook
+下一篇：base64 编码
+查看评论
+
+  暂无评论
+
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+TOP
+
+    个人资料
+
+    [访问我的空间]
+    kusey
+        访问：10768次
+        积分：401分
+        排名：千里之外
+        原创：26篇
+        转载：12篇
+        译文：0篇
+        评论：15条
+
+    文章搜索
+
+    文章分类
+
+    c/c++(7)
+    database(5)
+    encrypt/decrypt(3)
+    linux(2)
+    mfc(3)
+    socket(1)
+    windows(11)
+    game(0)
+    data structure(2)
+    qt(6)
+    multithread(1)
+    xml(1)
+    design pattern(0)
+
+    文章存档
+
+    2012年10月(3)
+    2012年09月(2)
+    2012年03月(1)
+    2012年02月(1)
+    2011年11月(3)
+    展开
+
+    阅读排行
+
+    Qt解析xml(2217)
+    linux 下的 wchar_t(1421)
+    Qt 简单的 tcp socket 通信流程(549)
+    获取进程用户名(476)
+    Qt 生成 xml 文件(450)
+    c# 给 c++ 发送消息(394)
+    使用 detours 做 api hook(282)
+    Qt 正则表达式简单测(261)
+    简单的 C++ 操作数据库类(246)
+    一个简陋的mysql封装类(Windows下)(213)
+
+    评论排行
+
+    windows dll inject(3)
+    简单的线程池(3)
+    c# 给 c++ 发送消息(2)
+    Windows 系统托盘图标(2)
+    简单的日志类(1)
+    mysql 数据库同步(1)
+    简单的 C++ 操作数据库类(1)
+    Qt 简单的 tcp socket 通信流程(1)
+    Qt解析xml(1)
+    MyStaticCtrl(0)
+
+    推荐文章
+
+    最新评论
+
+    Windows 系统托盘图标
+
+    mayjune56: 顶了写的真心好
+    Qt解析xml
+
+    junpitianxia: 不错呢，不知道对于schema的解析有什么方法
+    简单的日志类
+
+    kusey: 需要考虑文件分割的问题，避免文件过大。
+    简单的线程池
+
+    kusey: @pirates_fish:所有代码都在上面了，直接复制，编译就行。
+    简单的线程池
+
+    pirates_fish: 有源代码不
+    Qt 简单的 tcp socket 通信流程
+
+    kusey: 在后面又做了一个测试：客户端发送一个字符串给服务器，服务器收到后发送给客户端，客户端收到后再发送到服...
+    mysql 数据库同步
+
+    kusey: 如果只需要同步 master 数据库中的某些表，则可以在 slave 中添加过滤信息 replica...
+    简单的 C++ 操作数据库类
+
+    kusey: 数据库连接字符串：Provider=SQLOLEDB;Data Source=192.168.x.x...
+    c# 给 c++ 发送消息
+
+    kusey: @aerjienong:进程间通信，如果要用 SendMessage 的方式发送一些数据的话，必须发...
+    c# 给 c++ 发送消息
+
+    aerjienong: 我试过了，这段代码确实好用。 但是如果要从C#发送string给C++,代码该如何实现？我把send...
+
+    公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+    京 ICP 证 070598 号
+    北京创新乐知信息技术有限公司 版权所有
+    世纪乐知(北京)网络技术有限公司 提供技术支持
+    江苏乐知网络技术有限公司 提供商务支持
+    联系邮箱：webmaster(at)csdn.net
+    Copyright © 1999-2012, CSDN.NET, All Rights Reserved GongshangLogo
+
+

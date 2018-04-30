@@ -1,0 +1,162 @@
+Arduino的串行通信 （转）  2009-03-17 22:55:21|  分类： 施健 |  标签： |字号大中小 订阅 .
+
+转自：http://www.icdev.com.cn/?20513/viewspace-3877
+
+ 
+
+  刚开始看到引脚读写函数的时候觉得很鸡肋，还不如以前端口直接赋值简单。但是继续往下看Arduino提供的通讯函数就发现真的是要比以前方便多了...
+
+       上次把键盘做好，现在要把键盘按下的信息通过串口发给PC，如果以前用单片机自己来写串口程序做，对有基础的人来说其实也不难...但是如果用Arduino来做，会发现简直是傻瓜操作，合适初学者，也合适有基础的懒人...
+
+        先了解一下相关的一些串口通信函数：
+
+        Serial.begin(int speed)
+
+        初始化串口比特率函数，直接输入相应的数值就把串口通信的寄存器设置为对应的比特率了，够傻瓜吧..当然，可以使用的值也不是随便设的，一般4800 9600 14400……等等
+
+         Serial.available()
+
+         串口输入数据读取前的判断函数，返回值为1 串口buff中有数据 0 串口buff中无数据或者数据已经读取出来过。经常if(Serial.available())来询问监视串口。
+
+         Serial.read()
+
+         从串口buff中读取数据进来..比如 infomaition = Serial.read(); 则buff中的数据会赋值给infomaition变量
+
+        Serial.print(data)
+
+         把data从串口把数据发送出去...
+
+         注意的是使用找个函数的时候可以有几种发送方法：
+
+         1  Serial.print(data)
+
+          这样的话Arduino会把data发送成字符串ASCII出去。如 int data = 79 ; Serial.print(data) ;那串口发送出去的就是string"79" 的ASCII..
+
+          2  Serial.print(data,DEC)
+
+           这样发送的是data的10进制字符串。如 int data = 79; Serial.print(data,DEC); 那串口发出去的就是string"79"
+
+          3  Serial.print(data,HEX)
+
+           这样发送的是data的16进制字符串。如 int data = 79; Serial.print(data,HEX); 那串口发出去的就是string"4F"          
+
+          4  Serial.print(data,OCT)
+
+            这样发送的是data的8进制字符串。如 int data = 79; Serial.print(data,OCT); 那串口发出去的就是string"117"
+
+          5  Serial.print(data,BIN)
+
+           这样发送的是data的二进制字符串。如 int data = 79; Serial.print(data,BIN); 那串口发出去的就是string"1001111"
+
+          6  Serial.print(data,BYTE)
+
+           这样是把data作为ASCII码对应的字符后发送。如 int data = 79; Serial.print(data,BYTE); 那串口发出去的就是string"O"
+
+           
+
+         Serial.println(data)
+
+        功能类似上面的发送函数，也是把数据发送出去，不同的是发送的数据后面带上换行符号
+
+          有了上面的这些函数，就可以轻松的和PC进行串口通讯了。现在做个实验：先根据键盘按下的按键向PC发送对应的键值，然后PC接受到键值做相应的判断处理后将结果返回给Arduino执行。
+
+           因为要检查出按键的具体键值，上次用来实验输入输出的键盘代码是不能用了。这次键盘的原理和上次一样，先行扫描，然后读取4条列线，如果有按键按下则把扫到的键值从串口发送出去。
+
+           先定义变量：
+
+           int KeyOPin =2;              int KeyIPin =6;              int LedPin = 13;                   
+
+           int i ;                                 int n;
+
+           int key = 0;                       int ldkey = 0;              int press = 0;
+
+           int reg = 1;
+
+           int ASCII[16]={'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'} ;
+
+           初始化Arduino：
+
+           void setup() 
+
+          {
+
+                 Serial.begin(9600);
+
+                 for(i=0;i<4;i++)     pinMode((KeyOPin + i), OUTPUT);     
+
+                 for (i=0;i<4;i++)    pinMode(( KeyIPin + i), INPUT);  
+
+                 pinMode( LedPin, OUTPUT);
+
+           }     
+
+           循环执行扫描、对比和确认发送数据
+
+           void loop()
+
+          {
+
+             reg = 1;
+
+             for (i=0;i<4;i++)
+
+             {
+
+                  for (n=0;n<4;n++)
+
+                       {
+
+                             if((reg>>n)&1)        digitalWrite(KeyOPin+n , HIGH); 
+
+                            else                          digitalWrite(KeyOPin+n , LOW);
+
+                       }   
+
+                  for (n=0;n<4;n++)
+
+                      {
+
+                          if(digitalRead(KeyIPin + n))
+
+                            {     key = key | (1<<(4+n));    key = key | reg ; }                    
+
+                      }
+
+                  reg = reg << 1;
+
+               }
+
+ 
+
+              if (key & 0xf0)
+
+             {
+
+                   if (key!=oldkey)   {   press = 1;  oldkey = key ; }
+
+             }
+
+             else       oldkey = 0;
+
+  
+
+              if (press)
+
+            {
+
+                 Serial.print(tab[key/16],BYTE);
+
+                 Serial.print(tab[key%16],BYTE);  
+
+            }
+
+             press = 0;
+
+             key = 0;
+
+          }
+
+          把程序编译后烧进Arduino，然后把按下Arduino编程软件的Serial Monitor按钮，在代码窗口下面就会显示出串口监视器的串口，在下拉列表中把波特率改为9600即我们设置的通信波特率。然后按下键盘上的按钮，就能在窗口中看到对应的键值被发送过来了。
+
+           PS：因为不需要是实现检测长按或者点按，所以平时无按键的0x00不会发送过来，如果一个按钮未放开按下新按钮则会发送组合键值过来，PC做相应初判断处理。
+

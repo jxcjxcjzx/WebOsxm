@@ -1,0 +1,223 @@
+网易 新闻 微博 邮箱 相册 阅读 有道 摄影 爱拍 优惠券 云笔记 闪电邮 手机邮 印像派 网易识字  更多   博客 手机博客 博客搬家 博客VIP服务  LiveWriter写博 word写博 邮件写博 短信写博  群博客 博客油菜地 博客话题 博客热点 博客圈子 找朋友 发现小组风格   网易真人搭配社区iStyle
+下载最文艺的手机博客APP>
+下载最文艺的手机博客APP>.创建博客 登录    加关注..   显示下一条  |  关闭 温馨提示！由于新浪微博认证机制调整，您的新浪微博帐号绑定已过期，请重新绑定！立即重新绑定新浪微博》  |  关闭 
+fance5201314的博客
+我是一个不起眼的人，但是我很努力
+
+ 
+导航
+首页 日志 相册 音乐 收藏 博友 关于我 .  
+   
+日志   fance520 
+我个人比较孤僻,很多时候都是一个人,也是因为这样,我变的孤独。但是我一直在努力学习,拼命的提高自己的能力！
+   加博友    关注他 
+ 他的网易微博
+被推荐日志
+最新日志
+J2EE程序员需掌握的技术j2ee监听器office 2007注册方法java DOM操作xmlorg.w3c.dom.Document对象与java 获取网页图片该作者的其他文章
+博主推荐
+相关日志
+随机阅读
+男人接受不了什么样的女人？西汉诸子对疑似历史建筑不妨高抬贵手如何做一个讨厌的女人　读《一代报人王芸生》关于电视话题的歌首页推荐
+女皇江青提拔帅哥当部长敢打中央媒体记者的单位公务员被劝酒逼人格分裂血脖肉的危害远比腰子小蔡澜：香港最懂鸡的老板金枪鱼被人类吃灭绝(图)更多>>
+
+
+  平淡点好多了  org.w3c.dom.Document对象与字符串互转.
+java 获取网页图片  2011-06-29 20:45:29|  分类： javaSE |  标签： |字号大中小 订阅 .
+
+输入网站网址，获取网页代码，找到代码中的图片地址，获取图片并保存到本地硬盘。
+
+主程序引用了网上的，不记得地址了,不好意思.
+
+当获取多个网页的图片时，可能存在同名的图片，保存时会覆盖掉。所以添加了一个图片文件名的程序。
+
+package Net;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import Net.FileNumber;
+
+public class GetContentPicture {
+//得到了图片地址并下载图片
+public void getHtmlPicture(String httpUrl) {
+URL url;
+BufferedInputStream in;
+FileOutputStream file;
+int count;                      //图片文件名序号 
+FileNumber num=new FileNumber();//图片文件名序号类，num为对象
+count=num.NumberReadFromFile();//获取图片文件序号
+try {
+System.out.println("获取网络图片");
+   String fileName = (String.valueOf(count)).concat(httpUrl.substring(httpUrl.lastIndexOf(".")));//图片文件序号加上图片的后缀名，后缀名用了String内的一个方法来获得
+    //httpUrl.substring(httpUrl.lastIndexOf("/"));//这样获得的文件名即是图片链接里图片的名字
+   String filePath = "图片的再本地硬盘的存储位置";//图片存储的位置
+   url = new URL(httpUrl);
+
+   in = new BufferedInputStream(url.openStream());
+
+   file = new FileOutputStream(new File(filePath+fileName));
+   int t;
+   while ((t = in.read()) != -1) {
+    file.write(t);
+   }
+   file.close();
+   in.close();
+   System.out.println("图片获取成功");
+   count=count+1;//图片文件序号加1
+   num.NumberWriteToFile(count);//将图片名序号保存
+} catch (MalformedURLException e) {
+   e.printStackTrace();
+} catch (FileNotFoundException e) {
+   e.printStackTrace();
+} catch (IOException e) {
+   e.printStackTrace();
+}
+}
+
+//获取网页的代码保存在String格式的Content中
+public String getHtmlCode(String httpUrl) throws IOException {
+String content ="";
+URL uu = new URL(httpUrl); // 创建URL类对象
+BufferedReader ii = new BufferedReader(new InputStreamReader(uu
+    .openStream())); // //使用openStream得到一输入流并由此构造一个BufferedReader对象
+String input;
+while ((input = ii.readLine()) != null) { // 建立读取循环，并判断是否有读取值
+   content += input;
+}
+ii.close();
+return content;
+}
+//分析网页代码，找到匹配的网页图片地址
+public void get(String url) throws IOException {
+
+String searchImgReg = "(?x)(src|SRC|background|BACKGROUND)=('|\")/?(([\\w-]+/)*([\\w-]+\\.(jpg|JPG|png|PNG|gif|GIF)))('|\")";//用于在网页代码Content中查找匹配的图片链接。
+String searchImgReg2 = "(?x)(src|SRC|background|BACKGROUND)=('|\")(http://([\\w-]+\\.)+[\\w-]+(:[0-9]+)*(/[\\w-]+)*(/[\\w-]+\\.(jpg|JPG|png|PNG|gif|GIF)))('|\")";
+
+String content = this.getHtmlCode(url);//this指对象gcp，在此地调用获取网页代码，getHtmlCode方法
+//System.out.println(content); //输出的content将是一个连续的字符串。
+
+Pattern pattern = Pattern.compile(searchImgReg);//java.util.regex.Pattern
+Matcher matcher = pattern.matcher(content);     //java.util.regex.Matcher
+while (matcher.find()) {
+   System.out.println(matcher.group(3));//输出图片链接地址到屏幕
+// System.out.println(url);
+   this.getHtmlPicture(matcher.group(3));//对象调用getHtmlPicture从网上下载并输出图片文件到指定目录
+}
+
+pattern = Pattern.compile(searchImgReg2);
+matcher = pattern.matcher(content);
+while (matcher.find()) {
+   System.out.println(matcher.group(3));
+   this.getHtmlPicture(matcher.group(3));
+}
+// searchImgReg =
+// "(?x)(src|SRC|background|BACKGROUND)=('|\")/?(([\\w-]+/)*([\\w-]+\\.(jpg|JPG|png|PNG|gif|GIF)))('|\")";
+}
+//主函数url网页的地址
+public static void main(String[] args) throws IOException {
+String url = "这里输入网址";
+GetContentPicture gcp = new GetContentPicture();
+gcp.get(url);
+
+}
+}
+
+//图片文件名，需要在文件名序号TXT文件保存地址建立一个number.txt并写入1保存；
+
+package Net;
+import java.io.*;
+
+public class FileNumber{
+//文件写
+public void NumberWriteToFile(int x){
+   int c=0;
+   c=x;
+   File filePath=new File("文件名序号TXT文件保存地址");
+   File f1=new File(filePath,"number.txt");
+   try{
+    FileOutputStream fout=new FileOutputStream(f1);
+    DataOutputStream out=new DataOutputStream(fout);
+    out.writeInt(c);
+   
+   }
+   catch(FileNotFoundException e){
+    System.err.println(e);
+   }
+   catch(IOException e){
+    System.err.println(e);
+   }
+  
+}
+//文件读
+public int NumberReadFromFile(){
+   int c1 = 0;
+   File filePath=new File("d:/photos/mm");
+   File f1=new File(filePath,"number.txt");
+   try{
+    FileInputStream fin=new FileInputStream(f1);
+    DataInputStream in=new DataInputStream(fin);
+    c1=in.readInt();
+    System.out.println(c1);//输出文件内容至屏幕
+   }
+   catch(FileNotFoundException e){
+    System.err.println(e);
+   }
+   catch(IOException e){
+    System.err.println(e);
+   }
+   return c1;
+}
+public static void main(String args[]){
+  
+}
+}
+
+  评论这张 
+ 转发至微博 
+ 转发至微博 
+ 0人  |  分享到：         阅读(327)| 评论(0)| 转载 (0) |举报 .
+ 
+  平淡点好多了  org.w3c.dom.Document对象与字符串互转.
+历史上的今天.
+相关文章
+String的intern方法的用处2011-03-19 00:16:50 怎样将XML的Document 转换成 String2010-12-25 18:09:40 Java组件开发(1)ToStringBuilder2010-09-02 17:52:21 日期在String和Date类型转换；ParsePosition，formatter.parse，java.sql.Timestamp2010-06-21 13:34:40 .最近读者
+登录后，您可以在此留下足迹。. 爱zi情深  31740065  hanyu61  fei_h_y  yuchao_c  ysbbsnet  编程小草  renwei12 .
+评论
+点击登录|昵称： 
+   取消 
+验证码：换一张 
+ 
+上一页 1... -1-1-1-1-1-1-1... -1下一页..     .      
+   
+页脚
+公司简介 - 联系方法 - 招聘信息 - 客户服务 - 隐私政策 - 博客风格 - 手机博客 - VIP博客 - 订阅此博客 
+网易公司版权所有 ©1997-2013
+×
+信息提示
+下应用装游戏超爽超方便
+房姐究竟哪来的那么大神通
+被刑事判决书掩盖掉的黑幕
+
+姚树洁：同学当官倒台后儿女老婆都被抓
+哪些单位敢打中央媒体记者
+习近平接安倍亲笔信时的话
+公务员险被劝酒逼人格分裂
+蔡澜：香港最懂鸡的女老板
+.
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

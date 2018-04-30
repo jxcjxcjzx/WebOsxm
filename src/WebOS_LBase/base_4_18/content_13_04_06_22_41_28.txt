@@ -1,0 +1,165 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+北极星的专栏
+目录视图摘要视图订阅
+2013年7月微软MVP申请开始啦！        CSDN博客移动开发排行榜      写“书评”赢下载分！ 
+2013年4月微软MVP会员名单揭晓！      来极客头条，赢下载积分      专访关东升：将人文融入到科技产品中
+ oracle 环境变量设置
+分类： ORACLE管理 2009-10-22 14:30 15990人阅读 评论(0) 收藏 举报
+oracleoracle10gpath数据库databasemanager
+oracle 环境变量设置
+
+oracle体系结构   2009-10-10 15:01   阅读7   评论0  
+字号： 大  中  小
+oracle管理自己的软件时,大量使用了操作系统环境变量.环境变量是分配给操作系统中某一名称的值.软件可以使用名称来调用变量的值.如果环境变量设置不正确可能找不到oracle命令如“sqlplus”，可能oracle找不到数据库因为$ORACLE_SID可能有问题。
+
+oracle软件使用了许多环境变量,非常重要的三个是 ORACLE_HOME,ORACLE_BASE和ORACLE_SID.ORACLE_HOME指定了你希望运行的oracle执行程序的位置.一台计算机上可能安装了若干个版本的oracle软件,大多数oracle程序查询ORACLE_HOME来决定运行何种版本的软件.ORACLE_BASE定义了数据库管理文件安装的基本目录.ORACLE_SID定义了你希望在其上工作的本地oracle数据库名称.
+
+1、su oracle并回车切换到oracle用户；
+
+2、cd并回车回到oracle用户目录；
+
+3、vi .bash_profile并回车编辑该文件，按I键进入插入状态，在最后加入以下行：
+
+export ORACLE_SID=orcl
+
+export ORACLE_HOME=/home/oracle/oracle/product/10....（...部分根据你的实际路径修改）
+
+export PATH=$PATH:$ORACLE_HOME/bin
+
+输入完毕后按ESC键退出vi编辑状态，输入:wq并回车存盘退出。
+
+4、注销所有oracle用户，再使用oracle登录即可。
+
+以下资料简单介绍linux下如何查看oracle的环境变量
+
+example :
+
+[oracle@q1test01 ~]$ env |grep -e ORA -e TNS -e LD
+
+OLDPWD=/home/oracle
+
+LD_LIBRARY_PATH=/oracle/product/9.2/lib:/lib:/usr/lib:/usr/local/lib
+
+ORACLE_SID=orcl
+
+ORACLE_BASE=/oracle
+
+ORACLE_TERM=xterm
+
+LD_ASSUME_KERNEL=2.4.1
+
+ORA_NLS33=/oracle/product/9.2/ocommon/nls/admin/data
+
+ORACLE_HOME=/oracle/product/9.2
+
+----------------------------------------------------------------------------------------------------------------------
+
+Oracle 10g ORA-12154: TNS: could not resolve the connect identifier specified 问题解决!
+    今天,从上周就捆饶我的问题终于在下班前被我搞定!小得意了一下.
+    我的电脑上之前安装了Oracle 10g database,配置完变量用PL/SQL操作一切OK .当又安装完Oracle 10g client后,问题出现了,用PL/SQL登陆时反复提示:ORA-12154: TNS: could not resolve the connect identifier specified
+    对于初学者,我反复的在"Oracle - OraDb10g_home3"下的"配置和移植工具"中的"Net Manager"中查找问题所在.请教高手,也没有召见问题的原因.我郁闷了,随后自己决定来搞定这个问题.
+    我做了大量的反复的资料查看和自我检查,灵感在下班的时候出现,我突然意识到我的"环境变量"一直被忽视.
+打开后我发现我当前的环境变量这样设置的:
+path  ==  E:/oraclient_2;E:/oracle/oradata/bin;E:/oracle/bin;E:/Program Files/Java/jdk1.5.0_04/bin;E:/Tomcat5028/bin;%SystemRoot%/system32;%SystemRoot%;%SystemRoot%/System32/Wbem
+问题出现了.随后我该成如下:
+path  ==  E:/oracle;E:/oracle/oradata/bin;E:/oracle/bin;E:/Program Files/Java/jdk1.5.0_04/bin;E:/Tomcat5028/bin;%SystemRoot%/system32;%SystemRoot%;%SystemRoot%/System32/Wbem
+
+OK !!! 问题在最后的关头被我解决了!!!不错.
+
+分享到： 
+上一篇：REDHAT 常用命令
+下一篇：.NET Remoting 使用总结
+
+查看评论
+
+  暂无评论
+
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+个人资料
+  
+lenovouser
+ 
+访问：55986次
+积分：905分
+排名：第11134名
+原创：23篇转载：91篇译文：1篇评论：12条
+文章搜索
+
+文章分类
+.NET开发相关(49)
+.NET接口相关(2)
+ORACLE开发(16)
+ORACLE管理(26)
+OS操作系统(9)
+VSS(2)
+感悟(1)
+旅游(2)
+旅游(1)
+音乐(1)
+NoSQL(1)
+文章存档
+2013年03月(1)
+2013年02月(1)
+2013年01月(1)
+2012年07月(2)
+2012年06月(5)
+展开
+阅读排行
+oracle 环境变量设置(15990)
+SQL优化及UNION ALL替代UNION(1688)
+DevExpress XtraGRID使用(1400)
+REDHAT 常用命令(1163)
+oracle 导出序列脚本(988)
+VS.net2003错误提示 FontPage服务器扩展问题(967)
+【SQL】使用一条INSERT语句完成多表插入(901)
+ORACLE增加表空间(881)
+DataGridView列的宽度、行的高度自动调整(868)
+ORACLE并发性锁(for update)测试(862)
+评论排行
+C#泛型列表List基本用法总结(3)
+物理dataguard 正常切换 脚色转换，switchover_status 状态改变(1)
+Linux下Oracle9i RMAN备份及恢复步骤介绍(1)
+利用.NET中的反射机制实现IList到DataTable的转换(1)
+Oracle10G Physical Standby Database笔记 (1)
+RFC访问SAP(C#) (1)
+SQL优化及UNION ALL替代UNION(1)
+引用外部控件的问题，无法创建控件(1)
+FlexPaper实现文档在线浏览(附源码)(1)
+C#发送邮件小程序（支持群发，附件）winform(1)
+推荐文章
+
+最新评论
+SQL优化及UNION ALL替代UNION
+fcs_our2009: 很不错的说！谢谢
+FlexPaper实现文档在线浏览(附源码)
+iProgramming: SwfTools 是不是要编译？下载下来之后是一些c cc文件
+物理dataguard 正常切换 脚色转换，switchover_status 状态改变
+hl_java: 整理的不错，学习了。
+RFC访问SAP(C#)
+chenpeng0118: 楼主，我连接到SAP的时候func.Connection = Conn;这句话会出现“Bad var...
+Linux下Oracle9i RMAN备份及恢复步骤介绍
+zhangmichuan:
+C#泛型列表List基本用法总结
+匿名用户:
+Oracle10G Physical Standby Database笔记
+laughter75:
+引用外部控件的问题，无法创建控件
+匿名用户: 真的按楼主的方法试了，没问题了，呵呵
+C#泛型列表List基本用法总结
+fjp0504:
+C#泛型列表List基本用法总结
+匿名用户: sfasdfsadfasdf
+ORACLE及.NET开发
+ORACLE(http://www.eygle.com/)
+最详细的 VSS 2005 使用手册——服务器端设置
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+

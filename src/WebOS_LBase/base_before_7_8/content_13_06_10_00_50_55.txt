@@ -1,0 +1,155 @@
+首页 资讯 精华 论坛 问答 博客 专栏 群组 更多 ▼ 您还未登录 ! 登录 注册
+just do it
+博客微博相册收藏留言关于我
+  
+2、字符编码
+
+博客分类： 六、重要知识点
+编码表ASCIIunicodegbkutf-8 
+一、字符编码
+ 
+字符流的出现为了方便操作字符
+更重要的是加入了编码转换
+通过子类转换流来完成
+InputStreamReader
+OutputStreamWriter
+在两个对象进行构造的时候可以加入字符集
+二、编码表的由来
+ 
+计算机只能识别二进制数据，早期由来是电信号
+为了方便应用计算机，让它可以识别各个国家的文字
+就将各个国家的文字用数字来表示，并一一对应，形成一张表
+这就是编码表
+三、常见编码表
+ 
+ ASCII：美国标准信息交换码， 用一个字节的7位可以表示
+ISO8859-1：拉丁码表,欧洲码表，用一个字节的8位表示
+GB2312：中国的中文编码表
+GBK：中国的中文编码表升级，融合了更多的中文文字符号
+Unicode：国际标准码表，融合了多种文字，所有文字都用两个字节来表示，Java语言使用的就是unicode
+UTF-8：最多用三个字节来表示一个字符
+四、转换流的编码应用
+ 
+可以将字符以指定编码格式存储
+可以对文本数据指定编码格式来解读
+指定编码表的动作由构造函数完成
+Java代码  
+import java.io.*;  
+public class EncodeDemo {  
+  
+    public static void main(String[] args) throws IOException {  
+        writeText();  
+        readText();  
+    }  
+    public static void readText() throws IOException  
+    {  
+        BufferedReader br =   
+                new BufferedReader(new InputStreamReader(new FileInputStream("e:/mm.txt"),"utf-8"));  
+        String line = br.readLine();  
+        System.out.println(line);  
+    }  
+    public static void writeText() throws IOException  
+    {  
+        BufferedWriter bw =   
+                new BufferedWriter(new OutputStreamWriter(new FileOutputStream("e:/mm.txt"),"gbk"));  
+        bw.write("你好");  
+        bw.close();  
+    }  
+}  
+//因为存和读的编码不一样，所以不能正确读取数据  
+ 
+五、编码和解码
+ 
+String->byte[]
+     str.getBytes();    str.getBytes(charsetName);
+byte[]->String
+     new String(byte[]);   new String(byte[] , charsetName);
+ 
+Java代码  
+import java.util.Arrays;  
+  
+public class EncodeDemo {  
+  
+    public static void main(String[] args) throws Exception{  
+        byte[] b1 = "你好".getBytes();  
+        System.out.println(Arrays.toString(b1));  
+        String s1 = new String(b1);  
+        System.out.println(s1);  
+          
+        byte[] b2 = "你好".getBytes("utf-8");  
+        System.out.println(Arrays.toString(b2));  
+        String s2 = new String(b2,"utf-8");  
+        System.out.println(s2);  
+          
+        //如果解码错了，需要重新解码  
+        byte[] b3 = "你好".getBytes("utf-8");  
+        System.out.println(Arrays.toString(b3));  
+        String s3 = new String(b3,"iso8859-1");  
+        System.out.println(s3);  
+          
+        byte[] b4 = s3.getBytes("iso8859-1");  
+        System.out.println(Arrays.toString(b4));  
+        String s4 = new String(b4,"utf-8");  
+        System.out.println(s4);  
+    }  
+}  
+ 
+六、特例
+ 
+    打开记事本，输入 联通 二字，然后保存，关闭记事本，打开保存的文档，会看到只有一个小黑框
+ 
+    原因：联通的第一二个字节、第三四个字节的起始部分的都是"110"和"10"，正好与UTF8规则里的两字节模板是一致的，于是再次打开记事本时，记事本就误认为这是一个UTF8编码的文件
+
+分享到：    
+4、位运算感悟 | 27、IO包中的其他类
+2013-03-14 13:10浏览 29评论(0)分类:编程语言相关推荐
+评论
+发表评论
+  您还没有登录,请您登录后再发表评论
+
+豆豆咖啡
+浏览: 7045 次
+性别: 
+来自: 成都
+
+最近访客 更多访客>>
+dylinshi126sp42sunmoonmarickyleo
+文章分类
+全部博客 (135)
+一、JAVA概述 (4)
+二、JAVA基础组成 (10)
+三、数据结构与算法 (6)
+四、面向对象 (12)
+五、常用类 (54)
+六、重要知识点 (9)
+七、设计模式 (7)
+八、其他 (2)
+九、jdk1.5新特性 (6)
+十、练习/项目 (9)
+JAVAEE基础 (15)
+社区版块
+我的资讯 (0)
+我的论坛 (0)
+我的问答 (0)
+存档分类
+2013-06 (15)
+2013-05 (1)
+2013-04 (13)
+更多存档...
+评论排行榜
+1、什么是面向对象
+2、类和对象的关系
+6、static关键字
+21、java.io.BufferedWriter字符缓冲流
+最新评论
+tpfbx： ...
+21、java.io.BufferedWriter字符缓冲流
+hill124： 好文章，顶一个
+1、什么是面向对象
+hill124： 理解得好深入，一下子清晰了很多，期待更多好文章
+2、类和对象的关系
+王佳佳： 写的很好，谢谢分享
+6、static关键字
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ]
+

@@ -1,0 +1,296 @@
+Blog | Leal·草原·生活 无限天地，专注追求
+Home
+Emacs学习手记（2）
+ （主要涉及 Emacs LISP初步）
+
+参考：Learning GNU Emacs 3/e，9.8.The Lisp Modes，11.Emacs Lisp Programming
+
+Emacs有三种Lisp模式，其命令名称如下：
+
+
+ emacs-lisp-mode	 用于Emacs Lisp代码的编辑（文件名.emacs或后缀.el）
+ lisp-mode	 用来编辑另一个Lisp系统的Lisp代码（后缀.l或.lisp）
+ lisp-interaction-mode	 用来编辑和运行Emacs Lisp代码（交互模式）
+
+本文只讨论 lisp-interaction-mode模式。
+
+缺省情况下*scratch*就是处于这种模式，无后缀的文件名一般也会让Emacs进入Lisp交互模式，当然你可以使用变量auto-mode-alist进行设置。
+
+键入 M-x lisp-interaction-mode Enter（回车）可以让任何buffer进入Lisp交互模式；如要新建一个Lisp交互buffer，只需键入C-x b（即switch-to-buffer命令），输入buffer名，然后令该buffer进入Lisp交互模式。
+
+Lisp交互模式和Emacs Lisp模式完全一致，除一个重要特性外：C-j已绑定到eval-print-last-sexp命令上。该命令提取point之前的那个S-expression，对其进行评估，然后在buffer里打印结果。如果要使用其它模式里绑定到C-j的常见功能newline-and-indent，你必须按下Enter，并紧跟Tab键。
+
+记住 S-expression是任何符合Lisp语法的表达式。因此，可以使用 Lisp交互模式的C-j来检查变量的值，确认函数定义，运行函数等等。比如，如果你输入auto-save-interval并按下C-j，就会显示该变量的值（缺省为300）。如果你输入一个defun并在其最右边的括号后按下C-j，Emacs会保存所定义的函数（供以后调用）并输出其名称；这种情况下，C-j类似C-M-x（即eval-defun命令），不过光标必须位于所定义的函数之后（因为有可能在定义前或中间）。如果你调用了一个函数，Emacs就会评估（运行）该表达式并显示函数的所有返回值。
+
+Lisp交互模式的C-j提供了很棒的功能，你可以用它来增量方式开发和调试Emacs Lisp代码；因为Emacs Lisp是种“真正的”Lisp，它甚至可用来开发其它Lisp系统的代码片断。
+基本Lisp实体
+
+你需要熟悉Lisp基本元素包括函数、变量和atom（原子）。函数是Lisp的唯一程序单元（program unit），涵盖了其它语言的过程、子程序、程序甚至操作符等标记。
+
+函数被定义作上述实体的列表（list），通常是对其它现存函数调用的列表。所有函数都有返回值（return value）（类似Perl函数和non-void Java函数）；函数的返回值就是list里最后一项的值，一般是最后调用的函数返回的值。在其它函数里的函数调用等价于其它语言的语句（statement），函数的语法如下：
+
+function-name argument1 argument2 …)
+
+等价于Java的：
+
+method_name (argument1, argument2, …);
+
+这一语法用于所有函数，包括那些等价于其它语言的算术或比较运算符。例如，在Java或Perl里2加4，你会用表达式2+4，而在Lisp里你会使用如下写法：
+
+(+ 2 4)
+
+类似的，4 >= 2的Lisp方式：
+
+(>= 4 2)
+
+Lisp中的变量和其它语言的相似，不过没有类型。Lisp变量能够推测任何类型的值（值本身没有类型，不过变量对其能存放的内容不加任何限制）。
+
+原子（atom）是个任意类型的值，包括整数、浮点（实）数、字符、字符串、布尔值、符号（symbol）和Emacs特殊类型如buffer、window和process。各种atom的语法如下：
+整数：和你常用的一样，有符号，范围-2+27至2+27 – 1；
+浮点数：可用十进制和科学计数法表示的实数。例如5489可写成5489、5.489e3、546.9e1等；
+字符：以问号开头，如 ?a 。Esc、Newline和Tab可分别简写为\e、\n和\t；其它控制字符可以加\C-前缀来表示，例如C-a表示为?\C-a。整数也可用来表示字符，如ASCII表等。
+字符串：用双引号包围；字符串里的引号标记和\需要加上\，"Jane said, \"See Dick run.\""是个合法字符串。字符串可以分割成多行，不需特殊语法。结束引号前的所有内容包括所有断行符都是字符串值的一部分。
+布尔值：大部分情况下真值为t，假值为nil，如果能预估到布尔值，则任何非nil值都被看作真值。nil也被用作null或nonvalue。
+
+符号：Lisp实体名，如变量或函数名。有时需要引用实体的名字而非其值，这时可以在名字前加上单引号（’）。
+setq用来赋值给变量，是个函数，而不象其它语言里用来赋值的专门语法=或:=。setq接收两个参数：一个变量名和一个值。也可以进行多次赋值，如：
+
+(setq thisvar thisvalue
+     thatvar thatvalue
+     theothervar theothervalue)
+也可用其它方法设置值或变量，不过setq是使用最广的方法。
+
+函数定义
+
+首先熟悉一下Lisp语法的特殊表示。- 用作“割断”字符用来分隔变量、函数等名称里的字（word），这是Lisp编程惯用法，类似C和Ada里的“_”。
+
+A more important issue has to do with all of the parentheses in Lisp code. Lisp is an old language that was designed before anyone gave much thought to language syntax (it was still considered amazing that you could use any language other than the native processor’s binary instruction set), so its syntax is not exactly programmer-friendly. Yet Lisp’s heavy use of lists¡ªand thus its heavy use of parentheses¡ªhas its advantages, as we’ll see toward the end of this chapter.
+
+让我们从一个实例开始。
+
+1  (defun count-words-buffer ( )
+2    (let ((count 0))
+3      (save-excursion
+4        (goto-char (point-min))
+5        (while (< (point) (point-max))
+6          (forward-word 1)
+7          (setq count (1+ count)))
+8        (message "buffer contains %d words." count))))
+defun：指定函数名和参数来定义函数。注意defun本身是一个函数――被调用时，定义一个新函数。（defun返回把所定义的函数作为一个symbol返回。）函数的参数显示为在括号内的一个名字list；本例，函数没有参数。如果在参数前加关键字&optional就表示参数是optional（可选的）。如果参数是optional的，在函数调用时未指定该参数，则认为其值为nil。
+
+(let ((var1 value1) (var2 value2) … )
+  statement-block)
+let：1.定义（或声明）一个变量list；2.变量设置初始值，同setq；3.创建一个语句块（类似函数体），在此块内这些变量可用，let块即这些变量的scope（作用域）。let里定义的变量可用setq改变其值，不过要小心使用setq。
+
+save-excursion：Emacs内建函数，保存光标原来的位置（因为 count-words-buffer函数要移动光标以便计算字数）。调用 save-excursion就是要求Emacs记住实例函数开始执行时的光标位置，并在执行完函数体内的所有语句后返回至初始光标位置。
+
+goto-char：Emacs内建函数，其参数是个（内嵌）函数调用，调用内建函数point-min。point是Emacs内部名称，表示光标的当前位置。point-min返回当前buffer里第一个字符的位置值，几乎总是1；这样goto-char调用时其参数值为1，效果等同于把point移至buffer起始处。
+
+(while condition     statement-block)
+
+和let及save-excursion一样，while也建立了一个语句块。condition是个值（atom、变量或返回一个值的函数）。while对这个值进行测试，如果其值不是nil，则认为条件（condition）为真，语句块得以执行，然后condition再次被测试，之后重复上述过程。当然也可以写个无限循环，如果你试图执行这样的语句，Emacs会挂起，键入C-g终止。
+
+在实例函数中，condition是函数 < ，即带两个参数的小于函数，类似Java或Perl里的<运算符。第一个参数是另一个函数，它返回point的当前字符位置；第二个参数返回buffer里的最大（最后）字符位置，即buffer的长度。函数 < （和其它关系函数）返回一个布尔值，t 或 nil。
+
+上述循环的语句块由两条语句组成。第6行会把point往前移动一个字（word，即相当于M-f）。第7行，循环计数器加一；函数 1+ 是(+ 1 variable-name)的简写方式。注意第三个右括号（第7行）和while前面的左括号匹配。这样，在计算字数时，while循环会让Emacs一次一个字（word）遍历整个当前buffer。
+
+实例函数的最后一个语句使用内建函数message在minibuffer里打印一行信息，提示buffer所含的字数。message函数的格式类似C语言。
+
+
+Message格式字符串
+ 格式字符串	 含义
+ %s	 字符串或symbol
+ %c	 字符
+ %d	 整数
+ %e	 科学计数法表示的浮点数
+ %f	 十进制表示的浮点数
+ %g	 任意格式的浮点数，产生最短的字符串
+
+将Lisp函数变为Emacs命令
+
+函数 count-words-buffer已编写完成，接下来该如何运行？在交互模式中，可以把光标移到函数的结束括号，然后键入C-j（或Linefeed），让Emacs执行函数定义。你应该看到该函数的名字会再次出现在buffer里；defun函数的返回值就是已定义的符号（即函数名称）。
+
+函数定义之后，可以在Lisp交互窗口中输入一行 (count-words-buffer) ，然后在结束括号后再次按下 C-j 。
+
+如果你象其它Emacs命令一样用M-x来执行上述函数，M-x count-words-buffer Enter，会得到错误提示信息 [No match]。这是因为你并未在Emacs中“注册”该函数，使其可供交互（interactive）使用。实现这一功能的函数是 interactive ，形式如下：
+
+(interactive "prompt-string")
+
+上述语句必须出现在函数开始处，即紧随defun和文档说明字符串所在行之后。使用 interactive 会让Emacs把函数注册为一个命令，并提示用户输入defun语句中声明的参数。提示字符串为可选。
+
+提示字符串有一个特殊的格式：你要为想提示用户输入的每个参数都提供一段提示字符串，这些段用“\n”分隔。
+
+
+用于interactive函数的参数代码
+代 码
+提示用户输入
+  b  
+ 现存buffer的名称
+  e  
+ 事件（鼠标动作或 function key press）
+  f 
+ 现存文件的名称
+  n  
+  数字（整数）
+  s  
+ 字符串
+ 	 上述代码都有一个大写的变种
+  B  	 可能不存在的buffer名称
+  F	 可能不存在的文件名称
+  N  
+ 数字，unless command is invoked with a prefix argument, in which case use the prefix argument and skip this prompt
+  S 	 符号
+ 
+示例：
+
+(defun replace-string (from to)
+  (interactive "sReplace string: \nsReplace string %s with: ")
+  …)
+回到 count-words-buffer 命令：它不需参数，因此 interactive 命令不需要提示字符串。另外可以再给我们的命令添加一个文档说明字符串（doc string），它会显示在describe-function（C-h f）之类的在线帮助工具中。Doc string是普通的Lisp字符串，可选，行数长度任意，不过一般来说，第一行是个简要完整的句子，说明命令的功能。注意字符串里的任意双引号前必须加上 \ 。
+
+(defun count-words-buffer ( )
+  "Count the number of words in the current buffer; 
+print a message in the minibuffer with the result."
+
+  (interactive)
+  (save-excursion
+    (let ((count 0))
+      (goto-char (point-min))
+      (while (< (point) (point-max))
+        (forward-word 1)
+        (setq count (1+ count)))
+      (message "buffer contains %d words." count))))
+
+归类于： 0.5 Emacs — Leal @ 6:25 pm	 评论(0)
+评论
+
+该日志第一篇评论
+
+发表评论
+
+评论也有版权！
+
+ 名称 (必填)
+
+ 电子邮箱 (必填,不公开)
+
+ 网址
+
+
+
+
+验证码
+news
+
+linxiao.li#gmail.com
+转向地址：tech.leal.cn
+  
+
+
+
+Vim News
+
+Vim 6.4 has been released
+Vim 6.4a BETA version available
+Vim 7 with spell checking
+导航
+登录
+日志 RSS
+评论 RSS
+WordPress.org
+分类
+0.0 Life
+0.1 Java
+0.2 Vim
+0.3 Web
+0.5 Emacs
+0.8 Gnu/Linux
+Blog
+bradyu
+flypig
+horse
+jedi
+keepwalking
+keso
+maojun
+pfblog
+sixwings
+tecinese
+webleon
+信海光
+徐财星
+扬子
+按摩乳
+求师得
+王建硕
+老虎庙
+花儿开了
+Blog-Tech
+cathayan
+design & pattern团队
+fs-blog
+limodou
+tsing
+tuzi
+吕震宇
+野路子
+Blog-Wait
+一个南瓜
+刘韧
+横戈
+Favorite
+artima
+ft全球经济报道
+slashdot
+slashdotcn
+wikipedia
+Java
+theserverside
+Linux
+ubuntu
+ubuntu中文
+Vim
+vim online
+vim 中文doc
+vimdoc
+vmunix/vim
+Web
+2s-space
+a js tutorial
+html dog
+web teacher
+web 开发技术荟萃
+xul – mab
+xul apps
+传承标准
+Zone
+bc中文网
+cnblog
+flightgear
+xerdoc
+xfocus
+最新日志
+Blog已移至my.donews.com/leal
+这一年
+2005年版vimrc（总结）
+expert one-on-one J2EE Development without EJB中文版的一些提醒
+Emacs学习手记（4）
+Emacs学习手记（3）
+Emacs学习手记（2）
+News：Vim 6.4 has been released
+Emacs on Windows安装设置
+Emacs学习手记（1）
+存档
+2006年03月 (1)
+2005年12月 (2)
+2005年10月 (8)
+2005年09月 (2)
+2005年08月 (1)
+2005年07月 (8)
+最新评论
+fhsj 发表于《HTML学习小结（一）》
+fasd 发表于《Emacs学习手记（4）》
+解烟客 发表于《Vim中如何高亮显示当前行》
+san 发表于《Emacs学习手记（4）》
+yeka 发表于《expert one-on-one J2EE Development without EJB中文版的一些提醒》
+Blog | Leal·草原·生活 is Powered by WordPress. Keso theme by dupola

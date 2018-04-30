@@ -1,0 +1,225 @@
+Apache HttpClient模拟登录
+
+分类： JAVA 2008-06-04 22:05 7871人阅读 评论(3) 收藏 举报
+apache服务器sslibmcodeclogging
+Apache HttpClient模拟登录
+    HttpClient 是 Apache Jakarta Common 下的子项目，可以用来提供高效的、最新的、功能丰富的支持 HTTP 协议的客户端编程工具包，并且它支持 HTTP 协议最新的版本和建议。
+HttpClient 功能介绍
+
+以下列出的是 HttpClient 提供的主要的功能，要知道更多详细的功能可以参见 HttpClient 的主页。
+
+实现了所有 HTTP 的方法（GET,POST,PUT,HEAD 等）
+支持自动转向
+支持 HTTPS 协议
+支持代理服务器等
+下面将逐一介绍怎样使用这些功能。首先，我们必须安装好 HttpClient。
+
+HttpClient 可以在http://jakarta.apache.org/commons/httpclient/downloads.html下载
+HttpClient 用到了 Apache Jakarta common 下的子项目 logging，你可以从这个地址http://jakarta.apache.org/site/downloads/downloads_commons-logging.cgi下载到 common logging，从下载后的压缩包中取出 commons-logging.jar 加到 CLASSPATH 中
+HttpClient 用到了 Apache Jakarta common 下的子项目 codec，你可以从这个地址http://jakarta.apache.org/site/downloads/downloads_commons-codec.cgi 下载到最新的 common codec，从下载后的压缩包中取出 commons-codec-1.x.jar 加到 CLASSPATH 中
+下面是个我写的程序:
+package com.newpalm.unicomfetch.threads;
+import java.util.Vector;
+import org.apache.commons.httpclient.Cookie;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.NameValuePair;
+import org.apache.commons.httpclient.cookie.CookiePolicy;
+import org.apache.commons.httpclient.cookie.CookieSpec;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.htmlparser.Node;
+import org.htmlparser.Parser;
+import org.htmlparser.tags.TableColumn;
+import org.htmlparser.tags.TableRow;
+import org.htmlparser.tags.TableTag;
+import org.htmlparser.visitors.ObjectFindingVisitor;
+/**
+ * 用来演示登录表单的示例
+ * @author Liudong
+ */
+public class FormLoginDemo {
+    
+    public static void main(String[] args) throws Exception{
+     Parser parser = null;
+     ObjectFindingVisitor visitor = null;
+        HttpClient client = new HttpClient();
+        
+        //模拟登录页面
+        PostMethod post = new PostMethod("http://211.90.119.58:9999/SPLogin.aspx");
+        NameValuePair name = new NameValuePair("txtHandsetNumber", "123456");     
+        NameValuePair pass = new NameValuePair("txtPassword", "123456"); 
+        NameValuePair __VIEWSTATE = new NameValuePair("__VIEWSTATE", "dDwtMTUxMzkxNTQ0Mzt0PDtsPGk8MT47PjtsPHQ8O2w8aTwxPjs+O2w8dDxwPGw8VGV4dDs+O2w8XDxtYXJxdWVlIERpcmVjdGlvbj0idXAiIGJlaGF2aW9yPSJzY3JvbGwiICBoZWlnaHQ9JzE1MCcgc2Nyb2xsZGVsYXk9MzAwIG9ubW91c2VvdmVyPSd0aGlzLnN0b3AoKScgb25tb3VzZW91dD0ndGhpcy5zdGFydCgpJ1w+XDxpbWcgc3JjPSJpbWFnZS9kZWZhdWx0X2NhbGxfaWNvbi5naWYiIHdpZHRoPSI0IiBoZWlnaHQ9IjciXD4mbmJzcFw7Jm5ic3BcO1w8YSBocmVmID0iIyIgb25jbGljaz0ib3BlbldpbmRvdygnL0J1bGxldGluLmFzcHg/QnVsbGV0aW5JZD0yMycpIlw+c3DkuJrliqHmjqXlhaXms6jmhI/kuovpoblcPC9hXD4KXDxiclw+XDxiclw+XDwvbWFycXVlZVw+Oz4+Ozs+Oz4+Oz4+O2w8YnRuTG9naW47Pj4pKEgdIvj1JmRdgJaS7sGzD39jZg==");
+        NameValuePair btnLoginx = new NameValuePair("btnLogin.x", "0"); 
+        NameValuePair btnLoginy = new NameValuePair("btnLogin.y", "5"); 
+        post.setRequestBody(new NameValuePair[]{name,pass,__VIEWSTATE,btnLoginx,btnLoginy});
+        int status = client.executeMethod(post);
+        
+        post.releaseConnection();  
+        //查看cookie信息
+        CookieSpec cookiespec = CookiePolicy.getDefaultSpec();
+        Cookie[] cookies = client.getState().getCookies();
+        if (cookies.length == 0) {
+           System.out.println("None");    
+        } else {
+           for (int i = 0; i < cookies.length; i++) {
+              System.out.println(cookies[i].toString());    
+           }
+       }
+        
+       //访问所需的页面
+        GetMethod get = new GetMethod("http://211.90.119.58:9999/PhoneSearch/PhoneSearch.aspx");
+        client.executeMethod(get);
+        visitor = new ObjectFindingVisitor(TableTag.class);
+  parser = new Parser();
+  parser.setInputHTML(get.getResponseBodyAsString());
+  parser.setEncoding("GBK");
+  parser.visitAllNodesWith(visitor);
+  
+  //取得要解析的页面数
+  Node[] tables = visitor.getTags();
+  TableTag tableTag = (TableTag) tables[tables.length-1];
+  TableRow[] rows = tableTag.getRows();
+  TableRow row = rows[0];
+  TableColumn[] col = row.getColumns();
+  int pageNumber = Integer.parseInt(col[0].getChildrenHTML().substring(25, 29));
+  get.releaseConnection();
+  
+  for(int i=1;i<pageNumber;i++){
+   PostMethod pt = new PostMethod("http://211.90.119.58:9999/PhoneSearch/PhoneSearch.aspx");    
+   NameValuePair txtPage = new NameValuePair("txtPage",Integer.toString(i)); 
+         __VIEWSTATE = new NameValuePair("__VIEWSTATE", "")
+         NameValuePair __EVENTTARGET = new NameValuePair("__EVENTTARGET", "");
+         NameValuePair __EVENTARGUMENT = new NameValuePair("__EVENTARGUMENT", "");
+         NameValuePair TBMDN = new NameValuePair("TBMDN", "");
+         NameValuePair TBServiceType = new NameValuePair("TBServiceType", "");
+         NameValuePair TBStartTime = new NameValuePair("TBStartTime", "");
+         NameValuePair TBEndTime = new NameValuePair("TBEndTime", "");
+         NameValuePair btnGotox = new NameValuePair("btnGoto.x", "26"); 
+         NameValuePair btnGotoy = new NameValuePair("btnGoto.y", "13"); 
+         pt.setRequestBody(new NameValuePair[]{__EVENTTARGET,__EVENTARGUMENT,__VIEWSTATE,TBMDN,TBServiceType,TBStartTime,TBEndTime,txtPage,btnGotox,btnGotoy});
+         int a = client.executeMethod(pt);
+         
+         
+         parser.setInputHTML(pt.getResponseBodyAsString());
+   parser.setEncoding("GBK");
+   parser.visitAllNodesWith(visitor);
+   
+   tables = visitor.getTags();
+   tableTag = (TableTag) tables[tables.length-3];
+   
+   rows = tableTag.getRows();
+   row = rows[1];
+   col = row.getColumns();
+   System.out.println(col[4].getChildrenHTML().toString());
+         get.releaseConnection();
+  }
+        
+    }
+}
+ 
+使用HttpClient过程中常见的一些问题
+
+下面介绍在使用HttpClient过程中常见的一些问题。
+
+字符编码
+
+某目标页的编码可能出现在两个地方，第一个地方是服务器返回的http头中，另外一个地方是得到的html/xml页面中。
+
+在http头的Content-Type字段可能会包含字符编码信息。例如可能返回的头会包含这样子的信息：Content-Type: text/html; charset=UTF-8。这个头信息表明该页的编码是UTF-8，但是服务器返回的头信息未必与内容能匹配上。比如对于一些双字节语言国家，可能服务器返回的编码类型是UTF-8，但真正的内容却不是UTF-8编码的，因此需要在另外的地方去得到页面的编码信息；但是如果服务器返回的编码不是UTF-8，而是具体的一些编码，比如gb2312等，那服务器返回的可能是正确的编码信息。通过method对象的getResponseCharSet()方法就可以得到http头中的编码信息。
+对于象xml或者html这样的文件，允许作者在页面中直接指定编码类型。比如在html中会有<meta http-equiv="Content-Type" content="text/html; charset=gb2312"/>这样的标签；或者在xml中会有<?xml version="1.0" encoding="gb2312"?>这样的标签，在这些情况下，可能与http头中返回的编码信息冲突，需要用户自己判断到底那种编码类型应该是真正的编码。
+自动转向
+
+根据RFC2616中对自动转向的定义，主要有两种：301和302。301表示永久的移走（Moved Permanently），当返回的是301，则表示请求的资源已经被移到一个固定的新地方，任何向该地址发起请求都会被转到新的地址上。302表示暂时的转向，比如在服务器端的servlet程序调用了sendRedirect方法，则在客户端就会得到一个302的代码，这时服务器返回的头信息中location的值就是sendRedirect转向的目标地址。
+
+HttpClient支持自动转向处理，但是象POST和PUT方式这种要求接受后继服务的请求方式，暂时不支持自动转向，因此如果碰到POST方式提交后返回的是301或者302的话需要自己处理。就像刚才在POSTMethod中举的例子：如果想进入登录BBS后的页面，必须重新发起登录的请求，请求的地址可以在头字段location中得到。不过需要注意的是，有时候location返回的可能是相对路径，因此需要对location返回的值做一些处理才可以发起向新地址的请求。
+
+另外除了在头中包含的信息可能使页面发生重定向外，在页面中也有可能会发生页面的重定向。引起页面自动转发的标签是：<meta http-equiv="refresh" content="5; url=http://www.ibm.com/us">。如果你想在程序中也处理这种情况的话得自己分析页面来实现转向。需要注意的是，在上面那个标签中url的值也可以是一个相对地址，如果是这样的话，需要对它做一些处理后才可以转发。
+
+处理HTTPS协议
+
+HttpClient提供了对SSL的支持，在使用SSL之前必须安装JSSE。在Sun提供的1.4以后的版本中，JSSE已经集成到JDK中，如果你使用的是JDK1.4以前的版本则必须安装JSSE。JSSE不同的厂家有不同的实现。下面介绍怎么使用HttpClient来打开Https连接。这里有两种方法可以打开https连接，第一种就是得到服务器颁发的证书，然后导入到本地的keystore中；另外一种办法就是通过扩展HttpClient的类来实现自动接受证书。
+
+方法1，取得证书，并导入本地的keystore：
+
+安装JSSE （如果你使用的JDK版本是1.4或者1.4以上就可以跳过这一步）。本文以IBM的JSSE为例子说明。先到IBM网站上下载JSSE的安装包。然后解压开之后将ibmjsse.jar包拷贝到<java-home>/lib/ext/目录下。
+取得并且导入证书。证书可以通过IE来获得：
+1． 用IE打开需要连接的https网址，会弹出如下对话框：
+
+
+
+2． 单击"View Certificate"，在弹出的对话框中选择"Details"，然后再单击"Copy to File"，根据提供的向导生成待访问网页的证书文件
+
+
+
+3． 向导第一步，欢迎界面，直接单击"Next"，
+
+
+
+4． 向导第二步，选择导出的文件格式，默认，单击"Next"，
+
+
+
+5． 向导第三步，输入导出的文件名，输入后，单击"Next"，
+
+
+
+6． 向导第四步，单击"Finish"，完成向导
+
+
+
+7． 最后弹出一个对话框，显示导出成功
+
+
+
+用keytool工具把刚才导出的证书倒入本地keystore。Keytool命令在<java-home>/bin/下，打开命令行窗口，并到<java-home>/lib/security/目录下，运行下面的命令：
+
+
+keytool -import -noprompt -keystore cacerts -storepass changeit -alias yourEntry1 -file your.cer
+
+其中参数alias后跟的值是当前证书在keystore中的唯一标识符，但是大小写不区分；参数file后跟的是刚才通过IE导出的证书所在的路径和文件名；如果你想删除刚才导入到keystore的证书，可以用命令：
+
+
+keytool -delete -keystore cacerts -storepass changeit -alias yourEntry1
+
+写程序访问https地址。如果想测试是否能连上https，只需要稍改一下GetSample例子，把请求的目标变成一个https地址。
+
+GetMethod getMethod = new GetMethod("https://www.yourdomain.com");
+
+运行该程序可能出现的问题：
+
+1. 抛出异常java.net.SocketException: Algorithm SSL not available。出现这个异常可能是因为没有加JSSEProvider，如果用的是IBM的JSSE Provider，在程序中加入这样的一行：
+
+
+ if(Security.getProvider("com.ibm.jsse.IBMJSSEProvider") == null)
+ Security.addProvider(new IBMJSSEProvider());
+ 
+
+或者也可以打开<java-home>/lib/security/java.security，在行
+
+
+security.provider.1=sun.security.provider.Sun
+security.provider.2=com.ibm.crypto.provider.IBMJCE
+
+后面加入security.provider.3=com.ibm.jsse.IBMJSSEProvider
+
+2. 抛出异常java.net.SocketException: SSL implementation not available。出现这个异常可能是你没有把ibmjsse.jar拷贝到<java-home>/lib/ext/目录下。
+
+3. 抛出异常javax.net.ssl.SSLHandshakeException: unknown certificate。出现这个异常表明你的JSSE应该已经安装正确，但是可能因为你没有把证书导入到当前运行JRE的keystore中，请按照前面介绍的步骤来导入你的证书。
+
+方法２，扩展HttpClient类实现自动接受证书
+
+因为这种方法自动接收所有证书，因此存在一定的安全问题，所以在使用这种方法前请仔细考虑您的系统的安全需求。具体的步骤如下：
+
+提供一个自定义的socket factory（test.MySecureProtocolSocketFactory）。这个自定义的类必须实现接口org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory，在实现接口的类中调用自定义的X509TrustManager(test.MyX509TrustManager)，这两个类可以在随本文带的附件中得到
+创建一个org.apache.commons.httpclient.protocol.Protocol的实例，指定协议名称和默认的端口号
+
+Protocol myhttps = new Protocol("https", new MySecureProtocolSocketFactory (), 443);
+
+注册刚才创建的https协议对象
+
+Protocol.registerProtocol("https ", myhttps);
+
+然后按照普通编程方式打开https的目标地址，代码请参见test.NoCertificationHttpsGetSample
+处理代理服务器
+
+HttpClient中使用代理服务器非常简单，调用HttpClient中setProxy方法就可以，方法的第一个参数是代理服务器地址，第二个参数是端口号。另外HttpClient也支持SOCKS代理。

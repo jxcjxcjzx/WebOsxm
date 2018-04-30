@@ -1,0 +1,149 @@
+
+
+sina.com.cn	
+新浪首页	|	免费邮件	|	用户注册	|	网站地图
+
+
+ 	
+	
+	
+新浪首页 > 科技时代 > 软件 > 编程语言 > 正文
+	软件分类教程
+
+● 	系统工具
+● 	网络工具
+● 	常用工具
+● 	多媒体类
+● 	图像处理
+● 	文字编辑
+● 	休闲娱乐
+● 	办公软件
+● 	编程语言
+● 	操作系统
+● 	其它软件
+● 	软件评测
+● 	主页制作
+● 	观点评论
+ 
+
+>>应用软件论坛
+
+欢迎来稿、赐教
+
+新浪软件下载
+
+
+谈谈JAVA程序的反编译
+http://tech.sina.com.cn 2000/09/26  软件世界 于瑶
+　　如今JAVA语言在全世界范围正如火如荼般的流行，它广范地应用在INTERNET的数据库、多媒体、CGI、及动态网页的制作方面。1999年在美国对JAVA程序员的需求量首次超过C++！
+
+　　作者因最近分析一些JAVA程序，对JAVA的反编译进行了一番了解，下面将我所了解的情况作以下介绍，希望对JAVA爱好者有所帮助。
+
+　　JAVA是采用一种称做“字节编码”的程序结构，分为小程序(嵌入到HTML文件中)和应用程序(直接在命令状态下执行)两种类型。无论哪种结构，一旦用JAVAC 命令编译后，均变成后缀为CLASS的同名可执行文件。这种文件是不可阅读的代码。
+
+　　经查阅了SUN公司的JDK(JDK1.1.3)文档资料后，我找到了一个据称是可反编译JAVA的JAVAP文件(EXE)，这个文件位于\JDK\BIN\ 下面，经按说明使用后，感到失望，原来这个“反编译”仅可反编译出JAVA程序的数据区(定义)、若干方法和类的引用等。
+
+　　这里我用了一个简单例子来说明问题。
+
+　　JAVA的源程序hello_java.java如下：
+
+　　import java.applet.*;
+　　import java.awt.*;
+　　public class hello_java extends Applet
+　　{
+　　public void paint(Graphics g)
+　　{
+　　g.drawString("Hello Java!\n",20,20);
+　　}
+　　}
+
+　　经用反编译命令：javap -c -package -public -private hello_java hello.java
+
+　　得到的反编译结果(hello.java)如下：(有关javap命令的选择参数请见其使用说明，这里-c表示选择了反编译)
+
+　　Compiled from hello_java.java
+
+　　public synchronized class hello_java extends java.applet.Applet 
+　　/* ACC_SUPER bit set */
+　　{
+　　public void paint(java.awt.Graphics);
+　　public hello_java();
+　　Method void paint(java.awt.Graphics)
+　　0 aload_1
+　　1 ldc #1 　　">
+　　3 bipush 20
+　　5 bipush 20
+　　7 invokevirtual #6 
+　　10 return
+　　Method hello_java()
+　　0 aload_0
+　　1 invokespecial #5 ()V>
+　　4 return
+　　}
+
+　　从上述结果不难看出该反编译未能将源程序全译出来，像语句g.drawString("Hello Java!\n",20,20); 就没有。随着程序量增加，未能编译的JAVA语句还会更多。所以这个反编译程序仅能起个参考作用。
+
+　　幸亏有了INTERNET，笔者通过YAHOO很快找到了一个JAVA反编译“自由软件”(SHAREWARE)，http://www.inter.nl.net/users/H.P.van.Vliet/mocha.htm 。 这个软件叫MOCHA，据说是一位30来岁的加拿大的研究生所完成，仅是个“?”版，原因是这位叫做H.P.VAN.VLIET的小伙子患癌逝世了，十分可惜呀！
+
+　　经使用MOCHA反编译软件，感到这个软件十分好用，笔者试反编译多个JAVA程序，均得到很好的结果。
+
+　　这里给出如何使用这个软件，首先，用WINZIP等将"mocha-b1.zip" 解开得到"mocha.zip"文件，"mocha.zip"不须再解开，这个包内包括了反编译的类文件，只需将其拷贝到JDK所在的目录下，如：c:\jdk\bin\ 此外，须设置路径：SET CLASSPATH=c:\myclasses;c:\jdk\bin\mocha.zip
+
+　　MOCHA用法：
+
+　　java mocha.Decompiler [-v] [-o] Class1.class Class2.class ...
+
+　　"java" 调用Java虚拟机
+
+　　"mocha.Decompiler" 指示要进行JAVA反编译
+
+　　"-v" 选择详细输出
+
+　　"-o" 选写入已有的.mocha 文件
+
+　　"ClassX.class" 指出要反编译类名
+
+　　注意，不需给出输出的JAVA文件名，因为MOCHA自动产生一个与CLASS同名但扩展名为MOCHA的JAVA源文件。
+
+　　对于上例，可用命令：
+
+　　java mocha.Decompiler [-v] [-o] hello_java.class
+
+　　得到的源文件：
+
+　　/* Decompiled by Mocha from hello_java.class */
+
+　　/* Originally compiled from hello_java.java */
+　　import java.applet.Applet;
+　　import java.awt.Graphics;
+　　public synchronized class hello_java extends Applet
+　　{
+　　public void paint(Graphics g)
+　　{
+　　g.drawString("Hello Java!\n", 20, 20);
+　　}
+　　public hello_java()
+　　{
+　　}
+　　}
+
+　　我们不难发现，此文件与编译前的JAVA源文件完全一样！笔者曾经用MOCHA反编译出最大为80K的源文件，均取得成功。
+
+　　在此，笔者向英年早逝的VLIET表示敬意，感谢他给我们留下这个工具软件。
+
+
+　　相关文章：
+
+Javascript应用的几个实例 (2000/05/25 10:36)
+用Java小程序为网页上的照片添加效果 (2000/05/24 10:38)
+如何设计出具有GUI特色的“纯”JAVA程序 (2000/05/22 11:33)
+让你的网页靓起来—AnfyJava特效编辑器 (2000/05/12 10:54)
+     
+  【相关论坛】 【发表评论】  
+
+
+网站简介 | 用户注册 | 广告服务 | 招聘信息 | 中文阅读 | Richwin | 联系方式 | 帮助信息 | 网站律师
+
+Copyright © 1996 - 2000 SINA.com, Stone Rich Sight. All Rights Reserved
+
+版权所有　四通利方 新浪网

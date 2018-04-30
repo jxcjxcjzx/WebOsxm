@@ -1,0 +1,1223 @@
+
+
+
+
+
+
+
+
+FORUMS
+ FOLLOW US ON TWITTER
+ 
+
+Login      Signup
+
+
+
+
+
+ 
+
+
+
+HTG Explains: Do You Need the Professional Edition of Windows 8?
+
+
+
+Our Geek Trivia App for Windows 8 is Now Available Everywhere
+
+
+
+
+Home
+Features
+Categories
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+..
+ 
+
+
+
+
+
+
+
+
+What is conhost.exe and Why Is It Running?
+
+
+You are no doubt reading this article because you are wondering what on earth this conhost.exe process is doing in Task Manager, and why it’s running on your shiny new Windows 7 PC. We’ve got the answer for you.
+ 
+
+
+So What Is It?
+ 
+The conhost.exe process fixes a fundamental problem in the way previous versions of Windows handled console windows, which broke drag & drop in Vista.
+ 
+It’s a completely legitimate executable—as long as it’s running from the system32 folder, and is signed by Microsoft. Scanning your computer for viruses is never a bad idea, though. 
+
+Wait, What? So Why Do I Need It?
+ 
+Oh, you wanted more information? I suppose I can oblige with some background information. Essentially, there’s a problem with the way the console process works on previous versions of Windows—they are all hosted under the csrss.exe (Client Server Runtime Process) service. This process runs as a system-privileged account. 
+
+
+If you take a look at the command prompt on Windows XP, you’ll probably notice that the window doesn’t use the active theme at all. This is because the CSRSS process doesn’t have the ability to be themed. 
+
+
+
+If you take a look at the console in Windows Vista, it looks like it uses the same theme as everything else, but you’ll notice that the scrollbars are still using the old style (look closely). This is because the DWM (Desktop Window Manager) process handles drawing the title bars, but underneath it still works the same way, and the scrollbars are part of the window itself.
+ 
+
+
+You might also notice that Windows Vista broke the ability to drag and drop files from Explorer straight into the command prompt. It just flat out doesn’t work, because of security issues between the CSRSS process running with a higher level of privileges. 
+
+Windows 7 Does It Differently
+ 
+Checking it out in Process Explorer under Windows 7 shows that the conhost.exe process is running underneath the csrss.exe process.
+ 
+
+
+The conhost.exe process sitting in the middle between CSRSS and cmd.exe allows Windows 7 to fix both of the problems in previous versions of Windows—not only do the scrollbars draw correctly, but you can actually drag and drop a file from Explorer straight into the command prompt:
+ 
+
+
+And it’ll paste in the path onto the command line. (of course this example isn’t very useful). 
+
+
+
+Still Aren’t Convinced?
+ 
+I can see our relationship has some trust issues. If you really want to be sure, check out the file properties for the conhost.exe executable, and you’ll see that the description says Console Window Host:
+ 
+
+
+If you look at the details of the process from within Process Explorer, you’ll notice that the ComSpec is set to cmd.exe, a clear indication that it’s hosting the command prompt. 
+
+
+
+So now you know what the conhost.exe process does, and why you should never attempt to delete it. Ever.
+ 
+
+
+Don't show again X 
+
+
+
+Don't Upgrade to Windows 8 Until You Read This Book!
+ 
+
+
+
+
+
+Windows 8 can be confusing, but now you can read our comprehensive guide that explains everything the easy way.
+
+ 
+There are over a thousand screenshots and pictures in the book to help you get the hang of navigating around Windows 8, and nearly a thousand pages of content so there's nothing you won't understand. Plus it's written in the classic How-To Geek style you're familiar with.
+
+ 
+Get Your Copy Today 
+
+
+
+
+
+By The Geek on 10/14/09
+
+
+
+
+
+Tweet
+
+
+
+
+ 
+
+
+
+
+
+HTG Explains: Why You Shouldn’t Host an Open Wi-Fi Network
+ 
+
+
+
+How to Downgrade Windows 8 Pro to Windows 7
+ 
+
+
+
+How to Service Your Own Computer: 7 Easy Things Computer Repair Places Do
+ 
+
+
+
+
+
+Ads by Google
+
+
+Fastest VPN for Asia
+
+Unblock all sites. Try Risk Free. 100% Secure & Anonymous. Easy Setup
+ExpressVPN.com
+
+
+Unblock Facebook in China
+
+Rare VPN still works well in China. $7 for 2 User Accounts/Month.
+www.gfwvpn.com
+
+
+VpnOneClick
+
+Keep your privacy and unlock all blocked service by the fastest Vpn
+www.vpnoneclick.com
+
+
+
+
+Comments (58)
+ 
+October 14, 2009 1:03 am
+
+
+
+
+stz8
+
+
+
+Thanks for the awesome writeup! I was wondering what this process is and I assumed it was something with the command prompt since when I ended the task the window got killed too, but this was very enlightening! Thanks a ton!
+ 
+
+October 14, 2009 1:05 am
+
+
+
+
+crankyguy
+
+
+
+I had no idea that you could drag n drop to the command prompt. Not sure if I need to use that, but it’s a good tip just in case.
+ 
+
+October 14, 2009 1:10 am
+
+
+
+
+jon
+
+
+
+Sweet! Windows 7 is looking to be a great upgrade.
+ 
+I never noticed the scrollbars thing before. Weird!
+ 
+
+October 14, 2009 9:19 am
+
+
+
+
+KBPrez
+
+
+
+FUNNY write-up. BTW, it was very informative too. THANX!
+ 
+
+October 14, 2009 4:15 pm
+
+
+
+
+MichaelonTech
+
+
+
+Great post….The best part was I had no idea you can now drag’n'drop files or paths into the CMD window in Windows 7 …..
+ 
+Thanks for the info!
+ 
+
+November 3, 2009 9:47 am
+
+
+
+
+Abraxas
+
+
+
+Apparently it starts one console per core, because I have four instantiations of conhost.exe running under csrss.exe.
+ 
+
+November 11, 2009 4:12 pm
+
+
+
+
+j-o
+
+
+
+Thanks. But I can not have this window commong up ALL the time on my computer. please tell me how i can stop this from disterbing me./j-o “in sweden and not knowing things about computerstuff”
+ 
+
+December 8, 2009 12:40 pm
+
+
+
+
+David R
+
+
+
+Regarding conhost.exe. On bootup of Windows 7, my virus program (Shaw Secure) keeps asking me if I want to allow or block conhost.exe. The error message states that it is trying to make a “system modification attempt”. It happens on every bootup. The number of times I have to “allow” it varies seemingly at random. A few times, I had to click on “allow” 63 times. How can I fix it?
+ 
+
+December 20, 2009 8:28 am
+
+
+
+
+Sumon
+
+
+
+Cool. I knew this but read it for the first time
+ 
+
+December 20, 2009 10:33 pm
+
+
+
+
+khanz
+
+
+
+I have problem in booting Xp-3 in my p.c. which really irritates me. Can you have a solution please?
+ 
+
+January 1, 2010 9:23 am
+
+
+
+
+jachymko
+
+
+
+Actually, the presence of ComSpec indicates nothing. This variable is loaded from registry on boot-up and then inherited by every process (unless one explicitly deletes its copy).
+ 
+
+February 15, 2010 9:55 pm
+
+
+
+
+calebstein
+
+
+
+What will happen if I delete conhost.exe?
+ 
+
+March 11, 2010 6:53 am
+
+
+
+
+uber-geek
+
+
+
+Would be nice if the conhost.exe didnt stay lying around when the windows closes. Guess that will be fixed in a service pack :P
+ 
+
+March 16, 2010 8:01 pm
+
+
+
+
+Scott
+
+
+
+I have 2 conhost processes working, is that a problem?
+ 
+
+March 27, 2010 8:33 pm
+
+
+
+
+Joshua L.
+
+
+
+I would say if you have two conhost processes running, unless your running multiple command prompts it might be a problem (a.k.a. infected with virus.)
+ 
+Then again some processes like ZA Extreme Security Suite also utilize a ConHost Process as well.
+ 
+It’s a matter of paying attention to what your computer is doing as you add or delete programs. or maybe an AV and AS check.
+ 
+
+April 4, 2010 10:23 pm
+
+
+
+
+1309
+
+
+
+I DEFINITELY have a virus… a file named… 0qsWLGGf.exe starts by itself… then opens 200+ iexplorer.exe processes… suspicious… I know…
+ Anyway… I go to the file location and I delete the .exe but it KEEPS COMING BACK…
+ Now… my real question is that I have 4 conhost.exe process running… could the virus (or whatever term you prefer) be hijacking this name and using it to create the 0qsWLGGf.exe file?
+ 
+-Thanks for any help
+ 
+
+April 27, 2010 5:33 pm
+
+
+
+
+JackV
+
+
+
+I have 30 conhost.exe processes running! What would you say is the problem then?
+ 
+
+July 13, 2010 11:07 am
+
+
+
+
+Paul Sinnema
+
+
+
+Hi, thanks for the insight. You say:
+ 
+It’s a completely legitimate executable—as long as it’s running from the system32 folder, and is signed by Microsoft. Scanning your computer for viruses is never a bad idea, though.
+ 
+The other day I got a message from Norton that an unauthorized access was blocked from C:\WINDOWS\SYSTEM32\CONHOST.EXE. It tried to access this file
+ 
+\Device\HarddiskVolume2\Program Files (x86)\Norton AntiVirus\Norton AntiVirus\Engine\17.7.0.12\cltlmh.exe
+ 
+So it’s running from SYSTEM32 and tried to do something with a Norton file. Oops what this?
+ 
+Regards
+ Paul Sinnema
+ 
+
+July 27, 2010 8:27 am
+
+
+
+
+theboss100
+
+
+
+i have running 2 conhost processes running in system32 is this dangerous??
+ 
+
+July 28, 2010 1:47 pm
+
+
+
+
+CommanderForce7
+
+
+
+@theboss100, as long everything is working fine, you will have nothing to worry about.
+ 
+
+August 8, 2010 8:24 pm
+
+
+
+
+z00
+
+
+
+My XP (SP2) machine I see conhost.exe is under C:\Program Files. 
+
+Something wrong? My machine is infected with Fake AntiVirus removed several times by kept coming back.
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Comments are closed on this post.
+
+If you'd like to continue the discussion on this topic, you can do so at our forum.
+
+
+Go to the Forum
+
+ 
+
+
+
+
+
+
+
+
+Daily Email Updates
+
+You can get our how-to articles in your inbox each day for free. Just enter your email below:
+
+
+
+
+
+
+
+
+
+
+Email:
+
+
+
+
+
+
+
+
+
+
+
+
+
+Meet the Author
+
+
+Programmer by day, geek by night, The Geek spends all his free time bringing you fresh geekery on a daily basis. 
+
+Follow The Geek on Twitter
+
+
+
+Recent Articles
+Week in Geek: Foursquare will Display Users’ Full Names, Give Venue Owners Increased Access to Data
+6 Tips For Improving Game Performance with Steam on Linux
+The Best Free Ways to Share Photos With Friends and Family Other Than Facebook
+Desktop Fun: Snow Covered Trees Wallpaper Collection Series 2
+How to Service Your Own Computer: 7 Easy Things Computer Repair Places Do
+
+
+Related Articles
+What is svchost.exe And Why Is It Running?
+What Are WLIDSVC.EXE and WLIDSVCM.EXE and Why Are They Running?
+How to Tell What Version of Ubuntu You Are Running
+Week in Geek: The What on Earth is that Process Edition
+Geek Comic for November 1st – The World is Running Out of Time
+
+
+
+ 
+
+
+
+.
+
+
+
+ 
+
+
+
+
+.
+.
+
+
+Categories
+Windows 7
+ Windows 8
+ Windows Vista
+ Windows XP
+ Malware & Viruses
+ Microsoft Office
+ Web Browsing
+ Linux
+ Desktop Fun
+ Archived
+ Other…
+
+
+
+Getting Started
+How to Get Computer Help
+ Feature Articles
+ Get Help on our Forums
+ News
+ ToolsGeek [Useful Online Tools]
+ Cooking Wiki
+
+
+About How-To Geek
+About Us
+ Contact Us
+ Advertising
+ Privacy Policy
+ Disclaimers
+ Comment Policy
+ Write for How-To Geek
+
+
+What Is That Process?
+
+
+
+svchost.exe
+jusched.exe
+dwm.exe
+ctfmon.exe
+wmpnetwk.exe
+mDNSResponder.exeDpupdchk.exe
+Adobe_Updater.exe
+SearchIndexer.exe
+
+wmpnscfg.exe
+rundll32.exe
+wfcrun32.exe
+Ipoint.exe
+Itype.exe
+wlidsvc.exeWfica32.exe
+Mobsync.exe
+conhost.exe
+
+
+
+
+
+Get Our Book
+
+
+
+
+Copyright © 2006-2013 HowToGeek.com.  All Rights Reserved.
+ . 
+
+

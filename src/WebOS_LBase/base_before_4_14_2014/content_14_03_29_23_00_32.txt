@@ -1,0 +1,1028 @@
+从B树谈到R树之B树的C实现
+
+作者：weedge，July。编程艺术室出品。
+
+前言
+
+    代码大全的作者Steve McConnell曾称，他所见识的任何一本书都不是某一个人能完全独立即能完成的。吾深以为然。
+
+    本blog内的文章十有八九系我个人参考资料原创所作，与此同时十有二三系本人与吾的朋友共同创作完成。所以，诸君在浏览本博客内任何一篇文章时，务必尊重他人劳动成果。当然，有任何问题，欢迎随时不吝指正。
+
+    ok，在本blog之前的一篇文章中：从B树、B+树、B*树谈到R 树，各位读者反应热烈。这次，咱们来编码实现B树的查找，插入，删除等操作。同时此文也算作是上一篇文章从B树谈到R树的续。望诸君不吝赐教。谢谢。
+
+第一部分、B树的查找，插入，删除等具体操作
+
+    编码实现B树之前，咱们先来回顾一下上文中所给出的B树的查找，插入，删除等具体的操作都是怎么一回事儿。明白了原理之后，再来编程实现，就相对来说有方向感了。ok，请看下文（援引自从B树、B+树、B*树谈到R 树第3小节）：
+
+B树的插入、删除操作
+
+    上文第3小节简单介绍了利用B树这种结构如何访问外存磁盘中的数据的情况，下面咱们通过另外一个实例来对这棵B树的插入（insert）,删除（delete）基本操作进行详细的介绍。
+    但在此之前，咱们还得简单回顾下一棵m阶的B 树 (m叉树)的特性，如下：
+
+树中每个结点含有最多含有m个孩子，即m满足：ceil(m/2)<=m<=m。
+除根结点和叶子结点外，其它每个结点至少有[ceil(m / 2)]个孩子（其中ceil(x)是一个取上限的函数）；
+若根结点不是叶子结点，则至少有2个孩子（特殊情况：没有孩子的根结点，即根结点为叶子结点，整棵树只有一个根节点）；
+所有叶子结点都出现在同一层，叶子结点不包含任何关键字信息(可以看做是外部接点或查询失败的接点，实际上这些结点不存在，指向这些结点的指针都为null)；
+每个非终端结点中包含有n个关键字信息： (n，P0，K1，P1，K2，P2，......，Kn，Pn)。其中：
+       a)   Ki (i=1...n)为关键字，且关键字按顺序升序排序K(i-1)< Ki。 
+       b)   Pi为指向子树根的接点，且指针P(i-1)指向子树种所有结点的关键字均小于Ki，但都大于K(i-1)。 
+       c)   除根结点之外的结点的关键字的个数n必须满足： [ceil(m / 2)-1]<= n <= m-1（叶子结点也必须满足此条关于关键字数的性质，根结点除外）。
+    ok，下面咱们以一棵5阶（m=5，即除根结点和叶子结点之外的内结点最多5个孩子，最少3个孩子）B树实例进行讲。
+
+备注：
+
+关键字数（2-4个）针对--非根结点（包括叶子结点在内），孩子数（3-5个）--针对根结点和叶子结点之外的内结点。当然，根结点是必须至少有2个孩子的，不然就成直线型搜索树了。
+我说的再明白点就是，一棵5阶的B树中任何一个结点的关键字数是1-4，孩子树是2-5。同时，一棵5阶的B树的最大高度应为log_ceil(m/2)N（下划线表示以ceil(m/2)为底）。
+下图中关键字为大写字母，顺序为字母升序。
+
+结点定义如下：
+
+typedef struct{
+   int Count;         // 当前节点中关键元素数目
+   ItemType Key[4];   // 存储关键字元素的数组
+   long Branch[5];    // 伪指针数组，(记录数目)方便判断合并和分裂的情况
+} NodeType;
+
+ 
+
+
+
+1.1、插入（insert）操作
+
+    插入一个元素时，首先在B树中是否存在，如果不存在，即在叶子结点处结束，然后在叶子结点中插入该新的元素，注意：
+
+如果叶子结点空间足够，这里需要向右移动该叶子结点中大于新插入关键字的元素，
+如果空间满了以致没有足够的空间去添加新的元素，则将该结点进行“分裂”，将一半数量的关键字元素分裂到新的其相邻右结点中，中间关键字元素上移到父结点中（当然，如果父结点空间满了，也同样需要“分裂”操作），而且当结点中关键元素向右移动了，相关的指针也需要向右移。
+如果在根结点插入新元素，空间满了，则进行分裂操作，这样原来的根结点中的中间关键字元素向上移动到新的根结点中，因此导致树的高度增加一层。
+1、咱们通过一个实例来逐步讲解下。插入以下字符字母到一棵空的B 树中（非根结点关键字数小了（小于2个）就合并，大了（超过4个）就分裂）：C N G A H E K Q M F W L T Z D P R X Y S，首先，结点空间足够，4个字母插入相同的结点中，如下图：
+
+ 
+
+2、当咱们试着插入H时，结点发现空间不够，以致将其分裂成2个结点，移动中间元素G上移到新的根结点中，在实现过程中，咱们把A和C留在当前结点中，而H和N放置新的其右邻居结点中。如下图：
+
+ 
+
+3、当咱们插入E,K,Q时，不需要任何分裂操作
+
+
+
+4、插入M需要一次分裂，注意M恰好是中间关键字元素，以致向上移到父节点中
+
+ 
+
+
+
+5、插入F,W,L,T不需要任何分裂操作
+
+ 
+
+
+
+6、插入Z时，最右的叶子结点空间满了，需要进行分裂操作，中间元素T上移到父节点中，注意通过上移中间元素，树最终还是保持平衡，分裂结果的结点存在2个关键字元素。
+
+ 
+
+
+
+7、插入D时，导致最左边的叶子结点被分裂，D恰好也是中间元素，上移到父节点中，然后字母P,R,X,Y陆续插入不需要任何分裂操作（别忘了，树中至多5个孩子）。
+
+ 
+
+
+
+8、最后，当插入S时，含有N,P,Q,R的结点需要分裂，把中间元素Q上移到父节点中，但是情况来了，父节点中空间已经满了，所以也要进行分裂，将父节点中的中间元素M上移到新形成的根结点中，注意以前在父节点中的第三个指针在修改后包括D和G节点中。这样具体插入操作的完成，下面介绍删除操作，删除操作相对于插入操作要考虑的情况多点。
+
+ 
+
+
+
+1.2、删除(delete)操作
+
+    首先查找B树中需删除的元素,如果该元素在B树中存在，则将该元素在其结点中进行删除，如果删除该元素后，首先判断该元素是否有左右孩子结点，如果有，则上移孩子结点中的某相近元素到父节点中，然后是移动之后的情况；如果没有，直接删除后，移动之后的情况。
+
+    删除元素，移动相应元素之后，
+
+如果某结点中元素数目（即关键字数）小于ceil(m/2)-1，则需要看其某相邻兄弟结点是否丰满（结点中元素个数大于ceil(m/2)-1）（还记得第一节中关于B树的第5个特性中的c点么?： c)除根结点之外的结点（包括叶子结点）的关键字的个数n必须满足： （ceil(m / 2)-1）<= n <= m-1。m表示最多含有m个孩子，n表示关键字数。在本小节中举的一颗B树的示例中，关键字数n满足：2<=n<=4），
+如果丰满，则向父节点借一个元素来满足条件；
+如果其相邻兄弟都刚脱贫，即借了之后其结点数目小于ceil(m/2)-1，则该结点与其相邻的某一兄弟结点进行“合并”成一个结点，以此来满足条件。
+    那咱们通过下面实例来详细了解吧。
+
+    以上述插入操作构造的一棵5阶B树（树中最多含有m（m=5）个孩子，因此关键字数最小为ceil(m / 2)-1=2。还是这句话，关键字数小了（小于2个）就合并，大了（超过4个）就分裂）为例，依次删除H,T,R,E。
+
+
+
+1、首先删除元素H，当然首先查找H，H在一个叶子结点中，且该叶子结点元素数目3大于最小元素数目ceil(m/2)-1=2，则操作很简单，咱们只需要移动K至原来H的位置，移动L至K的位置（也就是结点中删除元素后面的元素向前移动）
+
+ 
+
+
+
+2、下一步，删除T,因为T没有在叶子结点中，而是在中间结点中找到，咱们发现他的继承者W(字母升序的下个元素)，将W上移到T的位置，然后将原包含W的孩子结点中的W进行删除，这里恰好删除W后，该孩子结点中元素个数大于2，无需进行合并操作。
+
+ 
+
+
+
+3、下一步删除R，R在叶子结点中,但是该结点中元素数目为2，删除导致只有1个元素，已经小于最小元素数目ceil(5/2)-1=2,而由前面我们已经知道：如果其某个相邻兄弟结点中比较丰满（元素个数大于ceil(5/2)-1=2），则可以向父结点借一个元素，然后将最丰满的相邻兄弟结点中上移最后或最前一个元素到父节点中（有没有看到红黑树中左旋操作的影子?），在这个实例中，右相邻兄弟结点中比较丰满（3个元素大于2），所以先向父节点借一个元素W下移到该叶子结点中，代替原来S的位置，S前移；然后X在相邻右兄弟结点中上移到父结点中，最后在相邻右兄弟结点中删除X，后面元素前移。
+
+ 
+
+
+
+4、最后一步删除E， 删除后会导致很多问题，因为E所在的结点数目刚好达标，刚好满足最小元素个数（ceil(5/2)-1=2）,而相邻的兄弟结点也是同样的情况，删除一个元素都不能满足条件，所以需要该节点与某相邻兄弟结点进行合并操作；首先移动父结点中的元素（该元素在两个需要合并的两个结点元素之间）下移到其子结点中，然后将这两个结点进行合并成一个结点。所以在该实例中，咱们首先将父节点中的元素D下移到已经删除E而只有F的结点中，然后将含有D和F的结点和含有A,C的相邻兄弟结点进行合并成一个结点。
+
+ 
+
+
+
+5、也许你认为这样删除操作已经结束了，其实不然，在看看上图，对于这种特殊情况，你立即会发现父节点只包含一个元素G，没达标（因为非根节点包括叶子结点的关键字数n必须满足于2=<n<=4，而此处的n=1），这是不能够接受的。如果这个问题结点的相邻兄弟比较丰满，则可以向父结点借一个元素。假设这时右兄弟结点（含有Q,X）有一个以上的元素（Q右边还有元素），然后咱们将M下移到元素很少的子结点中，将Q上移到M的位置，这时，Q的左子树将变成M的右子树，也就是含有N，P结点被依附在M的右指针上。所以在这个实例中，咱们没有办法去借一个元素，只能与兄弟结点进行合并成一个结点，而根结点中的唯一元素M下移到子结点，这样，树的高度减少一层。
+
+ 
+
+
+
+为了进一步详细讨论删除的情况，再举另外一个实例：
+
+这里是一棵不同的5序B树，那咱们试着删除C
+
+ 
+
+
+
+于是将删除元素C的右子结点中的D元素上移到C的位置，但是出现上移元素后，只有一个元素的结点的情况。
+
+又因为含有E的结点，其相邻兄弟结点才刚脱贫（最少元素个数为2），不可能向父节点借元素，所以只能进行合并操作，于是这里将含有A,B的左兄弟结点和含有E的结点进行合并成一个结点。
+
+ 
+
+
+
+这样又出现只含有一个元素F结点的情况，这时，其相邻的兄弟结点是丰满的（元素个数为3>最小元素个数2），这样就可以想父结点借元素了，把父结点中的J下移到该结点中，相应的如果结点中J后有元素则前移，然后相邻兄弟结点中的第一个元素（或者最后一个元素）上移到父节点中，后面的元素（或者前面的元素）前移（或者后移）；注意含有K，L的结点以前依附在M的左边，现在变为依附在J的右边。这样每个结点都满足B树结构性质。
+
+ 
+
+
+
+从以上操作可看出：除根结点之外的结点（包括叶子结点）的关键字的个数n满足：（ceil(m / 2)-1）<= n <= m-1，即2<=n<=4。这也佐证了咱们之前的观点。删除操作完。
+
+第二部分、B+ Tree
+
+B+Tree
+
+    B-Tree有许多变种，其中最常见的是B+Tree，例如MySQL就普遍使用B+Tree实现其索引结构。与B-Tree相比，B+Tree有以下不同点：
+
+每个节点的指针上限为2d而不是2d+1。
+内节点不存储data，只存储key；叶子节点不存储指针。
+    图3是一个简单的B+Tree示意。
+
+
+
+图1
+
+    由于并不是所有节点都具有相同的域，因此B+Tree中叶节点和内节点一般大小不同。这点与B-Tree不同，虽然B-Tree中不同节点存放的key和指针可能数量不一致，但是每个节点的域和上限是一致的，所以在实现中B-Tree往往对每个节点申请同等大小的空间。
+
+     一般来说，B+Tree比B-Tree更适合实现外存储索引结构，具体原因与外存储器原理及计算机存取原理有关，在此不作具体讨论。
+
+带有顺序访问指针的B+Tree
+
+    一般在数据库系统或文件系统中使用的B+Tree结构都在经典B+Tree的基础上进行了优化，增加了顺序访问指针。
+
+
+
+                                                                                                      图4
+
+    如上图4所示，在B+Tree的每个叶子节点增加一个指向相邻叶子节点的指针，就形成了带有顺序访问指针的B+Tree。做这个优化的目的是为了提高区间访问的性能，例如图4中如果要查询key为从18到49的所有数据记录，当找到18后，只需顺着节点和指针顺序遍历就可以一次性访问到所有数据节点，极大提到了区间查询效率。（此第二部分参考自：http://www.cnblogs.com/leoo2sk/archive/2011/07/10/mysql-index.html。）
+
+第三部分、B树的编码实现
+
+    既然明白了B树的插入，和删除操作的原理，接下来，咱们来一步一步实现它。不过，有一点必须说明的是：这个实现只是实现了偶数序order（阶)的情况；还有奇数序order（阶)的情况没有考虑。待日后改进。
+
+ok，以下是头文件：
+//实现对order序(阶)的B-TREE结构基本操作的封装。
+//查找：search，插入：insert，删除：remove。
+//创建：create，销毁：destory，打印：print。
+#ifndef BTREE_H
+#define BTREE_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+////* 定义m序(阶)B 树的最小度数BTree_D=ceil(m)*/
+/// 在这里定义每个节点中关键字的最大数目为:2 * BTree_D - 1，即序(阶)：2 * BTree_D.
+#define BTree_D        2
+#define ORDER        (BTree_D * 2) //定义为4阶B-tree,2-3-4树。最简单为3阶B-tree,2-3树。
+//#define ORDER        (BTree_T * 2-1)	//最简单为3阶B-tree,2-3树。
+
+	typedef int KeyType;
+	typedef struct BTNode{
+		int keynum;                        /// 结点中关键字的个数，keynum <= BTree_N
+		KeyType key[ORDER-1];                /// 关键字向量为key[0..keynum - 1]
+		struct BTNode* child[ORDER];        /// 孩子指针向量为child[0..keynum]
+		bool isLeaf;                    /// 是否是叶子节点的标志
+	}BTNode;
+	
+	typedef BTNode* BTree;	///定义BTree
+	
+	///给定数据集data,创建BTree。
+	void BTree_create(BTree* tree, const KeyType* data, int length);
+
+	///销毁BTree，释放内存空间。
+	void BTree_destroy(BTree* tree);
+	
+	///在BTree中插入关键字key。
+	void BTree_insert(BTree* tree, KeyType key);
+
+	///在BTree中移除关键字key。
+	void BTree_remove(BTree* tree, KeyType key);
+
+	///深度遍历BTree打印各层结点信息。
+	void BTree_print(const BTree tree, int layer=1);
+	
+	/// 在BTree中查找关键字 key，
+	/// 成功时返回找到的节点的地址及 key 在其中的位置 *pos
+	/// 失败时返回 NULL 及查找失败时扫描到的节点位置 *pos
+	BTNode* BTree_search(const BTree tree, int key, int* pos);
+	
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+下面是B树的实现文件：
+//实现对order序(阶)的B-TREE结构基本操作的封装。
+//查找：search，插入：insert，删除：remove。
+//创建：create，销毁：destory，打印：print。
+#include <stdlib.h>
+#include <stdio.h>
+#include <assert.h>
+#include "btree.h"
+
+//#define max(a, b) (((a) > (b)) ? (a) : (b))
+#define cmp(a, b) ( ( ((a)-(b)) >= (0) ) ? (1) : (0) ) //比较a，b大小
+#define DEBUG_BTREE
+
+
+// 模拟向磁盘写入节点
+void disk_write(BTNode* node)
+{
+//打印出结点中的全部元素，方便调试查看keynum之后的元素是否为0(即是否存在垃圾数据)；而不是keynum个元素。
+    printf("向磁盘写入节点");
+	for(int i=0;i<ORDER-1;i++){
+		printf("%c",node->key[i]);
+	}
+	printf("\n");
+}
+
+// 模拟从磁盘读取节点
+void disk_read(BTNode** node)
+{
+//打印出结点中的全部元素，方便调试查看keynum之后的元素是否为0(即是否存在垃圾数据)；而不是keynum个元素。
+	printf("向磁盘读取节点");
+	for(int i=0;i<ORDER-1;i++){
+		printf("%c",(*node)->key[i]);
+	}
+	printf("\n");
+}
+
+// 按层次打印 B 树
+void BTree_print(const BTree tree, int layer)
+{
+    int i;
+    BTNode* node = tree;
+
+    if (node) {
+        printf("第 %d 层， %d node : ", layer, node->keynum);
+
+		//打印出结点中的全部元素，方便调试查看keynum之后的元素是否为0(即是否存在垃圾数据)；而不是keynum个元素。
+        for (i = 0; i < ORDER-1; ++i) {
+		//for (i = 0; i < node->keynum; ++i) {
+            printf("%c ", node->key[i]);
+        }
+
+        printf("\n");
+
+        ++layer;
+        for (i = 0 ; i <= node->keynum; i++) {
+            if (node->child[i]) {
+                BTree_print(node->child[i], layer);
+            }
+        }
+    }
+    else {
+        printf("树为空。\n");
+    }
+}
+
+// 结点node内对关键字进行二分查找。
+int binarySearch(BTNode* node, int low, int high, KeyType Fkey)
+{
+	int mid;
+	while (low<=high)
+	{
+		mid = low + (high-low)/2;
+		if (Fkey<node->key[mid])
+		{
+			high = mid-1;
+		}
+		if (Fkey>node->key[mid])
+		{
+			low = mid+1;
+		}
+		if (Fkey==node->key[mid])
+		{
+			return mid;//返回下标。
+		}
+	}
+	return 0;//未找到返回0.
+}
+
+//insert
+/***************************************************************************************
+   将分裂的结点中的一半元素给新建的结点，并且将分裂结点中的中间关键字元素上移至父节点中。
+   parent 是一个非满的父节点
+   node 是 tree 孩子表中下标为 index 的孩子节点，且是满的，需分裂。
+*******************************************************************/
+void BTree_split_child(BTNode* parent, int index, BTNode* node)
+{
+#ifdef DEBUG_BTREE
+	printf("BTree_split_child!\n");
+#endif
+    assert(parent && node);
+    int i;
+
+    // 创建新节点，存储 node 中后半部分的数据
+    BTNode* newNode = (BTNode*)calloc(sizeof(BTNode), 1);
+    if (!newNode) {
+        printf("Error! out of memory!\n");
+        return;
+    }
+
+    newNode->isLeaf = node->isLeaf;
+    newNode->keynum = BTree_D - 1;
+
+    // 拷贝 node 后半部分关键字,然后将node后半部分置为0。
+    for (i = 0; i < newNode->keynum; ++i){
+        newNode->key[i] = node->key[BTree_D + i];
+        node->key[BTree_D + i] = 0;
+    }
+
+    // 如果 node 不是叶子节点，拷贝 node 后半部分的指向孩子节点的指针，然后将node后半部分指向孩子节点的指针置为NULL。
+    if (!node->isLeaf) {
+        for (i = 0; i < BTree_D; i++) {
+            newNode->child[i] = node->child[BTree_D + i];
+            node->child[BTree_D + i] = NULL;
+        }
+    }
+
+    // 将 node 分裂出 newNode 之后，里面的数据减半
+    node->keynum = BTree_D - 1;
+
+    // 调整父节点中的指向孩子的指针和关键字元素。分裂时父节点增加指向孩子的指针和关键元素。
+    for (i = parent->keynum; i > index; --i) {
+        parent->child[i + 1] = parent->child[i];
+    }
+
+    parent->child[index + 1] = newNode;
+
+    for (i = parent->keynum - 1; i >= index; --i) {
+        parent->key[i + 1] = parent->key[i];
+    }
+
+    parent->key[index] = node->key[BTree_D - 1];
+    ++parent->keynum;
+
+	node->key[BTree_D - 1] = 0;
+
+    // 写入磁盘
+     disk_write(parent);
+     disk_write(newNode);
+     disk_write(node);
+}
+
+void BTree_insert_nonfull(BTNode* node, KeyType key)
+{
+    assert(node);
+
+    int i;
+
+    // 节点是叶子节点，直接插入
+    if (node->isLeaf) {
+        i = node->keynum - 1;
+        while (i >= 0 && key < node->key[i]) {
+            node->key[i + 1] = node->key[i];
+            --i;
+        }
+
+        node->key[i + 1] = key;
+        ++node->keynum;
+
+        // 写入磁盘
+        disk_write(node);
+    }
+
+    // 节点是内部节点
+    else {
+        /* 查找插入的位置*/
+        i = node->keynum - 1;
+        while (i >= 0 && key < node->key[i]) {
+            --i;
+        }
+
+        ++i;
+
+        // 从磁盘读取孩子节点
+        disk_read(&node->child[i]);
+
+        // 如果该孩子节点已满，分裂调整值
+        if (node->child[i]->keynum == (ORDER-1)) {
+            BTree_split_child(node, i, node->child[i]);
+			// 如果待插入的关键字大于该分裂结点中上移到父节点的关键字，在该关键字的右孩子结点中进行插入操作。
+            if (key > node->key[i]) {
+                ++i;
+            }
+        }
+        BTree_insert_nonfull(node->child[i], key);
+    }
+}
+
+void BTree_insert(BTree* tree, KeyType key)
+{
+#ifdef DEBUG_BTREE
+	printf("BTree_insert:\n");
+#endif
+    BTNode* node;
+    BTNode* root = *tree;
+
+    // 树为空
+    if (NULL == root) {
+        root = (BTNode*)calloc(sizeof(BTNode), 1);
+        if (!root) {
+            printf("Error! out of memory!\n");
+            return;
+        }
+        root->isLeaf = true;
+        root->keynum = 1;
+        root->key[0] = key;
+
+        *tree = root;
+
+        // 写入磁盘
+        disk_write(root);
+
+        return;
+    }
+
+    // 根节点已满，插入前需要进行分裂调整
+    if (root->keynum == (ORDER-1)) {
+        // 产生新节点当作根
+        node = (BTNode*)calloc(sizeof(BTNode), 1);
+        if (!node) {
+            printf("Error! out of memory!\n");
+            return;
+        }
+
+        *tree = node;
+        node->isLeaf = false;
+        node->keynum = 0;
+        node->child[0] = root;
+
+        BTree_split_child(node, 0, root);
+
+        BTree_insert_nonfull(node, key);
+    }
+
+    // 根节点未满，在当前节点中插入 key
+    else {
+        BTree_insert_nonfull(root, key);
+    }
+}
+ 
+
+//remove 
+// 对 tree 中的节点 node 进行合并孩子节点处理.
+// 注意：孩子节点的 keynum 必须均已达到下限，即均等于 BTree_D - 1
+// 将 tree 中索引为 index 的 key 下移至左孩子结点中，
+// 将 node 中索引为 index + 1 的孩子节点合并到索引为 index 的孩子节点中，右孩子合并到左孩子结点中。
+// 并调相关的 key 和指针。
+
+void BTree_merge_child(BTree* tree, BTNode* node, int index)
+{
+#ifdef DEBUG_BTREE
+	printf("BTree_merge_child!\n");
+#endif
+    assert(tree && node && index >= 0 && index < node->keynum);
+
+    int i;
+
+    KeyType key = node->key[index];
+    BTNode* leftChild = node->child[index];
+    BTNode* rightChild = node->child[index + 1];
+
+    assert(leftChild && leftChild->keynum == BTree_D - 1
+        && rightChild && rightChild->keynum == BTree_D - 1);
+
+	// 将 node中关键字下标为index 的 key 下移至左孩子结点中，该key所对应的右孩子结点指向node的右孩子结点中的第一个孩子。
+    leftChild->key[leftChild->keynum] = key;
+    leftChild->child[leftChild->keynum + 1] = rightChild->child[0];
+    ++leftChild->keynum;
+
+    // 右孩子的元素合并到左孩子结点中。
+    for (i = 0; i < rightChild->keynum; ++i) {
+        leftChild->key[leftChild->keynum] = rightChild->key[i];
+        leftChild->child[leftChild->keynum + 1] = rightChild->child[i + 1];
+        ++leftChild->keynum;
+    }
+
+    // 在 node 中下移的 key后面的元素前移
+    for (i = index; i < node->keynum - 1; ++i) {
+        node->key[i] = node->key[i + 1];
+        node->child[i + 1] = node->child[i + 2];
+    }
+    node->key[node->keynum - 1] = 0;
+    node->child[node->keynum] = NULL;
+    --node->keynum;
+
+    // 如果根节点没有 key 了，并将根节点调整为合并后的左孩子节点；然后删除释放空间。
+    if (node->keynum == 0) {
+        if (*tree == node) {
+            *tree = leftChild;
+        }
+
+        free(node);
+        node = NULL;
+    }
+
+    free(rightChild);
+	rightChild = NULL;
+}
+
+void BTree_recursive_remove(BTree* tree, KeyType key)
+{
+    // B-数的保持条件之一：
+    // 非根节点的内部节点的关键字数目不能少于 BTree_D - 1
+
+    int i, j, index;
+    BTNode *root = *tree;
+    BTNode *node = root;
+
+    if (!root) {
+        printf("Failed to remove %c, it is not in the tree!\n", key);
+        return;
+    }
+
+	// 结点中找key。
+    index = 0;
+    while (index < node->keynum && key > node->key[index]) {
+        ++index;
+    }
+
+/*======================含有key的当前结点时的情况====================
+node:
+index of Key:			 i-1  i  i+1
+						+---+---+---+---+
+						  *  key   *
+					+---+---+---+---+---+
+						   /     \
+index of Child:		      i	     i+1
+					     /		   \
+					+---+---+	   +---+---+
+				      *   *			  *   *   
+				+---+---+---+  +---+---+---+
+				    leftChild	  rightChild
+============================================================*/
+    /*一、结点中找到了关键字key的情况.*/
+	BTNode *leftChild, *rightChild;
+	KeyType leftKey, rightKey;
+    if (index < node->keynum && node->key[index] == key) {
+        /* 1，所在节点是叶子节点，直接删除*/
+        if (node->isLeaf) {
+            for (i = index; i < node->keynum-1; ++i) {
+                node->key[i] = node->key[i + 1];
+                //node->child[i + 1] = node->child[i + 2];叶子节点的孩子结点为空，无需移动处理。
+            }
+			node->key[node->keynum-1] = 0;
+			//node->child[node->keynum] = NULL;
+            --node->keynum;
+
+            if (node->keynum == 0) {
+                assert(node == *tree);
+                free(node);
+                *tree = NULL;
+            }
+
+            return;
+        }
+		/*2.选择脱贫致富的孩子结点。*/
+		// 2a，选择相对富有的左孩子结点。
+        // 如果位于 key 前的左孩子结点的 key 数目 >= BTree_D，
+        // 在其中找 key 的左孩子结点的最后一个元素上移至父节点key的位置。
+        // 然后在左孩子节点中递归删除元素leftKey。
+        else if (node->child[index]->keynum >= BTree_D) {
+            leftChild = node->child[index];
+            leftKey = leftChild->key[leftChild->keynum - 1];
+            node->key[index] = leftKey;
+
+            BTree_recursive_remove(&leftChild, leftKey);
+        }
+		// 2b，选择相对富有的右孩子结点。
+        // 如果位于 key 后的右孩子结点的 key 数目 >= BTree_D，
+        // 在其中找 key 的右孩子结点的第一个元素上移至父节点key的位置
+        // 然后在右孩子节点中递归删除元素rightKey。
+        else if (node->child[index + 1]->keynum >= BTree_D) {
+            rightChild = node->child[index + 1];
+            rightKey = rightChild->key[0];
+            node->key[index] = rightKey;
+
+            BTree_recursive_remove(&rightChild, rightKey);
+        }
+		/*左右孩子结点都刚脱贫。删除前需要孩子结点的合并操作*/
+        // 2c，左右孩子结点只包含 BTree_D - 1 个节点，
+        // 合并是将 key 下移至左孩子节点，并将右孩子节点合并到左孩子节点中，
+        // 删除右孩子节点，在父节点node中移除 key 和指向右孩子节点的指针，
+        // 然后在合并了的左孩子节点中递归删除元素key。
+        else if (node->child[index]->keynum == BTree_D - 1
+            && node->child[index + 1]->keynum == BTree_D - 1){
+            leftChild = node->child[index];
+
+            BTree_merge_child(tree, node, index);
+
+            // 在合并了的左孩子节点中递归删除 key
+            BTree_recursive_remove(&leftChild, key);
+        }
+    }
+
+/*======================未含有key的当前结点时的情况====================
+node:
+index of Key:			 i-1  i  i+1
+						+---+---+---+---+
+						  *  keyi *
+					+---+---+---+---+---+
+					   /    |    \
+index of Child:		 i-1	i     i+1
+					 /		|       \
+		    +---+---+	+---+---+	   +---+---+
+		     *   *	      *   *		     *   *   
+	    +---+---+---+   +---+---+---+  +---+---+---+
+		leftSibling		  Child	       rightSibling	
+============================================================*/
+	/*二、结点中未找到了关键字key的情况.*/
+    else {
+		BTNode *leftSibling, *rightSibling, *child;
+		// 3. key 不在内节点 node 中，则应当在某个包含 key 的子节点中。
+		//  key < node->key[index], 所以 key 应当在孩子节点 node->child[index] 中
+        child = node->child[index];
+        if (!child) {
+            printf("Failed to remove %c, it is not in the tree!\n", key);
+            return;
+        }
+		/*所需查找的该孩子结点刚脱贫的情况*/
+        if (child->keynum == BTree_D - 1) {
+            leftSibling = NULL;
+            rightSibling = NULL;
+
+            if (index - 1 >= 0) {
+                leftSibling = node->child[index - 1];
+            }
+
+            if (index + 1 <= node->keynum) {
+                rightSibling = node->child[index + 1];
+            }
+			/*选择致富的相邻兄弟结点。*/
+            // 3a，如果所在孩子节点相邻的兄弟节点中有节点至少包含 BTree_D 个关键字
+            // 将 node 的一个关键字key[index]下移到 child 中，将相对富有的相邻兄弟节点中一个关键字上移到
+            // node 中，然后在 child 孩子节点中递归删除 key。
+            if ((leftSibling && leftSibling->keynum >= BTree_D)
+                || (rightSibling && rightSibling->keynum >= BTree_D)) {
+				int richR = 0;
+				if(rightSibling) richR = 1;
+				if(leftSibling && rightSibling) {
+					richR = cmp(rightSibling->keynum,leftSibling->keynum);
+				}
+                if (rightSibling && rightSibling->keynum >= BTree_D && richR) {
+		//相邻右兄弟相对富有，则该孩子先向父节点借一个元素，右兄弟中的第一个元素上移至父节点所借位置，并进行相应调整。
+                    child->key[child->keynum] = node->key[index];
+                    child->child[child->keynum + 1] = rightSibling->child[0];
+                    ++child->keynum;
+
+                    node->key[index] = rightSibling->key[0];
+
+                    for (j = 0; j < rightSibling->keynum - 1; ++j) {//元素前移
+                        rightSibling->key[j] = rightSibling->key[j + 1];
+                        rightSibling->child[j] = rightSibling->child[j + 1];
+                    }
+					rightSibling->key[rightSibling->keynum-1] = 0;
+					rightSibling->child[rightSibling->keynum-1] = rightSibling->child[rightSibling->keynum];
+					rightSibling->child[rightSibling->keynum] = NULL;
+                    --rightSibling->keynum;
+                }
+                else {//相邻左兄弟相对富有，则该孩子向父节点借一个元素，左兄弟中的最后元素上移至父节点所借位置，并进行相应调整。
+                    for (j = child->keynum; j > 0; --j) {//元素后移
+                        child->key[j] = child->key[j - 1];
+                        child->child[j + 1] = child->child[j];
+                    }
+                    child->child[1] = child->child[0];
+                    child->child[0] = leftSibling->child[leftSibling->keynum];
+                    child->key[0] = node->key[index - 1];
+                    ++child->keynum;
+
+                    node->key[index - 1] = leftSibling->key[leftSibling->keynum - 1];
+
+					leftSibling->key[leftSibling->keynum - 1] = 0;
+					leftSibling->child[leftSibling->keynum] = NULL;
+
+                    --leftSibling->keynum;
+                }
+            }
+			/*相邻兄弟结点都刚脱贫。删除前需要兄弟结点的合并操作,*/
+            // 3b, 如果所在孩子节点相邻的兄弟节点都只包含 BTree_D - 1 个关键字，
+            // 将 child 与其一相邻节点合并，并将 node 中的一个关键字下降到合并节点中，
+            // 再在 node 中删除那个关键字和相关指针，若 node 的 key 为空，删之，并调整根为合并结点。
+            // 最后，在相关孩子节点child中递归删除 key。
+            else if ((!leftSibling || (leftSibling && leftSibling->keynum == BTree_D - 1))
+                && (!rightSibling || (rightSibling && rightSibling->keynum == BTree_D - 1))) {
+                if (leftSibling && leftSibling->keynum == BTree_D - 1) {
+
+                    BTree_merge_child(tree, node, index - 1);//node中的右孩子元素合并到左孩子中。
+
+                    child = leftSibling;
+                }
+
+                else if (rightSibling && rightSibling->keynum == BTree_D - 1) {
+
+                    BTree_merge_child(tree, node, index);//node中的右孩子元素合并到左孩子中。
+                }
+            }
+        }
+
+        BTree_recursive_remove(&child, key);//调整后，在key所在孩子结点中继续递归删除key。
+    }
+}
+
+void BTree_remove(BTree* tree, KeyType key)
+{
+#ifdef DEBUG_BTREE
+	printf("BTree_remove:\n");
+#endif
+	if (*tree==NULL)
+	{	
+		printf("BTree is NULL!\n");
+		return;
+	}
+
+	BTree_recursive_remove(tree, key);
+}
+
+//=====================================search====================================
+
+BTNode* BTree_recursive_search(const BTree tree, KeyType key, int* pos)
+{
+    int i = 0;
+
+    while (i < tree->keynum && key > tree->key[i]) {
+        ++i;
+    }
+
+    // Find the key.
+    if (i < tree->keynum && tree->key[i] == key) {
+        *pos = i;
+        return tree;
+    }
+
+    // tree 为叶子节点，找不到 key，查找失败返回
+    if (tree->isLeaf) {
+        return NULL;
+    }
+
+    // 节点内查找失败，但 tree->key[i - 1]< key < tree->key[i]，
+    // 下一个查找的结点应为 child[i]
+
+    // 从磁盘读取第 i 个孩子的数据
+    disk_read(&tree->child[i]);
+
+    // 递归地继续查找于树 tree->child[i]
+    return BTree_recursive_search(tree->child[i], key, pos);
+}
+
+BTNode* BTree_search(const BTree tree, KeyType key, int* pos)
+{
+#ifdef DEBUG_BTREE
+	printf("BTree_search:\n");
+#endif
+	if (!tree) {
+		printf("BTree is NULL!\n");
+        return NULL;
+    }
+	*pos = -1;
+	return BTree_recursive_search(tree,key,pos);
+}
+
+//===============================create===============================
+void BTree_create(BTree* tree, const KeyType* data, int length)
+{
+    assert(tree);
+
+    int i;
+
+#ifdef DEBUG_BTREE
+    printf("\n 开始创建 B-树，关键字为:\n");
+    for (i = 0; i < length; i++) {
+        printf(" %c ", data[i]);
+    }
+    printf("\n");
+#endif
+
+    for (i = 0; i < length; i++) {
+#ifdef DEBUG_BTREE
+        printf("\n插入关键字 %c:\n", data[i]);
+#endif
+		int pos = -1;
+		BTree_search(*tree,data[i],&pos);//树的递归搜索。
+		if (pos!=-1)
+		{
+			printf("this key %c is in the B-tree,not to insert.\n",data[i]);
+		}else{
+			BTree_insert(tree, data[i]);//插入元素到BTree中。
+		}
+
+#ifdef DEBUG_BTREE
+        BTree_print(*tree);//树的深度遍历。
+#endif
+    }
+
+    printf("\n");
+}
+//===============================destroy===============================
+void BTree_destroy(BTree* tree)
+{
+    int i;
+    BTNode* node = *tree;
+
+    if (node) {
+        for (i = 0; i <= node->keynum; i++) {
+            BTree_destroy(&node->child[i]);
+        }
+
+        free(node);
+    }
+
+    *tree = NULL;
+}
+最后，给出测试文件：
+//测试order序(阶)的B-TREE结构基本操作。
+//查找：search，插入：insert，删除：remove。
+//创建：create，销毁：destory，打印：print。
+
+#include <stdio.h>
+#include "btree.h"
+
+void test_BTree_search(BTree tree, KeyType key)
+{
+    int pos = -1;
+    BTNode*    node = BTree_search(tree, key, &pos);
+    if (node) {
+        printf("在%s节点（包含 %d 个关键字）中找到关键字 %c，其索引为 %d\n",
+            node->isLeaf ? "叶子" : "非叶子",
+            node->keynum, key, pos);
+    }
+    else {
+        printf("在树中找不到关键字 %c\n", key);
+    }
+}
+
+void test_BTree_remove(BTree* tree, KeyType key)
+{
+    printf("\n移除关键字 %c \n", key);
+    BTree_remove(tree, key);
+    BTree_print(*tree);
+    printf("\n");
+}
+
+void test_btree()
+{
+
+    KeyType array[] = {
+        'G','G', 'M', 'P', 'X', 'A', 'C', 'D', 'E', 'J', 'K',
+        'N', 'O', 'R', 'S', 'T', 'U', 'V', 'Y', 'Z', 'F', 'X'
+    };
+    const int length = sizeof(array)/sizeof(KeyType);
+    BTree tree = NULL;
+    BTNode* node = NULL;
+    int pos = -1;
+    KeyType key1 = 'R';        // in the tree.
+    KeyType key2 = 'B';        // not in the tree.
+
+    // 创建
+    BTree_create(&tree, array, length);
+
+    printf("\n=== 创建 B- 树 ===\n");
+    BTree_print(tree);
+    printf("\n");
+
+    // 查找
+    test_BTree_search(tree, key1);
+    printf("\n");
+    test_BTree_search(tree, key2);
+
+	// 移除不在B树中的元素
+	test_BTree_remove(&tree, key2);
+	printf("\n");
+
+    // 插入关键字
+    printf("\n插入关键字 %c \n", key2);
+    BTree_insert(&tree, key2);
+    BTree_print(tree);
+    printf("\n");
+
+    test_BTree_search(tree, key2);
+
+    // 移除关键字
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+
+    key2 = 'M';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+
+    key2 = 'E';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+
+    key2 = 'G';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+
+    key2 = 'A';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+
+    key2 = 'D';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+
+    key2 = 'K';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+
+    key2 = 'P';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+
+    key2 = 'J';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+
+    key2 = 'C';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+
+    key2 = 'X';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+
+	key2 = 'O';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+
+	key2 = 'V';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+
+	key2 = 'R';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+
+	key2 = 'U';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+
+	key2 = 'T';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+
+	key2 = 'N';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+	key2 = 'S';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+	key2 = 'Y';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+	key2 = 'F';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+	key2 = 'Z';
+    test_BTree_remove(&tree, key2);
+    test_BTree_search(tree, key2);
+
+	// 销毁
+	BTree_destroy(&tree);
+}
+
+int main()
+{
+	test_btree();
+
+	return 0;
+}

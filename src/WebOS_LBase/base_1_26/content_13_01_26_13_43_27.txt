@@ -1,0 +1,47 @@
+1.import java.util.regex.Matcher;  
+2.import java.util.regex.Pattern;  
+3.  
+4.//1：这个是拿到一个字符取得里面的图像地址返回一个List   
+5.  
+6.public static List<String> getImgStr(String htmlStr){        
+7.         String img="";        
+8.         Pattern p_image;        
+9.         Matcher m_image;        
+10.         List<String> pics = new ArrayList<String>();     
+11.        
+12.         String regEx_img = "<img.*src=(.*?)[^>]*?>"; //图片链接地址        
+13.         p_image = Pattern.compile      
+14.                 (regEx_img,Pattern.CASE_INSENSITIVE);        
+15.        m_image = p_image.matcher(htmlStr);      
+16.        while(m_image.find()){        
+17.             img = img + "," + m_image.group();        
+18.             Matcher m  = Pattern.compile("src=\"?(.*?)(\"|>|\\s+)").matcher(img); //匹配src     
+19.             while(m.find()){     
+20.                pics.add(m.group(1));     
+21.             }     
+22.         }        
+23.            return pics;        
+24.     }       
+25.  
+26.//2：下面是获得第一个地址存入到数据库  
+27.  
+28.    public String saveOrUpdate()   
+29.    {   
+30.     try{  
+31.      if(infoId !=null){  
+32.      infoTpicnew = infoTpicnewService.getInfoTpicnew(infoId);  
+33.      }else{  
+34.         
+35.       infoTpicnew.setInfoDatetime(new Date());  
+36.      }  
+37.      infoTpicnew.setInfoContent(infoContent);  
+38.      List list =getImgStr(infoContent);  
+39.      infoTpicnew.setInfoPicname((String) list.get(0));  
+40.         infoTpicnewService.saveOrUpdateInfoTpicnew(infoTpicnew);  
+41.            return SUCCESS;  
+42.        } catch (Exception e) {  
+43.            e.printStackTrace();  
+44.            return INPUT;  
+45.        }  
+46.    }  
+

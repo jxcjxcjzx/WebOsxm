@@ -1,0 +1,238 @@
+
+首页资讯中心通信产业IT产品IT技术信息化社区博客市场数据 研究报告 ·赛迪教育 ·虚拟化 ·HPC ·数据中心[访谈] [直播] [直邮] [调查]
+		赛迪网 > IT技术 > 技术动态 > 文章	
+IT资讯搜索			
+IT产品搜索			
+·	[Java论坛][安全论坛][数据库论坛][操作系统论坛]
+·	[推荐] 江民安全专家永久免费 立即下载  RSA 2010
+·	[专题] 参与多核UTM调查 赢购物卡 谷歌遭攻击事件
+·	[IT技术周刊][IT资源下载专区][病毒求助专区]
+·	[热点] 《拆弹部队》藏木马 看Xbox360与PS3背后秘密
+·	[热点] 报告:PDF漏洞远超微软 十款免费电子邮件程序
+JAVA基础－－JAVA中的反射机制详解
+发布时间：2007.09.25 04:42     来源：赛迪网技术社区    作者：baocl
+
+JAVA反射机制
+    JAVA反射机制是在运行状态中，对于任意一个类，都能够知道这个类的所有属性和方法；对于任意一个对象，都能够调用它的任意一个方法；这种动态获取的信息以及动态调用对象的方法的功能称为java语言的反射机制。
+Java反射机制主要提供了以下功能： 在运行时判断任意一个对象所属的类；在运行时构造任意一个类的对象；在运行时判断任意一个类所具有的成员变量和方法；在运行时调用任意一个对象的方法；生成动态代理。
+1. 得到某个对象的属性
+
+1 public Object getProperty(Object owner, String fieldName) throws Exception {
+2     Class ownerClass = owner.getClass();
+3 
+4     Field field = ownerClass.getField(fieldName);
+5 
+6     Object property = field.get(owner);
+7 
+8     return property;
+9 }
+Class ownerClass = owner.getClass()：得到该对象的Class。
+
+Field field = ownerClass.getField(fieldName)：通过Class得到类声明的属性。
+
+Object property = field.get(owner)：通过对象得到该属性的实例，如果这个属性是非公有的，这里会报IllegalAccessException。
+
+2. 得到某个类的静态属性
+
+ 1 public Object getStaticProperty(String className, String fieldName)
+ 2             throws Exception {
+ 3     Class ownerClass = Class.forName(className);
+ 4 
+ 5     Field field = ownerClass.getField(fieldName);
+ 6 
+ 7     Object property = field.get(ownerClass);
+ 8 
+ 9     return property;
+10 }
+
+Class ownerClass = Class.forName(className) ：首先得到这个类的Class。
+
+Field field = ownerClass.getField(fieldName)：和上面一样，通过Class得到类声明的属性。
+
+Object property = field.get(ownerClass) ：这里和上面有些不同，因为该属性是静态的，所以直接从类的Class里取。
+
+3. 执行某对象的方法
+
+ 1 public Object invokeMethod(Object owner, String methodName, Object[] args) throws Exception {
+ 2 
+ 3     Class ownerClass = owner.getClass();
+ 4 
+ 5     Class[] argsClass = new Class[args.length];
+ 6 
+ 7     for (int i = 0, j = args.length; i < j; i++) {
+ 8         argsClass[i] = args[i].getClass();
+ 9     }
+10 
+11     Method method = ownerClass.getMethod(methodName, argsClass);
+12 
+13     return method.invoke(owner, args);
+14 }
+Class owner_class = owner.getClass() ：首先还是必须得到这个对象的Class。
+
+5～9行：配置参数的Class数组，作为寻找Method的条件。
+
+Method method = ownerClass.getMethod(methodName, argsClass)：通过Method名和参数的Class数组得到要执行的Method。
+
+method.invoke(owner, args)：执行该Method，invoke方法的参数是执行这个方法的对象，和参数数组。返回值是Object，也既是该方法的返回值。
+
+4. 执行某个类的静态方法
+
+ 1 public Object invokeStaticMethod(String className, String methodName,
+ 2             Object[] args) throws Exception {
+ 3     Class ownerClass = Class.forName(className);
+ 4 
+ 5     Class[] argsClass = new Class[args.length];
+ 6 
+ 7     for (int i = 0, j = args.length; i < j; i++) {
+ 8         argsClass[i] = args[i].getClass();
+ 9     }
+10 
+11     Method method = ownerClass.getMethod(methodName, argsClass);
+12 
+13     return method.invoke(null, args);
+14 }
+
+基本的原理和实例3相同，不同点是最后一行，invoke的一个参数是null，因为这是静态方法，不需要借助实例运行。
+
+5. 新建实例
+ 1 
+ 2 public Object newInstance(String className, Object[] args) throws Exception {
+ 3     Class newoneClass = Class.forName(className);
+ 4 
+ 5     Class[] argsClass = new Class[args.length];
+ 6 
+ 7     for (int i = 0, j = args.length; i < j; i++) {
+ 8         argsClass[i] = args[i].getClass();
+ 9     }
+10 
+11     Constructor cons = newoneClass.getConstructor(argsClass);
+12 
+13     return cons.newInstance(args);
+14 
+15 }
+
+这里说的方法是执行带参数的构造函数来新建实例的方法。如果不需要参数，可以直接使用newoneClass.newInstance()来实现。
+
+Class newoneClass = Class.forName(className)：第一步，得到要构造的实例的Class。
+
+第5～第9行：得到参数的Class数组。
+
+Constructor cons = newoneClass.getConstructor(argsClass)：得到构造子。
+
+cons.newInstance(args)：新建实例。
+
+6. 判断是否为某个类的实例
+
+1 public boolean isInstance(Object obj, Class cls) {
+2     return cls.isInstance(obj);
+3 }
+
+7. 得到数组中的某个元素
+1 public Object getByArray(Object array, int index) {
+2     return Array.get(array,index);
+3 }
+
+[ 发表评论 ] 字体[ 大中小 ] [ 打印 ] [ 进入博客 ] [ 进入论坛 ]  [ 推荐给朋友 ]
+ 	【相关文章】
+·	Tomcat5的数据库连接池配置方法	(09-24)	·	软件人才从实践中来，从软件中来	(09-24)
+·	明白Java的多线程-线程间的通信	(09-21)	·	煮酒论英雄，漫谈Java数据库存取技术	(09-21)
+·	通过JDBC连接oracle数据库的十大技巧	(09-21)	·	Java 7.0 中值得期待的新功能预览	(09-21)
+·	用Java编程获得本机和服务器IP地址	(09-20)	·	开源技术基础：教你如何熟练使用TOMCAT	(09-20)
+·	讨论为什么面向对象的数据库不普及呢?	(09-20)	·	Java软件开发前期规划的重要性	(09-19)
+
+    文章评论
+2011-11-01 16:18:41	R.Zero	  
+非常受用，谢啦
+2011-08-23 13:04:17	 网友	  
+解析的很好，谢谢
+2011-01-14 21:39:03	网友	  
+发表评论
+2010-12-20 20:16:03	网友	  
+555555
+2010-11-24 10:03:28	网友	  
+轻武器
+更多评论>>
+    发表评论:
+笔名* :       E-mail :        匿名	
+
+
+ 	【客户需求反馈表】
+*	姓　　名:		
+ 更多资料　   了解方案　   认识厂商
+
+*	单位名称:	
+*	联系电话:	
+*	电子邮件:	
+  
+
+				
+1
+网友质问贵州5男童烤棚死亡 为何又是贵州？
+
+2
+苏宁张近东：28岁时靠卖空调一年挣到千万
+
+3
+杨澜为李天一轮奸案喊冤 被质疑后向网友道
+
+4
+腾讯马化腾和9高管派利是 红包发到手抽筋
+
+5
+网曝李双江之子李天一女友海量艳照(组图)
+
+6
+PP越狱助手即时更新 一键支持iOS6.1.1完美
+
+7
+富士康节后暂停招工 知情人称3月前不招普工
+
+8
+网友晒另类红包:避孕套带薪年假券代替现金
+
+9
+iOS6.1.1完美越狱 PP越狱助手为i果粉简单实
+
+
+ 
+	资讯 通信 IT产品 IT技术 信息化
+
+·专题:京东商城7亿美元融..
+·专题：戴尔宣布私有化 ..
+·再回首，2012：科技圈st..
+
+
+·专题：移动互联网迎来新..
+·赛迪网年终评奖启动：20..
+·专题:小米盒子梦破碎 机..
+
+
+·专题:服务器教育行业案..
+·专题：回顾2009 原装耗..
+·专题：HP Photosmart Pl..
+
+
+·Array WanVelocity加速..
+·实现自由安全的BYOD..
+·SyScan前瞻信息安全技术..
+
+	
+·垂直搜索嚣张侵权的时代即将终结
+·爱帮网为什么败诉了还在“混淆视听”？
+·国产数码奢侈品为何越卖越贵？
+·微软云计算的三种运营模式
+·快递也“春运”，因为电商基础设施不给力！
+·试看谁能占得AMD APU先机？
+·增值分销：IT分销的新蓝海
+·WiFi会改变生活方式吗
+·VeryCD关闭下载，网民何去何从？
+	
+访问人数过多，请稍候访问
+  
+
+返回主页 | 网站地图 | 关于我们 | 新用户注册 | 网站检索 | 联系广告 | 招聘精英 
+联系我们：webmaster@staff.ccidnet.com Tel:8610-88558907/08 
+广告发布：ad@staff.ccidnet.com Tel:8610-88558945 8610-88558948 
+方案、案例展示：project@staff.ccidnet.com Tel:8610-88558922 
+Copyright 2000-2011 CCIDnet.All rights reserved. 
+京ICP000080号 网站-3	

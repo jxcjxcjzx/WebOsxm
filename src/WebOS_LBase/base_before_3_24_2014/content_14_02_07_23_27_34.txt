@@ -1,0 +1,153 @@
+
+LCS
+
+编辑
+ 
+
+
+本词条介绍的是LCS（计算机科学算法：最长公共子序列），更多含义，请参阅LCS（多义词）。
+ 
+
+
+
+LCS是Longest Common Subsequence的缩写，即最长公共子序列。一个序列，如果是两个或多个已知序列的子序列，且是所有子序列中最长的，则为最长公共子序列。
+
+ 
+目录
+
+1复杂度
+
+2解法
+
+3代码实现
+
+
+
+
+1复杂度
+
+对于一般的LCS问题，都属于NP问题。当数列的量为一定的时，都可以采用动态规划去解决。
+
+2解法
+
+动态规划的一个计算最长公共子序列的方法如下，以两个序列 X、Y 为例子：
+ 
+设有二维数组 f[i][j] 表示 X 的 i 位和 Y 的 j 位之前的最长公共子序列的长度，则有：
+ 
+f[1][1] = same(1,1)
+ 
+f[i][j] = max{f[i-1][j-1] + same(i,j),f[i-1][j],f[i][j-1]}
+ 
+其中，same(a,b)当 X 的第 a 位与 Y 的第 b 位完全相同时为“1”，否则为“0”。
+ 
+此时，f[i][j]中最大的数便是 X 和 Y 的最长公共子序列的长度，依据该数组回溯，便可找出最长公共子序列。
+ 
+该算法的空间、时间复杂度均为O(n^2)，经过优化后，空间复杂度可为O(n)，时间复杂度为O(nlogn)。
+
+3代码实现
+
+C语言实现：
+ 
+#include <stdio.h>
+#include <string.h>
+void main()
+{
+char* x="aabcdababce";
+char* y="12abcabcdace";
+int m = strlen(x);
+int n = strlen(y);
+int i, j, k, l;
+int maxlength = 0;
+int start  = 0;
+int count  = 0;//用来判断是否匹配的变量
+for (i=1;i<=n;i++)//匹配长度的循环
+for (j=0;j<n-i+1;j++)//y的起始位置的循环
+for (k=0;k<m-i+1;k++)//x的起始位置的循环
+{
+count = 0;
+for (l=0;l<i;l++)//判断是否匹配,代码可以优化
+if (y[j+l] == x[k+l])
+count++;
+if (count==i&&i>maxlength)
+{
+maxlength = i;//记录最大长度
+start = j;//记录最大长度的起起位置
+}
+}
+if (maxlength==0)
+printf("No Answer");
+else
+for (i=0;i<maxlength;i++)
+printf("%c",y[start+i]);
+}
+
+
+ 下面的程序是真正的最长公共子串的程序
+ 
+//作者:baihacker
+//时间:9.12.2006
+#include <stdio.h>
+#include <string.h>
+int b[50][50];
+int c[50][50];
+void lcs(x,m,y,n)
+char *x;
+int  m;
+char *y;
+int  n;
+{
+int i;
+int j;
+for (i=1;i<=m;i++) c[i][0] = 0;
+for (i=1;i<=n;i++) c[0][i] = 0;
+c[0][0] = 0;
+for (i=1;i<=m;i++)
+for (j=1;j<=n;j++)
+{
+if (x[i-1] == y[j-1])
+{
+c[i][j] = c[i-1][j-1] + 1;
+b[i][j] = 1;
+}
+else
+if (c[i-1][j] > c[i][j-1])
+{
+c[i][j] = c[i-1][j];
+b[i][j] = 2;
+}
+else
+{
+c[i][j] = c[i][j-1];
+b[i][j] = 3;
+}
+}
+}
+
+void show(i,j,x)
+int i;
+int j;
+char* x;
+{
+if (i==0||j==0)
+return;
+if (b[i][j]==1)
+{
+show(i-1,j-1,x);
+printf("%c",x[i-1]);
+}
+else
+if (b[i][j]==2)
+show(i-1,j,x);
+else
+show(i,j-1,x);
+}
+void main()
+{
+char* x="aabcdababce";
+char* y="12abcabcdace";
+int m = strlen(x);
+int n = strlen(y);
+lcs(x,m,y,n);
+show(m,n,x);
+}
+

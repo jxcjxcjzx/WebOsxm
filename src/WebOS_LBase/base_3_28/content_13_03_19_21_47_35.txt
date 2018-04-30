@@ -1,0 +1,127 @@
+
+·ChinaUnix首页 ·论坛 ·博客 
+	
+	Linux首页 | Linux新闻 | Linux论坛 | Linux文档 | Linux下载 | Linux博客 | Linux搜索 | 开源项目孵化平台 | 《开源时代》	
+新手入门 | 安装启动 | 管理员指南 | 开发手册 | 桌面应用 | 程序开发 | 数据库 | 网络技术| CentOS | Fedora | MySQL | Apache | Ubuntu | Gentoo| OSCON08
+  Linux时代 >> 技术文档 >> 桌面应用
+ 
+怎么使用EMACS
+来源: ChinaUnix博客 　日期： 2006.04.05 22:11　(共有条评论) 我要评论
+ 
+Emacs编辑器的用法：
+       emacs是一个功能强大的编辑集成环境，不仅能编辑各种文件而且还集成了很多的
+   工具。
+       常用的命令如下(注意emacs的习惯，C-x 表示同时按住Ctrl和x，M-x表示先按Esc
+   再按x，C-x v l表示同时按住Ctrl和x后，松开Ctrl再分别按v和l，C-x C-f表示按住
+   Ctrl同是分别按x和f，命令说明是大小写敏感的)：
+   1) Buffer相关。emacs可以同时打开多个文件，每一个文件是一个buffer。
+      在X下可以用C-mouse1来选择当前活动哪个buffer
+      C-x C-b   可以得到一个buffer列表并从中选择哪个buffer打开
+      C-x C-f   打开一个文件
+      C-x i      在打开的buffer中插入一个文件内容
+      C-x k     关闭当前buffer中的文件
+      C-x C-s   保存当前buffer
+      C-x C-w 另存为
+      C-x s      保存所有buffer
+   2) 屏幕分割相关，emacs可以在同一个窗口中看到多个buffer。
+      C-x 2     垂直分割当前子窗口
+      C-x 3 水平分割当前子窗口
+      C-x 1 当前窗口独占窗口空间
+      C-x o 活动子窗口切换到另外一个子窗口
+   3)编辑相关
+     插入/覆盖模式切换
+     M-x overwrite-mode是用来转换 insert mode 与 overwrite mode 
+     重复操作：数值引数适用於所有 EMACS 的指令。它的用途可分成 以下数类：
+■ 对某一指令做重复执行的动作
+■ 用法： C-u n command 或 M- n command
+    如：C-u 4 r 在buffer中输入4个r
+          C-u 4 C-u 5 在buffer中输入4个5（重复输入数字要注意有两个C-u）
+     删除－deletion
+     C-d 向后删除一个字元
+     删除－killing（剪切）
+     在 EMACS 中所谓的 killing 是指将文件从目前的缓冲区移到一个称为kill-ring kill-ring为一个变数的地方去。文件在缓冲区中是消失了， 但却储存在 kill-ring ,variable这一
+个变数中。 EMACS 可以有许多的缓冲区，但却只有一个 kill-ring 的储存变数。 也就是说，多个缓冲区彼此共享一个 kill-ring，而且也只有一个 kill-ring。 EMACS 所设计共享的 killing-ring 的用意是让被遗弃的文件可以找回， 而且各缓冲区彼此也可借由killing-ring 来建立一个互通的管道。 所谓的互通就是把甲缓冲区的东西给乙，反之，也可把乙缓冲区的 东西给甲。此模式在 EMACS 中就是透过 killing-ring 来完成。 因此，想从甲缓冲区中得到某些文件给乙缓冲区，只要将 甲缓冲区的文件放
+入 kill-ring 中，乙缓冲区就可以至此共享的 kill-ring 中将文件取出。如此一来，就可以共享资了。要查看kill-ring中的内容，1. 键入 ``Ctrl-h v'' 後， echo area 处会出现：2. 在Describevariable:後输入变数的名称， EMACS 会另开一个 视窗来显示此变数的值。此时所要键入的变数名为 ``kill-ring''
+     C-k 删除（剪切）一行
+     C-x C-o 删除（剪切）光标所在位置后面的空白行
+     拷贝与粘贴
+      区域标记：设定区块的步骤如下所示：
+1. 设定区块的始位置，也就是所谓的标记（ mark）。
+2. 可使用 `` 
+[email=Ctrl-@'']Ctrl-@''[/email]
+或 `` Ctrl-SPC''或M-x set-mark-command任一个指令来设定标记。
+3. 设定区块的终结位置，也就是移动游标至区块的尾端。
+在标记与 point之间的范围就是所谓的区块。
+      M-@       开始标记区域用于拷贝
+      M-w       拷贝当前mark的区域
+      C-w 将当前mark的区域剪切到内存
+      C-y       在当前位置粘贴剪贴板的内容
+      C-y M-y   即如果在粘贴命令后根一个M-y，则切换剪贴板的内容，可以有多个M-y
+      C-x u undo功能(好象没有redo)
+      Ctrl-x Ctrl-p（mark-page）
+      Ctrl-x Ctrl-l（downcase-region）使区域变成小写
+      Ctrl-x Ctrl-u（upcase-region）使区域变成大写
+      Meta-x fill-region
+      Meta-x print-region
+      替换
+      M-x replace-string RET 旧字串 RET 新字串 RET（不征询意见）
+      M-x query-string RET 旧字串 RET 新字串 RET （征询意见）
+  4)C-g  取消键入的指令
+  5)在线帮助
+     Ctrl-h c与 Ctrl-h k'的功能相似， 二者都是在寻求与 Hotkey有关的讯息。二者唯一的差别，就在於对指令的解释详细与否而已。
+     C-h a 和C-h w可让使用者键入任意的子字串，都可以找到 相对应的指令。使用  Ctrl-h a 所键入的子字串，并不限於指令的第一个字元, 而 Ctrl-h w 则必需以指令的第一个字为起始字。 使用  Ctrl-h a，可给予指令中任何位置的子字串。Ctrl-h a 无法使用 completion，而 Ctrl-h w可使用 completion。
+    C-h i 活着M-x info查看帮助info
+    d  运行Ctrl-h i 指令，会先进入 info 树状结构的根部。任何情况下， 可键入 ``d'' 回到此根
+部
+    m MenuName 直接移动到指定的Menu上
+    n 将结点移至下一个与此结点相连的结点。
+    p 将结点移至上一个与此结点相连的结点。
+    u 将结点移至上一层的结点。
+
+
+本文来自ChinaUnix博客，如果查看原文请点：http://blog.chinaunix.net/u/10475/showart_95769.html
+　 发表评论 查看评论(共有条评论) 我要提问
+ 
+ 	
+
+
+
+最新资讯	更多>> 
+· 谷歌劝说诺基亚采用Android操作..
+· Apache 基金会确认退出 JCP 执..
+· Chrome 10 新功能探秘：新增GP..
+· 金山宣布开源其安全软件
+· 女黑客在开源会议上抱受骚扰
+· 21款值得关注的Linux游戏
+· 马化腾：腾讯半年后彻底转型，..
+· [多图] Chrome OS 预发布版本多..
+· Lubuntu 11.04 默认应用抢先一览
+· Red Hat宣布收购云计算软件提供..
+论坛热点	更多>> 
+· do_execve时候用户栈中参数的..
+· swapinfo -atm 问题
+· Linux 的优点简述
+· VM虚拟机上得Red Hat Linux上..
+· 我看成了上海男人喜欢女人毛..
+· 校车展览，看了你就知道
+· 在遇到他之前，唯一需要做的..
+· GRUB的疑问
+· 从来没有人真正付足书价——..
+· 云存储 vs 网盘
+文档更新	更多>> 
+· orcale queue
+· 谁可以推荐几本经典的操作系统的..
+· 【北京】某物联网公司招云计算应..
+· 【北京】某物联网公司招云计算应..
+· 谁能推荐几本关于操作系统的书
+· 如何添加网络接口eth1
+· 葡萄牙语入门教材的选取与经验分享
+· 葡萄牙语就业前景分析
+· 葡萄牙语学习经验交流
+· Щ
+ 
+关于我们 | 联系方式 | 广告合作 | 诚聘英才 | 网站地图 | 友情链接 | 免费注册
+Copyright © 2001-2009 ChinaUnix.net All Rights Reserved
+
+感谢所有关心和支持过ChinaUnix的朋友们
+京ICP证:060528号

@@ -1,0 +1,534 @@
+三读bootmem
+
+分类： bf561-uclinux 2008-07-24 14:34 1795人阅读 评论(0) 收藏 举报
+listallocationcache存储constraintsstruct
+ 
+
+快乐虾
+http://blog.csdn.net/lights_joy/
+lights@hb165.com
+  
+ 
+本文适用于
+ADI bf561 DSP
+优视BF561EVB开发板
+uclinux-2008r1-rc8 (移植到vdsp5)
+Visual DSP++ 5.0
+  
+欢迎转载，但请保留作者信息
+ 
+
+ 
+
+bootmem是内核中使用的一种较简单的内存分配策略，它用于在系统启动时使用，在buddy等内存分配系统初始化完成后将不再使用。其基本思想是将SDRAM的可用存储空间分成许多页，每页的大小为4K，在分配时以页为单位分配，分配方法是从低往高找直到找到一块或连续多块满足大小要求的空闲页面为止。
+还必须记住：内核支持所谓的NUMA结构，它将整个系统的存储空间分成几个不连续的节点，每个节点用一个pglist_data进行描述，再将这些节点放在一个链表中，但在BF561系统内核中实际只有一个节点。在此节点下，内核又将之分为几个管理区（zone），对于BF561而言，DMA将可以访问整个内存区域，所以实际只使用了一个内存区，ZONE_DMA，在这个内存区中，包含了所有的内存范围。
+1.1.1   相关数据结构
+
+1.1.1.1             bootmem_data
+
+这个结构体的定义在include/linux/bootmem.h：
+/*
+ * node_bootmem_map is a map pointer - the bits represent all physical
+ * memory pages (including holes) on the node.
+ */
+typedef struct bootmem_data {
+     unsigned long node_boot_start;
+     unsigned long node_low_pfn;
+     void *node_bootmem_map;
+/* 下面三个值将用于内存的快速分配 */
+     unsigned long last_offset;
+     unsigned long last_pos;
+     unsigned long last_success; /* Previous allocation point.  To speed
+                        * up searching */
+     struct list_head list;
+} bootmem_data_t;
+l        node_boot_start
+取值为0。
+l        node_low_pfn
+指向SDRAM中最后一个页的页序号。
+l        node_bootmem_map
+node_bootmem_map初始化为内核结束后第一个页的页面地址，而不是页号。
+bootmem试图用一个二进制位表示一页是否占用，如果空闲则该位为0，如果已经使用则该位为1。对于64M的SDRAM来讲，其页面大小为4K，因此其总共的页数为0x3fff(16K)，所需要的字节数为0x800。
+bootmem用内核代码结束后的第1页来保存所有的SDRAM页面使用情况，即node_bootmem_map指向的页面。
+1.1.2   相关全局变量
+
+1.1.2.1             bdata_list
+
+在内核中有一个bdata_list的链表中，它的定义在bootmem.c中：
+static LIST_HEAD(bdata_list);
+内核将所有的bootmem_data放在这个链表里，但是对于BF561来讲，bdata_list的链表将只有一个元素!其定义在mm/page_alloc.c中：
+static bootmem_data_t contig_bootmem_data;
+1.1.3   初始化
+
+1.1.3.1             setup_arch
+
+内核启动时，将调用setup_arch函数 (arch/blackfin/kernel/setup.c)。在此函数中与bootmem相关的代码有：
+……………..
+ 
+     /*
+      * give all the memory to the bootmap allocator,  tell it to put the
+      * boot mem_map at the start of memory
+      */
+     bootmap_size = init_bootmem_node(NODE_DATA(0), memory_start >> PAGE_SHIFT, /* map goes here */
+                        PAGE_OFFSET >> PAGE_SHIFT,
+                        memory_end >> PAGE_SHIFT);
+     /*
+      * free the usable memory,  we have to make sure we do not free
+      * the bootmem bitmap so we then reserve it after freeing it :-)
+      */
+     free_bootmem(memory_start, memory_end - memory_start);
+ 
+     reserve_bootmem(memory_start, bootmap_size);
+此时，内存区域管理的初始化函数paging_init尚未调用，由此可知bootmem的作用是在内核启动完成前提供一种简单的内存管理策略。
+其中PAGE_OFFSET的定义位于include/asm/page.h：
+#define PAGE_OFFSET         (PAGE_OFFSET_RAW)
+PAGE_OFFSET的定义位于include/asm/page_offset.h：
+#ifdef CONFIG_BLACKFIN
+#define PAGE_OFFSET_RAW     0x00000000
+#endif
+1.1.3.2             init_bootmem_node
+
+在setup_arch函数中调用了init_bootmem_node，这个函数的实现在mm/bootmem.c中：
+ 
+/*
+ * Called once to set up the allocator itself.
+ */
+static unsigned long __init init_bootmem_core(pg_data_t *pgdat,
+     unsigned long mapstart, unsigned long start, unsigned long end)
+{
+     bootmem_data_t *bdata = pgdat->bdata;
+     unsigned long mapsize;
+ 
+     bdata->node_bootmem_map = phys_to_virt(PFN_PHYS(mapstart));
+     bdata->node_boot_start = PFN_PHYS(start);
+     bdata->node_low_pfn = end;
+     link_bootmem(bdata);
+ 
+     /*
+      * Initially all pages are reserved - setup_arch() has to
+      * register free RAM areas explicitly.
+      */
+     mapsize = get_mapsize(bdata);
+     memset(bdata->node_bootmem_map, 0xff, mapsize);
+ 
+     return mapsize;
+}
+ 
+unsigned long __init init_bootmem_node(pg_data_t *pgdat, unsigned long freepfn,
+                   unsigned long startpfn, unsigned long endpfn)
+{
+     return init_bootmem_core(pgdat, freepfn, startpfn, endpfn);
+}
+当参数传递到init_bootmem_core时，各个参数的对应值为：
+mapstart取的是memory_start >> PAGE_SHIFT，即内核代码结束后的第一个页序号
+start取的是PAGE_OFFSET >> PAGE_SHIFT，即0。
+end取的是memory_end >> PAGE_SHIFT，即SDRAM的最后一个页号。
+请记住，pgdat指向的是全局唯一的一个变量contig_page_data，它的bdata成员指向全局唯一的一个变量contig_bootmem_data。从这个初始化函数可以大致看出pg_data_t结构体中几个成员的意义。
+l        node_bootmem_map
+     bdata->node_bootmem_map = phys_to_virt(PFN_PHYS(mapstart));
+在这行语句中，mapstart是内核代码结束后的第一个页序号，PFN_PHYS定义为：
+#define PFN_PHYS(x)    ((x) << PAGE_SHIFT)
+而phys_to_virt则定义为：
+#define phys_to_virt(vaddr) ((void *) (vaddr))
+因此node_bootmem_map保存了内核结束后第一个页的页面地址，而不是页号。
+l        node_boot_start
+     bdata->node_boot_start = PFN_PHYS(start);
+取值为0。
+l        node_low_pfn
+     bdata->node_low_pfn = end;
+指向SDRAM中最后一个页的页序号。
+从最后两行可以看出，初始化时将所有的页面都标记为已经使用。
+1.1.3.3             link_bootmem
+
+在init_bootmem_core函数中调用了link_bootmem，这个函数实现为：
+ 
+/*
+ * link bdata in order
+ */
+static void __init link_bootmem(bootmem_data_t *bdata)
+{
+     bootmem_data_t *ent;
+ 
+     if (list_empty(&bdata_list)) {
+         list_add(&bdata->list, &bdata_list);
+         return;
+     }
+     /* insert in order */
+     list_for_each_entry(ent, &bdata_list, list) {
+         if (bdata->node_boot_start < ent->node_boot_start) {
+              list_add_tail(&bdata->list, &ent->list);
+              return;
+         }
+     }
+     list_add_tail(&bdata->list, &bdata_list);
+}
+它的作用就是将bdata放到一个叫bdata_list的链表中，bdata_list的定义在bootmem.c中：
+static LIST_HEAD(bdata_list);
+对于BF561来讲，这个函数将只调用一次，用红色标出的代码将不会执行。因此bdata_list的链表也将只有一个元素!
+1.1.3.4             get_mapsize
+
+在init_bootmem_core函数中调用了get_mapsize，其实现为：
+ 
+/*
+ * Given an initialised bdata, it returns the size of the boot bitmap
+ */
+static unsigned long __init get_mapsize(bootmem_data_t *bdata)
+{
+     unsigned long mapsize;
+     unsigned long start = PFN_DOWN(bdata->node_boot_start);
+     unsigned long end = bdata->node_low_pfn;
+ 
+     mapsize = ((end - start) + 7) / 8;
+     return ALIGN(mapsize, sizeof(long));
+}
+其中bdata->node_boot_start指向SDRAM的起始位置，其值为0。bdata->node_low_pfn则为SDRAM最后一个页的页号。至此我们可以看出，bootmem是试图用一个二进制位表示一页是否占用，如果空闲则该位为0，如果已经使用则该位为1。
+对于64M的SDRAM来讲，其页面大小为4K，因此其总共的页数为0x3fff(16K)，所需要的字节数为0x800。
+从这里还可以知道，bootmem用内核代码结束后的第1页来保存所有的SDRAM页面使用情况。
+1.1.4   内存分配
+
+内核定义了4个宏用于内存分配：
+#define alloc_bootmem(x) /
+     __alloc_bootmem(x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
+#define alloc_bootmem_low(x) /
+     __alloc_bootmem_low(x, SMP_CACHE_BYTES, 0)
+#define alloc_bootmem_pages(x) /
+     __alloc_bootmem(x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
+#define alloc_bootmem_low_pages(x) /
+     __alloc_bootmem_low(x, PAGE_SIZE, 0)
+但是实际上只使用了alloc_bootmem和alloc_bootmem_pages两个宏，它们都调用__alloc_bootmem进行实际的内存分配。在这两个宏中出现的常量定义为：
+l         SMP_CACHE_BYTES
+/*
+ * Bytes per L1 cache line
+ * Blackfin loads 32 bytes for cache
+ */
+#define L1_CACHE_SHIFT 5
+#define L1_CACHE_BYTES (1 << L1_CACHE_SHIFT)
+#define SMP_CACHE_BYTES L1_CACHE_BYTES
+ 即64。
+l         MAX_DMA_ADDRESS
+#define MAX_DMA_ADDRESS PAGE_OFFSET
+而PAGE_OFFSET是定义成0的。
+__pa的定义为：
+#define __pa(vaddr)         virt_to_phys((void *)(vaddr))
+virt_to_phys的定义为：
+#define virt_to_phys(vaddr) ((unsigned long) (vaddr))
+1.1.4.1             __alloc_bootmem
+
+这是实际完成内存分配的代码，但是通常不在其它模块中直接调用。看看__alloc_bootmem的实现代码：
+ 
+void * __init __alloc_bootmem(unsigned long size, unsigned long align,
+                    unsigned long goal)
+{
+     void *mem = __alloc_bootmem_nopanic(size,align,goal);
+ 
+     if (mem)
+         return mem;
+     /*
+      * Whoops, we cannot satisfy the allocation request.
+      */
+     printk(KERN_ALERT "bootmem alloc of %lu bytes failed!/n", size);
+     panic("Out of memory");
+     return NULL;
+}
+再看看的__alloc_bootmem_nopanic实现：
+ 
+void * __init __alloc_bootmem_nopanic(unsigned long size, unsigned long align,
+                         unsigned long goal)
+{
+     bootmem_data_t *bdata;
+     void *ptr;
+ 
+     list_for_each_entry(bdata, &bdata_list, list) {
+         ptr = __alloc_bootmem_core(bdata, size, align, goal, 0);
+         if (ptr)
+              return ptr;
+     }
+     return NULL;
+}
+前面说过bdata_list实际上只有一个元素，因此这一循环将只执行一次。
+在这里align只有两个取值：SMP_CACHE_BYTES和PAGE_SIZE。而goal则全部取0。
+1.1.4.2             __alloc_bootmem_core
+
+实际的内存分配由此函数完成。__alloc_bootmem_core的实现在bootmem.c中，代码较长。先看看注释和声明：
+ 
+/*
+ * We 'merge' subsequent allocations to save space. We might 'lose'
+ * some fraction of a page if allocations cannot be satisfied due to
+ * size constraints on boxes where there is physical RAM space
+ * fragmentation - in these cases (mostly large memory boxes) this
+ * is not a problem.
+ *
+ * On low memory boxes we get it right in 100% of the cases.
+ *
+ * alignment has to be a power of 2 value.
+ *
+ * NOTE:  This function is _not_ reentrant.
+ */
+void * __init
+__alloc_bootmem_core(struct bootmem_data *bdata, unsigned long size,
+           unsigned long align, unsigned long goal, unsigned long limit)
+{
+当调用到这里的时候goal和limit的值都为0，align为页面大小4K或者64。
+而bdata则指向全局唯一的bootmem_data变量contig_bootmem_data。
+以下代码显示了__alloc_bootmem的页面分配策略：
+restart_scan:
+     for (i = preferred; i < eidx; i += incr) {
+         unsigned long j;
+         i = find_next_zero_bit(bdata->node_bootmem_map, eidx, i);
+         i = ALIGN(i, incr);
+         if (i >= eidx)
+              break;
+         if (test_bit(i, bdata->node_bootmem_map))
+              continue;
+         for (j = i + 1; j < i + areasize; ++j) {
+              if (j >= eidx)
+                   goto fail_block;
+              if (test_bit(j, bdata->node_bootmem_map))
+                   goto fail_block;
+         }
+         start = i;
+         goto found;
+     fail_block:
+         i = ALIGN(j, incr);
+     }
+在上面的代码中，prefeered为0，areasize表示总共要求分配的页数，incr取1。很简单，就是沿着页表从低往高找，找到第一个可用的页块。
+当分配成功后，此函数将记录这次分配的信息：
+found:
+     bdata->last_success = PFN_PHYS(start);
+     BUG_ON(start >= eidx);
+ 
+     /*
+      * Is the next page of the previous allocation-end the start
+      * of this allocation's buffer? If yes then we can 'merge'
+      * the previous partial page with this allocation.
+      */
+     if (align < PAGE_SIZE &&
+         bdata->last_offset && bdata->last_pos+1 == start) {
+         …
+     } else {
+         bdata->last_pos = start + areasize - 1;
+         bdata->last_offset = size & ~PAGE_MASK;
+         ret = phys_to_virt(start * PAGE_SIZE + bdata->node_boot_start);
+     }
+ 
+     /*
+      * Reserve the area now:
+      */
+     for (i = start; i < start + areasize; i++)
+         if (unlikely(test_and_set_bit(i, bdata->node_bootmem_map)))
+              BUG();
+     memset(ret, 0, size);
+     return ret;
+还有一个值得注意的是在分配成功之后，此函数还负责将这段内存清0。
+1.1.4.3             分配加速
+
+为了加快分配速度，内核意图使用bootmem_data中的三个变量last_pos，last_offset和last_success。
+从上述分配的代码可以看出，只要搜索的起点preferred选择合适，它将快速跳过已经分配的页，从而加快分配的速度。那么preferred的值是如何来的呢？在这个函数的开头：
+     /*
+      * We try to allocate bootmem pages above 'goal'
+      * first, then we try to allocate lower pages.
+      */
+     if (goal && goal >= bdata->node_boot_start && PFN_DOWN(goal) < end_pfn) {
+         preferred = goal - bdata->node_boot_start;
+ 
+         if (bdata->last_success >= preferred)
+              if (!limit || (limit && limit > bdata->last_success))
+                   preferred = bdata->last_success;
+     } else
+         preferred = 0;
+ 
+     preferred = PFN_DOWN(ALIGN(preferred, align)) + offset;
+     areasize = (size + PAGE_SIZE-1) / PAGE_SIZE;
+     incr = align >> PAGE_SHIFT ? : 1;
+由于两个宏调用中都将goal参数设置为0，因此preferred的值也将恒为0，也就是说bootmem没有使用任何的加速策略，老老实实地从0开始往后找!
+ 
+ 
+1.1.5   内存回收：free_bootmem
+
+void __init free_bootmem(unsigned long addr, unsigned long size)
+{
+     free_bootmem_core(NODE_DATA(0)->bdata, addr, size);
+}
+static void __init free_bootmem_core(bootmem_data_t *bdata, unsigned long addr,
+                        unsigned long size)
+{
+     unsigned long sidx, eidx;
+     unsigned long i;
+ 
+     /*
+      * round down end of usable mem, partially free pages are
+      * considered reserved.
+      */
+     BUG_ON(!size);
+     BUG_ON(PFN_DOWN(addr + size) > bdata->node_low_pfn);
+ 
+     if (addr < bdata->last_success)
+         bdata->last_success = addr;
+ 
+     /*
+      * Round up the beginning of the address.
+      */
+     sidx = PFN_UP(addr) - PFN_DOWN(bdata->node_boot_start);
+     eidx = PFN_DOWN(addr + size - bdata->node_boot_start);
+ 
+     for (i = sidx; i < eidx; i++) {
+         if (unlikely(!test_and_clear_bit(i, bdata->node_bootmem_map)))
+              BUG();
+     }
+}
+调用这个函数的时候，bdata将指向全局变量contig_bootmem_data。
+在这里有：
+#define PFN_UP(x)  (((x) + PAGE_SIZE-1) >> PAGE_SHIFT)
+#define PFN_DOWN(x)    ((x) >> PAGE_SHIFT)
+即把一个地址按页面大小(4K)对齐并转换为它的页号。
+而bdata->node_boot_start的值则为0。
+因而这个函数的功能就是将表示该页的位设置为0，与此表示这个页是空闲的。
+1.1.6   保留指定页：reserve_bootmem
+
+此函数用于将一个或者多个指定的页标记为已分配，其实现在mm/bootmem.c中：
+void __init reserve_bootmem(unsigned long addr, unsigned long size)
+{
+     reserve_bootmem_core(NODE_DATA(0)->bdata, addr, size);
+}
+/*
+ * Marks a particular physical memory range as unallocatable. Usable RAM
+ * might be used for boot-time allocations - or it might get added
+ * to the free page pool later on.
+ */
+static void __init reserve_bootmem_core(bootmem_data_t *bdata, unsigned long addr,
+                       unsigned long size)
+{
+     unsigned long sidx, eidx;
+     unsigned long i;
+ 
+     /*
+      * round up, partially reserved pages are considered
+      * fully reserved.
+      */
+     BUG_ON(!size);
+     BUG_ON(PFN_DOWN(addr) >= bdata->node_low_pfn);
+     BUG_ON(PFN_UP(addr + size) > bdata->node_low_pfn);
+ 
+     sidx = PFN_DOWN(addr - bdata->node_boot_start);
+     eidx = PFN_UP(addr + size - bdata->node_boot_start);
+ 
+     for (i = sidx; i < eidx; i++)
+         if (test_and_set_bit(i, bdata->node_bootmem_map)) {
+#ifdef CONFIG_DEBUG_BOOTMEM
+              printk("hm, page %08lx reserved twice./n", i*PAGE_SIZE);
+#endif
+         }
+}
+调用这个函数的时候，bdata将指向全局变量contig_bootmem_data。
+在这里有：
+#define PFN_UP(x)  (((x) + PAGE_SIZE-1) >> PAGE_SHIFT)
+#define PFN_DOWN(x)    ((x) >> PAGE_SHIFT)
+即把一个地址按页面大小(4K)对齐并转换为它的页号。
+而bdata->node_boot_start的值则为0。
+因而这个函数的功能就是将表示指定页的位设置为1，与此表示这个页已经使用。
+1.1.7   bootmem的终结：free_all_bootmem
+
+在mem_init函数(arch/blackfin/mm/init.c)的开头，就有如下调用：
+     /* This will put all memory onto the freelists. */
+     totalram_pages = free_all_bootmem();
+这将回收所有未被bootmem分配的存储空间。看看(mm/bootmem.c)：
+unsigned long __init free_all_bootmem(void)
+{
+     return free_all_bootmem_core(NODE_DATA(0));
+}
+跟踪free_all_bootmem_core：
+static unsigned long __init free_all_bootmem_core(pg_data_t *pgdat)
+{
+     struct page *page;
+     unsigned long pfn;
+     bootmem_data_t *bdata = pgdat->bdata;
+     unsigned long i, count, total = 0;
+     unsigned long idx;
+     unsigned long *map;
+     int gofast = 0;
+ 
+     BUG_ON(!bdata->node_bootmem_map);
+ 
+     count = 0;
+     /* first extant page of the node */
+     pfn = PFN_DOWN(bdata->node_boot_start);
+     idx = bdata->node_low_pfn - pfn;
+     map = bdata->node_bootmem_map;
+     /* Check physaddr is O(LOG2(BITS_PER_LONG)) page aligned */
+     if (bdata->node_boot_start == 0 ||
+         ffs(bdata->node_boot_start) - PAGE_SHIFT > ffs(BITS_PER_LONG))
+         gofast = 1;
+     for (i = 0; i < idx; ) {
+         unsigned long v = ~map[i / BITS_PER_LONG];
+ 
+         if (gofast && v == ~0UL) {
+              int order;
+ 
+              page = pfn_to_page(pfn);
+              count += BITS_PER_LONG;
+              order = ffs(BITS_PER_LONG) - 1;
+              __free_pages_bootmem(page, order);
+              i += BITS_PER_LONG;
+              page += BITS_PER_LONG;
+         } else if (v) {
+              unsigned long m;
+ 
+              page = pfn_to_page(pfn);
+              for (m = 1; m && i < idx; m<<=1, page++, i++) {
+                   if (v & m) {
+                       count++;
+                       __free_pages_bootmem(page, 0);
+                   }
+              }
+         } else {
+              i += BITS_PER_LONG;
+         }
+         pfn += BITS_PER_LONG;
+     }
+     total += count;
+ 
+     /*
+      * Now free the allocator bitmap itself, it's not
+      * needed anymore:
+      */
+     page = virt_to_page(bdata->node_bootmem_map);
+     count = 0;
+     idx = (get_mapsize(bdata) + PAGE_SIZE-1) >> PAGE_SHIFT;
+     for (i = 0; i < idx; i++, page++) {
+         __free_pages_bootmem(page, 0);
+         count++;
+     }
+     total += count;
+     bdata->node_bootmem_map = NULL;
+ 
+     return total;
+}
+在这个函数中做了几件事：首先收回了未被bootmem分配的页，并把它们链接到buddy的链表中，这个工作由__free_pages_bootmem函数完成。然后收回了用于保存bootmem内存分配信息的map页，最后将node_bootmem_map成员设置为NULL，以此表示bootmem将不再使用。此函数将返回回收的SDRAM页面的数量。
+ 
+
+参考资料
+
+uClinux2.6(bf561)中的CPLB(2008/2/19)
+uclinux2.6(bf561)中的bootmem分析(1)：猜测(2008/5/9)
+uclinux2.6(bf561)中的bootmem分析(2)：调用前的参数分析(2008/5/9)
+uclinux2.6(bf561)中的bootmem分析(3)：init_bootmem_node(2008/5/9)
+uclinux2.6(bf561)中的bootmem分析(4)：alloc_bootmem_pages(2008/5/9)
+uclinux2.6(bf561)内核中的paging_init(2008/5/12)
+uclinux-2008r1(bf561)内核的icache支持(1)：寄存器配置初始化(2008/5/16)
+uclinux-2008r1(bf561)内核的icache支持(2)：icplb_table的生成(2008/5/16)
+uclinux-2008r1(bf561)内核的icache支持(3)：__fill_code_cplbtab(2008/5/16)
+uclinux-2008r1(bf561)内核的icache支持(4)：换页问题(2008/5/16)
+再读uclinux-2008r1(bf561)内核中的bootmem(2008/6/3)
+uclinux-2008r1(bf561)内核中与存储管理相关的几个全局变量(2008/6/4)
+uclinux-2008r1(bf561)内核存储区域初探(2008/6/4)
+uclinux-2008r1(bf561)内核中的zonelist初始化(2008/6/5)
+uclinux-2008r1(bf561)内核中内存管理相关的几个结构体(2008/6/5)
+再读内核存储管理(1)：相关的全局变量(2008/6/17)
+再读内核存储管理(2)：相关的数据结构(2008/6/17)
+再读内核存储管理(3)：bootmem分配策略(2008/6/17)
+再读内核存储管理(4)：存储区域管理(2008/6/17)
+再读内核存储管理(5)：buddy算法(2008/6/17)
+再读内核存储管理(6)：高速缓存的应用(2008/6/17)
+再读内核存储管理(7)：icache支持(2008/6/17)
+再读内核存储管理(8)：片内SRAM的使用(2008/6/17)
+初读SLAB(2008/6/26)

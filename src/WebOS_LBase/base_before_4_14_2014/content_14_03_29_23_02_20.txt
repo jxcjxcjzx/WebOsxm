@@ -1,0 +1,229 @@
+使用WebSocket推送服务器消息
+
+分类： JavaEE 2013-06-17 22:39 1718人阅读 评论(5) 收藏 举报
+以前做项目的时候常常会有客户端提醒的功能,使用的是ajax长轮询的方式,这中方式对服务器端压力比较大,无论有没有通知都会发送心跳请求,最近看了一下html5以及tomcat对websocket支持的相关文章,自己做了个小东东,仅供大家分享.
+
+demo实现的小功能: 客户端A发送请求,通过服务器,直达客户端B
+
+
+演示效果如图所示
+
+
+
+
+
+代码的目录结构
+
+
+
+
+package com.bw.websocket.api;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.bw.websocket.servlet.CallCenterMessageInBound;
+
+@Controller
+public class MessageAPI {
+
+	/**
+	 * 向客户端推送消息
+	 * */
+	@ResponseBody
+	@RequestMapping(value = "/api/send.action")
+	public Map<String, String> send(@RequestParam String clientId,
+			@RequestParam String message) {
+		Map<String, String> result = new HashMap<String, String>();
+		try {
+			CallCenterMessageInBound.send(clientId, message);
+			result.put("message", "success");
+		} catch (IOException e) {
+			result.put("message", e.getLocalizedMessage());
+			e.printStackTrace();
+		}
+		return result;
+	}
+}
+
+
+package com.bw.websocket.servlet;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.catalina.websocket.MessageInbound;
+import org.apache.catalina.websocket.WsOutbound;
+
+public class CallCenterMessageInBound extends MessageInbound {
+	private String clientId;
+	public static final Map<String, MessageInbound> socketList = new HashMap<String, MessageInbound>();
+
+	public static void send(String clientId, String message) throws IOException {
+		MessageInbound messageInbound = socketList.get(clientId);
+		messageInbound.getWsOutbound().writeTextMessage(
+				CharBuffer.wrap(message));
+		messageInbound.getWsOutbound().flush();
+	}
+
+	public CallCenterMessageInBound(String clientId) {
+		this.clientId = clientId;
+	}
+
+	@Override
+	protected void onBinaryMessage(ByteBuffer message) throws IOException {
+
+	}
+
+	@Override
+	protected void onTextMessage(CharBuffer message) throws IOException {
+
+	}
+
+	@Override
+	protected void onOpen(WsOutbound outbound) {
+		socketList.put(clientId, this);
+	}
+
+	@Override
+	protected void onClose(int status) {
+		socketList.remove(clientId);
+	}
+}
+
+package com.bw.websocket.servlet;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.catalina.websocket.MessageInbound;
+import org.apache.catalina.websocket.WsOutbound;
+
+public class CallCenterMessageInBound extends MessageInbound {
+	private String clientId;
+	public static final Map<String, MessageInbound> socketList = new HashMap<String, MessageInbound>();
+
+	public static void send(String clientId, String message) throws IOException {
+		MessageInbound messageInbound = socketList.get(clientId);
+		messageInbound.getWsOutbound().writeTextMessage(
+				CharBuffer.wrap(message));
+		messageInbound.getWsOutbound().flush();
+	}
+
+	public CallCenterMessageInBound(String clientId) {
+		this.clientId = clientId;
+	}
+
+	@Override
+	protected void onBinaryMessage(ByteBuffer message) throws IOException {
+
+	}
+
+	@Override
+	protected void onTextMessage(CharBuffer message) throws IOException {
+
+	}
+
+	@Override
+	protected void onOpen(WsOutbound outbound) {
+		socketList.put(clientId, this);
+	}
+
+	@Override
+	protected void onClose(int status) {
+		socketList.remove(clientId);
+	}
+}
+
+<%@ page language="java" contentType="text/html; charset=utf-8"
+    pageEncoding="utf-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Insert title here</title>
+<script type="text/javascript" src="js/jquery-2.0.2.min.js"></script>
+<script type="text/javascript">
+var clientId =Math.random();
+var url = 'ws://localhost:8080/websocket/WebSocket?clientId='+clientId;
+document.write("Current ClientId:"+clientId);
+var CallCenter = {
+		init:function(url){
+			var _websocket = new WebSocket(url);
+			_websocket.onopen = function(evt) {
+				console.log("Connected to WebSocket server.");
+			};
+			_websocket.onclose = function(evt) {
+				console.log("Disconnected");
+			};
+			_websocket.onmessage = function(evt) {
+				eval(evt.data);
+			};
+			_websocket.onerror = function(evt) {
+				console.log('Error occured: ' + evt);
+			};
+		}
+};
+CallCenter.init(url);
+
+$(document).ready(function(){
+	$("#send").bind("click",function(){
+		$.ajax({
+			   type: "get",
+			   url: "api/send.action",
+			   data: "clientId="+$("#clientId").val()+"&message="+$("#message").val(),
+			   success: function(msg){
+			    	alert(msg.message);
+			   }
+			});
+	});
+});
+</script>
+</head>
+<body>
+<br/>
+To ClientId:
+	<input type="text" id="clientId" />
+	<br /> Message:
+	<input type="text" id="message" />
+	<input type="button" id="send" value="send">
+</body>
+</html>
+
+home.jsp 监控客户端连接
+
+<%@page import="com.bw.websocket.servlet.CallCenterMessageInBound"%>
+<%@page import="java.util.Iterator"%>
+<%@page import="org.apache.catalina.websocket.MessageInbound"%>
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+<%
+	for(Iterator<String> it = CallCenterMessageInBound.socketList.keySet().iterator();it.hasNext();)
+	{
+		String key = it.next();
+		out.println(key+":"+CallCenterMessageInBound.socketList.get(key)+"<br/>");
+	}
+%>
+this home page
+</body>
+</html>
+

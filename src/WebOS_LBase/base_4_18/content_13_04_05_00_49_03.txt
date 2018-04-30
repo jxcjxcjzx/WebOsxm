@@ -1,0 +1,156 @@
+
+
+
+优秀代码阅读日记
+ 
+向大师学习
+
+首页
+留言板
+管理
+google
+ 
+
+
+bash源代码阅读日记（1）2008.06.19
+
+
+
+GNU及以GNU为代表的开源运动对软件世界有着诸多意义，其中极重要的一点是给了所有程序员阅读伟大代码的机会。从代码阅读的角度看，似乎所有人的目光聚焦在Linux kernel上了。然而操作系统内核毕竟太复杂了，需要太多操作系统和算法知识，再加上AT&T汇编的知识，如果没有细致的指导，其难度让一般人望而却步。
+ 
+然而开源软件中遍地都是优秀的代码，linux kernel真得太难了，但还有那么多优秀的软件，并且很多都能称得上是伟大的软件，阅读这些源代码一样可以有大的长进。然而却也不是那么简单。
+ 
+所以才有了解读bash的想法。我选用的版本是bash-3.2， 其源代码很容易下到，这里就不给链接了。
+ 
+
+这是一个精细而庞大的工程，我每读一点都会将心得写在日记中，如果有机会的话会加以总结。欢迎大家分享。
+ 
+在linux下工作的程序员有相当一部分都是vim的用户，我也是其中之一。我并没有选择专门的代码阅读工具，因为我觉得vim已经足够好了。代码下载下来之后，解压，进入bash-3.2的目录。作为一个用C语言写的程序，我想我关心的主要是.c和.h文件，于是我建立了一个bash_src目录，把所有.c和.h文件拷进去(还有些文件是在子目录里的，我都原封不动地拷了)，接着
+ 
+$ctags *.[ch]。
+ 
+
+我想阅读代码应该从整体结构下手，第一步是找到main()，于是执行命令
+ 
+$grep  ‘main() ’ *.[ch]
+ 
+
+提请大家注意main()一定要用引号引起来。
+ 
+发现main()在array.c中。我用vim打开所有代码文件
+ 
+$vim *.[ch]
+ 
+然后执行命令
+ 
+:buffers
+ 
+在列表中找到array.c（第3个），执行
+ 
+:3b
+ 
+
+现在找到main()所在行，代码如下：
+ 
+ 
+ 
+
+842 main()
+ 843 {
+ 844         ARRAY   *a, *new_a, *copy_of_a;
+ 845         ARRAY_ELEMENT   *ae, *aew;
+ 846         char    *s;
+ 
+用<Ctrl-]>找到ARRAY的定义， 在array.h中，定义如下：
+ 
+
+27 typedef intmax_t        arrayind_t;
+  28
+  29 enum atype {array_indexed, array_assoc};
+  30
+  31 typedef struct array {
+  32         enum atype      type;
+  33         arrayind_t      max_index, num_elements;
+  34         struct array_element *head;
+  35 } ARRAY;
+  
+ 
+今天第一个收获就是关于intmax_t
+ 
+它表示能取的最大整形类型，在我机器上是32位。intmax_t定义在/usr/include/stdint.h中， 打开这个文件，相关代码如下：
+ 
+
+133 /* Largest integral types.  */
+ 134 #if __WORDSIZE == 64
+ 135 typedef long int                intmax_t;
+ 136 typedef unsigned long int       uintmax_t;
+ 137 #else
+ 138 __extension__
+ 139 typedef long long int           intmax_t;
+ 140 __extension__
+ 141 typedef unsigned long long int  uintmax_t;
+ 142 #endif
+   
+
+
+  这样就明晰了。按我的理解，在安装C标准库的时候，系统会根据你的机器设定_WORDSIZE的值，接下来就是找到这个奇怪的_WORDSIZE在哪里了（没在这个文件里），stdint.h包含了三个文件：
+ 
+
+23 #ifndef _STDINT_H
+  24 #define _STDINT_H       1
+  25
+  26 #include <features.h>
+  27 #include <bits/wchar.h>
+  28 #include <bits/wordsize.h>
+   
+
+
+找了一下，在第三个，也就是/usr/include/bits/wordsize.h里。不过这个文件还真是有意思，上面有好大一堆说明注释，真正的代码只有一行：
+ 
+
+
+19 #define __WORDSIZE      32
+ 
+这揭露了我32位老爷机的本质:-y。不过不知我强行把它改为64会怎么样呢？回头试试。
+ 
+
+今天已经很晚了，先写这么多，欢迎大家交流。
+
+
+
+bash3.2源代码阅读日记Comments(0)2008年6月19日 09:53
+
+
+
+
+
+
+
+Head Pic
+
+ 
+
+标签云
+
+
+
+最新评论
+
+搜索
+
+ 
+
+
+
+最新留言
+
+友情链接
+ 
+浏览计数器
+
+201 
+
+
+Host by is-Programmer.com | Power by Chito 1.3.3 beta | Design by super j man 
+Courtesy Open Web DesignThanks to Florida Vacation Homes 
+

@@ -1,0 +1,170 @@
+
+Java线程(三)：线程协作-生产者/消费者模式 
+.
+ 分类： Java进阶2012-04-06 22:464925人阅读评论(6)收藏举报
+ 
+java多线程线程通信
+
+
+ 
+        上一篇：Java线程(二)
+ 
+        上一篇讲述了线程的互斥(同步)，但是在很多情况下，仅仅同步是不够的，还需要线程与线程协作(通信)，生产者/消费者模式是一个经典的线程同步以及通信的模型。
+ 
+        假设有这样一种情况，有一个盘子，盘子里只能放一个鸡蛋，A线程专门往盘子里放鸡蛋，如果盘子里有鸡蛋，则一直等到盘子里没鸡蛋，B线程专门从盘子里取鸡蛋，如果盘子里没鸡蛋，则一直等到盘子里有鸡蛋。这里盘子是一个互斥区，每次放鸡蛋是互斥的，每次取鸡蛋也是互斥的，A线程放鸡蛋，如果这时B线程要取鸡蛋，由于A没有释放锁，B线程处于等待状态，进入阻塞队列，放鸡蛋之后，要通知B线程取鸡蛋，B线程进入就绪队列，反过来，B线程取鸡蛋，如果A线程要放鸡蛋，由于B线程没有释放锁，A线程处于等待状态，进入阻塞队列，取鸡蛋之后，要通知A线程放鸡蛋，A线程进入就绪队列。我们希望当盘子里有鸡蛋时，A线程阻塞，B线程就绪，盘子里没鸡蛋时，A线程就绪，B线程阻塞，代码如下：
+ 
+
+
+
+
+
+01.import java.util.ArrayList;  
+02.import java.util.List;  
+03./** 定义一个盘子类，可以放鸡蛋和取鸡蛋 */  
+04.public class Plate {  
+05.    /** 装鸡蛋的盘子 */  
+06.    List<Object> eggs = new ArrayList<Object>();  
+07.    /** 取鸡蛋 */  
+08.    public synchronized Object getEgg() {  
+09.        while (eggs.size() == 0) {  
+10.            try {  
+11.                wait();  
+12.            } catch (InterruptedException e) {  
+13.                e.printStackTrace();  
+14.            }  
+15.        }  
+16.        Object egg = eggs.get(0);  
+17.        eggs.clear();// 清空盘子  
+18.        notify();// 唤醒阻塞队列的某线程到就绪队列  
+19.        System.out.println("拿到鸡蛋");  
+20.        return egg;  
+21.    }  
+22.    /** 放鸡蛋 */  
+23.    public synchronized void putEgg(Object egg) {  
+24.        while (eggs.size() > 0) {  
+25.            try {  
+26.                wait();  
+27.            } catch (InterruptedException e) {  
+28.                e.printStackTrace();  
+29.            }  
+30.        }  
+31.        eggs.add(egg);// 往盘子里放鸡蛋  
+32.        notify();// 唤醒阻塞队列的某线程到就绪队列  
+33.        System.out.println("放入鸡蛋");  
+34.    }  
+35.    static class AddThread extends Thread {  
+36.        private Plate plate;  
+37.        private Object egg = new Object();  
+38.        public AddThread(Plate plate) {  
+39.            this.plate = plate;  
+40.        }  
+41.        public void run() {  
+42.            plate.putEgg(egg);  
+43.        }  
+44.    }  
+45.    static class GetThread extends Thread {  
+46.        private Plate plate;  
+47.        public GetThread(Plate plate) {  
+48.            this.plate = plate;  
+49.        }  
+50.        public void run() {  
+51.            plate.getEgg();  
+52.        }  
+53.    }  
+54.    public static void main(String args[]) {  
+55.        Plate plate = new Plate();  
+56.        for(int i = 0; i < 10; i++) {  
+57.            new Thread(new AddThread(plate)).start();  
+58.            new Thread(new GetThread(plate)).start();  
+59.        }  
+60.    }  
+61.}  
+        输出结果： 
+
+
+
+
+
+
+01.放入鸡蛋  
+02.拿到鸡蛋  
+03.放入鸡蛋  
+04.拿到鸡蛋  
+05.放入鸡蛋  
+06.拿到鸡蛋  
+07.放入鸡蛋  
+08.拿到鸡蛋  
+09.放入鸡蛋  
+10.拿到鸡蛋  
+11.放入鸡蛋  
+12.拿到鸡蛋  
+13.放入鸡蛋  
+14.拿到鸡蛋  
+15.放入鸡蛋  
+16.拿到鸡蛋  
+17.放入鸡蛋  
+18.拿到鸡蛋  
+19.放入鸡蛋  
+20.拿到鸡蛋  
+        8 l程序开始，A线程判断盘子是否为空，放入一个鸡蛋，并且唤醒在阻塞队列的一个线程，阻塞队列为空；假设CPU又调度了一个A线程，盘子非空，执行等待，这个A线程进入阻塞队列；然后一个B线程执行，盘子非空，取走鸡蛋，并唤醒阻塞队列的A线程，A线程进入就绪队列，此时就绪队列就一个A线程，马上执行，放入鸡蛋；如果再来A线程重复第一步，在来B线程重复第二步，整个过程就是生产者(A线程)生产鸡蛋，消费者(B线程)消费鸡蛋。
+ 
+
+        前段时间看了张孝祥老师线程的视频，讲述了一个其学员的面试题，也是线程通信的，在此也分享一下。
+ 
+        题目：子线程循环10次，主线程循环100次，如此循环100次，好像是空中网的笔试题。
+ 
+
+
+
+
+
+01.public class ThreadTest2 {  
+02.    public static void main(String[] args) {  
+03.        final Business business = new Business();  
+04.        new Thread(new Runnable() {  
+05.            @Override  
+06.            public void run() {  
+07.                threadExecute(business, "sub");  
+08.            }  
+09.        }).start();  
+10.        threadExecute(business, "main");  
+11.    }     
+12.    public static void threadExecute(Business business, String threadType) {  
+13.        for(int i = 0; i < 100; i++) {  
+14.            try {  
+15.                if("main".equals(threadType)) {  
+16.                    business.main(i);  
+17.                } else {  
+18.                    business.sub(i);  
+19.                }  
+20.            } catch (InterruptedException e) {  
+21.                e.printStackTrace();  
+22.            }  
+23.        }  
+24.    }  
+25.}  
+26.class Business {  
+27.    private boolean bool = true;  
+28.    public synchronized void main(int loop) throws InterruptedException {  
+29.        while(bool) {  
+30.            this.wait();  
+31.        }  
+32.        for(int i = 0; i < 100; i++) {  
+33.            System.out.println("main thread seq of " + i + ", loop of " + loop);  
+34.        }  
+35.        bool = true;  
+36.        this.notify();  
+37.    }     
+38.    public synchronized void sub(int loop) throws InterruptedException {  
+39.        while(!bool) {  
+40.            this.wait();  
+41.        }  
+42.        for(int i = 0; i < 10; i++) {  
+43.            System.out.println("sub thread seq of " + i + ", loop of " + loop);  
+44.        }  
+45.        bool = false;  
+46.        this.notify();  
+47.    }  
+48.}  
+ 
+        大家注意到没有，在调用wait方法时，都是用while判断条件的，而不是if，在wait方法说明中，也推荐使用while，因为在某些特定的情况下，线程有可能被假唤醒，使用while会循环检测更稳妥。 

@@ -1,0 +1,349 @@
+
+博客首页登录注册悦博:非典十年记忆
+ 发博文
+博文
+
+×
+推荐：摄影博客记录世间百态博友热议全国两会
+快乐小屋
+http://blog.sina.com.cn/wanglixincabin [订阅][手机订阅]
+首页博文目录图片关于我
+个人资料
+
+快乐小屋
+Qing  微博
+加好友发纸条
+写留言加关注
+博客等级：
+博客积分：467
+博客访问：4,966
+关注人气：6
+精彩图文
+梦幻人体彩绘
+
+倾城国色旗袍
+新浪Qing
+
+出浴美女干露露
+新浪Qing
+
+小清新美女自拍
+新浪Qing
+
+童话里的小女孩
+新浪Qing
+
+临终后悔五件事
+新浪Qing
+
+年度校花代言人
+新浪Qing
+查看更多>>
+相关博文
+资深优质剩女“自嫁”法则
+mshrm
+港台明星抗战剧出尽风头
+木子海
+网络摄像机实践
+tucsen2008
+三亚警方称袭警游客系黑龙江穆
+老君论道
+林州道路交通摄像头
+逐日追风
+体感游戏是未来游戏主流趋势？
+博闻周刊
+IP高清智能高速球的发展趋势
+夏诺的宝盒
+电视大课堂&nbsp
+漫步地球村
+学车手记&nbsp;
+忽如一烨
+更多>>
+推荐博文
+英怀孕妈妈肚皮上惊现婴儿脸(图
+趣看天下官博
+毛骨悚然的“婴儿”蛋糕你敢吃吗
+趣看天下官博
+
+婴儿蛋糕你敢吃吗
+
+孕妇肚皮惊现婴儿脸
+
+北大白皮松
+
+丰乳肥臀的动物
+
+神奇九寨
+
+上万鲨鱼围攻美海滩
+查看更多>>
+谁看过这篇博文
+加载中…
+正文字体大小：大 中 小
+【代码】单目摄像机标定程序_分享 (2012-05-08 19:17:41)转载▼
+标签： 摄像头 代码分享 it	
+我自己写了一个摄像机标定程序，核心算法参照learning opencv，但是那个程序要从命令行预先输入参数，且标定图片要预先准备好，我觉得不太好，我就自己写了一个，跟大家分享下。
+若有纰漏，希望大家指正！
+
+#include "stdafx.h"
+#include "cv.h"
+#include "highgui.h"
+#include <string>
+#include <iostream>
+
+using namespace std;
+
+int main()
+{
+int cube_length=7;
+
+CvCapture* capture;
+
+capture=cvCreateCameraCapture(0);
+
+if(capture==0){
+printf("无法捕获摄像头设备！\n\n");
+return 0;
+}else{
+printf("捕获摄像头设备成功！！\n\n");
+}
+
+IplImage* frame;
+
+cvNamedWindow("摄像机帧截取窗口",1);
+
+printf("按“C”键截取当前帧并保存为标定图片...\n按“Q”键退出截取帧过程...\n\n");
+
+int number_image=1;
+char *str1;
+str1=".jpg";
+char filename[20]="";
+
+while(true)
+{
+frame=cvQueryFrame(capture);
+if(!frame)
+break;
+cvShowImage("摄像机帧截取窗口",frame);
+
+if(cvWaitKey(10)=='c'){
+sprintf_s (filename,"%d.jpg",number_image);
+cvSaveImage(filename,frame);
+cout<<"成功获取当前帧，并以文件名"<<filename<<"保存...\n\n";
+printf("按“C”键截取当前帧并保存为标定图片...\n按“Q”键退出截取帧过程...\n\n");
+number_image++;
+}else if(cvWaitKey(10)=='q'){
+printf("截取图像帧过程完成...\n\n");
+cout<<"共成功截取"<<--number_image<<"帧图像！！\n\n";
+break;
+}
+}
+
+cvReleaseImage(&frame);//若您的是1.0版本，如果报错请修改为cvReleaseCapture(&capture)，或将此句加在cvReleaseImage(&frame);后
+cvDestroyWindow("摄像机帧截取窗口");
+
+IplImage * show;
+cvNamedWindow("RePlay",1);
+
+int a=1;
+int number_image_copy=number_image;
+
+CvSize board_size=cvSize(7,7);
+int board_width=board_size.width;
+int board_height=board_size.height;
+int total_per_image=board_width*board_height;
+CvPoint2D32f * image_points_buf = new CvPoint2D32f[total_per_image];
+CvMat * image_points=cvCreateMat(number_image*total_per_image,2,CV_32FC1);
+CvMat * object_points=cvCreateMat(number_image*total_per_image,3,CV_32FC1);
+CvMat * point_counts=cvCreateMat(number_image,1,CV_32SC1);
+CvMat * intrinsic_matrix=cvCreateMat(3,3,CV_32FC1);
+CvMat * distortion_coeffs=cvCreateMat(5,1,CV_32FC1);
+
+int count;
+int found;
+int step;
+int successes=0;
+
+while(a<=number_image_copy){
+sprintf_s (filename,"%d.jpg",a);
+show=cvLoadImage(filename,-1);
+
+found=cvFindChessboardCorners(show,board_size,image_points_buf,&count,
+CV_CALIB_CB_ADAPTIVE_THRESH|CV_CALIB_CB_FILTER_QUADS);
+if(found==0){
+cout<<"第"<<a<<"帧图片无法找到棋盘格所有角点!\n\n";
+cvNamedWindow("RePlay",1);
+cvShowImage("RePlay",show);
+cvWaitKey(0);
+
+}else{
+cout<<"第"<<a<<"帧图像成功获得"<<count<<"个角点...\n";
+
+cvNamedWindow("RePlay",1);
+
+IplImage * gray_image= cvCreateImage(cvGetSize(show),8,1);
+cvCvtColor(show,gray_image,CV_BGR2GRAY);
+cout<<"获取源图像灰度图过程完成...\n";
+cvFindCornerSubPix(gray_image,image_points_buf,count,cvSize(11,11),cvSize(-1,-1),
+cvTermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER,30,0.1));
+cout<<"灰度图亚像素化过程完成...\n";
+cvDrawChessboardCorners(show,board_size,image_points_buf,count,found);
+cout<<"在源图像上绘制角点过程完成...\n\n";
+cvShowImage("RePlay",show);
+
+
+
+cvWaitKey(0);
+}
+
+if(total_per_image==count){
+step=successes*total_per_image;
+for(int i=step,j=0;j<total_per_image;++i,++j){
+CV_MAT_ELEM(*image_points,float,i,0)=image_points_buf[j].x;
+CV_MAT_ELEM(*image_points,float,i,1)=image_points_buf[j].y;
+CV_MAT_ELEM(*object_points,float,i,0)=(float)(j/cube_length);
+CV_MAT_ELEM(*object_points,float,i,1)=(float)(j%cube_length);
+CV_MAT_ELEM(*object_points,float,i,2)=0.0f;
+}
+CV_MAT_ELEM(*point_counts,int,successes,0)=total_per_image;
+successes++;
+}
+a++;
+}
+
+cvReleaseImage(&show);
+cvDestroyWindow("RePlay");
+
+
+cout<<"*********************************************\n";
+cout<<number_image<<"帧图片中，标定成功的图片为"<<successes<<"帧...\n";
+cout<<number_image<<"帧图片中，标定失败的图片为"<<number_image-successes<<"帧...\n\n";
+cout<<"*********************************************\n\n";
+
+cout<<"按任意键开始计算摄像机内参数...\n\n";
+
+
+CvCapture* capture1;
+capture1=cvCreateCameraCapture(0);
+IplImage * show_colie;
+show_colie=cvQueryFrame(capture1);
+
+
+CvMat * object_points2=cvCreateMat(successes*total_per_image,3,CV_32FC1);
+CvMat * image_points2=cvCreateMat(successes*total_per_image,2,CV_32FC1);
+CvMat * point_counts2=cvCreateMat(successes,1,CV_32SC1);
+
+
+for(int i=0;i<successes*total_per_image;++i){
+CV_MAT_ELEM(*image_points2,float,i,0)=CV_MAT_ELEM(*image_points,float,i,0);
+CV_MAT_ELEM(*image_points2,float,i,1)=CV_MAT_ELEM(*image_points,float,i,1);
+CV_MAT_ELEM(*object_points2,float,i,0)=CV_MAT_ELEM(*object_points,float,i,0);
+CV_MAT_ELEM(*object_points2,float,i,1)=CV_MAT_ELEM(*object_points,float,i,1);
+CV_MAT_ELEM(*object_points2,float,i,2)=CV_MAT_ELEM(*object_points,float,i,2);
+}
+
+for(int i=0;i<successes;++i){
+CV_MAT_ELEM(*point_counts2,int,i,0)=CV_MAT_ELEM(*point_counts,int,i,0);
+}
+
+
+cvReleaseMat(&object_points);
+cvReleaseMat(&image_points);
+cvReleaseMat(&point_counts);
+
+
+CV_MAT_ELEM(*intrinsic_matrix,float,0,0)=1.0f;
+CV_MAT_ELEM(*intrinsic_matrix,float,1,1)=1.0f;
+
+
+cvCalibrateCamera2(object_points2,image_points2,point_counts2,cvGetSize(show_colie),
+intrinsic_matrix,distortion_coeffs,NULL,NULL,0);
+
+cout<<"摄像机内参数矩阵为：\n";
+cout<<CV_MAT_ELEM(*intrinsic_matrix,float,0,0)<<" "<<CV_MAT_ELEM(*intrinsic_matrix,float,0,1)
+<<" "<<CV_MAT_ELEM(*intrinsic_matrix,float,0,2)
+<<"\n\n";
+cout<<CV_MAT_ELEM(*intrinsic_matrix,float,1,0)<<" "<<CV_MAT_ELEM(*intrinsic_matrix,float,1,1)
+<<" "<<CV_MAT_ELEM(*intrinsic_matrix,float,1,2)
+<<"\n\n";
+cout<<CV_MAT_ELEM(*intrinsic_matrix,float,2,0)<<" "<<CV_MAT_ELEM(*intrinsic_matrix,float,2,1)
+<<" "<<CV_MAT_ELEM(*intrinsic_matrix,float,2,2)
+<<"\n\n";
+
+cout<<"畸变系数矩阵为：\n";
+cout<<CV_MAT_ELEM(*distortion_coeffs,float,0,0)<<" "<<CV_MAT_ELEM(*distortion_coeffs,float,1,0)
+<<" "<<CV_MAT_ELEM(*distortion_coeffs,float,2,0)
+<<" "<<CV_MAT_ELEM(*distortion_coeffs,float,3,0)
+<<" "<<CV_MAT_ELEM(*distortion_coeffs,float,4,0)
+<<"\n\n";
+
+cvSave("Intrinsics.xml",intrinsic_matrix);
+cvSave("Distortion.xml",distortion_coeffs);
+
+cout<<"摄像机矩阵、畸变系数向量已经分别存储在名为Intrinsics.xml、Distortion.xml文档中\n\n";
+
+CvMat * intrinsic=(CvMat *)cvLoad("Intrinsics.xml");
+CvMat * distortion=(CvMat *)cvLoad("Distortion.xml");
+
+IplImage * mapx=cvCreateImage(cvGetSize(show_colie),IPL_DEPTH_32F,1);
+IplImage * mapy=cvCreateImage(cvGetSize(show_colie),IPL_DEPTH_32F,1);
+
+cvInitUndistortMap(intrinsic,distortion,mapx,mapy);
+
+cvNamedWindow("原始图像",1);
+cvNamedWindow("非畸变图像",1);
+
+cout<<"按‘E’键退出显示...\n\n";
+
+while(show_colie){
+IplImage * clone=cvCloneImage(show_colie);
+cvShowImage("原始图像",show_colie);
+cvRemap(clone,show_colie,mapx,mapy);
+cvReleaseImage(&clone);
+cvShowImage("非畸变图像",show_colie);
+
+if(cvWaitKey(10)=='e'){
+break;
+}
+
+show_colie=cvQueryFrame(capture1);
+}
+
+return 0;
+
+}
+分享：  分享到新浪Qing 
+0
+喜欢
+阅读(7)┊ 评论 (0)┊	 收藏(0) ┊转载	 ┊ 喜欢▼ ┊打印┊举报
+已投稿到：	 排行榜 圈子
+前一篇：如何成为一个C++高级程序员
+后一篇：【代码】单目摄像机标定程序_分享2
+评论 重要提示：警惕虚假中奖信息|[商讯]我有明星气势签名 [发评论]
+评论加载中，请稍候...
+发评论 [商讯]爱心签名换梦想，天天派奖|[商讯]提高博客人气新方法
+
+更多>>
+
+登录名： 密码： 找回密码 注册	记住登录状态
+
+ 分享到微博    评论并转载此博文
+
+验证码： 请点击后输入验证码 收听验证码	 	 
+
+匿名评论
+发评论
+以上网友发言只代表其个人观点，不代表新浪网的观点或立场。
+< 前一篇
+如何成为一个C++高级程序员
+后一篇 >
+【代码】单目摄像机标定程序_分享2
+
+新浪BLOG意见反馈留言板　不良信息反馈　电话：4006900000 提示音后按1键（按当地市话标准计费）　欢迎批评指正
+新浪简介 | About Sina | 广告服务 | 联系我们 | 招聘信息 | 网站律师 | SINA English | 会员注册 | 产品答疑
+Copyright © 1996 - 2013 SINA Corporation, All Rights Reserved
+新浪公司 版权所有
+ 
+
+幻灯播放
+关闭

@@ -1,0 +1,148 @@
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import Net.FileNumber;
+
+public class GetContentPicture {
+//得到了图片地址并下载图片
+public void getHtmlPicture(String httpUrl) {
+URL url;
+BufferedInputStream in;
+FileOutputStream file;
+int count;                      //图片文件名序号 
+FileNumber num=new FileNumber();//图片文件名序号类，num为对象
+count=num.NumberReadFromFile();//获取图片文件序号
+try {
+System.out.println("获取网络图片");
+   String fileName = (String.valueOf(count)).concat(httpUrl.substring(httpUrl.lastIndexOf(".")));//图片文件序号加上图片的后缀名，后缀名用了String内的一个方法来获得
+    //httpUrl.substring(httpUrl.lastIndexOf("/"));//这样获得的文件名即是图片链接里图片的名字
+   String filePath = "图片的再本地硬盘的存储位置";//图片存储的位置
+   url = new URL(httpUrl);
+
+   in = new BufferedInputStream(url.openStream());
+
+   file = new FileOutputStream(new File(filePath+fileName));
+   int t;
+   while ((t = in.read()) != -1) {
+    file.write(t);
+   }
+   file.close();
+   in.close();
+   System.out.println("图片获取成功");
+   count=count+1;//图片文件序号加1
+   num.NumberWriteToFile(count);//将图片名序号保存
+} catch (MalformedURLException e) {
+   e.printStackTrace();
+} catch (FileNotFoundException e) {
+   e.printStackTrace();
+} catch (IOException e) {
+   e.printStackTrace();
+}
+}
+
+//获取网页的代码保存在String格式的Content中
+public String getHtmlCode(String httpUrl) throws IOException {
+String content ="";
+URL uu = new URL(httpUrl); // 创建URL类对象
+BufferedReader ii = new BufferedReader(new InputStreamReader(uu
+    .openStream())); // //使用openStream得到一输入流并由此构造一个BufferedReader对象
+String input;
+while ((input = ii.readLine()) != null) { // 建立读取循环，并判断是否有读取值
+   content += input;
+}
+ii.close();
+return content;
+}
+//分析网页代码，找到匹配的网页图片地址
+public void get(String url) throws IOException {
+
+String searchImgReg = "(?x)(src|SRC|background|BACKGROUND)=('|\")/?(([\\w-]+/)*([\\w-]+\\.(jpg|JPG|png|PNG|gif|GIF)))('|\")";//用于在网页代码Content中查找匹配的图片链接。
+String searchImgReg2 = "(?x)(src|SRC|background|BACKGROUND)=('|\")(http://([\\w-]+\\.)+[\\w-]+(:[0-9]+)*(/[\\w-]+)*(/[\\w-]+\\.(jpg|JPG|png|PNG|gif|GIF)))('|\")";
+
+String content = this.getHtmlCode(url);//this指对象gcp，在此地调用获取网页代码，getHtmlCode方法
+//System.out.println(content); //输出的content将是一个连续的字符串。
+
+Pattern pattern = Pattern.compile(searchImgReg);//java.util.regex.Pattern
+Matcher matcher = pattern.matcher(content);     //java.util.regex.Matcher
+while (matcher.find()) {
+   System.out.println(matcher.group(3));//输出图片链接地址到屏幕
+// System.out.println(url);
+   this.getHtmlPicture(matcher.group(3));//对象调用getHtmlPicture从网上下载并输出图片文件到指定目录
+}
+
+pattern = Pattern.compile(searchImgReg2);
+matcher = pattern.matcher(content);
+while (matcher.find()) {
+   System.out.println(matcher.group(3));
+   this.getHtmlPicture(matcher.group(3));
+}
+// searchImgReg =
+// "(?x)(src|SRC|background|BACKGROUND)=('|\")/?(([\\w-]+/)*([\\w-]+\\.(jpg|JPG|png|PNG|gif|GIF)))('|\")";
+}
+//主函数url网页的地址
+public static void main(String[] args) throws IOException {
+String url = "这里输入网址";
+GetContentPicture gcp = new GetContentPicture();
+gcp.get(url);
+
+}
+}
+
+//图片文件名，需要在文件名序号TXT文件保存地址建立一个number.txt并写入1保存；
+
+package Net;
+import java.io.*;
+
+public class FileNumber{
+//文件写
+public void NumberWriteToFile(int x){
+   int c=0;
+   c=x;
+   File filePath=new File("文件名序号TXT文件保存地址");
+   File f1=new File(filePath,"number.txt");
+   try{
+    FileOutputStream fout=new FileOutputStream(f1);
+    DataOutputStream out=new DataOutputStream(fout);
+    out.writeInt(c);
+   
+   }
+   catch(FileNotFoundException e){
+    System.err.println(e);
+   }
+   catch(IOException e){
+    System.err.println(e);
+   }
+  
+}
+//文件读
+public int NumberReadFromFile(){
+   int c1 = 0;
+   File filePath=new File("d:/photos/mm");
+   File f1=new File(filePath,"number.txt");
+   try{
+    FileInputStream fin=new FileInputStream(f1);
+    DataInputStream in=new DataInputStream(fin);
+    c1=in.readInt();
+    System.out.println(c1);//输出文件内容至屏幕
+   }
+   catch(FileNotFoundException e){
+    System.err.println(e);
+   }
+   catch(IOException e){
+    System.err.println(e);
+   }
+   return c1;
+}
+public static void main(String args[]){
+  
+}
+}
+

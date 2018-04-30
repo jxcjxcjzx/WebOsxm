@@ -1,0 +1,49 @@
+BIOS int 0x15 获取内存信息  
+
+2013-01-14 17:22:54|  分类： kernel-zs |字号 订阅
+
+先介绍 int 0x15   ax=0xe820。这个方法的作用是获取内存分布情况。
+
+具体使用方法如下：
+第一次调用 int 0x15时eax应赋值为0xE820;  ebx赋值为0;  es:di 指向一段缓冲区，用来存放ARDS（Address Range Descriptor Structure），即内存分布描述符; ecx用来存放这个描述符的大小，以字节为单位。不过，通常情况下BIOS总是填充20字节的信息到ARDS中;  edx 存放“SMAP”的ASCII码，即0x0534D4150。
+
+当执行int 0x15之后，CF位置位表明调用出错，否则无错 ;  eax存放"SMAP" 的ASCII码; es：di存放描述信息； ecx存放ARDS描述符字节数；ebx存放下一地址描述符所需的后续值，如果ebx中值为0则说明已经到了最后一个地址范围描述符了。
+
+下面一段代码是我写的一个bootsect中用来探测内存分布情况的部分，通过此段代码具体说明一下如何用int 0x15来探测内存分布情况：
+（这段代码使用AT&T汇编写的，如果不习惯AT&T风格的童鞋可以参考《一个操作系统的实现》作者：于渊 p75，用INTEL汇编写的内存探测代码。）
+32 Init_e820:
+ 33     xorl %eax, %eax                       #将eax清零
+ 34     movl %eax, MemNR                      #将记录内存段数目的变量MemBR清零
+ 35     xorl %ebx, %ebx                       
+ 36     movw $MemInfo, %di                    #将用来存放ARDS的缓冲区地址放入di寄存器
+ 37 
+ 38 Mem_e820:
+ 39     movw $0x0e820, %ax                    
+ 40     movl $20, %ecx
+ 41     movl SMAP, %edx
+ 42     int $0x15                             #待所有寄存器的值都写好以后执行int 0x15
+ 43 
+ 44 Check_e820:
+ 45     jc Fail_e820                          #如果CF被置位，说明有错，则跳到Fail_e820处
+ 46     cmpl $0, %ebx                         
+ 47     je End_e820                           #如果ebx为0,说明是内存段的最后一个，跳到End_e820处
+ 48 
+ 49 Again_e820：
+ 50     movw %di, %ax                         #否则将di寄存器的地址值向后加20字节
+
+ 51     addw $20, %ax
+ 52     movw %ax, %di
+ 53     incl MemNR                            #让记录内存段数目的变量自增1
+ 54     jmp Mem_e820                          #跳到Mem_e820处准备下一次探测
+ 55 
+ 56 Fail_e820:                                #探测过程中出错将跳到此处
+ 57     jmp .
+ 58 
+ 59 End_e820:                                 #探测结束将跳到此处
+ 60     jmp .
+
+
+因为只是用来说明int 0x15，所以没有将结果打印出来（其实打印出结果还是比较麻烦）也没有后续操作，不过后面肯定会打印结果的。
+
+so，如上代码，结合注释，应该比较清楚int 0x15 的e820方法了.....that's all
+

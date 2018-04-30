@@ -1,0 +1,466 @@
+import java.io.ByteArrayInputStream; 
+import java.io.ByteArrayOutputStream; 
+import java.io.File; 
+import java.io.FileInputStream; 
+import java.io.IOException; 
+import java.io.InputStream; 
+import java.io.UnsupportedEncodingException; 
+import java.security.InvalidKeyException; 
+import java.security.MessageDigest; 
+import java.security.NoSuchAlgorithmException; 
+import java.security.SecureRandom; 
+import java.security.spec.InvalidKeySpecException; 
+import java.util.Arrays; 
+
+import javax.crypto.Cipher; 
+import javax.crypto.KeyGenerator; 
+import javax.crypto.NoSuchPaddingException; 
+import javax.crypto.SecretKey; 
+import javax.crypto.SecretKeyFactory; 
+import javax.crypto.spec.DESKeySpec; 
+
+import org.dom4j.Document; 
+import org.dom4j.DocumentException; 
+import org.dom4j.io.SAXReader; 
+
+import com.nankang.framework.lang.ByteArray; 
+
+public class CodeUtil { 
+
+// des密码 
+private static String defaultKey = "defaultKey"; 
+// des类 
+private static DES des = new DES(defaultKey); 
+
+private static int HEAD_LENGTH = 16 ; 
+
+// 将字节数组补成8的倍数，以0填充; 
+public static byte[] addZerosForDes(byte[] source) 
+{ 
+byte [] ret = null; 
+if(source==null || source.length%8==0) 
+ret = source; 
+else 
+{ 
+int i = source.length+8-source.length%8; 
+ret = new byte[i]; 
+System.arraycopy(source,0,ret,0,source.length); 
+} 
+return ret; 
+} 
+
+//将字节数组末尾的0去掉(小于8位); 
+public static byte[] removeZerosForDes(byte[] encoding) { 
+byte[] ret = null; 
+if (encoding != null && encoding.length > 0) { 
+int i = encoding.length; 
+while (i-1>=0) { 
+if (encoding[i - 1] != (byte) 0) 
+break; 
+i--; 
+} 
+ret = new byte[i]; 
+System.arraycopy(encoding, 0, ret, 0, i); 
+} 
+return ret; 
+} 
+/** 
+* 文件加密 
+* 
+* @param source 
+* 待加密字节数组 
+* @return 加密后的字节数组 
+* @throws Exception 
+* @throws Exception 
+* @throws IOException 
+*/ 
+public static byte[] ecrypt(byte[] source) throws Exception { 
+return des.createEncryptor(addZerosForDes(source)); 
+} 
+
+/** 
+* 文件解密 
+* 
+* @param encoding 
+* 待解密字节数组 
+* @return 解密后的字节数组 
+* @throws Exception 
+*/ 
+public static byte[] decrypt(byte[] encoding) throws Exception { 
+return removeZerosForDes(des.createDecryptor(encoding)); 
+// return des.createDecryptor(encoding); 
+} 
+/** 
+* 验证码 
+* 
+* @param source 
+* 用于生成验证码的字节数组 
+* @return 验证码 
+*/ 
+private static byte[] digest(byte[] source) { 
+byte[] dest = null; 
+try { 
+MessageDigest md5 = MessageDigest.getInstance("MD5"); 
+dest = md5.digest(source); 
+} catch (NoSuchAlgorithmException e) { 
+e.printStackTrace(); 
+} 
+return dest; 
+} 
+
+public static String byte2hex(byte[] b) 
+{ 
+String hs=""; 
+String stmp=""; 
+for (int i = 0;i < b.length;i++) 
+{ 
+if (b[i] < 0) 
+{ 
+hs = hs + "A"; 
+stmp = Integer.toHexString((- b[i]) & 0XFF); 
+} 
+else 
+{ 
+stmp = Integer.toHexString(b[i] & 0XFF); 
+} 
+if (stmp.length() == 1) hs = hs + "0" + stmp; 
+else hs = hs + stmp; 
+} 
+return hs; 
+} 
+public static void test3(){ 
+String xmlStr = "694F70094803D17F48BBFF1FA08AB902088778E585B791058FDA611BEAFA7B19C2DF695010F77779F9CB9E6FBC0C697950175CFAAF5F59935B5025605D1946D1B9535D0A02C3CBDE030F05DA1E413807174332E261160A1AEAD8FEAAAD8E68CBDEF9D5A13644ADCDB116BCEC4527AEB29C197D861B3DDFDA5FDD45A96DFFFA88CDB9361D6B6F2B0C8411AF62467E9CBE850560AA50319B2BC1C5954BBDA0A1465BFB8E13F5E416A046B4B8443E87C595D0B1908C24D101E1F9F0935CE30180318E7068283122124157BB94B00F010BD4B87F8BFCBE3CEC7BCC2CBD4BC76581AEA628EB26652ECCED7DF20724DF06251FAA62BBD2F098C3C61BAFCB41AC2F8C770C752739317065A5461C14531A8D5F168926D2F85790E6BAC23CCDF0601602C261353BF61CD780EF837E7B46349481279DD5E7EAD8EB08BC88945815BD9E7CD9BDF6B90045BECA4B786E72817BEEEE6CBA41D374FA01902E7B31CA3C358E5A381686121B9437D7108AB683D482C0A67EF8C526C61DEF4A801686121B9437D710262443E4F0B1E4F0168215549EA13D5CEFF1536B178CD44ACDCB50B81B813A356A9B5C807501CB325A038C5D9FDBC24100EFC386B26D7EF611E21291D315F07E6D329577CDCD01632BDBC59153149AE781C5DCF149431DECFDB41D26736CFFFDF9CB9E6FBC0C6979CE35B72CD94CE8BBF060036B124B7792CE18ADBC67743B3532A519AE8697B3A9819C64AC6C6AB51A3F83C79943A5AE4DE0879EC1C9D6BEC532A519AE8697B3A9DC05173EB823DB5B1EC4444B0C8DB0C39A33353E684D6D5FBDC773E13E8FBBC4D1ADD587CF75B3D77902EA54B805D54521D20C785E88EA726426F61332C81208B444DAFC6289545CD9DF03F52BE5DC625D5CBF7C8172515583E06B5F341D3AFB9F65431ADCEACD20083B44D0B1C3462CD8A7EAC632279BF51806D16221D7E578B350072B63D528E81A95EAD5BC61D6860A38991196021534ABEF811EF858FFCC7852F13C94591ED7F67B98E051725CC4F8D9D60EDCFD9BD9130995DDD04A60DACD6323D5C87FFDF7B10EA5480584A52752288781302305BD4574F2C78CB00A88B139C42B9BC21A206C0D6DF98A696D6873B98FE7B43FFDBD8250A10BFCB0A88E7636FDB079889FBB772E1B9D785890D3CC0217F2774F6DA6853FC9E3E54919D8181D2BE330933E38B7AA7E7C8C0E5FC7914BCBDB44C5BAA6B409198C2F8489ABCE9F8A0CC3282A98B4A7FCE20CE73113718537EA33A1DE4B9F70480B9C27B53B896ACB2E150A96B5CB0873F1FF2CF64F36728F7194CA8B9B819C64AC6C6AB51A6E53A6DAEAACD3D7E0879EC1C9D6BEC5724B322466FC0961CE18ADBC67743B358F846036502D05031DEA65BEFAA2D7B58F846036502D0503F38F8503EE184B97311140847E7F96939C9CCB0948C49D1C45E67FA2E7900E6EC034B4F3528E30E707AB031AB80EE24BC7F8FD0AECEAD86C516962C6C41F793D43343ADF603628D91BB4FD965E8F21EF065C79E00E9A1E8FCA5C64ED691AFD341313EA1076C3826E50F4DB33AF6D25A19C28E0BF0B45EAEE66F612C4937D65A85BFE50235E6A84094AE58B0BC952F487D26E94CCAA81329E7AF4C3F833EFE0182B3293B27360E0B6C37E4D5CBDB522AC5F6D477F5A92C0D854A5669A9C7BEF1C4C32EF9E50E161BED52FF8045B08A67868DF95485EA520F698BC6BDCD3F77156B2D978405F58E05B343A4F6D5BE3B31D47A0E6E78C1DDDB7B597B74530398F4D8145321489DA2C2CCE18ADBC67743B3508B1342F30361B83FD03BA9AE5E77BF70BDFC3EEB26E83F41313EA1076C3826E9C9CCB0948C49D1C8F6A8D20FC0B6C5AF742E4C037D6EF489C28E0BF0B45EAEE67A1A6FFD6330767EB7F0D8D8215B8695DCBF182C90B13A5CC7FD4F0DFB636337FE26550837DD44521684D13874F96F0CE18ADBC67743B354B065234E36B653FAEE38189794495245F40B6CB34C4B5A1B5DC0FFFCC09C19C1FE4A514F1910A23CE18ADBC67743B357836F0BE0D03044B47A0E6E78C1DDDB7F4D4D726768F3E2DFE84CB3145722184CE18ADBC67743B358F846036502D0503C7F8FD0AECEAD86CA0A8A14130CB9BCBECF45D2C2739E880C2324E51EA02FD1D24E3C26BC24152F06BACA60AAA73090DCE35B72CD94CE8BBF371B75A9F2D59325B59878E0C70A92F737C81D5DB757A635DCBF182C90B13A50E87D43B28CD288274A4C868E96C3402914BCBDB44C5BAA6235F312A523274EFE5EBD14BEAF739D1C7F8FD0AECEAD86CDDBD9174CAAC11B43E1B6BD257342EED794597A462920030065C79E00E9A1E8FD46DFEB375BE21F4237C363AD2096049B6322325550B3B095DCBF182C90B13A5CC7FD4F0DFB636337FE26550837DD445D46DFEB375BE21F45D5CBF7C81725155C7F8FD0AECEAD86C8EB5685921E23E9BEA8DC0558E35034782B47A649DCF06B648C581BF647FC1D62312AB61A28E12D377BCC1A7F9BAC48041E706A97D4410E9CC14859D121378C1C68C6D8FD2B62AD04EEB86998E997D1E16A58313904BF526AEE3818979449524FD588705EC162A81929DE4B81209CAE7C9AE312B70D73BAA4F504B69996D2B79A7F18C87629A26F1F702A3479428790DCEC17ACF4A5E0B07F29122C83DA420459FF6DFBCF0C45C91D430BC7A71638290AFFD325070B0E1CC313474AC9415646B3065DA79B22BE5EED214FE6B1E4BDDC51A14248C02E9FDE7C7B2E93F096CDA53EAEEA524DCB209F199C49368E422A3B8C1C5954BBDA0A146DC18696410AE054C16FD9D5BE17F291FC1D88C4BF2533BF9CE18ADBC67743B35B37D3C17925C073E1454E9AAF7730B0A3F26BCB6EE8D91D86ADC1D94C7C3319CF4EAB602805DF847A628EB26652ECCEDC7F8FD0AECEAD86CFDAB980CFE2B12DD674899908D93D31102E563C48C1D158AC7F8FD0AECEAD86C050BC3606E47B333620A9713B465FB910DD7D98DC4C1DF908B7E28B9D90CF74A97966B1CF3B3562993BD6E8A1BEED124358CEB95C480718A76408A9CBD751E9F0B94059DE803969ED0AC7039BD275FE5B134E720E877A22410A63EC0547A0AE747A0E6E78C1DDDB79D3C36ACAB5B0546AEBA0B19473CDC6E6827DCF1BFB90005AFDB90CB90A7EC259F65431ADCEACD20D18C3E40C9E69372CD32DFC9803BFA302B3293B27360E0B6EA5AA5350336D6F8E010E36D08DCA60EF67B98E051725CC4F8D9D60EDCFD9BD978CFE74336F8A77BCE18ADBC67743B357B74B11C82EE9504C7F8FD0AECEAD86C8F59A513BEEE7FE8C3742F1081BFCDCCD3829A9792535E4E793647F6525ED199914BCBDB44C5BAA6235F312A523274EF0EC95D3A0DC481AE8A9956B0D6D3C29C9C16DD9725F436523ECCBFA1E42C52B5C580DF20345B58D1AFDB90CB90A7EC255AF44281EFF35710F38F8503EE184B97311140847E7F9693B6B8DFD127D49C7E7E6911428A841ECF781DBCA7C00F3CE622AE8D773DBED3C9634FF36172123FA422AE8D773DBED3C9CD32DFC9803BFA302B3293B27360E0B6A89E59BFD392E6A2C7F8FD0AECEAD86C77D5A080AF2BD84E883FE35C7AE3B6165B59878E0C70A92FF8013EAC009A3EF247A0E6E78C1DDDB780A5EFAF0360D5AE3AE3D8C4C2F8B05D6938E378CC0DF9C76183E671E55A63E6C7F8FD0AECEAD86C2242256CD283F1B698BC6BDCD3F77156E6CD1E93C643CDAD21DB6AD5347EAB989ABF4DAE51E7193C020AEB359C2337C97E6911428A841ECF704325D670717C098916DD02A003C07E75CD5A3E2017827B20E2EB82F3B7CF16A722FD6DAD8E1CE15BCD90C9BD9C56AFE5BAB1A525F090281D200D1BADDD5C6C9FF6DFBCF0C45C910E6B3451677E735A6CD2E1EA65B401252F34F3B16DAB9DBE";
+ System.out.println("decode xmlStr:" + getDecodeXmlStr(xmlStr)); 
+} 
+/** 
+* 
+* 描述：对xml字符串加密 
+* @param xmlStr 预加密的xml字符串 
+* @return 加密后的字符串 
+* 修改人： 
+* 修改时间：Jul 6, 2011 
+*/ 
+public static String getEncodeXmlStr(String xmlStr){ 
+String value = null; 
+try{ 
+ByteArrayOutputStream baos = null; 
+try{ 
+byte[] strbyte = xmlStr.getBytes(); 
+byte[] tmp = ecrypt(strbyte); 
+baos = new ByteArrayOutputStream(); 
+baos.write(tmp); 
+}catch(Exception e){ 
+e.printStackTrace(); 
+} 
+
+// ByteArrayOutputStream baos = CodeUtil.getEncodeFile(xmlStr); 
+// File file = new File("F:\\hyq_cvs_pudong\\WYCC\\08_SRC\\src\\3.xml"); 
+// FileOutputStream dfile = new FileOutputStream(file); 
+// dfile.write(baos.toByteArray()); 
+// ByteToCharConverter converter = ByteToCharConverter.getDefault(); 
+// char[] cs = converter.convertAll(baos.toByteArray()); 
+
+// Charset cs = Charset.forName ("GBK"); 
+// java.nio.ByteBuffer bb = java.nio.ByteBuffer.allocate(baos.toByteArray().length);
+ // bb.put(baos.toByteArray()); 
+// bb.flip (); 
+// CharBuffer cb = cs.decode (bb); 
+// char[] css = cb.array(); 
+// value = new String(css); 
+byte[] bs = baos.toByteArray(); 
+
+// char[] cs = StringHelper.btyes2Chars(bs); 
+// byte[] bs2 = StringHelper.chars2Bytes(cs); 
+// System.out.println(Arrays.equals(bs, bs2)); 
+// 
+// String hexStr = StringHelper.byte2HexStr(bs); 
+// 
+// System.out.println(Arrays.equals(bs, StringHelper.hexStr2Bytes(hexStr))); 
+// value = new String(cs); 
+
+//byte数组转换成十六进制字符串 
+value = StringHelper.byte2HexStr(bs); 
+// value = new String(baos.toByteArray(),"GBK"); 
+}catch (Exception e){ 
+e.printStackTrace(); 
+} 
+return value; 
+} 
+/** 
+* 对文件进行加密并在指定目录生成加密后的问题见 
+* @param str 需要加密的数据对象； 
+* @param path 加密后文件产生的目录； 
+* @param fileName 加密后产生的文件名称； 
+* @return null表示加密失败； 
+* @throws Exception 
+*/ 
+public static ByteArrayOutputStream getEncodeFile(String str) throws Exception {
+ ByteArrayOutputStream ostem = null; 
+try{ 
+byte[] strbyte = null; 
+strbyte = str.getBytes(); //转换为2进制格式 
+byte[] tmp = ecrypt(strbyte); //对数据进行加密 
+byte[] md = digest(strbyte); //对数据进行摘要 
+byte[] ret = new byte[tmp.length+HEAD_LENGTH]; 
+System.arraycopy(md, 0, ret, 0, HEAD_LENGTH); 
+System.arraycopy(tmp, 0, ret, HEAD_LENGTH, tmp.length); 
+ostem = new ByteArrayOutputStream(); 
+ostem.write(ret); 
+}catch(Exception e){ 
+e.printStackTrace(); 
+} 
+return ostem; 
+} 
+
+/** 
+* 
+* 描述：对加密xml字符串进行解密 
+* @param xmlStr 加密的xml字符串 
+* @return 解密后的xmlStr 
+* 修改人： 
+* 修改时间：Jul 6, 2011 
+*/ 
+public static String getDecodeXmlStr(String xmlStr){ 
+String value = null; 
+try{ 
+// long flength = xmlStr.getBytes().length; 
+//将十六进制字符串转换成byte数组 
+byte[] decompressed = StringHelper.hexStr2Bytes(xmlStr); 
+
+byte[] dtmp = decrypt(decompressed); 
+value = new String(dtmp); 
+}catch(Exception e){ 
+value = ""; 
+e.printStackTrace(); 
+} 
+return value; 
+} 
+
+/** 
+* 对加密文件进行解密 
+* @param file 需要解密的文件对象 
+* @return null 表示MD5验证失败 "" 表示解密过程失败；否则返回解密后的数据 
+* @throws Exception 
+*/ 
+public String getDecodeFile(File file) throws Exception { 
+String value = null; 
+try{ 
+FileInputStream fsm = new FileInputStream(file); 
+long flength=file.length(); 
+byte[] decompressed = new byte[Integer.parseInt(String.valueOf(flength))]; 
+fsm.read(decompressed); 
+
+byte[] dhead = new byte[HEAD_LENGTH]; // 创建头段对象 
+byte[] dret = new byte[decompressed.length-HEAD_LENGTH]; // 创建加密段对象 
+System.arraycopy(decompressed, 0, dhead, 0, HEAD_LENGTH);// 获取头段数据 
+System.arraycopy(decompressed, 16, dret, 0, decompressed.length-HEAD_LENGTH); //获取加密段数据
+ 
+byte[] dtmp = decrypt(dret); 
+byte[] dmd = digest(dtmp); //对头进行摘要算法 
+if (byte2hex(dmd).equals(byte2hex(dhead))){ //判断摘要算法是否与头段中的内容一致 
+value = new String(dtmp); 
+//System.out.print("File decrypt sucessful!"); 
+}else{ 
+System.out.print("File is error!"); 
+} 
+}catch(Exception e){ 
+value = ""; 
+e.printStackTrace(); 
+} 
+return value; 
+} 
+
+/** 
+* 
+* @param file 
+* @return 
+* @throws Exception 
+*/ 
+public static InputStream getDecodeInputStream(File file) throws Exception{ 
+ByteArrayInputStream bin = null; 
+try{ 
+FileInputStream fsm = new FileInputStream(file); 
+int l = (int)file.length(); 
+
+byte data[] = new byte[l]; 
+
+fsm.read(data); 
+fsm.close(); 
+byte[] dhead = new byte[HEAD_LENGTH]; // 创建头段对象 
+byte[] dret = new byte[data.length-HEAD_LENGTH]; // 创建加密段对象 
+System.arraycopy(data, 0, dhead, 0, HEAD_LENGTH);// 获取头段数据 
+System.arraycopy(data, 16, dret, 0, data.length-HEAD_LENGTH); //获取加密段数据 
+
+byte[] dtmp = decrypt(dret); 
+byte[] dmd = digest(dtmp); //对头进行摘要算法 
+System.out.print(new String(dtmp)); 
+System.out.print("===================================="); 
+if (byte2hex(dmd).equals(byte2hex(dhead))){ //判断摘要算法是否与头段中的内容一致 
+bin = new ByteArrayInputStream(dtmp); 
+} 
+
+}catch(Exception e){ 
+e.printStackTrace(); 
+} 
+return bin; 
+} 
+
+public static void test() 
+{ 
+byte strbyte[] = null; 
+StringBuffer sb = new StringBuffer(); 
+try{ 
+/** 
+//进行加密 
+strbyte = sb.toString().getBytes(); 
+byte[] tmp = ecrypt(strbyte); 
+byte[] md = digest(strbyte); 
+byte[] ret = new byte[tmp.length+HEAD_LENGTH]; 
+System.arraycopy(md, 0, ret, 0, HEAD_LENGTH); 
+System.arraycopy(tmp, 0, ret, HEAD_LENGTH, tmp.length); 
+System.out.println("tmp bytes"+tmp.length); 
+File fs = new File("1020080817132432129143.jh"); 
+FileOutputStream file = new FileOutputStream(fs); 
+file.write(ret); 
+file.flush(); 
+file.close(); 
+System.out.println("File create sucessful!"); 
+System.out.println("======================"); 
+
+//进行解密 
+byte[] dhead = new byte[HEAD_LENGTH]; // 创建头段对象 
+byte[] dret = new byte[ret.length-HEAD_LENGTH]; // 创建加密段对象 
+System.arraycopy(ret, 0, dhead, 0, HEAD_LENGTH);// 获取头段数据 
+System.arraycopy(ret, 16, dret, 0, ret.length-HEAD_LENGTH); //获取加密段数据 
+System.out.println("dret bytes"+dret.length); 
+
+byte[] dtmp = decrypt(dret); 
+byte[] dmd = digest(dtmp); //对头进行摘要算法 
+if (byte2hex(dmd).equals(byte2hex(dhead))){ //判断摘要算法是否与头段中的内容一致 
+File dfs = new File("i1020080817132432129143.xml"); 
+FileOutputStream dfile = new FileOutputStream(dfs); 
+ByteUtil.writeBytes(dfile, dtmp); 
+dfile.close(); 
+System.out.print("File decrypt sucessful!"); 
+}else{ 
+System.out.print("File is error!"); 
+} 
+*/ 
+//加密演示 
+// ByteArrayOutputStream dtmp = CodeUtil.getEncodeFile(sb.toString()); 
+// File file = new File("F:\\hyq_cvs_pudong\\WYCC\\08_SRC\\src\\1.xml"); 
+// FileOutputStream dfile = new FileOutputStream(file); 
+// dfile.write(dtmp.toByteArray()); 
+// dfile.close(); 
+//解密演示 
+// File files = new File("F:\\hyq_cvs_pudong\\WYCC\\08_SRC\\src\\1.xml"); 
+// String sst = st.getDecodeFile(files); 
+// System.out.println(sst); 
+}catch(Exception e){ 
+System.out.print(e); 
+} 
+} 
+
+public static void test2(){ 
+CodeUtil st = new CodeUtil(); 
+//实例SAXReader对象 
+SAXReader saxReader = new SAXReader(); 
+File xmlFile = new File("F:\\hyq_cvs_pudong\\WYCC\\08_SRC\\src\\1.xml"); 
+try{ 
+//获得Document对象 
+saxReader.setEncoding("GBK"); 
+Document document = saxReader.read(xmlFile); 
+String xmlStr = document.asXML(); 
+String encodeXmlStr = st.getEncodeXmlStr(xmlStr); 
+System.out.println("Encode encodeXmlStr:\n" + encodeXmlStr); 
+System.out.println("====================="); 
+String decodeXmlStr = st.getDecodeXmlStr(encodeXmlStr); 
+System.out.println("Decode XmlStr:\n" + decodeXmlStr); 
+}catch(DocumentException e){ 
+e.printStackTrace(); 
+} 
+} 
+
+public static void main(String marg[]){ 
+test3(); 
+} 
+} 
+
+//DES类,用于产生验证码 
+
+class DES { 
+private String Algorithm = "DES"; 
+
+private KeyGenerator keygen; 
+
+private SecretKey deskey; 
+
+private Cipher c; 
+
+private byte[] cipherByte; 
+
+//DES算法要求有一个可信任的随机数源 
+private SecureRandom sr = new SecureRandom(); 
+
+/** 
+* 初始化 DES 实例 
+*/ 
+public DES(String key) { 
+init(key); 
+} 
+
+public void init(String key) { 
+//Security.addProvider(new com.sun.crypto.provider.SunJCE()); 
+try { 
+setKey(key); 
+c = Cipher.getInstance(Algorithm+"/ECB/NoPadding"); 
+//c = Cipher.getInstance(Algorithm); 
+
+} catch (NoSuchPaddingException e) { 
+e.printStackTrace(); 
+} catch (NoSuchAlgorithmException ex) { 
+ex.printStackTrace(); 
+} catch (InvalidKeyException ex) { 
+ex.printStackTrace(); 
+} catch (InvalidKeySpecException ex) { 
+ex.printStackTrace(); 
+} catch (UnsupportedEncodingException ex) { 
+ex.printStackTrace(); 
+} 
+} 
+//重新设置key 
+public void setKey(String key) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeySpecException
+ { 
+DESKeySpec desKeySpec = new DESKeySpec(key.getBytes("UTF-8")); 
+SecretKeyFactory keyFactory = SecretKeyFactory 
+.getInstance(Algorithm); 
+deskey = keyFactory.generateSecret(desKeySpec); 
+} 
+
+/** 
+* @param source 
+* 要加密的数据 
+* @return 返回加密后的 byte 数组 
+* @throws 
+* @throws Exception 
+*/ 
+public byte[] createEncryptor(byte[] source) throws Exception { 
+c.init(Cipher.ENCRYPT_MODE, deskey, sr); 
+cipherByte = c.doFinal(source); 
+return cipherByte; 
+} 
+
+/** 
+* @param encoding 
+* 要解密的数据 
+* @return 返回加密后的 byte 数组 
+* @throws NoSuchPaddingException 
+* @throws NoSuchAlgorithmException 
+*/ 
+public byte[] createDecryptor(byte[] encoding) throws Exception { 
+c.init(Cipher.DECRYPT_MODE, deskey, sr); 
+cipherByte = c.doFinal(encoding); 
+return (cipherByte); 
+} 
+
+} 

@@ -1,0 +1,8 @@
+      
+KLTStopSequentialMode()
+
+void KLTStopSequentialMode(
+KLT_TrackingContext tc);
+
+KLTStopSequentialMode() must be called when it is desired to set tc->sequentialMode to FALSE. In addition to setting this value, the function frees the memory pointed to by the fields tc->pyramid_last, tc->pyramid_last_gradx, and tc->pyramid_last_grady. This memory is allocated when KLTTrackFeatures() is called with tc->sequentialMode to TRUE. Without calling the present function, KLTTrackFeatures() and KLTReplaceLostFeatures() will continue to use the old pyramids even though they are no longer valid.
+

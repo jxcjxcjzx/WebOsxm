@@ -1,0 +1,408 @@
+
+猴子靈藥 [Monkey Potion]
+
+遊戲開發 x 遊戲程式 x 遊戲設計
+
+Search
+
+Main menu
+
+Skip to primary content
+
+Skip to secondary content
+
+Home
+聯播
+連結
+存檔
+關於
+
+
+
+
+Post navigation
+← PreviousNext →
+使用Lua實做GUI系統的遊戲實例
+
+Posted on January 31, 2008
+
+
+在這篇文章裡，將以國外一個非常著名的休閒遊戲 Diner Dash 2 的實例，探討 Lua 的應用功能之一：GUI 系統。自前篇「Scripting系統概論與Lua簡介」對 Lua 的 What（是什麼）與 Why（為什麼使用）有了初步的認識之後，接下來的重點就是瞭解 Lua 的 How（如何使用）。
+ 
+在進入 How 的主題之前，先補充一下 Where（在何處使用）的概念。Lua 的能力十分強大，似乎無所不能，可以完成任何的任務與功能。但是就實際應用層面的考量來說，哪些功能與系統才是真正適合使用 Lua 的部分呢？又要如何區分 C++ 語言與 Lua 語言所能達成的任務呢？
+ 
+以兩者擅長處理的事項來分類：
+ 
+■C++：低階核心、記憶體管理、資源管理、繪圖底層、數學運算、訊息發送。
+ ■Lua：使用者介面、人工智慧、資料管理、遊戲邏輯、動態行為。
+ 
+複雜的運算與低階的底層核心，適合使用 C++；而因應設計需求，經常會變動的各種功能系統，例如使用者介面、人工智慧、遊戲邏輯等等就適合使用 Lua 來完成。另外，有安全性考量的功能層面，也應該使用 C++ 撰寫比較合適。
+ 
+
+
+在 Diner Dash 2 這款遊戲中的圖形化使用者介面，也就是常聽到的 GUI（或簡稱為 UI）系統，都是以 Lua 進行開發設計的。首先，需要瞭解一點基本的 GUI 開發概念。在一個完整的 GUI 系統中，需要許多的基本元件，例如常見的按鈕 (Button)、文字 (Text)、圖片 (Picture)、編輯輸入 (Edit)、進度條 (Progress Bar) 等等，這些物件稱為介面元件 (UI Widget)；藉由這些基礎的元件，就能夠組合出遊戲中所使用的各種 UI。而將個別的元件集合起來形成一個群組的容器，常稱做框架 (Frame) 或圖層 (Layer)。最後，在架構頂層做為上述這些 UI Widget 的管理者，包含住一至多個 Frame，負責高階功能與介面的元件，則稱做視窗 (Window) 或是對話盒 (Dialog)。
+ 
+一般常見的 GUI 系統實做方法，是在 C++ 中將各個元件封裝成 Class，例如 CText、CButton、CPicture 等等，加上 CFrame 與 CDialog 類別，分別負責各自的功能，然後再以這些類別創建出來的物件，組合成一個一個的完整介面。這樣的實做方法，在物件導向程式的領域中是很直覺的設計模式，但是也存在著不少缺點；像是每個元件都需要存在個別獨立的 Class，而若要修改或新增元件的功能，即使只是很微小的部分，也必須在 C++ 中撰寫完畢後，重新建置整個程式專案完成後才能夠使用。另外，在處理資料的讀取程序中，也會有相當瑣碎且重複性極高的修改步驟；只要更動了資料的讀取順序或資料型態，同樣非得經過重新建置的程序不可。
+ 
+Lua，可以讓一切變得不同。以下，開始進入遊戲的實例說明：（閱讀以下內容，需具備基本的 Lua 程式設計能力）
+ 
+先來看一段使用 Lua 製作 Text 元件的簡短程式碼：
+ 
+
+
+view plaincopy to clipboardprint?
+01.Text  
+02.{  
+03.    font = DialogTitleFont, -- 使用 DialogTitleFont 字型  
+04.    name = "oktitle", -- 元件名稱為 oktitle  
+05.    x = 12, y = 8, -- 元件的位置  
+06.    w = kMax,h = 40, -- 元件的長度與寬度  
+07.    flags = kVAlignCenter + kHAlignLeft, -- 對齊用的旗標  
+08.    label = gDialogTable.title, -- 顯示的文字  
+09.};  
+ 
+上述這段程式碼，即定義出一個 Text 文字項元件的種種規格；如註解所示，這個元件使用 DialogTitleFont 這個字型，在指定的位置處顯示出 gDialogTable.title 變數的內容。而 DialogTitleFont 這個字型，定義在其他的程式碼中：
+ 
+
+
+view plaincopy to clipboardprint?
+01.DialogTitleFont = {  
+02.    standardFont, -- 又是另一個變數  
+03.    18, -- 字級大小  
+04.    BorderColor -- 字型顏色  
+05.};  
+06.  
+07.standardFont = "fonts/mercurius.mvec"; -- 字型使用的實體檔案  
+08.BorderColor = Color(30, 42, 102, 255); -- 顏色  
+ 
+由以上的程式碼片段可以瞭解，UI 元件的建構，是利用 Lua Function 能夠接受 Table 結構做為函式參數的強大特徵，將所需的參數傳入 Function 中進行處理。如果是沒有特別指定的參數，就直接使用預設值去建立，能夠毫不費力地建構出 Default Parameters 的功能，使得 UI 元件的建構方式變得非常具有彈性與可擴充性。
+ 
+再來看一個製作 Button 元件的例子：
+ 
+
+
+view plaincopy to clipboardprint?
+01.Button  
+02.{  
+03.    x = kCenter,  
+04.    y = 500,  
+05.    font = StandardButtonFont,  
+06.    graphics = StandardButtonGraphics,  
+07.    name = "back",  
+08.    type = kPush,  
+09.    flags = kHAlignCenter + kVAlignCenter,  
+10.    label = "back",  
+11.    command =   
+12.        function()  
+13.            PopModal();  
+14.        end  
+15.};  
+16.  
+17.StandardButtonGraphics = {  
+18.    "buttons/dialog_button_a1",  
+19.    "buttons/dialog_button_a2",  
+20.    "buttons/dialog_button_a3"  
+21.};  
+ 
+在 StandardButtonGraphics 這個 Table 裡，定義了 Button 在 Normal、Pushed、Disabled 三個狀態下顯示的圖片。接下來的 type 變數，指定這個 Button 的型態是一般常見的 Push Button 類型；其他還包括了 Radio Button 與 Check Button 類型。而 command 變數，是使用者按下 Button 時所需執行的程序，也就是去呼叫 PopModal() 這個函式。除了一般按下 Button 所觸發的執行程序之外，也能夠很輕易地實做出滑鼠進入 Button 範圍的 Function，或是 Button 切換至其他狀態下所應該觸發的 Function。其他的各種元件也以同樣的方法製作，就能夠迅速而便利地建立起一組 UI 元件與完整的使用者介面。
+ 
+依照以上 standardFont、StandardButtonGraphics 與 BorderColor 變數的定義方法，可以將所有 UI 相關的格式設定，以及與實體檔案相關的變數，全部定義在另外的 Lua 檔案中，便於集中管理、修改與使用。其中的程式碼片段如下：
+ 
+
+
+view plaincopy to clipboardprint?
+01.-- File: style.lua  
+02.  
+03.-- 字型的實體檔案  
+04.standardFont = "fonts/mercurius.mvec";  
+05.  
+06.-- 定義各種顏色  
+07.BlackColor = Color(0, 0, 0, 255);  
+08.BlueColor = Color(16, 225, 226, 255);  
+09.YellowColor = Color(255, 255, 0, 255);  
+10.  
+11.-- 標準按鈕用的圖片  
+12.StandardButtonGraphics = {  
+13.    "buttons/dialog_button_a1",  
+14.    "buttons/dialog_button_a2",  
+15.    "buttons/dialog_button_a3"  
+16.};  
+17.  
+18.-- 小型按鈕用的圖片  
+19.SmallButtonGraphics = {  
+20.    "buttons/dialog_button_a_small_1",  
+21.    "buttons/dialog_button_a_small_2",  
+22.    "buttons/dialog_button_a_small_3"  
+23.};  
+24.  
+25.-- 大型按鈕用的圖片  
+26.LargeButtonGraphics = {  
+27.    "buttons/dialog_button_a_large_1",  
+28.    "buttons/dialog_button_a_large_2",  
+29.    "buttons/dialog_button_a_large_3"  
+30.};  
+ 
+最後，以遊戲中的一個 Lua 檔案為例，列出建構起一個 Dialog 所需的完整程式碼：
+ 
+
+
+view plaincopy to clipboardprint?
+01.-- File: ok.lua  
+02.require( "scripts/style.lua" );  
+03.  
+04.MakeDialog  
+05.{  
+06.    Bitmap  
+07.    {  
+08.        name = "yesnobackground",  
+09.        image = "backgrounds/popup",  
+10.        x = kCenter,  
+11.        y = kCenter,  
+12.          
+13.        Button  
+14.        {  
+15.            font = StandardButtonFont,  
+16.            graphics = StandardButtonGraphics,  
+17.            close = true,  
+18.            flags = 5,  
+19.            label = "ok",  
+20.            name = "ok",  
+21.            default = true,  
+22.            x = kCenter,  
+23.            y = 250,  
+24.        },  
+25.          
+26.        Text  
+27.        {  
+28.            font = DialogTitleFont,  
+29.            name = "oktitle",  
+30.            x = 12, y = 8,  
+31.            w = kMax, h = 40,  
+32.            flags = kVAlignCenter + kHAlignLeft,  
+33.            label = gDialogTable.title,  
+34.        };  
+35.          
+36.        Text  
+37.        {  
+38.            font = DialogBodyFont,  
+39.            name = "okbody",  
+40.            x = 20, y = 46,  
+41.            w = kMax-20, h = kMax-70,  
+42.            flags = kVAlignCenter + kHAlignCenter,  
+43.            label = gDialogTable.body,  
+44.        };  
+45.    },  
+46.}  
+ 
+以上這段 Lua 程式碼，製作出由一個 Bitmap、一個 Button 以及兩個 Text 元件所組成的 Dialog 介面。撰寫完成後，在遊戲中看到這個 Dialog 所呈現出來的結構，如圖所示：
+ 
+Bitmap 元件負責顯示整個 Dialog 的背景圖片；第一個 Text 用來顯示 Dialog 的標題列文字，第二個 Text 則顯示 Dialog 中的主要說明文字；而最後的 Button，就只是用來執行簡單的確認行為。所有的元件建構完成後，就當作 Function 的 Table 參數傳入 MakeDialog() 中創建出 Dialog。
+ 
+以上文章所提的內容，其實只佔了整個 GUI 系統其中一半的部分：資料描述。也就是將 Lua 當成一種 Data Description Language，用來儲存與讀取遊戲所需的資料。藉由 Lua 的強大威力，能夠讓開發者輕易地進行各種資料寫入與讀取的動作，完全不必費力撰寫繁複瑣碎的 Parse 或 Serialize 程序。
+ 
+資料處理的部分是一半，而另一半是與功能相關的部分，也就是真正在內部進行 GUI 相關行為處理的程序。將資料傳入 Text()、Button()、Picture() 這些函式中之後，裡面到底做了些什麼？如何建構 GUI 系統的資料結構？如何和原來的 C++ 端主程式相結合？如何傳遞滑鼠與鍵盤的輸入訊息？如何真正畫出這些 UI？
+ 
+下篇待續。
+ 
+（聲明：本文中的程式碼範例，版權皆屬 Diner Dash 2 原開發者所有。）
+ 
+
+
+
+
+
+This entry was posted in 進階技術 by 半路. Bookmark the permalink. 
+
+12 thoughts on “使用Lua實做GUI系統的遊戲實例” 
+
+兔子安 on January 31, 2008 at 9:27 am said:
+
+
+寫得很棒 期待下篇~~
+ 
+
+半路：
+ 謝謝你的回應，我會繼續寫下去的。 ^^ 
+
+
+
+
+CQD on January 31, 2008 at 12:23 pm said:
+
+
+記得萬艦齊發二也是這麼搞，把介面跟遊戲邏輯幾乎完全用Lua來描述。
+ 
+不過相對的膠水函式的設計似乎是門大學問？
+ 
+
+半路：
+ Glue Function 的製作很容易喔～ 能夠簡單又迅速地與 C/C++ 程式連繫結合，是 Lua 相較於其他語言的優勢之一。
+ 基本的方法就是多宣告一個 static function，然後在裡面處理所需的參數就可以了。
+ 如果覺得這個步驟太麻煩，還可以使用 Luabind 之類的 binding 函式庫，進一步減少需要撰寫的 C++ 程式碼。
+ 除了 Homeworld 2 之外，還有很多遊戲與專案都是這樣做的喔～ 
+
+
+
+
+R2D2 on February 23, 2008 at 7:36 am said:
+
+
+關於哪些功能與系統適合使用Lua, 其中有提到人工智慧, 這點我略持保留意見 (非針對Lua, 而是指用script寫AI這件事)
+ 
+若是基本的state machine或stats update我完全讚同交給script處理
+ 但是如flocking, pursue, evade之類的group behavior, 每個frame都需要作有相當份量的運算時, 個人經驗還是用native code寫比較流暢
+ 
+還有就是glue function雖然不難, 但是在data type conversion上所花的時間overhead常被忽略
+ 尤其是container type的轉換所花的時間很少是固定的
+ 
+
+半路：
+ 啊，我的內文沒講清楚。
+ 我在這裡指出 Lua 擅長處理人工智慧這件事，應該是單指應用於腳本演出的部分；就像是 WOW 中的 NPC 表演行為一樣。
+ 這個部分的解釋的確是疏漏掉了，希望不會造成閱讀者的困惑。
+ 如果有人用 Lua 端去處理 Path-finding 或是你所提到這些 AI 模擬行為，我應該會很佩服他！然後再請他把 Code 移植回 Native Code 中。 XD
+ Performance-critical 的部分，還是要仰賴 C/C++ 的威力才行。
+ 
+關於 Data Type 的轉換速度與影響，我也覺得會有些顧慮。
+ 我想如果能盡量傳遞 pointer 位址或是 primitive types，對效能的影響應該能夠降至最低的可能性。不過實際上我是沒有自己量測過相關數據就是。
+ 
+不知道你所指的 Container Type 是什麼？
+ 是指轉換 Lua Table 至 C++，還是 Native Code 中的容器類別轉換至 Lua 中？
+ 
+感謝您的澄清與回應～ ：D 
+
+
+
+
+R2D2 on February 24, 2008 at 10:48 am said:
+
+
+其實剛留完話就感覺有自己可能誤解半路大的意原意, 感謝半路大的補充解釋
+ 用Lua寫NPC的腳本的確是很好的做法. 事實上任何會被designer反覆修改的東西我都偏好移到script讓designer自己去喬
+ 
+關於container type我所想表達的就是半路大回應裡說的. 這其中還牽扯到deep copy和shallow copy的問題, 以及cyclic reference的可能性, 所以很難以container的memory footprint來推斷轉換所需的時間, 這是許多scripting engine所面對的共同問題, 然而各家解決方法也不盡相同
+ 所以還是要由遊戲開發者自行評估
+ 
+Scripting engine不是小弟的專長, 不過有些type conversion的經驗印象深刻可以分享一下
+ 有一次我們為了optimization, 把以下動作:
+ 在script端取得primitive type資料 -> 傳到native code端處理 -> 結果傳回script端, 以上動作重複6萬次
+ 改成:
+ 在native端一次取得6萬份資(快!)料暫存在native array裡(快!) -> 一次把所有資料處理完(超快!) -> 將native array轉換成script array -> 把script array reference傳會script端
+ 結果native array轉換成script array的動作把前面幾個optimization所省下的時間都用光了 , 最後結果竟然比optimize前還慢 XD
+ 
+
+半路：
+ 還真是有趣的經驗，果然做 optimize 不一定會比較快。 XD
+ 我目前還沒用過 Lua 來處理數量龐大的資料轉換，所以沒有遇過這種問題。有很多東西真的還是要實際量測過，有前後數據比較，才會知道哪個方法比較快比較好，直覺往往很不準確哪。
+ 在 Game Programming Gems 6 中有一篇「Binding C/C++ Objects to Lua」討論了幾種不同的 binding 方法，不知道你們有沒有看過？或許可以參考比較看看。
+ 
+另外，有疑慮的地方，盡量提出來沒問題啦～有的時候文章寫得不清楚，應該也會有人感到奇怪吧，歡迎多提出來討論才能夠增加雙方對問題點的理解啊。
+ 
+ㄟ～那個麻煩一下，稱呼我半路就好，不要加大，加大要加錢。 XD
+ 
+感謝你提供的經驗談！：D 
+
+
+
+
+ryebread on July 29, 2008 at 8:16 am said:
+
+
+写得很好，读后感觉很有收获，希望能继续写下去
+ 
+
+
+
+半路 on July 29, 2008 at 9:37 pm said:
+
+
+@ryebread:
+ 你好，
+ 
+謝謝你喜歡這篇文章，
+ 有時間的話，我會再多寫關於 Lua 的文章主題。 ^^
+ 
+
+
+
+桔十六夜 on January 8, 2010 at 6:34 pm said:
+
+
+寫得好棒，我完全不懂程式的，還是能夠看的了解
+ 
+
+
+
+半路 on January 13, 2010 at 9:09 pm said:
+
+
+@桔十六夜:
+ 你好，
+ 
+謝謝你的回應！聽到你這樣說，我好開心呀～ ：D
+ 
+
+
+
+Ned on July 25, 2011 at 7:50 pm said:
+
+
+非常感谢这篇文章，对于我这样的在校学生而言，真的是很不错的参考
+ 
+
+
+
+半路 on July 29, 2011 at 10:55 am said:
+
+
+@Ned:
+ 不客氣，我希望 Lua 能更加廣泛地被推廣及使用哪！
+ 
+
+
+
+zhw3038 on April 21, 2012 at 4:49 pm said:
+
+
+很好入门篇，希望看到您的 下篇待續。能有一个完整的例子供学习。谢谢！
+ 
+
+
+
+半路 on April 23, 2012 at 9:33 am said:
+
+
+@zhw3038:
+ 謝謝支持，不過我目前沒有計畫撰寫相關主題的文章囉。
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+Proudly powered by WordPress
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

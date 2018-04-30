@@ -1,0 +1,74 @@
+Ubuntu10.04下编译内核Linux-3.1.6
+分类： Linux学习 2012-01-01 09:57 359人阅读 评论(0) 收藏 举报
+
+工具:
+
+GCC
+LD
+MAKE
+util-linux(fdformat)
+module-init-tools(depmod)
+tune2fs
+JFS(IBM的文件系统)
+ReiserFS
+XFS(SGI的文件系统)
+quota-tools
+nfs-utils
+udev(udevinfo)
+ps
+这些工具最好与内核源码目录下的Documentation/Changes文件来确定哪些版本的工具能满足你的需求.即最好是按文件中指定的版本工具进行构建.
+最好是在普通用户下进行构建内核,只在必须使用根用户时才切换到root用户.
+下载好内核源码:
+内核源码不能放在/usr/src/linux目录下,因为这里存放的是构建系统库所需要的内核,而不是你自己定制的新内核.不要在/usr/src/目录下进行内核开发,应该在一个用户目录下做这些事情,这样就不必担心会对系统造成破坏.
+
+创建内核配置:
+1.从头开始:make config
+2.默认配置:make defconfig
+3.控制台配置:make menuconfig
+4.图形化方式:make gconfig
+5.另一种图形化方式:make xconfig
+
+构建内核:
+make
+高级构建内核选项:
+1. make -j[num]
+其中的num中你物理CPU的个数的两倍.例如如果你的CPU为双核,则为make -j4.注意,如果-j 后不加任何数值,则在内核构建过程将为内核源码树中每一个子文件夹创建一个新的线程,这样能够轻易将你的计算机停止响应.并耗费更长的时间才能完成内核的构建.
+2.将输出的文件放到指定目录中:
+make O=/dir/
+3.不同的架构:
+make ARCH=x86_64 defconfig
+
+安装内核:
+编译模块:
+sudo make modules
+sudo make modules_install
+
+内在映像:
+mkintramfs 3.1.6 -o /boot/initrd.img-3.1.6
+其中3.1.6为/lib/modules下的目录名称.
+会生成:/initrd.img-3.1.6文件
+
+
+sudo make install
+make install
+主要会生成一下文件：
+config-3.1.6  --内核编译配置文件内容就是make menuconfig出来的文件.config的内容，只是文件名不同而已
+vmlinux-3.1.6
+System.map-3.1.6
+
+
+
+
+
+编译内核->编译模块－>安装模块－>做模块镜像－>安装内核
+
+(下面一行是使用uheader工具加速启动系统的发行版并且/var分区是独立的时候使用的:)
+sudo sed -i 's+^start on starting mountall+start on mounted MOUNTPOINT=/var+' /etc/init/ureadahead.conf
+编译内核时,如果出现:
+driver mdio-gpio is already registered
+请重新编译内核,并将mdio-gpio设置为编译为模块,而不是编译进内核里.
+
+
+后记:
+
+如果没有必要的话,还是不要用新的内核来运行电脑,只作研究就好..我发现用新的内核,我的ubuntu10.04变得很不稳定,时不进自动重启x-window...呵呵...最好只好把原来的弄回去..呵呵..不过linux还真的想不明白它是怎样运行的,在运行的时候都可以随意更换内核的...一个字:强!

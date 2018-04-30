@@ -1,0 +1,520 @@
+
+
+•登录
+ •FrontPage
+•Help
+•Tips and Tricks
+•How To
+•FAQs
+•Events
+•Contribute
+•Newsletter
+•Changelog
+•HowTos/VNC-Server
+ 
+
+--------------------------------------------------------------------------------
+
+
+
+
+搜索: 
+•HowTos
+•VNC-Server
+ 
+
+
+
+
+VNC ( Virtual Network Computing )
+ 
+
+
+Contents
+1.Installing the required packages
+2.Configuring un-encrypted VNC1.Create the VNC user accounts
+2.Edit the server configuration
+3.Set your users' VNC passwords
+4.Confirm that the vncserver will start and stop cleanly
+5.Create xstartup scripts ( You may omit this step for CentOS 6 )
+6.Amend the iptables
+7.Start the VNC server
+8.Test each VNC user1.Testing with a java enabled browser
+2.Testing with a vnc client
+3.Starting vncserver at boot
+
+
+3.VNC encrypted through an ssh tunnel
+4.Recovery from a logout ( Not implemented for CentOS 6 )
+5.Remote login with vnc-ltsp-config
+6.VNC-Server for an already logged in GUI console session - 2 options1.x11vnc adhoc option
+2.vnc-server X11 "always on" option
+
+ 
+VNC is used to display an X windows session running on another computer. Unlike a remote X connection, the xserver is running on the remote computer, not on your local workstation. Your workstation ( Linux or Windows ) is only displaying a copy of the display ( real or virtual ) that is running on the remote machine. 
+
+There are several ways to configure the vnc server. This HOWTO shows you how to configure VNC using the 'vncserver' service as supplied by CentOS. 
+
+
+
+1. Installing the required packages
+ 
+The server package is called 'vnc-server'. Run the command: rpm -q vnc-server 
+
+The result will be either package vnc-server is not installed or something like vnc-server-4.0-11.el4. 
+
+If the server is not installed, install it with the command: yum install vnc-server 
+
+The client program is 'vnc'. You can use the command: yum install vnc to install the client if: rpm -q vnc shows that it is not already installed. 
+
+Make sure to install a window manager in order to get a full-featured GUI desktop. You can use the command yum groupinstall "GNOME Desktop Environment" to install the Gnome Desktop and requirements, for example. Other popular desktop environments are "KDE" and "XFCE-4.4". XFCE is more light-weight than Gnome or KDE and available from the "extras" repository. 
+
+If you are a minimalist, or simply testing, however, it is sufficient to have yum install a simple XTERM client: yum install xterm 
+
+If you are running CentOS 6, the command is yum groupinstall Desktop 
+
+If you are running CentOS 5, yum groupinstall "GNOME Desktop Environment" may complain about a missing libgaim.so.0. This is a known bug. Please see CentOS-5 FAQ for details. 
+
+If you are running CentOS 6, the server is: tigervnc-server not: vnc-server 
+
+2. Configuring un-encrypted VNC
+ 
+We will be setting up VNC for 3 users. These will be 'larry', 'moe', and 'curly' 
+
+You will perform the following steps to configure your VNC server: 
+1.Create the VNC users accounts. 
+2.Edit the server configuration. 
+3.Set your users' VNC passwords. 
+4.Confirm that the vncserver will start and stop cleanly. 
+5.Create and customize xstartup scripts. 
+6.Amend the iptables. 
+7.Start the VNC service. 
+8.Test each VNC user. 
+9.Additional optional enhancements 
+
+
+
+2.1. Create the VNC user accounts
+ 
+As root: 
+
+
+$ su -
+# useradd larry
+# useradd moe
+# useradd curly
+# passwd larry
+# passwd moe
+# passwd curly
+
+ 
+
+2.2. Edit the server configuration
+ 
+Edit /etc/sysconfig/vncservers, and add the following to the end of the file. 
+
+
+VNCSERVERS="1:larry 2:moe 3:curly"
+VNCSERVERARGS[1]="-geometry 640x480"
+VNCSERVERARGS[2]="-geometry 640x480"
+VNCSERVERARGS[3]="-geometry 800x600"
+
+ Larry will have a 640 by 480 screen, as will Moe. Curly will have an 800 by 600 screen. 
+
+Note: This step is NOT out of sequence, but is placed here so that the next following step will fall adjacent to the step in which failure to perform it, will permit immediate fault diagnosis. 
+
+
+
+2.3. Set your users' VNC passwords
+ 
+Switch user into the account for each user, and as noted below, run: vncpasswd This will create the ~/.vnc directory for that userid: 
+
+
+[~]# su - larry
+[~]$ vncpasswd
+[~]$ cd .vnc
+[.vnc]$ ls
+passwd
+[.vnc]$ exit
+[~]#
+
+ 
+
+2.4. Confirm that the vncserver will start and stop cleanly
+ 
+We will create the xstartup scripts by starting and stopping the vncserver as root. We also enable the vncserver service to be automatically started. 
+# /sbin/service   vncserver start
+# /sbin/service   vncserver stop
+# /sbin/chkconfig vncserver on
+
+ Note: if you omitted the preceding step of logging in as each configured user, and creating their ~/.vnc/ subdirectory, this test will fail. 
+
+
+
+2.5. Create xstartup scripts ( You may omit this step for CentOS 6 )
+ 
+Login to each user and edit the xstartup script. To use Larry as an example, first login as larry 
+[~]$ cd .vnc
+[.vnc] ls
+mymachine.localnet:1.log  passwd  xstartup
+
+ Edit ~/.vnc/xstartup for each user. The original should appear as follows: 
+#!/bin/sh
+# Uncomment the following two lines for normal desktop:
+# unset SESSION_MANAGER
+# exec /etc/X11/xinit/xinitrc
+[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+xsetroot -solid grey
+vncconfig -iconic &
+xterm -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
+twm &
+
+ Add the line indicated below to assure that an xterm is always present, and uncomment the two lines as directed if you wish to run the user's normal desktop window manager in the VNC. Note that in the likely reduced resolution and color depth of a VNC window the full desktop will be rather cramped and a look bit odd. If you do not uncomment the two lines you will get a gray speckled background to the VNC window. 
+
+
+#!/bin/sh
+# Add the following line to ensure you always have an xterm available.
+( while true ; do xterm ; done ) &
+# Uncomment the following two lines for normal desktop:
+unset SESSION_MANAGER
+exec /etc/X11/xinit/xinitrc
+[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+xsetroot -solid grey
+vncconfig -iconic &
+xterm -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
+twm &
+
+ 
+
+2.6. Amend the iptables
+ 
+The iptables rules in /etc/sysconfig/ need to be amended to open the VNC ports; as needed, if a local ipv6 setup is being used, those need to be amended as well: 
+
+
+[root@xen-221 sysconfig]# cat iptables
+# Firewall configuration written by system-config-firewall
+# Manual customization of this file is not recommended.
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+-A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A INPUT -p icmp -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A INPUT -i eth1 -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 22 -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp -m multiport --dports 5901:5903,6001:6003 -j ACCEPT
+-A INPUT -j REJECT --reject-with icmp-host-prohibited
+-A FORWARD -j REJECT --reject-with icmp-host-prohibited
+COMMIT
+[root@xen-221 sysconfig]#         
+
+ ... and then restart the iptables: 
+# /sbin/service iptables restart
+
+ 
+
+2.7. Start the VNC server
+ 
+Start the vncserver as root. 
+# /sbin/service vncserver start
+
+ 
+
+2.8. Test each VNC user
+ 
+
+
+2.8.1. Testing with a java enabled browser
+ 
+Let us assume that mymachine has an IP address of 192.168.0.10. The URL to connect to each of the users will be: 
+
+
+Larry is http://192.168.0.10:5801
+Moe   is http://192.168.0.10:5802
+Curly is http://192.168.0.10:5803
+
+ Connect to http://192.168.0.10:5801. A java applet window will pop-up showing a connection to your machine at port 1. Click the [ok] button. Enter larry's VNC password, and a 640x480 window should open using the default window manager selected for larry . The above ports  5801, 5802 and 5803  must be open in the firewall {iptables) for the source IP addresses or subnets of a given client. 
+
+
+
+2.8.2. Testing with a vnc client
+ 
+
+For Larry: vncviewer 192.168.0.10:1
+For   Moe: vncviewer 192.168.0.10:2
+For Curly: vncviewer 192.168.0.10:3
+
+ To test larry using vncviewer, vncviewer 192.168.0.10:1 An authentication box will pop up, and you may enter Larry's VNC password. Once authenticated, a 640x480 window should open using Larry's default window manager. The vncviewer client will connect to port 590X where X is an offset of 1,2,3 for Larry, Moe, and Curly respectively, so these ports must be open in the firewall for the IP addresses or subnets of the clients. 
+
+If your local account userid is not, say, larry, you may 'switch user' for purposes of vncviewer thus: 
+export USER=larry ; vncviewer 192.168.0.10:1 
+
+ which has the effect of passing the username larry to the vncviewer program. 
+
+
+
+2.8.3. Starting vncserver at boot
+ 
+To start vncserver at boot, enter the command: 
+/sbin/chkconfig vncserver on 
+
+ For basic VNC configuration the procedure is now complete. The following sections are optional refinements to enhance security and functionality. 
+
+
+
+3. VNC encrypted through an ssh tunnel
+ 
+You will be connecting through an ssh tunnel. You will need to be able to ssh to a user on the machine. For this example, the user on the vncserver machine is: larry That account username needs to exist on the target machine, and either password, or keyed ssh access needs to be functional. the vncserver will also prompt for the vncpassword. The Linux and VNC system usernames and passwords are not required to be identical and are 'not' automatically synchronized. That is, remote users able and baker may each have differing credentials to set up the ssh tunnel to the remote VNC server, but if each uses the larry account, they will use the same VNC password. 
+1.
+Edit /etc/sysconfig/vncservers and add the option -localhost
+VNCSERVERS="1:larry 2:moe 3:curly"
+VNCSERVERARGS[1]="-geometry 640x480 -localhost"
+VNCSERVERARGS[2]="-geometry 640x480 -localhost"
+VNCSERVERARGS[1]="-geometry 800x600 -localhost"
+
+ 2.
+/sbin/service vncserver restart 
+
+3.Go to another machine with vncserver and test the VNC. a.
+vncviewer -via larry@192.168.0.10 localhost:1 
+
+b.
+vncviewer -via moe@192.168.0.10 localhost:2 
+
+c.
+vncviewer -via curly@192.168.0.10 localhost:3 
+
+
+
+By default, many vncviewers will disable compression options for what it thinks is a "local" connection. Make sure to check with the vncviewer man page to enable/force compression. If not, performance may be very poor! 
+
+
+
+4. Recovery from a logout ( Not implemented for CentOS 6 )
+ 
+If you logout of your desktop manager, it is gone! 
+We added a line to xstartup to give us an xterm where we can restart our window manager. ◦
+For gnome, enter gnome-session. 
+
+◦
+For kde, enter startkde. 
+
+
+
+
+
+5. Remote login with vnc-ltsp-config
+ 
+To allow remote login access via a vnc-client to the Centos system, the RPM packages named vnc-ltsp-config and xinetd can be installed. When a vnc-client connects to one of the configured ports, the user will be given a login screen. The sessions will *not* be persistent. When a user logs out, the session is gone. 
+
+The rpm package vnc-ltsp-config is easily installed via the EPEL repository noted in Available Repositories 
+
+Note: There are no major dependencies for the package so the vnc-ltsp-config*.rpm could easily be downloaded and installed without the need for enabling the EPEL repository. 
+
+Install, as root via: 
+
+
+# yum install xinetd vnc-ltsp-config
+# /sbin/chkconfig xinetd on
+# /sbin/chkconfig vncts on
+# /sbin/service xinetd restart
+
+ Next, as root edit the file "/etc/gdm/custom.conf". 
+•To the next blank line below the "[security]" section add "DisallowTCP=false" 
+•To the next blank line below the "[xdmcp]" section add "Enable=true" 
+•Make sure you are in a position to either run "gdm-restart" for default Gnome installs or just reboot the CentOS box. 
+
+This will add the ability to get the following default vnc-client based session connections: 
+
+
+
+
+
+resolution 
+
+
+color-depth 
+
+
+port 
+
+
+
+
+1024x768 
+
+
+16 
+
+
+5900/tcp 
+
+
+
+
+800x600 
+
+
+16 
+
+
+5901/tcp 
+
+
+
+
+640x480 
+
+
+16 
+
+
+5902/tcp 
+
+
+
+
+1024x768 
+
+
+8 
+
+
+5903/tcp 
+
+
+
+
+800x600 
+
+
+8 
+
+
+5904/tcp 
+
+
+
+
+640x480 
+
+
+8 
+
+
+5905/tcp 
+
+
+If you don't like the above defaults, just modify /etc/xinetd.d/vncts as required. 
+
+A major advantage of using the vnc-ltsp-config setup is the reduction of system resource utilization compared to the standard "per-user setup". No user processes will be started or memory consumed until a user actually logs into the system. Also, no pre-thought for user setup is needed (eg skip all of the manual individual user setup for vnc-server). The downside to the vnc-ltsp-config setup is that *any* user with the ability to login will likely have the ability to log into the system via a vnc-client with full gui unless steps are taken to limit that type of access. Also, there is no session persistance! Once the vnc-client closes, the vnc-ltsp-config session will terminate (by default) and all running processes will be killed. 
+
+This option can be combined with ssh tunnelling using a slightly modified version of the "vncviewer -via" command noted above: 
+
+
+vncviewer -via remoteUser@remoteHost localhost:vncSinglePortNumber
+
+ For the default vnc-ltsp-config install, the "vncSinglePortNumber" is the last digit only of the port number. Port 5900 (1024x768 16bit) would just be "0", for example. 
+
+Note: you will need to be aware of possible interaction issues if you enable either selinux or iptables. If you are not running a display manager (runlevel 3 for example), you will need to start one or you will only get a black screen when you connect. 
+
+
+
+6. VNC-Server for an already logged in GUI console session - 2 options
+ 
+Often you will need remote access to an already logged in GUI session on a "real" console. Or you will need to help another user remotely with an GUI or visual issue. You will need either "vnc-server" or "x11vnc". The vnc-server option will be a module added to X11 for "allways on" vnc support, while x11vnc will allow for adhoc vnc support. 
+
+vnc-server install will require no third party repos or source building. 
+
+x11vnc is a way to view remotely and interact with real X displays (i.e. a display corresponding to a physical monitor, keyboard, and mouse) with any VNC viewer. In this way it plays the role for Unix/X11 that WinVNC plays for Windows. 
+
+
+
+6.1. x11vnc adhoc option
+ 
+Karl Runge has generously provide a exceptional amount of information at http://www.karlrunge.com/x11vnc/ for x11vnc. There is info on securing the connection and also an "Enhanced TightVNC Viewer (ssvnc)". To make it easy, follow these steps: 
+
+1. Download the latest rpm install from http://dag.wieers.com/rpm/packages/x11vnc/ to the host you want the vnc-client to connect to: 
+
+
+wget http://dag.wieers.com/rpm/packages/x11vnc/x11vnc-0.9.3-1.el5.rf.i386.rpm
+
+ 2. Install, as root, via the yum or rpm programs on the host you want the vnc-client to connect to: 
+
+
+yum install x11vnc-0.9.3-1.el5.rf.i386.rpm
+
+ 3. Start the x11vnc process on the host you want the vnc-client to connect to. Please take a long look at the possible options from the x11vnc website. A very simple/insecure example for a trusted network setup (local network or VPN) is to have the user with the GUI console issue the command: 
+
+
+[user@helpme_host ~$] x11vnc -nopw -display :0.0
+
+ Then connect (without password) via a vnc-client to the IP/hostname and port noted by the x11vnc command. By default, x11vnc will allow connections from all interfaces. Host based firewall settings may need to be modified. 
+
+You can combine this with ssh tunneling: 
+
+
+ssh -C -t -L 5900:localhost:5900 [remote ip] 'x11vnc -usepw -localhost -display :0'
+
+ Note that the -C flag is for compression, so may not be required 
+
+
+
+6.2. vnc-server X11 "always on" option
+ 
+1. On the the system you want to run vnc-server, install vnc-server as noted above. 
+
+2. Edit /etc/X11/xorg.conf, as root, and add/create a 'Module' Section and add 'Load "vnc"': 
+
+
+Section "Module"
+  Load "vnc"
+EndSection
+
+ 3. For standard vnc authentication, edit /etc/X11/xorg.conf, as root, and add to the 'Screen' Section: 
+
+
+ Option "SecurityTypes" "VncAuth"
+  Option "UserPasswdVerifier" "VncAuth"
+  Option "PasswordFile" "/root/.vnc/passwd"
+
+ 4. As root, run 'vncpasswd" to create the password noted above. 
+
+5. Restart X11 (<Ctrl>+<Alt>+<BS> will work if on the console already) 
+
+6. You should be able to connect with a vncviewer client as normal. 
+
+7. To trouble shoot, check for errors in the /var/log/Xorg.0.log or verify that iptables or selinux is not interfering with remote connections. Additional information is at http://www.realvnc.com/products/free/4.1/x0.html 
+
+
+--------------------------------------------------------------------------------
+
+
+
+This Fedora Tutorial has been found useful by some users. 
+
+
+HowTos/VNC-Server (2012-11-07 22:24:13由AlanBartlett编辑)
+
+ 
+
+
+--------------------------------------------------------------------------------
+
+•FrontPage
+•Help
+•Tips and Tricks
+•How To
+•FAQs
+•Events
+•Contribute
+•Newsletter
+•Changelog
+•HowTos/VNC-Server
+ 
+
+This wiki is licensed under a Creative Commons Attribution-Share Alike 3.0 Unported License.
+ 

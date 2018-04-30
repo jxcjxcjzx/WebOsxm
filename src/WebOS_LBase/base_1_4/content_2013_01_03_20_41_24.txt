@@ -1,0 +1,303 @@
+CU首页 CU论坛首页 CU博客首页 ┊ 登录 注册 ┊ 随便看看    博文 博主 相册 投票 活动  发博文 CU论坛首页 
+CU博客首页 
+公告：2013新版CU博客上线公测，欢迎试用！方向、坚持 chengyake.blog.chinaunix.net 
+一个毫无毅力之人的自勉    
+     首页 | 博文目录 | 相册 | 博客圈 | 关于我 | 留言 个人资料
+
+ 
+chengyake 
+微博 论坛 发纸条 打招呼 加关注 加好友 
+博客访问：42786 
+博文数量：175 
+博客积分：5097 
+博客等级：上校 
+注册时间：2009-12-08 21:48:15 
+文章分类
+全部博文(175)
+dmusic_plan(1)
+English_plan(3)
+problem in work(3)
+V4L2(1)
+plan_plan(7)
+tools(17)
+驱动(7)
+模块设备(0)机制原理(6)
+panda plan(12)
+C/C++(16)
+wifi(3)
+ppp(12)
+硬件(3)
+android(19)
+未分类博文(53)订阅我的博客
+ 
+ 
+ 
+ 
+字体大小：大 中 小博文oss音频编程全攻略（下） (2011-04-16 12:55) 
+标签:  声卡驱动  控制器  百分比  程序员  混音器  
+
+
+
+表1 混音器命令 
+
+对声卡的输入增益和输出增益进行调节是混音器的一个主要作用，目前大部分声卡采用的是8位或者16位的增益控制器，但作为程序员来讲并不需要关心这些，因为声卡驱动程序会负责将它们变换成百分比的形式，也就是说无论是输入增益还是输出增益，其取值范围都是从0到100。在进行混音器编程时，可以使用 SOUND_MIXER_READ宏来读取混音通道的增益大小，例如在获取麦克风的输入增益时，可以使用如下的代码：
+
+int vol;
+ioctl(fd, SOUND_MIXER_READ(SOUND_MIXER_MIC), &vol);
+printf("Mic gain is at %d %%
+", vol);
+ 
+
+
+对于只有一个混音通道的单声道设备来说，返回的增益大小保存在低位字节中。而对于支持多个混音通道的双声道设备来说，返回的增益大小实际上包括两个部分，分别代表左、右两个声道的值，其中低位字节保存左声道的音量，而高位字节则保存右声道的音量。下面的代码可以从返回值中依次提取左右声道的增益大小：
+
+int left, right;
+left = vol & 0xff;
+right = (vol & 0xff00) >> 8;
+printf("Left gain is %d %%, Right gain is %d %%
+", left, right);
+ 
+
+
+类似地，如果想设置混音通道的增益大小，则可以通过SOUND_MIXER_WRITE宏来实现，此时遵循的原则与获取增益值时的原则基本相同，例如下面的语句可以用来设置麦克风的输入增益：
+
+vol = (right << 8) + left;
+ioctl(fd, SOUND_MIXER_WRITE(SOUND_MIXER_MIC), &vol);
+ 
+
+
+在编写实用的音频程序时，混音器是在涉及到兼容性时需要重点考虑的一个对象，这是因为不同的声卡所提供的混音器资源是有所区别的。声卡驱动程序提供了多个ioctl系统调用来获得混音器的信息，它们通常返回一个整型的位掩码（bitmask），其中每一位分别代表一个特定的混音通道，如果相应的位为 1，则说明与之对应的混音通道是可用的。例如通过 SOUND_MIXER_READ_DEVMASK返回的位掩码，可以查询出能够被声卡支持的每一个混音通道，而通过 SOUND_MIXER_READ_RECMAS返回的位掩码，则可以查询出能够被当作录音源的每一个通道。下面的代码可以用来检查CD输入是否是一个有效的混音通道：
+
+ioctl(fd, SOUND_MIXER_READ_DEVMASK, &devmask);
+if (devmask & SOUND_MIXER_CD)
+printf("The CD input is supported");
+ 
+
+
+如果进一步还想知道其是否是一个有效的录音源，则可以使用如下语句：
+
+ioctl(fd, SOUND_MIXER_READ_RECMASK, &recmask);
+if (recmask & SOUND_MIXER_CD)
+printf("The CD input can be a recording source");
+
+目前大多数声卡提供多个录音源，通过 SOUND_MIXER_READ_RECSRC可以查询出当前正在使用的录音源，同一时刻能够使用几个录音源是由声卡硬件决定的。类似地，使用 SOUND_MIXER_WRITE_RECSRC可以设置声卡当前使用的录音源，例如下面的代码可以将CD输入作为声卡的录音源使用：
+
+devmask = SOUND_MIXER_CD;
+ioctl(fd, SOUND_MIXER_WRITE_DEVMASK, &devmask);
+ 
+
+
+此外，所有的混音通道都有单声道和双声道的区别，如果需要知道哪些混音通道提供了对立体声的支持，可以通过SOUND_MIXER_READ_STEREODEVS来获得。
+
+4.3 音频录放框架
+
+下面给出一个利用声卡上的DSP设备进行声音录制和回放的基本框架，它的功能是先录制几秒种音频数据，将其存放在内存缓冲区中，然后再进行回放，其所有的功能都是通过读写/dev/dsp设备文件来完成的：
+
+/*
+* sound.c
+*/
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <linux/soundcard.h>
+#define LENGTH 3 /* 存储秒数 */
+#define RATE 8000 /* 采样频率 */
+#define SIZE 8 /* 量化位数 */
+#define CHANNELS 1 /* 声道数目 */
+/* 用于保存数字音频数据的内存缓冲区 */
+unsigned char buf[LENGTH*RATE*SIZE*CHANNELS/8];
+int main()
+{
+int fd; /* 声音设备的文件描述符 */
+int arg; /* 用于ioctl调用的参数 */
+int status; /* 系统调用的返回值 */
+/* 打开声音设备 */
+fd = open("/dev/dsp", O_RDWR);
+if (fd < 0) {
+perror("open of /dev/dsp failed");
+exit(1);
+}
+/* 设置采样时的量化位数 */
+arg = SIZE;
+status = ioctl(fd, SOUND_PCM_WRITE_BITS, &arg);
+if (status == -1)
+perror("SOUND_PCM_WRITE_BITS ioctl failed");
+if (arg != SIZE)
+perror("unable to set sample size");
+/* 设置采样时的声道数目 */
+arg = CHANNELS; 
+status = ioctl(fd, SOUND_PCM_WRITE_CHANNELS, &arg);
+if (status == -1)
+perror("SOUND_PCM_WRITE_CHANNELS ioctl failed");
+if (arg != CHANNELS)
+perror("unable to set number of channels");
+/* 设置采样时的采样频率 */
+arg = RATE;
+status = ioctl(fd, SOUND_PCM_WRITE_RATE, &arg);
+if (status == -1)
+perror("SOUND_PCM_WRITE_WRITE ioctl failed");
+/* 循环，直到按下Control-C */
+while (1) {
+printf("Say something:
+");
+status = read(fd, buf, sizeof(buf)); /* 录音 */
+if (status != sizeof(buf))
+perror("read wrong number of bytes");
+printf("You said:
+");
+status = write(fd, buf, sizeof(buf)); /* 回放 */
+if (status != sizeof(buf))
+perror("wrote wrong number of bytes");
+/* 在继续录音前等待回放结束 */
+status = ioctl(fd, SOUND_PCM_SYNC, 0); 
+if (status == -1)
+perror("SOUND_PCM_SYNC ioctl failed");
+}
+}
+
+4.4 混音器框架
+
+下面再给出一个对混音器进行编程的基本框架，利用它可以对各种混音通道的增益进行调节，其所有的功能都是通过读写/dev/mixer设备文件来完成的：
+
+/*
+* mixer.c
+*/
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <linux/soundcard.h>
+/* 用来存储所有可用混音设备的名称 */
+const char *sound_device_names[] = SOUND_DEVICE_NAMES;
+int fd; /* 混音设备所对应的文件描述符 */
+int devmask, stereodevs; /* 混音器信息对应的位图掩码 */
+char *name;
+/* 显示命令的使用方法及所有可用的混音设备 */
+void usage()
+{
+int i;
+fprintf(stderr, "usage: %s <device> <left-gain%%> <right-gain%%>
+"
+" %s <device> <gain%%>
+
+"
+"Where <device> is one of:
+", name, name);
+for (i = 0 ; i < SOUND_MIXER_NRDEVICES ; i++)
+if ((1 << i) & devmask) /* 只显示有效的混音设备 */
+fprintf(stderr, "%s ", sound_device_names[i]);
+fprintf(stderr, "
+");
+exit(1);
+}
+int main(int argc, char *argv[])
+{
+int left, right, level; /* 增益设置 */
+int status; /* 系统调用的返回值 */
+int device; /* 选用的混音设备 */
+char *dev; /* 混音设备的名称 */
+int i;
+name = argv[0];
+/* 以只读方式打开混音设备 */
+fd = open("/dev/mixer", O_RDONLY);
+if (fd == -1) {
+perror("unable to open /dev/mixer");
+exit(1);
+}
+
+/* 获得所需要的信息 */
+status = ioctl(fd, SOUND_MIXER_READ_DEVMASK, &devmask);
+if (status == -1)
+perror("SOUND_MIXER_READ_DEVMASK ioctl failed");
+status = ioctl(fd, SOUND_MIXER_READ_STEREODEVS, &stereodevs);
+if (status == -1)
+perror("SOUND_MIXER_READ_STEREODEVS ioctl failed");
+/* 检查用户输入 */
+if (argc != 3 && argc != 4)
+usage();
+/* 保存用户输入的混音器名称 */
+dev = argv[1];
+/* 确定即将用到的混音设备 */
+for (i = 0 ; i < SOUND_MIXER_NRDEVICES ; i++)
+if (((1 << i) & devmask) && !strcmp(dev, sound_device_names[i]))
+break;
+if (i == SOUND_MIXER_NRDEVICES) { /* 没有找到匹配项 */
+fprintf(stderr, "%s is not a valid mixer device
+", dev);
+usage();
+}
+/* 查找到有效的混音设备 */
+device = i;
+/* 获取增益值 */
+if (argc == 4) {
+/* 左、右声道均给定 */
+left = atoi(argv[2]);
+right = atoi(argv[3]);
+} else {
+/* 左、右声道设为相等 */
+left = atoi(argv[2]);
+right = atoi(argv[2]);
+}
+
+/* 对非立体声设备给出警告信息 */
+if ((left != right) && !((1 << i) & stereodevs)) {
+fprintf(stderr, "warning: %s is not a stereo device
+", dev);
+}
+
+/* 将两个声道的值合到同一变量中 */
+level = (right << 8) + left;
+
+/* 设置增益 */
+status = ioctl(fd, MIXER_WRITE(device), &level);
+if (status == -1) {
+perror("MIXER_WRITE ioctl failed");
+exit(1);
+}
+/* 获得从驱动返回的左右声道的增益 */
+left = level & 0xff;
+right = (level & 0xff00) >> 8;
+/* 显示实际设置的增益 */
+fprintf(stderr, "%s gain set to %d%% / %d%%
+", dev, left, right);
+/* 关闭混音设备 */
+close(fd);
+return 0;
+}
+
+编译好上面的程序之后，先不带任何参数执行一遍，此时会列出声卡上所有可用的混音通道：
+
+[xiaowp@linuxgam sound]$ ./mixer
+usage: ./mixer <device> <left-gain%> <right-gain%>
+./mixer <device> <gain%>
+
+Where <device> is one of:
+vol pcm speaker line mic cd igain line1 phin video
+ 
+
+
+之后就可以很方便地设置各个混音通道的增益大小了，例如下面的命令就能够将CD输入的左、右声道的增益分别设置为80%和90%：
+
+五、小结
+
+随着Linux平台下多媒体应用的逐渐深入，需要用到数字音频的场合必将越来越广泛。虽然数字音频牵涉到的概念非常多，但在Linux下进行最基本的音频编程却并不十分复杂，关键是掌握如何与OSS或者ALSA这类声卡驱动程序进行交互，以及如何充分利用它们提供的各种功能，熟悉一些最基本的音频编程框架和模式对初学者来讲大有裨益。
+
+
+
+博客推荐文章
+2012万能主板声卡驱动程序下载 (2012-05-06 16:26:15) Linux ALSA声卡驱动之二：声卡的创建 (2012-02-28 17:34:59) DELL 1088笔记本xp下安声卡驱动的解决方法 (2012-05-02 14:59:10) Linux的声卡驱动方法 (2012-03-13 16:23:28) UDA1341声卡驱动 . (2011-12-17 14:03:15) 分享到： 新浪微博 QQ空间 开心网 豆瓣 人人网 twitter fb 0 
+   顶 热门推荐联想 TS130 S1225 4/2*5...惠普 ProLiant DL120 G...戴尔 PowerEdge R210(Xeo...联想 万全 B700-20(S2.8...shell 字符串 可以用in...程序如何被编译jquery ajax上传文件数据结构括号检测
+阅读(287)┊ 评论 (0)┊收藏(0)┊举报┊打印 
+前一篇：oss音频编程全攻略（上）
+[发评论] 评论 重要提示：警惕虚假中奖信息! 
+
+亲，您还没有登录,请[登录]或[注册]后再进行评论关于我们 | 关于IT168 | 联系方式 | 广告合作 | 法律声明 | 免费注册 
+Copyright © 2001-2010 ChinaUnix.net All Rights Reserved 北京皓辰网域网络信息技术有限公司. 版权所有 
+感谢所有关心和支持过ChinaUnix的朋友们
+京ICP证041476号 京ICP证060528号 
+
+ 

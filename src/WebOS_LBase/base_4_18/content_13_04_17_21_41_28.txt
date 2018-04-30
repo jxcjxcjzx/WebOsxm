@@ -1,0 +1,5471 @@
+
+
+首页
+开源软件
+讨论区
+
+
+
+
+
+
+代码分享
+博客
+翻译
+资讯
+移动开发
+
+
+
+
+招聘
+
+你好2,您好 我的空间
+
+
+
+
+
+
+
+ |  添加软件 | 投递新闻 | 退出
+ 
+
+开源中国 
+代码分享
+ 当前位置：代码分享 » C/C++ » Qt 图形界面开发 
+搜 索 
+
+
+
+
+
+
+
+
+
+Qt写的五子棋人机对弈程序
+
+自由民 发布于 2011年10月07日 21时, 30评/5994阅
+
+
+ 
+
+
+分享到 
+
+新浪微博腾讯微博
+
+
+收藏+29
+
+踩顶0
+ 
+
+
+用QT写的五子棋游戏，在Ubuntu下开发，用于人机对战，实现了三种不同的算法，还可以算法之间对战。 
+
+开发环境: 
+
+ubuntu10.04 
+
+linux3.04 
+
+gcc (Ubuntu 4.4.3-4ubuntu5) 4.4.3 
+
+Qt version 4.6.2 
+
+编译方法： 
+
+qmake -project && qmake && make 
+
+本来还想实现博弈树的算法，没有调通，就暂时放弃了，期待高手。另外算法间对战似乎有点问题，相同的算法之间对战理论上输赢概率应该一样，但是实际测下来有的差别很大，不知道是啥原因。 
+
+还是没法上传打包文件。最新代码的git下载方法： git clone git://github.com/zwdnet/FiveQi.git 
+
+
+
+
+标签：QT GCC Ubuntu 五子棋 
+
+
+
+
+代码片段(7)
+
+
+[文件] dialog.cpp ~ 2KB    下载(567)
+
+
+
+view source
+
+print?
+
+
+
+
+01
+
+#include "dialog.h"
+
+
+
+
+
+02
+
+ 
+
+
+
+
+
+03
+
+SelectDialog::SelectDialog(QWidget * parent, Qt::WindowFlags f)
+
+
+
+
+
+04
+
+        : QDialog(parent)
+
+
+
+
+
+05
+
+{
+
+
+
+
+
+06
+
+    bAlgorithm = 0;
+
+
+
+
+
+07
+
+    wAlgorithm = 0;
+
+
+
+
+
+08
+
+    times = 100;
+
+
+
+
+
+09
+
+    setFixedSize(250, 150);
+
+
+
+
+
+10
+
+    QTextCodec::setCodecForTr(QTextCodec::codecForLocale());
+
+
+
+
+
+11
+
+    setWindowTitle(tr("选择算法及对战次数"));
+
+
+
+
+
+12
+
+    blackAlgorithm = new QComboBox;
+
+
+
+
+
+13
+
+    blackAlgorithm->addItem(tr("算法1(随机算法)"), 1);
+
+
+
+
+
+14
+
+    blackAlgorithm->addItem(tr("算法2(贪心算法)"), 2);
+
+
+
+
+
+15
+
+    blackAlgorithm->addItem(tr("算法3(改进的随机算法)"), 3);
+
+
+
+
+
+16
+
+    connect(blackAlgorithm, SIGNAL(currentIndexChanged(int)),
+
+
+
+
+
+17
+
+        this, SLOT(bAlgorithmChanged(int)));
+
+
+
+
+
+18
+
+    whiteAlgorithm = new QComboBox;
+
+
+
+
+
+19
+
+    whiteAlgorithm->addItem(tr("算法1(随机算法)"), 1);
+
+
+
+
+
+20
+
+    whiteAlgorithm->addItem(tr("算法2(贪心算法)"), 2);
+
+
+
+
+
+21
+
+    whiteAlgorithm->addItem(tr("算法3(改进的随机算法)"), 3);
+
+
+
+
+
+22
+
+    connect(whiteAlgorithm, SIGNAL(currentIndexChanged(int)),
+
+
+
+
+
+23
+
+        this, SLOT(wAlgorithmChanged(int)));
+
+
+
+
+
+24
+
+ 
+
+
+
+
+
+25
+
+    label1 = new QLabel(tr("黑棋的算法为:"), this);
+
+
+
+
+
+26
+
+    QHBoxLayout * layout1 = new QHBoxLayout;
+
+
+
+
+
+27
+
+    layout1->addWidget(label1);
+
+
+
+
+
+28
+
+    layout1->addWidget(blackAlgorithm);
+
+
+
+
+
+29
+
+     
+
+
+
+
+
+30
+
+    label2 = new QLabel(tr("白棋的算法为:"), this);
+
+
+
+
+
+31
+
+    QHBoxLayout * layout2 = new QHBoxLayout;
+
+
+
+
+
+32
+
+    layout2->addWidget(label2);
+
+
+
+
+
+33
+
+    layout2->addWidget(whiteAlgorithm);
+
+
+
+
+
+34
+
+ 
+
+
+
+
+
+35
+
+    label3 = new QLabel(tr("对战的次数为:"), this);
+
+
+
+
+
+36
+
+    currentTimesSlider = new QSpinBox(this);
+
+
+
+
+
+37
+
+    currentTimesSlider->setRange(0,1000);
+
+
+
+
+
+38
+
+    currentTimesSlider->setSingleStep(100);
+
+
+
+
+
+39
+
+    currentTimesSlider->setValue(100);
+
+
+
+
+
+40
+
+    connect(currentTimesSlider, SIGNAL(valueChanged(int)), this,
+
+
+
+
+
+41
+
+        SLOT(currentTimesChanged(int)));
+
+
+
+
+
+42
+
+    QHBoxLayout * layout3 = new QHBoxLayout;
+
+
+
+
+
+43
+
+    layout3->addWidget(label3);
+
+
+
+
+
+44
+
+    layout3->addWidget(currentTimesSlider);
+
+
+
+
+
+45
+
+ 
+
+
+
+
+
+46
+
+    okButton = new QPushButton(tr("确定"), this);
+
+
+
+
+
+47
+
+    connect(okButton, SIGNAL(clicked()), this, SLOT(OK()));
+
+
+
+
+
+48
+
+    QHBoxLayout * layout4 = new QHBoxLayout;
+
+
+
+
+
+49
+
+    layout4->addWidget(okButton);
+
+
+
+
+
+50
+
+ 
+
+
+
+
+
+51
+
+    QVBoxLayout * mainLayout = new QVBoxLayout;
+
+
+
+
+
+52
+
+    mainLayout->addLayout(layout1);
+
+
+
+
+
+53
+
+    mainLayout->addLayout(layout2);
+
+
+
+
+
+54
+
+    mainLayout->addLayout(layout3);
+
+
+
+
+
+55
+
+    mainLayout->addLayout(layout4);
+
+
+
+
+
+56
+
+     
+
+
+
+
+
+57
+
+    setLayout(mainLayout);
+
+
+
+
+
+58
+
+}
+
+
+
+
+
+59
+
+ 
+
+
+
+
+
+60
+
+SelectDialog::~SelectDialog()
+
+
+
+
+
+61
+
+{
+
+
+
+
+
+62
+
+}
+
+
+
+
+
+63
+
+ 
+
+
+
+
+
+64
+
+void SelectDialog::bAlgorithmChanged(int value)
+
+
+
+
+
+65
+
+{
+
+
+
+
+
+66
+
+    bAlgorithm = value;
+
+
+
+
+
+67
+
+}
+
+
+
+
+
+68
+
+ 
+
+
+
+
+
+69
+
+void SelectDialog::wAlgorithmChanged(int value)
+
+
+
+
+
+70
+
+{
+
+
+
+
+
+71
+
+    wAlgorithm = value;
+
+
+
+
+
+72
+
+}
+
+
+
+
+
+73
+
+ 
+
+
+
+
+
+74
+
+void SelectDialog::OK()
+
+
+
+
+
+75
+
+{
+
+
+
+
+
+76
+
+    close();
+
+
+
+
+
+77
+
+}
+
+
+
+
+
+78
+
+ 
+
+
+
+
+
+79
+
+void SelectDialog::currentTimesChanged(int value)
+
+
+
+
+
+80
+
+{
+
+
+
+
+
+81
+
+    times = value;
+
+
+
+
+
+82
+
+}
+
+
+
+
+
+83
+
+ 
+
+
+
+
+
+84
+
+void SelectDialog::getValue(int & bAlgo, int & wAlgo, int & currentTimes)
+
+
+
+
+
+85
+
+{
+
+
+
+
+
+86
+
+    bAlgo = bAlgorithm;
+
+
+
+
+
+87
+
+    wAlgo = wAlgorithm;
+
+
+
+
+
+88
+
+    currentTimes = times;
+
+
+
+
+
+89
+
+}
+
+
+
+[文件] dialog.h ~ 1KB    下载(379)
+
+
+
+
+
+
+
+
+
+
+01
+
+#ifndef SELECTDIALOG_H
+
+
+
+
+
+02
+
+#define SELECTDIALOG_H
+
+
+
+
+
+03
+
+ 
+
+
+
+
+
+04
+
+#include <QtGui>
+
+
+
+
+
+05
+
+ 
+
+
+
+
+
+06
+
+//用来选择算法之间对战的算法和对战次数的对话框
+
+
+
+
+
+07
+
+ 
+
+
+
+
+
+08
+
+class QComboBox;
+
+
+
+
+
+09
+
+class QLayout;
+
+
+
+
+
+10
+
+class QSpinBox;
+
+
+
+
+
+11
+
+class Window;
+
+
+
+
+
+12
+
+ 
+
+
+
+
+
+13
+
+class SelectDialog : public QDialog
+
+
+
+
+
+14
+
+{
+
+
+
+
+
+15
+
+    Q_OBJECT
+
+
+
+
+
+16
+
+public:
+
+
+
+
+
+17
+
+    SelectDialog(QWidget * parent = 0, Qt::WindowFlags f = Qt::Dialog);
+
+
+
+
+
+18
+
+    ~SelectDialog();
+
+
+
+
+
+19
+
+    void getValue(int & bAlgo, int & wAlgo, int & currentTimes);
+
+
+
+
+
+20
+
+ 
+
+
+
+
+
+21
+
+//自定义槽函数
+
+
+
+
+
+22
+
+private slots:
+
+
+
+
+
+23
+
+    void bAlgorithmChanged(int value); //黑棋算法改变
+
+
+
+
+
+24
+
+    void wAlgorithmChanged(int value); //白棋算法改变
+
+
+
+
+
+25
+
+    void OK();                         //点击确定运行算法间的对抗
+
+
+
+
+
+26
+
+    void currentTimesChanged(int value); //对战次数改变
+
+
+
+
+
+27
+
+ 
+
+
+
+
+
+28
+
+private:
+
+
+
+
+
+29
+
+    QComboBox * blackAlgorithm; //选择黑棋所用算法的下拉列表
+
+
+
+
+
+30
+
+    QComboBox * whiteAlgorithm; //选择白棋所用算法的下拉列表 
+
+
+
+
+
+31
+
+    QLabel * label1, * label2, * label3;
+
+
+
+
+
+32
+
+    QSpinBox * currentTimesSlider; //选择对战次数的微调框
+
+
+
+
+
+33
+
+    QPushButton * okButton; //确定按钮
+
+
+
+
+
+34
+
+ 
+
+
+
+
+
+35
+
+    int bAlgorithm, wAlgorithm, times; //黑，白棋所用的算法，对战次数
+
+
+
+
+
+36
+
+};
+
+
+
+
+
+37
+
+ 
+
+
+
+
+
+38
+
+#endif
+
+
+
+[文件] main.cpp ~ 183B    下载(364)
+
+
+
+
+
+
+
+
+
+
+01
+
+#include <QApplication>
+
+
+
+
+
+02
+
+#include "window.h"
+
+
+
+
+
+03
+
+ 
+
+
+
+
+
+04
+
+int main(int argc, char ** argv)
+
+
+
+
+
+05
+
+{
+
+
+
+
+
+06
+
+    QApplication app(argc, argv);
+
+
+
+
+
+07
+
+    Window gamewindow;
+
+
+
+
+
+08
+
+    gamewindow.show();
+
+
+
+
+
+09
+
+    return app.exec();
+
+
+
+
+
+10
+
+}
+
+
+
+[文件] window.cpp ~ 8KB    下载(391)
+
+
+
+
+
+
+
+
+
+
+001
+
+#include "window.h"
+
+
+
+
+
+002
+
+ 
+
+
+
+
+
+003
+
+Window::Window(QWidget * parent)
+
+
+
+
+
+004
+
+    : QMainWindow(parent)
+
+
+
+
+
+005
+
+{
+
+
+
+
+
+006
+
+    QTextCodec::setCodecForTr(QTextCodec::codecForLocale());
+
+
+
+
+
+007
+
+    setWindowTitle(tr("五子棋游戏"));
+
+
+
+
+
+008
+
+    N = 15;  //棋盘规模 NXN
+
+
+
+
+
+009
+
+    MenuBarSize = 10;//菜单栏所占的位置
+
+
+
+
+
+010
+
+    setFixedSize(320+MenuBarSize, 320+MenuBarSize);
+
+
+
+
+
+011
+
+    bRun = true;
+
+
+
+
+
+012
+
+    Method = 2;
+
+
+
+
+
+013
+
+    vector<int> temp(N, 0);
+
+
+
+
+
+014
+
+    for (int i = 0; i < N; i++)
+
+
+
+
+
+015
+
+    {
+
+
+
+
+
+016
+
+        gamedata.push_back(temp);
+
+
+
+
+
+017
+
+    }
+
+
+
+
+
+018
+
+    dealMenu();
+
+
+
+
+
+019
+
+}
+
+
+
+
+
+020
+
+ 
+
+
+
+
+
+021
+
+Window::~Window()
+
+
+
+
+
+022
+
+{
+
+
+
+
+
+023
+
+}
+
+
+
+
+
+024
+
+ 
+
+
+
+
+
+025
+
+void Window::paintEvent(QPaintEvent * event)
+
+
+
+
+
+026
+
+{
+
+
+
+
+
+027
+
+    //画背景
+
+
+
+
+
+028
+
+    QPainter painter(this);
+
+
+
+
+
+029
+
+    painter.setBrush(Qt::lightGray);
+
+
+
+
+
+030
+
+    painter.drawRect(0, 0, size().width(), size().height());
+
+
+
+
+
+031
+
+        //获取棋盘信息
+
+
+
+
+
+032
+
+    game.GetData(gamedata);
+
+
+
+
+
+033
+
+    //画棋盘
+
+
+
+
+
+034
+
+    for (int x = 20+MenuBarSize; x <= N*20+MenuBarSize; x += 20)
+
+
+
+
+
+035
+
+    {
+
+
+
+
+
+036
+
+        painter.drawLine(x, 20+MenuBarSize, x, N*20+MenuBarSize); 
+
+
+
+
+
+037
+
+    }
+
+
+
+
+
+038
+
+    for (int y = 20+MenuBarSize; y <= N*20+MenuBarSize; y += 20)
+
+
+
+
+
+039
+
+    {
+
+
+
+
+
+040
+
+        painter.drawLine(20+MenuBarSize, y, N*20+MenuBarSize, y);
+
+
+
+
+
+041
+
+    }
+
+
+
+
+
+042
+
+    QPainter blackPainter(this);
+
+
+
+
+
+043
+
+    QPainter whitePainter(this);
+
+
+
+
+
+044
+
+    QPainter greenPainter(this);
+
+
+
+
+
+045
+
+    blackPainter.setBrush(Qt::black);
+
+
+
+
+
+046
+
+    whitePainter.setBrush(Qt::white);
+
+
+
+
+
+047
+
+    greenPainter.setBrush(Qt::green);
+
+
+
+
+
+048
+
+    for (int x = 0; x < N; x++)
+
+
+
+
+
+049
+
+    {
+
+
+
+
+
+050
+
+        for (int y = 0; y < N; y++)
+
+
+
+
+
+051
+
+        {
+
+
+
+
+
+052
+
+            if (gamedata[x][y] == 1) //黑棋子
+
+
+
+
+
+053
+
+            {
+
+
+
+
+
+054
+
+                blackPainter.drawEllipse((x+1)*20-10+MenuBarSize, 
+
+
+
+
+
+055
+
+                        (y+1)*20-10+MenuBarSize, 20, 20);
+
+
+
+
+
+056
+
+            }
+
+
+
+
+
+057
+
+            else if (gamedata[x][y] == 2) //白棋子
+
+
+
+
+
+058
+
+            {
+
+
+
+
+
+059
+
+                whitePainter.drawEllipse((x+1)*20-10+MenuBarSize,
+
+
+
+
+
+060
+
+                        (y+1)*20-10+MenuBarSize, 20, 20);
+
+
+
+
+
+061
+
+            }
+
+
+
+
+
+062
+
+        }
+
+
+
+
+
+063
+
+    }
+
+
+
+
+
+064
+
+    //将最后一步画的白棋子变绿，这样人能看清
+
+
+
+
+
+065
+
+    if (lastPs.x >=0 && lastPs.y >= 0)
+
+
+
+
+
+066
+
+    {
+
+
+
+
+
+067
+
+        greenPainter.drawEllipse((lastPs.x+1)*20-10+MenuBarSize,
+
+
+
+
+
+068
+
+                (lastPs.y+1)*20-10+MenuBarSize, 20, 20);
+
+
+
+
+
+069
+
+    }
+
+
+
+
+
+070
+
+    QMainWindow::paintEvent(event);
+
+
+
+
+
+071
+
+}
+
+
+
+
+
+072
+
+ 
+
+
+
+
+
+073
+
+void Window::mousePressEvent(QMouseEvent * event)
+
+
+
+
+
+074
+
+{
+
+
+
+
+
+075
+
+    //接受鼠标左键事件
+
+
+
+
+
+076
+
+    if (event->button() == Qt::LeftButton && bRun == true)
+
+
+
+
+
+077
+
+    {
+
+
+
+
+
+078
+
+        int x = event->x();
+
+
+
+
+
+079
+
+        int y = event->y();
+
+
+
+
+
+080
+
+        POINT ps;
+
+
+
+
+
+081
+
+        ps.x = x;
+
+
+
+
+
+082
+
+        ps.y = y;
+
+
+
+
+
+083
+
+        if (ps.x < 10+MenuBarSize || ps.y < 10+MenuBarSize ||
+
+
+
+
+
+084
+
+            ps.x > 300+20+MenuBarSize || ps.y > 300+20+MenuBarSize)
+
+
+
+
+
+085
+
+        {
+
+
+
+
+
+086
+
+            return;
+
+
+
+
+
+087
+
+        }
+
+
+
+
+
+088
+
+        if (!game.Fall(ps, 1, 20+MenuBarSize, 300+20+MenuBarSize))
+
+
+
+
+
+089
+
+        {
+
+
+
+
+
+090
+
+            return;
+
+
+
+
+
+091
+
+        }
+
+
+
+
+
+092
+
+        game.Run(ps, Method, 2);
+
+
+
+
+
+093
+
+        lastPs = ps;
+
+
+
+
+
+094
+
+        ps.x = 20 + MenuBarSize + ps.x*20;
+
+
+
+
+
+095
+
+        ps.y = 20 + MenuBarSize + ps.y*20;
+
+
+
+
+
+096
+
+        game.Fall(ps, 2, 20+MenuBarSize, 300+20+MenuBarSize);
+
+
+
+
+
+097
+
+        game.GetData(gamedata);
+
+
+
+
+
+098
+
+        update();
+
+
+
+
+
+099
+
+        int who = 0; //看谁赢了
+
+
+
+
+
+100
+
+        game.Judge(who);
+
+
+
+
+
+101
+
+        if (who == 1) //人赢了
+
+
+
+
+
+102
+
+        {
+
+
+
+
+
+103
+
+            QMessageBox::information(this, tr("游戏结束"),
+
+
+
+
+
+104
+
+                tr("你赢了，游戏结束!"));
+
+
+
+
+
+105
+
+            bRun = false;
+
+
+
+
+
+106
+
+        }
+
+
+
+
+
+107
+
+        else if (who == 2) //计算机赢了
+
+
+
+
+
+108
+
+        {
+
+
+
+
+
+109
+
+            QMessageBox::information(this, tr("游戏结束"),
+
+
+
+
+
+110
+
+                tr("你输了，游戏结束!"));
+
+
+
+
+
+111
+
+            bRun = false;
+
+
+
+
+
+112
+
+        }
+
+
+
+
+
+113
+
+    }
+
+
+
+
+
+114
+
+}
+
+
+
+
+
+115
+
+ 
+
+
+
+
+
+116
+
+void Window::dealMenu(void)
+
+
+
+
+
+117
+
+{
+
+
+
+
+
+118
+
+    QMenuBar * MenuBar = new QMenuBar(this);
+
+
+
+
+
+119
+
+    QMenu * GameMenu = new QMenu(tr("游戏"), MenuBar);
+
+
+
+
+
+120
+
+    QMenu * AlgorithmMenu = new QMenu(tr("算法"), MenuBar);
+
+
+
+
+
+121
+
+    QMenu * HelpMenu = new QMenu(tr("帮助"), MenuBar);
+
+
+
+
+
+122
+
+    //添加游戏菜单项
+
+
+
+
+
+123
+
+    QAction * StartGame = new QAction(tr("开始游戏"), GameMenu);
+
+
+
+
+
+124
+
+    QAction * StopGame = new QAction(tr("结束游戏"), GameMenu);
+
+
+
+
+
+125
+
+    QAction * QuitGame = new QAction(tr("退出游戏"), GameMenu);
+
+
+
+
+
+126
+
+    GameMenu->addAction(StartGame);
+
+
+
+
+
+127
+
+    GameMenu->addAction(StopGame);
+
+
+
+
+
+128
+
+    GameMenu->addAction(QuitGame);
+
+
+
+
+
+129
+
+    MenuBar->addMenu(GameMenu);
+
+
+
+
+
+130
+
+    connect(StartGame, SIGNAL(triggered()), this, SLOT(startGame()));
+
+
+
+
+
+131
+
+    connect(StopGame, SIGNAL(triggered()), this, SLOT(stopGame()));
+
+
+
+
+
+132
+
+    connect(QuitGame, SIGNAL(triggered()), this, SLOT(close()));
+
+
+
+
+
+133
+
+ 
+
+
+
+
+
+134
+
+    //添加算法选择菜单
+
+
+
+
+
+135
+
+    QAction * Algorithm1 = new QAction(tr("算法1:完全随机下棋"), AlgorithmMenu);
+
+
+
+
+
+136
+
+    QAction * Algorithm2 = new QAction(tr("算法2:贪心法(AI较好)"), AlgorithmMenu);
+
+
+
+
+
+137
+
+    QAction * Algorithm3 = new QAction(tr("算法3:改进的随机算法(AI较差)"), AlgorithmMenu);
+
+
+
+
+
+138
+
+    QAction * Against = new QAction(tr("算法之间对战"), AlgorithmMenu);
+
+
+
+
+
+139
+
+    AlgorithmMenu->addAction(Algorithm1);
+
+
+
+
+
+140
+
+    AlgorithmMenu->addAction(Algorithm2);
+
+
+
+
+
+141
+
+    AlgorithmMenu->addAction(Algorithm3);
+
+
+
+
+
+142
+
+    AlgorithmMenu->addAction(Against);
+
+
+
+
+
+143
+
+    MenuBar->addMenu(AlgorithmMenu);
+
+
+
+
+
+144
+
+    connect(Algorithm1, SIGNAL(triggered()), this, SLOT(setAlgorithm1()));
+
+
+
+
+
+145
+
+    connect(Algorithm2, SIGNAL(triggered()), this, SLOT(setAlgorithm2()));
+
+
+
+
+
+146
+
+    connect(Algorithm3, SIGNAL(triggered()), this, SLOT(setAlgorithm3()));
+
+
+
+
+
+147
+
+    connect(Against, SIGNAL(triggered()), this, SLOT(fightAgainst()));
+
+
+
+
+
+148
+
+ 
+
+
+
+
+
+149
+
+    //添加帮助菜单
+
+
+
+
+
+150
+
+    QAction * About = new QAction(tr("关于"), HelpMenu);
+
+
+
+
+
+151
+
+    HelpMenu->addAction(About);
+
+
+
+
+
+152
+
+    MenuBar->addMenu(HelpMenu);
+
+
+
+
+
+153
+
+    connect(About, SIGNAL(triggered()), this, SLOT(showAbout()));
+
+
+
+
+
+154
+
+ 
+
+
+
+
+
+155
+
+    //设置菜单栏
+
+
+
+
+
+156
+
+    setMenuBar(MenuBar);
+
+
+
+
+
+157
+
+}
+
+
+
+
+
+158
+
+ 
+
+
+
+
+
+159
+
+void Window::startGame(void)
+
+
+
+
+
+160
+
+{
+
+
+
+
+
+161
+
+    if (bRun == false)
+
+
+
+
+
+162
+
+    {
+
+
+
+
+
+163
+
+        bRun = true;
+
+
+
+
+
+164
+
+        game.Clear();
+
+
+
+
+
+165
+
+        game.Init();
+
+
+
+
+
+166
+
+        lastPs.x = -1; lastPs.y = -1;
+
+
+
+
+
+167
+
+        update();
+
+
+
+
+
+168
+
+    }
+
+
+
+
+
+169
+
+}
+
+
+
+
+
+170
+
+ 
+
+
+
+
+
+171
+
+void Window::stopGame(void)
+
+
+
+
+
+172
+
+{
+
+
+
+
+
+173
+
+    if (bRun == true)
+
+
+
+
+
+174
+
+    {
+
+
+
+
+
+175
+
+        bRun = false;
+
+
+
+
+
+176
+
+        game.Clear();
+
+
+
+
+
+177
+
+        lastPs.x = -1; lastPs.y = -1;
+
+
+
+
+
+178
+
+        update();
+
+
+
+
+
+179
+
+    }
+
+
+
+
+
+180
+
+}
+
+
+
+
+
+181
+
+ 
+
+
+
+
+
+182
+
+void Window::showAbout(void)
+
+
+
+
+
+183
+
+{
+
+
+
+
+
+184
+
+    QMessageBox::information(this, tr("关于五子棋游戏"),
+
+
+
+
+
+185
+
+        tr("QT程序：五子棋游戏1.0，人机对战。许可协议:GPL3版权所有，侵权必究!"));
+
+
+
+
+
+186
+
+}
+
+
+
+
+
+187
+
+ 
+
+
+
+
+
+188
+
+void Window::setAlgorithm1(void)
+
+
+
+
+
+189
+
+{
+
+
+
+
+
+190
+
+    if (Method == 1)
+
+
+
+
+
+191
+
+    {
+
+
+
+
+
+192
+
+        return;
+
+
+
+
+
+193
+
+    }
+
+
+
+
+
+194
+
+    stopGame();
+
+
+
+
+
+195
+
+    Method = 1;
+
+
+
+
+
+196
+
+    startGame();
+
+
+
+
+
+197
+
+}
+
+
+
+
+
+198
+
+ 
+
+
+
+
+
+199
+
+void Window::setAlgorithm2(void)
+
+
+
+
+
+200
+
+{
+
+
+
+
+
+201
+
+    if (Method == 2)
+
+
+
+
+
+202
+
+    {
+
+
+
+
+
+203
+
+        return;
+
+
+
+
+
+204
+
+    }
+
+
+
+
+
+205
+
+    stopGame();
+
+
+
+
+
+206
+
+    Method = 2;
+
+
+
+
+
+207
+
+    startGame();
+
+
+
+
+
+208
+
+}
+
+
+
+
+
+209
+
+ 
+
+
+
+
+
+210
+
+void Window::setAlgorithm3(void)
+
+
+
+
+
+211
+
+{
+
+
+
+
+
+212
+
+    if (Method == 3)
+
+
+
+
+
+213
+
+    {
+
+
+
+
+
+214
+
+        return;
+
+
+
+
+
+215
+
+    }
+
+
+
+
+
+216
+
+    stopGame();
+
+
+
+
+
+217
+
+    Method = 3;
+
+
+
+
+
+218
+
+    startGame();
+
+
+
+
+
+219
+
+}
+
+
+
+
+
+220
+
+ 
+
+
+
+
+
+221
+
+void Window::fightAgainst(void)
+
+
+
+
+
+222
+
+{
+
+
+
+
+
+223
+
+    stopGame();
+
+
+
+
+
+224
+
+    int Who = 0;
+
+
+
+
+
+225
+
+    Wuziqi * testGame;
+
+
+
+
+
+226
+
+    SelectDia.exec();
+
+
+
+
+
+227
+
+    int bAlgorithm, wAlgorithm, times, alltimes;
+
+
+
+
+
+228
+
+    SelectDia.getValue(bAlgorithm, wAlgorithm, times);
+
+
+
+
+
+229
+
+    bAlgorithm++;
+
+
+
+
+
+230
+
+    wAlgorithm++;
+
+
+
+
+
+231
+
+    POINT ps;
+
+
+
+
+
+232
+
+    int wTimes = 0, bTimes = 0; //记录两个颜色棋子的胜利次数
+
+
+
+
+
+233
+
+    alltimes = times;
+
+
+
+
+
+234
+
+    srand(time(NULL));
+
+
+
+
+
+235
+
+    for (int i = 0; i < times; i++)
+
+
+
+
+
+236
+
+    {
+
+
+
+
+
+237
+
+        testGame = new Wuziqi(N);
+
+
+
+
+
+238
+
+        int side = rand()%2;  //随机数，用来决定黑棋白棋谁先走，排除先后顺序对结果的影响
+
+
+
+
+
+239
+
+        while (Who == 0)
+
+
+
+
+
+240
+
+        {
+
+
+
+
+
+241
+
+            if (side == 0)  //黑棋先走
+
+
+
+
+
+242
+
+            {
+
+
+
+
+
+243
+
+                //黑棋走
+
+
+
+
+
+244
+
+                testGame->Run(ps, bAlgorithm, 1);
+
+
+
+
+
+245
+
+                ps.x = ps.x*20 + 20+MenuBarSize;
+
+
+
+
+
+246
+
+                ps.y = ps.y*20 + 20+MenuBarSize;
+
+
+
+
+
+247
+
+                testGame->Fall(ps, 1, 20+MenuBarSize, 300+20+MenuBarSize);
+
+
+
+
+
+248
+
+                testGame->GetData(gamedata);
+
+
+
+
+
+249
+
+                testGame->Judge(Who);
+
+
+
+
+
+250
+
+                //白棋走
+
+
+
+
+
+251
+
+                testGame->Run(ps, wAlgorithm, 2);
+
+
+
+
+
+252
+
+                ps.x = ps.x*20 + 20+MenuBarSize;
+
+
+
+
+
+253
+
+                ps.y = ps.y*20 + 20+MenuBarSize;
+
+
+
+
+
+254
+
+                testGame->Fall(ps, 2, 20+MenuBarSize, 300+20+MenuBarSize);
+
+
+
+
+
+255
+
+                testGame->GetData(gamedata);
+
+
+
+
+
+256
+
+                testGame->Judge(Who);
+
+
+
+
+
+257
+
+            }
+
+
+
+
+
+258
+
+            else if (side == 1)  //白棋先走
+
+
+
+
+
+259
+
+            {
+
+
+
+
+
+260
+
+                //白棋走
+
+
+
+
+
+261
+
+                testGame->Run(ps, wAlgorithm, 2);
+
+
+
+
+
+262
+
+                ps.x = ps.x*20 + 20+MenuBarSize;
+
+
+
+
+
+263
+
+                ps.y = ps.y*20 + 20+MenuBarSize;
+
+
+
+
+
+264
+
+                testGame->Fall(ps, 2, 20+MenuBarSize, 300+20+MenuBarSize);
+
+
+
+
+
+265
+
+                testGame->GetData(gamedata);
+
+
+
+
+
+266
+
+                testGame->Judge(Who);
+
+
+
+
+
+267
+
+                //黑棋走
+
+
+
+
+
+268
+
+                testGame->Run(ps, bAlgorithm, 1);
+
+
+
+
+
+269
+
+                ps.x = ps.x*20 + 20+MenuBarSize;
+
+
+
+
+
+270
+
+                ps.y = ps.y*20 + 20+MenuBarSize;
+
+
+
+
+
+271
+
+                testGame->Fall(ps, 1, 20+MenuBarSize, 300+20+MenuBarSize);
+
+
+
+
+
+272
+
+                testGame->GetData(gamedata);
+
+
+
+
+
+273
+
+                testGame->Judge(Who);
+
+
+
+
+
+274
+
+            }
+
+
+
+
+
+275
+
+            if (Who == 1)
+
+
+
+
+
+276
+
+            {
+
+
+
+
+
+277
+
+                bTimes++;
+
+
+
+
+
+278
+
+            }
+
+
+
+
+
+279
+
+            else if (Who == 2)
+
+
+
+
+
+280
+
+            {
+
+
+
+
+
+281
+
+                wTimes++;
+
+
+
+
+
+282
+
+            }
+
+
+
+
+
+283
+
+            else if (Who == 3) //如果和棋，把总数减1
+
+
+
+
+
+284
+
+            {
+
+
+
+
+
+285
+
+                alltimes--;
+
+
+
+
+
+286
+
+            }
+
+
+
+
+
+287
+
+        }
+
+
+
+
+
+288
+
+        Who = 0;
+
+
+
+
+
+289
+
+        testGame->Clear();
+
+
+
+
+
+290
+
+        delete testGame;
+
+
+
+
+
+291
+
+    }
+
+
+
+
+
+292
+
+    if (alltimes == 0)
+
+
+
+
+
+293
+
+    {
+
+
+
+
+
+294
+
+        alltimes = 1;
+
+
+
+
+
+295
+
+    }
+
+
+
+
+
+296
+
+    double pbWin = (double)(bTimes)/(double)alltimes;
+
+
+
+
+
+297
+
+    double pwWin = (double)(wTimes)/(double)alltimes;
+
+
+
+
+
+298
+
+    QString information, numStr; //输出的测试信息
+
+
+
+
+
+299
+
+    QTextCodec::setCodecForCStrings(QTextCodec::codecForLocale());
+
+
+
+
+
+300
+
+    information += "测试结束，(黑棋）算法";
+
+
+
+
+
+301
+
+    numStr.setNum(bAlgorithm);
+
+
+
+
+
+302
+
+    information += numStr;
+
+
+
+
+
+303
+
+    numStr.clear();
+
+
+
+
+
+304
+
+    information += "胜利次数:";
+
+
+
+
+
+305
+
+    numStr.setNum(bTimes);
+
+
+
+
+
+306
+
+    information += numStr;
+
+
+
+
+
+307
+
+    numStr.clear();
+
+
+
+
+
+308
+
+    information += " 获胜频率:";
+
+
+
+
+
+309
+
+    numStr.setNum(pbWin);
+
+
+
+
+
+310
+
+    information += numStr;
+
+
+
+
+
+311
+
+    numStr.clear();
+
+
+
+
+
+312
+
+    information += " （白棋）算法";
+
+
+
+
+
+313
+
+    numStr.setNum(wAlgorithm);
+
+
+
+
+
+314
+
+    information += numStr;
+
+
+
+
+
+315
+
+    numStr.clear();
+
+
+
+
+
+316
+
+    information += "胜利次数:";
+
+
+
+
+
+317
+
+    numStr.setNum(wTimes);
+
+
+
+
+
+318
+
+    information += numStr;
+
+
+
+
+
+319
+
+    numStr.clear();
+
+
+
+
+
+320
+
+    information += " 获胜频率:";
+
+
+
+
+
+321
+
+    numStr.setNum(pwWin);
+
+
+
+
+
+322
+
+    information += numStr;
+
+
+
+
+
+323
+
+    numStr.clear();
+
+
+
+
+
+324
+
+    QMessageBox::information(this, tr("算法对战结果"),
+
+
+
+
+
+325
+
+        information);
+
+
+
+
+
+326
+
+    information.clear();
+
+
+
+
+
+327
+
+}
+
+
+
+[文件] window.h ~ 1KB    下载(387)
+
+
+
+
+
+
+
+
+
+
+01
+
+#ifndef WINDOW_H
+
+
+
+
+
+02
+
+#define WINDOW_H
+
+
+
+
+
+03
+
+ 
+
+
+
+
+
+04
+
+#include <QtGui>
+
+
+
+
+
+05
+
+#include <iostream>
+
+
+
+
+
+06
+
+#include <vector>
+
+
+
+
+
+07
+
+#include "Wuziqi.h"
+
+
+
+
+
+08
+
+#include "dialog.h"
+
+
+
+
+
+09
+
+ 
+
+
+
+
+
+10
+
+using namespace std;
+
+
+
+
+
+11
+
+ 
+
+
+
+
+
+12
+
+class Window : public QMainWindow
+
+
+
+
+
+13
+
+{
+
+
+
+
+
+14
+
+    Q_OBJECT
+
+
+
+
+
+15
+
+public:
+
+
+
+
+
+16
+
+    Window(QWidget * parent = 0);
+
+
+
+
+
+17
+
+    ~Window();
+
+
+
+
+
+18
+
+ 
+
+
+
+
+
+19
+
+protected:
+
+
+
+
+
+20
+
+    void paintEvent(QPaintEvent * event); //处理重绘消息
+
+
+
+
+
+21
+
+    void mousePressEvent(QMouseEvent * event); //鼠标事件消息处理
+
+
+
+
+
+22
+
+ 
+
+
+
+
+
+23
+
+//自定义槽函数
+
+
+
+
+
+24
+
+protected slots:
+
+
+
+
+
+25
+
+    void startGame(void); //开始游戏
+
+
+
+
+
+26
+
+    void stopGame(void);  //结束游戏
+
+
+
+
+
+27
+
+    void showAbout(void); //显示关于对话框
+
+
+
+
+
+28
+
+    void setAlgorithm1(void); //设置使用第一个算法
+
+
+
+
+
+29
+
+    void setAlgorithm2(void); //设置使用第二个算法
+
+
+
+
+
+30
+
+    void setAlgorithm3(void); //设置使用第三个算法
+
+
+
+
+
+31
+
+    void fightAgainst(void); //算法2,3之间对战
+
+
+
+
+
+32
+
+ 
+
+
+
+
+
+33
+
+private:
+
+
+
+
+
+34
+
+    void dealMenu(void);  //创建菜单
+
+
+
+
+
+35
+
+ 
+
+
+
+
+
+36
+
+private:
+
+
+
+
+
+37
+
+    int MenuBarSize; //菜单栏所占的位置
+
+
+
+
+
+38
+
+    Wuziqi game;  //五子棋游戏类
+
+
+
+
+
+39
+
+    vector<vector<int> > gamedata; //游戏数据
+
+
+
+
+
+40
+
+    int N;  //棋盘边长
+
+
+
+
+
+41
+
+    POINT lastPs;  //记录计算机最后落子的座标
+
+
+
+
+
+42
+
+    bool bRun; //标志游戏是否开始
+
+
+
+
+
+43
+
+    int Method; //选择计算机下棋使用的算法
+
+
+
+
+
+44
+
+    SelectDialog SelectDia; //选择对战时的算法的对话框
+
+
+
+
+
+45
+
+};
+
+
+
+
+
+46
+
+ 
+
+
+
+
+
+47
+
+#endif
+
+
+
+[文件] Wuziqi.cpp ~ 17KB    下载(469)
+
+
+[文件] Wuziqi.h ~ 3KB    下载(401)
+
+
+
+
+
+
+
+
+
+
+01
+
+#ifndef WUZIQI_H
+
+
+
+
+
+02
+
+#define WUZIQI_H
+
+
+
+
+
+03
+
+/*五子棋游戏的游戏模块的实现
+
+
+
+
+
+04
+
+  zwdnet
+
+
+
+
+
+05
+
+  2010年3月
+
+
+
+
+
+06
+
+  zwdnet@163.com
+
+
+
+
+
+07
+
+  2011年9月修改，移植到Linux下的Qt环境中
+
+
+
+
+
+08
+
+*/
+
+
+
+
+
+09
+
+#include <iostream>
+
+
+
+
+
+10
+
+#include <vector>
+
+
+
+
+
+11
+
+#include <list>
+
+
+
+
+
+12
+
+#include <cmath>
+
+
+
+
+
+13
+
+#include <algorithm>
+
+
+
+
+
+14
+
+#include <fstream>
+
+
+
+
+
+15
+
+ 
+
+
+
+
+
+16
+
+using namespace std;
+
+
+
+
+
+17
+
+ 
+
+
+
+
+
+18
+
+class POINT
+
+
+
+
+
+19
+
+{
+
+
+
+
+
+20
+
+public:
+
+
+
+
+
+21
+
+    int x;
+
+
+
+
+
+22
+
+    int y;
+
+
+
+
+
+23
+
+    POINT(const int X=-1, const int Y=-1)
+
+
+
+
+
+24
+
+        {x = X; y = Y;};
+
+
+
+
+
+25
+
+};
+
+
+
+
+
+26
+
+ 
+
+
+
+
+
+27
+
+//五子棋游戏类，进行游戏相关的操作
+
+
+
+
+
+28
+
+class Wuziqi
+
+
+
+
+
+29
+
+{
+
+
+
+
+
+30
+
+private:
+
+
+
+
+
+31
+
+    int N; //棋盘大小
+
+
+
+
+
+32
+
+    vector<vector<int> > Data; //棋盘上每个格子的状态,0为啥也没有，1为黑棋，2为白棋
+
+
+
+
+
+33
+
+    POINT ps_Now; //记录白棋最后一步的位置,用于特别标示
+
+
+
+
+
+34
+
+    int Total; //落子总数，用于判断是否已经下满，下满则为和棋
+
+
+
+
+
+35
+
+ 
+
+
+
+
+
+36
+
+public: //供外界调用的接口
+
+
+
+
+
+37
+
+    Wuziqi(const int n = 15); //构造函数，默认大小为20
+
+
+
+
+
+38
+
+    ~Wuziqi(void);
+
+
+
+
+
+39
+
+    void Init(void); //数据初始化
+
+
+
+
+
+40
+
+    void GetData(vector<vector<int> > & data); //获取游戏数据，用于画图
+
+
+
+
+
+41
+
+    void Judge(int & Who); //判断当前局面是否出现输赢，Who = 1黑方(人)胜，Who = 2白方
+
+
+
+
+
+42
+
+                            //胜，Who = 0则没有结束
+
+
+
+
+
+43
+
+    bool Fall(const POINT & ps, const int & who,
+
+
+
+
+
+44
+
+         const int & beginPos, const int & endPos); 
+
+
+
+
+
+45
+
+          //人落子,若鼠标点击区域无效返回false;
+
+
+
+
+
+46
+
+    bool UnFall(const POINT & ps, const int & who,
+
+
+
+
+
+47
+
+         const int & beginPos, const int & endPos);
+
+
+
+
+
+48
+
+         //取消落子，用于算法4
+
+
+
+
+
+49
+
+    void Clear(void); //清空游戏数据
+
+
+
+
+
+50
+
+    void Run(POINT & ps, const int & Which, const int & Who); //计算机走棋
+
+
+
+
+
+51
+
+          
+
+
+
+
+
+52
+
+private://工具函数
+
+
+
+
+
+53
+
+    bool ChangePos(const POINT & srcPos, POINT & desPos,
+
+
+
+
+
+54
+
+         const int & beginPos, const int & endPos);  //将座标进行转换
+
+
+
+
+
+55
+
+ 
+
+
+
+
+
+56
+
+private://核心算法模块
+
+
+
+
+
+57
+
+    //算法1
+
+
+
+
+
+58
+
+    void Way1(POINT & ps); //方法1，分开写，增加新的算法时就不必改动类之外的调用的程序
+
+
+
+
+
+59
+
+    //算法2
+
+
+
+
+
+60
+
+    void Way2(POINT & ps);
+
+
+
+
+
+61
+
+    void SetScore(const int i, const int j, const int Who,
+
+
+
+
+
+62
+
+                  vector<vector<int> > & State); //评分函数
+
+
+
+
+
+63
+
+    int p_Score(int num, int bp[]); //实际的评分函数
+
+
+
+
+
+64
+
+    bool first; //是否是第一步
+
+
+
+
+
+65
+
+    //算法3：随机算法
+
+
+
+
+
+66
+
+    void Way3(POINT & ps);
+
+
+
+
+
+67
+
+    /*
+
+
+
+
+
+68
+
+    //算法4: 博弈树算法
+
+
+
+
+
+69
+
+    void Way4(POINT & ps);
+
+
+
+
+
+70
+
+    int maxDepth;  //最大搜索深度，默认为1
+
+
+
+
+
+71
+
+    int depth;
+
+
+
+
+
+72
+
+    void setDepth(const int & dep); //设置最大搜索深度
+
+
+
+
+
+73
+
+    void Search(const int & i, const int & j);  //搜索函数
+
+
+
+
+
+74
+
+    //vector<vector<int> > & bestStep; //记录整个搜索结果
+
+
+
+
+
+75
+
+    */
+
+
+
+
+
+76
+
+};
+
+
+
+
+
+77
+
+#endif
+
+
+
+举报
+
+
+
+开源中国-程序员在线工具：API文档大全(120+) JS在线编辑演示 二维码更多»
+
+ 
+
+
+相关的代码(122)
+19回/8095阅[Java]Android 五子棋游戏源码1年前 By 无鸯
+25回/7671阅[C/C++]我自己闲的无聊写个了多线程下载工具2年前 By 王振威
+4回/6461阅[SHELL]centos使用yum安装gcc11个月前 By 鉴客
+9回/6296阅[C/C++]Qt 设置透明按钮其实很简单2年前 By 鉴客
+12回/6023阅[C/C++]用qt实现类似qq截图的工具2年前 By 乔3爷
+11回/5671阅[C/C++]Linux 的C语言多线程编程一例2年前 By 红薯
+5回/5404阅[C/C++]QT中文 乱码解决2年前 By 李永波
+6回/5215阅[C/C++]不用 SDL 的QT+FFMPEG 播放器2年前 By 鉴客
+1回/5061阅[C/C++]Qt 解析xml格式的例子2年前 By 红薯
+3回/3582阅[C/C++]QT 读取xml文件，然后写入另外一个新的xml文件的简单方法2年前 By 鉴客
+显示所有 »
+
+发表评论回到顶部网友评论(30)
+
+
+
+
+
+
+
+ 1楼：xuxihuang 发表于 2011-11-21 16:06 回复此评论
+
+中文乱码，求解决
+
+ 
+
+
+
+
+
+
+
+2楼：自由民 发表于 2011-11-21 21:36 回复此评论
+
+windows下面？网页上的乱码还是下载之后的乱码？换个编码方式试试。
+
+ 
+
+
+
+
+
+
+
+3楼：xuxihuang 发表于 2011-11-22 08:32 回复此评论
+
+从github下的到windows的，换过gbk、utf8，还是乱码
+
+ 
+
+
+
+
+
+
+
+4楼：自由民 发表于 2011-11-22 22:00 回复此评论
+
+这是我在Ubuntu命令行下用file命令查看代码的结果，只是中文字符乱码吗？： 
+
+
+
+
+
+
+
+
+
+
+01
+
+zym@zym-freedom:~/code/FiveQi$ file *
+
+
+
+
+
+02
+
+dialog.cpp:     UTF-8 Unicode C program text
+
+
+
+
+
+03
+
+dialog.h:       UTF-8 Unicode C program text
+
+
+
+
+
+04
+
+FiveQi.pro:     ASCII text
+
+
+
+
+
+05
+
+main.cpp:       ASCII C program text, with CRLF line terminators
+
+
+
+
+
+06
+
+Makefile:       ASCII make commands text, with very long lines
+
+
+
+
+
+07
+
+moc_dialog.cpp: ASCII English text
+
+
+
+
+
+08
+
+moc_window.cpp: ASCII English text
+
+
+
+
+
+09
+
+README:         UTF-8 Unicode text
+
+
+
+
+
+10
+
+window.cpp:     UTF-8 Unicode C program text
+
+
+
+
+
+11
+
+window.h:       UTF-8 Unicode C program text
+
+
+
+
+
+12
+
+Wuziqi.cpp:     UTF-8 Unicode C program text
+
+
+
+
+
+13
+
+Wuziqi.h:       UTF-8 Unicode C program text
+
+
+
+
+
+14
+
+Wuziqi.ico:     MS Windows icon resource - 1 icon
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+5楼：xuxihuang 发表于 2011-11-22 23:41 回复此评论
+
+源码里的文字乱码我用UTF-8编码可以正常显示，编译后的程序里不行
+
+ 
+
+
+
+
+
+
+
+6楼：自由民 发表于 2011-11-23 13:10 回复此评论
+
+是不是这句有问题？不行就只有改代码了。 
+
+
+
+
+
+
+
+
+
+1
+
+QTextCodec::setCodecForTr(QTextCodec::codecForLocale());
+
+
+
+
+
+2
+
+我虚拟机里的windows没装开发环境，没法试。
+
+ 
+
+
+
+
+
+
+
+
+
+
+7楼：孟夏 发表于 2011-12-20 10:37 回复此评论
+
+
+我第一次用的时候 make时候出现了几个错误 提示有几处没有声明 楼主调通了？
+
+ 
+
+
+
+
+
+
+
+8楼：nbboy 发表于 2012-05-14 17:15 回复此评论
+
+还行。我也在思考用博弈树来做。希望共同探讨.
+
+ 
+
+
+
+
+
+
+
+9楼：问剑中华 发表于 2012-06-20 11:34 回复此评论
+
+
+  
+这个srand (time (NULL ));中的time未定义？我是在windows下的4.6.3版本的QT
+
+ 
+
+
+
+
+
+
+
+10楼：问剑中华 发表于 2012-06-20 11:35 回复此评论
+
+void Window::fightAgainst(void) 222 { 223 stopGame(); 224 int Who = 0; 225 Wuziqi * testGame; 226 SelectDia.exec(); 227 int bAlgorithm, wAlgorithm, times, alltimes; 228 SelectDia.getValue(bAlgorithm, wAlgorithm, times); 229 bAlgorithm++; 230 wAlgorithm++; 231 POINT ps; 232 int wTimes = 0, bTimes = 0; //记录两个颜色棋子的胜利次数 233 alltimes = times; 234 srand(time(NULL));
+
+ 
+
+
+
+
+
+
+
+11楼：自由民 发表于 2012-06-20 18:34 回复此评论
+
+
+
+引用来自“问剑中华”的评论
+
+
+  
+这个srand (time (NULL ));中的time未定义？我是在windows下的4.6.3版本的QT
+TIME(2) Linux Programmer's Manual TIME(2) NAME time - get time in seconds SYNOPSIS #include time_t time(time_t *t); DESCRIPTION time() returns the time since the Epoch (00:00:00 UTC, January 1, 1970), measured in seconds. If t is non-NULL, the return value is also stored in the memory pointed to by t. RETURN VALUE On success, the value of time in seconds since the Epoch is returned. On error, ((time_t) -1) is returned, and errno is set appropriately. ERRORS EFAULT t points outside your accessible address space. CONFORMING TO SVr4, 4.3BSD, C89, C99, POSIX.1-2001. POSIX does not specify any error conditions. --------------------------- 以上是在Linux里用"man time"查到的信息（相当于Windows里的MSDN)，这是C/C++的标准函数，用来取得当前时间，初始化随机数种子，这样就不会每次产生的随机数都是一样的了。#include 或者#include 试试。
+ 
+
+
+
+
+
+
+
+12楼：自由民 发表于 2012-06-20 18:36 回复此评论
+
+
+
+
+
+
+
+
+
+
+
+1
+
+#include <ctime>
+
+
+
+
+
+2
+
+或者
+
+
+
+
+
+3
+
+#include <time.h>
+
+
+ 怎么排版那么乱。
+
+ 
+
+
+
+
+
+
+
+13楼：问剑中华 发表于 2012-06-25 10:03 回复此评论
+
+
+
+引用来自“自由民”的评论
+
+
+
+
+
+
+
+
+
+
+
+1
+
+#include <ctime>
+
+
+
+
+
+2
+
+或者
+
+
+
+
+
+3
+
+#include <time.h>
+
+
+ 怎么排版那么乱。
+可以运行了，但是运行结果全部显示乱码?我在主函数里加了 QTextCodec* tc = QTextCodec::codecForLocale(); QTextCodec::setCodecForLocale(tc); QTextCodec::setCodecForCStrings(tc); QTextCodec::setCodecForTr(tc); QTextCodec::setCodecForTr(QTextCodec::codecForLocale());
+ 
+
+
+
+
+
+
+
+14楼：问剑中华 发表于 2012-06-25 10:03 回复此评论
+
+加了还是显示乱码
+
+ 
+
+
+
+
+
+
+
+15楼：自由民 发表于 2012-06-25 18:40 回复此评论
+
+建议把输出的中文字符统统改成英文试试，没乱码了再慢慢改。 
+
+
+
+
+
+
+
+
+
+
+16楼：cool609 发表于 2012-07-09 10:54 回复此评论
+
+
+
+引用来自“问剑中华”的评论
+
+加了还是显示乱码
+设置为UTF-8输出中文就没有乱码了
+ 
+
+
+
+
+
+
+
+17楼：Continue; 发表于 2012-07-11 05:00 回复此评论
+
+
+
+引用来自“cool609”的评论
+
+
+
+引用来自“问剑中华”的评论
+
+加了还是显示乱码
+设置为UTF-8输出中文就没有乱码了想问您一下怎么设置
+ 
+
+
+
+
+
+
+
+18楼：cool609 发表于 2012-07-11 19:41 回复此评论
+
+
+
+引用来自“Continue;”的评论
+
+
+
+引用来自“cool609”的评论
+
+
+
+引用来自“问剑中华”的评论
+
+加了还是显示乱码
+设置为UTF-8输出中文就没有乱码了想问您一下怎么设置预处理中加入 #include 在构造函数中写 QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+ 
+
+
+
+
+
+
+
+19楼：Continue; 发表于 2012-07-12 20:02 回复此评论
+
+
+
+引用来自“cool609”的评论
+
+
+
+引用来自“Continue;”的评论
+
+
+
+引用来自“cool609”的评论
+
+
+
+引用来自“问剑中华”的评论
+
+加了还是显示乱码
+设置为UTF-8输出中文就没有乱码了想问您一下怎么设置预处理中加入 #include 在构造函数中写 QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));好的 谢谢 试试先~
+ 
+
+
+
+
+
+
+
+20楼：Continue; 发表于 2012-07-16 03:17 回复此评论
+
+根据楼上的评论试了一下乱码的问题 我的环境是windows7 64位旗舰版 qt4.8.1 测试成功 
+先整个项目搜索 QTextCodec，有三处，全部注释掉
+ 然后main函数开头加上
+ QTextCodec *tc = QTextCodec::codecForName("utf8");QTextCodec::setCodecForCStrings(tc);QTextCodec::setCodecForTr(tc);
+需要头文件 #include <QTextCodec> 可以解决掉乱码问题
+ 
+
+1
+2
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+回到顶部   回到评论列表
+
+开源从代码分享开始 分享代码
+
+
+
+自由民的其他代码Linux下的记帐软件（用sqlite3数据库实现）(5评/1073阅,1年前)
+Qt写的五子棋人机对弈程序(30评/5994阅,1年前)
+QT实验程序：贪食蛇(9评/2867阅,1年前)
+使用MySQL的实验程序:电子书管理软件(8评/1176阅,1年前)
+计算物理：蒙特卡洛法求圆周率(3评/913阅,1年前)
+全部(15)...
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+© 开源中国(OsChina.NET) | 关于我们 | 广告联系 | @新浪微博 | 开源中国手机版 | 粤ICP备12009483号-3
+ 
+开源中国手机客户端：AndroidiPhoneWP7 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2条新留言，查看留言»
+
+
+
+

@@ -1,0 +1,188 @@
+LINUX schedule()函数  
+2010-10-26 10:13:56|  分类： 嵌入式 |  标签： |字号大
+中
+小 订阅 
+
+asmlinkage void __sched schedule(void)
+{
+	long *switch_count;//进程切换的次数
+	task_t *prev, *next;
+	runqueue_t *rq;
+	prio_array_t *array;
+	struct list_head *queue;
+	unsigned long long now;
+	unsigned long run_time;
+	int cpu, idx;
+
+
+	/*
+	* Test if we are atomic.  Since do_exit() needs to call into
+	* schedule() atomically, we ignore that path for now.
+	* Otherwise, whine if we are scheduling when we should not be.
+	*/
+	if (likely(!(current->state & (TASK_DEAD | TASK_ZOMBIE)))) {
+		if (unlikely(in_atomic())) {
+			printk(KERN_ERR "bad: scheduling while atomic!\n");
+			dump_stack();
+		}
+	}
+
+
+need_resched:
+	preempt_disable();//禁用内核抢占
+	prev = current;
+	rq = this_rq();//获得当前CPU的运行队列
+
+
+	/*
+	* The idle thread is not allowed to schedule!
+	* Remove this check after it has been exercised a bit.
+	*/
+	if (unlikely(current == rq->idle) && current->state != TASK_RUNNING) {
+		printk(KERN_ERR "bad: scheduling from the idle thread!\n");
+		dump_stack();
+	}
+
+
+	release_kernel_lock(prev);//保证PREV不占用大内核锁
+	schedstat_inc(rq, sched_cnt);
+	now = sched_clock();
+	if (likely(now - prev->timestamp < NS_MAX_SLEEP_AVG))
+		run_time = now - prev->timestamp;
+	else
+		run_time = NS_MAX_SLEEP_AVG;
+
+
+	/*
+	* Tasks with interactive credits get charged less run_time
+	* at high sleep_avg to delay them losing their interactive
+	* status
+	*/
+	if (HIGH_CREDIT(prev))
+		run_time /= (CURRENT_BONUS(prev) ? : 1);//PREV 所使用的CPU的时间长度
+
+
+	spin_lock_irq(&rq->lock);//在寻找新进程前先禁止本地中断
+
+
+	/*
+	* if entering off of a kernel preemption go straight
+	* to picking the next task.
+	*/
+	switch_count = &prev->nivcsw;
+	if (prev->state && !(preempt_count() & PREEMPT_ACTIVE)) {//PREV非可运行状态且没有被抢占
+		switch_count = &prev->nvcsw;
+		if (unlikely((prev->state & TASK_INTERRUPTIBLE) &&
+				unlikely(signal_pending(prev))))//如果是在等待队列中，则置为运行状态
+			prev->state = TASK_RUNNING;
+		else
+			deactivate_task(prev, rq);//从运行队列中移除PREV
+	}
+
+
+	cpu = smp_processor_id();
+	if (unlikely(!rq->nr_running)) {//如果运行队列中没有可运行的进程
+go_idle:								//则
+		idle_balance(cpu, rq);			//从另外的CPU上迁移一些进程来
+		if (!rq->nr_running) {//如果还是没有可运行的进程
+			next = rq->idle;	//则调用IDLE进程
+			rq->expired_timestamp = 0;
+			wake_sleeping_dependent(cpu, rq);
+			/*
+			* wake_sleeping_dependent() might have released
+			* the runqueue, so break out if we got new
+			* tasks meanwhile:
+			*/
+			if (!rq->nr_running)
+				goto switch_tasks;
+		}
+	} else {
+		if (dependent_sleeper(cpu, rq)) {
+			schedstat_inc(rq, sched_goidle);
+			next = rq->idle;
+			goto switch_tasks;
+		}
+		/*
+		* dependent_sleeper() releases and reacquires the runqueue
+		* lock, hence go into the idle loop if the rq went
+		* empty meanwhile:
+		*/
+		if (unlikely(!rq->nr_running))
+			goto go_idle;
+	}
+
+
+	array = rq->active;//有可运行的进程
+	if (unlikely(!array->nr_active)) {//活动进程链表中没有可运行的
+										//则交换active和expired
+		/*
+		* Switch the active and expired arrays.
+		*/
+		schedstat_inc(rq, sched_switch);
+		rq->active = rq->expired;
+		rq->expired = array;
+		array = rq->active;
+		rq->expired_timestamp = 0;
+		rq->best_expired_prio = MAX_PRIO;
+	} else
+		schedstat_inc(rq, sched_noswitch);
+//搜索活动进程集合位掩码的第一个非0位
+	idx = sched_find_first_bit(array->bitmap);
+	queue = array->queue + idx;
+	next = list_entry(queue->next, task_t, run_list);//找到这个进程描述符
+
+
+	if (!rt_task(next) && next->activated > 0) {
+		//更新睡眠时间和动态优先级
+		unsigned long long delta = now - next->timestamp;
+
+
+		if (next->activated == 1)
+			delta = delta * (ON_RUNQUEUE_WEIGHT * 128 / 100) / 128;
+
+
+		array = next->array;
+		dequeue_task(next, array);
+		recalc_task_prio(next, next->timestamp + delta);
+		enqueue_task(next, array);
+	}
+	next->activated = 0;
+switch_tasks:
+	prefetch(next);
+	clear_tsk_need_resched(prev);//清除TIF_NEED_RESCHED标志
+	rcu_qsctr_inc(task_cpu(prev));
+
+
+	prev->sleep_avg -= run_time;
+	if ((long)prev->sleep_avg <= 0) {
+		prev->sleep_avg = 0;
+		if (!(HIGH_CREDIT(prev) || LOW_CREDIT(prev)))
+			prev->interactive_credit--;
+	}
+	prev->timestamp = prev->last_ran = now;
+
+
+	sched_info_switch(prev, next);
+	if (likely(prev != next)) {//如果PREV不等于NEXT则进行切换
+		next->timestamp = now;
+		rq->nr_switches++;
+		rq->curr = next;
+		++*switch_count;
+
+
+		prepare_arch_switch(rq, next);
+		prev = context_switch(rq, prev, next);
+		barrier();
+
+
+		finish_task_switch(prev);
+	} else
+		spin_unlock_irq(&rq->lock);
+
+
+	reacquire_kernel_lock(current);
+	preempt_enable_no_resched();
+	if (unlikely(test_thread_flag(TIF_NEED_RESCHED)))//如果TIF_NEED_RESCHED置位则再次进行调度
+		goto need_resched;
+}
+

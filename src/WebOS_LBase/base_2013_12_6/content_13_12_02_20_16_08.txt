@@ -1,0 +1,193 @@
+
+推荐：图:日本少女沦为妓女地下卖淫明星为走红无底线:当众脱内裤× 登录注册
+森林深处……
+http://blog.sina.com.cn/yuksamcheung [订阅][手机订阅]
+首页博文目录图片关于我
+个人资料
+cheung
+cheung
+Qing  微博
+加好友发纸条
+写留言加关注
+博客等级：
+博客积分：98
+博客访问：2,462
+关注人气：1
+精彩图文
+
+
+相关博文
+图:看日本母亲如何介入女儿性生活
+蒋丰
+北影女生大尺度糜烂夜生活照
+小雅
+更多>>
+推荐博文
+北京的宜居与不宜居
+《中国国家地理》
+对话柳传志：柳桃能和褚橙并列，
+李瀛寰
+京东的“青春”激情燃烧
+阑夕
+低价Moto G背后
+孙永杰
+颠覆式创新的企业家
+丁辰灵
+致苏宁云商董事长张近东先生的一
+雅座白昱
+传统行业的互联网创业机会在哪里
+闫辉_缘创派
+P2P信贷的“本金保障”计划是
+小白
+用户体验是一种平衡
+魏武挥
+接班/任正非（1）：谁来掌舵华
+国际慈善日首倡者韦桂华
+探访神秘的加州死亡谷
+探访神秘的加州死亡谷
+直升机空运黑犀牛全程
+直升机空运黑犀牛全程
+奥运选手健美身材
+奥运选手健美身材
+欧洲流浪记:黑森林与古堡
+欧洲流浪记:黑森林与古堡
+巨鳄捕杀小鳄鱼瞬间
+巨鳄捕杀小鳄鱼瞬间
+探秘俄罗斯最长洞穴
+探秘俄罗斯最长洞穴
+查看更多>>
+谁看过这篇博文
+加载中…
+正文字体大小：大 中 小
+__attribute__ (2010-05-13 10:03:04)转载▼
+标签： 技术文档 it	分类： 科研相关
+1. __attribute__ 机制
+GNU C 的一大特色就是__attribute__ 机制。__attribute__ 可以设置函数属性（Function Attribute ）、变量属性（Variable Attribute ）和类型属性（Type Attribute ）。
+__attribute__ 书写特征是：__attribute__ 前后都有两个下划线，并切后面会紧跟一对原括弧，括弧里面是相应的__attribute__ 参数。
+__attribute__ 语法格式为：__attribute__ ((attribute-list))
+其位置约束为：放于声明的尾部“ ；” 之前。
+我们只讨论类型属性。其他信息参考如下：
+http://blog.chinaunix.net/u1/59740/showart_482955.html
+http://www.unixwiz.net/techtips/gnu-c-attributes.html
+http://gcc.gnu.org
+2. 类型属性
+关键字__attribute__ 也可以对结构体（struct ）或共用体（union ）进行属性设置。大致有六个参数值可以被设定，即：aligned, packed, transparent_union, unused, deprecated 和 may_alias 。
+在使用__attribute__ 参数时，你也可以在参数的前后都加上“__” （两个下划线），例如，使用__aligned__ 而不是aligned ，这样，你就可以在相应的头文件里使用它而不用关心头文件里是否有重名的宏定义。
+ 
+2.1. aligned (alignment)
+该属性设定一个指定大小的对齐格式（以字节 为单位），例如：
+struct S {
+short b[3];
+} __attribute__ ((aligned (8)));
+typedef int int32_t __attribute__ ((aligned (8)));
+该声明将强制编译器确保（尽它所能）变量类 型为struct S 或者int32_t 的变量在分配空间时采用8 字节对齐方式。
+如上所述，你可以手动指定对齐的格式，同 样，你也可以使用默认的对齐方式。如果aligned 后面不紧跟一个指定的数字值，那么编译器将依据你的目标机器情况使用最大最有益的对齐方式。例如：
+struct S {
+short b[3];
+} __attribute__ ((aligned));
+这里，如果sizeof （short ）的大小为2 （byte ），那么，S 的大小就为6 。取一个2 的次方值，使得该值大于等于6 ，则该值为8 ，所以编译器将设置S 类型的对齐方式为8 字节。
+aligned 属性使被设置的对象占用更多的空间，相反的，使用packed 可以减小对象占用的空间。
+需要注意的是，attribute 属性的效力与你的连接器也有关，如果你的连接器最大只支持16 字节对齐，那么你此时定义32 字节对齐也是无济于事的。
+2.2. packed
+  使用该属性对struct 或者union 类型进行定义，设定其类型的每一个变量的内存约束。当用在enum 类型 定义时，暗示了应该使用最小完整的类型（it indicates that the smallest integral type should be used ）。
+  下面的例子中，packed_struct 类型的变量数组中的值将会紧紧的靠在一起，但内部的成员变量s 不会被“pack” ，如果希望内部的成员变量也被packed 的话，unpacked-struct 也需要使用packed 进行相应的约束。
+struct unpacked_struct
+{
+      char c;
+      int i;
+};
+         
+struct packed_struct
+{
+     char c;
+     int  i;
+     struct unpacked_struct s;
+}__attribute__ ((__packed__));
+ 
+2.3. 变量属性与类型属性举例
+  下面的例子中使用__attribute__ 属性定义了一些结构体及其变量，并给出了输出结果和对结果的分析。
+程序代 码为：
+struct p
+{
+int a;
+char b;
+short c;
+}__attribute__((aligned(4))) pp;
+struct m
+{
+char a;
+int b;
+short c;
+}__attribute__((aligned(4))) mm;
+struct o
+{
+int a;
+char b;
+short c;
+}oo;
+struct x
+{
+int a;
+char b;
+struct p px;
+short c;
+}__attribute__((aligned(8))) xx;
+int main()
+{
+printf("sizeof(int)=%d,sizeof(short)=%d.sizeof(char)=%d\n",sizeof(int),sizeof(short),sizeof(char));
+printf("pp=%d,mm=%d \n", sizeof(pp),sizeof(mm));
+printf("oo=%d,xx=%d \n", sizeof(oo),sizeof(xx));
+return 0;
+}
+输出结 果：
+sizeof(int)=4,sizeof(short)=2.sizeof(char)=1
+pp=8,mm=12
+oo=8,xx=24
+分析：
+sizeof(pp):
+sizeof(a)+sizeof(b)+sizeof(c)=4+1+1=6<8 所以sizeof(pp)=8
+sizeof(mm):
+sizeof(a)+sizeof(b)+sizeof(c)=1+4+2=7
+但是 a 后面需要用 3 个字节填充，但是 b 是 4 个字节，所以 a 占用 4 字节， b 占用 4 个字节，而 c 又要占用 4 个字节。所以 sizeof(mm)=12
+sizeof(oo):
+sizeof(a)+sizeof(b)+sizeof(c)=4+1+2=7
+因为默 认是以4 字节对齐，所以sizeof(oo)=8
+sizeof(xx):
+sizeof(a)+ sizeof(b)=4+1=5
+sizeof(pp)=8; 即xx 是采用8 字节对齐的，所以要在a ，b 后面添3 个空余字节，然后才能存储px ，
+4+1+ （3 ）+8+1=17
+因为xx 采用的对齐是8 字节对齐，所以xx 的大小必定是8 的整数倍，即xx 的大小是一个比17 大又是8 的倍数的一个最小值，由此得到
+17<24 ，所以sizeof(xx)=24
+分享：  分享到新浪Qing分享到新浪Qing   
+0
+喜欢
+阅读(1091)┊ 评论 (0)┊	 收藏(0) ┊转载(1)	 ┊ 喜欢▼ ┊打印┊举报
+已投稿到：	排行榜 排行榜圈子 圈子
+前一篇：2010-05-11
+后一篇：typedef
+评论 [发评论]
+评论加载中，请稍候...
+发评论
+
+灌水赞美好顶顶顶开心路过
+登录名： 密码： 找回密码 注册	记住登录状态
+
+ 分享到微博 新   评论并转载此博文新
+
+验证码： 请点击后输入验证码 收听验证码	 	 
+
+发评论
+以上网友发言只代表其个人观点，不代表新浪网的观点或立场。
+< 前一篇
+2010-05-11
+后一篇 >
+typedef
+
+新浪BLOG意见反馈留言板　不良信息反馈　电话：4006900000 提示音后按1键（按当地市话标准计费）　欢迎批评指正
+新浪简介 | About Sina | 广告服务 | 联系我们 | 招聘信息 | 网站律师 | SINA English | 会员注册 | 产品答疑
+Copyright © 1996 - 2013 SINA Corporation, All Rights Reserved
+新浪公司 版权所有
+ 
+
+
+

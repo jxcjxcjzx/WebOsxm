@@ -1,0 +1,784 @@
+团购优惠
+生活指南
+精品导游图路书
+标注纠错
+产品论坛手机地图安装
+路况导航安装
+搜狗公交安装登录|注册技术论坛 | 意见箱 | go2map
+
+基础知识 
+辅导手册 
+API 参考 
+示例代码 
+服务接口 
+组件类库 
+更新日志 
+搜狗地图 Javascript API 参考
+包含了所有开发中用到的类，方法及事件。
+使用前请您认真阅读《搜狗地图API使用条款》，如果您已开始使用，表示您已确认并同意该条款中的所有内容。 
+参考目录核心类 
+Map 
+MapOptions 
+MapTypeId 
+PanControlOptions 
+Projection 
+叠加层类 
+Marker（标记类 | 点对象类） 
+MarkerOptions 
+MarkerImage 
+MarkerShape 
+Polyline （线对象类） 
+PolylineOptions 
+Polygon （多边形类） 
+PolygonOptions 
+Circle （圆形类） 
+CircleOptions 
+Rectangle （矩形类） 
+RectangleOptions 
+InfoWindow（信息窗类） 
+InfoWindowOptions 
+Label（名称标签类） 
+LabelOptions 
+ToolPanel（工具面板） 
+Brand（牌子类） 
+BrandOptions 
+BrandCssSpirit 
+事件类 
+MapsEventListener 
+事件静态方法 
+MouseEvent 
+样式类 
+StyleLib 
+MarkerStyle 
+StyleImg 
+StyleIconClass 
+LineStyle 
+RegionStyle 
+StyleStroke 
+StyleFill 
+基础类 
+Bounds 
+Convertor 
+FeatureNode 
+G2MObject 
+LatLng 
+LatLngBounds 
+Point 
+Size 
+服务类 
+搜索类 
+搜索渲染类 
+公交类 
+公交渲染类 
+公交方案类 
+公交方案渲染类 
+自驾类 
+自驾渲染类 
+地址解析与反地址解析 
+扩展类 
+geoLocation（定位测速） 
+ 
+Map 类此类是地图API的核心类，用来实例化一个地图。[查看简单示例] [查看所有示例]
+此类扩展了 G2MObject。
+构造函数构造函数 说明 
+Map(mapDiv:Node, opts?:MapOptions) 在指定的 HTML 容器中创建新的地图，该容器通常是一个 DIV 元素。 
+方法方法 返回值 说明 
+fitBounds(bounds:Bounds|LatLngBounds,maxLevel:Number) None 设置地图，使其与指定范围相符；第二个参数maxLevel用于限制最大级数，缺省则不限制。 [查看示例1] [查看示例2] 
+getBounds() Bounds 返回当前地图区域的范围。如果还未启动地图（即 mapType 仍为 Null），或者没有设置中心和缩放，则结果为 Null。 
+getCenter() Point 获取地图当前中心坐标值。 
+getContainer() Node 获取地图容器层。 
+getDiv() Node 获取覆盖层和地图瓦片所在的容器DIV。 
+getPanel() Node 获取绘图DIV,可添加测距，拉框等工具图标。 
+getMapHeight() Number 获取地图区域视窗高度。 
+getMapWidth() Number 获取地图区域视窗宽度。 
+getMapTypeId() MapTypeId 获取当前地图类型ID。 
+getProjection() Projection 获取投影对象。 
+getZoom() Number 获取当前地图级别。 
+init() None 仅当实例化Map时无MapOptions参数，才需要调用此方法初始化地图。（兼容1.0） 
+panBy(x:Number, y:Number) None 将地图中心移动一段指定的距离（以像素为单位）。如果这段距离既小于地图的宽度，又小于地图的高度，那么移动的动画效果将会十分流畅。请注意，地图坐标系的 x 值从西向东增加，y 值从北向南增加。  
+panTo(latLng:LatLng|point:Point) None 将地图中心更改为指定的 LatLng|Point。如果更改幅度既小于地图的宽度，又小于地图的高度，那么移动的动画效果将会十分流畅。 
+resetMap() None 还原地图到初始的状态。 
+resizeTo(width:Number,height:Number) None 设置地图的宽度。 
+setCenter(latlng:LatLng|point:Point , zoom:Number) None 将地图中心更改为指定的 LatLng|Point，如果更改幅度既小于地图的宽度，又小于地图的高度，那么移动的动画效果将会十分流畅。还可以同时将地图级别指定为zoom（取值0~18），zoom可以缺省。 [查看各城市中心坐标]。 
+setMapTypeId(mapTypeId:MapTypeId) None 设置地图类型，如：sogou.maps.MapTypeId.ROADMAP 普通地图、sogou.maps.MapTypeId.SATELLITE 卫星地图、sogou.maps.MapTypeId.HYBRID 卫星和路网混合地图 
+setOptions(options:MapOptions) None 设置地图参数 
+setZoom(zoom:Number) None 设置地图当前缩放级别，取值范围：0~18 
+clearAll() None 清除地图上所有绘制的覆盖物，包括：Marker、PolyLine、Label等等。如果覆盖的isFixed属性为true，则不会被清除。[查看示例]  
+事件事件 参数 说明 
+zoom None 当地图缩放属性更改时会触发此事件。 
+bounds_changed None 当地图可视区域范围更改时会触发此事件。 
+center_changed None 当地图中心属性更改时会触发此事件。 
+click MouseEvent 当用户点击地图（但不是点击标记或信息窗口）时会触发此事件。 
+dblclick MouseEvent 当用户双击地图时会触发此事件。请注意，触发此事件前还会触发点击事件。 
+drag None 当用户拖动地图时会反复触发此事件。 
+dragend None 当用户停止拖动地图时会触发此事件。 
+dragstart None 当用户开始拖动地图时会触发此事件。 
+idle None 如果地图在平移或缩放之后变为闲置状态，则会触发此事件。 
+maptypeid_changed None 当 mapTypeId 属性更改时会触发此事件。 
+mousedown MouseEvent 只要用户的鼠标在地图容器上按下，就会触发此事件。 
+mousemove MouseEvent 只要用户的鼠标在地图容器上移动，就会触发此事件。 
+mouseup MouseEvent 只要用户的鼠标在地图容器上抬起，就会触发此事件。 
+rightclick MouseEvent 在地图容器中触发 DOM contextmenu 事件时会触发此事件。 
+resize None 当地图区域宽高改变时触发此事件。 
+tilesloaded None 可见图块载入完成后会触发此事件。仅当实例化Map时无MapOptions参数，且调用init()初始化地图时才有效。如果是要在地图初始化完后执行一些操作，使用MapOptions的callback参数可以得到同样的效果。 
+inited None 地图初始化完成后会触发此事件。仅当实例化Map时无MapOptions参数，且调用init()初始化地图时才有效。如果是要在地图初始化完后执行一些操作，使用MapOptions的callback参数可以得到同样的效果。 
+clearall None 调用clearAll方法清除覆盖层对象后会触发此事件。（兼容1.0） 
+MapOptions 对象规范实例化 Map 类时，可以送入的参数规范。[查看示例]
+属性属性 类型 说明 
+
+
+bounds Bounds 初始化时设置地图，使其与指定范围相符。如果同时设置了bounds和center两个参数，则bounds优先级高，忽略center参数。[查看示例] 
+maxLevel Number maxLevel用于限制有bounds参数时的最大级数，缺省则不限制。无bounds参数时此参数无效。[查看示例] 
+center LatLng 初始的地图中心。必填。[查看各城市中心坐标]。 
+draggable boolean 如果为 False，则禁止拖动地图。默认情况下启用拖动。 
+mapTypeId MapTypeId 初始的地图 mapTypeId。取值：
+sogou.maps.MapTypeId.ROADMAP 普通地图 [查看城市列表]、
+sogou.maps.MapTypeId.SATELLITE 卫星地图、
+sogou.maps.MapTypeId.HYBRID 卫星和路网混合地图、
+sogou.maps.MapTypeId.EDUSHIMAP 三维地图 [查看支持的城市],[查看三维地图示例]，
+默认为ROADMAP。 
+mapControl boolean 缩放、漫游控件的初始启用/停用状态。 
+mapControlType Number 缩放、漫游控件的样式类型，取值：1~5。分别表示： 
+1 完整样式。 
+2 去掉滑动条，只有加减按钮、漫游箭头和地图类型控制。 
+3 只有加减按钮、地图类型控制（居右上角）。 
+4 只有加减按钮。 
+5 只有地图类型控制（居右上角）。  
+panControlOptions PanControlOptions 设置漫游控件的初始化参数。 
+scaleControl boolean 比例尺控件的初始启用/停用状态。 
+scrollwheel boolean 如果为 False，则停用通过滚轮缩放地图的功能。默认情况下启用滚轮功能。 
+zoom Number 初始的地图缩放级别。 
+callback Function 指定回调函数，地图初始化完毕后回调此函数，函数中的this引用指向Map。 
+dblclickable boolean 如果为 false，则禁止双击放大地图。默认为true。 
+hdMap boolean 是否使用高清地图，仅建议在高清移动设备上使用，如果为 true，则显示高清地图，默认为false。[查看示例] 
+rmpid Number 设置不同样式的地图底图，如:rmpid为191时，为比较素的风格的底图。 
+tileSize Size 设置地图瓦片大小。与hdMap配合使用，用于在不同分辨率的显示屏上设置清晰度。普清的瓦片大小为new Size(256,256)，高清的瓦片大小默认为new Size(192,192)，在new ipad和iphone 4s上建议设置为new Size(128,128)。 
+MapTypeId 类常见 MapTypes 的标识符。[查看示例]
+常数常数 说明 
+ROADMAP 该地图类型显示普通的街道地图 [查看城市列表]。 
+SATELLITE 该地图类型显示卫星图像。 
+HYBRID 该地图类型显示卫星图像上的主要街道透明层。 
+EDUSHIMAP 该地图类型显示三维地图[查看支持的城市]。 
+PanControlOptions 对象规范用于设漫游控件的初始化参数。[查看示例]
+属性 类型 说明 
+center LatLng|Point 设置默认还原的地图中心。 
+level Number 设置默认还原的地图级别。 
+Projection 对象规范用于在像素坐标和地理坐标的互转。[查看示例]
+fromContainerPixelToLatLng(pixel:Point) Point 根据地图容器中的像素坐标计算地理坐标。 
+fromDivPixelToLatLng(pixel:Point) Point 根据存放可拖动地图的 div 中的像素坐标计算地理坐标。 
+fromLatLngToContainerPixel(point:Point) Point 计算地图外部容器的 DOM 元素中指定地理位置的像素坐标。  
+fromLatLngToDivPixel(point:Point) Point 计算存放可拖动地图的 DOM 元素中指定地理位置的像素坐标。  
+ 
+Marker 类标记类 ，又名 点对象类，用于在地图上添加标记（点对象）。[查看简单示例] [查看所有示例]
+此类扩展了 G2MObject。
+构造函数构造函数 说明 
+Marker(opts?:MarkerOptions) 创建带有指定选项的标记。如果已指定地图，则标记会在构造完成后立即添加到该地图。请注意，您必须设置标记的显示位置。  
+方法方法 返回值 说明 
+getDraggable() boolean 获取当前改标记是否可拖拽。 
+getIcon() String|MarkerImage 获取当前标记对象的前景图标。 
+getMap() Map 获取显示所在的Map对象。 
+getPosition() Point|LatLng 获取标记所在的位置坐标。 
+getShadow() String|MarkerImage 获取阴影图像。 
+getShape() MarkerShape 获取鼠标可感应区域对象。 
+getTitle() String 获取标记的名称。 
+getVisible() boolean 获取标记当前是否可见。 
+getZIndex() Number 获取标记当前的叠加顺序。 
+setDraggable(flag:boolean) None 设置标记可被拖拽。 
+setIcon(icon:String|MarkerImage|StyleImg) None 设置标记的前景图标。 
+setIcons(icons:Array.<String|MarkerImage|StyleImg>) None 设置标记的默认前景图标和鼠标悬停时前景图标，参数为数组，有2个元素，第1个表示默认前景图标，第2个表示鼠标悬停时的前景图标。 
+setMap(map:Map) None 在指定地图上渲染标记。如果地图设置为 Null，则会删除此标记。 
+setPosition(point:Point|latlng:LatLng) None 设置标记的位置，支持搜狗地图坐标和经纬度坐标。 
+setShadow(shadow:String|MarkerImage|StyleImg) None 设置标记的阴影。 
+setTitle(title:String) None 设置标记的名称，用于显示tip和Label。 
+setVisible(visible:boolean) None 设置标记可见/不可见。 
+setZIndex(zIndex:Number) None 设置标记的叠加顺序。 
+getFeature() FeatureNode|None 如果此标记有附加数据信息。将会有数据返回。否则无。 
+事件事件 参数 说明 
+icon_changed None 当标记图标属性更改时会触发此事件。 
+click Event 点击标记图标后会触发此事件。 
+dblclick Event 当双击标记图标时会触发此事件。 
+drag MouseEvent 当用户拖动标记时会反复触发此事件。 
+dragend MouseEvent 当用户停止拖动标记时会触发此事件。 
+draggable_changed None 当标记的可拖动属性更改时会触发此事件。 
+dragstart MouseEvent 当用户开始拖动标记时会触发此事件。 
+mousedown Event 对标记图标触发 DOM mousedown 事件时会触发此事件。 
+mouseout Event 当鼠标离开标记图标区域时会触发此事件。 
+mouseover Event 当鼠标进入标记图标区域时会触发此事件。 
+mouseup Event 对标记触发 DOM mouseup 事件时会触发此事件。 
+position_changed None 当标记位置属性更改时会触发此事件。 
+rightclick Event 右键点击标记时会触发此事件。 
+title_changed None 当标记名称属性更改时会触发此事件。 
+visible_changed None 当标记的可见属性更改时会触发此事件。 
+zindex_changed None 当标记的 zIndex 属性更改时会触发此事件。 
+MarkerOptions 对象规范用于设置Marker的初始化参数。[查看示例]
+属性 类型 说明 
+disableLabel boolean 设置是否在鼠标悬停时显示Label。 
+draggable boolean 如果为 true，则可拖动标记。默认值为 false。 
+feature FeatureNode 兼容1.0的FeatureNode对象创建。 
+icon String|MarkerImage|StyleImg 前景的默认图标 
+icons Array.<String|MarkerImage|StyleImg> 0 前景的默认图标，1 前景鼠标悬停时的图标 
+id String Marker的编号标识。 
+isFixed boolean 是否钉住，默认false。如果为true则不会被Map对象的clearAll方法清除；但setMap(null)忽略此属性，无论true还是false都删除。 
+label LabelOptions 设置Label对象的参数。 
+map Map 待显示标记的地图。 
+position Point | LatLng 标记位置。必填。 
+shadow String|MarkerImage|StyleImg 阴影图像 
+shadows Array.<String|MarkerImage|StyleImg> 0 阴影默认图像，1 阴影鼠标悬停时图像。 
+shape MarkerShape 用于拖动/点击的图像地图区域定义。 
+stopEvent boolean 阻止事件冒泡到Map。 
+styleId String 指定样式id，以使用系统样式或者用StyleLib类预加载的样式。系统样式id有：S1980、S1890、S1891、S1892、S1893、S1894、S1895、S1896、S1897、S1898、S1899。 
+title String Label文本或者鼠标悬停时显示的tip。 
+visible boolean 如果为 true，则显示标记。 
+zIndex Number 所有标记按其 zIndex 值的大小顺序在地图上显示，zIndex 值较大的标记显示在值较小的标记之前。 
+MarkerImage 类用于定义Marker对象的图标、阴影等。[示例1][示例2][示例3]
+构造函数构造函数 说明 
+MarkerImage(url:String, size:Size, origin:Point, anchor:Point, scaledSize:Size) 定义一张用作标记图标或者阴影的图像。
+"url" 指定图标图片路径； "size"为图标或者阴影的大小；
+为了减少连接数，提高下载速度，API支持将多个图标合并到一张图片中，"origin"和"size"用于选择拼合图片中的图标所在的图块；
+"anchor"用于重写锚点默认所处的位置，图像的锚点是系统在跟踪图像位置时引用的像素，默认情况下，锚点设置为图像的中间位置 ("size"宽度/2, "size"高度/2)；因此，当标记放置在指定的 Point或者LatLng 上时，定义为锚点的像素就定位于指定的 Point或者LatLng 上。
+无论该图像是否为拼合图片，都请将 scaledSize 的值设置为整个图片的大小，并用其左上角作为原点设置"origin"。
+注：MarkerImage 在构造完成后就无法更改。  
+MarkerShape 对象规范用于确定标记的可点击区域的标记形状。该形状包括两个属性（type 和 coord），分别为类型和坐标。与在图片上定义可点击热区的原理相同。[示例1][示例2]
+属性属性 类型 说明 
+coord Array.<Number> 此属性的格式取决于 type 的值，并且遵循 http://www.w3.org/tr/REC-html40/struct/objects.html#adef-coords 上的 w3 AREA coords 规范。 
+coord 是一个整数数组，其中的整数指定形状相对于目标图像左上角的像素位置。坐标取决于下面所示的 type 值： 
+  - circ 或 circle：coord 是 [x1,y1,r]，其中 x1,y2 是圆心的坐标，而 r 是圆的半径。 
+  - poly 或 polygon：coord 是 [x1,y1,x2,y2...xn,yn]，其中每个 x,y 对包含多边形的一个顶点的坐标。 
+  - rect 或 rectangle：coord 是 [x1,y1,x2,y2]，其中 x1,y1 是矩形的左上角的坐标，而 x2,y2 是矩形的右下角的坐标。 
+type String 描述形状的类型，并且可以是 circle、poly 或 rectangle。
+rectangle支持简写rect 
+Polyline 类折线是地图上的连接线段的线性叠加层。[示例1][示例2][示例3][示例4]
+构造函数构造函数 说明 
+Polyline(opts?:PolylineOptions) 使用传递的 Polyline options 创建折线，这些选项可以指定折线的路径以及绘制折线时要使用的笔触样式。您可以在构造折线时传递 Point 数组或 LatLng 的 数组。 
+方法方法 返回值 说明 
+getMap() Map 传回已附加此折线或多边形的地图。 
+getPath() Array.<LatLng> | Array.<Point> 检索第一条路径,返回的坐标类型取决于创建时送入的path。 
+getBounds() Bounds 获取折线的边界（范围）。 
+setMap(map:Map) None 在指定地图上渲染此折线或多边形。如果地图设置为 Null，则会删除此折线或多边形。 
+setOptions(options:PolylineOptions) None 设置折线参数。 
+setPath(path:
+    Array.<Point>|
+    Array.<LatLng>) None 设置第一条路径。有关详细信息，请参见 Polyline options。 
+setPaths(paths:
+    Array.<Array.<Point>>|
+    Array.<Array.<LatLng>>) None 设置路径。支持多段不连接的折线。有关详细信息，请参见 Polyline options。 
+setStyle(style:LineStyle) None 设置样式，包括：笔触、终点箭头等。 
+setTitle(title:String) None 设置名称，用于显示tip和Label。 
+focus() None 如果在Polyline options中设置了styles属性，则鼠标在折线对象上悬停时，自动切换成styles设置的鼠标悬停样式。或者调用此方法将折线的样式切换成鼠标悬停样式。 
+blur() None 取消高亮，还原折线默认的样式。 
+hide() None 设置折线隐藏。 
+show() None 使隐藏的折线显示。 
+事件事件 参数 说明 
+click MouseEvent 对折线触发 DOM click 事件时会触发此事件。 
+dblclick MouseEvent 对折线触发 DOM dblclick 事件时会触发此事件。 
+mousedown MouseEvent 对折线触发 DOM mousedown 事件时会触发此事件。 
+mousemove MouseEvent 对折线触发 DOM mousemove 事件时会触发此事件。 
+mouseout MouseEvent 此事件针对折线 mouseout 触发。 
+mouseover MouseEvent 此事件针对折线 mouseover 触发。 
+mouseup MouseEvent 对折线触发 DOM mouseup 事件时会触发此事件。 
+rightclick MouseEvent 右键点击折线时会触发此事件。 
+PolylineOptions 对象规范用于初始化Polyline对象。[示例]
+属性属性 类型 说明 
+id String 折线的标识ID。 
+title String 鼠标悬停时显示的Label文字；Label是否显示需要用label参数和disableLabel参数来控制。 
+label LabelOptions 设置鼠标悬停时显示的Label的样式。 
+disableLabel boolean 设置是否在鼠标悬停时显示Label。 
+map Map 要在其上显示折线的地图。 
+path Array.<Point>|
+Array.<LatLng> 折线坐标的有序序列。可以使用一个 Point 数组或者 LatLng 的 数组 指定此路径。 
+paths Array.<Array.<Point>>|
+Array.<Array.<LatLng>> 如果一个折线对象由多个不连续的折线组成，可用此参数来设置。取值为一个二维 Point 数组或者 LatLng 的 数组。 
+strokeColor String 采用 HTML 十六进制样式的笔触颜色，即"#FFAA00";优先级高于style参数。 
+strokeOpacity Number 介于 0.0 和 1.0 之间的笔触不透明度;优先级高于style参数。 
+strokeWeight Number 笔触宽度（以像素为单位）;优先级高于style参数。 
+style LineStyle 设置折线默认样式。 
+styles Array.<LineStyle> 设置折线默认样式，以及鼠标悬停时的样式。取值为一个LineStyle的数组，共2个数组元素，第1个元素为折线默认样式，第2个为鼠标悬停时的样式。 
+zIndex Number 相对于其他折线的 zIndex。 
+feature FeatureNode 兼容1.0的FeatureNode对象创建。 
+isFixed boolean 是否钉住，默认false。如果为true则不会被Map对象的clearAll方法清除；但setMap(null)忽略此属性，无论true还是false都删除。 
+Polygon 类多边形（类似于折线）可在一个有序序列中定义一系列连接坐标；此外，多边形会形成一个闭合环并定义一个填充区域。
+[示例1][示例2][示例3]
+构造函数构造函数 说明 
+Polygon(opts?:PolygonOptions) 使用传递的 Polygon options 创建多边形，这些选项可以指定多边形的路径、多边形边缘的笔触样式，以及多边形内部区域的填充样式。一个多边形可以包含一条或多条路径，其中每条路径由一个 Point 数组 或者 LatLng 数组组成。您可以在构造这些路径时传递一个 Point 数组 或者 LatLng 数组。 
+方法方法 返回值 说明 
+getMap() Map 传回已附加此折线或多边形的地图。 
+getPath() Array.<LatLng> | Array.<Point> 检索第一条路径,返回的坐标类型取决于创建时送入的path。 
+getBounds() Bounds 获取多边形面的边界（范围）。 
+setMap(map:Map) None 在指定地图上渲染此折线或多边形。如果地图设置为 Null，则会删除此折线或多边形面。 
+setOptions(options:PolygonOptions) None 设置多边形面参数。 
+setPath(path:
+    Array.<Point>|
+    Array.<LatLng>) None 设置第一条路径。有关详细信息，请参见 Polygon options。 
+setPaths(paths:
+    Array.<Array.<Point>>|
+    Array.<Array.<LatLng>>) None 设置路径。支持多个不连接的多边形面。有关详细信息，请参见 Polygon options。 
+setStyle(style:RegionStyle) None 设置样式，包括：笔触、填充颜色、终点箭头等。 
+focus() None 如果在Polygon options中设置了styles属性，则鼠标在多边形面对象上悬停时，自动切换成styles设置的鼠标悬停样式。或者调用此方法将多边形面的样式切换成鼠标悬停样式。 
+blur() None 取消高亮，还原多边形面默认的样式。 
+事件事件 参数 说明 
+click MouseEvent 对多边形触发 DOM click 事件时会触发此事件。 
+dblclick MouseEvent 对多边形触发 DOM dblclick 事件时会触发此事件。 
+mousedown MouseEvent 对多边形触发 DOM mousedown 事件时会触发此事件。 
+mousemove MouseEvent 对多边形触发 DOM mousemove 事件时会触发此事件。 
+mouseout MouseEvent 此事件针对多边形 mouseout 触发。 
+mouseover MouseEvent 此事件针对多边形 mouseover 触发。 
+mouseup MouseEvent 对多边形触发 DOM mouseup 事件时会触发此事件。 
+rightclick MouseEvent 右键点击多边形时会触发此事件。 
+PolygonOptions 对象规范用于初始化Polygon对象。[示例]
+属性属性 类型 说明 
+id String 多边形的标识ID。 
+title String 鼠标悬停时显示的Label文字；Label是否显示需要用label参数和disableLabel参数来控制。 
+label LabelOptions 设置鼠标悬停时显示的Label的样式。 
+disableLabel boolean 设置是否在鼠标悬停时显示Label。 
+map Map 要在其上显示多边形的地图。 
+path Array.<Point>|
+Array.<LatLng> 多边形面坐标的有序序列。可以使用一个 Point 数组或者 LatLng 的 数组 指定此路径。 
+paths Array.<Array.<Point>>|
+Array.<Array.<LatLng>> 用于指定闭合环的坐标的有序序列。一个多边形面对象可以由多个不连接的多边形组成，类似应用于一个岛屿或者多个岛屿。因此，路径属性可以指定一个或多个 Point|LatLng 坐标数组。可以使用一个 Point|LatLng 数组定义简单的多边形。多个复杂的多边形可以指定一系列数组。 
+strokeColor String 采用 HTML 十六进制样式的笔触颜色，即"#FFAA00";优先级高于style参数。 
+strokeOpacity Number 介于 0.0 和 1.0 之间的笔触不透明度;优先级高于style参数。 
+strokeWeight Number 笔触宽度（以像素为单位）;优先级高于style参数。 
+fillColor String 采用 HTML 十六进制样式的填充颜色，即"#00AAFF";优先级高于style参数。 
+fillOpacity Number 介于 0.0 和 1.0 之间的填充不透明度;优先级高于style参数。 
+style RegionStyle 设置多边形默认样式。 
+styles Array.<RegionStyle> 设置多边形默认样式，以及鼠标悬停时的样式。取值为一个RegionStyle的数组，共2个数组元素，第1个元素为多边形默认样式，第2个为鼠标悬停时的样式。 
+zIndex Number 相对于其他多边形面的 zIndex。 
+feature FeatureNode 兼容1.0的FeatureNode对象创建。 
+isFixed boolean 是否钉住，默认false。如果为true则不会被Map对象的clearAll方法清除；但setMap(null)忽略此属性，无论true还是false都删除。 
+Circle 类用于创建圆形对象。需指定中心点和半径，自动绘制成一个圆形的区域，还可指定区域的填充颜色。[示例]
+构造函数构造函数 说明 
+Circle(opts?:CircleOptions) 使用传递的 CircleOptions（它指定中心、半径和样式）创建圆。 
+方法方法 返回值 说明 
+getBounds() Bounds 获取此圆的 LatLngBounds。 
+getCenter() Point 传回此圆的中心。 
+getMap() Map 传回在其上显示此圆的地图。 
+getRadius() Number 传回此圆的半径（以米为单位）。 
+setCenter(center:LatLng) None 设置此圆的中心。 
+setMap(map:Map) None 在指定地图上渲染此圆。如果地图设置为 Null，则会删除此圆。 
+setOptions(options:CircleOptions) None  
+setRadius(radius:Number) None 设置此圆的半径（以米为单位）。 
+setStyle(style:RegionStyle) None 设置样式，包括：笔触、填充颜色等。 
+focus() None 如果在Circle options中设置了styles属性，则鼠标在圆形对象上悬停时，自动切换成styles设置的鼠标悬停样式。或者调用此方法将圆形的样式切换成鼠标悬停样式。 
+blur() None 取消高亮，还原圆形默认的样式。 
+事件事件 参数 说明 
+click MouseEvent 对圆触发 DOM click 事件时会触发此事件。 
+dblclick MouseEvent 对圆触发 DOM dblclick 事件时会触发此事件。 
+mousedown MouseEvent 对圆触发 DOM mousedown 事件时会触发此事件。 
+mousemove MouseEvent 对圆触发 DOM mousemove 事件时会触发此事件。 
+mouseout MouseEvent 此事件针对圆 mouseout 触发。 
+mouseover MouseEvent 此事件针对圆 mouseover 触发。 
+mouseup MouseEvent 对圆触发 DOM mouseup 事件时会触发此事件。 
+rightclick MouseEvent 右键点击圆时会触发此事件。 
+CircleOptions 对象规范用于初始化Circle对象。[示例]
+属性属性 类型 说明 
+id String 圆形的标识ID。 
+title String 鼠标悬停时显示的Label文字；Label是否显示需要用label参数和disableLabel参数来控制。 
+label LabelOptions 设置鼠标悬停时显示的Label的样式。 
+disableLabel boolean 设置是否在鼠标悬停时显示Label。 
+map Map 要在其上显示圆的地图。 
+center Point|LatLng 中心 
+radius Number 地球表面的半径（以米为单位）。 
+strokeColor String 采用 HTML 十六进制样式的笔触颜色，即"#FFAA00";优先级高于style参数。 
+strokeOpacity Number 介于 0.0 和 1.0 之间的笔触不透明度;优先级高于style参数。 
+strokeWeight Number 笔触宽度（以像素为单位）;优先级高于style参数。 
+fillColor String 采用 HTML 十六进制样式的填充颜色，即"#00AAFF";优先级高于style参数。 
+fillOpacity Number 介于 0.0 和 1.0 之间的填充不透明度;优先级高于style参数。 
+style RegionStyle 设置折线默认样式。 
+styles Array.<RegionStyle> 设置于圆形默认样式，以及鼠标悬停时的样式。取值为一个RegionStyle的数组，共2个数组元素，第1个元素为圆形默认样式，第2个为鼠标悬停时的样式。 
+zIndex Number 相对于其他圆形的 zIndex。 
+feature FeatureNode 兼容1.0的FeatureNode对象创建。 
+isFixed boolean 是否钉住，默认false。如果为true则不会被Map对象的clearAll方法清除；但setMap(null)忽略此属性，无论true还是false都删除。 
+Rectangle 类用于创建矩形叠加层。[示例]
+构造函数构造函数 说明 
+Rectangle(opts?:RectangleOptions) 使用传递的 RectangleOptions（它指定范围和样式）创建矩形。 
+方法方法 返回值 说明 
+getBounds() Bounds 传回此矩形的范围。 
+getMap() Map 传回显示此矩形的地图。 
+setBounds(bounds:Bounds|LatLngBounds) None 设置此矩形的范围。 
+setMap(map:Map) None 在指定地图上渲染此矩形。如果地图设置为 Null，则会删除此矩形。 
+setOptions(options:RectangleOptions) None 设置初始化参数。 
+setStyle(style:RegionStyle) None 设置样式，包括：笔触、填充颜色等。 
+focus() None 如果在Rectangle options中设置了styles属性，则鼠标在矩形对象上悬停时，自动切换成styles设置的鼠标悬停样式。或者调用此方法将矩形的样式切换成鼠标悬停样式。 
+blur() None 取消高亮，还原矩形默认的样式。 
+事件事件 参数 说明 
+click MouseEvent 对矩形触发 DOM click 事件时会触发此事件。 
+dblclick MouseEvent 对矩形触发 DOM dblclick 事件时会触发此事件。 
+mousedown MouseEvent 对矩形触发 DOM mousedown 事件时会触发此事件。 
+mousemove MouseEvent 对矩形触发 DOM mousemove 事件时会触发此事件。 
+mouseout MouseEvent 此事件针对矩形 mouseout 触发。 
+mouseover MouseEvent 此事件针对矩形 mouseover 触发。 
+mouseup MouseEvent 对矩形触发 DOM mouseup 事件时会触发此事件。 
+rightclick MouseEvent 右键点击矩形时会触发此事件。 
+RectangleOptions 对象规范用于初始化Rectangle对象。[示例]
+属性属性 类型 说明 
+id String 圆形的标识ID。 
+title String 鼠标悬停时显示的Label文字；Label是否显示需要用label参数和disableLabel参数来控制。 
+label LabelOptions 设置鼠标悬停时显示的Label的样式。 
+disableLabel boolean 设置是否在鼠标悬停时显示Label。 
+map Map 要在其上显示矩形的地图。 
+bounds Bounds|LatLngBounds 范围。 
+strokeColor String 采用 HTML 十六进制样式的笔触颜色，即"#FFAA00";优先级高于style参数。 
+strokeOpacity Number 介于 0.0 和 1.0 之间的笔触不透明度;优先级高于style参数。 
+strokeWeight Number 笔触宽度（以像素为单位）;优先级高于style参数。 
+fillColor String 采用 HTML 十六进制样式的填充颜色，即"#00AAFF";优先级高于style参数。 
+fillOpacity Number 介于 0.0 和 1.0 之间的填充不透明度;优先级高于style参数。 
+style RegionStyle 设置折线默认样式。 
+styles Array.<RegionStyle> 设置矩形默认样式，以及鼠标悬停时的样式。取值为一个RegionStyle的数组，共2个数组元素，第1个元素为矩形默认样式，第2个为鼠标悬停时的样式。 
+zIndex Number 相对于其他矩形的 zIndex。 
+feature FeatureNode 兼容1.0的FeatureNode对象创建。 
+isFixed boolean 是否钉住，默认false。如果为true则不会被Map对象的clearAll方法清除；但setMap(null)忽略此属性，无论true还是false都删除。 
+InfoWindow 类用于创建信息窗，通常会连接到某个标记。[示例1][示例2][示例3]
+构造函数构造函数 说明 
+InfoWindow(opts?:InfoWindowOptions) 创建带有指定选项的信息窗口。信息窗口可以放置在地图的特定位置，也可以位于标记上方，具体取决于选项中指定的内容。除非停用自动平移，否则，信息窗口会在打开后平移地图，以便让自己显示出来。信息窗口构建完成后，您需要调用 open 函数，才能在地图上显示该窗口。用户可以点击信息窗口上的关闭按钮将其从地图中关闭，开发人员也可以调用 close() 函数实现同样的效果。  
+方法方法 返回值 说明 
+close() None 关闭此信息窗口。 
+getContent() String|Node 获取信息窗显示区的内容。 
+getMarker() Marker 获取信息窗口当前连接的Marker对象，如果open时未指定Marker则返回null。 
+getPosition() Point 获取信息窗口当前的坐标位置。 
+getZIndex() Number 获取叠加顺序。 
+remove() None 删除信息窗。close方法只是隐藏信息窗，而此方法将移除信息窗的DOM对象，一旦移除，信息窗将不能再用open方法打开。 
+open(map:Map, anchor:Marker) None 在指定的地图上打开这个信息窗口。信息窗口可以与锚点相关联，但这属于可选操作。在API 中，目前唯一的锚点是 Marker 类。建议一个地图只创建一个信息窗对象，一个信息窗可以通过open方法连接到不同的Marker对象。 
+setContent(content:String|Node) None 设置信息窗中显示的内容。信息窗的内容区根据显示的内容大小自动调整适合的大小。建议使用Node类型，如：DIV 元素，将显示的内容都放在该DIV中，设置DIV元素的宽和高。 
+setOptions(options:InfoWindowOptions) None 设置初始化的参数。 
+setPosition(position:Point|LatLng) None 设置信息窗的位置，支持两种坐标。 
+setSize(width:Number,height:Number) None 设置信息窗的宽和高。 
+setTitle(title:String) None 设置信息窗的标题文字。 
+setZIndex(zIndex:Number) None 设置叠加顺序。 
+setDisableMapClickClose(disableMapClickClose:boolean) None 设置是否当点击地图空白地方时关闭信息窗。[示例] 
+事件事件 参数 说明 
+closeclick None 点击关闭按钮时会触发此事件。 
+close None 任何情况下关闭窗口会触发此事件。 
+content_changed None 内容属性更改时会触发此事件。 
+domready None 当包含 InfoWindow 的内容的 <div> 附加到 DOM 时，会触发此事件。如果您要动态构建信息窗口内容，则可监视此事件。 
+position_changed None 位置属性更改时会触发此事件。 
+zindex_changed None 信息窗口的 zIndex 更改时会触发此事件。 
+InfoWindowOptions 对象规范用于初始化InfoWindow对象。[示例]
+属性属性 类型 说明 
+content String|Node 要在信息窗口中显示的内容。该内容可以是 HTML 元素、纯文本字符串或包含 HTML 的字符串。信息窗口将会根据相应内容调整大小。要设置内容的具体大小，请将内容设置为相应大小的 HTML 元素。 
+disableAutoPan boolean 停用在打开时自动平移的功能。默认情况下，信息窗口会在打开后平移地图，以便让自己完全显示出来。 
+maxWidth Number 信息窗口的最大宽度（不考虑内容的宽度）。仅在已调用 open 函数前设置了该值时，才考虑使用这个值。在更改内容时，如果要更改最大宽度，请调用 close 函数、setOptions 函数，然后调用 open 函数。 
+pixelOffset Size 信息窗口的箭头距离信息窗口在地图上所锚定地理坐标点的偏移量（以像素为单位）。如果信息窗口是通过锚点打开的，则从锚点范围的顶部中心开始计算 pixelOffset。 
+position Point|LatLng 用于显示此信息窗口的 Point或者LatLng。如果信息窗口是通过锚点打开的，则使用锚点的位置。 
+zIndex Number 所有信息窗口按 zIndex 值的大小顺序在地图上显示，zIndex 值较大的信息窗口显示在值较小的信息窗口之前。信息窗口始终在标记前面显示。 
+disableMapClickClose boolean 设置点击地图空白地方是否关闭信息窗，true为不关闭，false为关闭。 
+Label 类用于创建叠加层对象，如：Marker、Polyline、Polygon等的文字标签，显示Options中title参数的内容。[示例]
+构造函数构造函数 说明 
+Label(opts?:LabelOptions) 创建文字标签，连接在叠加层对象上，如：Marker、Polyline、Polygon等，用于显示Options中title参数的内容。 甚至可以设置相对于Marker的位置，如：上、下、左、右。如果不是Marker对象，而是线面对象，鼠标悬停这类对象时，则会随着鼠标移动。 
+方法方法 返回值 说明 
+remove() None 删除Label。hide方法只是隐藏信息窗，而此方法将移除Label的DOM对象，一旦移除，Label将不能再用show方法打开。 
+getWidth() Number 获取宽度。 
+getHeight() Number 获取高度。 
+setPosition(position:Point|LatLng) None 设置Label的显示的位置。如果是Marker的Label，还可以设置对齐方式，详细请参考 LabelOptions。 
+setTitle(title:String) None 设置显示的文字。 
+setZIndex(zIndex:Number) None 设置叠加顺序。 
+setOptions(options:LabelOptions) None 设置label参数 
+show() None 显示。 
+hide() None 隐藏。 
+LabelOptions 对象规范用于Label对象初始化，以及Marker对象初始化时设置label属性。[示例1][示例2]
+属性属性 类型 说明 
+align String Label的对齐方式，仅当连接到Marker时才有效。取值："TOP"、"RIGHT"、"BOTTOM" 、"LEFT"，即 上、右、下、左四个方位。 
+pixelOffset Point 可通过数值来设置label的对齐方式，表示相对于position的偏移距离。 
+map Map 要在其上显示Label的地图。（Marker的label此属性可缺省） 
+position Point 在地图上显示的位置坐标。（Marker的label此属性可缺省） 
+style String css样式名称。用于指定一个已经定义好的css到标签名称上。可缺省，使用默认样式。 
+title String 显示的文字。（Marker的label此属性可缺省） 
+visible boolean 设置是否默认可见。设置为false，则不可见，但鼠标悬停时，会显示出来。可缺省，默认为不可见。如果连接的对象设置了disableLabel，则鼠标悬停也不显示。 
+ToolPanel 类创建一个具有公交，自驾，周边查询功能的工具面板。可以放在任意位置。[查看示例]
+构造函数 说明 
+ToolPanel(point?:Point,panel?:Node) 创建一个具有公交，自驾，周边查询功能的工具面板。 
+方法方法 返回值 说明 
+setPanel(panel:Node) None 设置添加工具面板的页面结点。 
+setPoint(point:Point) None 设置此工具面板归属的坐标位置。 
+setCallback(callback:Function) None 添加了工具面板的页面结点返回给回调函数。 
+ 
+Brand 类牌子类，用于在地图上添加牌子对象。[查看示例]
+此类扩展了 G2MObject。
+构造函数构造函数 说明 
+Brand(opts?:BrandOptions) 创建带有指定选项的牌子。如果已指定地图，则牌子会在构造完成后立即添加到该地图。请注意，您必须设置牌子的显示位置。  
+方法方法 返回值 说明 
+blur() None 消除高亮的效果。 
+focus() None 高亮（样式切换到url2指定的图片，叠加顺序置前）牌子。 
+getMap() Map 获取显示所在的Map对象。 
+getPosition() Point|LatLng 获取牌子所在的位置坐标。 
+getContent() String|Node 获取牌子的内容。 
+getVisible() boolean 获取牌子当前是否可见。 
+getZIndex() Number 获取牌子当前的叠加顺序。 
+hide() None 隐藏，使牌子不可见。 
+show() None 显示牌子。 
+setMap(map:Map) None 在指定地图上渲染牌子。如果地图设置为 Null，则会删除此牌子。 
+setPosition(point:Point|latlng:LatLng) None 设置牌子的位置，支持搜狗地图坐标和经纬度坐标。 
+setSize(size:Size) None 设置牌子的大小。 
+setContent(content:String|Node) None 设置牌子的显示内容。 
+setVisible(visible:boolean) None 设置牌子可见/不可见。 
+setZIndex(zIndex:Number) None 设置牌子的叠加顺序。 
+事件事件 参数 说明 
+click Event 点击牌子后会触发此事件。 
+mouseout Event 当鼠标离开牌子区域时会触发此事件。 
+mouseover Event 当鼠标进入牌子区域时会触发此事件。 
+position_changed None 当牌子位置属性更改时会触发此事件。 
+size_changed None 当牌子大小属性更改时会触发此事件。 
+content_changed None 当牌子内容属性更改时会触发此事件。 
+visible_changed None 当牌子的可见属性更改时会触发此事件。 
+zindex_changed None 当牌子的 zIndex 属性更改时会触发此事件。 
+BrandOptions 对象规范用于Brand对象初始化。[示例]
+属性属性 类型 说明 
+fixSize Size 设置固定大小，一旦设置了这个值，则牌子将不会根据内容大小来自适应大小。 
+map Map 要在其上显示牌子的地图。 
+position Point 在地图上显示的位置坐标。 
+spirit BrandCssSpirit 用于定义牌子显示样式的css spirit对象。 
+content String 显示的内容。 
+visible boolean 设置是否默认可见。设置为false，则不可见。 
+css String 给内容区指定css ID，这样可以通过css来定义内容区的样式。 
+BrandCssSpirit 对象规范定义牌子显示样式的css spirit。[示例]
+格式：
+{
+url:t.imgRoot+"1.png",
+url2:t.imgRoot+"1_2.png",
+imgSize:[50,25],
+//[[左侧],[中间],[右侧],[尖脚]]
+//[clipLeft,clipTop,width,heigth]
+clips:[[0,0,3,18],[3,0,1,18],[47,0,3,18],[0,19,10,6]],
+//[尖脚绑定坐标的位置]
+anchor:[5,5],
+footOffset:[0,-1],
+css:"brandBody"
+} 
+属性属性 类型 说明 
+url String 样式使用的图片的URL。 
+url2 String 高亮（鼠标悬停时，或者调用focus方法时）样式使用的图片的URL，可缺省。 
+imgSize Array 样式使用的图片的大小（是指整张大图片而不是某个小图标）。取值：imgSize:[宽,高]。 
+clips Array.[Array] 各个区域的切图坐标数组。取值：clips:[[左侧],[中间],[右侧],[尖脚]]，其中[左侧]，[中间],[右侧],[尖脚]格式分别都是[图标左上角水平位置（Left）,图标左上角垂直位置（Top）,图标宽（width）,图标高(height)]。 
+如下图所示，牌子由4个部分组成，为了减少下载小图标的次数，将各个部分放在一张大图片上，然后指定各个部分的位置,从而切割出来从新拼接起来。通常，中间部分都偏长，这样内容区变长时，可根据需要自动伸缩。
+  
+anchor Array position坐标对应在尖脚的那个图标的位置。取值：anchor:[水平位置,垂直位置]。 如上图所示，尖脚图标的大小是[10,6],position坐标对应的位置在图标的[5,5]处。 
+footOffset Array 尖脚图标的微调偏移量。取值：footOffset:[水平偏移,垂直偏移]。尖脚会自动居中并在内容区下方，footOffset是在这个位置的基础上做一些微调，如下图所示：
+ 
+ 
+MapsEventListener 对象规范此类是不透明的。它没有方法和构造函数。此类的实例从 sogou.maps.event.addListener()、sogou.maps.event.addDomListener() 返回，并最终传递回 sogou.maps.event.removeListener()。 [示例]
+事件静态方法创建、删除侦听器，触发事件等。静态方法不需要用new来实例化即可直接使用，如：sogou.maps.event.addListener()。[示例1][示例2][示例3][示例4][示例5]
+静态方法静态方法 返回值 说明 
+addDomListener(instance:Object, eventName:String, handler:Function) MapsEventListener 跨浏览器注册事件处理程序。可调用 removeListener方法将返回的句柄作为参数删除此侦听器。 
+addDomListenerOnce(instance:Object, eventName:String, handler:Function) MapsEventListener 类似于 addDomListener，但处理程序会在处理完第一个事件后将自已删除。 
+addListener(instance:Object, eventName:String, handler:Function) MapsEventListener 将指定侦听器函数添加到指定对象实例的指定事件名称。传回该侦听器的标识符，该标识符能够与 removeListener() 配合使用。 
+addListenerOnce(instance:Object, eventName:String, handler:Function) MapsEventListener 类似于 addListener，但处理程序会在处理完第一个事件后将自已删除。 
+clearInstanceListeners(instance:Object) None 对于指定实例，删除其所有事件的所有侦听器。 
+clearListeners(instance:Object, eventName:String) None 对于指定实例，删除其指定事件的所有侦听器。 
+removeListener(listener:MapsEventListener) None 删除应由上述 addListener和addDomListener传回的指定侦听器。 
+trigger(instance:Object, eventName:String, var_args:*) None 触发指定事件。eventName 后的所有参数都以参数的形式传递到侦听器。 
+bind(instance:Object, eventName:String,destInstance:Object, destInstanceMethod:Function) MapsEventListener 给对象添加侦听器，绑定到目标对象的方法。可调用 removeListener方法将返回的句柄作为参数删除此侦听器。 
+bindDom(instance:Object, eventName:String,destInstance:Object, destInstanceMethod:Function) MapsEventListener 给HTML DOM对象添加侦听器，绑定到目标对象的方法。可调用 removeListener方法将返回的句柄作为参数删除此侦听器。 
+MouseEvent 对象规范此对象由地图和叠加层上的各种鼠标事件返回，包含如下所示的所有字段。[示例]
+属性属性 类型 说明 
+point Point 发生事件时在光标下方显示的搜狗坐标。 
+latLng LatLng 发生事件时在光标下方显示的搜狗坐标，受国家测绘政策限制，不能返回经纬度。 
+StyleLib 类样式库类，用于加载和管理叠加层标记、线面对象的样式。
+静态方法方法 返回值 说明 
+StyleLib.getStyleById(id:String) MarkerStyle|
+LineStyle|
+RegionStyle 通过id获取由StyleLib.preLoadJson()方法预加载的样式。 
+StyleLib.loadStyle(id:String) MarkerStyle|
+LineStyle|
+RegionStyle 通过id获取由StyleLib.preLoadJson()方法预加载的样式。如果不存在该id的样式则返回系统默认样式。 
+StyleLib.preLoadJson(
+Array.<MarkerStyle|
+LineStyle|
+RegionStyle>) None 预加载样式。预加载的样式都带有唯一ID，已加载过的样式不必再次加载，叠加层的标记、线、面对象可重用已加载的样式。 
+MarkerStyle 对象规范用于设置标记样式，需要给定唯一id。id规则一般为大写字母S+数字。如：S01、S02、...、S999、...（注：S=Symbol，L=Line，R=Region）
+属性属性 类型 说明 
+id String 样式唯一标示编号。规则一般为大写字母S+数字。如：S01、S02、...、S999、... 
+img StyleImg|Array.<StyleImg> 图片url、宽、高、锚点等参数。可以是一个StyleImg，也可以是一个StyleImg的数组，有两个数组元素，第1个用于定义默认图标，第2个用于定义鼠标悬停时显示的图标。 
+StyleImg 对象规范用于设置标记样式的图标图片url、宽、高、锚点、模版等参数。
+属性属性 类型 说明 
+src String 图标图片地址 
+width Number 宽。无论是否合并的图片，都设置为图片的宽，非单个图标的宽。 
+height Number 高。无论是否合并的图片，都设置为图片的高，非单个图标的高。 
+pointcoord String 设置图标锚点。图标的锚点是系统在跟踪图像位置时引用的像素，当标记放置在指定的 Point或者LatLng 上时，定义为锚点的像素就定位于指定的 Point或者LatLng 上。如图标为一个小旗，希望小旗的旗杆插在坐标的位置上，那么就需要设置锚点。取值以图标的左上角为原点，向左、向下为正，取得像素值，用逗号连接，如：pointcoord="20,30"。 
+clip String 为了减少连接数，提高下载速度，将多个图标合并到一张图片中，此属性用于从一张合并图片中截取图标图块。取值为由四个数字组成的字符串。如：clip="1,1,20,30"。
+前两个数字指定开始截取的位置（对应单个图标的左上角），后两个数字指定截取的宽和高。
+无论该图像是否为拼合图片，都请将StyleImg的 width和height 的值设置为整个图片的大小。 
+iconclass String 用于指定StyleIconClass的id，详细请参考StyleIconClass。 
+StyleIconClass 对象规范用于设置标记样式的图标模版，如定义阴影、鼠标可点击区域等，从而被多个样式StyleImg重复使用。
+属性属性 类型 说明 
+mask MarkerShape 设置可点击区域。 
+shadow StyleImg 设置阴影。 
+LineStyle 对象规范用于设置线样式，需要给定唯一id。id规则一般为大写字母L+数字。如：L01、L02、...、L999、...（注：S=Symbol，L=Line，R=Region）[示例]
+属性属性 类型 说明 
+id String 样式唯一标示编号。规则一般为大写字母L+数字。如：L01、L02、...、L999、... 
+v:stroke StyleStroke 此属性的格式遵循VML的stroke element规范：http://msdn.microsoft.com/en-us/library/bb264077(v=VS.85).aspx，在IE下完全支持VML stroke的所有属性。在firefox等其他浏览器下使用的是SVG，仅支持StyleStroke中某些属性。 
+RegionStyle 对象规范用于设置线样式，需要给定唯一id。id规则一般为大写字母R+数字。如：R01、R02、...、R999、...（注：S=Symbol，L=Line，R=Region）
+属性属性 类型 说明 
+id String 样式唯一标示编号。规则一般为大写字母L+数字。如：L01、L02、...、L999、... 
+v:stroke StyleStroke 此属性的格式遵循VML的stroke element规范：http://msdn.microsoft.com/en-us/library/bb264077(v=VS.85).aspx，在IE下完全支持VML stroke element的所有属性。在firefox等其他浏览器下使用的是SVG，仅支持StyleStroke中某些属性。 
+v:fill StyleFill 此属性的格式遵循VML的fill element规范：http://msdn.microsoft.com/en-us/library/bb229596(v=VS.85).aspx，在IE下完全支持VML fill element的所有属性。在firefox等其他浏览器下使用的是SVG，仅支持StyleFill中某些属性。 
+StyleStroke 对象规范用于设置线的笔触、颜色、箭头等样式，格式遵循VML的stroke element规范：http://msdn.microsoft.com/en-us/library/bb264077(v=VS.85).aspx，在IE下完全支持VML stroke element的所有属性。在firefox等其他浏览器下使用的是SVG，仅支持StyleStroke中给出的属性。其他属性请参考VML的stroke element的属性。[示例]
+属性属性 类型 说明 
+color String 采用 HTML 十六进制样式的笔触颜色，即"#FFAA00"。（SVG支持） 
+weight Number 笔触宽度（以像素为单位）。（SVG支持） 
+opacity Number 介于 0.0 和 1.0 之间的笔触不透明度。（SVG支持） 
+dashstyle String 虚线样式。取值："SOLID"、"SHORTDASH"、"SHORTDOT"、"SHORTDASHDOT"、
+"SHORTDASHDOTDOT"、"DOT"、"DASH"、"LONGDASH"、"DASHDOT"、
+"LONGDASHDOT"、"LONGDASHDOTDOT"。（SVG支持） 
+endarrow String 线尾部箭头样式。（SVG支持仅支持"Classic"） 
+StyleFill 对象规范用于设置面的填充样式，格式遵循VML的fill element规范：http://msdn.microsoft.com/en-us/library/bb229596(v=VS.85).aspx，在IE下完全支持VML fill element的所有属性。在firefox等其他浏览器下使用的是SVG，仅支持StyleFill中给出的属性。其他属性请参考VML的fill element的属性。[示例]
+属性属性 类型 说明 
+color String 采用 HTML 十六进制样式的笔触颜色，即"#FFAA00"。（SVG支持） 
+opacity Number 介于 0.0 和 1.0 之间的笔触不透明度。（SVG支持） 
+ 
+Bounds 类Bounds 实例代表通过地理搜狗地图坐标表示的矩形范围（边界）。
+
+构造函数构造函数 说明 
+Bounds(minX?:Number, minY?:Number, maxX?:Number, maxY?:Number) 基于矩形的左下角和右上角处的点构造矩形。  
+方法方法 返回值 说明 
+clone(other:Bounds) None 克隆其他的Bounds给自己。 
+contains(point:Point) boolean 如果此范围包含指定的搜狗坐标，则传回 true。 
+containsBounds(other:Bounds) boolean 如果此范围包含指定的范围，则传回 true。 
+containsSegment(point1:Point, point2:Point) boolean 如果此范围包含指定的搜狗坐标，则传回 true。 
+equals(other:Bounds) boolean 如果此范围包含point1和point2连成的线段，则传回 true。 
+extend(point:Point) Bounds 延伸此范围以包含指定点。 
+getCenter() Point 计算该 Bounds 的中心。 
+getNorthEast() Point 用于传回此范围的东北角。 
+getSouthWest() Point 用于传回此范围的西南角。 
+intersects(other:Bounds) boolean 如果此范围与另一范围共享任何点，则传回 true。 
+isEmpty() boolean 当范围为空时传回。 
+toString() String 转换为字符串。 
+union(other:Bounds) Bounds 延伸此范围以包含此范围和指定范围的并集。 
+静态方法方法 返回值 说明 
+Bounds.intersection(bounds1:Bounds, bounds2:Bounds) Bounds 获取两个Bounds相交部分的Bounds，返回新Bounds（要先判断两个Bounds是否相交）。 
+Bounds.merge(bounds1:Bounds, bounds2:Bounds) Bounds 合并两个Bounds,返回新Bounds。 
+属性属性 类型 说明 
+minX Number 左下角横向坐标。 
+minY Number 左下角纵向坐标。 
+maxX Number 右上角横向坐标。 
+maxY Number 右上角纵向坐标。 
+Convertor 类坐标转换工具类
+标准经纬度转换为Sogou地图坐标。计算指定半径内的范围。计算两点之间的距离。[示例]
+构造函数 说明 
+Convertor()   
+方法方法 返回值 说明 
+distance(point1:Point, point2:Point) Number 计算两点之间的距离（Sogou地图坐标）。 
+latLngDistance(latLng1:LatLng, latLng2:LatLng) Number 计算两点之间的距离（经纬度坐标）。 
+toSogou(other:LatLng) Point 标准经纬度转Sogou地图坐标。 
+latLngBounds(latLng:LatLng, radius:Number) Bounds 获取某地点(经纬度)指定半径（单位：米）内的范围。 
+bounds(point:Point, radius:Number) Bounds 获取某地点(sogou坐标)指定半径（单位：米）内的范围。 
+translate(points:Point |LatLng | Array.<Point|LatLng>, type:Number,callback:function(Array.<Point>)) none 将其他地图服务商的坐标批量转换成搜狗坐标。type用于说明是哪个服务商的坐标。可选值为 1，2，3 详情[查看示例] 
+FeatureNode 类点线面对象节点类，用于封装的点(S)线(L)面(R)对象数据。 
+S=Symbol，表示点对象，一般为地图上的当个图标；
+L=Line，表示线对象。一般为地图上绘制的道路，公交自驾方案等; 
+R=Region，表示面对象。一般为地图上绘制的行政区划轮廓等。 
+数据格式FeatureNodeJson： 
+  { 
+    "id":"1","type":"S","caption":"","cpid":""."dataid":"","level":"", 
+    "Points":[""], 
+    "Style":{"id":"S01"}, 
+    "Label":{"style","F01","on":"true"}, 
+  }
+构造函数 说明 
+FeatureNode(id:String,caption:String,
+type:String,points:Array.<Point>,
+bounds:Bounds,style:String,
+label:LabelOptions,
+segments:Array.<Array.<Point>>)   
+方法方法 返回值 说明 
+clone(other:FeatureNode) FeatureNode 复制其他FeatureNode的所有属性。 
+静态方法方法 返回值 说明 
+FeatureNode.loadFromJson(data:FeatureNode Json) FeatureNode 加载按FeatureNode Json格式定义的数据，返回FeatureNode对象。 
+G2MObject 类这是一个基类，为继承的类提供： 
+1、获取自己构造函数类名的方法; 
+2、添加自己的定时方法this.setTimeout(this.method,delay,arg1,arg2,...),this指向继承类的对象本身，以便method中的this正确指向继承类; 
+3、用于事件处理时指向自己的句柄方法this.eventHandler(method),this指向继承类的对象本身，以便method中的this正确指向继承类。
+方法方法 返回值 说明 
+eventHandler(method:String) Function 获取指向自己方法的句柄，确定执行中的参数中的方法为自身的方法。 
+getClassName() String 获取构造函数的类名。 
+setTimeout(foo:Function,delay:Number, var_args:*) None 在类的对象上添加的定时setTimeout方法。this.setTimeout(foo,delay)与window.setTimeout(foo,delay)的区别在于前者的foo中的this指向继承此类的对象。delay后的所有参数都将传递给foo函数。 
+LatLng 类LatLng 是以纬度和经度表示的地理坐标点。
+请注意，尽管进行地图投影时通常将经度与地图的 x 坐标相关联，将纬度与 y 坐标相关联，但总是先写入纬度坐标，再写入经度坐标。
+另请注意，您不能修改 LatLng 的坐标。如果您想要计算另一个点，则必须创建一个新点。
+构造函数构造函数 说明 
+LatLng(lat:Number, lng:Number, noWrap?:boolean) 请注意纬度和经度的顺序。如果 noWrap 标记为 True，则在传递时会使用这些数字，否则纬度会限定在 -90 度和 +90 度之间，而经度会限定在 -180 度和 + 180 度之间。  
+方法方法 返回值 说明 
+equals(other:LatLng) boolean 比较函数。 
+lat() Number 返回纬度值（以度为单位）。 
+lng() Number 返回经度值（以度为单位）。 
+toString() String 转换为字符串表示。 
+LatLngBounds 类LatLngBounds 实例代表通过地理坐标表示的矩形，包含与 180 度子午线相交的矩形。
+
+构造函数构造函数 说明 
+LatLngBounds(sw?:LatLng, ne?:LatLng) 基于矩形的西南角和东北角处的点构造矩形。  
+方法方法 返回值 说明 
+contains(latLng:LatLng) boolean 如果此范围包含指定的纬度/经度，则传回 true。 
+equals(other:LatLngBounds) boolean 如果此范围与指定范围大致相等，则传回 true。 
+extend(point:LatLng) LatLngBounds 延伸此范围以包含指定点。 
+getCenter() LatLng 计算该 LatLngBounds 的中心。 
+getNorthEast() LatLng 用于传回此范围的东北角。 
+getSouthWest() LatLng 用于传回此范围的西南角。 
+intersects(other:LatLngBounds) boolean 如果此范围与另一范围共享任何点，则传回 true。 
+isEmpty() boolean 当范围为空时传回。 
+toString() String 转换为字符串。 
+union(other:LatLngBounds) LatLngBounds 延伸此范围以包含此范围和指定范围的并集。 
+Point 类
+构造函数构造函数 说明 
+Point(x:Number, y:Number) 二维平面上的点。可以是像素点，也可以是搜狗地图坐标点。 
+方法方法 返回值 说明 
+equals(other:Point) boolean 比较两个点 
+toString() String 传回该点的字符串表示。 
+属性属性 类型 说明 
+x Number X 坐标 
+y Number Y 坐标 
+Size 类
+构造函数构造函数 说明 
+Size(width:Number, height:Number) 二维大小，其中宽度是指 x 轴上的距离，高度是指 y 轴上的距离。 
+方法方法 返回值 说明 
+equals(other:Size) boolean 比较两个大小。 
+toString() String 传回该大小的字符串表示。 
+属性属性 类型 说明 
+height Number 沿 y 轴的高度（以像素为单位）。 
+width Number 沿 X 轴的宽度（以像素为单位）。 
+地图服务 类请点击 地图服务类参考手册
+geoLocation 类此类是静态的，没有构造函数，不需要实例化。为了陈述方便和与原生的方法区别，我们所封装的geoLocation的L为大写。
+使用链式调用通常会使编码简便。为此，此类的各个方法都会返回这个类本身，以便支持链式调用。即：你可以通过在geoLocation之后使用点号（.）链式访问各方法，如sogou.maps.geoLocation.getLocation(callbackFunction).watchHeading(callbackFunction,timeout)。
+所有的callbackFunction的第一个参数是一个geoInfo对象，它包含了本次获取的信息。需要注意的是，获取某一类型信息的回调函数的geoInfo是会包含该类信息，有可能包含其它类型的信息。如，getSpeed方法的回调函数的这个参数一定会包含speed信息，有可能会包含heading信息（如果此时也同时获得了heading信息则会包含）。这个对象的结构如下：
+  {
+    states:0,1,2,3 //本次结果，0:成功，1:没有权限(即用户禁止);2:无法确定位置;3:确定位置超时
+    ,timestamp:130000000 //得到信息时的时间戳，定位失败时为null
+    ,location:{ //位置信息，没有对应信息时为null
+      accuracy: 1000 //位置信息精确度，单位：米
+      ,point:{ //位置信息坐标
+        x:111.1111111
+        ,y:111.1111111
+      }
+    }
+    ,speed:123 //速度，单位：米/秒，没有对应信息时为null
+    ,heading:90 //前进方向，单位：距正北方向顺时针旋转的弧度，没有对应信息时为null
+  } 
+[简单的定位示例][完整示例]
+静态方法静态方法 返回值 说明 
+setConfig(config:Object) geoLocation 设置参数，参数的格式与意义与HTML5的geolocation.getCurrentPosition方法和geolocation.watchPosition方法所需的第三个参数的格式相同，具体请参阅：http://dev.w3.org/geo/api/。
+通常情况下，用户不需要特意设置，保持默认即可。
+设置是及时生效的，即在调用该方法设置后，所有新的get方法和正在进行中的watch方法都会按照新参数的设定回调。  
+getAvailableCode(callbackFunction:Function) geoLocation 通过配置回调函数的形式，获取浏览器和用户对你的站点的定位请求的支持程度。
+回调函数有一个参数(availableCode:Number)，数字对应意义如下：
+0:浏览器支持且用户允许；
+1:浏览器支持，但由于用户禁止而不可用；
+10:浏览器不支持。  
+getLocation(callbackFunction:Function) geoLocation 通过配置回调函数的形式，获取当前位置一次。 
+watchLocation(callbackFunction:Function,timeout:Number) geoLocation 通过配置回调函数的形式，轮询获取当前位置信息。
+第二个参数设置多少毫秒后自动清除轮询，缺省为无限长，即不自动清除轮询。 
+clearWatchLocation() geoLocation 停止轮询获取当前位置。 
+getSpeed(callbackFunction:Function) geoLocation 通过配置回调函数的形式，获取当前速度一次。
+getSpeed只有在获取到了速度信息后才会回调。
+与getLocation不同的是，通常获取位置（location）比获取速度（speed）要容易且节省时间，即获取速度通常会相对较慢。  
+stopGetSpeed() geoLocation 停止获取当前速度。 
+watchSpeed(callbackFunction:Function,timeout:Number) geoLocation 通过配置回调函数的形式，轮询获取当前速度信息。
+第二个参数设置多少毫秒后自动清除轮询，缺省为无限长，即不自动清除轮询。 
+clearWatchSpeed() geoLocation 停止轮询获取当前速度。 
+getHeading(callbackFunction:Function) geoLocation 通过配置回调函数的形式，获取当前前进方向一次。
+getHeading只有在获取到了速度信息后才会回调。
+与getLocation不同的是，通常获取位置（location）比获取前进方向（heading）要容易且节省时间，即获取前进方向通常会相对较慢。  
+stopGetHeading() geoLocation 停止获取当前前进方向。 
+watchHeading(callbackFunction:Function,timeout:Number) geoLocation 通过配置回调函数的形式，轮询获取当前前进方向信息。
+第二个参数设置多少毫秒后自动清除轮询，缺省为无限长，即不自动清除轮询。 
+clearWatchHeading() geoLocation 停止轮询获取当前前进方向。 
+clearWatch() geoLocation 停止所有轮询获取的方法，即停止watchLocation、watchSpeed和watchHeading。 
+clearAll() geoLocation 停止所有轮询获取的方法、获取速度的方法和获取方向的方法，即停止watchLocation、watchSpeed、watchHeading、getSpeed和getHeading。 
+
+Copyright © 2013 Sohu.com Inc. All Rights Reserved. 搜狐公司 版权所有

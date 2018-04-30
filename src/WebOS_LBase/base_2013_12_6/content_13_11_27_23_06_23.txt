@@ -1,0 +1,500 @@
+
+
+
+
+e5Max的专栏
+
+
+
+
+
+ 
+
+
+
+•目录视图
+•摘要视图
+•订阅
+ 
+
+
+
+亲，“社区之星”已经一周岁了！        社区福利快来领取免费参加MDCC大会机会哦      Tag功能介绍—我们为什么打Tag      订阅CSDN社区周刊，及时了解社区精华内容 
+
+
+
+《编写可读代码的艺术》读书笔记（二） 
+
+分类： 读书笔记码农修养2013-10-03 23:1454人阅读评论(0)收藏举报
+ 
+代码可读性重构
+
+
+       第一部分介绍了“表面层次的改进”，一次一行，在没有很大风险也不需要花很大代价的情况下改进代码的可读性。接下来，第二部分将讨论“简化循环和逻辑”这个主题，相对第一部分，第二部分的技巧方法通常都需要对代码做些许改动。但这些改动仍然是一些简单的调整（或说重构），不会带来太大的风险和代价。
+ 
+第7章 把控制流变得易读
+ 
+1、条件语句中参数的顺序
+ 
+明显的，
+  if (length > 10) 
+比
+  if (10 < length) 
+读起来更符合思维，也更易读！同样的，
+     while (bytes_received < bytes_expected)
+    {
+        // ....
+    } 
+比
+     while (bytes_expected > bytes_received)
+    {
+        // ....
+    } 
+也更容易理解。
+ 
+关于这个主题有一个指导原则：
+ 
+
+
+
+
+比较的左边
+ 
+比较的右边
+ 
+
+
+被问询的表达式，左边的值更倾向于不断变化
+ 
+用来做比较的表达式，右边的值更倾向于常量
+ 
+
+
+这个道理就好比“如果18岁小于某人的年龄”不太符合我们平常的习惯一样。
+ 
+以前C语言中类似于下面的“尤达表示法”不再适用！
+ if (NULL == obj) // 防止错误的“好”做法，但已经过时。 
+只要我们遵循“在高警告级别下干净利落的编译代码”这条原则，我们完全可以按照如下的思维习惯方式编写。
+ if (obj == NULL) // 如果误写成了if (obj = NULL), 编译器会报出警告 
+
+2、if/else代码块的顺序
+ •首先处理正逻辑。例如 if (contains())
+• 先处理简单的、有趣的，异常的，可疑的情况。
+ 
+关于这个主题，作者给出的建议很简单：要按照我们这里提倡的做法并且小心那些会使你的if/else顺序很别扭的情况。
+ 
+3、?  : 条件表达式（即“三目运算符”）
+     time_str += (hour >= 12) ? "pm" : "am"; 
+当然比
+     if (hour >= 12)
+    {
+
+        time_str += "pm";
+    }
+    else
+    {
+        time_str += "am";
+    } 
+看起来更合理。第一种写法简练又不失可读性；而第二种写法有点冗长了。
+ 
+但是，以下的代码会给人完全不一样的感觉：
+ return exponent >=0 ? mantissa * (1 << exponent) : mantissa / (1 << -exponent); 
+就不如以下的if/else写法看起来自然：
+     if (exponent >=0)
+    {
+        return mantissa * (1 << exponent);
+    }
+    else
+    {
+        return mantissa / (1 << -exponent);
+    } 
+关于这个主题，作者给出的建议是：默认情况下都使用if/else， 只在最简单的情况下使用 "condition ？ a ：b; " （即三目运算符）。
+ 
+4、避免使用do/while循环
+ 
+     1） 函数要有“单一入口，单一出口”的观点已经过时了。
+ 
+     2）当然，那种为了避免使用do/while循环而重复一段代码（即while循环体内的代码）的做法是愚蠢至极的。
+ 
+关于这个主题，作者引用了C++的开创者Bjarne Stroustrup的话来总结：“我的经验是，do语句是错误和困惑的来源....， 我倾向于把条件放在‘前面我能看到的地方’。其结果是，我倾向于避免使用do语句。”
+ 
+5、使用卫语句从函数中提前返回——这也是《重构》一书中的一个非常实用的重构手法。
+ 
+     使用保护语句（guard clause）提前返回，可以减少嵌套。
+ 
+6、关于“臭名昭著”的goto
+     if (p == NULL) goto exit;
+
+    // ....
+
+exit:
+    fclose(file1);
+    fclose(file2);
+    // .... 
+   在某些必需的情况下，goto 关键字的这个用法是可以接受的。
+ 
+7、最小化嵌套
+ 
+     “嵌套”好像还有一个专业的解释叫“圈复杂度（）”。作者给出了两个减少嵌套的建议：
+ 
+1）通过提早返回来减少嵌套；
+ 
+2）通过 if(....) continue; 减少循环里的嵌套。一般的讲，continue语句让人很困惑，因为它让读者不能连续地阅读，就像循环中有goto语句一样。但是在循环中每个迭代是相互独立的，因此这里的continue的意思是“跳过该项”。
+ 
+8、理想的状态是什么？
+ 
+      理想的情况是，整个程序的执行路径都很容易理解——从main函数开始，然后脑海中一步步执行程序，一个函数调用另一个函数，直到程序结束。然而在实践中，编程语言和库的结构让代码在“幕后”运行，致使流程会难以理解。
+ 
+第8章 拆分超长的表达式
+ 
+1、用做解释的变量（即引入解释性变量——这是《重构》一书中的一个重构手法）
+ 
+例如：
+     if (line.split(':')[0].trimmed() == "root") 
+如果写成以下方式会更易理解：
+     username = line.split(':')[0].trimmed();
+    if (username == "root") 
+“引入解释性变量”在用迭代器对容器进行遍历时也特别有用， 解释性变量 = it.key(); 
+
+引入解释变量至少有以下三个好处：
+ 
+1）它把巨大的表达式拆成小段；
+ 
+2）它通过用简单的名字描述子表达式来让代码文档化；
+ 
+3）它帮助读者识别代码中的主要概念。
+ 
+2、总结变量
+ 
+即使一个表达式不需要解释（因为一眼就可以看出它的含义），把它装入一个新变量中有时仍然是有用的。我们称之为总结性变量。它的目的是用一个简短且含义明确的名字来代替一大块代码，这个名字更容易管理和思考。例如，
+     if (request.user.id == document.owner_id)
+    {
+        // ....
+    }
+
+    // ....
+
+    if (request.user.id != document.owner_id)
+    {
+        // document is read-only
+    } 
+增加一个总结性变量user_owns_document可以将“该用户是否拥有此文档？”的意思表达得更清楚：
+     const bool user_owns_document = request.user.id == document.owner_id;
+
+    if (user_owns_document)
+    {
+        // ....
+    }
+
+    // ....
+
+    if (!user_owns_document)
+    {
+        // document is read-only
+    } 
+3、使用德摩根定理：
+ 
+1） not (a or b or c)  <=> (not a) and (not b) and (not c)
+ 
+2） not (a and b and c) <=> (not a) or (not b) or (not c)
+ 
+4、正确的使用短路逻辑。
+ 
+5、一个有趣的例子：与复杂的逻辑战斗
+ 
+以下是一个数据结构Range的定义：
+ struct Range
+{
+    int begin;
+    int end;
+
+    // For example, [0, 5) overlaps with [3, 8)
+    bool OverlapsWith(const Range &other) const;
+}; 
+我们看看OverlapsWith的定义：
+ bool Range::OverlapsWith(const Range &other) const
+{
+    return (begin >= other.begin && begin < other.end)
+            || (end > other.begin && end <= other.end)
+            || (begin <= other.begin && end >= other.end);
+} 
+我很遗憾的告诉您，这个版本是经过了好几次修改后才变成这样子的（不过现在这个版本是正确的了，^-^）。下面是一个更优雅也更简单的实现方案：
+ bool Range::OverlapsWith(const Range &other) const
+{
+    if (other.end <= begin) return false; // They end before we begin
+    if (other.begin >= end) return false; // They begin after we end
+
+    return true; // Only possibility left: they overlap
+} 
+如果要给Range定义相等“==”运算符，你会怎样定义？下面是声明：
+ struct Range
+{
+    int begin;
+    int end;
+
+    // For example, [0, 5) overlaps with [3, 8)
+    bool OverlapsWith(const Range &other) const;
+
+    bool operator == (const Range &other) const;
+    bool operator != (const Range &other) const;
+}; 
+实现代码如下：
+ bool Range::operator == (const Range &other) const
+{
+    if (begin != other.begin) return false;
+    if (end != other.end) return false;
+
+    return true;
+}
+
+bool Range::operator != (const Range &other) const
+{
+    return !(other == *this);
+} 
+从上面代码可以看到，所有的if语句内都没有超过两个值，当然这是理想情况，可能不是总能做到这样。面对具体问题需要我们认真思考，有时“反向”考虑问题常常能得到更优雅也更简单的解决方案。
+ 
+6、拆分巨大的语句。
+       作者列举了一个通过去除重复（DRY原则——Don't Repeat Yourself.）来拆分巨大的语句的例子。
+ 7、另一个简化表达式的创意方法——使用宏。
+ 
+这里是一个示例：
+ void AddStats(const Stats &add_from, Stats *add_to)
+{
+#define ADD_FIELD(field) add_to->set_##field(add_from.field() + add_to->field())
+
+    ADD_FIELD(total_memory);
+    ADD_FIELD(free_memory);
+    ADD_FIELD(swap_memory);
+    ADD_FIELD(status_string);
+    ADD_FIELD(num_processes);
+
+#undef ADD_FIELD
+} 
+注意在函数开始位置定义了宏ADD_FIELD，在函数结束位置取消了宏ADD_FIELD，这样就使得这次宏的定义不会对程序的其它部分产生任何副作用。
+ 
+第9章 变量与可读性
+ 
+1、减少变量
+ 
+      估计大家看到这一条建议，马上就会想到是否与上一章的“引入解释变量或总结变量”的建议相矛盾？。是的，变量越多，就越难跟踪它们的动向。我们这里所说的减少变量通常是指“去掉没有价值的临时变量”、“减少中间结果”、“减少控制流变量”等。下面用三个示例来分别说明：
+ 
+1）去掉没有价值的临时变量：
+     now = datetime.datetime.now();
+    root_message.last_view_time = now;  
+这里的now不值得保留，没有了now，代码一样容易理解：
+     root_message.last_view_time = datetime.datetime.now();  
+我再补一个例子：
+     std::string templateName = getWellSymbolTemplateName();
+    updateWellPostionLayer(templateName); 
+对于这里的临时变量templateName比较有争议，有人认为它没有价值，因为getWellSymbolTemplateName()这个函数名已经足够清楚的表达了代码的含义。但是也有的人认为这样的一个临时变量带来的好处大于它的代价，它清楚的表明了getWellSymbolTemplateName()的返回值的含义，且为std::string类型，而通过这个名字传递给函数updateWellPostionLayer()， 持这种观点的人认为以下代码读起来比较突兀：
+ updateWellPostionLayer(getWellSymbolTemplateName()); 
+大家可以在实践中根据实际情况选择适合自己易于理解的方式，并与团队保持一致。
+ 
+2）减少中间结果：
+ 
+3）减少控制流变量：
+ 
+2、缩小变量的作用域
+ 
+关键思想：让你的变量对尽量少的代码可见。
+ 
+1）一个关于“类成员变量”的例子：
+ class LargeClass
+{
+    std::string m_str;
+
+    void methodA()
+    {
+        m_str = "lcz";
+        methodB();
+    }
+
+    void methodB()
+    {
+        // Uses m_str;
+    }
+
+    // Lots of other methods that don't use m_str ....
+}; 
+从某种意义上讲，类的成员变量就像是在该类的内部世界中的“小型全局变量”。尤其对大的类来讲，很难跟踪所有的成员变量以及哪个方法修改了哪个变量。因此，这样的“小型全局变量”越少越好。对于上面的例子，我们可以将 m_str  “降格”为局部变量：
+ class LargeClass
+{
+    void methodA()
+    {
+        std::string str; = "lcz";
+        methodB(str);
+    }
+
+    void methodB(const std::string &str)
+    {
+        // Uses str;
+    }
+
+    // Now other methods can't see str
+}; 
+这样，我们把str作为参数传给了methodB(conststd::string&str); 这可能与“函数应该要尽可能少的参数”原则相悖。相对于参数的数目带来的麻烦相比，这里的“小型全局变量”带来的麻烦更大。
+ 
+2）另一个对类的成员访问进行约束的方法是“尽量使方法变成静态的”。静态方法是让读者知道“这几行代码与那些变量无关”的好办法。而且也给Move Method重构带来了极大方便。
+ 
+3）还有一种方法是：“把大的类拆分成小一些的类”。这种方法只有在这些小一些的类事实上是相互独立时才能发挥作用。如果只是创建两个类来相互访问对方的成员，那么我们什么目的都没有达到。把大文件拆分成小文件，或者把大函数拆分成小函数也是同样的道理。这么做的一个重要动机就是“数据（即变量）的分离”。
+ 
+4）C++中if语句的作用域
+     PaymentInfo *info = database.ReadPaymentInfo();
+    if (info)
+    {
+        // ....
+    } 
+以上例子没有将info限定在最小的作用域范围内。下面是改成后的结果，把info限定在if语句块内：
+     if (PaymentInfo *info = database.ReadPaymentInfo()) // 注意：不会有编译警告！
+    {
+        // ....
+    }     PaymentInfo *info;
+    if (info = database.ReadPaymentInfo())
+    {// 编译警告：warning: suggest parentheses around assignment used as truth value
+        // ....
+    } 
+5）把定义向下移（即尽可能的推迟变量的声明/定义）
+ 
+     这也是缩小变量作用域的方法之一。
+ 
+3、只写一次的变量更好
+ 
+1）基于这个原因，我们鼓励：如果可能，在C++中默认使用const定义变量。（Java中使用final）。
+ 
+2）特别注意：切勿让一个变量担当多种用途（职责）。
+ 
+4、最后的例子：
+ 
+1）通过从函数中提前返回，消除了中间变量；
+ 
+2）通过将while() {} 循环改为for () {} 循环，我们让循环变量i的定义和递增看起来更自然明了；
+ 
+3）在循环内取容器中的元素赋值给临时变量elem，这就使得elem变成了一个“只写一次的变量”。
+ 
+更多 
+
+•上一篇：《编写可读代码的艺术》读书笔记（一）
+•下一篇：《编写可读代码的艺术》读书笔记（三）
+ 
+
+
+查看评论
+ 
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+核心技术类目
+
+全部主题数据挖掘SOAUML开放平台HTML5开源移动开发iOSAndroid移动游戏Windows PhoneJavaScriptCSS游戏引擎云计算大数据HadoopOpenStack云平台PHPMongoDBJSONXcodeNode.js前端开发神经网络安全Java.NETMySQLtextviewBigTableweb框架SQLRedisCouchDBLinux可穿戴计算NoSQLRubyAPIGPLXAMLASP.NET前端开发虚拟化框架机器学习数据中心IE10敏捷集群
+
+
+
+
+ 
+个人资料 
+
+e5Max 
+
+
+
+
+◦访问：15894次
+◦积分：922分
+◦排名：第13611名
+ ◦原创：78篇
+◦转载：4篇
+◦译文：0篇
+◦评论：12条
+ 
+文章搜索
+
+ 
+文章分类 • C/C++(10) 
+• Qt(6) 
+• Qwt(3) 
+• Java(2) 
+• OO&DP(1) 
+• UnitTest(0) 
+• 项目实战(6) 
+• 码农修养(7) 
+• 读书笔记(36) 
+• 励志文章(0) 
+• 源码解读(21) 
+
+文章存档 
+•2013年10月(5)
+•2013年09月(11)
+•2013年08月(10)
+•2013年07月(14)
+•2013年05月(1)
+•2013年04月(25)
+•2013年03月(2)
+•2013年02月(3)
+•2013年01月(5)
+•2012年12月(6)
+ 
+阅读排行 • Qwt源码解读之QwtPlot类(1157) 
+• 在QtCreator中使用Qwt遇到的几个问题(786) 
+• Qwt源码解读之QwtPlotItem类（二）(689) 
+• Qwt源码解读之标尺相关类(680) 
+• Qwt源码解读之QwtPlotItem类（一）(524) 
+• Qwt源码解读之拾取操作类（二）(520) 
+• Qwt源码解读之开篇记(498) 
+• Qwt源码解读之缩放操作类(498) 
+• Qwt源码解读之拾取操作类（一）(461) 
+• Qwt源码解读之平移操作类(446) 
+
+评论排行 • Qwt源码解读之拾取操作类（二）(4) 
+• Qwt源码解读之平移操作类(2) 
+• 我的读书计划（持续更新中......）(2) 
+• Qwt源码解读之QwtPlotItem类（一）(1) 
+• Qwt源码解读之QwtColorMap颜色类(1) 
+• Qwt源码解读之开篇记(1) 
+• 在QtCreator中使用Qwt遇到的几个问题(1) 
+• 在Qt中如何使用QtDesigner创建的UI文件（一）(0) 
+• 《C++编程规范》读书笔记（上）(0) 
+• 《重构》读书笔记（十四）——第十五章 总结(0) 
+
+推荐文章 
+最新评论 •我的读书计划（持续更新中......）
+e5Max: @FansUnion:感谢鼓励和支持！有空常来讨论。 
+
+•Qwt源码解读之QwtPlotItem类（一）
+AlfaCuton: 不知道楼主有没有在画曲线的面板记载图片啊。 比如画一个曲线，然后曲线的一头是一张图片。这个图片如何加... 
+
+•我的读书计划（持续更新中......）
+FansUnion: 很多书，我也读过 (*^__^*) 
+
+•Qwt源码解读之平移操作类
+e5Max: 很抱歉，还真没遇到过这样的需求。QwtPanner 的文档中明确的说明了：在（抓取）平移的过程中，不... 
+
+•Qwt源码解读之平移操作类
+czyt1988: 怎么样才能使得拖动的时候显示更新，而不是等鼠标松开才刷新？ 
+
+•在QtCreator中使用Qwt遇到的几个问题
+u011303910: 好用! 
+
+•Qwt源码解读之QwtColorMap颜色类
+tmpofdown: 分析的相当好。 
+
+•Qwt源码解读之拾取操作类（二）
+e5Max: @peng_ma1990:不好意思，最近一直没登陆CSDN了，没看到您的留言。不知道您的问题解决了没... 
+
+•Qwt源码解读之开篇记
+mynamelm: 支持 
+
+•Qwt源码解读之拾取操作类（二）
+xylovefq: @peng_ma1990:请问大哥，您那个问题解决了吗？每次我更新数据时，右键一点坐标就变到初始化状... 
+
+
+
+
+
+

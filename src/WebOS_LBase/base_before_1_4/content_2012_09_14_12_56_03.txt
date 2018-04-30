@@ -1,0 +1,44 @@
+//----------------------------------------//
+//--------------液晶操作------------------//
+//----------------------------------------//
+void busycheck()//忙检测  
+{
+ uchar temp;
+ rs=0;
+ rw=1;
+ busy=1;
+ do
+ {
+  e=1;
+  temp=busy&1;
+  e=0;
+ }
+ while(temp); 
+}
+void wr_com(uint com)//写指令  
+{
+ busycheck();
+ P1=com;
+ rs=0;
+ rw=0;
+ e=1;
+ e=0;
+}
+void wr_dat(uint dat)//写数据  
+{
+ busycheck();
+ P1=dat;
+ rs=1;
+ rw=0;
+ e=1;
+ e=0;
+}
+void init()//初始化?
+{
+ wr_com(0x0B);
+ wr_com(0x0C);
+ wr_com(0x30);
+ wr_com(0x02);
+ wr_com(0x01);
+}
+

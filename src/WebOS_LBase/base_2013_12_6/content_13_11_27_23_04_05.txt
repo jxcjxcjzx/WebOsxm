@@ -1,0 +1,284 @@
+
+
+
+
+仲权的专栏
+
+C# .net web前端
+
+
+ 
+
+
+•目录视图
+•摘要视图
+•订阅
+ 
+
+
+
+亲，“社区之星”已经一周岁了！        MDCC2013中国移动开发者大会社区赠票申请      Tag功能介绍—我们为什么打Tag      订阅CSDN社区周刊，及时了解社区精华内容 
+
+
+
+web前端常用操作集(涵盖JS、HTML、CSS) 
+
+分类： JS+HTML+CSS2013-11-06 10:33297人阅读评论(3)收藏举报
+ 
+web前端常用操作集涵盖JSHTMLCS
+
+取消 ul li 前面的图标 1
+ 清空Value值 1
+ 设置Value值 1
+ 清空标签中间值 1
+ 设置标签中间值 1
+ 区分html()、text()、val()。 1
+ 设置标签为可编辑状态 1
+ 设置标签为不可编辑状态 1
+ 两个Ajax，一个A，一个B，B要在A执行完毕之后执行 2
+ 时间间隔，只执行一次，在指定的毫秒数后调用函数或计算表达式 2
+ 时间间隔，执行多次，每隔指定毫秒数后调用函数或计算表达式 2
+ jQuery全选/全不选/反选 2
+ Select-Optin项 3
+ 让DIV一直固定在屏幕的某个位置 4
+ 
+取消 ul li 前面的图标 
+ul
+    {
+        list-style-type:none;
+    } 清空Value值
+ $("#city").val(""); 设置Value值
+ $("#city").val("北京"); 清空标签中间值
+ $("#ML1").html(""); 设置标签中间值
+ $("#ML1").html("北京"); 当对某个标签再次加载值时，常要先清除原有值
+ 区分html()、text()、val()。
+ <input type="aaa" value="bbb">ccc</input>
+text()输出标签中间的内容：1234。
+val()输出value属性的值：bbb。
+html()输出整段html：<input type="aaa" value="bbb">ccc</input>。
+val()的写法针对jQuery 设置标签为可编辑状态
+ $("input").removeAttr("readonly"); //所有input标签可编辑
+$("textarea").removeAttr("readonly"); //所有textarea(部门简介)标签可编辑
+$("input:button").removeAttr("disabled"); //所有button(左右框移动)标签不可编辑 设置标签为不可编辑状态
+ $("input").attr("readonly", "readonly"); //所有input标签不可编辑
+$("textarea").attr("readonly", "readonly"); //所有textarea(部门简介)标签不可编辑
+$("input:button").attr("disabled", "disabled"); //所有button(左右框移动)标签不可编辑 两个Ajax，一个A，一个B，B要在A执行完毕之后执行
+ 由于Ajax是异步加载，各个Ajax几乎同时执行互不干扰，但有时我们要的效果是一个Ajax的请求要从另一个Ajax的返回值中取值，此时，就会发生这种情况，解决方案有三个：
+ 1、 在名为A的Ajax的CallBack中写名为B的Ajax请求；
+ 2、 写一个时间间隔函数，监听A的执行，当A执行完毕之后，调用B；
+ 3、 将Ajax的async设置为false，但这样又通常要求全部都设置为false。
+ 
+时间延迟，只执行一次，在指定的毫秒数后调用函数或计算表达式
+ Var st o= setTimeout(到点要执行的函数或表达式，延迟的毫秒单位时间);
+window. clearTimeout(sto)使其失效，取消周期执行 时间间隔，执行多次，每隔指定毫秒数后调用函数或计算表达式
+ varstv= setInterval ("alert('间隔3000ms弹出一次!')",3000);
+window.clearInterval(stv)使其失效，取消周期执行 jQuery全选/全不选/反选
+ <html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>全选，不全选，反选</title>
+<script src="jquery-1.7.1.min.js" type="text/javascript"></script>
+<script language="javascript" type="text/javascript">
+$(function () {
+$("#selectAll").click(function () {//全选 
+$("#ckList :checkbox").attr("checked", true);
+});
+
+$("#unSelect").click(function () {//全不选 
+$("# ckList:checkbox").attr("checked", false);
+});
+
+$("#reverse").click(function () {//反选 
+$("# ckList:checkbox").each(function () {
+$(this).attr("checked", !$(this).attr("checked"));
+});
+});
+}); 
+</script>
+</head>
+<body>
+<div id=" ckList ">
+<input type="checkbox" value="值1" />值1<br />
+<input type="checkbox" value="值2" />值2<br />
+<input type="checkbox" value="值3" />值3<br />
+<input type="checkbox" value="值4" />值4<br />
+</div>
+<input type="button" value="全选" id="selectAll" />
+<input type="button" value="全不选" id="unSelectAll" />
+<input type="button" value="反选" id="reverse" />
+</body>
+</html>
+
+Select-Optin项
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+<title></title>
+<script src="jquery-1.7.1.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+//所有
+function All() {
+var tt = $("#st")[0];
+for (var i = 0; i < tt.length; i++) {
+alert(tt[i].text);
+}
+}
+//当前所选
+function Aselected() {
+var tt = $("#st")[0];
+for (var i = 0; i < tt.length; i++) {
+if(tt[i].selected) {
+alert(tt[i].text);
+alert(tt[i].value);
+}
+}
+}
+</script>
+</head>
+<body>
+<form id="form1" runat="server">
+<div>
+<select id = "st" multiple="multiple">
+<option value="1">aaaaa</option>
+<option value="2">bbbbb</option>
+<option value="3">ccccc</option>
+<option value="4">ddddd</option>
+</select>
+<input type="text" id = "tt"/>
+<input type="button" onclick="All();" value="所有"/>
+<input type="button" onclick="Aselected();" value="当前所选"/>
+</div>
+</form>
+</body>
+</html> 让DIV一直固定在屏幕的某个位置
+ <html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+<title></title>
+<style type="text/css">
+#low_right
+{
+position: fixed;
+width: 90px;
+height: 90px;
+background: #eee;
+bottom: 40px;
+right: 20px;
+background-color: #DCFCE9;
+border: 8px double #06F867;
+text-align: center;
+padding: 10px;
+margin: 10px;
+}
+</style>
+</head>
+<body>
+<script type="text/javascript">
+for (var i = 0; i < 100; i++) {
+document.write((i + 1) + "<br />");
+}
+</script>
+<div id="low_right">
+右下角
+</div>
+</body>
+</html> 
+
+
+
+
+更多 
+
+•上一篇：'JSON' is undefined
+ 
+顶1踩0 
+
+
+查看评论
+ 
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+核心技术类目
+
+全部主题数据挖掘SOAUML开放平台HTML5开源移动开发iOSAndroid移动游戏Windows PhoneJavaScriptCSS游戏引擎云计算大数据HadoopOpenStack云平台PHPMongoDBJSONXcodeNode.js前端开发神经网络安全Java.NETMySQLtextviewBigTableweb框架SQLRedisCouchDBLinux可穿戴计算NoSQLRubyAPIGPLXAMLASP.NET前端开发虚拟化框架机器学习数据中心IE10敏捷集群
+
+ 
+
+
+个人资料 
+
+z1119815468 
+
+
+
+
+◦访问：9077次
+◦积分：829分
+◦排名：第16580名
+ ◦原创：77篇
+◦转载：6篇
+◦译文：0篇
+◦评论：3条
+ 
+文章搜索
+
+ 
+文章分类 • asp.net(21) 
+• C#(20) 
+• Asp.net MVC(2) 
+• msSql数据库(8) 
+• Ajax+jQuery(4) 
+• 电脑操作(3) 
+• PS图像处理(0) 
+• JS+HTML+CSS(12) 
+• office办公(2) 
+• 网络(2) 
+• 重庆吹牛(0) 
+• 错误集锦(9) 
+• 名字牛B的技术(2) 
+• 项目小模块(1) 
+• 面向服务编程WCF\WebService(0) 
+
+文章存档 
+•2013年11月(5)
+•2013年10月(15)
+•2013年09月(9)
+•2013年08月(13)
+•2013年07月(5)
+•2013年06月(7)
+•2013年05月(6)
+•2013年04月(6)
+•2013年01月(1)
+•2012年12月(2)
+•2012年11月(14)
+ 
+阅读排行 • Win7局域网内远程桌面连接(529) 
+• web前端常用操作集(涵盖JS、HTML、CSS)(291) 
+• 窗体接收拖入数据与拖动窗体内容移动(259) 
+• Response.Write结合alert的利弊及解决方案(216) 
+• MsSQL获取所有表名及字段名(206) 
+• 阅读器关闭时尝试调用 FieldCount无效[解决方案](205) 
+• 在.net中嵌入PDF(195) 
+• [.NET知识点].net中的Cookie应用(193) 
+• 三层中的工厂接口架构分析(183) 
+• C# GZipStream压缩与解压缩（针对文件）(176) 
+
+评论排行 • web前端常用操作集(涵盖JS、HTML、CSS)(3) 
+• 在网页中获取天气预报信息(0) 
+• .NET URL重写(0) 
+• 删除Apache_pn[解决方案](0) 
+• DAL 中ConfigurationManager无效[解决方案](0) 
+• .NET 平台下的WebService(0) 
+• .NET 平台下的Log4net(0) 
+• sqlserver 步步走(一)(Ms SQLServer)(0) 
+• Memcache安装(0) 
+• .net Session原理与在登录中的应用(0) 
+
+推荐文章 
+
+

@@ -1,0 +1,357 @@
+
+
+
+人生之旅 
+copy Bookmark http://www.linuxdiyf.com/blog/?87680
+ 
+日志
+图片
+文件
+书签
+好友
+我的论坛
+ 留言本
+ 
+
+
+空间首页
+ 空间管理
+ Linux博客/红联Linux博客
+ 站点论坛
+ 添加我的日志
+ 
+人生难免会有坎坷，累的时候停下休息一下，再继续前进，为明日之崛起做今日之奋斗，FIGHTING!
+ 
+
+学习Linux多进程编程(一)
+ 
+2007-12-10 23:08:21 
+
+
+一、进程的定义：程序执行和资源管理的最小单位。
+ 
+二、进程控制：
+ 
+（1）进程标识： 
+
+
+
+进程标识
+ 
+ 子进程号
+ 
+ 父进程号
+
+ 
+
+ 头文件
+ 
+ #include<unistd.h>
+ 
+ #include<unistd.h>
+
+ 
+
+ 函数功能
+ 
+ 取得当前进程的进程号
+ 
+ 取得当前进程的父进程号
+
+ 
+
+ 函数原型
+ 
+ Pid_t getpid(void)
+ 
+Pid_t getppid(void) 
+
+ 
+
+ 函数返回值
+ 
+ 成功返回进程的进程标识符
+ 
+  成功返回父进程的进程标识符
+
+
+ 
+注：Pid_t其实是一个typedef类型，相当于unsigned int.
+ 
+例：
+ 
+ #include<stdio.h>
+ 
+#include<unistd.h>
+ 
+int main()
+ 
+{
+ 
+   printf("系统分配的进程号是：%d\n",getpid());
+ 
+   printf("系统分配的父进程号是：%d\n",getppid());
+ 
+   return 0;
+ 
+}
+ 
+ （2）进程的创建：
+ 
+    1)exec族函数：
+ 
+
+
+
+
+ 头
+ 
+ #include<unistd.h>
+
+ 
+
+原型
+ 
+
+int execl(const chat *path,const char *args,...)
+ 
+int execv(const char *path,char const *argv[])
+ 
+int execle(const cahr *path,const char *arg,...,char *const envp[])
+ 
+int execve(const char *path,char *const argv[],char *const envp[])
+ 
+int execlp(const char *file,char *arg,...)
+ 
+int execvp(const cahr *file,char *const argv[])
+ 
+
+
+返回
+ 
+ 返回-1表示出错
+
+
+ 
+由于比较多，在此只举例execve函数：
+ 
+#include<stdio.h>
+ 
+#include<unistd>
+ 
+int main()
+ 
+{ 
+
+   char *args[]={"/usr/bin/vim",NULL};
+ 
+   printf("系统分配的进程号是：%d\n",getpid());
+ 
+   if(execve("/usr/bin/vim",args,NULL)<0)
+ 
+     perror("创建进程出错！");
+ 
+    return 0;
+ 
+}
+ 
+注:在用execve函数创建新进程的后，会以新的程序取代原来的进程，然后系统会从新的进程运行，但是新的进程的PID值会与原来进程的PID值相同.
+ 
+2)system()函数
+ 
+
+
+
+
+ 头文件
+ 
+ #include<stdlib.h>
+
+ 
+
+ 功能
+ 
+ 在进程中开始另一个进程
+
+ 
+
+ 原型
+ 
+ int system(const char *string)
+
+ 
+
+ 传入值
+ 
+ 系统变量
+
+ 
+
+ 返回值
+ 
+
+ 成功则返回执行shell命令后的返回值，调用/bin/sh数百返回127，其他
+ 
+失败返回－1，三叔string为空返回非零值
+ 
+
+
+例：
+ 
+#include<stdio.h>
+#include<stdlib.h>
+int main()
+{
+ int newret;
+ printf("系统分配的进程号是:%d\n",getpid());
+ newret=system("ping group.google.com/group/linuxerfamily");
+ return 0;
+}
+ 
+注：执行system函数是，会调用fork,execve,waitpid函数，其中任意一个调用失败将导致system函数调用失败。
+ 
+3)fork函数：
+ 
+
+
+
+
+ 头文件
+ 
+ #include<unistd.h>
+
+ 
+
+ 功能
+ 
+ 建立一个新进程（复制进程）
+
+ 
+
+ 原型
+ 
+pid_t fork(void); 
+
+ 
+
+ 返回值
+ 
+
+ 执行成功则在子进程中返回0，在父进程中返回新建进程的PID,
+ 
+ 失败返回－1
+ 
+
+
+例：
+ 
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#inlcude<sys/types.h>
+int main()
+{
+ pid_t result;
+ result=fork();
+ int newret;
+ if(result==-1)
+ {
+  perror("创建进程失败！");
+  exit(1);
+ }
+ else if(result==0)
+ {
+  printf("返回值是:%d,说明这是子进程!\n此进程的进程号是:%d\n此进程的父进程号是:%    d\n",result,getpid(),getppid());
+  newret=system("ls -l");
+ }
+ else
+ {
+  sleep(10);
+  printf("返回值是:%d,说明这是父进程!\n此进程的进程号是:%d,此进程的父进程号是:% d\n",result,getpid(),getppid());
+  newret=system("ping "group.google.com/group/linuxerfamily");
+ }
+ return 0;
+}
+ 
+注：使用fork要小心，特别是当把它放在if else或循环里，如：
+ 
+int main()
+ 
+{
+ 
+    for(;;) fork();
+ 
+}
+ 
+可能造成系统死机，因为由fork创建的进程如果比父进程结束的晚，就有可能形成僵尸进程，占用系统资源又没有用，造成资源殆尽。
+
+ 
+
+
+
+全部脚印 不留脚印 留下脚印: 
+
+70979
+
+ 
+lizewen
+
+ 
+32861
+
+ 
+99455
+
+ 
+残阳夜舞
+
+ 
+gxf
+
+ 
+87497
+
+ 
+推荐 收藏 导入论坛 等级(0) 编辑 管理 查看(1452) 评论(1) 评分(0/0) 
+
+TAG: Linux 
+
+删除 fdsfd发布于2012-11-19 10:29:05 Flexographic Printing Machine==》http://www.xinxinjx.com/en/readpro.asp?id=196
+ 柔性凸版印刷机==》http://www.xinxinjx.com
+ 柔性凸版印刷机==》http://www.xinxinjx.com/cn
+ We adopt advanced technologies from home and abroad and strict internal quality management system to offer high quality 
+
+products and good after-sales services to customers. 
+无纺布印刷机==》http://www.023jx.cn/about.html
+ 柔印机==》http://wwww.023jx.cn 
+不干胶模切机==》http://www.023jx.cn/diecutting.html
+ 分切机==》http://www.023jx.cn/slittng.html 
+<a href="http://wwww.023jx.cn">柔印机</a>
+ Flexographic Printing Machine==》http://www.xinxinjx.com/en/readpro.asp?id=196 
+查看全部评论
+ 
+
+
+我来说两句 
+评分 -5 -3 -1 - +1 +3 +5 
+
+内容 
+
+昵称 
+
+验证 
+
+提交评论 
+
+
+红联Linux门户　红联Linux论坛  
+
+清空Cookie - 联系我们 - Linux博客/红联Linux博客 - 申请自己的空间
+
+Powered by X-Space2.0Final© 2001-2006 Comsenz Inc.
+
+ 
+Open Toolbar
+ 
+
+

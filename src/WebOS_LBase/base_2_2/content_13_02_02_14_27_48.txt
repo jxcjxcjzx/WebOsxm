@@ -1,0 +1,208 @@
+
+首页资讯精华论坛问答博客专栏群组更多 ▼
+
+ 
+您还未登录 !登录注册
+
+
+
+
+勤能补拙
+
+
+博客
+微博
+相册
+收藏
+留言
+关于我
+
+
+
+
+.
+
+
+
+
+一个tomcat部署多个应用实例总结
+博客分类： Tomcat
+ 
+tomcatlinuxjenkins .
+
+     项目组有好几个项目需要运行，之前项目少，一个tomcat对应一个项目还能应付，但现在项目多了，要是再一个tomcat对应一个项目的话，一方面看起来很业余，一方面也加大服务器的维护难度。所以现在需要对tomcat进行整理，用一个tomcat来启动多个应用实例，每个应用相互独立，互不干扰。
+ 准备工作：下载的apache-tomcat-7.0.26.zip,上传到linux服务器下/opt/apps/目录下。 
+
+一、操作步骤 
+1、解压apache-tomcat-7.0.26.zip。 
+2、在apache-tomcat-7.0.26新建一个应用实例目录，如test,在test目录下创建三个目录：conf、temp和webapps. 
+3、将原tomcat目录下的conf的server.xml、tomcat-user.xml和web.xml拷贝到test/conf/，将原tomcat目录下的webapps/manager拷贝到test/webapps.
+ 4、修改test/conf/server.xml.修改的地方如下： 
+
+<Server port="${tomcat.server.port}" shutdown="SHUTDOWN">   
+    
+<Connector port="${tomcat.http.port}" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443" />
+ 
+<!-- 
+<Connector port="8009" protocol="AJP/1.3" redirectPort="8443" /> 
+--> 
+
+<Engine name="Catalina" defaultHost="localhost" jvmRoute="${tomcat.instance.name}">
+ 
+<Valve className="org.apache.catalina.valves.AccessLogValve" directory="/opt/app/logs/${tomcat.instance.name}" prefix="localhost_access_log." suffix=".txt" pattern="%h %{x-forwarded-for}i %l %u %t "%r" %s %b" />
+ 5、在/opt/apps/下新建logs/test目录 
+6、在/opt/apps/下新建bin目录： 
+创建test-start.sh文件，文件内容如下： 
+#!/bin/bash 
+export LD_LIBRARY_PATH="/opt/apps/apache-tomcat-7.0.26/bin/native" 
+#export JAVA_HOME="/opt/apps/jdk1.7.0_05" 
+
+export CATALINA_OPTS="-Dtomcat.server.port=8005 -Dtomcat.http.port=8010 -Dtomcat.instance.name=test -Xms1024m -Xmx1024m -XX:PermSize=128m -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError"
+ export CATALINA_OUT="/opt/apps/logs/test/catalina.$(date +'%Y-%m-%d').out" 
+export CATALINA_PID="/opt/apps/apache-tomcat-7.0.26/tomcat-test.pid" 
+export CATALINA_BASE="/opt/apps/apache-tomcat-7.0.26/test" 
+
+rm -rf /opt/apps/apache-tomcat-7.0.26/test/work 
+/opt/apps/apache-tomcat-7.0.26/bin/catalina.sh start 
+
+exit $? 
+
+创建test-stop.sh文件,文件内容如下： 
+#!/bin/bash 
+export JAVA_HOME="/opt/apps/jdk1.7.0_05" 
+export JAVA_OPTS="-Dtomcat.server.port=8005" 
+export CATALINA_PID="/opt/apps/apache-tomcat-7.0.26/tomcat-test.pid" 
+/opt/apps/apache-tomcat-7.0.26/bin/catalina.sh stop 0 -force 
+
+7、将应用拷贝到apache-tomcat-7.0.26/test/webapps/，通过test-start.sh来启动应用实例，test-stop.sh来停止应用实例。
+ 8、如要再创建一个实例，重复进得2~7操作。 
+
+二、遇到的问题： 
+1、Another unnamed CacheManager already exists in the same VM. Please provide unique names for each CacheManager in the config or do one of following:
+    1. Use one of the CacheManager.create() static factory methods to reuse same CacheManager with same name or create one if necessary
+    2. Shutdown the earlier cacheManager before creating new one with same name.
+ 解决方案：copy apache-tomcat-7.0.26/conf/web.xml到apache-tomcat-7.0.26/test/conf/ 
+
+2、利用jenkins自动部署时，报错：Caused by: java.io.IOException: Server returned HTTP response code: 401 for URL: http://localhost:8010/manager/text/list
+ 解决方案：copy apache-tomcat-7.0.26/webapps/manager到apache-tomcat-7.0.26/test/webapps/,同时需要在test/conf/tomcat-user.xml加上用户配置。 
+
+
+
+0 
+顶
+
+0 
+踩.
+
+分享到： 
+.
+
+mvn compile时报错：javac:invalid target ... | SVN Commit failled - Access is denied : ...
+
+2012-09-21 16:56
+浏览 850
+评论(0)
+分类:行业应用
+相关推荐
+
+
+评论
+
+
+发表评论
+
+ 您还没有登录,请您登录后再发表评论 
+
+
+
+
+
+
+xafc2370
+ 
+浏览: 29916 次
+性别: 
+来自: 厦门
+
+
+
+最近访客 更多访客>>
+
+
+
+
+AAries
+
+
+
+
+huangjian2012
+
+
+
+
+garden888
+
+
+
+
+tianlan91
+.
+
+文章分类
+■全部博客 (69)
+■DataBase (13)
+■Java design pattern (2)
+■Java (8)
+■JavaScript (1)
+■Data structure (2)
+■Internet (2)
+■SVN (11)
+■Html (1)
+■Web Server (2)
+■Ldap (2)
+■Linux (9)
+■Lucene (1)
+■WebService (1)
+■JVM (2)
+■JQuery (1)
+■Compile (3)
+■CruiseControl (1)
+■Eclipse (1)
+■Tomcat (1)
+■CSS (1)
+■Others (4)
+
+
+社区版块
+■我的资讯 (0)
+■我的论坛 (6) 
+■我的问答 (0)
+
+
+存档分类
+■2012-11 (1)
+■2012-10 (4)
+■2012-09 (3)
+■更多存档...
+
+
+最新评论
+xafc2370： 董状状 写道恢复的数据为什么查看时候，提示没主键呢，只能查看不 ...
+Postgresql数据库数据简单的导入导出
+董状状： 恢复的数据为什么查看时候，提示没主键呢，只能查看不能修改提示E ...
+Postgresql数据库数据简单的导入导出
+qq373752247： 我用了Properties properties = Syst ...
+Jira+SVN整合开发整理
+daidalei321： 我在config.xml配置关闭和启动tomcat，怎么不执行 ...
+CruiseControl+SVN+Maven+Tomcat6持续集成搭建总结
+xafc2370： daidalei321 写道您好我想请教一下与Tomcat集成 ...
+CruiseControl+SVN+Maven+Tomcat6持续集成搭建总结
+
+.
+
+
+--------------------------------------------------------------------------------
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ] 
+.

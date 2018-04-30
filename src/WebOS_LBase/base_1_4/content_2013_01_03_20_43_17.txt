@@ -1,0 +1,414 @@
+分享到QQ空间新浪微博百度搜藏人人网腾讯微博开心网腾讯朋友百度空间豆瓣网搜狐微博百度新首页QQ收藏和讯微博我的淘宝百度贴吧更多...百度分享
+首页我的主页相册广场消息 私信(1) 模板 设置 退出 关注此空间随风飘雪
+2011-12-27 14:58 linux音频设备驱动 一在Linux中，先后出现了音频设备的两种框架OSS和ALSA，本节将在介绍数字音频设备及音频设备硬件接口的基础上，展现OSS和ALSA驱动的结构。
+17.1～17.2节讲解了音频设备及PCM、IIS和AC97硬件接口。
+17.3节阐述了Linux OSS音频设备驱动的组成、mixer接口、dsp接口及用户空间编程方法。
+17.4节阐述了Linux ALSA音频设备驱动的组成、card和组件管理、PCM设备、control接口、AC97 API及用户空间编程方法。
+17.5节以S3C2410通过IIS接口外接UDA1341编解码器的实例讲解了OSS驱动。
+17.6节以PXA255通过AC97接口外接AC97 编解码器的实例讲解了ALSA驱动。
+17.1数字音频设备
+目前，手机、PDA、MP3等许多嵌入式设备中包含了数字音频设备，一个典型的数字音频系统的电路组成如图17.1所示。图17.1中的嵌入式微控制器 /DSP中集成了PCM、IIS或AC97音频接口，通过这些接口连接外部的音频编解码器即可实现声音的AD和DA转换，图中的功放完成模拟信号的放大功能。
+
+图17.1 典型的数字音频系统电路
+音频编解码器是数字音频系统的核心，衡量它的指标主要有：
+• 采样频率
+采样的过程就是将通常的模拟音频信号的电信号转换成二进制码0和1的过程，这些0和1便构成了数字音频文件。如图17.2中的正弦曲线代表原始音频曲线，方格代表采样后得到的结果，二者越吻合说明采样结果越好。
+采样频率是每秒钟的采样次数，我们常说的 44.1kHz 采样频率就是每秒钟采样44100 次。理论上采样频率越高，转换精度越高，目前主流的采样频率是48kHz。
+• 量化精度
+量化精度是指对采样数据分析的精度，比如24bit量化精度就是是将标准电平信号按照2的24次方进行分析，也就是说将图17.2中的纵坐标等分为224等分。量化精度越高，声音就越逼真。
+
+图17.2 数字音频采样
+17.2音频设备硬件接口
+17.2.1 PCM接口
+针对不同的数字音频子系统，出现了几种微处理器或DSP与音频器件间用于数字转换的接口。
+最简单的音频接口是PCM（脉冲编码调制）接口，该接口由时钟脉冲（BCLK）、帧同步信号（FS）及接收数据（DR）和发送数据（DX）组成。在FS信号的上升沿，数据传输从MSB（Most Significant Bit）字开始，FS频率等于采样率。FS信号之后开始数据字的传输，单个的数据位按顺序进行传输，1个时钟周期传输1个数据字。发送MSB时，信号的等级首先降到最低，以避免在不同终端的接口使用不同的数据方案时造成MSB的丢失。
+PCM接口很容易实现，原则上能够支持任何数据方案和任何采样率，但需要每个音频通道获得一个独立的数据队列。
+17.2.2 IIS接口
+IIS 接口（Inter-IC Sound）在20世纪80年代首先被飞利浦用于消费音频，并在一个称为LRCLK（Left/Right CLOCK）的信号机制中经过多路转换，将两路音频信号变成单一的数据队列。当LRCLK为高时，左声道数据被传输；LRCLK为低时，右声道数据被传输。与PCM相比，IIS更适合于立体声系统。对于多通道系统，在同样的BCLK和LRCLK条件下，并行执行几个数据队列也是可能的。
+17.2.3 AC97接口
+AC'97（Audio Codec 1997）是以Intel为首的五个PC厂商Intel、Creative Labs、NS、Analog Device与Yamaha共同提出的规格标准。与PCM和IIS不同，AC'97不只是一种数据格式，用于音频编码的内部架构规格，它还具有控制功能。 AC'97采用AC-Link与外部的编解码器相连，AC-Link接口包括位时钟（BITCLK）、同步信号校正（SYNC）和从编码到处理器及从处理器中解码（SDATDIN与SDATAOUT）的数据队列。AC'97数据帧以SYNC脉冲开始，包括12个20位时间段（时间段为标准中定义的不同的目的服务）及16位“tag”段，共计256个数据序列。例如，时间段“1”和“2”用于访问编码的控制寄存器，而时间段“3”和“4”分别负载左、右两个音频通道。“tag”段表示其他段中哪一个包含有效数据。把帧分成时间段使传输控制信号和音频数据仅通过4根线到达9个音频通道或转换成其他数据流成为可能。与具有分离控制接口的IIS方案相比，AC'97明显减少了整体管脚数。一般来说，AC'97 编解码器采用TQFP48封装，如图17.3所示。
+
+图17.3 AC97 Codec芯片
+PCM、IIS和AC97各有其优点和应用范围，例如在CD、MD、MP3随身听多采用IIS接口，移动电话会采用PCM接口，具有音频功能的PDA则多使用和PC一样的AC'97编码格式。
+17.3 Linux OSS音频设备驱动
+17.3.1 OSS驱动的组成
+OSS标准中有2个最基本的音频设备：mixer（混音器）和DSP（数字信号处理器）。
+在声卡的硬件电路中，mixer是一个很重要的组成部分，它的作用是将多个信号组合或者叠加在一起，对于不同的声卡来说，其混音器的作用可能各不相同。OSS驱动中，/dev/mixer设备文件是应用程序对mixer进行操作的软件接口。
+混音器电路通常由两个部分组成：输入混音器（input mixer）和输出混音器（output mixer）。输入混音器负责从多个不同的信号源接收模拟信号，这些信号源有时也被称为混音通道或者混音设备。模拟信号通过增益控制器和由软件控制的音量调节器后，在不同的混音通道中进行级别（level）调制，然后被送到输入混音器中进行声音的合成。混音器上的电子开关可以控制哪些通道中有信号与混音器相连，有些声卡只允许连接一个混音通道作为录音的音源，而有些声卡则允许对混音通道做任意的连接。经过输入混音器处理后的信号仍然为模拟信号，它们将被送到A/D转换器进行数字化处理。
+输出混音器的工作原理与输入混音器类似，同样也有多个信号源与混音器相连，并且事先都经过了增益调节。当输出混音器对所有的模拟信号进行了混合之后，通常还会有一个总控增益调节器来控制输出声音的大小，此外还有一些音调控制器来调节输出声音的音调。经过输出混音器处理后的信号也是模拟信号，它们最终会被送给喇叭或者其它的模拟输出设备。对混音器的编程包括如何设置增益控制器的级别，以及怎样在不同的音源间进行切换，这些操作通常来讲是不连续的，而且不会像录音或者放音那样需要占用大量的计算机资源。由于混音器的操作不符合典型的读/写操作模式，因此除了 open()和close()两个系统调用之外，大部分的操作都是通过ioctl()系统调用来完成的。与/dev/dsp不同，/dev/mixer允许多个应用程序同时访问，并且混音器的设置值会一直保持到对应的设备文件被关闭为止。
+DSP也称为编解码器，实现录音（录音）和放音（播放），其对应的设备文件是/dev/dsp或/dev/sound/dsp。OSS声卡驱动程序提供的/dev/dsp是用于数字采样和数字录音的设备文件，向该设备写数据即意味着激活声卡上的D/A转换器进行放音，而向该设备读数据则意味着激活声卡上的A/D转换器进行录音。
+在从DSP设备读取数据时，从声卡输入的模拟信号经过A/D转换器变成数字采样后的样本，保存在声卡驱动程序的内核缓冲区中，当应用程序通过 read()系统调用从声卡读取数据时，保存在内核缓冲区中的数字采样结果将被复制到应用程序所指定的用户缓冲区中。需要指出的是，声卡采样频率是由内核中的驱动程序所决定的，而不取决于应用程序从声卡读取数据的速度。如果应用程序读取数据的速度过慢，以致低于声卡的采样频率，那么多余的数据将会被丢弃（即overflow）；如果读取数据的速度过快，以致高于声卡的采样频率，那么声卡驱动程序将会阻塞那些请求数据的应用程序，直到新的数据到来为止。
+在向DSP设备写入数据时，数字信号会经过D/A转换器变成模拟信号，然后产生出声音。应用程序写入数据的速度应该至少等于声卡的采样频率，过慢会产生声音暂停或者停顿的现象（即underflow）。如果用户写入过快的话，它会被内核中的声卡驱动程序阻塞，直到硬件有能力处理新的数据为止。
+与其它设备有所不同，声卡通常不需要支持非阻塞（non-blocking）的I/O操作。即便内核OSS驱动提供了非阻塞的I/O支持，用户空间也不宜采用。
+无论是从声卡读取数据，或是向声卡写入数据，事实上都具有特定的格式（format），如无符号8位、单声道、8KHz采样率，如果默认值无法达到要求，可以通过ioctl()系统调用来改变它们。通常说来，在应用程序中打开设备文件/dev/dsp之后，接下去就应该为其设置恰当的格式，然后才能从声卡读取或者写入数据。
+17.3.2 mixer接口
+int register_sound_mixer(struct file_operations *fops, int dev);
+上述函数用于注册1个混音器，第1个参数fops即是文件操作接口，第2个参数dev是设备编号，如果填入-1，则系统自动分配1个设备编号。mixer是 1个典型的字符设备，因此编码的主要工作是实现file_operations中的open()、ioctl()等函数。
+mixer接口file_operations中的最重要函数是ioctl()，它实现混音器的不同IO控制命令，代码清单17.1给出了1个ioctl()的范例。
+代码清单17.1 mixer()接口ioctl()函数范例
+1 static int mixdev_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg)
+2 {
+3    ...
+4    switch (cmd)
+5    {
+6      case SOUND_MIXER_READ_MIC:
+7        ...
+8      case SOUND_MIXER_WRITE_MIC:
+9        ...
+10     case SOUND_MIXER_WRITE_RECSRC:
+11       ...
+12     case SOUND_MIXER_WRITE_MUTE:
+13       ...
+14   }
+15   //其它命令
+16   return mixer_ioctl(codec, cmd, arg);
+17 }
+17.3.3 DSP接口
+int register_sound_dsp(struct file_operations *fops, int dev);
+上述函数与register_sound_mixer()类似，它用于注册1个dsp设备，第1个参数fops即是文件操作接口，第2个参数dev是设备编号，如果填入-1，则系统自动分配1个设备编号。dsp也是1个典型的字符设备，因此编码的主要工作是实现file_operations中的 read()、write()、ioctl()等函数。
+dsp接口file_operations中的read()和write()函数非常重要，read()函数从音频控制器中获取录音数据到缓冲区并拷贝到用户空间，write()函数从用户空间拷贝音频数据到内核空间缓冲区并最终发送到音频控制器。
+dsp接口file_operations中的ioctl()函数处理对采样率、量化精度、DMA缓冲区块大小等参数设置IO控制命令的处理。
+在数据从缓冲区拷贝到音频控制器的过程中，通常会使用DMA，DMA对声卡而言非常重要。例如，在放音时，驱动设置完DMA控制器的源数据地址（内存中 DMA缓冲区）、目的地址（音频控制器FIFO）和DMA的数据长度，DMA控制器会自动发送缓冲区的数据填充FIFO，直到发送完相应的数据长度后才中断一次。
+在OSS驱动中，建立存放音频数据的环形缓冲区（ring buffer）通常是值得推荐的方法。此外，在OSS驱动中，一般会将1个较大的DMA缓冲区分成若干个大小相同的块（这些块也被称为“段”，即 fragment），驱动程序使用DMA每次在声音缓冲区和声卡之间搬移一个fragment。在用户空间，可以使用ioctl()系统调用来调整块的大小和个数。
+除了read()、write()和ioctl()外，dsp接口的poll()函数通常也需要被实现，以向用户反馈目前能否读写DMA缓冲区。
+在OSS驱动初始化过程中，会调用register_sound_dsp()和register_sound_mixer()注册dsp和mixer设备；在模块卸载的时候，会调用如代码清单17.2。
+代码清单17.2 OSS驱动初始化注册dsp和mixer设备
+1 static int xxx_init(void)
+2 {
+3    struct xxx_state *s = &xxx_state;
+4    ...
+5    //注册dsp设备
+6    if ((audio_dev_dsp = register_sound_dsp(&xxx_audio_fops, - 1)) < 0)
+7      goto err_dev1;
+8    //设备mixer设备 
+9    if ((audio_dev_mixer = register_sound_mixer(&xxx_mixer_fops, - 1)) < 0)
+10     goto err_dev2;
+11   ...
+12 }
+13
+14 void __exit xxx_exit(void)
+15 {
+16 //注销dsp和mixer设备接口
+17 unregister_sound_dsp(audio_dev_dsp);
+18 unregister_sound_mixer(audio_dev_mixer);
+19 ...
+20 }
+根据17.3.2和17.3.3节的分析，可以画出一个Linux OSS驱动结构的简图，如图17.4所示。
+
+图17.4 Linux OSS驱动结构
+17.3.4 OSS用户空间编程
+1、DSP编程
+对OSS驱动声卡的编程使用Linux文件接口函数，如图17.5，DSP接口的操作一般包括如下几个步骤：
+① 打开设备文件/dev/dsp。
+采用何种模式对声卡进行操作也必须在打开设备时指定，对于不支持全双工的声卡来说，应该使用只读或者只写的方式打开，只有那些支持全双工的声卡，才能以读写的方式打开，这还依赖于驱动程序的具体实现。Linux允许应用程序多次打开或者关闭与声卡对应的设备文件，从而能够很方便地在放音状态和录音状态之间进行切换。
+② 如果有需要，设置缓冲区大小。
+运行在Linux内核中的声卡驱动程序专门维护了一个缓冲区，其大小会影响到放音和录音时的效果，使用ioctl()系统调用可以对它的尺寸进行恰当的设置。调节驱动程序中缓冲区大小的操作不是必须的，如果没有特殊的要求，一般采用默认的缓冲区大小也就可以了。如果想设置缓冲区的大小，则通常应紧跟在设备文件打开之后，这是因为对声卡的其它操作有可能会导致驱动程序无法再修改其缓冲区的大小。
+③ 设置声道（channel）数量。
+根据硬件设备和驱动程序的具体情况，可以设置为单声道或者立体声。
+④ 设置采样格式和采样频率
+采样格式包括AFMT_U8（无符号8位）、AFMT_S8（有符号8位）、AFMT_U16_LE（小端模式，无符号16位）、 AFMT_U16_BE（大端模式，无符号16位）、AFMT_MPEG、AFMT_AC3等。使用SNDCTL_DSP_SETFMT IO控制命令可以设置采样格式。
+对于大多数声卡来说，其支持的采样频率范围一般为5kHz到44.1kHz或者48kHz，但并不意味着该范围内的所有连续频率都会被硬件支持，在Linux下进行音频编程时最常用到的几种采样频率是11025Hz、16000Hz、22050Hz、32000Hz 和44100Hz。使用SNDCTL_DSP_SPEED IO控制命令可以设置采样频率。
+⑤ 读写/dev/dsp实现播放或录音。
+
+图17.5 OSS dsp接口用户空间操作流程
+代码清单17.3的程序实现了利用/dev/dsp接口进行声音录制和播放的过程，它的功能是先录制几秒钟音频数据，将其存放在内存缓冲区中，然后再进行放音。
+代码清单17.3 OSS DSP接口应用编程范例
+1 #include <unistd.h>
+2 #include <fcntl.h>
+3 #include <sys/types.h>
+4 #include <sys/ioctl.h>
+5 #include <stdlib.h>
+6 #include <stdio.h>
+7 #include <linux/soundcard.h>
+8 #define LENGTH 3    /* 存储秒数 */
+9 #define RATE 8000   /* 采样频率 */
+10 #define SIZE 8      /* 量化位数 */
+11 #define CHANNELS 1 /* 声道数目 */
+12 /* 用于保存数字音频数据的内存缓冲区 */
+13 unsigned char buf[LENGTH *RATE * SIZE * CHANNELS / 8];
+14 int main()
+15 {
+16   int fd; /* 声音设备的文件描述符 */
+17   int arg; /* 用于ioctl调用的参数 */
+18   int status; /* 系统调用的返回值 */
+19   /* 打开声音设备 */
+20   fd = open("/dev/dsp", O_RDWR);
+21   if (fd < 0)
+22   {
+23     perror("open of /dev/dsp failed");
+24     exit(1);
+25   }
+26   /* 设置采样时的量化位数 */
+27   arg = SIZE;
+28   status = ioctl(fd, SOUND_PCM_WRITE_BITS, &arg);
+29   if (status == - 1)
+30     perror("SOUND_PCM_WRITE_BITS ioctl failed");
+31   if (arg != SIZE)
+32     perror("unable to set sample size");
+33   /* 设置采样时的通道数目 */
+34   arg = CHANNELS;
+35   status = ioctl(fd, SOUND_PCM_WRITE_CHANNELS, &arg);
+36   if (status == - 1)
+37     perror("SOUND_PCM_WRITE_CHANNELS ioctl failed");
+38   if (arg != CHANNELS)
+39     perror("unable to set number of channels");
+40   /* 设置采样率 */
+41   arg = RATE;
+42   status = ioctl(fd, SOUND_PCM_WRITE_RATE, &arg);
+43   if (status == - 1)
+44     perror("SOUND_PCM_WRITE_WRITE ioctl failed");
+45   /* 循环，直到按下Control-C */
+46   while (1)
+47   {
+48     printf("Say something:/n");
+49     status = read(fd, buf, sizeof(buf)); /* 录音 */
+50     if (status != sizeof(buf))
+51       perror("read wrong number of bytes");
+52     printf("You said:/n");
+53     status = write(fd, buf, sizeof(buf)); /* 放音 */
+54     if (status != sizeof(buf))
+55       perror("wrote wrong number of bytes");
+56     /* 在继续录音前等待放音结束 */
+57     status = ioctl(fd, SOUND_PCM_SYNC, 0);
+58     if (status == - 1)
+59       perror("SOUND_PCM_SYNC ioctl failed");
+60   }
+61 }
+2、mixer编程
+声卡上的混音器由多个混音通道组成，它们可以通过驱动程序提供的设备文件/dev/mixer进行编程。对混音器的操作一般都通过ioctl()系统调用来完成，所有控制命令都以SOUND_MIXER或者MIXER开头，表17.1列出了常用的混音器控制命令。
+表17.1 混音器常用命令
+命 令 作 用
+SOUND_MIXER_VOLUME 主音量调节
+SOUND_MIXER_BASS 低音控制
+SOUND_MIXER_TREBLE 高音控制
+SOUND_MIXER_SYNTH FM合成器
+SOUND_MIXER_PCM 主D/A转换器
+SOUND_MIXER_SPEAKER PC喇叭
+SOUND_MIXER_LINE 音频线输入
+SOUND_MIXER_MIC 麦克风输入
+SOUND_MIXER_CD CD输入
+SOUND_MIXER_IMIX 放音音量
+SOUND_MIXER_ALTPCM 从D/A 转换器
+SOUND_MIXER_RECLEV 录音音量
+SOUND_MIXER_IGAIN 输入增益
+SOUND_MIXER_OGAIN 输出增益
+SOUND_MIXER_LINE1 声卡的第1输入
+SOUND_MIXER_LINE2 声卡的第2输入
+SOUND_MIXER_LINE3 声卡的第3输入
+对声卡的输入增益和输出增益进行调节是混音器的一个主要作用，目前大部分声卡采用的是8位或者16位的增益控制器，声卡驱动程序会将它们变换成百分比的形式，也就是说无论是输入增益还是输出增益，其取值范围都是从0到100。
+• SOUND_MIXER_READ宏
+在进行混音器编程时，可以使用 SOUND_MIXER_READ宏来读取混音通道的增益大小，例如如下代码可以获得麦克风的输入增益：
+ioctl(fd, SOUND_MIXER_READ(SOUND_MIXER_MIC), &vol);
+对于只有一个混音通道的单声道设备来说，返回的增益大小保存在低位字节中。而对于支持多个混音通道的双声道设备来说，返回的增益大小实际上包括两个部分，分别代表左、右两个声道的值，其中低位字节保存左声道的音量，而高位字节则保存右声道的音量。下面的代码可以从返回值中依次提取左右声道的增益大小：
+int left, right;
+left = vol & 0xff;
+right = (vol & 0xff00) >> 8;
+• SOUND_MIXER_WRITE宏
+如果想设置混音通道的增益大小，则可以通过SOUND_MIXER_WRITE宏来实现，例如下面的语句可以用来设置麦克风的输入增益：
+vol = (right << 8) + left;
+ioctl(fd, SOUND_MIXER_WRITE(SOUND_MIXER_MIC), &vol);
+• 查询Mixer信息
+声卡驱动程序提供了多个ioctl()系统调用来获得混音器的信息，它们通常返回一个整型的位掩码，其中每一位分别代表一个特定的混音通道，如果相应的位为1，则说明与之对应的混音通道是可用的。
+通过 SOUND_MIXER_READ_DEVMASK返回的位掩码查询出能够被声卡支持的每一个混音通道，而通过 SOUND_MIXER_READ_RECMAS返回的位掩码则可以查询出能够被当作录音源的每一个通道。例如，如下代码可用来检查CD输入是否是一个有效的混音通道：
+ioctl(fd, SOUND_MIXER_READ_DEVMASK, &devmask);
+if (devmask & SOUND_MIXER_CD)
+printf("The CD input is supported");
+如下代码可用来检查CD输入是否是一个有效的录音源：
+ioctl(fd, SOUND_MIXER_READ_RECMASK, &recmask);
+if (recmask & SOUND_MIXER_CD)
+printf("The CD input can be a recording source");
+大多数声卡提供了多个录音源，通过 SOUND_MIXER_READ_RECSRC可以查询出当前正在使用的录音源，同一时刻可使用2个或2个以上的录音源，具体由声卡硬件本身决定。相应地，使用 SOUND_MIXER_WRITE_RECSRC可以设置声卡当前使用的录音源，如下代码可以将CD输入作为声卡的录音源使用：
+devmask = SOUND_MIXER_CD;
+ioctl(fd, SOUND_MIXER_WRITE_RECSRC, &devmask);
+此外，所有的混音通道都有单声道和双声道的区别，如果需要知道哪些混音通道提供了对立体声的支持，可以通过SOUND_MIXER_READ_STEREODEVS来获得。
+代码清单17.4的程序实现了利用/dev/mixer接口对混音器进行编程的过程，该程序可对各种混音通道的增益进行调节。
+代码清单17.4 OSS mixer接口应用编程范例
+1   #include <unistd.h>
+2   #include <stdlib.h>
+3   #include <stdio.h>
+4   #include <sys/ioctl.h>
+5   #include <fcntl.h>
+6   #include <linux/soundcard.h>
+7   /* 用来存储所有可用混音设备的名称 */
+8   const char *sound_device_names[] = SOUND_DEVICE_NAMES;
+9   int fd; /* 混音设备所对应的文件描述符 */
+10 int devmask, stereodevs; /* 混音器信息对应的bit掩码 */
+11 char *name;
+12 /* 显示命令的使用方法及所有可用的混音设备 */
+13 void usage()
+14 {
+15    int i;
+16    fprintf(stderr, "usage: %s <device> <left-gain%%> <right-gain%%>/n"
+17      "%s <device> <gain%%>/n/n""Where <device> is one of:/n", name, name);
+18    for (i = 0; i < SOUND_MIXER_NRDEVICES; i++)
+19      if ((1 << i) &devmask)
+20     /* 只显示有效的混音设备 */
+21        fprintf(stderr, "%s ", sound_device_names[i]);
+22    fprintf(stderr, "/n");
+23    exit(1);
+24 }
+25 
+26 int main(int argc, char *argv[])
+27 {
+28    int left, right, level; /* 增益设置 */
+29    int status; /* 系统调用的返回值 */
+30    int device; /* 选用的混音设备 */
+31    char *dev; /* 混音设备的名称 */
+32    int i;
+33    name = argv[0];
+34    /* 以只读方式打开混音设备 */
+35    fd = open("/dev/mixer", O_RDONLY);
+36    if (fd == - 1)
+37    {
+38      perror("unable to open /dev/mixer");
+39      exit(1);
+40    }
+41 
+42    /* 获得所需要的信息 */
+43    status = ioctl(fd, SOUND_MIXER_READ_DEVMASK, &devmask);
+44    if (status == - 1)
+45      perror("SOUND_MIXER_READ_DEVMASK ioctl failed");
+46    status = ioctl(fd, SOUND_MIXER_READ_STEREODEVS, &stereodevs);
+47    if (status == - 1)
+48      perror("SOUND_MIXER_READ_STEREODEVS ioctl failed");
+49    /* 检查用户输入 */
+50    if (argc != 3 && argc != 4)
+51      usage();
+52    /* 保存用户输入的混音器名称 */
+53    dev = argv[1];
+54    /* 确定即将用到的混音设备 */
+55    for (i = 0; i < SOUND_MIXER_NRDEVICES; i++)
+56      if (((1 << i) &devmask) && !strcmp(dev, sound_device_names[i]))
+57        break;
+58    if (i == SOUND_MIXER_NRDEVICES)
+59    {
+60       /* 没有找到匹配项 */
+61      fprintf(stderr, "%s is not a valid mixer device/n", dev);
+62      usage();
+63    }
+64    /* 查找到有效的混音设备 */
+65    device = i;
+66    /* 获取增益值 */
+67    if (argc == 4)
+68    {
+69      /* 左、右声道均给定 */
+70      left = atoi(argv[2]);
+71      right = atoi(argv[3]);
+72    }
+73    else
+74    {
+75      /* 左、右声道设为相等 */
+76      left = atoi(argv[2]);
+77      right = atoi(argv[2]);
+78    }
+79 
+80    /* 对非立体声设备给出警告信息 */
+81    if ((left != right) && !((1 << i) &stereodevs))
+82    {
+83      fprintf(stderr, "warning: %s is not a stereo device/n", dev);
+84    }
+85 
+86    /* 将两个声道的值合到同一变量中 */
+87    level = (right << 8) + left;
+88 
+89    /* 设置增益 */
+90    status = ioctl(fd, MIXER_WRITE(device), &level);
+91    if (status == - 1)
+92    {
+93      perror("MIXER_WRITE ioctl failed");
+94      exit(1);
+95    }
+96    /* 获得从驱动返回的左右声道的增益 */
+97    left = level &0xff;
+98    right = (level &0xff00) >> 8;
+99    /* 显示实际设置的增益 */
+100   fprintf(stderr, "%s gain set to %d%% / %d%%/n", dev, left, right);
+101   /* 关闭混音设备 */
+102   close(fd);
+103   return 0;
+104 }
+编译上述程序为可执行文件mixer，执行./mixer <device> <left-gain%> <right-gain%>或./mixer <device> <gain%>可设置增益，device可以是vol、pcm、speaker、line、mic、cd、igain、line1、 phin、video。
+17.4 Linux ALSA音频设备驱动
+17.4.1 ALSA的组成
+虽然OSS已经非常成熟，但它毕竟是一个没有完全开放源代码的商业产品，而ALSA （Advanced Linux Sound Architecture）恰好弥补了这一空白，它符合GPL，是在Linux下进行音频编程时另一种可供选择的声卡驱动体系结构，其官方网站为http://www.alsa-project.org/。ALSA除了像OSS那样提供了一组内核驱动程序模块之外，还专门为简化应用程序的编写提供了相应的函数库，与OSS提供的基于ioctl的原始编程接口相比，ALSA函数库使用起来要更加方便一些。ALSA的主要特点有：
+• 支持多种声卡设备
+• 模块化的内核驱动程序
+• 支持SMP和多线程
+• 提供应用开发函数库（alsa-lib）以简化应用程序开发
+• 支持OSS API，兼容OSS应用程序
+ALSA 具有更加友好的编程接口，并且完全兼容于OSS，对应用程序员来讲无疑是一个更佳的选择。ALSA系统包括驱动包alsa-driver、开发包 alsa-libs、开发包插件alsa-libplugins、设置管理工具包alsa-utils、其他声音相关处理小程序包alsa-tools、特殊音频固件支持包alsa- firmware、OSS接口兼容模拟层工具alsa-oss共7个子项目，其中只有驱动包是必需的。
+alsa- driver指内核驱动程序，包括硬件相关的代码和一些公共代码，非常庞大，代码总量达数十万行；alsa-libs指用户空间的函数库，提供给应用程序使用，应用程序应包含头文件asoundlib.h，并使用共享库libasound.so；alsa-utils包含一些基于ALSA的用于控制声卡的应用程序，如alsaconf（侦测系统中声卡并写一个适合的ALSA配置文件）、alsactl（控制ALSA声卡驱动的高级设置）、 alsamixer（基于ncurses的混音器程序）、amidi（用于读写ALSA RawMIDI）、amixer（ALSA声卡混音器的命令行控制）、aplay（基于命令行的声音文件播放）、arecord（基于命令行的声音文件录制）等。
+目前ALSA内核提供给用户空间的接口有：
+• 信息接口（Information Interface，/proc/asound）
+• 控制接口（Control Interface，/dev/snd/controlCX）
+• 混音器接口（Mixer Interface，/dev/snd/mixerCXDX）
+• PCM接口（PCM Interface，/dev/snd/pcmCXDX）
+• Raw迷笛接口（Raw MIDI Interface，/dev/snd/midiCXDX）
+• 音序器接口（Sequencer Interface，/dev/snd/seq）
+• 定时器接口（Timer Interface，/dev/snd/timer）
+和OSS类似，上述接口也以文件的方式被提供，不同的是这些接口被提供给alsa-lib使用，而不是直接给应用程序使用的。应用程序最好使用alsa-lib，或者更高级的接口，比如jack提供的接口。
+图17.6给出了ALSA声卡驱动与用户空间体系结构的简图，从中可以看出ALSA内核驱动与用户空间库及OSS之间的关系。
+
+图17.6 ALSA体系结构
+17.4.1 card和组件管理
+对于每个声卡而言，必须创建1个“card”实例。card是声卡的“总部”，它管理这个声卡上的所有设备（组件），如PCM、mixers、MIDI、synthesizer等。因此，card和组件是ALSA声卡驱动中的主要组成元素。
+1、创建card
+struct snd_card *snd_card_new(int idx, const char *xid,
+    struct module *module, int extra_size);
+idx是card索引号、xid是标识字符串、module一般为THIS_MODULE，extra_size是要分配的额外数据的大小，分配的extra_size大小的内存将作为card->private_data。
+2、创建组件
+int snd_device_new(struct snd_card *card, snd_device_type_t type,
+     void *device_data, struct snd_device_ops *ops);
+当 card被创建后，设备（组件）能够被创建并关联于该card。第1个参数是snd_card_new()创建的card指针，第2个参数type 指的是device-level即设备类型，形式为SNDRV_DEV_XXX，包括SNDRV_DEV_CODEC、 SNDRV_DEV_CONTROL、SNDRV_DEV_PCM、SNDRV_DEV_RAWMIDI等，用户自定义设备的device-level是 SNDRV_DEV_LOWLEVEL，ops参数是1个函数集（定义为snd_device_ops结构体）的指针，device_data是设备数据指针，注意函数snd_device_new()本身不会分配设备数据的内存，因此应事先分配。
+3、组件释放
+每个ALSA预定义的组件在构造时需调用snd_device_new()，而每个组件的析构方法则在函数集中被包含。对于PCM、AC97此类预定义组件，我们不需关心它们的析构，而对于自定义的组件，则需要填充snd_device_ops中的析构函数指针dev_free，这样，当snd_card_free()被调用时，组件将自动被释放。
+4、芯片特定的数据（Chip-Specific Data）
+芯片特定的数据一般以struct xxxchip结构体形式组织，这个结构体中包含芯片相关的I/O端口地址、资源指针、中断号等，其意义等同于字符设备驱动中的 file->private_data。定义芯片特定的数据主要有2种方法，一种方法是将sizeof(struct xxxchip)传入snd_card_new()的extra_size参数，它将自动成员snd_card的private_data成员，如代码清单17.5；另一种方法是在snd_card_new()传入给extra_size参数0，再分配sizeof(struct xxxchip)的内存，将分配内存的地址传入snd_device_new()的device_data的参数，如代码清单17.6。
+代码清单17.5 创建芯片特定的数据方法1
+1 struct xxxchip //芯片特定的数据结构体
+2 {
+3    ...
+4 };
+5 card = snd_card_new(index, id, THIS_MODULE, sizeof(struct
+6 xxxchip)); //创建声卡并申请xxx_chi内存作为card-> private_data
+7 struct xxxchip *chip = card->private_data;
+代码清单17.6 创建芯片特定的数据方法2
+1 struct snd_card *card;
+2 struct xxxchip *chip;
+3 //使用0作为第4个参数，并动态分配xxx_chip的内存：
+4 card = snd_card_new(index[dev], id[dev], THIS_MODULE, 0);
+5 ...
+6 chip = kzalloc(sizeof(*chip), GFP_KERNEL);
+7 //在xxxchip结构体中，应该包括声卡指针：
+8 struct xxxchip
+9 {
+10   struct snd_card *card;
+11   ...
+12 };
+13 //并将其card成员赋值为snd_card_new()创建的card指针：
+14 chip->card = card;
+15 static struct snd_device_ops ops =
+16 {
+17   .dev_free = snd_xxx_chip_dev_free, //组件析构
+18 };
+19 ...
+20 //创建自定义组件
+21 snd_device_new(card, SNDRV_DEV_LOWLEVEL, chip, &ops);
+22 //在析构函数中释放xxxchip内存
+23 static int snd_xxx_chip_dev_free(struct snd_device *device)
+24 {
+25   return snd_xxx_chip_free(device->device_data); //释放
+26 }
+5、注册/释放声卡
+当snd_card被准备好以后，可使用snd_card_register()函数注册这个声卡：
+int snd_card_register(struct snd_card *card)
+对应的snd_card_free()完成相反的功能：
+int snd_card_free(struct snd_card *card);
+#驱动移植 分享到： 举报 浏览(111) 评论 转载 
+你可能也喜欢
+ 九阴真经原画人设概念设计  《魔兽世界：熊猫人之谜》夺得2012最佳资料片奖  Gameloft第一款Havok引擎开发的游戏  【末日降临 史诗巨现】 via: star_moon_01  韩国人气Coser 《吊带袜天使》欣赏  Cut the Rope 团队新作品发布：黏黏的 Pudding Monster  USB设备的枚举过程 评论
+
+ 同时评论给  
+ 同时评论给原文作者   发布 500/0
+收起|查看更多
+帮助中心 | 空间客服 | 投诉中心 | 空间协议©2013 Baiduabcdef

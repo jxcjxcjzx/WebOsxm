@@ -1,0 +1,203 @@
+
+
+--------------------------------------------------------------------------------
+
+
+
+Last published: 05 January 2010 |�Doc for 1.1-SNAPSHOT 
+
+
+
+--------------------------------------------------------------------------------
+
+
+
+
+
+Jelly
+Overview
+FAQ
+Getting Started
+Tutorial
+Detail
+JellyDoc
+Download
+Tag Reference
+
+
+Community
+IRC
+Powered By
+To Do List
+
+
+Features
+JellyUnit
+JellySwing
+JellySWT
+XML Pipeline
+Core Tags
+Tag Libraries
+
+
+Project Documentation
+About
+Downloads
+Project Info
+Project Reports
+Development Process
+
+
+Commons
+Home
+Components
+Sandbox
+Dormant
+Volunteering
+Contributing Patches
+Building Components
+Releasing Components
+Wiki
+
+
+Legend
+External Link
+Opens in a new window
+
+
+
+
+Warning: low development activity
+ 
+Please note that Commons Jelly is enduring a phase with low activity of its developers. 
+
+
+Jelly : Executable XML
+
+Jelly is a tool for turning XML into executable code. So Jelly is a Java and XML based scripting and processing engine. Jelly can be used as a more flexible and powerful front end to Ant such as in the Maven project, as a testing framework such as JellyUnit, in an intergration or workflow system such as werkflow or as a page templating system inside engines like Cocoon.
+ 
+Jelly borrows many good ideas from both JSP custom tags, Velocity, Cocoon, Ant. Jelly can be used from the command line, inside Ant and Maven or inside a Servlet, Web Service, JMS MessageListener or embedded directly into your software.
+ 
+Jelly has native support for a Velocity-like expression language called Jexl which is a superset of the JSP, JSTL and JSF expression languages as well as support for other pluggable expression languages like XPath via Jaxen, JavaScript, beanshell and Jython.
+ 
+Jelly is completely extendable via custom tags in a similar way to JSP custom tags or Ant tasks. Though Jelly is really simple and has no dependencies either Servlets or JSP. So you could think of Jelly as similar to an XML-ized Velocity where the directives are XML tags. Or you could think of Jelly as a more flexible engine for processing Ant tasks with better expression, logic and looping support.
+ 
+Jelly is also based on an XML pipeline architecture, like Cocoon, so that it is ideal for processing XML, scripting web services, generating dynamic web content or being part of a content generation system such as Cocoon.
+ 
+
+How it works
+
+A Jelly script is an XML document which gets parsed into a Script. The script can then be ran to produce dynamic XML events which can then be turned into text, XML, HTML etc.
+ 
+Rather like Velocity, the XML can contain expressions to make the output dynamic and can work with a variable context.
+ 
+<document time="${now}">
+  Welcome ${user.name} to Jelly!
+</document>
+
+ XML elements can be bound to some Java code to implement some kind of dynamic processing. The default way to do this is to implement Jelly Tags which are Java Beans which also implement Jelly's Tag interface.
+ 
+When a Jelly script is run, the properties of the Jelly Bean are configured using the XML attributes. Then the tag is run by calling its doTag() method. The Tag can then perform some processing and invoke its body (the contents of the XML element) if it wishes, however many times it wants. So Jelly Tags are very like JSP custom tags and analogous to directives in Velocity..
+ 
+There is an Ant Tag Library which allows all Ant tasks to be used inside a Jelly script.
+ 
+Also Jelly Tags can be defined at runtime in dynamic Jelly script using the define tag library so that simple yet powerful macros can be made very easily using just Jelly script.
+ 
+Jelly Beans can be created with the define tag library. A Jelly Bean is where a regular Java Bean can be bound to a Jelly tag. If the bean implements the Runnable interface or has some kind of invokable method, like run(), invoke() or execute() then the bean will also be invoked by the tag.
+ 
+For example imagine if you had written the following bean 
+
+public class MyTask {
+
+    // 'doIt' method that does some function/task...
+    public void run() throws SomeException {
+        // do something...
+    }
+
+    // Properties, can be any type
+    public void setX(int x) {
+        this.x = x;
+    }
+    public void setY(String y) {
+        this.y = y;
+    }
+}
+
+ Then you can use this bean in a script by defining a new tag library and then using the new tag as follows...
+ 
+<j:jelly xmlns:j="jelly:core" xmlns:define="jelly:define" xmlns:my="myTagLib">
+
+  <define:taglib uri="myTagLib">
+    <define:jellybean name="foo" className="MyTask"/>
+  </define:taglib>
+
+  Now lets use the new tag
+  
+  <my:foo x="2" y="cheese"/>
+
+</j:jelly>
+
+ This mechanism is kinda similar to using a <taskdef> in Ant except that the bean can be anything, it doesn't need to derive from Ant's Task - it can be any java object with some kind of 'doIt' method which takes no arguments. Indeed the method name can be set via <define:jellybean method="doIt"/>
+ 
+
+JSTL
+ 
+JSTL is the JSP Standard Tag Library which is standardized through the JCP process.
+ 
+Jelly implements a collection of JSTL tags to perform core features like expression evaluation, conditional branching and looping, as well the processing of beans, XML, XPath and SQL.
+ 
+Jelly can act as a stand alone lightweight engine for running JSTL scripts which can be run from the command line or from Ant or that can be easily embedded into SOAP services, Servlet engines, JMS MessageListeners or your own software.
+ 
+In addition Jelly allows the JSTL tags to be used to create unit testing scripts for web applications and web services.
+ 
+
+Ant
+ 
+There is a JellyTask for calling Jelly from Ant as well as a Jelly tag library for using any Ant Tasks inside a Jelly script!
+ 
+Jelly's support the Jexl expression language which is a superset of the expression language in JSTL and Ant's expression language, means that Ant properties can be used inside Jelly scripts seamlessly while also working with beans, properties, collections, method calls etc.
+ 
+So Jelly can be thought of as a more flexible scripting and processing engine for Ant, kinda like a combination of Ant, Velocity and JSP.
+ 
+
+XML and Web Services
+ 
+Jelly is based on an XML event pipeline architecture (SAX), like Cocoon, rather than being purely text based like JSP and Velocity. This means that Jelly tags can consume XML events and emit them. Each Jelly Tag can then act as an XML source, result, filter or transformation.
+ 
+Also because Jelly works on an XML event pipeline, XML can be processed very efficiently without redundant runtime parsing. Once a Jelly script is parsed, it can be cached so that whenever it is run, no XML parsing is usually necessary of the input or the output.
+ 
+In addition there is a tag library called the Jelly Stylesheet Library ( JSL) for performing XSLT-style declarative processing of XML documents using a pattern match approach.
+ 
+Using the dynamic tag creation features of the define tag library we can easily script SOAP services using a simple tag based macro language.
+ 
+For example the following piece of Jelly script could evaluate its dynamic body (which can contain any Jelly tags, JSTL or Ant tasks) then convert the body into the correct SOAP message, call a SOAP service then format the results neatly as XML.
+ 
+<babelfish:translate from="en" to="fr">
+  Welcome ${user.name} to Jelly!
+</babelfish:translate>
+
+ A Jelly script is an XML document, which means that Jelly can process itself. All of these things make Jelly a good choice for for working with XML and Web Services.
+ 
+
+Other uses
+ 
+We hope Jelly can be both generic and powerful XML processing and transformation engine, a web and XML based scripting engine as well as a unit testing framework for testing web applications and web services.
+ 
+Currently Jelly is being used inside Maven to provide more flexible and powerful build mechanism while still preserving investment in Ant tasks.
+ 
+
+JSTL References
+•JSTL Tag reference
+•JSTL API
+•Apache JSTL Implementation
+ 
+
+--------------------------------------------------------------------------------
+
+
+
+� 2002-2010, The Apache Software Foundation
+
+
+--------------------------------------------------------------------------------
+

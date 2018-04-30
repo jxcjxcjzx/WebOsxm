@@ -1,0 +1,170 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+coding life
+人老了 需要笔记
+目录视图摘要视图订阅
+亲，“社区之星”已经一周岁了！        WebApp实时开源框架Clouda---认识心得      Tag功能介绍—我们为什么打Tag      订阅CSDN社区周刊，及时了解社区精华内容
+ 电梯调度算法
+分类： 算法&数据结构 2011-08-17 14:52 1943人阅读 评论(3) 收藏 举报
+算法n2任务编程优化
+编程之美------电梯调度算法
+2011-06-02 15:24
+一座大厦一共有6部电梯。在高峰时间，每层都有人上下，电梯在每层都停。
+实习生小飞常常会被每层都停的电梯弄得很不耐烦，于是他提出了这样的一个办法：
+由于楼层并不太高，那么在繁忙的上下班时间，每次电梯从一层往上走时，我们只允许电梯停在其中的一层。所有乘客都从一楼上电梯，到达某楼层后，电梯停下来，所有乘客再从这里爬到自己的目的层。在一楼上电梯的时候，每个乘客选择自己的目的层，电梯则自动计算出应停的楼层。
+问：电梯停在哪一层，能够保证这次乘坐的电梯所有乘客爬楼梯的层数之和最少。
+首先，有两个因素会影响到最后的结果：
+乘客的数目和要停的目的楼层
+假设楼层总共有N层，电梯停在第x层，要去第i层的乘客数目总数为Tot【i】，这样，总数就是 { Tot [ i ] * | i - x |};
+我们的任务就是找到这样的一个最小值
+枚举的代码：
+void solve(int & nTargetFloor, int & nMinFloor){
+int nFloor;
+nTargetFloor=-1;
+for(int i=1;i<=N;i++)
+{
+nFloor=0;
+for(int j=1;j<i;j++)
+nFloor+=nPerson[j]*(i-j);
+for(int j=i+1;j<=N;j++)
+nFloor+=nPerson[j]*(j-i);
+if(nTargetFloor == -1 || nMinFloor > nFloor)
+{
+nMinFloor=nFloor;
+nTargetFloor=i;
+}
+}
+}
+显然这个解法可以进一步优化：
+假设电梯停在第i层，显然我们可以计算出所有乘客总共要爬的层数Y。如果有N1个乘客目的楼层在i层以下，有N2个乘客在i层，还有N3个乘客在第i层以上。这个时候，如果电梯改停在第i-1层，所有目的地在i层以上的乘客都要多爬一层，总共需要N2+N3层，而所有目的地在第i-1层以下的乘客都可以少爬一层，总共少爬N1层。所以乘客总共需要爬Y-（N1-N2-N3）
+反之，如果电梯停在i+1层，那么乘客总共需要爬Y+（N1+N2-N3）层。
+由此可知：
+当N1>N2+N3时，电梯停在i-1层好，乘客少走N1-N2-N3层
+当N1+N2<N3时，电梯停在i+1层好
+其他情况停在i层好
+这样我们可以从第一层开始考虑
+代码如下：
+[cpp] view plaincopy
+void solve(int & nTargetFloor,int & nMinFloor)  
+{  
+   int N1,N2,N3,i;  
+   nTargetFloor=1;  
+   nMinFloor=0;  
+   for(N1=0,N2=nPerson[1],N3=0,i=2;  i<=N;i++)  
+   {  
+        N3+=nPerson[i];  
+        nMinFloor+=nPerson[i]*(i-1);  
+   }  
+   for(i=2;i<=N;i++)  
+   {  
+       if(N1+N2<N3)  
+       {  
+           nTargetFloor=i;  
+           nMinFloor+=(N1+N2-N3);  
+           N1+=N2;  
+           N2=nPerson[i];  
+           N3-=nPerson[i];  
+       }  
+       else  
+         break;  
+    }  
+}  
+
+
+更多 0
+上一篇：各种排序算法的稳定性和时间复杂度小结
+下一篇：图的邻接表存储 深度优先遍历 广度优先遍历 C语言实现
+
+查看评论
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+ TOP
+核心技术类目
+全部主题 数据挖掘 SOA UML 开放平台 HTML5 开源 移动开发 iOS Android 移动游戏 Windows Phone JavaScript CSS 游戏引擎 云计算 大数据 Hadoop OpenStack 云平台 PHP MongoDB JSON Xcode Node.js 前端开发 神经网络 安全 Java .NET MySQL textview BigTable web框架 SQL Redis CouchDB Linux 可穿戴计算 NoSQL Ruby API GPL XAML ASP.NET 前端开发 虚拟化 框架 机器学习 数据中心 IE10 敏捷 集群
+个人资料
+ 访问我的空间 
+eric491179912
+ 
+访问：73998次
+积分：1127分
+排名：第10587名
+原创：14篇转载：167篇译文：0篇评论：26条
+文章搜索
+
+文章分类
+android(20)
+c/c++(82)
+job(12)
+linux(16)
+MFC(2)
+windows驱动相关资料收集(4)
+数据库(1)
+文件系统过滤驱动项目(2)
+网络编程(6)
+软件工程(5)
+算法&数据结构(12)
+tcp/ip(12)
+一些题(0)
+杂七杂八(5)
+【金庸群侠传mod修改的点点滴滴】(2)
+文章存档
+2012年08月(1)
+2012年07月(2)
+2012年04月(2)
+2012年03月(2)
+2012年02月(4)
+展开
+阅读排行
+红黑树(4545)
+BM算法(3931)
+私有构造函数 单例模式(2153)
+如何判断一个数为无符号数还是有符号数(2126)
+电梯调度算法(1942)
+android使用ffmpeg的实例程序(1794)
+关于C++基类、派生类的引用和指针(1793)
+移植havlenapetr开源项目（利用FFMPEG实现播放器）(1774)
+eclipse CDT Unresolved inclusion 错误解决办法(1615)
+开题报告、文献检索账号、文献综述、外文翻译、抄袭检测软件、论文目录，免费分享，都在这了(1397)
+评论排行
+开题报告、文献检索账号、文献综述、外文翻译、抄袭检测软件、论文目录，免费分享，都在这了(4)
+电梯调度算法(3)
+c++代理类(3)
+《c语言深度剖析》笔记1(3)
+VS中Debug模式和Release模式的区别(3)
+私有构造函数 单例模式(2)
+BM算法(2)
+红黑树(2)
+移植havlenapetr开源项目（利用FFMPEG实现播放器）(2)
+android使用ffmpeg的实例程序(1)
+推荐文章
+
+最新评论
+BM算法
+lhjsx0518: http://blog.chinaunix.net/uid-23390992-id-3320412....
+红黑树
+曼哈顿: 空闲了再认真看下
+android使用ffmpeg的实例程序
+为你变乖: lz，能加一下我的qq吗，我想请教一下啊，谢谢了，2544537883，急啊。
+VS中Debug模式和Release模式的区别
+lqi7457: thanks for your sharing
+电梯调度算法
+lajiooo: 下面的时间复杂度还不是一样O(n2)
+移植havlenapetr开源项目（利用FFMPEG实现播放器）
+lehgff: 请问楼主，第五步中的 将 libjniaudio.so、libjnivideo.so 拷贝到工程的 ...
+电梯调度算法
+twlkyao: 如果要求电梯在每层都停，并且等待时间最小呢
+私有构造函数 单例模式
+realseucr: 顶！写的很详细！
+BM算法
+king_py: 请问你举例计算BmBc所用的文本串和模式串各是什么啊？
+红黑树
+speedoniho: 怎么玩游戏啊？
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved GongshangLogo
+  

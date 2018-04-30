@@ -1,0 +1,308 @@
+网易 新闻 
+微博 
+邮箱 
+相册 
+阅读 
+有道 
+摄影 
+爱拍 
+优惠券 
+云笔记 
+闪电邮 
+手机邮 
+印像派 
+网易识字 
+ 
+更多   博客 手机博客 
+博客搬家 
+博客VIP服务 
+ 
+LiveWriter写博 
+word写博 
+邮件写博 
+短信写博 
+ 
+群博客 
+博客油菜地 
+博客话题 
+博客热点 
+博客圈子 
+找朋友 发现小组风格   网易真人搭配社区iStyle旅行达人猫力，送签名版新书 >>旅行达人猫力，送签名版新书 >>旅行达人猫力，送签名版新书 >>创建博客 登录    加关注   显示下一条  |  关闭 温馨提示！由于新浪微博认证机制调整，您的新浪微博帐号绑定已过期，请重新绑定！立即重新绑定新浪微博》  |  关闭 飞翔的鹰＝＝＝＝＝＝＝＝＝＝
+导航
+首页 日志 相册 音乐 收藏 博友 关于我      日志    双向冒泡  基于模板的通用排序
+SHELL排序  2007-03-06 14:13:35|  分类： 算法 |  标签： |字号大
+中
+小 订阅 
+2.SHELL排序
+这个排序非常复杂，看了程序就知道了。
+首先需要一个递减的步长，这里我们使用的是9、5、3、1（最后的步长必须是1）。
+工作原理是首先对相隔9-1个元素的所有内容排序，然后再使用同样的方法对相隔5-1个元素的排序
+以次类推。
+#include <iostream.h>
+void ShellSort(int* pData,int Count)
+{
+    int step[4];
+    step[0] = 9;
+    step[1] = 5;
+    step[2] = 3;
+    step[3] = 1;
+
+    int iTemp;
+    int k,s,w;
+    for(int i=0;i<4;i++)
+    {
+        k = step[i];
+        s = -k;
+        for(int j=k;j<Count;j++)
+        {
+            iTemp = pData[j];
+            w = j-k;//求上step个元素的下标
+            if(s ==0)
+            {
+                s = -k;
+                s++;
+                pData[s] = iTemp;
+            }
+            while((iTemp<pData[w]) && (w>=0) && (w<=Count))
+            {
+                pData[w+k] = pData[w];
+                w = w-k;
+            }
+            pData[w+k] = iTemp;
+        }
+    }
+}
+
+void main()
+{
+    int data[] = {10,9,8,7,6,5,4,3,2,1,-10,-1};
+    ShellSort(data,12);
+    for (int i=0;i<12;i++)
+        cout<<data[i]<<" ";
+    cout<<"\n";
+}
+呵呵，程序看起来有些头疼。不过也不是很难，把s==0的块去掉就轻松多了，这里是避免使用0
+步长造成程序异常而写的代码。这个代码我认为很值得一看。
+这个算法的得名是因为其发明者的名字D.L.SHELL。依照参考资料上的说法：“由于复杂的数学原因
+避免使用2的幂次步长，它能降低算法效率。”另外算法的复杂度为n的1.2次幂。同样因为非常复杂并
+“超出本书讨论范围”的原因（我也不知道过程），我们只有结果了。
+
+
+
+
+  评论这张  转发至微博    转发至微博  0人  |  分享到：         阅读(1023)| 评论(0)| 转载 (0) |举报 
+ 
+  双向冒泡  基于模板的通用排序
+历史上的今天
+
+最近读者
+
+评论
+    this.p={  m:2,
+              b:2,
+              id:'fks_085064082094080069085082074066081086080071083086094',
+              blogTitle:'SHELL排序',
+              blogAbstract:'<P\>2.SHELL排序<BR\>这个排序非常复杂，看了程序就知道了。<BR\>首先需要一个递减的步长，这里我们使用的是9、5、3、1（最后的步长必须是1）。<BR\>工作原理是首先对相隔9-1个元素的所有内容排序，然后再使用同样的方法对相隔5-1个元素的排序<BR\>以次类推。<BR\>#include <iostream.h><BR\>void ShellSort(int* pData,int Count)<BR\>{<BR\>    int step[4];<BR\>    step[0] = 9;<BR\>    step[1] = 5;<BR\>    step[2] = 3;<BR\>    step[3] = 1;</P\>\r\n<P\></P\>',
+              blogTag:'编程',
+              blogUrl:'blog/static/1501470820072621335976',
+              isPublished:1,
+              istop:false,
+              type:0,
+              modifyTime:0,
+              publishTime:1173161615976,
+              permalink:'blog/static/1501470820072621335976',
+              commentCount:0,
+              mainCommentCount:0,
+              recommendCount:0,
+              bsrk:-100,
+              publisherId:0,
+              recomBlogHome:false,
+              currentRecomBlog:false,
+              attachmentsFileIds:[],
+              vote:{},
+              groupInfo:{},
+              friendstatus:'none',
+              followstatus:'unFollow',
+              pubSucc:'',
+              visitorProvince:'',
+              visitorCity:'',
+              visitorNewUser:false,
+              postAddInfo:{},
+              mset:'000',
+              mcon:'',
+              srk:-100,
+              remindgoodnightblog:false,
+              isBlackVisitor:false,
+              isShowYodaoAd:false,
+              hostIntro:'喜欢交朋友，喜欢编程',
+              hmcon:'0',
+              selfRecomBlogCount:'0',
+              lofter_single:'<a hidefocus="true" target="_blank" href="http://maolimaolimaoli.lofter.com/post/243879_8f0a2c?act=danpianrizhiyouce_20130925_15"><img onload="var nimg = new Image(); nimg.src=\'http://blog.163.com/newpage/images/analyse.png?lofter_single&t=\'+new Date().getTime()" border="0" src="http://img.ph.126.net/n2EkDjdxEnY0wL5rvrwZvA==/1993405785164918394.jpg"/></a>'
+            }
+       {list a as x}
+    {if !!x}
+    <div class="iblock nbw-fce nbw-f40">
+      <a class="fc03 noul" target="_blank" hidefocus="true" href="http://blog.163.com/${x.visitorName}/">
+      {if x.visitorName==visitor.userName}
+      <img alt="${x.visitorNickname|escape}" onerror="this.src=location.f40" class="cwd bdwa bdc0" src="${fn1(x.visitorName)}&r=${visitor.imageUpdateTime}"/>
+      {else}
+      <img alt="${x.visitorNickname|escape}" onerror="this.src=location.f40" class="cwd bdwa bdc0" src="${fn1(x.visitorName)}"/>
+      {/if}
+      </a>
+      <div class="cwd vname thide">
+        {if x.moveFrom=='wap'}
+          <a class="noul pnt" target="_blank" href="http://blog.163.com/services/wapblog.html?frompersonalbloghome"><span title="来自网易手机博客" class="iblock wapIcon"> </span></a>
+        {elseif x.moveFrom=='iphone'}
+          <a class="noul pnt" target="_blank"><span title="来自iPhone客户端" class="iblock iphoneIcon"> </span></a>
+        {elseif x.moveFrom=='android'}
+          <a class="noul pnt" target="_blank"><span title="来自Android客户端" class="iblock androidIcon"> </span></a>
+        {elseif x.moveFrom=='mobile'}
+          <a class="noul pnt" target="_blank" href="http://blog.163.com/services/emsblog.html?frompersonalbloghome"><span title="来自网易短信写博" class="iblock wapIcon"> </span></a>
+        {/if}
+        <a class="fc03 m2a"  target="_blank" hidefocus="true" href="http://blog.163.com/${x.visitorName}/">
+          ${fn(x.visitorNickname,8)|escape}
+        </a>
+      </div>
+    </div>
+    {/if}
+    {/list}
+       {if !!a}
+    <a target="_blank" href="http://blog.163.com/${a.userName}/"><img class="bdwa bdc0 pnt" onerror="this.src=location.f60" src="${fn1(a.userName)}"/></a>
+    <a target="_blank" class="fc03 m2a" href="http://blog.163.com/${a.userName}/">${fn(a.nickname,8)|escape}</a>
+    <div class="intro fc05">${a.selfIntro|escape}{if great260}${suplement}{/if}</div>
+	    <div class="acts ztag"></div>
+	  <div class="mbga phide xtag">
+        <div class="mbgai"> </div>
+        <a class="fc03 xtag m2a" href="#" target="_blank"></a>
+      </div>
+    {/if}
+   <#--最新日志，群博日志-->     {list a as x}
+    {if !!x}
+    <li class="thide"><a target="_blank" class="fc03 m2a" href="${furl()}${x.permalink}/?latestBlog">${fn(x.title,26)|escape}</a></li>
+    {/if}
+    {/list}
+   <#--推荐日志-->     <p class="fc06">推荐过这篇日志的人：</p>
+    <div>
+      {list a as x}
+      {if !!x}
+      <div class="iblock nbw-fce nbw-f40">
+        <a class="fc03 noul" target="_blank" hidefocus="true" href="http://blog.163.com/${x.recommenderName}/">
+        <img alt="${x.recommenderNickname|escape}" onerror="this.src=location.f40" class="cwd bdwa bdc0" src="${fn1(x.recommenderName)}"/>
+        </a>
+        <div class="cwd thide">
+          <a class="fc03 m2a" target="_blank" hidefocus="true" href="http://blog.163.com/${x.recommenderName}/">
+            ${fn(x.recommenderNickname,6)|escape}
+          </a>
+        </div>
+      </div>
+      {/if}
+      {/list}
+    </div>
+    {if !!b&&b.length>0}
+    <p  class="fc06">他们还推荐了：</p>
+    <ul>
+    {list b as y}
+      {if !!y}
+        <li class="rrb"><span class="iblock">·</span><a class="fc03 m2a" target="_blank" href="http://blog.163.com/${y.recommendBlogPermalink}/?from=blog/static/1501470820072621335976">${y.recommendBlogTitle|escape}</a></li>
+      {/if}
+    {/list}
+    </ul>
+    {/if}
+   <#--引用记录-->     <span class="pleft fc07">转载记录：</span>
+    <ul class="tbac">
+    {list d as x}
+      <li class="clearfix">
+        <span class="pleft iblock">·</span>
+        <div class="tbl thide pleft"><span><a target="_blank" class="fc07 m2a" href="${x.referBlogUrl}">${x.referBlogTitle|escape}</a></span></div>
+        <div class="tbr pleft"><span><a target="_blank" class="fc07 m2a" href="${x.referHomePage}">${x.referUserName|escape}</a></span></div>
+      </li>
+    {/list}
+    </ul>
+   <#--博主推荐-->     {list a as x}
+    {if !!x}
+    <li class="thide"><a target="_blank" class="fc03 m2a" href="http://blog.163.com/${x.userName}/${x.permalink}/?recommendBlog" title="${x.title|default:""|escape}">${x.title|default:""|escape}</a></li>
+    {/if}
+    {/list}
+   <#--随机阅读-->     {list a as x}
+    {if !!x}
+    <li class="thide"><a target="_blank" class="fc03 m2a" href="http://blog.163.com/${x.userName}/${x.permalink}/?personalRecomBlog" title="${x.title|default:""|escape}">${x.title|default:""|escape}</a></li>
+    {/if}
+    {/list}
+   <#--首页推荐-->     {list a as x}
+    {if !!x}
+    <li class="thide"><a target="_blank" class="fc03 m2a" target="_blank" href="${x.blogUrl|default:""|escape}?recommendReader" title="${x.blogTile|default:""|escape}">${x.blogTile|default:""|escape}</a></li>
+    {/if}
+    {/list}
+   <#--历史上的今天-->     <ul>
+      {list a as x}
+      {if x_index>4}{break}{/if}
+      {if !!x}
+        <li class="thide fc03">
+          <a class="m2a" target="_blank"  href="http://blog.163.com/${x.userName}/${x.permalink|default:""}"  title="${x.title|default:""|escape}">${fn1(x.title,60)|escape}</a><span class="fc07">${fn2(x.publishTime,'yyyy-MM-dd HH:mm:ss')}</span>
+        </li>
+      {/if}
+      {/list}
+    </ul>
+   <#--被推荐日志-->     {list a as x}
+    {if !!x}
+    <li class="thide"><a target="_blank" class="fc03 m2a" href="${furl()}${x.permalink}/">${fn(x.title,26)|escape}</a></li>
+    {/if}
+    {/list}
+   <#--右边模块结构-->     <div class="uinfo ztag"></div>
+    <h4 class="fc07 fs0 ltt phide ztag">被推荐日志</h4>
+    <ul class="ztag blst"></ul>
+    <h4 class="fc07 fs0 ltt phide ztag">最新日志</h4>
+    <ul class="ztag blst"></ul>
+    <h4 class="fc07 fs0 ltt phide ztag">该作者的其他文章</h4>
+    <ul class="ztag blst"></ul>
+    <h4 class="fc07 fs0 ltt phide ztag">博主推荐</h4>
+    <ul class="ztag blst"></ul>
+    <h4 class="fc07 fs0 ltt phide ztag">随机阅读</h4>
+    <ul class="ztag blst"></ul>
+    <h4 class="fc07 fs0 ltt phide ztag">首页推荐</h4>
+    <ul class="ztag blst"></ul>
+    <div class="more"><a target="_blank" class="fc03 m2a" href="http://blog.163.com">更多>></a></div>
+    <br/><br/>
+    <div id="yodaoad_r" style="display:none;_zoom:1;"></div>
+    <div id="lofter_single"></div>
+   <#--评论模块结构-->     <div class="publish ztag"></div>
+    <div class="bdwt bds2 bdc0 phide" id="yodaoad_2" style="_zoom:1;"></div>
+    <div class="ztag bdwt bds2 bdc0">
+      <div class="case"></div>
+      <div class="clearfix"></div>
+    </div>
+   <#--引用模块结构-->      <div class="close">
+       <span class="ztag iblock icn0 icn0-57"> </span>
+     </div>
+	 <div class="ztag phide"></div>
+   <#--博主发起的投票-->     {list a as x}
+    {if !!x}
+      <li>
+      <a href="http://blog.163.com/${x.userName}/" target="_blank" class="m2a fc03">${x.nickName|escape}</a>  投票给
+        {var first_option = true;}
+        {list x.voteDetailList as voteToOption}
+            {if voteToOption==1}
+              {if first_option==false},{/if}  “${b[voteToOption_index]}”  
+            {/if}
+        {/list}
+        {if (x.role!="-1") },“我是${c[x.role]}”  {/if}
+            <span class="fc07">    ${fn1(x.voteTime)}</span>
+        {if x.userName==''}{/if}
+    {/if}
+    {/list}
+                 页脚
+公司简介 - 联系方法 - 招聘信息 - 客户服务 - 隐私政策 - 博客风格 - 手机博客 - VIP博客 - 订阅此博客 
+网易公司版权所有 ©1997-2013
+  <a rel="nofollow" class="pr" target="_blank" href="http://help.163.com/special/007525FT/blog.html?b13aze1">帮助</a>
+  <span class="fr iblock space icn1 icn1-4"> </span>
+  <a class="pr" target="_blank" href="http://blog.163.com/activation.do?host=activation&&username=${u}">${u}</a>
+       {list wl as x}
+        <div class="grp">${x.g}</div>
+        {list x.l as y}
+        <a class="itm noul" href="#" hidefocus="true" name="{if typeof(y.v)=='string'}${y.v}{else}${y_index}{/if}">${y.n}</a>
+        {/list}
+      {/list}
+ 	{if defined('wl')}
+        {list wl as x}<a class="itm noul" href="#" hidefocus="true" name="${x.v}">${x.n}</a>{/list}
+    {/if}
+ 

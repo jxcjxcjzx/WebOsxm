@@ -1,0 +1,152 @@
+
+[Lotus征文] 使用Web Service取得即時匯率
+ 
+Web, Service, Agent
+ 
+
+
+
+一般比較大跟金融或貿易有關的公司都需要有匯率資訊,但是如果要手動去抓取不但讓費時間及人力而且有KEY 錯的問題,
+ 以下範例就可以抓取當天的即時匯率.
+ 　　Web Service目前已在個應用系統中慢慢的被應用了我們這次的範例也是使用Web Service來撰寫,
+ 這次我們使用Agent當成Web Service Requester(也可直接用Notes Client不連接Notes Server即可是用)
+ 設定成每五分鐘定時觸發取得當時的匯率資訊,此次技術是直接使用SOAP Toolkit 3.0來達成的.
+ 
+
+
+
+
+步驟01:到網站下載SOAP Toolkit 3.0工具來安裝.
+ 
+
+
+
+下載 SOAP Toolkit 3.0頁面 並安裝 或 直接下載 SOAP Toolkit 3.0
+ 步驟02:安裝SOAP Toolkit 3.0 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+步驟03:尋找提供匯率轉換的Web service 網站的WSDL  如 
+
+
+http://www.webservicex.net/CurrencyConvertor.asmx?WSDL
+ 
+
+步驟04:撰寫取得匯率程式
+ 
+
+
+
+
+
+
+
+01.%REM 
+
+02.    Agent GetQuote 
+
+03.    Created 2011/9/9 by KAKASHI 
+
+04.    Description: 使用Web Service取得即時匯率 
+
+05.%END REM   
+ 
+06.Option Public  
+ 
+07.Option Declare  
+ 
+08.Sub Initialize  
+ 
+09.      
+ 
+10.            Dim Client As Variant  
+ 
+11.            Dim sWSDL As String,result As String,ListName As String  
+ 
+12.            Dim session As New NotesSession  
+ 
+13.            Dim db As NotesDatabase  
+ 
+14.            Dim doc As NotesDocument  
+ 
+15.            Set db = session.CurrentDatabase  
+ 
+16.            Set doc = db.CreateDocument  
+ 
+17.            sWSDL ="http://www.webservicex.net/CurrencyConvertor.asmx?WSDL"  
+ 
+18.              
+
+19.            Set Client =CreateObject("MSSOAP.SoapClient30")  
+ 
+20.            Call Client.mssoapinit (sWSDL)  
+ 
+21.              
+
+22.            doc.Form="Rate"  
+ 
+23.            doc.FromCode="USD"  
+ 
+24.            doc.ToCode="TWD"  
+ 
+25.            ListName="USD->TWD"  
+ 
+26.                     
+ 
+27.            result  = Client.conversionRate(doc.FromCode(0),doc.ToCode(0))  
+ 
+28.            doc.Rate=result  
+ 
+29.            doc.Time=Now()  
+ 
+30.            Call doc.Save(True,False)  
+ 
+31.              
+
+32.            Print ("查詢 結果: " +ListName & " "& result)       
+
+33.                  
+ 
+34.            Set Client=Nothing  
+ 
+35.        End Sub 
+复制代码
+
+ 
+
+
+
+步驟05:執行程式結果畫面. 
+
+附件: 您需要登录才可以下载或查看附件。没有帐号？注册
+ 
+
+
+
+相关博客
+ 基于domino的Web应用获取当前在线用户
+更改 Domino Web Access 8 的字体大小
+定制Domino Web Access7中的字体大小
+Domino Web Access7 如何自定义Logo
+iNotes 配置Web SSO以及重定向
+ 
+
+相关主题
+ 使用Eclipse執行Web Services 提供的方法及測試
+Domino8中Web Service的应用
+如何实现拒绝用户的WEB访问？
+Domino：控制在Web所有视图中显示的行数
+

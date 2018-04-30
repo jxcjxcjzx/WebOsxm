@@ -1,0 +1,942 @@
+
+
+首页论坛帮助论坛牛人论坛地图
+
+
+
+
+CSDN >CSDN论坛 >Linux/Unix社区 >应用程序开发区 
+
+
+
+
+
+•管理菜单
+
+
+
+
+
+
+
+
+•结帖
+•发帖
+•回复
+ 
+
+怎样用GDB调试core文件[问题点数：20分，结帖人nuoshueihe] 
+
+不显示删除回复显示所有回复显示星级回复显示得分回复只显示楼主收藏
+ 
+
+
+
+
+
+
+nuoshueihenuoshueihe等级：结帖率：86.36% 
+
+楼主 发表于： 2009-10-28 23:10:50 
+
+最后举出实例和gdb调试详细步骤？
+ 谢谢 
+
+
+
+分享到：
+ 
+
+
+
+
+对我有用[0]丢个板砖[0]引用 | 举报 | 
+
+管理 回复次数：11 
+
+
+
+
+
+
+XyRbjXyRbj等级：结帖率：100% 
+
+#1得分：5 回复于： 2009-10-29 01:26:21 
+
+一个调试示例
+ 
+源程序：tst.c
+ 
+代码:
+ 1 #include
+ 2
+ 3 int func(int n)
+ 4 {
+ 5      int sum=0,i;
+ 6      for(i=0; i
+ 7      {
+ 8           sum+=i;
+ 9      }
+ 10    return sum;
+ 11 }
+ 12
+ 13
+ 14 main()
+ 15 {
+ 16       int i;
+ 17       long result = 0;
+ 18       for(i=1; i<=100; i++)
+ 19      {
+ 20            result += i;
+ 21      }
+ 22
+ 23      printf("result[1-100] = %d 
+ ", result );
+ 24      printf("result[1-250] = %d 
+ ", func(250) );
+ 25 } 
+ 
+
+编译生成执行文件：（Linux下）
+ hchen/test> cc -g tst.c -o tst
+ 
+使用GDB调试：
+ 
+代码:
+ hchen/test> gdb tst <---------- 启动GDB
+ GNU gdb 5.1.1
+ Copyright 2002 Free Software Foundation, Inc.
+ GDB is free software, covered by the GNU General Public License, and you are
+ welcome to change it and/or distribute copies of it under certain conditions.
+ Type "show copying" to see the conditions.
+ There is absolutely no warranty for GDB. Type "show warranty" for details.
+ This GDB was configured as "i386-suse-linux"...
+ (gdb) l <-------------------- l命令相当于list，从第一行开始例出原码。
+ 1 #include
+ 2
+ 3 int func(int n)
+ 4 {
+ 5 int sum=0,i;
+ 6 for(i=0; i
+ 7 {
+ 8 sum+=i;
+ 9 }
+ 10 return sum;
+ (gdb) <-------------------- 直接回车表示，重复上一次命令
+ 11 }
+ 12
+ 13
+ 14 main()
+ 15 {
+ 16 int i;
+ 17 long result = 0;
+ 18 for(i=1; i<=100; i++)
+ 19 {
+ 20 result += i;
+ (gdb) break 16 <-------------------- 设置断点，在源程序第16行处。
+ Breakpoint 1 at 0x8048496: file tst.c, line 16.
+ (gdb) break func <-------------------- 设置断点，在函数func()入口处。
+ Breakpoint 2 at 0x8048456: file tst.c, line 5.
+ (gdb) info break <-------------------- 查看断点信息。
+ Num Type Disp Enb Address What
+ 1 breakpoint keep y 0x08048496 in main at tst.c:16
+ 2 breakpoint keep y 0x08048456 in func at tst.c:5
+ (gdb) r <--------------------- 运行程序，run命令简写
+ Starting program: /home/hchen/test/tst
+ 
+Breakpoint 1, main () at tst.c:17 <---------- 在断点处停住。
+ 17 long result = 0;
+ (gdb) n <--------------------- 单条语句执行，next命令简写。
+ 18 for(i=1; i<=100; i++)
+ (gdb) n
+ 20 result += i;
+ (gdb) n
+ 18 for(i=1; i<=100; i++)
+ (gdb) n
+ 20 result += i;
+ (gdb) c <--------------------- 继续运行程序，continue命令简写。
+ Continuing.
+ result[1-100] = 5050 <----------程序输出。
+ 
+Breakpoint 2, func (n=250) at tst.c:5
+ 5 int sum=0,i;
+ (gdb) n
+ 6 for(i=1; i<=n; i++)
+ (gdb) p i <--------------------- 打印变量i的值，print命令简写。
+ $1 = 134513808
+ (gdb) n
+ 8 sum+=i;
+ (gdb) n
+ 6 for(i=1; i<=n; i++)
+ (gdb) p sum
+ $2 = 1
+ (gdb) n
+ 8 sum+=i;
+ (gdb) p i
+ $3 = 2
+ (gdb) n
+ 6 for(i=1; i<=n; i++)
+ (gdb) p sum
+ $4 = 3
+ (gdb) bt <--------------------- 查看函数堆栈。
+ #0 func (n=250) at tst.c:5
+ #1 0x080484e4 in main () at tst.c:24
+ #2 0x400409ed in __libc_start_main () from /lib/libc.so.6
+ (gdb) finish <--------------------- 退出函数。
+ Run till exit from #0 func (n=250) at tst.c:5
+ 0x080484e4 in main () at tst.c:24
+ 24 printf("result[1-250] = %d 
+ ", func(250) );
+ Value returned is $6 = 31375
+ (gdb) c <--------------------- 继续运行。
+ Continuing.
+ result[1-250] = 31375 <----------程序输出。
+ 
+Program exited with code 027. <--------程序退出，调试结束。
+ (gdb) q <--------------------- 退出gdb。
+ hchen/test> 
+ 
+
+好了，有了以上的感性认识，还是让我们来系统地认识一下gdb吧。
+ 
+使用GDB
+ 
+      一般来说GDB主要调试的是C/C++的程序。要调试C/C++的程序，首先在编译时，我们必须要把调试信息加到可执行文件中。使用编译器（cc/gcc/g++）的 -g 参数可以做到这一点。如：
+ > cc -g hello.c -o hello
+ > g++ -g hello.cpp -o hello
+ 如果没有-g，你将看不见程序的函数名、变量名，所代替的全是运行时的内存地址。当你用-g把调试信息加入之后，并成功编译目标代码以后，让我们来看看如何用gdb来调试他。
+ 
+启动GDB的方法有以下几种：
+ 1、gdb
+ program也就是你的执行文件，一般在当然目录下。
+ 2、gdb core
+ 用gdb同时调试一个运行程序和core文件，core是程序非法执行后core dump后产生的文件。
+ 3、gdb
+ 如果你的程序是一个服务程序，那么你可以指定这个服务程序运行时的进程ID。gdb会自动attach上去，并调试他。program应该在PATH环境变量中搜索得到。
+       GDB启动时，可以加上一些GDB的启动开关，详细的开关可以用gdb -help查看。我在下面只例举一些比较常用的参数：
+ -symbols
+ -s
+ 从指定文件中读取符号表。
+ 
+-se file
+ 从指定文件中读取符号表信息，并把他用在可执行文件中。
+ 
+-core
+ -c
+ 调试时core dump的core文件。
+ 
+-directory
+ -d
+ 加入一个源文件的搜索路径。默认搜索路径是环境变量中PATH所定义的路径。
+ GDB的命令概貌
+       启动gdb后，就你被带入gdb的调试环境中，就可以使用gdb的命令开始调试程序了，gdb的命令可以使用help命令来查看，如下所示：
+ /home/hchen> gdb
+ GNU gdb 5.1.1
+ Copyright 2002 Free Software Foundation, Inc.
+ GDB is free software, covered by the GNU General Public License, and you are
+ welcome to change it and/or distribute copies of it under certain conditions.
+ Type "show copying" to see the conditions.
+ There is absolutely no warranty for GDB. Type "show warranty" for details.
+ This GDB was configured as "i386-suse-linux".
+ (gdb) help
+ List of classes of commands:
+ 
+aliases -- Aliases of other commands
+ breakpoints -- Making program stop at certain points
+ data -- Examining data
+ files -- Specifying and examining files
+ internals -- Maintenance commands
+ obscure -- Obscure features
+ running -- Running the program
+ stack -- Examining the stack
+ status -- Status inquiries
+ support -- Support facilities
+ tracepoints -- Tracing of program execution without stopping the program
+ user-defined -- User-defined commands
+ 
+Type "help" followed by a class name for a list of commands in that class.
+ Type "help" followed by command name for full documentation.
+ Command name abbreviations are allowed if unambiguous.
+ (gdb)
+       gdb的命令很多，gdb把之分成许多个种类。help命令只是例出gdb的命令种类，如果要看种类中的命令，可以使用help 命令，如：help breakpoints，查看设置断点的所有命令。也可以直接help 来查看命令的帮助。
+       gdb中，输入命令时，可以不用打全命令，只用打命令的前几个字符就可以了，当然，命令的前几个字符应该要标志着一个唯一的命令，在Linux下，你可以敲击两次TAB键来补齐命令的全称，如果有重复的，那么gdb会把其例出来。
+ 
+示例一：在进入函数func时，设置一个断点。可以敲入break func，或是直接就是b func
+ (gdb) b func
+ Breakpoint 1 at 0x8048458: file hello.c, line 10.
+ 示例二：敲入b按两次TAB键，你会看到所有b打头的命令：
+ (gdb) b
+ backtrace break bt
+ (gdb)
+ 示例三：只记得函数的前缀，可以这样：
+ (gdb) b make_ <按TAB键>
+ （再按下一次TAB键，你会看到:）
+ make_a_section_from_file make_environ
+ make_abs_section make_function_type
+ make_blockvector make_pointer_type
+ make_cleanup make_reference_type
+ make_command make_symbol_completion_list
+ (gdb) b make_
+ GDB把所有make开头的函数全部例出来给你查看。
+ 示例四：调试C++的程序时，有可以函数名一样。如：
+ (gdb) b 'bubble( M-?
+ bubble(double,double) bubble(int,int)
+ (gdb) b 'bubble(
+ 你可以查看到C++中的所有的重载函数及参数。（注：M-?和“按两次TAB键”是一个意思）
+ 
+要退出gdb时，只用发quit或命令简称q就行了。
+ 
+
+更详细的见下面的网址
+ 本文来自CSDN博客，转载请标明出处：http://blog.csdn.net/guowake/archive/2008/03/21/2202138.aspx
+
+ 
+
+
+
+
+
+
+对我有用[0]丢个板砖[0]引用 | 举报 | 
+
+管理 
+
+
+
+
+
+
+forever_fengforever_feng等级：结帖率：100% 
+
+#2得分：0 回复于： 2009-10-29 09:32:33 
+
+1楼的回答基本正确，详细的命令可以看gdb帮助手册。
+
+ 
+
+
+
+
+
+
+对我有用[0]丢个板砖[0]引用 | 举报 | 
+
+管理 
+
+
+
+
+
+
+eclipse_2eclipse_2等级：结帖率：97.81%
+ 
+
+#3得分：0 回复于： 2009-10-29 10:44:33 
+
+恩 有GDB手册的 到网上搜一下就可以找到 
+
+
+
+
+
+
+
+对我有用[0]丢个板砖[0]引用 | 举报 | 
+
+管理 
+
+
+
+
+
+
+nuoshueihenuoshueihe等级：结帖率：86.36% 
+
+#4得分：0 回复于： 2009-10-29 12:19:35 
+
+GDB我会使用 我是问产生的core怎么去查看 去调试？ 
+
+
+
+
+
+
+
+对我有用[0]丢个板砖[0]引用 | 举报 | 
+
+管理 
+
+
+
+
+
+
+fetagfetag等级：结帖率：90.57%
+
+ 
+
+#5得分：0 回复于： 2009-10-29 13:00:27 
+
+linux下的gdb调core file有点困难，原因是linux下的core文件不像solaris下的，是增强型的core文件，core
+ 
+文件里直接带了调试信息。如果是linux的，要是优化的版本，那只能是大致定位到core的位置，因为涉及到优
+ 
+化。步骤是先编一个debug版本的程序，然后运行gdb调试debug版本的程序，同时加载core file，运行以后敲
+ 
+bt，可以看到core掉时候保存的堆栈信息，然后对照源码，大概定位位置
+ 
+还有一种方法是直接加载core file，然后bt到堆栈信息，然后disassemble函数，通过反汇编代码来对应源代
+ 
+码，这种方法需要的技巧要高一些，至少要熟悉汇编指令才行 
+
+
+
+
+
+
+
+对我有用[0]丢个板砖[0]引用 | 举报 | 
+
+管理 
+
+
+
+
+
+
+nuoshueihenuoshueihe等级：结帖率：86.36% 
+
+#6得分：0 回复于： 2009-10-31 22:33:02 
+
+比如我的程序执行文件名为test
+ 我知道GDB 查看程序错误原因时 格式为gdb 执行文件 core文件
+ 但是我怎么知道core文件的名字是什么呢
+ 上列为gdb test ***
+ ***处的core应该怎样写名字 
+
+
+
+
+
+
+
+对我有用[0]丢个板砖[0]引用 | 举报 | 
+
+管理 
+
+
+
+
+
+
+CaballerooCaballeroo等级：结帖率：100% 
+
+#7得分：2 回复于： 2009-10-31 22:36:14 
+
+
+引用 4 楼 nuoshueihe 的回复:
+GDB我会使用 我是问产生的core怎么去查看 去调试？
+
+ 
+
+core dump 一般是在segmentation fault（段错误）的情况下产生的文件，需要通过ulimit来设置才会得到的。
+ 
+调试的话输入： gdb filename core 
+ 
+filename就是产生core文件的可执行文件
+ 
+
+
+
+
+
+
+对我有用[0]丢个板砖[0]引用 | 举报 | 
+
+管理 
+
+
+
+
+
+
+nuoshueihenuoshueihe等级：结帖率：86.36% 
+
+#8得分：0 回复于： 2009-10-31 22:59:07 
+
+转载自: http://blog.china-pub.com/more.asp?name=uniware&id=35478
+ 
+
+先看看我用的是个什么机器：
+ 
+$ uname -a
+ Linux dev 2.4.21-9.30AXsmp #1 SMP Wed May 26 23:37:09 EDT 2004 i686 i686 i386 GNU/Linux
+ 
+再看看默认的一些参数，注意core file size是个0，程序出错时不会产生core文件了。
+ 
+$ ulimit -a
+ core file size (blocks, -c) 0
+ data seg size (kbytes, -d) unlimited
+ file size (blocks, -f) unlimited
+ max locked memory (kbytes, -l) 4
+ max memory size (kbytes, -m) unlimited
+ open files (-n) 2048
+ pipe size (512 bytes, -p) 8
+ stack size (kbytes, -s) 10240
+ cpu time (seconds, -t) unlimited
+ max user processes (-u) 7168
+ virtual memory (kbytes, -v) unlimited
+ 
+写个简单的程序，看看core文件是不是会被产生。
+ 
+$ more foo.c
+ 
+#include 
+ 
+static void sub(void);
+ 
+int main(void)
+ {
+     sub();
+     return 0;
+ }
+ 
+static void sub(void)
+ {
+     int *p = NULL;
+ 
+    /* derefernce a null pointer, expect core dump. */
+     printf("%d", *p);
+ }
+ 
+$ gcc -Wall -g foo.c
+ $ ./a.out
+ Segmentation fault
+ 
+$ ls -l core.*
+ ls: core.*: No such file or directory
+ 
+没有找到core文件，我们改改ulimit的设置，让它产生。1024是随便取的，要是core文件大于1024个块，就产生不出来了。
+ 
+$ ulimit -c 1024
+ 
+$ ulimit -a
+ core file size (blocks, -c) 1024
+ data seg size (kbytes, -d) unlimited
+ file size (blocks, -f) unlimited
+ max locked memory (kbytes, -l) 4
+ max memory size (kbytes, -m) unlimited
+ open files (-n) 2048
+ pipe size (512 bytes, -p) 8
+ stack size (kbytes, -s) 10240
+ cpu time (seconds, -t) unlimited
+ max user processes (-u) 7168
+ virtual memory (kbytes, -v) unlimited
+ 
+$ ./a.out
+ Segmentation fault (core dumped)
+ $ ls -l core.*
+ -rw------- 1 uniware uniware 53248 Jun 30 17:10 core.9128
+ 
+注意看上述的输出信息，多了个(core dumped)。确实产生了一个core文件，9128是该进程的PID。我们用GDB来看看这个core。
+ 
+$ gdb --core=core.9128
+ GNU gdb Asianux (6.0post-0.20040223.17.1AX)
+ Copyright 2004 Free Software Foundation, Inc.
+ GDB is free software, covered by the GNU General Public License, and you are
+ welcome to change it and/or distribute copies of it under certain conditions.
+ Type "show copying" to see the conditions.
+ There is absolutely no warranty for GDB. Type "show warranty" for details.
+ This GDB was configured as "i386-asianux-linux-gnu".
+ Core was generated by `./a.out'.
+ Program terminated with signal 11, Segmentation fault.
+ #0 0x08048373 in ?? ()
+ (gdb) bt
+ #0 0x08048373 in ?? ()
+ #1 0xbfffd8f8 in ?? ()
+ #2 0x0804839e in ?? ()
+ #3 0xb74cc6b3 in ?? ()
+ #4 0x00000000 in ?? ()
+ 
+此时用bt看不到backtrace，也就是调用堆栈，原来GDB还不知道符号信息在哪里。我们告诉它一下：
+ 
+(gdb) file ./a.out
+ Reading symbols from ./a.out...done.
+ Using host libthread_db library "/lib/tls/libthread_db.so.1".
+ (gdb) bt
+ #0 0x08048373 in sub () at foo.c:17
+ #1 0x08048359 in main () at foo.c:8
+ 
+此时backtrace出来了。
+ 
+(gdb) l
+ 8         sub();
+ 9         return 0;
+ 10     }
+ 11
+ 12     static void sub(void)
+ 13     {
+ 14         int *p = NULL;
+ 15
+ 16         /* derefernce a null pointer, expect core dump. */
+ 17         printf("%d", *p);
+ (gdb)
+
+ 
+
+
+
+
+
+
+对我有用[0]丢个板砖[0]引用 | 举报 | 
+
+管理 
+
+
+
+
+
+
+louyong0571louyong0571等级：结帖率：83.33% 
+
+#9得分：1 回复于： 2009-11-06 16:59:03 
+
+来晚了？散场了 
+
+
+
+
+
+
+
+对我有用[0]丢个板砖[0]引用 | 举报 | 
+
+管理 
+
+
+
+
+
+
+naiveCnaiveC等级：结帖率：93.33% 
+
+#10得分：10 回复于： 2009-11-07 21:18:40 
+
+
+引用 6 楼 nuoshueihe 的回复:
+比如我的程序执行文件名为test
+ 我知道GDB 查看程序错误原因时 格式为gdb 执行文件 core文件
+ 但是我怎么知道core文件的名字是什么呢
+ 上列为gdb test ***
+ ***处的core应该怎样写名字
+
+ 
+先看core文件的名字：
+ ls core.*
+ 比如是core.1122
+ 那么命令为
+ gdb test core.1122
+ 然后gdb会指出在程序运行到哪里崩溃的。 
+
+
+
+
+
+
+对我有用[0]丢个板砖[0]引用 | 举报 | 
+
+管理 
+
+
+
+
+
+
+wangqingshui531wangqingshui531等级：结帖率：92.86% 
+
+#11得分：2 回复于： 2009-11-07 21:27:14 
+
+
+引用 1 楼 xyrbj 的回复:
+一个调试示例
+ 
+源程序：tst.c
+ 
+代码:
+ 1 #include
+ 2
+ 3 int func(int n)
+ 4 {
+ 5      int sum=0,i;
+ 6      for(i=0; i
+ 7      {
+ 8          sum+=i;
+ 9      }
+ 10    return sum;
+ 11 }
+ 12
+ 13
+ 14 main()
+ 15 {
+ 16      int i;
+ 17      long result = 0;
+ 18      for(i=1; i <=100; i++)
+ 19      {
+ 20            result += i;
+ 21      }
+ 22
+ 23      printf("result[1-100] = %d
+ ", result );
+ 24      printf("result[1-250] = %d
+ ", func(250) );
+ 25 }
+ 
+
+编译生成执行文件：（Linux下）
+ hchen/test> cc -g tst.c -o tst
+ 
+使用GDB调试：
+ 
+代码:
+ hchen/test> gdb tst <---------- 启动GDB
+ GNU gdb 5.1.1
+ Copyright 2002 Free Software Foundation, Inc.
+ GDB is free software, covered by the GNU General Public License, and you are
+ welcome to change it and/or distribute copies of it under certain conditions.
+ Type "show copying" to see the conditions.
+ There is absolutely no warranty for GDB. Type "show warranty" for details.
+ This GDB was configured as "i386-suse-linux"...
+ (gdb) l <-------------------- l命令相当于list，从第一行开始例出原码。
+ 1 #include
+ 2
+ 3 int func(int n)
+ 4 {
+ 5 int sum=0,i;
+ 6 for(i=0; i
+ 7 {
+ 8 sum+=i;
+ 9 }
+ 10 return sum;
+ (gdb) <-------------------- 直接回车表示，重复上一次命令
+ 11 }
+ 12
+ 13
+ 14 main()
+ 15 {
+ 16 int i;
+ 17 long result = 0;
+ 18 for(i=1; i <=100; i++)
+ 19 {
+ 20 result += i;
+ (gdb) break 16 <-------------------- 设置断点，在源程序第16行处。
+ Breakpoint 1 at 0x8048496: file tst.c, line 16.
+ (gdb) break func <-------------------- 设置断点，在函数func()入口处。
+ Breakpoint 2 at 0x8048456: file tst.c, line 5.
+ (gdb) info break <-------------------- 查看断点信息。
+ Num Type Disp Enb Address What
+ 1 breakpoint keep y 0x08048496 in main at tst.c:16
+ 2 breakpoint keep y 0x08048456 in func at tst.c:5
+ (gdb) r <--------------------- 运行程序，run命令简写
+ Starting program: /home/hchen/test/tst
+ 
+Breakpoint 1, main () at tst.c:17 <---------- 在断点处停住。
+ 17 long result = 0;
+ (gdb) n <--------------------- 单条语句执行，next命令简写。
+ 18 for(i=1; i <=100; i++)
+ (gdb) n
+ 20 result += i;
+ (gdb) n
+ 18 for(i=1; i <=100; i++)
+ (gdb) n
+ 20 result += i;
+ (gdb) c <--------------------- 继续运行程序，continue命令简写。
+ Continuing.
+ result[1-100] = 5050 <----------程序输出。
+ 
+Breakpoint 2, func (n=250) at tst.c:5
+ 5 int sum=0,i;
+ (gdb) n
+ 6 for(i=1; i <=n; i++)
+ (gdb) p i <--------------------- 打印变量i的值，print命令简写。
+ $1 = 134513808
+ (gdb) n
+ 8 sum+=i;
+ (gdb) n
+ 6 for(i=1; i <=n; i++)
+ (gdb) p sum
+ $2 = 1
+ (gdb) n
+ 8 sum+=i;
+ (gdb) p i
+ $3 = 2
+ (gdb) n
+ 6 for(i=1; i <=n; i++)
+ (gdb) p sum
+ $4 = 3
+ (gdb) bt <--------------------- 查看函数堆栈。
+ #0 func (n=250) at tst.c:5
+ #1 0x080484e4 in main () at tst.c:24
+ #2 0x400409ed in __libc_start_main () from /lib/libc.so.6
+ (gdb) finish <--------------------- 退出函数。
+ Run till exit from #0 func (n=250) at tst.c:5
+ 0x080484e4 in main () at tst.c:24
+ 24 printf("result[1-250] = %d
+ ", func(250) );
+ Value returned is $6 = 31375
+ (gdb) c <--------------------- 继续运行。
+ Continuing.
+ result[1-250] = 31375 <----------程序输出。
+ 
+Program exited with code 027. <--------程序退出，调试结束。
+ (gdb) q <--------------------- 退出gdb。
+ hchen/test>
+ 
+
+好了，有了以上的感性认识，还是让我们来系统地认识一下gdb吧。
+ 
+使用GDB
+ 
+      一般来说GDB主要调试的是C/C++的程序。要调试C/C++的程序，首先在编译时，我们必须要把调试信息加到可执行文件中。使用编译器（cc/gcc/g++）的 -g 参数可以做到这一点。如：
+ > cc -g hello.c -o hello
+ > g++ -g hello.cpp -o hello
+ 如果没有-g，你将看不见程序的函数名、变量名，所代替的全是运行时的内存地址。当你用-g把调试信息加入之后，并成功编译目标代码以后，让我们来看看如何用gdb来调试他。
+ 
+启动GDB的方法有以下几种：
+ 1、gdb
+ program也就是你的执行文件，一般在当然目录下。
+ 2、gdb core
+ 用gdb同时调试一个运行程序和core文件，core是程序非法执行后core dump后产生的文件。
+ 3、gdb
+ 如果你的程序是一个服务程序，那么你可以指定这个服务程序运行时的进程ID。gdb会自动attach上去，并调试他。program应该在PATH环境变量中搜索得到。
+       GDB启动时，可以加上一些GDB的启动开关，详细的开关可以用gdb -help查看。我在下面只例举一些比较常用的参数：
+ -symbols
+ -s
+ 从指定文件中读取符号表。
+ 
+-se file
+ 从指定文件中读取符号表信息，并把他用在可执行文件中。
+ 
+-core
+ -c
+ 调试时core dump的core文件。
+ 
+-directory
+ -d
+ 加入一个源文件的搜索路径。默认搜索路径是环境变量中PATH所定义的路径。
+ GDB的命令概貌
+       启动gdb后，就你被带入gdb的调试环境中，就可以使用gdb的命令开始调试程序了，gdb的命令可以使用help命令来查看，如下所示：
+ /home/hchen> gdb
+ GNU gdb 5.1.1
+ Copyright 2002 Free Software Foundation, Inc.
+ GDB is free software, covered by the GNU General Public License, and you are
+ welcome to change it and/or distribute copies of it under certain conditions.
+ Type "show copying" to see the conditions.
+ There is absolutely no warranty for GDB. Type "show warranty" for details.
+ This GDB was configured as "i386-suse-linux".
+ (gdb) help
+ List of classes of commands:
+ 
+aliases -- Aliases of other commands
+ breakpoints -- Making program stop at certain points
+ data -- Examining data
+ files -- Specifying and examining files
+ internals -- Maintenance commands
+ obscure -- Obscure features
+ running -- Running the program
+ stack -- Examining the stack
+ status -- Status inquiries
+ support -- Support facilities
+ tracepoints -- Tracing of program execution without stopping the program
+ user-defined -- User-defined commands
+ 
+Type "help" followed by a class name for a list of commands in that class.
+ Type "help" followed by command name for full documentation.
+ Command name abbreviations are allowed if unambiguous.
+ (gdb)
+       gdb的命令很多，gdb把之分成许多个种类。help命令只是例出gdb的命令种类，如果要看种类中的命令，可以使用help 命令，如：help breakpoints，查看设置断点的所有命令。也可以直接help 来查看命令的帮助。
+       gdb中，输入命令时，可以不用打全命令，只用打命令的前几个字符就可以了，当然，命令的前几个字符应该要标志着一个唯一的命令，在Linux下，你可以敲击两次TAB键来补齐命令的全称，如果有重复的，那么gdb会把其例出来。
+ 
+示例一：在进入函数func时，设置一个断点。可以敲入break func，或是直接就是b func
+ (gdb) b func
+ Breakpoint 1 at 0x8048458: file hello.c, line 10.
+ 示例二：敲入b按两次TAB键，你会看到所有b打头的命令：
+ (gdb) b
+ backtrace break bt
+ (gdb)
+ 示例三：只记得函数的前缀，可以这样：
+ (gdb) b make_ <按TAB键>
+ （再按下一次TAB键，你会看到:）
+ make_a_section_from_file make_environ
+ make_abs_section make_function_type
+ make_blockvector make_pointer_type
+ make_cleanup make_reference_type
+ make_command make_symbol_completion_list
+ (gdb) b make_
+ GDB把所有make开头的函数全部例出来给你查看。
+ 示例四：调试C++的程序时，有可以函数名一样。如：
+ (gdb) b 'bubble( M-?
+ bubble(double,double) bubble(int,int)
+ (gdb) b 'bubble(
+ 你可以查看到C++中的所有的重载函数及参数。（注：M-?和“按两次TAB键”是一个意思）
+ 
+要退出gdb时，只用发quit或命令简称q就行了。
+ 
+
+更详细的见下面的网址
+ 本文来自CSDN博客，转载请标明出处：http://blog.csdn.net/guowake/archive/2008/03/21/2202138.aspx
+
+ 说的很详细。
+ 
+
+gdb  程序名  core文件
+ 
+然后执行
+ where
+ 
+会告诉你在哪个文件哪行出错的。 
+
+
+
+
+
+
+对我有用[0]丢个板砖[0]引用 | 举报 | 
+
+管理 
+
+
+
+•管理菜单
+
+
+
+
+
+
+
+
+•结帖
+•发帖
+•回复
+ 
+
+•传递正能量 赢微软鼠标
+•台湾程序员游戏开发经历
+•陈勇- 敏捷开发现状及发展之路
+•分享你的发现 赢下载积分
+
+
+
+
+关注CSDN论坛微博送可用分
+
+CSDN论坛微博主要发布程序员职场经验,生活指南，IT八卦等内容，关注就有积分相送噢！
+
+
+本帖子已过去太久远了，不再提供回复功能。
+ 
+
+
+
+

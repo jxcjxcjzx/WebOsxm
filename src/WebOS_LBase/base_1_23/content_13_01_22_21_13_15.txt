@@ -1,0 +1,371 @@
+
+首页资讯精华论坛问答博客专栏群组更多 ▼
+
+ 
+您还未登录 !登录注册
+
+
+
+
+gznofeng
+
+
+博客
+微博
+相册
+收藏
+留言
+关于我
+
+
+
+
+.
+
+
+
+
+如何使用Lucene的中文分词搜索
+博客分类： java
+ 
+lucene中文分词lucene数据库应用 .
+
+以下文章主要介绍的是如何进行Lucene进行中文分词和全文搜索 
+
+
+
+Java代码  
+1.package com.sf.module.extension.lucene;  
+2.  
+3.import java.io.File;  
+4.import java.io.Serializable;  
+5.import java.io.StringReader;  
+6.import java.util.ArrayList;  
+7.import java.util.Collection;  
+8.import java.util.HashSet;  
+9.import java.util.Iterator;  
+10.import java.util.List;  
+11.import java.util.Set;  
+12.  
+13.import org.apache.lucene.analysis.Analyzer;  
+14.import org.apache.lucene.analysis.LimitTokenCountAnalyzer;  
+15.import org.apache.lucene.analysis.TokenStream;  
+16.import org.apache.lucene.document.Document;  
+17.import org.apache.lucene.document.Field;  
+18.import org.apache.lucene.index.IndexReader;  
+19.import org.apache.lucene.index.IndexWriter;  
+20.import org.apache.lucene.index.IndexWriterConfig;  
+21.import org.apache.lucene.index.LogMergePolicy;  
+22.import org.apache.lucene.index.Term;  
+23.import org.apache.lucene.search.IndexSearcher;  
+24.import org.apache.lucene.search.Query;  
+25.import org.apache.lucene.search.ScoreDoc;  
+26.import org.apache.lucene.search.TopDocs;  
+27.import org.apache.lucene.store.Directory;  
+28.import org.apache.lucene.store.FSDirectory;  
+29.import org.apache.lucene.util.AttributeImpl;  
+30.import org.apache.lucene.util.Version;  
+31.import org.wltea.analyzer.IKSegmentation;  
+32.import org.wltea.analyzer.Lexeme;  
+33.import org.wltea.analyzer.dic.Dictionary;  
+34.import org.wltea.analyzer.lucene.IKAnalyzer;  
+35.import org.wltea.analyzer.lucene.IKQueryParser;  
+36.import org.wltea.analyzer.lucene.IKSimilarity;  
+37.  
+38.public class LuceneUtils {  
+39.  
+40.    public static boolean add(String indexPath, String lucenceKey, LuceneDB value) {  
+41.        Analyzer analyzer = new IKAnalyzer();  
+42.        try {  
+43.            File file = new File(indexPath);  
+44.            Directory dir = FSDirectory.open(file);  
+45.            String lucene_pk = value.getDbtable() + "_" + value.getPk();  
+46.            IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_31, analyzer);  
+47.            // delete exists index  
+48.            try {  
+49.                IndexReader reader = IndexReader.open(dir, false);  
+50.                Term pkTerm = new Term("lucene_pk", lucene_pk);  
+51.                reader.deleteDocuments(pkTerm);  
+52.                reader.close();  
+53.            } catch (Exception e) {  
+54.                // fix file not exist  
+55.            }  
+56.            // create index  
+57.            IndexWriter writer = new IndexWriter(dir, config);  
+58.            writer.setMergeFactor(100);  
+59.            writer.setMaxBufferedDocs(100);  
+60.            Document doc = new Document();  
+61.            Field content = new Field(lucenceKey, value.getConetnt(), Field.Store.YES, Field.Index.ANALYZED);  
+62.            doc.add(content);  
+63.            doc.add(new Field("pk", String.valueOf(value.getPk()), Field.Store.YES, Field.Index.NO));  
+64.            doc.add(new Field("dbtable", String.valueOf(value.getDbtable()), Field.Store.YES, Field.Index.NO));  
+65.            doc.add(new Field("lucene_pk", lucene_pk, Field.Store.YES, Field.Index.NOT_ANALYZED));  
+66.            doc.setBoost(value.getOrderby());  
+67.            writer.addDocument(doc);  
+68.            writer.close();  
+69.        } catch (Exception e) {  
+70.            e.printStackTrace();  
+71.        }  
+72.        return true;  
+73.    }  
+74.  
+75.    public static Set<LuceneDB> search(String indexPath, String luceneKey, String word, int maxcount) {  
+76.        Set<LuceneDB> rst = new HashSet<LuceneDB>();  
+77.        try {  
+78.            StringReader reader = new StringReader(word);  
+79.            File file = new File(indexPath);  
+80.            Directory dir = FSDirectory.open(file);  
+81.            IndexSearcher searcher = new IndexSearcher(dir);  
+82.            Query query = IKQueryParser.parse(luceneKey, word);  
+83.            TopDocs topDocs = searcher.search(query, maxcount);  
+84.            ScoreDoc[] scoreDocs = topDocs.scoreDocs;  
+85.            for (int i = 0; i < scoreDocs.length; i++) {  
+86.                ScoreDoc scoreDoc = scoreDocs[i];  
+87.                Document targetDoc = searcher.doc(scoreDoc.doc);  
+88.                LuceneDB db = new LuceneDB();  
+89.                db.fromDocument(targetDoc, luceneKey);  
+90.                /*System.out.println(db.getConetnt() + ":"); 
+91.                System.out.println(scoreDoc.score); 
+92.                System.out.println(searcher.explain(query, scoreDoc.doc)); 
+93.                System.out.println("----------------------");*/  
+94.                rst.add(db);  
+95.            }  
+96.        } catch (Exception e) {  
+97.            e.printStackTrace();  
+98.        }  
+99.        return rst;  
+100.    }  
+101.      
+102.    public static void addIKAnalyzerWord(String... words){  
+103.        Collection<String> datas = new HashSet<String>();     
+104.        for(String word:words){  
+105.            datas.add(word);  
+106.        }  
+107.        Dictionary.loadExtendWords(datas);  
+108.    }  
+109.  
+110.    public static void main(String[] args) {  
+111.        addIKAnalyzerWord("咨","棕");       
+112.        LuceneDB value = new LuceneDB();  
+113.        value.setConetnt("你好，请问我的棕子咨询的价格是什么");  
+114.        value.setPk(1L);  
+115.        value.setDbtable("records");  
+116.        value.setOrderby(0.0f);  
+117.  
+118.        LuceneDB userValue = new LuceneDB();  
+119.        userValue.setConetnt("你好，请问我的棕的上来价格是咨什么");  
+120.        userValue.setPk(2L);  
+121.        userValue.setDbtable("users");  
+122.        userValue.setOrderby(0.0f);  
+123.  
+124.        LuceneDB userValue2 = new LuceneDB();  
+125.        userValue2.setConetnt("买棕了要买的上来的方式咨询");  
+126.        userValue2.setPk(3L);  
+127.        userValue2.setDbtable("users");  
+128.        userValue2.setOrderby(0.0f);  
+129.  
+130.        LuceneUtils.add("d://index2", "lucene", value);  
+131.        LuceneUtils.add("d://index2", "lucene", userValue);  
+132.        LuceneUtils.add("d://index2", "lucene", userValue2);  
+133.  
+134.        Set<LuceneDB> rst = LuceneUtils.search("d://index2", "lucene", "咨", 50);  
+135.        for (LuceneDB luceneDB : rst) {  
+136.            System.out.println("id:" + luceneDB.getPk() + "," + "table:" + luceneDB.getDbtable() + "," + luceneDB.getConetnt());  
+137.        }  
+138.          
+139.        System.out.println("-------------------------------------");  
+140.          
+141.        Set<LuceneDB> rst2 = LuceneUtils.search("d://index2", "lucene", "棕", 50);  
+142.        for (LuceneDB luceneDB : rst2) {  
+143.            System.out.println("id:" + luceneDB.getPk() + "," + "table:" + luceneDB.getDbtable() + "," + luceneDB.getConetnt());  
+144.        }  
+145.    }  
+146.  
+147.}  
+ 
+
+
+
+
+Java代码  
+1.package com.sf.module.extension.lucene;  
+2.  
+3.import java.io.Serializable;  
+4.  
+5.import org.apache.lucene.document.Document;  
+6.  
+7.public class LuceneDB {  
+8.    private Serializable pk;  
+9.    private String dbtable;  
+10.    private String conetnt;  
+11.    private float orderby;  
+12.    public float getOrderby() {  
+13.        return orderby;  
+14.    }  
+15.    public void setOrderby(float orderby) {  
+16.        this.orderby = orderby;  
+17.    }  
+18.    public Serializable getPk() {  
+19.        return pk;  
+20.    }  
+21.    public void setPk(Serializable pk) {  
+22.        this.pk = pk;  
+23.    }  
+24.    public String getConetnt() {  
+25.        return conetnt;  
+26.    }  
+27.    public void setConetnt(String conetnt) {  
+28.        this.conetnt = conetnt;  
+29.    }  
+30.    public String getDbtable() {  
+31.        return dbtable;  
+32.    }  
+33.    public void setDbtable(String dbtable) {  
+34.        this.dbtable = dbtable;  
+35.    }  
+36.      
+37.    public LuceneDB fromDocument(Document doc,String luceneKey){  
+38.        this.pk=doc.get("pk");  
+39.        this.conetnt=doc.get(luceneKey);  
+40.        this.dbtable=doc.get("dbtable");  
+41.        return this;  
+42.    }  
+43.      
+44.    @Override  
+45.    public boolean equals(Object target) {  
+46.        LuceneDB obj=(LuceneDB)target;  
+47.        if(obj.getPk().equals(this.getPk())  
+48.                && obj.getDbtable().equals(this.getDbtable())){  
+49.            return true;  
+50.        }             
+51.        return false;  
+52.    }  
+53.      
+54.    @Override  
+55.    public int hashCode() {  
+56.        return (this.getPk()+this.getDbtable()).hashCode();  
+57.    }  
+58.}  
+
+source.rar (2.1 KB)
+下载次数: 60
+
+
+分享到： 
+.
+
+Struts I18 TAG的封装| 如何使用SWING LOOK AND FEEL
+
+2011-07-21 16:26
+浏览 1678
+评论(1)
+分类:行业应用
+相关推荐
+
+
+评论
+
+
+1 楼 liuwang126 2011-11-24   
+
+Connected to the target VM, address: '127.0.0.1:1940', transport: 'socket' 
+Exception in thread "main" java.lang.ExceptionInInitializerError 
+at com.study.lucene.ex1.LuceneUtils.addIKAnalyzerWord(LuceneUtils.java:107) 
+at com.study.lucene.ex1.LuceneUtils.main(LuceneUtils.java:111) 
+Caused by: java.lang.RuntimeException: Main Dictionary not found!!! 
+at org.wltea.analyzer.dic.Dictionary.loadMainDict(Dictionary.java:89) 
+at org.wltea.analyzer.dic.Dictionary.<init>(Dictionary.java:72) 
+at org.wltea.analyzer.dic.Dictionary.<clinit>(Dictionary.java:42) 
+... 2 more 
+Disconnected from the target VM, address: '127.0.0.1:1940', transport: 'socket'
+ 
+
+发表评论
+
+ 您还没有登录,请您登录后再发表评论 
+
+
+
+
+
+
+gznofeng
+ 
+浏览: 305349 次
+性别: 
+来自: 广州
+
+
+
+最近访客 更多访客>>
+
+
+
+
+dylinshi126
+
+
+
+
+jiawenjun1126
+
+
+
+
+dd9421uu
+
+
+
+
+weiqiulai
+.
+
+文章分类
+全部博客 (183)
+struts (16)
+spring (8)
+hibernate (14)
+jsp各方面技术 (43)
+ajax (25)
+sql (20)
+理论与感想 (2)
+Asp.net (8)
+其他 (16)
+flex (14)
+java (2)
+swing (1)
+ios (3)
+
+
+社区版块
+我的资讯 (0)
+我的论坛 (18) 
+我的问答 (2)
+
+
+存档分类
+2013-01 (1)
+2012-12 (1)
+2012-11 (2)
+更多存档...
+
+
+最新评论
+yangyicheng12： ...
+postgreSql的树节点查询所有子节点
+wzhsh90： 帅哥你好，你写的代码还可以哟，学得了许多东西，感谢。不过你上面 ...
+jQuery二级联动(非动态加载)
+HuKeng1： HuKeng1 写道楼主，我最近也在用ext + struts ...
+Struts2整合Ext上传文件注意事项
+HuKeng1： 楼主，我最近也在用ext + struts2做的文件上传，但是 ...
+Struts2整合Ext上传文件注意事项
+猪猪Be_Happy： 求JSP等全套，楼主懂得！！
+Struts2 use Json
+
+.
+
+
+--------------------------------------------------------------------------------
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ] 
+.

@@ -1,0 +1,263 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+zhao2271394的专栏
+
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年1月当选微软MVP名单揭晓！    智能开发框架 JEECG 作者张代浩专访
+ 2012CSDN博客之星火热出炉！      2013年全国百所高校巡讲讲师招募 
+
+
+
+使用commons email发送邮件 
+.
+ 分类： javamail2009-01-22 09:46738人阅读评论(0)收藏举报
+
+ 
+在项目中，一直来是使用spring对java mail的封装，来发邮件的。虽然spring的封装已经大大简化了发送邮件的复杂度，但是今天要介绍下apache commons email组件，对java mail进行了更好的封装，对于客户端的调用，已经是相当地方便了。
+ 
+commons-email maven库地址：
+ <dependency>
+   <groupId>commons-email</groupId>
+   <artifactId>commons-email</artifactId>
+   <version>1.1</version>
+ </dependency>
+ 
+commons-email实现是相当的简单，下面介绍下几个重要的类实现
+ 
+1）Email
+ 一个抽象类，对java mail进行了封装，提供主要接口如下
+ setHostName(String)：设置smtp服务器地址
+ setSmtpPort(int)：设置smtp服务器端
+ setAuthenticator(Authenticator)：设置授权帐号和密码
+ setSSL(boolean ssl)：是否采用ssl方式连接服务
+ 
+setMailSession(Session)：设置与服务器连接session
+ 
+setCharset(String)：设置邮件主体编码
+ 
+setFrom(String)：设置发件人地址
+ addTo(String)：添加收件人地址
+ addCc(String)：添加抄送人地址
+ addBcc(String)：添加密送人地址
+ addReplyTo(String)：添加回复人地址
+ 
+setSubject(String)：设置邮件标题
+ setMsg(String)：设置邮件主体
+ 
+send()：发送邮件
+ 
+2）SimpleEmail
+ 继承Email，实现了setMsg(String msg)方法，发送文本格式邮件，调用非常简单
+ 
+SimpleEmail email = new SimpleEmail();
+ email.setSSL(true);
+ email.setSmtpPort(SMTP_PORT);
+ email.setHostName(SMTP_SERVER);
+ email.setAuthentication(USER_NAME, PASSWORD);
+ email.addTo("**@**.com");
+ email.setFrom("**@**.com");
+ email.setSubject("subject");
+ email.setCharset("GBK");
+ email.setMsg("message");
+ email.send();
+ 
+
+3）MultiPartEmail
+ 继承Email，多了一个添加附件的方法：
+ attach(URL, String, String)
+ attach(URL, String, String, String)
+ attach(DataSource, String, String)
+ attach(DataSource, String, String, String)
+ attach(EmailAttachment)
+ 
+调用方式如下：
+ 
+MultiPartEmail email = new MultiPartEmail();
+ email.setSSL(true);
+ email.setSmtpPort(SMTP_PORT);
+ email.setHostName(SMTP_SERVER);
+ email.setAuthentication(USER_NAME, PASSWORD);
+ email.addTo("**@**.com");
+ email.setFrom("**@**.com");
+ email.setSubject("subject");
+ email.setCharset("GBK");
+ email.setMsg("message");
+ email.attach("file:///***.pom.xml", "pom.xml", "pom"); 
+ email.send();
+ 
+
+
+
+4）HtmlEmail
+ 继承MultiPartEmail，与SimpleEmail相比，多了一个setHtmlMsg(String msg)方法，用户设置html格式内容，调用方式同SimpleEmail几乎一致
+ 
+HtmlEmail email = new HtmlEmail();
+ email.setSSL(true);
+ email.setSmtpPort(SMTP_PORT);
+ email.setHostName(SMTP_SERVER);
+ email.setAuthentication(USER_NAME, PASSWORD);
+ email.addTo("**@**.com");
+ email.setFrom("**@**.com");
+ email.setSubject("subject");
+ email.setCharset("GBK");
+ email.setHtmlMsg("<html><body><b>this is email message!</body></html>");
+ email.send();
+ 
+
+当然，commons email只提供了对smtp协议的封装，不包括对pop协议的封装，所以只能发送邮件，不能接受邮件。
+ 
+分享到： 
+
+上一篇：mail
+下一篇：完美解决Weblogic92和FCKeditor的整合过程中出现的几个问题
+ . 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+zhao2271394
+ 
+
+
+
+访问：8457次
+积分：341分
+排名：千里之外
+.原创：23篇
+转载：2篇
+译文：0篇
+评论：9条
+. 
+文章搜索
+
+. 
+文章分类FCKeditor(1)
+flex(3)
+hibernate(0)
+java(2)
+javamail(3)
+jbpm(1)
+mysql(1)
+quartz job(1)
+spring(0)
+sqlserver(0)
+struts(0)
+weblogic(2)
+xml(1)
+ 
+文章存档
+2009年11月(2).
+2009年09月(3).
+2009年07月(2).
+2009年06月(1).
+2009年04月(2).
+.
+.
+.
+
+展开.
+ 
+阅读排行struts org.apache.struts.action.RequestProcessor processMapping 严重: Invalid path was requested 错误解决(1606)
+Flex Java 上传 下载 组件(1380)
+使用commons email发送邮件(738)
+hibernate的session.createQuery()方法查不到中文数据的解决方法(609)
+获取绝对路径 去除路径的% 空格问题(558)
+SmartUpload上传 提取表单(350)
+完美解决Weblogic92和FCKeditor的整合过程中出现的几个问题(212)
+出的错误(205)
+SmartUpload上传(191)
+ JSP页面乱码分析及解决收藏(188)
+ 
+评论排行struts org.apache.struts.action.RequestProcessor processMapping 严重: Invalid path was requested 错误解决(5)
+Flex Java 上传 下载 组件(3)
+完美解决Weblogic92和FCKeditor的整合过程中出现的几个问题(1)
+Struts下运用validator框架进行表单验证的常用方法(0)
+出的错误(0)
+哈哈(0)
+获取绝对路径 去除路径的% 空格问题(0)
+ Quartz CronTrigger最完整配置说明(0)
+图形验证码(0)
+通过Web Service调用Google SOAP Search API(0)
+ 
+推荐文章 
+最新评论 struts org.apache.struts.action.RequestProcessor processMapping 严重: Invalid path was requested 错误解决
+yan5567: 没有解决 
+
+struts org.apache.struts.action.RequestProcessor processMapping 严重: Invalid path was requested 错误解决
+zqlylm: 
+
+struts org.apache.struts.action.RequestProcessor processMapping 严重: Invalid path was requested 错误解决
+icestar001: 不行啊！！！ 
+
+完美解决Weblogic92和FCKeditor的整合过程中出现的几个问题
+xzwweiyi: 先前你写的关于fckeditor的文章在哪里呢？？最好能给一个在weblogic下能运行的完整包。谢... 
+
+Flex Java 上传 下载 组件
+wangrui2009ai: 那个组件那有下载！ 
+
+Flex Java 上传 下载 组件
+wangrui2009ai: 有那个组件吗？那有下载！ 
+
+Flex Java 上传 下载 组件
+xuhuanchao: 如何用servlet动态指定文件名下载呢？ 
+
+struts org.apache.struts.action.RequestProcessor processMapping 严重: Invalid path was requested 错误解决
+suifeng6510: 问题解决了 厉害 谢谢 
+
+struts org.apache.struts.action.RequestProcessor processMapping 严重: Invalid path was requested 错误解决
+swigun: 初学struts，这问题困扰了一天，谢谢 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

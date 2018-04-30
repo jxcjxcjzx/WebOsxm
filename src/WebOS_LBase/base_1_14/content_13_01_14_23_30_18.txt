@@ -1,0 +1,232 @@
+下载2频道 我的主页帐号设置退出秀才　二级|私信(1)|我的百科我的贡献草稿箱我的任务为我推荐|百度首页 新闻网页贴吧知道音乐图片视频地图百科文库
+    帮助 首页 自然 文化 地理 历史 生活 社会 艺术 人物 经济 科技 体育 图片 数字博物馆 核心用户 百科商城 百科数字博物馆突破30家
+Hadoop
+求助编辑百科名片  Hadoop示意图一个分布式系统基础架构，由Apache基金会开发。用户可以在不了解分布式底层细节的情况下，开发分布式程序。充分利用集群的威力高速运算和存储。Hadoop实现了一个分布式文件系统（Hadoop Distributed File System），简称HDFS。HDFS有着高容错性的特点，并且设计用来部署在低廉的（low-cost）硬件上。而且它提供高传输率（high throughput）来访问应用程序的数据，适合那些有着超大数据集（large data set）的应用程序。HDFS放宽了（relax）POSIX的要求（requirements）这样可以流的形式访问（streaming access）文件系统中的数据。 
+
+
+目录
+
+Hadoop名字的起源
+hadoop起源
+诸多优点
+hadoop架构HDFS
+NameNode
+DataNode
+文件操作
+Linux 集群
+集群系统
+应用程序
+开源实现
+Hadoop主要子项目
+Hadoop研究
+Hadoop大事记
+EasyHadoop开源社区
+Hadoop认证
+展开Hadoop名字的起源 
+hadoop起源 
+诸多优点 
+hadoop架构 HDFS 
+NameNode 
+DataNode 
+文件操作 
+Linux 集群
+集群系统 
+应用程序 
+开源实现 
+Hadoop主要子项目 
+Hadoop研究 
+Hadoop大事记 
+EasyHadoop开源社区 
+Hadoop认证
+展开编辑本段Hadoop名字的起源Hadoop[1]这个名字不是一个缩写，它是一个虚构的名字。该项目的创建者，Doug Cutting如此解释Hadoop的得名：“这个名字是我孩子给一个棕黄色的大象样子的填充玩具命名的。我的命名标准就是简短，容易发音和拼写，没有太多的意义，并且不会被用于别处。小孩子是这方面的高手。”[Hadoop: The Definitive Guide]
+编辑本段hadoop起源Hadoop 由 Apache Software Foundation 公司于 2005 年秋天作为 Lucene的子  hadoop logo
+项目 Nutch的一部分正式引入。它受到最先由 Google Lab 开发的 Map/Reduce 和 Google File System(GFS) 的启发。2006 年 3 月份，Map/Reduce 和 Nutch Distributed File System (NDFS) 分别被纳入称为 Hadoop 的项目中。
+Hadoop 是最受欢迎的在 Internet 上对搜索关键字进行内容分类的工具，但它也可以解决许多要求极大伸缩性的问题。例如，如果您要 grep 一个 10TB 的巨型文件，会出现什么情况？在传统的系统上，这将需要很长的时间。但是 Hadoop 在设计时就考虑到这些问题，采用并行执行机制，因此能大大提高效率。
+编辑本段诸多优点Hadoop 是一个能够对大量数据进行分布式处理的软件框架。但是 Hadoop 是以一种可靠、高效、可伸缩的方式进行处理的。Hadoop 是可靠的，因为它假设计算元素和存储会失败，因此它维护多个工作数据副本，确保能够针对失败的节点重新分布处理。Hadoop 是高效的，因为它以并行的方式工作，通过并行处理加快处理速度。Hadoop 还是可伸缩的，能够处理 PB 级数据。此外，Hadoop 依赖于社区服务器，因此它的成本比较低，任何人都可以使用。
+Hadoop是一个能够让用户轻松架构和使用的分布式计算平台。用户可以轻松地在Hadoop上开发和运行处理海量数据的应用程序。它主要有以下几个优点：
+⒈高可靠性。Hadoop按位存储和处理数据的能力值得人们信赖。
+⒉高扩展性。Hadoop是在可用的计算机集簇间分配数据并完成计算任务的，这些集簇可以方便地扩展到数以千计的节点中。
+⒊高效性。Hadoop能够在节点之间动态地移动数据，并保证各个节点的动态平衡，因此处理速度非常快。
+⒋高容错性。Hadoop能够自动保存数据的多个副本，并且能够自动将失败的任务重新分配。
+Hadoop带有用 Java 语言编写的框架，因此运行在 Linux 生产平台上是非常理想的。Hadoop 上的应用程序也可以使用其他语言编写，比如 C++。
+编辑本段hadoop架构Hadoop 有许多元素构成。其最底部是 Hadoop Distributed File Syst  Hadoop 集群的简化视图
+em[2]（HDFS），它存储 Hadoop 集群中所有存储节点上的文件。HDFS（对于本文）的上一层是 MapReduce 引擎，该引擎由 JobTrackers 和 TaskTrackers 组成。
+HDFS
+对外部客户机而言，HDFS 就像一个传统的分级文件系统。可以创建、删除、移动或重命名文件，等等。但是 HDFS 的架构是基于一组特定的节点构建的（参见图 1），这是由它自身的特点决定的。这些节点包括 NameNode（仅一个），它在 HDFS 内部提供元数据服务；DataNode，它为 HDFS 提供存储块。由于仅存在一个 NameNode，因此这是 HDFS 的一个缺点（单点失败）。
+存储在 HDFS 中的文件被分成块，然后将这些块复制到多个计算机中（DataNode）。这与传统的 RAID 架构大不相同。块的大小（通常为 64MB）和复制的块数量在创建文件时由客户机决定。NameNode 可以控制所有文件操作。HDFS 内部的所有通信都基于标准的 TCP/IP 协议。
+NameNode
+NameNode 是一个通常在 HDFS 实例中的单独机器上运行的软件。它负责管理文件系统名称空间和控制外部客户机的访问。NameNode 决定是否将文件映射到 DataNode 上的复制块上。对于最常见的 3 个复制块，第一个复制块存储在同一机架的不同节点上，最后一个复制块存储在不同机架的某个节点上。注意，这里需要您了解集群架构。
+实际的 I/O 事务并没有经过 NameNode，只有表示 DataNode 和块的文件映射的元数据经过 NameNode。当外部客户机发送请求要求创建文件时，NameNode 会以块标识和该块的第一个副本的 DataNode IP 地址作为响应。这个 NameNode 还会通知其他将要接收该块的副本的 DataNode。
+NameNode 在一个称为 FsImage 的文件中存储所有关于文件系统名称空间的信息。这个文件和一个包含所有事务的记录文件（这里是 EditLog）将存储在 NameNode 的本地文件系统上。FsImage 和 EditLog 文件也需要复制副本，以防文件损坏或 NameNode 系统丢失。
+DataNode
+DataNode 也是一个通常在 HDFS 实例中的单独机器上运行的软件。Hadoop 集群包含一个 NameNode 和大量 DataNode。DataNode 通常以机架的形式组织，机架通过一个交换机将所有系统连接起来。Hadoop 的一个假设是：机架内部节点之间的传输速度快于机架间节点的传输速度。
+DataNode 响应来自 HDFS 客户机的读写请求。它们还响应来自 NameNode 的创建、删除和复制块的命令。NameNode 依赖来自每个 DataNode 的定期心跳（heartbeat）消息。每条消息都包含一个块报告，NameNode 可以根据这个报告验证块映射和其他文件系统元数据。如果 DataNode 不能发送心跳消息，NameNode 将采取修复措施，重新复制在该节点上丢失的块。
+文件操作
+可见，HDFS 并不是一个万能的文件系统。它的主要目的是支持以流的形式访问写入的大型文件。如果客户机想将文件写到 HDFS 上，首先需要将该文件缓存到本地的临时存储。如果缓存的数据大于所需的 HDFS 块大小，创建文件的请求将发送给 NameNode。NameNode 将以 DataNode 标识和目标块响应客户机。同时也通知将要保存文件块副本的 DataNode。当客户机开始将临时文件发送给第一个 DataNode 时，将立即通过管道方式将块内容转发给副本 DataNode。客户机也负责创建保存在相同 HDFS 名称空间中的校验和（checksum）文件。在最后的文件块发送之后，NameNode 将文件创建提交到它的持久化元数据存储（在 EditLog 和 FsImage 文件）。
+Linux 集群
+Hadoop 框架可在单一的 Linux 平台上使用（开发和调试时），但是使用存放在机架上的商业服务器才能发挥它的力量。这些机架组成一个 Hadoop 集群。它通过集群拓扑知识决定如何在整个集群中分配作业和文件。Hadoop 假定节点可能失败，因此采用本机方法处理单个计算机甚至所有机架的失败。
+编辑本段集群系统Google的数据中心使用廉价的Linux PC机组成集群，在上面运行各种应用。即使是分布式开发的新手也可以迅速使用Google的基础设施。核心组件是3个：
+⒈GFS（Google File System）。一个分布式文件系统，隐藏下层负载均衡，冗余复制等细节，对上层程序提供一个统一的文件系统API接口。Google根据自己的需求对它进行了特别优化，包括：超大文件的访问，读操作比例远超过写操作，PC机极易发生故障造成节点失效等。GFS把文件分成64MB的块，分布在集群的机器上，使用Linux的文件系统存放。同时每块文件至少有3份以上的冗余。中心是一个Master节点，根据文件索引，找寻文件块。详见Google的工程师发布的GFS论文。
+⒉MapReduce。Google发现大多数分布式运算可以抽象为MapReduce操作。Map是把输入Input分解成中间的Key/Value对，Reduce把Key/Value合成最终输出Output。这两个函数由程序员提供给系统，下层设施把Map和Reduce操作分布在集群上运行，并把结果存储在GFS上。
+⒊BigTable。一个大型的分布式数据库，这个数据库不是关系式的数据库。像它的名字一样，就是一个巨大的表格，用来存储结构化的数据。
+以上三个设施Google均有论文发表。
+编辑本段应用程序Hadoop 的最常见用法之一是 Web 搜索。虽然它不是惟一的软件框架应用程序，但作为一个并行数据处理引擎，它的表现非常突出。Hadoop 最有趣的方面之一是 Map and Reduce 流程，它受到 Google开发的启发。这个流程称为创建索引，它将 Web 爬行器检索到的文本 Web 页面作为输入，并且将这些页面上的单词的频率报告作为结果。然后可以在整个 Web 搜索过程中使用这个结果从已定义的搜索参数中识别内容。
+MapReduce
+最简单的 MapReduce 应用程序至少包含 3 个部分：一个 Map 函数、一个 Reduce 函数和一个 main 函数。main 函数将作业控制和文件输入/输出结合起来。在这点上，Hadoop 提供了大量的接口和抽象类，从而为 Hadoop 应用程序开发人员提供许多工具，可用于调试和性能度量等。
+MapReduce 本身就是用于并行处理大数据集的软件框架。MapReduce 的根源是函数性编程中的 map 和 reduce 函数。它由两个可能包含有许多实例（许多 Map 和 Reduce）的操作组成。Map 函数接受一组数据并将其转换为一个键/值对列表，输入域中的每个元素对应一个键/值对。Reduce 函数接受 Map 函数生成的列表，然后根据它们的键（为每个键生成一个键/值对）缩小键/值对列表。
+这里提供一个示例，帮助您理解它。假设输入域是 one small step for man,one giant leap for mankind。在这个域上运行 Map 函数将得出以下的键/值对列表：
+（one,1） (small,1） (step,1） (for,1） (man,1）  MapReduce 流程的概念流
+(one,1） (giant,1） (leap,1） (for,1） (mankind,1）
+如果对这个键/值对列表应用 Reduce 函数，将得到以下一组键/值对：
+（one,2） (small,1） (step,1） (for,2） (man,1）（giant,1） (leap,1） (mankind,1）
+结果是对输入域中的单词进行计数，这无疑对处理索引十分有用。但是，现在假  显示处理和存储的物理分布的 Hadoop 集群
+设有两个输入域，第一个是 one small step for man，第二个是 one giant leap for mankind。您可以在每个域上执行 Map 函数和 Reduce 函数，然后将这两个键/值对列表应用到另一个 Reduce 函数，这时得到与前面一样的结果。换句话说，可以在输入域并行使用相同的操作，得到的结果是一样的，但速度更快。这便是 MapReduce 的威力；它的并行功能可在任意数量的系统上使用。图 2 以区段和迭代的形式演示这种思想。
+现在回到 Hadoop 上，它是如何实现这个功能的？一个代表客户机在单个主系统上启动的 MapReduce 应用程序称为 JobTracker。类似于 NameNode，它是 Hadoop 集群中惟一负责控制 MapReduce 应用程序的系统。在应用程序提交之后，将提供包含在 HDFS 中的输入和输出目录。JobTracker 使用文件块信息（物理量和位置）确定如何创建其他 TaskTracker 从属任务。MapReduce 应用程序被复制到每个出现输入文件块的节点。将为特定节点上的每个文件块创建一个惟一的从属任务。每个 TaskTracker 将状态和完成信息报告给 JobTracker。图 3 显示一个示例集群中的工作分布。
+Hadoop 的这个特点非常重要，因为它并没有将存储移动到某个位置以供处理，而是将处理移动到存储。这通过根据集群中的节点数调节处理，因此支持高效的数据处理。
+编辑本段开源实现Hadoop是项目的总称[3]。主要是由HDFS和MapReduce组成。
+HDFS是Google File System（GFS）的开源实现。
+MapReduce是Google MapReduce的开源实现。
+这个分布式框架很有创造性，而且有极大的扩展性，使得Google在系统吞吐量上有很大的竞争力。因此Apache基金会用Java实现了一个开源版本，支持Fedora、Ubuntu等Linux平台。雅虎和硅谷风险投资公司Benchmark Capital 6月28日联合宣布，他们将联合成立一家名为Hortonworks的新公司，接管被广泛应用的数据分析软件Hadoop的开发工作。
+Hadoop实现了HDFS文件系统和MapRecue。用户只要继承MapReduceBase，提供分别实现Map和Reduce的两个类，并注册Job即可自动分布式运行。
+目前Release版本是2.0.2。
+HDFS把节点分成两类：NameNode和DataNode。NameNode是唯一的，程序与之通信，然后从DataNode上存取文件。这些操作是透明的，与普通的文件系统API没有区别。
+MapReduce则是JobTracker节点为主，分配工作以及负责和用户程序通信。
+HDFS和MapReduce实现是完全分离的，并不是没有HDFS就不能MapReduce运算。
+Hadoop也跟其他云计算项目有共同点和目标：实现海量数据的计算。而进行海量计算需要一个稳定的，安全的数据容器，才有了Hadoop分布式文件系统（HDFS，Hadoop Distributed File System）。
+HDFS通信部分使用org.apache.hadoop.ipc，可以很快使用RPC.Server.start()构造一个节点，具体业务功能还需自己实现。针对HDFS的业务则为数据流的读写，NameNode/DataNode的通信等。
+MapReduce主要在org.apache.hadoop.mapred，实现提供的接口类，并完成节点通信（可以不是hadoop通信接口），就能进行MapReduce运算。
+Hadoop的发音音标 [h&aelig;du:p]
+编辑本段Hadoop主要子项目Hadoop Common: 在0.20及以前的版本中，包含HDFS、MapReduce和其他项目公共内容，从0.21开始HDFS和MapReduce被分离为独立的子项目，其余内容为Hadoop Common
+HDFS: Hadoop 分布式文件系统 (Distributed File System) － HDFS (Hadoop Distributed File System)
+MapReduce：并行计算框架，0.20前使用 org.apache.hadoop.mapred 旧接口，0.20版本开始引入org.apache.hadoop.mapreduce的新API
+HBase: 类似Google BigTable的分布式NoSQL列数据库。（HBase 和 Avro 已经于2010年5月成为顶级 Apache 项目）
+Hive：数据仓库工具，由Facebook贡献。
+Zookeeper：分布式锁设施，提供类似Google Chubby的功能，由Facebook贡献。
+Avro：新的数据序列化格式与传输工具，将逐步取代Hadoop原有的IPC机制。
+Pig: 大数据分析平台，为用户提供多种接口。
+编辑本段Hadoop研究Hadoop是原Yahoo的Doug Cutting根据Google发布的学术论文研究而来。Doug Cutting给这个Project起了个名字，就叫Hadoop。
+现在，Doug Cutting在Cloudera公司。Cloudera的Hadoop是商用版。不同于Apache的开源版。
+如果要研究Hadoop的话，在下载Apache的版本是一种不错的选择。
+只研究Apache版本的，不足以对Hadoop的理念理解。再对Cloudera版本的研究，会更上一层楼。
+现在美国的AsterData，也是Hadoop的一个商用版，AsterData的MPP理念，Applications Within理念等等，
+也都是值得研究。
+Google的成功已经说明了RDB的下一代就是Nosql（Not Only SQL），比如说GFS，Hadoop等等。
+Hadoop作为开源的版本来说，其魅力更是不可估量。
+上文中说到Google的学术论文，其中包涵有：
+Google File System（大规模分散文件系统）
+MapReduce （大规模分散FrameWork）
+BigTable（大规模分散数据库）
+Chubby（分散锁服务）
+这四大InfrastructureSoftware的陈述。
+编辑本段Hadoop大事记2011年12月27日--1.0.0版本释出。标志着Hadoop已经出具生产规模[4]。
+2009年4月-- 赢得每分钟排序，59秒内排序500 GB（在1400个节点上）和173分钟内排序100 TB数据（在3400个节点上）。
+2009年3月-- 17个集群总共24 000台机器。
+2008年10月-- 研究集群每天装载10 TB的数据。
+2008年4月-- 赢得世界最快1 TB数据排序在900个节点上用时209秒。
+2007年4月-- 研究集群达到两个1000个节点的集群。
+2007年1月-- 研究集群到达900个节点。
+2006年12月-- 标准排序在20个节点上运行1.8个小时，100个节点3.3小时，500个节点5.2小时，900个节点7.8个小时。　
+2006年11月-- 研究集群增加到600个节点。
+2006年5月-- 标准排序在500个节点上运行42个小时（硬件配置比4月的更好）。
+2006年5月-- 雅虎建立了一个300个节点的Hadoop研究集群。
+2006年4月-- 标准排序（10 GB每个节点）在188个节点上运行47.9个小时。
+2006年2月-- 雅虎的网格计算团队采用Hadoop。
+2006年2月-- Apache Hadoop项目正式启动以支持MapReduce和HDFS的独立发展。
+2006年1月-- Doug Cutting加入雅虎。
+2005年12月-- Nutch移植到新的框架，Hadoop在20个节点上稳定运行。
+2004年-- 最初的版本（现在称为HDFS和MapReduce）由Doug Cutting和Mike Cafarella开始实施。
+编辑本段EasyHadoop开源社区EasyHadoop开源社区让hadoop更易用、更easy ！　
+Easyhadoop开源社区[5]由国内第一个获得美国Cloudera公司认证的Apache Hadoop开发工程师童小军,向磊等发起创建，汇聚了一群来自各大公司的一线hadoop开发爱好者，如百度、阿里、暴风、蓝讯、淘宝、人民搜索、随视、亿赞普、福禄克等公司。
+EasyHadoop是国内最早专注于Hadoop开发、应用、推广的机构组织。
+2012年1月7日开始建设EasyHadoop开源社区，并在国内普及Hadoop技术应用，致力于让Hadoop大数据分析更简单。
+2012年1月18日推出EasyHadoop快速安装脚本，大大简化Apache 社区Hadoop版本的安装和部署工作。
+2012年2月25日- 至今持续建设EasyHadoop开源社区行业技术论坛，带领团队成功组织五次Hadoop技术分享活动，分享Hadoop使用技能。活动受到来自百度、腾讯、新浪、阿里巴巴、蓝讯等的上百位Hadoop工程师广泛参与和支持。
+2012年7月 开始编写EasyHadoop 实战操作手册，为Hadoop零基础入门读物。
+EasyHadoop专注于hadoop的研发、应用和普及，获得了众多的第一
+国内最大规模的hadoop开发者QQ群之一 ，几乎汇聚国内各大公司做hadoop一线开发的工程师
+编辑本段Hadoop认证Cloudera公司目前主要提供Apache Hadoop开发工程师认证（Cloudera CertifiedDeveloper for Apache Hadoop ，CCDH[6]）和Apache Hadoop管理工程师认证（Cloudera CertifiedAdministrator for Apache Hadoop ，CCAH），更多相关信息，请参阅Cloudera公司官方网站。
+词条图册更多图册
+参考资料 
+1．  hadoop  ．hadoop官网 [引用日期2013-01-13] ．
+2．  hdfs设计文档  ．hadoop文档 [引用日期2013-01-13] ．
+3．  hadoop介绍  ．hadoop官网 [引用日期2013-01-13] ．
+4．  r1.0.0  ．hadoop官网 [引用日期2013-01-14] ．
+5．  easyhadoop开源社区举办hadoop开发者活动  ．easyhadoop开源社区 [引用日期2012-09-13] ．
+6．  CCDH  ．cloudera官网 [引用日期2013-01-13] ．
+扩展阅读： 
+1 
+http://hadoop.apache.org/docs/r0.19.2/cn/mapred_tutorial.html 
+2 
+http://www.easyhadoop.com/ 
+3 
+http://cloud.csdn.net/a/20110629/300770.html 
+4 
+http://subject.csdn.net/hadoop/ 
+开放分类： 
+google 云计算 应用科学 科学 计算机术语 分布式 ， Hadoop ， esayhadoop 
+
+
+百度百科中的词条正文与判断内容均由用户提供，不代表百度百科立场。如果您需要解决具体问题（如法律、医学等领域），建议您咨询相关领域专业人士。
+本词条对我有帮助添加到搜藏 分享到:更多
+合作编辑者 
+htynkn ， defenghao ， savagert ， fjwfjwlrain ， CooLeyE1998 ， iallg0 ， lee121314 ， qwzhong1988 ， 推七七网络 ， qiqi1983731 ， 更多 
+如果您认为本词条还需进一步完善，百科欢迎您也来参与 编辑词条 在开始编辑前，您还可以先学习如何编辑词条
+如想投诉，请到百度百科投诉中心；如想提出意见、建议，请到百度百科吧。
+下载2频道
+00
+
+去兑换>>您尚无道具可使用
+成长任务加速升级，快速成长。我要去参加>>日常任务本月累计点亮0天。今日笑脸还没点亮哦。
+名符图实：参加任务，拿点亮任务日历获得财富值热词推送编辑热词可获得额外经验值
+词条动态进入我的百科您目前的等级是2级
+您目前的经验值是174点
+您还需326点经验值即可升为3级
+
+
+词条统计
+浏览次数：约 505022次
+编辑次数：64次 历史版本
+最近更新：今天
+创建者：Scobinz
+更多贡献光荣榜
+辛勤贡献者： 
+ htynkn    展开 
+版本 
+版本 
+版本 
+ ruankomobile    展开 
+版本 
+版本 
+ 推七七网络    版本 
+ tongxiaojun    版本 
+ iallg0    版本 
+查看更多贡献者 
+
+最新动态
+百科新春嘉年华启动：
+
+百科消息：
+百科android客户端升级1.1版
+文库专题：过日子要有技术含量
+百科mini上线：聚合精彩主题APP
+2012年度十大科技谣言
+百科数字博物馆突破30家
+百科新增功能维护词条权威
+推广链接
+hadoop 世界领先的大数据..
+Hadoop发行版,高性能,高稳定,可管理的大数据应用平台;全面专业..
+www.intel.cn/idh
+
+
+
+
+© 2013 Baidu 使用百度前必读 | 百科协议 | 百度百科合作平台
+HadoopHadoop名字的起源hadoop起源诸多优点hadoop架构HDFSNameNodeDataNode文件操作Linux 集群集群系统应用程序开源实现Hadoop主要子项目Hadoop研究Hadoop大事记EasyHadoop开源社区Hadoop认证
+
+  参考资料 
+退出 
+若有错误，请划词选中错误内容并按提示质疑，为词条的质量提升做出贡献。
+
+展开收起
+若您对这些内容有可信的参考资料，并掌握百科编辑技巧，欢迎你直接编辑词条。
+参与质疑×

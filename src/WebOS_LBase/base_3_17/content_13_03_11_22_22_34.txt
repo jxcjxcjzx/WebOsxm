@@ -1,0 +1,602 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+lixiaokai8990的专栏
+目录视图摘要视图订阅
+博客专家信息更新登记表        社区专家谈 12306      CSDN社区程序员回乡见闻活动火爆开始！ 
+专访陈勇： 敏捷开发现状及发展之路        “传统商家移动化之路”会议        2013年全国百所高校巡讲讲师招募
+ 背景建模
+2012-10-10 22:22 361人阅读 评论(0) 收藏 举报
+parametersclassification算法compressionconstructionimage
+转载：http://blog.sina.com.cn/s/blog_631a4cc40100wwg7.html
+
+(一) Evaluation of Background Subtraction Techniques for Video Surveillance
+以前做过一些关于背景建模，运动目标检测的工作，打算进行一下小结，那么就先从这篇CVPR2011这篇评测的文章说起吧。Evaluation of Background Subtraction Techniques for Video Surveillance (PDF)
+Sebastian Brutzer, Benjamin Hoeferlin (University of Stuttgart), Gunther Heidemann (University of Stuttgart)
+这篇文章的项目主页：http://www.vis.uni-stuttgart.de/index.php?id=sabs
+可以在这个网页上下载最新的数据库，以及一些评测的代码（注意是评测的代码，不是背景建模方法的代码）。
+这篇文章对近年来背景建模的一些方法做了一些比较，比较的方法有：
+
+
+本人感觉这篇文章之所以能够发在CVPR这种高级别的会议上，主要有一下原因：
+1. 作者公开发布了一个数据，而且这个数据库是合成，所以比较方便用来量化评价其他方法；
+2.表面上工作量很大，之所以说表面上工作量很大，作者虽然比较了9中方法，但是这些方法在网上几乎都有源代码（集成在opencv中的），还有一些是已经公开了可执行程序的了。而作者的工作量不是很大。我们可以看Features那一列，基本上都是color为特征，而作者忽略了纹理特征的背景建模。纹理特征奥鲁大学做LBP的人在06年就发表了用纹理做背景建模的文章，而且是发表在PAMI上面的，作者不能不知道吧，试问他比较的这九中方法那种发表在PAMI上了。再说2010 CVPR上面有一篇Stan Li的文章也是用纹理做，两篇文章效果都很好。
+也不知道作者为什么没有比较... ...以后我们会介绍这两个经典的方法的；
+3.分析的还可以，貌似所有cvpr的文章分析的都不错。
+
+作者分析了背景建模有以下的难点：
+Gradual illumination changes: It is desirable that background model adapts to gradual changes of the appearance of the environment. For example in outdoor settings, the light intensity typically varies during day.
+Sudden illumination changes: Sudden once-off changes are not covered by the background model. They occur for example with sudden switch of light, strongly affect the appearance of background, and cause false positive detections.
+Dynamic background: Some parts of the scenery may contain movement, but should be regarded as background, according to their relevance. Such movement can be periodical or irregular (e.g., traffic lights, waving trees).
+Camouflage: Intentionally or not, some objects may poorly differ from the appearance of background, making correct classification difficult. This is especially important in surveillance applications.
+Shadows: Shadows cast by foreground objects often complicate further processing steps subsequent to background subtraction. Overlapping shadows of foreground regions for example hinder their separation and classification. Hence, it is preferable to ignore these irrelevant regions.
+Bootstrapping: If initialization data which is free from foreground objects is not available, the background model has to be initialized using a bootstrapping strategy.
+Video noise: Video signal is generally superimposed by noise. Background subtraction approaches for video surveillance have to cope with such degraded signals affected by different types of noise, such as sensor noise or compression artifacts.
+
+评测的结果：
+
+
+值得注意的是，Barnich 方法速度性能都很不错，他的文章中有伪代码，作者的主页上提供可执行程序，并且可以集成到自己的程序中。
+
+以像素值为特征的方法(1)
+前面通过一篇CVPR2011年对背景建模方法评估的文章算是引出一个关于背景建模概述，博客地址：http://blog.sina.com.cn/s/blog_631a4cc40100wwg7.html
+
+后面几篇打算详细介绍一些背景建模近年来的方法，首先介绍一些以像素值为特征的方法。
+混合高斯模型(GMM)当属这种方法中经典中的经典，文章题目：Adaptive Background Mixture Models for Real-Time Tracking 发表在CVPR1999年，并在2009年的CVPR上获得Longuet-Higgins Prize，以google学术上显示他引率：3196次。
+混合高斯模型使用K（基本为3到5个） 个高斯模型来表征图像中各个像素点的特征,在新一帧图像获得后更新混合高斯模型,用当前图像中的每个像素点与混合高斯模型匹配,如果成功则判定该点为背景点, 否则为前景点。每个高斯模型，他主要是有方差和均值两个参数决定，对均值和方差的学习,采取不同的学习机制,将直接影响到模型的稳定性、精确性和收敛性。由于我们是对运动目标的背景提取建模，因此需要对高斯模型中方差和均值两个参数实时更新。为提高模型的学习能力,改进方法对均值和方差的更新采用不同的学习率;为提高在繁忙的场景下,大而慢的运动目标的检测效果,引入权值均值的概念,建立背景图像并实时更新,然后结合权值、权值均值和背景图像对像素点进行前景和背景的分类。具体更新公式如下：
+μt= (1 - ρ)μt- 1 +ρxt                                  (1)
+σ2t = (1 - ρ)σ2t- 1 +ρ( xt -μt ) T ( xt -μt ) (2)
+ρ =αη( xt | μκ,σκ )                                      (3)
+| xt -μt - 1 | ≤ 2. 5σt- 1                               (4)
+w k , t = (1 - α) w k , t - 1 +αMk , t          (5)
+式中ρ为学习率，即反映当前图像融入背景的速率。如果想深入了解可以看原文，或者opencv的源代码。
+OpenCV当中也集成这个方法。原文地址学习opencv（1）：高斯背景建模-1
+
+高斯背景建模源代码在“OpenCV\cvaux\src\cvbgfg_gaussmix.cpp”中。下面是我添加注释的代码。
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+ 
+CV_IMPL CvBGStatModel*
+cvCreateGaussianBGModel( IplImage* first_frame, CvGaussBGStatModelParams* parameters )
+{
+    CvGaussBGModel* bg_model = 0;// 高斯背景状态模型变量
+   
+    CV_FUNCNAME( "cvCreateGaussianBGModel" );
+   
+    __BEGIN__;
+   
+    double var_init; //
+    CvGaussBGStatModelParams params; // 高斯背景状态模型参数变量
+    int i, j, k, n, m, p;
+   
+    //初始化参数，如果参数为空，则进行初始化赋值
+    if( parameters == NULL )
+    {
+        params.win_size = CV_BGFG_MOG_WINDOW_SIZE; //初始化阶段的帧数
+        params.bg_threshold = CV_BGFG_MOG_BACKGROUND_THRESHOLD;//高斯背景阈值
+        params.std_threshold = CV_BGFG_MOG_STD_THRESHOLD;//
+        params.weight_init = CV_BGFG_MOG_WEIGHT_INIT; // 初始权重
+        params.variance_init = CV_BGFG_MOG_SIGMA_INIT*CV_BGFG_MOG_SIGMA_INIT; // 初始方差
+        params.minArea = CV_BGFG_MOG_MINAREA; //最小面积
+        params.n_gauss = CV_BGFG_MOG_NGAUSSIANS;// 高斯模型个数
+    }
+    else
+    {
+        params = *parameters; //如果parameters非空，则将其参数赋给 params
+    }
+   
+    if( !CV_IS_IMAGE(first_frame) )//如果第一帧不是图像，报错
+        CV_ERROR( CV_StsBadArg, "Invalid or NULL first_frame parameter" );
+   
+    CV_CALL( bg_model = (CvGaussBGModel*)cvAlloc( sizeof(*bg_model) )); //为bg_model申请内存
+    memset( bg_model, 0, sizeof(*bg_model) );// 初始化刚申请的内存
+    bg_model->type = CV_BG_MODEL_MOG; // 背景模型类型是： CV_BG_MODEL_MOG
+    bg_model->release = (CvReleaseBGStatModel)icvReleaseGaussianBGModel;// 释放调用icvReleaseGaussianBGModel
+    bg_model->update = (CvUpdateBGStatModel)icvUpdateGaussianBGModel;//　更新调用icvUpdateGaussianBGModel
+   
+    bg_model->params = params; //参数为 params
+   
+    //prepare storages
+    CV_CALL( bg_model->g_point = (CvGaussBGPoint*)cvAlloc(sizeof(CvGaussBGPoint)*
+        ((first_frame->width*first_frame->height) + 256))); //为背景模型bg_model的高斯背景点g_point 分配内存，                                                                                       
+   
+    CV_CALL( bg_model->background = cvCreateImage(cvSize(first_frame>width, first_frame->height), IPL_DEPTH_8U, first_frame->nChannels));
+    CV_CALL( bg_model->foreground = cvCreateImage(cvSize(first_frame->width ,first_frame->height), IPL_DEPTH_8U, 1));
+   
+    CV_CALL( bg_model->storage = cvCreateMemStorage());     
+    //initializing
+    var_init = 2 * params.std_threshold * params.std_threshold; // 初始化方差
+    CV_CALL( bg_model->g_point[0].g_values =  (CvGaussBGValues*)cvAlloc( sizeof(CvGaussBGValues)*params.n_gauss*(first_frame->width*first_frame->height + 128)));
+   
+    for( i = 0, p = 0, n = 0; i < first_frame->height; i++ )
+    {
+        for( j = 0; j < first_frame->width; j++, n++ ) // n =i*first_frame->width+j
+        {
+            bg_model->g_point[n].g_values = bg_model->g_point[0].g_values + n*params.n_gauss;
+            bg_model->g_point[n].g_values[0].weight = 1;    //the first value seen has weight one //首个高斯模型，权值赋予1
+            bg_model->g_point[n].g_values[0].match_sum = 1; //  the sum of matches for a particular gaussian
+            for( m = 0; m < first_frame->nChannels; m++) // 对每个通道
+            {
+                bg_model->g_point[n].g_values[0].variance[m] = var_init;  //第0个高斯模型的 第M个通道的方差，
+                bg_model->g_point[n].g_values[0].mean[m] = (unsigned char)first_frame->imageData[p + m]; //均值，第M通道的值
+            }
+            for( k = 1; k < params.n_gauss; k++) //其他高斯模型，
+            {
+                bg_model->g_point[n].g_values[k].weight = 0;  //第K个高斯模型的权值  0
+                bg_model->g_point[n].g_values[k].match_sum = 0; //第K个高斯模型的match_sum  0
+                for( m = 0; m < first_frame->nChannels; m++)
+    {
+                    bg_model->g_point[n].g_values[k].variance[m] = var_init; //第K个高斯模型 的第m 通道的方差
+                    bg_model->g_point[n].g_values[k].mean[m] = 0;  //第K个高斯模型 的第m 通道的均值 0
+                }
+            }
+            p += first_frame->nChannels;//
+        }
+    }
+   
+    bg_model->countFrames = 0; //帧=0
+   
+    __END__;
+   
+    if( cvGetErrStatus() < 0 )// 如果有错误
+    {
+        CvBGStatModel* base_ptr = (CvBGStatModel*)bg_model;
+       
+        if( bg_model && bg_model->release )
+            bg_model->release( &base_ptr );//释放模型
+        else
+            cvFree( &bg_model );
+        bg_model = 0;
+    }
+   
+    return (CvBGStatModel*)bg_model; //返回创建的背景模型
+}
+ 
+CV_IMPL void CV_CDECL
+icvReleaseGaussianBGModel( CvGaussBGModel** _bg_model )  //返回背景模型
+{
+    CV_FUNCNAME( "icvReleaseGaussianBGModel" );
+    __BEGIN__;
+   
+    if( !_bg_model )
+        CV_ERROR( CV_StsNullPtr, "" );
+    if( *_bg_model )
+    {
+        CvGaussBGModel* bg_model = *_bg_model;
+        if( bg_model->g_point )
+        {
+            cvFree( &bg_model->g_point[0].g_values ); //释放背景点中的值
+            cvFree( &bg_model->g_point );//释放背景点
+        }
+       
+        cvReleaseImage( &bg_model->background );//释放背景模型中的前景
+        cvReleaseImage( &bg_model->foreground );//释放背景模型中的背景
+        cvReleaseMemStorage(&bg_model->storage); //释放背景模型中的存储器
+        memset( bg_model, 0, sizeof(*bg_model) );
+        cvFree( _bg_model ); //释放背景模型
+    }
+    __END__;
+}
+ 
+CV_IMPL int  CV_CDECL
+icvUpdateGaussianBGModel( IplImage* curr_frame, CvGaussBGModel*  bg_model )
+{
+    int i, j, k;
+    int region_count = 0;
+    CvSeq *first_seq = NULL, *prev_seq = NULL, *seq = NULL;
+   
+    bg_model->countFrames++; //每执行一次更新，帧数++
+   
+    for( i = 0; i < curr_frame->height; i++ )
+    {
+        for( j = 0; j < curr_frame->width; j++ ) //对每个像素点 逐点进行运算
+        {
+            int match[CV_BGFG_MOG_MAX_NGAUSSIANS]; //CV_BGFG_MOG_MAX_NGAUSSIANS=500,最大高斯模型数目：match[500]
+            double sort_key[CV_BGFG_MOG_MAX_NGAUSSIANS];  // 排序: sort_key[500]
+            const int nChannels = curr_frame->nChannels; // 当前帧的通道数
+            const int n = i*curr_frame->width+j; // 正在处理第几个像素，
+            const int p = n*curr_frame->nChannels; // 第几个通道，这与图像(BGR,BGR,BGR....)的交叉存储格式有关
+           
+            // A few short cuts
+            CvGaussBGPoint* g_point = &bg_model->g_point[n];
+            const CvGaussBGStatModelParams bg_model_params = bg_model->params;
+            double pixel[4]; //
+            int no_match;  //
+           
+            for( k = 0; k < nChannels; k++ )// 获得某个像素的  第K通道的值
+                pixel[k] = (uchar)curr_frame->imageData[p+k];
+           
+            no_match = icvMatchTest( pixel, nChannels, match, g_point, &bg_model_params );//判断该像素值是否与背景模型匹配
+            if( bg_model->countFrames >= bg_model->params.win_size ) //判断已经处理的帧数是否等于初始化阶段帧长，如果是则：？？？？？？？？？
+            {
+                icvUpdateFullWindow( pixel, nChannels, match, g_point, &bg_model->params );  //调用正常阶段更新函数进行更新
+                if( no_match == -1)  //如果没有找到匹配的，则调用正常阶段NoMatch情况的更新函数
+                    icvUpdateFullNoMatch( curr_frame, p, match, g_point, &bg_model_params );
+            }
+            else //初始化阶段
+            {
+                icvUpdatePartialWindow( pixel, nChannels, match, g_point, &bg_model_params );
+                if( no_match == -1)
+                    icvUpdatePartialNoMatch( pixel, nChannels, match, g_point, &bg_model_params );
+            }
+            icvGetSortKey( nChannels, sort_key, g_point, &bg_model_params ); //获得模型的适应度值
+            icvInsertionSortGaussians( g_point, sort_key, (CvGaussBGStatModelParams*)&bg_model_params ); // 进行排序
+            icvBackgroundTest( nChannels, n, p, match, bg_model ); //判断是否是背景
+        }
+    }
+   
+    //下面这段是前景滤波，滤掉小块区域。
+   
+    cvClearMemStorage(bg_model->storage);
+   
+    //cvMorphologyEx( bg_model->foreground, bg_model->foreground, 0, 0, CV_MOP_OPEN, 1 );
+    //cvMorphologyEx( bg_model->foreground, bg_model->foreground, 0, 0, CV_MOP_CLOSE, 1 );
+   
+    cvFindContours( bg_model->foreground, bg_model->storage, &first_seq, sizeof(CvContour), CV_RETR_LIST );
+ //对前景图像寻找轮廓，
+    for( seq = first_seq; seq; seq = seq->h_next )
+    {
+        CvContour* cnt = (CvContour*)seq;
+        if( cnt->rect.width * cnt->rect.height < bg_model->params.minArea ) //去掉小的区域
+        {
+            //delete small contour
+            prev_seq = seq->h_prev;
+            if( prev_seq )
+            {
+                prev_seq->h_next = seq->h_next;
+                if( seq->h_next )
+     seq->h_next->h_prev = prev_seq;
+            }
+            else
+            {
+                first_seq = seq->h_next;
+                if( seq->h_next )
+     seq->h_next->h_prev = NULL;
+            }
+        }//end of if
+        else
+        {
+            region_count++; //否则，区域数++
+        }
+    }//end of for
+    bg_model->foreground_regions = first_seq; //
+    cvZero(bg_model->foreground);
+    cvDrawContours(bg_model->foreground, first_seq, CV_RGB(0, 0, 255), CV_RGB(0, 0, 255), 10, -1);
+ // 绘制前景轮廓
+   
+    return region_count; //返回轮廓数
+}
+ 
+static void icvInsertionSortGaussians( CvGaussBGPoint* g_point, double* sort_key, CvGaussBGStatModelParams *bg_model_params )
+{
+    int i, j;
+    for( i = 1; i < bg_model_params->n_gauss; i++ )//对每个高斯背景模型
+    {
+        double index = sort_key[i]; // 获得适应度值
+        for( j = i; j > 0 && sort_key[j-1] < index; j-- ) //sort decending order 降序排列 ，
+        {
+            double temp_sort_key = sort_key[j];
+            sort_key[j] = sort_key[j-1];
+            sort_key[j-1] = temp_sort_key;
+           
+            CvGaussBGValues temp_gauss_values = g_point->g_values[j];
+            g_point->g_values[j] = g_point->g_values[j-1];
+            g_point->g_values[j-1] = temp_gauss_values;
+        }
+//        sort_key[j] = index;
+    }
+}
+ 
+static int icvMatchTest( double* src_pixel, int nChannels, int* match,
+                         const CvGaussBGPoint* g_point,
+                         const CvGaussBGStatModelParams *bg_model_params )
+{
+    int k;
+    int matchPosition=-1;
+    for ( k = 0; k < bg_model_params->n_gauss; k++) //对每个高斯背景模型 ，初始化 match[k]=0;
+  match[k]=0;
+   
+    for ( k = 0; k < bg_model_params->n_gauss; k++) //对每个高斯背景模型
+ {
+        double sum_d2 = 0.0;
+        double var_threshold = 0.0; //方差阈值
+        for(int m = 0; m < nChannels; m++) //对每个通道
+  {
+            double d = g_point->g_values[k].mean[m]- src_pixel[m];  //新像素值与背景模型的均值做差
+            sum_d2 += (d*d); //三个通道的偏差和
+            var_threshold += g_point->g_values[k].variance[m]; //var_threshold就是背景模型中三个通道的方差的和
+        }  //difference < STD_LIMIT*STD_LIMIT or difference**2 < STD_LIMIT*STD_LIMIT*VAR
+        var_threshold = bg_model_params->std_threshold*bg_model_params->std_threshold*var_threshold;//
+        if(sum_d2 < var_threshold) //如果差异小于阈值，
+  {
+            match[k] = 1;  //  匹配上，
+            matchPosition = k; //记录匹配位置
+            break;
+        }
+    }//end-of-for-k
+   
+    return matchPosition;  //返回 匹配位置，即是哪个高斯模型匹配。
+ //如果没有匹配的，则返回的是-1。
+}
+ 
+ 
+static void icvUpdateFullWindow( double* src_pixel, int nChannels, int* match,
+                                 CvGaussBGPoint* g_point,
+                                 const CvGaussBGStatModelParams *bg_model_params )
+{
+    const double learning_rate_weight = (1.0/(double)bg_model_params->win_size); //权重学习速率,1/初始化阶段帧长
+    for(int k = 0; k < bg_model_params->n_gauss; k++) //对每个高斯背景模型
+ {
+        g_point->g_values[k].weight = g_point->g_values[k].weight +
+            (learning_rate_weight*((double)match[k] -g_point->g_values[k].weight)); // 权重更新
+       
+  if(match[k])//match[k]==1，表示该模型匹配上
+  {
+            double learning_rate_gaussian = (double)match[k]/(g_point->g_values[k].weight*
+                (double)bg_model_params->win_size);
+            for(int m = 0; m < nChannels; m++) //均值和方差要对每个通道都进行更新
+   {
+                const double tmpDiff = src_pixel[m] - g_point->g_values[k].mean[m];
+                g_point->g_values[k].mean[m] = g_point->g_values[k].mean[m] +
+                    (learning_rate_gaussian * tmpDiff);   // 均值更新
+                g_point->g_values[k].variance[m] = g_point->g_values[k].variance[m]+
+                    (learning_rate_gaussian*((tmpDiff*tmpDiff) - g_point->g_values[k].variance[m])); // 方差更新
+            }//end-of-for-m
+        }
+    }//end-of-for-k
+}
+static void icvUpdatePartialWindow( double* src_pixel, int nChannels, int* match,
+           CvGaussBGPoint* g_point,
+           const CvGaussBGStatModelParams *bg_model_params )
+{
+    int k, m;
+    int window_current = 0;//
+   
+    for( k = 0; k < bg_model_params->n_gauss; k++ )
+        window_current += g_point->g_values[k].match_sum;  //应该是已经处理的帧数，是吗？？match_sum[]是什么东西？
+   
+    for( k = 0; k < bg_model_params->n_gauss; k++ )
+    {
+        g_point->g_values[k].match_sum += match[k]; //
+        double learning_rate_weight = (1.0/((double)window_current + 1.0)); //increased by one since sum
+       
+  g_point->g_values[k].weight = g_point->g_values[k].weight +
+            (learning_rate_weight*((double)match[k] - g_point->g_values[k].weight));//权值更新
+       
+        if( g_point->g_values[k].match_sum > 0 && match[k] )
+        {
+            double learning_rate_gaussian = (double)match[k]/((double)g_point->g_values[k].match_sum);
+            for( m = 0; m < nChannels; m++ )
+            {
+                const double tmpDiff = src_pixel[m] - g_point->g_values[k].mean[m];  //均值更新
+                g_point->g_values[k].mean[m] = g_point->g_values[k].mean[m] +
+                    (learning_rate_gaussian*tmpDiff);
+                g_point->g_values[k].variance[m] = g_point->g_values[k].variance[m]+
+                    (learning_rate_gaussian*((tmpDiff*tmpDiff) - g_point->g_values[k].variance[m])); //方差更新
+            }
+        }
+    }
+}
+ 
+static void icvUpdateFullNoMatch( IplImage* gm_image, int p, int* match,
+                                  CvGaussBGPoint* g_point,
+                                  const CvGaussBGStatModelParams *bg_model_params)
+{
+    int k, m;
+    double alpha;
+    int match_sum_total = 0;
+    //new value of last one
+    g_point->g_values[bg_model_params->n_gauss - 1].match_sum = 1; // 将最后一个高斯模型的match_sum置1
+   
+    //get sum of all but last value of match_sum
+   
+    for( k = 0; k < bg_model_params->n_gauss ; k++ )
+        match_sum_total += g_point->g_values[k].match_sum;//
+   
+    g_point->g_values[bg_model_params->n_gauss - 1].weight = 1./(double)match_sum_total; //为新的模型赋予权值
+    for( m = 0; m < gm_image->nChannels ; m++ )
+    {
+        // first pass mean is image value
+        g_point->g_values[bg_model_params->n_gauss - 1].variance[m] = bg_model_params->variance_init;  //为新的模型赋予方差
+        g_point->g_values[bg_model_params->n_gauss - 1].mean[m] = (unsigned char)gm_image->imageData[p + m];//为新的模型赋予均值
+    }
+   
+    alpha = 1.0 - (1.0/bg_model_params->win_size);
+    for( k = 0; k < bg_model_params->n_gauss - 1; k++ )  //对除最后一个模型外的其他模型进行运算
+    {
+        g_point->g_values[k].weight *= alpha;  //权重
+        if( match[k] )
+            g_point->g_values[k].weight += alpha;
+    }
+}
+
+static void
+icvUpdatePartialNoMatch(double *pixel,
+                        int nChannels,
+                        int* ,
+                        CvGaussBGPoint* g_point,
+                        const CvGaussBGStatModelParams *bg_model_params)
+{
+    int k, m;
+    //new value of last one
+    g_point->g_values[bg_model_params->n_gauss - 1].match_sum = 1; // 将最后一个高斯模型的match_sum置1
+   
+    //get sum of all but last value of match_sum
+    int match_sum_total = 0;
+    for(k = 0; k < bg_model_params->n_gauss ; k++)
+        match_sum_total += g_point->g_values[k].match_sum;
+    for(m = 0; m < nChannels; m++)
+    {
+        //first pass mean is image value
+        g_point->g_values[bg_model_params->n_gauss - 1].variance[m] = bg_model_params->variance_init;
+        g_point->g_values[bg_model_params->n_gauss - 1].mean[m] = pixel[m];
+    }
+    for(k = 0; k < bg_model_params->n_gauss; k++)
+    {
+        g_point->g_values[k].weight = (double)g_point->g_values[k].match_sum /
+            (double)match_sum_total;
+    }
+}
+
+static void icvGetSortKey( const int nChannels, double* sort_key, const CvGaussBGPoint* g_point,
+                           const CvGaussBGStatModelParams *bg_model_params )
+{
+    int k, m;
+    for( k = 0; k < bg_model_params->n_gauss; k++ ) //   
+    {
+        // Avoid division by zero
+        if( g_point->g_values[k].match_sum > 0 )
+        {
+            // 假设各个高斯分量之间是独立的
+            double variance_sum = 0.0;
+            for( m = 0; m < nChannels; m++ )
+                variance_sum += g_point->g_values[k].variance[m]; //各通道的方差和
+           
+            sort_key[k] = g_point->g_values[k].weight/sqrt(variance_sum);  // 模型的适合度值
+        }
+        else
+            sort_key[k]= 0.0;
+    }
+}
+ 
+static void icvBackgroundTest( const int nChannels, int n, int p, int *match, CvGaussBGModel* bg_model )
+{
+    int m, b;
+    uchar pixelValue = (uchar)255; // will switch to 0 if match found，首先假设该点为前景点，
+    double weight_sum = 0.0;
+    CvGaussBGPoint* g_point = bg_model->g_point;
+   
+    for( m = 0; m < nChannels; m++)
+        bg_model->background->imageData[p+m]   = (unsigned char)(g_point[n].g_values[0].mean[m]+0.5); //背景就是模型[0]均值
+   
+    for( b = 0; b < bg_model->params.n_gauss; b++)
+    {
+        weight_sum += g_point[n].g_values[b].weight; //累积权重
+        if( match[b] ) //？？
+            pixelValue = 0; //像素值为0，成为背景
+        if( weight_sum > bg_model->params.bg_threshold )//若累积权重大于背景阈值，退出循环，舍掉后面的高斯模型
+            break;
+    }
+   
+    bg_model->foreground->imageData[p/nChannels] = pixelValue; //将像素值赋给该点，0（背景）或者255（前景）
+}
+以像素值为特征的方法(2)
+上一篇介绍混合高斯模型(GMM)http://blog.sina.com.cn/s/blog_631a4cc40100wxyz.html
+不过还有几篇比较经典是在GMM上的改进：
+1.An Improved Adaptive Background Mixture Model for Realtime Tracking with Shadow Detection 其实OpenCV实现的是这篇文章。他的创新点就是用EM初始化每个高斯模型的参数；
+2.Effective Gaussian mixture learning for video background subtraction 这篇文章的创新点是对混合高斯模型参数更新的方式
+3.Improved Adaptive Gaussian Mixture Model for Background Subtraction这篇文章的创新点是：把混合高斯模型数量K变成自适应的了，而不像以前是一个固定值（一般3-5个）。
+如果你还想了解更多关于混合高斯的改进可以看一篇综述：Background Modeling using Mixture of Gaussians for Foreground Detection A Survey 读完这篇文章你会发现GMM挖了一个多大坑呀！
+
+以像素值为特征的背景建模方法还有一类是codebook的方法，文章是Background Modeling and Subtraction by Codebook Construction，这篇文章是马里兰大学发表的，而马里兰大学最大的特点是不公开代码，每年灌水无数但是无论哪个课题组都不公开代码，我真是怀疑他们是商量好的了~~~
+
+之后还有一些文章是在这篇codebook上面的改进，是国立台湾科技大学Jing-Ming Guo做的，文章题目：1）Hierarchical Method for Foreground Detection Using Codebook Model，2）Cascaded Background Subtraction Using Block-Based and Pixel-Based Codebooks 3）Hierarchical Method for Foreground Detection Using Codebook Model这三篇文章是同一个写的，第一篇是期刊，第二和第三篇是ICPR2010和ICIP2010，但是这三篇非常非常非常相似，不过后两篇在作者主页已经找不到了，可以到google学术上去下载。
+--------------------------------------------------------------------------------------
+
+下面介绍一下传统codebook的方法：http://hi.baidu.com/lin65505578/blog/item/a03ae693c1fa6096a877a437.html
+CodeBook算法的基本思想是得到每个像素的时间序列模型。这种模型能很好地处理时间起伏，缺点是需要消耗大量的内存。CodeBook算法为当前图像的每一个像素建立一个CodeBook(CB)结构,每个CodeBook结构又由多个CodeWord(CW)组成。CB和CW的形式如下：
+CB={CW1,CW2,…CWn,t}
+CW={lHigh,lLow,max,min,t_last,stale}
+其中n为一个CB中所包含的CW的数目，当n太小时，退化为简单背景，当n较大时可以对复杂背景进行建模;t为CB更新的次数。CW是一个6元组，其中IHigh和ILow作为更新时的学习上下界，max和min记录当前像素的最大值和最小值。上次更新的时间t_last和陈旧时间stale(记录该CW多久未被访问)用来删除很少使用的CodeWord。
+假设当前训练图像I中某一像素为I(x,y)，该像素的CB的更新算法如下，另外记背景阈值的增长判定阈值为Bounds：
+(1) CB的访问次数加1；
+(2) 遍历CB中的每个CW，如果存在一个CW中的IHigh，ILow满足ILow≤I(x,y)≤IHigh，则转(4)；
+(3) 创建一个新的码字CWnew加入到CB中, CWnew的max与min都赋值为I(x,y)，IHigh <- I(x,y) + Bounds，ILow <- I(x,y) – Bounds，并且转(6)；
+(4) 更新该码字的t_last，若当前像素值I(x,y)大于该码字的max，则max <- I(x,y)，若I(x,y)小于该码字的min，则min <- I(x,y)；
+(5) 更新该码字的学习上下界，以增加背景模型对于复杂背景的适应能力，具体做法是：若IHigh < I(x,y) + Bounds，则IHigh 增长1，若ILow > I(x,y) – Bounds，则ILow减少1；
+(6) 更新CB中每个CW的stale。
+使用已建立好的CB进行运动目标检测的方法很简单，记判断前景的范围上下界为minMod和maxMod，对于当前待检测图像上的某一像素I(x,y)，遍历它对应像素背景模型CB中的每一个码字CW，若存在一个CW，使得I(x,y) < max + maxMod并且I(x,y) > min – minMod，则I(x,y)被判断为背景，否则被判断为前景。
+在实际使用CodeBook进行运动检测时，除了要隔一定的时间对CB进行更新的同时，需要对CB进行一个时间滤波，目的是去除很少被访问到的CW，其方法是访问每个CW的stale，若stale大于一个阈值（通常设置为总更新次数的一半），移除该CW。
+综上所述，CodeBook算法检测运动目标的流程如下：
+(1) 选择一帧到多帧使用更新算法建立CodeBook背景模型；
+(2) 按上面所述方法检测前景（运动目标）；
+(3) 间隔一定时间使用更新算法更新CodeBook模型，并对CodeBook进行时间滤波；
+(4) 若检测继续，转(2)，否则结束。
+
+以纹理为特征的方法
+前面两篇博文介绍了以像素值为特征的背景建模方法：以像素值为特征的方法(2)和以像素值为特征的方法(1)
+
+下面介绍一下以纹理为特征的方法，比较出名的就是用LBP和SILTP为特征做的。
+以LBP为特征的文章：A texture-based method for modeling the background and detecting moving objects
+这篇文章发表在06年TPAMI上面，还是奥鲁大学那帮人做的，他们已经把LBP用到极致了，LBP在计算机视觉的各个领域都得到了应用。
+首先进行LBP的计算：
+
+
+公式为：
+
+特征表示完之后就是建立背景模型，为K个。模型的更新公式为：
+
+
+而比较两个直方图的相似程度则用直方图交集(histogram intersaction).
+文章实验做得比较充分，但是比较试验很少只跟混合高斯模型(GMM)进行比较了.
+
+另一篇比较好的以纹理为特征的背景建模的方法是CVPR2010的文章，题目：
+Modeling Pixel Process with Scale Invariant Local Patterns for Background Subtraction in Complex Scenes
+本文提出了一种新的纹理表示方法，scale invariant local ternary pattern（SILTP）
+其次就是在背景建模更新的时候提出一种模式核密度估计的方法(pattern kernel density estimation)
+文章的对比试验也很全，用三种方法在九段视频上进行了试验。
+
+
+其他方法
+除了一些传统的背景建模的方法，为了发文章，还出现了其他比较好的文章。我列出几篇：
+Making Background Subtraction Robust to Sudden Illumination Chages （这篇文章有代码）
+Compressive Sensing for Background Subtraction
+Learning a sparse corner-based representation for time-varying background modeling
+Independent Component Analysis Based Background Subtraction for Indoor Surveillance
+
+不过当我看到Independent Component Analysis Based Background Subtraction for Indoor Surveillance这篇文章的时候有一种眼前一亮的感觉。文章既简单又巧妙。发表在09年的TIP上。
+这篇文章是用Independent Component Analysis(独立成分分析)做的，把前景和背景看成两个独立的信号，然后在观测图片分解。
+
+(a)和(b)是两个观测图片，其中(a)为参考背景，(c)和(d)是分解后的前景和背景，(e)是二值化后的前景图片。
+其实这篇文章的方法相当于一种自适应的背景差分法。
+
+
+分享到： 
+上一篇：OpenCV 视频监控（Video Surveilance）
+
+查看评论
+
+  暂无评论
+
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+个人资料
+  
+lixiaokai8990
+ 
+访问：1830次
+积分：36分
+排名：千里之外
+原创：1篇转载：5篇译文：0篇评论：0条
+文章搜索
+
+文章存档
+2012年10月(3)
+2012年06月(2)
+2011年01月(1)
+阅读排行
+VC+OpenGL实现空间三维Delaunay三角剖分(689)
+背景建模(361)
+OpenCV几个函数用法（笔记）(252)
+OpenCV 视频监控（Video Surveilance）(172)
+VS2008+QT中使用CUDA的示例(166)
+在WIN32 DLL中使用MFC(115)
+评论排行
+VC+OpenGL实现空间三维Delaunay三角剖分(0)
+在WIN32 DLL中使用MFC(0)
+OpenCV几个函数用法（笔记）(0)
+VS2008+QT中使用CUDA的示例(0)
+OpenCV 视频监控（Video Surveilance）(0)
+背景建模(0)
+推荐文章
+
+OpenGL
+VC+OpenGL实现空间三维Delaunay三角剖分
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+ 联系邮箱：webmaster(at)csdn.net
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+

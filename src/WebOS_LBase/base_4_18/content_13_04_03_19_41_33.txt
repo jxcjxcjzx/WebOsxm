@@ -1,0 +1,127 @@
+
+相册广场登录注册关注此空间
+夕颜xiyan10
+2012-04-18 20:49 unix---------------kill（unix编程学习六）
+///////////////////////////////////////////////////////////////////////////////////////////kill.c///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#include "kill.h"
+int main(void)
+{
+     int status;
+     pid_t pid; 
+     if( (pid = Fork() ) ==0 )
+     {
+          pause();
+          printf("should not reach this\n");
+          exit(-1);
+        }
+      kill( pid, SIGKILL );
+     while(waitpid( pid, &status, 0 ) > 0)
+        if(WIFSIGNALED(status))
+           printf("child pid:exit whith %d\n ", WTERMSIG(status)); 
+        if(errno != ECHILD)
+            printf("waitpid error\n");
+ exit(0);            
+}  
+////////////////////////////////////////////////////////////////////////////////////////////////////////FORK.c/////////////////////////////////////////////////////////////////////////////////////////////////
+#include<stdio.h>
+#include<unistd.h>
+#include<sys/types.h>
+#include<stdlib.h>
+
+pid_t  Fork(void)
+      {
+          pid_t pid;
+          if((pid = fork()) < 0 )
+             {
+              printf("error fork\n");
+              exit(-1);
+               }
+            return pid;
+       
+////////////////////////////////////////////////////////////////////////////////////////////kill.h////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#include<stdio.h>
+#include<unistd.h>
+#include<sys/types.h>
+#include<signal.h>
+#include<stdlib.h>
+#include<errno.h>
+
+extern pid_t Fork(void);
+//////////////////////////////////////////////////////////////////////////////////////////Makefile////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+CC := gcc
+clear := rm *.o  kill
+
+kill: kill.o FORK.o
+        $(CC) -o $@ $^
+
+
+kill.o : kill.h
+
+clean:
+        $(clear)
+author:
+        @echo MADE BY MIKU
+
+.PHONY: clean
+.PHONY: author
+////////////////////////////////////////////////////////////////////////////////OUTPUT///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+root@ubuntu:/home/xiyanxiyan10/arm/unix/kill# make
+gcc    -c -o kill.o kill.c
+gcc    -c -o FORK.o FORK.c
+gcc -o kill kill.o FORK.o
+root@ubuntu:/home/xiyanxiyan10/arm/unix/kill# ./kill
+child pid:exit whith 9
+ root@ubuntu:/home/xiyanxiyan10/arm/unix/kill# make clean
+rm *.o  kill
+root@ubuntu:/home/xiyanxiyan10/arm/unix/kill# 
+//////////////////////////////////////////////////////////////////////////////////////////////////analysis///////////////////////////////////////////////////////////////////////////////////////////////////////
+首先《CSAPP 》
+496页中文版关于TERMSIG 的翻译貌似有误，返回了对应的使进程终止的信号数值而不是信>号的数量
+
+其次可以看出 kill 后的进程会变为僵死进程，而不是直接清除
+
+
+补充：
+
+/bin/kill 可以直接利用来杀死进程
+
+譬如 ps -aux 先找到进程 PID
+然后 kill -int pid
+
+pid 为负时表示进程组
+                                                              25,1          Bot
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+#Linux
+分享到： 浏览(28) 评论 转载
+你可能也喜欢
+
+ 
+记忆中的你，从未离开。（日系少年物语）
+ 
+『友情，爱情，纯真，愿望...』-我们仍未知道那天所见的花的名字
+ 
+帅哥是怎么长成的
+ 
+【雨】の作品一览id=27087
+ 
+【VoiceVision声颜组】歌之☆王子殿下
+ 
+东方系列同人第五弹
+ 
+unix ----环境变量和参数（unix编程学习四）
+评论
+
+ 发布 
+帮助中心 | 空间客服 | 投诉中心 | 空间协议
+©2013 Baidu
+
+百度空间，让世界发现你
+向世界展示自己，发布喜爱的图片、文字和音乐
+简单注册登录
+

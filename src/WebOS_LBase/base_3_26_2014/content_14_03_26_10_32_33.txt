@@ -1,0 +1,205 @@
+Chrome（谷歌）浏览器扩展开发初探
+
+分类： 谷歌浏览器 扩展 插件 javascript 2011-09-08 16:05 3701人阅读 评论(1) 收藏 举报
+chrome浏览器chrome插件javascript扩展ajax
+        FF（火狐）浏览器插件已经完成了，确实也很好用，但是有些同学不习惯使用ff浏览器，喜欢使用谷歌浏览器，点击这里查看上篇问题。那么我们就开发一个chrome的扩展，实现订餐功能。
+        在FF浏览器扩展中，我们使用xul定义FF的界面，使用javascript实现处理逻辑，在谷歌浏览器中，我们同样不需要学习activeX,也不需要学习com，只是使用html和javascript即可实现开发谷歌浏览器扩展的功能，只是为了简单起见，我们这次手动点击按钮，出发订餐操作。
+         第一步先学习下谷歌插件知识，推荐两篇不错的问题Chrome插件开发之一: 搭建基本结构http://gdfans.net/?p=14&cpage=1，Chrome插件开发之二: 添砖加瓦http://gdfans.net/?p=210  。 相对于firefox浏览器，谷歌浏览器的扩展开发简单的很多。关于基本入门上面两篇文章已经介绍的很详细了。这里顺便说下谷歌扩展管理方面的东东。你可以通过工具-》扩展程序来管理你的扩展，新开发的扩展可以通过
+
+里面的“载入正在开发的扩展程序…”来打开正在开发扩展的目录，即可在扩展程序中管理你的程序。开发完成后，也不用像FF扩展那样需要手工打成zip，再修改为xpi后缀。而在谷歌浏览器中，只需要按下“打包扩展程序”即可完成打包，打的包会有两个，crx后缀的为打包文件，可以直接交给别人安装，pem是私钥文件，下次打包的时候使用。
+有了以上知识，我做出来的谷歌浏览器扩展是这个样子的
+
+点击“订”按钮触发登陆网站并执行操作，详细代码点击此处获得。
+
+附上两篇介绍谷歌浏览器扩展的文章
+1. 文件列表
+
+本文引用项目 urlcmt 作为开发示例（urlcmt是一个可以对任意网页进行评论的Chrome插件，你可以下载源代码，或安装此插件），为了让插件正常工作，至少需要这几个文件：
+
+
+
+它们的作用分别是：
+
+icon.png: 插件工具栏图标
+manifest.json: 控制整个插件行为的配置文件
+popup.html: 点击插件图标后弹出的窗口，是插件的主界面
+如果希望插件具有更加合理的结构和功能，则还可以有以下文件：
+
+
+
+他们的作用分别是：
+
+imgs: 存放插件界面图片
+background.html: 在此运行的代码不会因为popup.html窗口消失而停止运行
+icon_128.png: 在插件描述中作为插件的Logo
+main.css: 插件界面元件的样式表
+main.js: 插件中可以使用的js函数
+2. 文件说明
+
+manifest.json 为整个插件的主控文件，基本功能描述如下：
+
+01	{
+02	    "name": "urlcmt",
+03	    "version": "1.0",
+04	    "description": "网页评论 Comment the web !",
+05	    "default_locale": "zh_CN",
+06	    "browser_action": {
+07	        "default_icon": "icon.png",
+08	        "popup": "popup.html"
+09	    },
+10	    "icons": {
+11	        "128": "icon_128.png"
+12	    },
+13	    "permissions": [
+14	        "tabs",
+15	        "http://api.gdfans.net/"
+16	    ]
+17	}
+其中：
+
+第2行: 所有代码思想的核心，它就是插件的名称！
+第3行: 插件版本，发布插件时会生成一串密文，那时会用到
+第4行: 描述信息，会显示在插件属性里
+第5行: 默认编码为中文
+第7行: 指定插件图标的路径
+第8行: 指定 popup.html 文件的路径
+第11行: 指定 128 像素大小的图标的路径
+第14行: 此权限支持读取标签（tab）中的信息
+第15行: 此权限支持向 http://api.gdfans.net/ 发送 Ajax 请求
+popop.html 为整个插件的界面，代码如下：
+
+01	<!DOCTYPE html>
+02	<metahttp-equiv="Content-Type"content="text/html; charset=UTF-8"/>
+03	<linkrel="stylesheet"href="main.css"/>
+04	<scripttype="text/javascript"src="./url.js"></script>
+05	<scripttype="text/javascript"src="./main.js"></script>
+06	 
+07	<bodyonload="init()">
+08	    <divid="pop_msg"class="align_center colo_aaa valign_center"></div>
+09	    <divclass="submit_form align_center">
+10	        <formid="cmt_submit_form"onsubmit="submit_cmt();return false;"action="#"method="POST">
+11	            <textarearows="1"cols="6"id="cnt"class="align_left"onfocus="show_submit_form();"maxlength="200"></textarea>
+12	            <br/>
+13	            <divclass="align_right">
+14	                <inputtype="submit"id="sbmt"value="submit">
+15	            </div>
+16	        </form>
+17	    </div>
+18	    <divid="cmt_cnt"></div>
+19	</body>
+这里注意：
+
+第1行: 加上这个以后，显示插件界面时，不会在底部出现一大片空白区域
+其余都和普通 web 页面开发相同，空的 div 供 Ajax 填充从服务端获取的数据
+3. 实现功能 – 插件初始化
+
+有了 manifest.json 和 popup.html，就可以实现最基本的 hello world 的功能了，接下来需要为插件增加其它功能，这些功能可以用 Javascript & Ajax 实现，对此项技术不太熟悉的同学，请点击这里 查阅 w3c school 里的教程。
+
+这些 Javascript & Ajax 代码可以写在 main.js 中，因为不仅 popup.html 要用到，后续要介绍的 background.html 中也要用到，所以为了重用起见，还是放在单独的文件里比较好。main.js 中可以包含一个 init() 函数，用以进行插件的初始化工作
+
+1	function init()
+2	{
+3	    // 隐藏编写评论的表单，以增大页面的可用区域
+4	    hide_submit_form();
+5	    // 从服务端获取当前网页的评论数据，并显示在界面上
+6	    refresh_cmt_cnt(1);
+7	};
+然后在 popup.html 的 body 标签中，加上
+
+1	<bodyonload="init()">
+即可。
+
+4. 实现功能 – 调用 Chrome API
+
+Chrome为插件提供了可以通过 Javascript 调用的 API，在插件的 Js 代码可以直接使用，例如想获取当前标签中的 URL 地址，并向服务端发送 Ajax 请求获取这个 URL 对应的评论信息，可以这么写：
+
+01	function refresh_cmt_cnt(page_no)
+02	{
+03	    // 创建 Ajax 请求对象
+04	    varxhr =newXMLHttpRequest();
+05	 
+06	    // 使用Chrome提供的tab接口获取当前选中的tab的信息
+07	    chrome.tabs.getSelected(null,function(tab) {
+08	        // 当 getSelected 函数执行成功以后会执行到这里
+09	        varcmt_cnt_obj = document.getElementById("cmt_cnt");
+10	 
+11	        // 构造 POST 数据，可以通过 tab.url 来获取标签的 URL 地址
+12	        // encodeURIComponent 函数用来转义特殊字符以免发生冲突
+13	        // 在服务端可以用 PHP 函数 urldecode 再转义回来
+14	        varpost_data ='cmd=1505&alt=json&url='+
+15	                        encodeURIComponent(tab.url) +
+16	                        '&page_size=5&page_no='+ page_no;
+17	 
+18	        // 指定提交的目标地址
+19	        xhr.open("POST","http://api.gdfans.net/",
+20	                 true);
+21	        xhr.setRequestHeader("Content-Type",
+22	                             "application/x-www-form-urlencoded");
+23	 
+24	        xhr.onreadystatechange =function() {
+25	            if(xhr.readyState == 4) {
+26	                // 当 Ajax 请求接收完所有返回数据时会执行到这里
+27	                // 因为服务端返回的数据为 json 格式，因此使用前需要解析以下
+28	                varresp = JSON.parse(xhr.responseText);
+29	                if(! resp) {
+30	                    show_popmsg(null,'获取数据失败', 3);
+31	                    returnfalse;
+32	                }
+33	 
+34	                // 解析完成以后就可以读取返回的数据了
+35	                if(resp.result == 1501) {
+36	                    clear_popmsg();
+37	                    returnfalse;
+38	                }
+39	 
+40	                // 将数据显示在页面上
+41	                for(varkeyin resp.data) {
+42	                    htmltxt += resp.data[key]['cmt'] +', ';
+43	                }
+44	 
+45	                cmt_cnt_obj.innerHTML = htmltxt +"\n";
+46	            }
+47	        }
+48	 
+49	        // 发送 Ajax 请求，Ajax 执行成功以后会调用上面介绍的代码
+50	        xhr.send(post_data);
+51	    });
+52	 
+53	    returntrue;
+54	}
+至此一个可以从服务端获取 URL 评论数据的简单插件就制作完成了，只要你熟悉 Web 开发，开发 Chrome 插件就是小菜一碟～
+好了，休息一会，接下来的文章再继续分享其它内容 ^-^
+
+接着上一篇文章《Chrome插件开发之一：搭建基本结构》开始说起，有了基本结构，urlcmt的基本功能已经实现了，接下来需要对插件进行完善和修饰，下面介绍一些基本结构以外的内容。
+
+1. 关于Background.html
+
+popup.html中定义的Javascript变量会在popup.html页面关闭时被释放，那么如何保存一些一直需要使用的变量呢？这就是background.html的作用，background.html页面中定义的javascript变量会在Chrome浏览器生命期中一直存在，可以把需要一直存在的数据保存在这里。
+
+那么我们如何在background.html中保持popup.html页面中的数据呢？可以这么写，先在background.html中定义好变量，例如以下保存用户登录信息的变量
+
+1	var global_email ="";
+2	var global_passwd ="";
+然后在popup.html中用以下方式来引用这些变量，可以改变或者读取变量的值
+
+1	var bgpg = chrome.extension.getBackgroundPage();
+2	bgpg.global_email = "somebody@domain.com";
+3	bgpg.global_passwd = "password";
+2. 将数据保存在磁盘
+
+Chrome本身没有提供用于保存变量的值的接口，不过可以通过Javascript操作Cookie保存数据，另外还有一种更加方便的保存数据方式，那就是使用HTML5的localStorage功能保存数据，这也是Chrome插件开发手册中推荐的方式，例如我们希望保存刚才在background.html中定义的用户登录信息，只需要执行以下代码即可
+
+1	localStorage['email'] = golbal_email;
+2	localStorage['passwd'] = global_passwd;
+这样就算关闭了Chrome浏览器，用户的登录数据还是一样不会丢失，下次启动Chrome浏览器时，只需要执行以下代码就又可以获取这些登录数据了
+
+1	global_email = localStorage['email'];
+2	global_passwd = localStorage['passwd'];
+3. 插件图标右下角的数字
+
+经常可以看见某些插件会在插件图标的右下角显示数字，可以很直观的看到一些信息，还是非常有用的，Chrome插件开发文档称这个数字为badge，可以翻译成徽章的意思。
+如果想为自己的Chrome添加这个badge，可以使用以下代码
+
+1	// 在插件图标的右下角显示数字3
+2	chrome.browserAction.setBadgeText({text: ‘3’});
+有了上面介绍的这些功能，插件能提供的服务就又进了一步，好了，今天的分享就到这里，下次再介绍Chrome插件开发的其它内容。

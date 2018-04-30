@@ -1,0 +1,308 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+Mr__fang的专栏
+
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年1月当选微软MVP名单揭晓！    智能开发框架 JEECG 作者张代浩专访
+ 2012CSDN博客之星火热出炉！      2013年全国百所高校巡讲讲师招募 
+
+
+
+commons email发送附件DEMO 
+.
+分类： JAVA2012-06-12 22:33247人阅读评论(0)收藏举报
+
+
+
+
+[java] view plaincopy
+01.public class bb {  
+02.  
+03.    /** 
+04.     * @param args 
+05.     * @throws EmailException  
+06.     */  
+07.//  public static void main(String[] args) throws EmailException {  
+08.//      SimpleEmail email = new SimpleEmail();  
+09.//      email.setHostName("smtp.163.com");// 邮件服务器  
+10.//      email.setAuthentication("***@163.com", "****");// smtp认证的用户名和密码  
+11.//      email.addTo("*****@163.com", "兔子");// 收信者  
+12.//      email.setFrom("*****@163.com", "猫咪");// 发信者  
+13.//      email.setSubject("猫咪的测试邮件");// 标题  
+14.//      email.setCharset("UTF-8");// 编码格式  
+15.//      email.setMsg("这是一封猫咪的测试邮件");// 内容  
+16.//      email.send();// 发送  
+17.//      System.out.println("OK");  
+18.//  }  
+19.  
+20.    public static void main(String[] args) throws EmailException {  
+21.        MultiPartEmail email =new MultiPartEmail();  
+22.        email.setHostName("smtp.163.com");  
+23.        email.setAuthentication("****@163.com", "*****");  
+24.        email.setCharset("UTF-8");  
+25.        email.addTo("****@163.com", "兔子");  
+26.        email.setFrom("****@163.com", "猫咪");  
+27.        email.setCharset("UTF-8");  
+28.        email.setMsg("msg中文");  
+29.  
+30.        EmailAttachment attachment =new EmailAttachment();  
+31.        attachment.setPath("c:/234.jpg");// 本地文件  
+32.        // attachment.setURL(new URL("http://xxx/a.gif"));//远程文件  
+33.        attachment.setDisposition(EmailAttachment.ATTACHMENT);  
+34.        attachment.setDescription("a.jpg");  
+35.        attachment.setName("a.jpg");  
+36.  
+37.        email.attach(attachment);  
+38.        email.send();  
+39.          
+40.        System.out.println("1");  
+41.    }  
+42.}  
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+[java] view plaincopy
+01.public static void main(String[] args) throws Exception {  
+02.        cc as = new cc();  
+03.        String host = "smtp.163.com";  
+04.        String from = "tengjingshu28@163.com";  
+05.        String username = "13572072607";  
+06.        String password = "825472090";  
+07.        // 接收者邮箱  
+08.        String to = "13572072607@163.com";  
+09.        String subject = "这是李晗的测试主题！";  
+10.        String mailConent = "这是李晗的测试邮件";  
+11.        // 调用发送附件邮件方法  
+12.        as.sendAttachmentMail(host, from, username, password, to, subject,  
+13.                mailConent);  
+14.    }  
+15.  
+16.    public boolean sendAttachmentMail(String host, String from,  
+17.            String username, String password, String to, String subject,  
+18.            String mailConent) throws Exception {  
+19.        // 创建附件对象  
+20.        EmailAttachment attachment = new EmailAttachment();  
+21.        /* 附件的地址 */  
+22.        attachment.setPath("c:/234.jpg");  
+23.        // 设定为附件  
+24.        attachment.setDisposition(EmailAttachment.ATTACHMENT);  
+25.        /* 附件的描述 */  
+26.        attachment.setDescription("jPortMap项目设计附件文档");  
+27.        /* 附件的名称，必须和文件名一致 */  
+28.        attachment.setName("234.jpg");  
+29.        /* new一个HtmlEmail发送对象 */  
+30.        HtmlEmail email = new HtmlEmail();  
+31.        email.setAuthentication(username, password);  
+32.        email.setHostName(host);  
+33.        email.addTo(to, from);  
+34.        email.setFrom(from);  
+35.        email.setSubject(subject);  
+36.        // 注意，发送内容时，后面这段会让中文正常显示，否则乱码  
+37.        email.setCharset("GB2312");  
+38.        email.setHtmlMsg("<html>这是封测试附件邮件</html>"); /* 邮件内容 */  
+39.        // 添加附件对象  
+40.        email.attach(attachment);  
+41.        // 发送  
+42.        email.send();  
+43.        System.out.println("带符件的邮件发送成功！");  
+44.        return true;  
+45.    }  
+
+ 
+
+
+分享到： 
+
+上一篇：Struts dojo datetimepicker 标签中文乱码
+下一篇：javamail邮件正文带图片 （javamail实现）
+ . 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+Mr__fang
+ 
+
+
+
+
+访问：20546次
+积分：606分
+排名：第17264名
+.原创：27篇
+转载：95篇
+译文：1篇
+评论：101条
+. 
+文章搜索
+
+. 
+文章分类mysql(8)
+JavaScript(1)
+DBA(1)
+JAVA(53)
+JAVAEE(6)
+Ajax(1)
+正则表达式(2)
+Android(3)
+浏览器(1)
+Python(18)
+博客(1)
+cmd命令(2)
+bi(0)
+博客分类(1)
+摘抄(2)
+网络摘抄(1)
+wangl(0)
+网络爬虫(1)
+爬虫(1)
+SSH(1)
+java图表(2)
+struts(1)
+JAVAmail(1)
+总结(5)
+s(0)
+算法(1)
+JAVADBF(1)
+Extjs(4)
+jdbc(0)
+连接池(0)
+sql(1)
+ 
+文章存档
+2013年01月(11).
+2012年12月(1).
+2012年11月(7).
+2012年10月(4).
+2012年09月(6).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+阅读排行元芳，你怎么能随即生成m个数，让其和等于n？(1300)
+pyinstaller手册(1182)
+人人网官方Android客户端源码分析(3)(802)
+数据库(777)
+eclipse java web 配置(717)
+tomcat 绿色免安装版(676)
+浏览器开发工具的25个秘密(614)
+httpclient4 中文版帮助文档，最新官方版翻译版(二)(520)
+第六章 高级主题 --httpclient4 中文版帮助文档，最新官方版翻译版(六)(497)
+httpclient4 中文版帮助文档，最新官方版翻译版（一）(366)
+ 
+评论排行记录Extjs中各种小例子(59)
+java发送Email(14)
+java六大必须理解的问题-来自网络少许有误(10)
+Python win32口操作Excel(5)
+Ext常用工具类与函数(4)
+一个简单的java网络爬虫(spider)(3)
+一些有用的博客(2)
+java dom解析xml(1)
+windows 编译 python脚本为exe文件(1)
+Python 二进制文件读取显示 .(1)
+ 
+推荐文章 
+最新评论 Ext常用工具类与函数
+Mr__fang: 迭代处理 Ext.onReady(function(){ var panel = new Ex... 
+
+Ext常用工具类与函数
+Mr__fang: Ext.getCmp()示例 Ext.onReady(function(){ var pane... 
+
+Ext常用工具类与函数
+Mr__fang: 查询选择器Ext.query Ext.onReady(function(){ var panel... 
+
+Ext常用工具类与函数
+Mr__fang: select选择器示例 Ext.onReady(function(){ //创建一个panel ... 
+
+记录Extjs中各种小例子
+Mr__fang: Ext常用工具类与函数http://blog.csdn.net/mr__fang/article/d... 
+
+记录Extjs中各种小例子
+Mr__fang: 动态添加标签页示例Ext.onReady(function(){ var tabPanel = ... 
+
+记录Extjs中各种小例子
+Mr__fang: 通过items添加标签页示例 Ext.onReady(function(){ Ext.crea... 
+
+记录Extjs中各种小例子
+Mr__fang: 'Ext.layout.container.HBox布局示例Ext.onReady(function... 
+
+记录Extjs中各种小例子
+Mr__fang: Ext.onReady(function(){ var panel = Ext.create('... 
+
+记录Extjs中各种小例子
+Mr__fang: Ext.onReady(function(){ var panel = Ext.create('... 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

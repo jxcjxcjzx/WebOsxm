@@ -1,0 +1,82 @@
+Lua学习笔记七——lua也面向对象
+分类： Lua 2009-05-09 20:54 2922人阅读 评论(1) 收藏 举报
+luajavascriptfunctionpythonc
+lua也面相对象？不错，是的。它有面向对象的操作。看看简单示例：
+
+[python] view plaincopy
+CTest = { cnt = 0 }  
+  
+function CTest:new(o)  
+    o = o or {}  
+    setmetatable(o, self)  
+    self.__index = self  
+    return o  
+end  
+  
+function CTest.add(self, v)  
+    self.cnt = self.cnt + v  
+end  
+  
+function CTest:pprint()  
+    print("CTest...")  
+end  
+  
+c1 = CTest  
+c1.add(c1, 10)  
+print(c1.cnt)  
+  
+c1:add(99)  
+print(c1.cnt)  
+c1:pprint()  
+print("/n")  
+ 
+
+一般用this或者self指向当前对象。python用习惯了，和python保持一致，用self来表示。lua中，可以用冒号语法省略self参数的传递，如上例中 c1:pprint() 等价于 c1.pprint(c1)。
+
+ 
+
+ 
+
+有面向对象的特征，当然少不了继承：
+
+[python] view plaincopy
+DTest = CTest:new()  
+function DTest:pprint()  
+    print("DTest...")  
+end  
+  
+d1 = DTest:new{cnt = 2009}  
+print(d1.cnt)  
+d1.pprint()  
+print("/n")  
+DTest继承自CTest，重写了pprint方法。
+
+ 
+
+ 
+
+有面向对象的特征，当然少不了封装：
+
+[python] view plaincopy
+function ETest(initCnt)  
+    local self = { cnt = initCnt }  
+  
+    local add = function(v)  
+        self.cnt = self.cnt + v  
+    end  
+  
+    local pprint = function()  
+        print "ETest ... "  
+    end  
+  
+    return {  
+        add = add,  
+        pprint = pprint  
+    }  
+end  
+  
+  
+e1 = ETest(0)  
+e1.pprint()  
+print(e1.cnt) -- 访问不了 cnt，cnt是私有变量  
+如果对JavaScript比较了解，一看到上面的封装代码，觉得俨然是JavaScript风格，并且和JavaScript封装的行为几乎一模一样。

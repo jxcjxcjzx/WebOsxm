@@ -1,0 +1,223 @@
+首页技术频道51CTO旗下网站地图  论坛博客下载视频课程更多 今天领无忧币了吗？登录注册
+
+业界最前沿企业级开源生态系统
+VMware大数据解决方案免费下载
+APT攻击与防御深度解读
+调研:移动开发者生存状况
+
+首页 | Java | .NET | Web | XML | 语言工具 | 测试 | 游戏 | 移动 | 架构 | 项目管理 | 全部文章
+提交
+
+您所在的位置：开发 > C/C++ > C++静态构造函数相关概念解析
+C++静态构造函数相关概念解析
+2010-02-01 11:01 佚名 博客园 我要评论(0) 字号：T | T
+一键收藏，随时查看，分享好友！
+实际上，C++语言并未包含类似静态构造函数的东西。但是如果我们想要实现C++静态构造函数的话，应当如何操作呢？
+AD：
+如何才能正确的理解C++静态构造函数呢？这一静态函数在实际应用中能对我们起到些什么样的作用呢？在这篇文章中大家将会找到这些答案。希望这些内容能帮助大家带来一些帮助，提高对C++的认识。
+
+C++ TinyXML使用心得总结
+两种C++数据指针类型详细介绍
+C++文件操作具体应用函数介绍
+C++跨平台应用编译方法详解
+C++框架如何正确理解
+在C#中，类的静态构造函数用于在使用类之前进行相关的初始化工作；比如，初始化静态成员或执行特定操作。CLR 在第一次创建该类对象或调用该类静态方法时自动调用静态构造函数。同时，CLR保证静态构造函数的线程安全性（准确地说是，只会调用一次，不存在多线程问题）。
+
+下面是MSDN对C++静态构造函数特点的描述：
+
+1.静态构造函数既没有访问修饰符，也没有参数
+
+2.在创建第一个实例或引用任何静态成员之前，将自动调用静态构造函数来初始化类
+
+3.无法直接调用静态构造函数
+
+4.在程序中，用户无法控制何时执行静态构造函数
+
+C++语言规范并未包含类似静态构造函数的东西，但在使用类之前做初始化工作的需求却是客观存在的。就满足需求本身来讲，C++完全可以通过手动方式实现，但要处理好初始化时机，线程安全性等问题。本文则尝试通过C++的模版机制模拟实现静态构造函数，避免手动初始化的繁琐实现。对于需要静态构造函数的类A，只需用继承static_constructable< A>模版类，并提供 static void statici_constructor()静态方法即可：
+
+class A : static_constructable< A> 
+{  
+public:  
+static void static_constructor() {  
+std::cout < <  "static constructor a" < <  std::endl;  
+s_string = "abc"; //初始化静态数据  
+}  
+static std::string s_string;  
+public:  
+A(){  
+std::cout < <  "constructor a" < <  std::endl;  
+}  
+private:  
+int m_i;  
+};  
+std::string A::s_string;  
+int _tmain(int argc, _TCHAR* argv[]){  
+std::cout < <  "beginning of main" < <  std::endl;  
+assert(sizeof(A) == sizeof(int));//继承不改变A的内存布局  
+assert(A::s_string == "");  
+A a1;  
+assert(A::s_string == "abc");  
+A a2;  
+std::cout < <  "end of main" < <  std::endl;  
+return 0;  
+} 
+输出：
+
+beginning of main  
+static constructor a //创建A对象前自动调用静态构造方法，一次且仅一次  
+constructor a  
+constructor a  
+end of main 
+下面是static_constructable类模板的实现：
+
+template< typename T> 
+class static_constructable  
+{  
+private:  
+struct helper{  
+helper(){  
+T::static_constructor();  
+}  
+};  
+protected:  
+static_constructable(){  
+static helper placeholder;   
+}  
+}; 
+上面的实现把对A::static_constructor()的回调放到内部类helper的构造函数中；并在static_constructable< A>()中定义一个helper局部静态变量；C++保证在构造派生类 A的对象时，会先调用基类static_constructable< A>的构造函数，且静态局部变量只会构造一次，这样就达到调用一次且仅一次A::static_constructor()的目的。< /span>
+
+static_constructor类模板简单地模拟了C#的静态构造函数机制，C++静态构造函数具有以下特点：
+
+1. 在第一次构造类对象之前自动调用类提供的静态构造函数
+
+2. 静态构造函数被调用的时机是确定的
+
+3. 利用了C++的局部静态变量初始化机制保证了线程安全性(更正：实际并非线程安全，C++标准不涉及多线程问题，而一般编译器实现也非线程安全，更多参见评论部分)
+
+4. 基于继承的实现机制并未改变派生类的对象内存布局
+
+不过，和本文开始列出的C#静态构造函数的几个特点相比，本实现还有明显的不足：无法通过调用类A的静态方法触发静态构造函数；类A的静态构造函数必须是public的。
+
+以上就是对C++静态构造函数相关介绍。
+
+【责任编辑：曹凯 TEL：（010）68476606】
+
+原文：C++静态构造函数相关概念解析返回开发首页
+ 
+分享到： 0 收藏|打印|复制
+
+给力
+(53票)
+
+动心
+(51票)
+
+废话
+(50票)
+
+专业
+(52票)
+
+标题党
+(51票)
+
+路过
+(49票)
+关于C++静态构造函数的更多文章
+深度探讨C++静态构造函数
+C++是垃圾语言？！
+C++是垃圾语言？！
+Linux之父对C++进行了炮轰，说它是糟糕程序员的垃圾语言，可谓是[详细]
+网友评论TOP5查看所有评论（）
+提交评论
+通行证： 密码：   注册通行证
+
+
+验证码：		请点击后输入验证码		匿名发表	
+栏目热门更多>>
+比较洗牌算法的两种实现方法
+C编程鬼话：完善MVC的DEMO，闲话MAKEFILE
+同期最新更多>>
+C++框架如何正确理解
+C++跨平台应用编译方法详解
+C++文件操作具体应用函数介绍
+两种C++数据指针类型详细介绍
+C++ TinyXML使用心得总结
+开发频道导航
+JavaJava开发|Java基础|Java EE开发|Java框架|设计模式
+WEB开发PHP开发|Python|Ruby|JSP|HTML 5|DIV+CSS
+综合.NET开发|嵌入式开发|项目管理|架构设计
+热点推荐
+
+Android开发应用详解
+
+那些性感的让人尖叫的程序员
+
+HTML5 下一代Web开发标准详解
+
+高性能WEB开发应用指南
+
+Ubuntu开源技术交流频道
+热门标签： windows频道移动开发云计算objective-ctp-link路由器设置图解html5
+
+头条《开发月刊》2013年10月刊发布
+本期《开发月刊》的专题内容是Java下一代语言Groovy、Scala 和 Clojure，它们的共同…
+《开发月刊》2013年8月刊发布
+VS 2013软件生命周期管理的改进
+
+文章排行本月本周24小时
+开发人员最难于打理的九项工作
+Eclipse插件大全 挑选最牛的TOP30
+2013年11月编程语言排行榜：日益蓬勃的
+二维码的生成细节和原理
+Java数组声明、创建、初始化
+51CTO观察：搜狗被“爆”安全 谁是谁非
+程序员，你调试过的最难的 Bug 是什么
+即刻搜索黯然退场，邓亚萍冤不冤？
+IT行业中的六个肮脏秘密
+Google Chrome中的高性能网络
+热点专题更多>>
+Java灵活开发 语言混合编程
+Java灵活开发 语言混
+Java平台上的多语言混合编程正成为主流，单一的Java开
+Visual Studio 11应用开发指南
+Visual Studio 11应用
+Visual Studio 11是继Visual Studio 2010之后，微软下
+JVM编程语言，你的选择？
+JVM编程语言，你的选
+您是否在寻找比Java更安全，更简洁，又能跨平台的开发
+热点标签
+编程语言排行榜 敏捷开发 Eclipse 3.6 PHP设计模式 NetBeans 7 Java7 Scala编程语言 Python编程世界 Ruby On Rails开发 LINQ ASP.NET视频教程 Visual Studio 智能手机 软件下载
+点击这里查看样刊
+
+全站热点
+
+Android开发入门之实战技巧和源码
+
+软件测试人员成长 坚守 转型之路
+快学Scala
+灰帽黑客：正义的道德规范、渗透测试
+古今密码学趣谈
+不平凡的一年：项目管理故事50则（第
+LBS应用开发
+读书
+
+嬴在用户：Web人物角色创建和应用实践指南
+您如何保证您的网站确实给予用户他们所需要的，并对您产生商业成果？您需要了解谁是您的用户，您的用户的目标、行为和观点是什么
+C# 2005 & .NET 3.0高级编程(第5版)
+Cisco CCNA 640-801
+黑客入侵的主动防御
+SUN Solaris 9/10系统管理员认证指南
+博文推荐更多>>
+[CTO札记]‘信息/行为外播’--与开
+警惕谷歌新形式的垄断
+[CTO札记]从文章->图->关键词
+再谈如何成为技术领袖--技术不是充分
+最新热帖更多>>
+最新SQL SERVER 2000/2005精华贴（陆
+最新SQL SERVER 2000/2005精华贴（陆
+
+51CTO旗下网站
+领先的IT技术网站 51CTO 领先的中文存储媒体 WatchStor 中国首个CIO网站 CIOage 中国首家数字医疗网站 HC3i 移动互联网生活门户 灵客风LinkPhone
+Copyright©2005-2013 51CTO.COM 版权所有 未经许可 请勿转载
+

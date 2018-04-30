@@ -1,0 +1,455 @@
+/***************************************************************************
+ *   Copyright (C) 2012 by evenvi   *                                      *
+ *   evenvi@imegaware   *                                                  *
+ *   modefy the linux cmd of cp                                            *
+ *                                                                         * 
+ *   example:                                                              *
+ *   ./my_cp ./a.txt ../srcfile/a/                                         *
+ *   ./my_cp ./a.txt ../srcfile/b.txt                                      *
+ *   ./my_cp ./*.txt  ./aaa/                                               *
+ *   ./my_cp ./srcdir  ../../destdir/                                      *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <stdio.h>
+#include <stdlib.h>
+#include  <sys/types.h>
+#include  <sys/stat.h>
+#include  <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#include  <dirent.h>
+#include  <string.h>
+
+#define MAX_PATH 1024
+
+int main(int argc, char *argv[])
+{
+	char dest_path[PATH_MAX+1];
+	char src_path[256][PATH_MAX+1];
+	char temp_dest_path[PATH_MAX+1];
+	int i, k=0, num, src_num, index_r; //num 参数个数，  src_num 源文件个数 k源文件路径个数
+	int param_r = 0;  // 选项r/R 标志位 index_r 选项r/R 位置下标 
+	struct stat buf;
+	
+	int na=0;//测试打印参数
+	printf("***********************************\n");
+	for(na=0; na<argc; na++)
+	{
+		printf("参数%d：%s\n",na,argv[na]);
+	}
+	printf("***********************************\n");
+	
+	
+	//判断参数为 －r 还是 －R , argc 从1开始
+	for(i=1; i<argc; i++)
+	{
+// 		printf("%d\t%s\n",argc,argv[i]);
+		if(argv[i][0] == '-')
+		{
+			if(strcmp(argv[i], "-r") || strcmp(argv[i], "-R"))
+// 			if((!strcmp(argv[i],"-r")||!strcmp(argv[i],"-R")))
+			{
+				param_r = 1;
+				index_r = i;
+				printf("r/R参数标记：%d\tr/R下标标记：%d\t参数为：%s\n",param_r,index_r,argv[i]);
+			}
+			else
+			{
+				printf("my_cp:invalid options: %s\n",argv[i]);
+				exit(1);
+			}
+		}
+	}
+	
+	//计算num src_num 
+	if(param_r)
+	{ //have r/R
+		num = argc-2;
+		src_num = num - 1;
+	}
+	else
+	{ //no r/R
+		num = argc - 1;
+		src_num = num -1;
+	}
+	if(num  < 2)
+	{
+		printf("my_cp:填写相应参数格式如下：[option] (source) (dest)\n");
+		exit(1);
+	}
+	
+	//获取目标文件路径
+	if(index_r != argc-1)
+	{     //有-r/-R 参数且在后面
+		strcpy(dest_path, argv[argc - 1]);
+	}
+	else
+	{	//其他情况
+		strcpy(dest_path, argv[argc - 2]);
+	}
+	
+	//获取源文件路径，可能有多个，字符串数组表示
+	for(i=1; i<argc-1; i++)
+	{
+		if(i == index_r && param_r) //如果有r/R跳过,不计入，
+			continue;
+		else
+		{
+			strcpy(src_path[k++], argv[i]);
+			printf("获取的源文件路径:%s\n",src_path[k]);	
+		}
+	}
+	
+	if(src_num > 1) //src多个
+	{	printf("源文件路径个数：%d\n",src_num);
+		if(stat(dest_path, &buf) == -1)
+		{	//是否为目录
+			printf("my_cp: \"%s\" is not a directory.\n",dest_path);
+			exit(1);
+		}
+		if(S_ISDIR(buf.st_mode)) //目录是否有效
+		{
+			strcpy(temp_dest_path, dest_path);
+			for(i=0; i<src_num;i++)
+			{
+				if(stat(src_path[i], &buf) == -1)
+				{
+					printf("my_cp: can't get file status of \"%s\" no this file or directory.\n",src_path[i]);
+				}
+				
+				//源文件目录存在				
+				if(!S_ISDIR(buf.st_mode))
+				{
+					cp_single(src_path[i], dest_path);
+					printf("非目录，执行文件拷贝：%s－>%s\n",dest_path,src_path[i]);
+				}
+				else if(param_r) //为目录且有r/R选项 ，调用目录拷贝函数
+				{
+					printf("是目录，调用目录拷贝函数：%s－>%s\n",dest_path,src_path[i]);
+					cp_directory(src_path[i], dest_path);
+				}
+				else//文件和目录都拷贝完成，跳过当前所在目录
+				{
+					printf("my_cp: skip the directory:\"%s\"\n",src_path[i]);
+				}
+				
+				strcpy(dest_path, temp_dest_path);
+			}
+		}
+		else
+		{	//非有效目录
+			printf("my_cp:\"%s\" is not a directory.\n",dest_path);
+			exit(1);
+		}
+		
+	}
+	else//src_path 单一
+	{	printf("源文件个数：%d\n",src_num);
+		if(stat(src_path, &buf) == -1)
+		{
+			printf("my_cp: can't get file status of \"%s\" : no this file or directory.\n",src_path[0]);
+		}
+		if(S_ISDIR(buf.st_mode))
+		{
+			if(param_r)
+			{
+				cp_directory(src_path[0], dest_path);
+				exit(0);
+			}
+			else
+			{
+				printf("mycp: skip the directory: \"%s\".\n",src_path[0]);
+				exit(1);
+			}
+		}
+		else
+		{
+			cp_single(src_path[0], dest_path);
+			printf("复制：%s->%s\n",src_path[0],dest_path);
+		}
+	}
+	
+//   printf("Hello, world!\n");
+	return EXIT_SUCCESS;
+}
+
+void cp_single(char *temp_src_path, char *temp_dest_path)
+{
+	struct stat buf;
+	int len;
+	char ch[10], filename[PATH_MAX+1], dest_dir[PATH_MAX+1];
+	int fdrd, fdwt, i, j, k;
+	char src_path[PATH_MAX+1], dest_path[PATH_MAX+1];
+	
+	strcpy(src_path, temp_src_path);
+	printf("参数复制：%s->%s\n",temp_src_path,src_path);
+	strcpy(dest_path, temp_dest_path);
+	printf("参数复制：%s->%s\n",temp_dest_path,dest_path);
+	
+	for(k = 0; k<strlen(src_path); k++)
+	{
+		if(src_path[k] == '/');
+		break;
+	}
+	char temp_path[PATH_MAX+1] = "./";
+	if(k == strlen(src_path))
+	{
+		strcat(temp_path, src_path);//连接
+		strcpy(src_path, temp_path);
+	}
+	
+	
+	//即提取最后一个"/"符号后面的字符串
+	for(i = strlen(src_path)-1; i>0; i--)
+	{
+		if(src_path[i] == '/')
+			break;
+	}
+	j = k = 0;
+	for(j = i; j < strlen(src_path); j++)
+	{
+		filename[k++] = src_path[j];	
+	}
+	filename[k] = '\0';
+	printf("提取源文件的名字：%s\n",filename);
+	
+	//检查dest_path是否存在
+	if(stat(dest_path, &buf) == 0 )
+	{//dest_path存在
+		if(S_ISDIR(buf.st_mode))
+		{
+			if(dest_path[strlen(dest_path)-1] == '/')
+				dest_path[strlen(dest_path)-1] = '\0';
+			strcat(dest_path, filename);
+			printf("提取的完整路径+名字 ：%s\n",dest_path);
+			
+		}
+	}else{
+		//dest_path不存在
+		printf("目标路径不存在\n");
+		printf("dest_path：%s\n",dest_path);
+		printf("i：%d\n",strlen(dest_path)-1);
+		for(i = strlen(dest_path)-1; i >= 0; i--)
+		{
+			if(dest_path[i]=='/')
+				break;
+			printf("i：%d\n",i);
+		}
+		if( i>= 0)
+		{
+			strncpy(dest_dir, dest_path, i+1);
+			printf("%s->%s\n",dest_dir,dest_path);
+			if(stat(dest_dir, &buf) == -1)
+			{
+				printf("my_cp:accessing:\"%s\":it is't a directy.\n",dest_path);
+				exit(1);
+			}
+		}
+	}
+	
+	//文件拷贝
+	if((fdrd = open(src_path, O_RDONLY)) == -1)
+	{
+		perror("open");
+		exit(1);
+	}
+	if(lseek(fdrd, 0, SEEK_END) == -1)
+	{
+		perror("lseek");
+		exit(1);
+	}
+	if((len = lseek(fdrd, 0, SEEK_CUR)) == -1)
+	{
+		perror("lseek");
+		exit(1);
+	} 
+	if(lseek(fdrd, 0, SEEK_SET) == -1)
+	{
+		perror("lseek");
+		exit(1);
+	}
+	
+	//open the dest file
+	if(( fdwt=open ( dest_path, O_CREAT | O_TRUNC | O_RDWR, S_IRWXU )) == -1)
+	{
+		perror("open");
+		exit(1);
+	}
+		close(fdwt);
+	if((fdwt = open(dest_path, O_WRONLY | O_APPEND)) == -1)
+	{
+		perror("open");
+		exit(1);
+	}
+
+	while(len-->0)
+	{
+		//所有字符写到目标目录中
+		if(read(fdrd, ch, 1) != 1)
+		{
+			perror("read");
+			exit(1);
+		}
+		if(write(fdwt, ch, 1) != 1)
+		{
+			perror("write");
+			exit(1);
+		}
+	}
+	
+	//get src file's attributes
+	if(fstat(fdrd, &buf) == -1)
+	{
+		perror("fstat");
+		exit(1);
+	}
+	
+	//设置文件权限
+	if(fchmod(fdwt,buf.st_mode)==-1)
+	{
+		perror("fchmod");
+		exit(1);
+	}
+	//设定用户id和 用户组id
+	if(fchown(fdwt,buf.st_uid,buf.st_gid)==-1)
+	{
+		perror("fchown");
+		exit(1);
+	}
+	close(fdwt);
+	close(fdrd);
+}
+
+
+void cp_directory(char* original_src_path, char* original_dest_path)
+{
+	struct stat buf;
+	DIR *dir;
+	struct dirent *ptr;
+	char path[PATH_MAX+1];
+	char src_path[PATH_MAX+1], dest_path[PATH_MAX+1];
+	
+	strcpy(src_path, original_src_path);
+	strcpy(dest_path, original_dest_path);
+	
+	if(src_path[strlen(src_path)-1]!='/')
+	{
+		strncat(src_path,"/",1);
+	}
+	
+	if(stat(dest_path, &buf) == -1)
+	{
+		//create a directory which name is dest_path
+		stat(src_path, &buf);
+		
+		if(mkdir(dest_path, buf.st_mode) == -1)
+		{	printf("目标路径1：%s\n",dest_path);
+			printf("my_cp:create the directory \"%s\" error.\n", dest_path);
+			return ;
+		}
+	}
+	else
+	{
+		//exist
+		if(!S_ISDIR(buf.st_mode))
+		{
+			printf("my_cp:the directory \"%s\" can't cover the no-directory \"%s\".\n", src_path, dest_path);
+			return ;
+		}
+		else
+		{
+			if(dest_path[strlen(dest_path)-1]!='/')
+			{
+				strncat(dest_path, "/", 1);
+			}
+			
+			//extract the lowest directory
+			int i, k=0;
+			char lowestdir[PATH_MAX+1];
+			for(i=strlen(src_path)-2; i < 0; i--)
+			{
+				if(src_path[i]=='/')
+				{
+					i=i+1;
+					break;
+				}
+			}
+			printf("目标路径2：%s\n",dest_path);
+			for(; i=strlen(src_path); i++)
+			{
+				lowestdir[k++]=src_path[i];
+			}
+			printf("目标路径3：%s\n",dest_path);
+			strncat(dest_path, lowestdir, strlen(lowestdir));
+			struct stat temp_buf;
+			char temp_path[PATH_MAX+1]="rm -rf ";
+		
+			if(stat(dest_path, &temp_buf)==0)
+			{
+				strcat(temp_path, dest_path);
+				system(temp_path);
+				
+			}
+			if(mkdir(dest_path, buf.st_mode)==-1)
+			{
+				printf("目标路径2：%s\n",dest_path);
+				printf("my_cp:create the directory \"%s\" error.\n", dest_path);
+				return ;
+			}
+		}
+	}
+	
+	
+	//原目录操作，读取文件和目录，分别操作	
+	if((dir=opendir(src_path))==NULL)
+	{
+		printf("my_cp:open the srouce path \"%s\" error.\n",src_path);
+		return ;
+	}
+	char temp_dest_path[PATH_MAX+1];
+	strcpy(temp_dest_path, dest_path);
+	while((ptr=readdir(dir))!=NULL)
+	{
+		if(!strcmp(ptr->d_name,"."))
+			continue;
+		if(!strcmp(ptr->d_name,".."))
+			continue;
+		strcpy(path,src_path);
+		strcat(path,ptr->d_name);
+		if(stat(path,&buf)==-1)
+		{
+			printf("my_cp:open the file \"%s\" error.\n",path);
+			return ;
+		}
+		strcpy(dest_path,temp_dest_path);
+		 //get the right dest_path
+		if(S_ISDIR(buf.st_mode))
+		{
+			cp_directory(path, dest_path);
+		}
+		else
+		{
+			cp_single(path, dest_path);
+		}
+	}
+}

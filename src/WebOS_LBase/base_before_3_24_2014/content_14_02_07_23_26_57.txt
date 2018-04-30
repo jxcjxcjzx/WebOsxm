@@ -1,0 +1,39 @@
+
+android中的OpenGL的使用【原创】
+
+ 
+首先，翻译一下Dev Guide：
+
+1、概述：
+   通过OPenGL API，Android包含对高性能3D图形的支持---具体而言，是指OpenGL ES API。
+   OpenGL ES是根据OpenGL规范进行裁剪后形成的一套标准，针对嵌入式设备而设计。各版本的OpenGL ES都广泛的向标准的OpenGL规范看齐。目前，Android 支持OpenGL ES 1.0，相当于OpenGL 1.3。换言之，如果你的应用程序能够在桌面系统上结合OpenGL 1.3运行，那么也可能运行在Android上。
+   Android提供的OpenGL ES API类似于J2ME中的OpenGL ES API（JSR 239）。然而，可能并非完全一致，因此对一些偏差需要多加留意。
+2、使用API:
+   这里给出一个比较抽象的使用API的步骤：
+   1.编写一个自定义的View子类；
+   2.获取一个OpenGlContext句柄，以便使用OpenGL提供的功能；
+   3.在View类的onDraw()方法里获取一个指向GL对象的句柄，并调用它提供的方法来执行GL操作。
+参考：
+   ApiDemo中的com.android.samples.graphics.GLSurfaceViewActivity.java可以做很好的参考。
+
+接下来简单介绍一下开发OpenGL程序的几个关键步骤：
+1、一般，首先在当前Activity的onCreate()方法中实例化GLSurfaceView：
+      GLSurfaceView gl = new GLSurfaceView(this);
+2、自定义MyRenderer实现android.opengl.GLSurfaceView.Renderer接口，并重写三个抽象方法：
+      public abstract void  onDrawFrame(GL10 gl)
+      public abstract void  onSurfaceChanged(GL10 gl, int width, int height)
+      public abstract void  onSurfaceCreated(GL10 gl, EGLConfig config)
+3、给GLSurfaceView对象注册一个Renderer：
+      gl.setRenderer(new MyRenderer)());
+4、设置当前上下文内容视图：
+      this.setContentView(gl);
+
+最后，说两点需要注意的地方：
+
+1、生命周期（Activity Life-cycle）
+
+      当活动暂停和恢复时，必须通知GLSurfaceView。当Activity暂停时需要通知GLSurfaceView调用onPause()，当Activity恢复时需要通知GLSurfaceView调用onResume()。这些调用允许GLSurfaceView暂停和回复渲染的线程，同时允许GLSurfaceView释放和重构OpenGL显示。
+
+2、渲染模式（Rendering Mode）
+      设置Renderer后，你可以通过调用setRenderMode(int)来控制是否持续呈现或者点播。默认情况下持续呈现。
+

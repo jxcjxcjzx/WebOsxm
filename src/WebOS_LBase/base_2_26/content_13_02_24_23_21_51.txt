@@ -1,0 +1,379 @@
+
+Discover  Docs  Blog  Community Sign inSign up   
+Docs
+Open webOS Architecture
+Developer Guide
+Developer Reference
+webOS Application APIs
+webOS Foundations
+webOS Service APIs
+Accelerometer
+Activity Manager
+Alarms
+Application Manager
+Connection Manager
+db8
+Download Manager
+Key Manager
+System Properties
+System Services
+webOS Data Types
+webOS Configuration Files
+Building Open webOS
+Porting Open webOS
+Share on linkedin Share on facebook Share on twitter Share on email More Sharing Services
+Application Manager
+The Application Manager (AM) service - com.palm.applicationManager - lets you bring up an application using one of two different methods.
+
+Methods
+
+open -- Implicitly bring up an application. The framework determines the appropriate handler based on the target parameter's URI, file extension and command.
+
+launch -- Explicitly bring up an application. You can specify the application in the id property and provide any app arguments in the params object.
+
+Also in this document: Command and Resource Types
+
+(Note: For additional examples of how the Application Manager may be used in conjunction with different applications, see webOS Application APIs.
+
+
+open
+
+Implicitly opens an application based on the target parameter's URI, file extension and/or command.
+
+The Application Manager takes the following action based on what's passed:
+
+If target is a local file reference, the AM uses its file extension to launch the associated application if there is one.
+
+If target is a "http" or "https" URI, the AM retrieves the http header and attempts to extract the resource type. If it is a file, it tries to match its type to the resource list as follows:
+
+If there is a match, it downloads the file and launches the associated application with the file reference as a launch parameter. Files are downloaded to \media\internal\downloads. If you download a file again, the AM will automatically append a "#" to it (i.e., "1", "_2". etc.) just before the dot file extension.
+
+If there is no header, it still downloads the file and attempts to match the file extension based on the resource list.
+
+If there is a match, it launches the the associated application with the file reference as a parameter.
+
+If there is no match, the AM exits and returns an error code if an onFailure function is supplied.
+
+Syntax
+{
+    "target" : string
+}
+Parameters
+Parameter	Required	Type	Description
+target	Yes	string	A filename or one of the supported commands (i.e., "mailto: email@company.com"). The app to launch is inferred.
+Returns
+{
+    "returnValue" : boolean,
+    "processId"   : string,
+    "errorText"   : string
+}
+Attribute	Required	Type	Description
+returnValue	Yes	boolean	true (success) or false (failure)
+processId	No	string	The launched app's PID or "success".
+errorText	No	string	Error message returned on failure.
+Examples
+Enyo
+
+enyo.kind({
+   name : "enyo.Canon.AppManager",
+   kind : enyo.VFlexBox,
+   components : [ 
+     { flex : 1,
+      kind : "Pane",
+      components : [{
+         flex : 1,
+         kind : "Scroller",
+         components : [{
+            name : "openEmail",
+            kind : "PalmService",
+            service : "palm://com.palm.applicationManager",
+            method : "open",
+            onSuccess : "openEmailSuccess",
+            onFailure : "openEmailFailure",
+            subscribe : true
+         },
+         {kind : "Button", name : "openEmailButton", caption : "Open Email", onclick : "openEmailClick"}
+        ]
+      }]
+    }],
+    openEmailClick: function() {        
+         this.$.openEmail.call({ "target": "mailto: address@email.com"});
+    },
+    openEmailSuccess: function(inSender, inResponse) {
+        this.log("Open email success, results=" + enyo.json.stringify(inResponse));
+    },          
+    // Log errors to the console for debugging
+    openEmailFailure: function(inSender, inError, inRequest) {
+        this.log(enyo.json.stringify(inError));
+    }
+});
+Enyo - Download an html file and open the browser app
+
+enyo.kind({
+   name : "enyo.Canon.AppManager",
+   kind : enyo.VFlexBox,
+   components : [ 
+     { flex : 1,
+      kind : "Pane",
+      components : [{
+         flex : 1,
+         kind : "Scroller",
+         components : [{
+            name : "openBrowser",
+            kind : "PalmService",
+            service : "palm://com.palm.applicationManager",
+            method : "open",
+            onSuccess : "openBrowserSuccess",
+            onFailure : "openBrowserFailure",
+            subscribe : true
+         },
+         {kind : "Button", name : "openBrowserButton", caption : "Open Browser", onclick : "openBrowserClick"},      
+        ]
+      }]
+    }],
+    openBrowserClick: function() {      
+         this.$.openBrowser.call({ "target": "http://www.somewebsite.com/Overview.html"});
+    },
+    openBrowserSuccess: function(inSender, inResponse) {
+        this.log("Open Browser success, results=" + enyo.json.stringify(inResponse));
+    },          
+    // Log errors to the console for debugging
+    openBrowserFailure: function(inSender, inError, inRequest) {
+        this.log(enyo.json.stringify(inError));
+    }   
+});
+Mojo - Open the email app to compose view
+
+this.controller.serviceRequest("palm://com.palm.applicationManager", {
+      method:"open",
+      parameters:{
+          "target": "mailto: address@email.com"
+      },
+      onSuccess : function (e){ Mojo.Log.info("Open success, results="+JSON.stringify(e)); },
+      onFailure : function (e){ Mojo.Log.info("Open failure, results="+JSON.stringify(e)); }    
+});
+Mojo - Download a file and open QuickOffice
+
+this.controller.serviceRequest("palm://com.palm.applicationManager", {
+      method:"open",
+      parameters:{
+             "target":"http://www.somewebsite.com/MyResume.doc"
+      },
+      onSuccess : function (e){ Mojo.Log.info("Open success, results="+JSON.stringify(e)); },
+      onFailure : function (e){ Mojo.Log.info("Open failure, results="+JSON.stringify(e)); }    
+});
+Success
+
+{ "returnValue": true, "processId": "success" }
+Failure
+
+{ "returnValue": false, "errorText": "No handler for RingOfFire.flac" }
+
+launch
+
+Launches an application with specified parameters.
+
+Syntax
+{
+    "id"     : string,
+    "params" : any object
+}
+Parameters
+Parameter	Required	Type	Description
+id	Yes	string	The application ID specified in the Services API for the intended application.
+params	No	object	Contains the parameters for the target application as specified in the Services API.
+Returns
+{
+    "returnValue" : boolean,
+    "processId"   : string,
+    "errorText"   : string
+}
+Attribute	Required	Type	Description
+returnValue	Yes	boolean	true (success) or false (failure)
+processId	No	string	Launched application's process ID or "success"
+errorText	No	string	Error message returned on failure.
+Examples
+Enyo - Launch the email app with attachment
+
+enyo.kind({
+   name : "enyo.Canon.AppManager",
+   kind : enyo.VFlexBox,
+   components : [ 
+     { flex : 1,
+      kind : "Pane",
+      components : [{
+         flex : 1,
+         kind : "Scroller",
+         components : [
+         {
+            name : "launchEmail",
+            kind : "PalmService",
+            service : "palm://com.palm.applicationManager",
+            method : "launch",
+            onSuccess : "launchEmailSuccess",
+            onFailure : "launchEmailFailure",
+            subscribe : true
+         },
+         {kind : "Button", name : "launchEmailButton", caption : "Launch Email", onclick : "launchEmailClick"}
+         ]
+      }]
+    }],
+    launchEmailClick: function() {  
+        params= { "summary":"Attention mateys!",
+                   "text":"Yo ho ho and a bottle of rum",
+                   "recipients":[{"type":"email", "contactDisplay":"Sir Lunchalot", "role":1, 
+                                 "value":"chesterfields@hotmail.com"}],
+                   "attachments":[
+                    { "fullPath":"/media/internal/downloads/MyResume.doc",
+                       "displayName":"MyResume",
+                       "mimeType":"application/msword"
+                    }]};
+         this.$.launchEmail.call({ "id": "com.palm.app.email", "params":params});
+    },
+    launchEmailSuccess: function(inSender, inResponse) {
+        this.log("Open email success, results=" + enyo.json.stringify(inResponse));
+    },          
+    // Log errors to the console for debugging
+    launchEmailFailure: function(inSender, inError, inRequest) {
+        this.log(enyo.json.stringify(inError));
+    }   
+});
+Mojo - Launch the app catalog to the Pandora page
+
+this.controller.serviceRequest('palm://com.palm.applicationManager', {
+  method: 'launch',
+  parameters: {
+      id: 'com.palm.app.findapps',
+      params: {
+          scene : 'page',
+          target: 'http://developer.palm.com/appredirect/?packageid=com.palm.pandora'
+      }
+  }
+});
+Mojo - Launch the email app with recepient, attachment, subject, and body
+
+this.controller.serviceRequest('palm://com.palm.applicationManager', {
+    method: 'launch',
+    parameters: {
+        id: 'com.palm.app.email',
+        params: {
+                   "summary":"Attention mateys!",
+                   "text":"Yo ho ho and a bottle of rum",
+                   "recipients":[
+                    {
+                        "type":"email",
+                        "contactDisplay":"Sir Lunchalot",
+                        "role":1,
+                        "value":"hansolo@dancingwithmyself.com"
+                     }],
+                   "attachments":[
+                    {
+                        "fullPath":"/media/internal/tconfig.txt",
+                        "displayName":"tconfig",
+                        "mimeType":"text/plain"
+                    }]
+             }
+    }
+});
+
+Command and Resource Types
+
+"resources":
+ [
+    { "extn":"htm", "mime":"text/html", "appId":"com.palm.app.browser", "streamable":true },
+    {"extn":"html", "mime":"text/html", "appId":"com.palm.app.browser", "streamable":true },
+    {"extn":"vcf", "mime":"text/x-vcard", "appId":"com.palm.app.contacts", "streamable":false },
+
+    {"extn":"pem", "mime":"application/pem", "appId":"com.palm.app.certificate", "streamable":false },
+    {"extn":"p12", "mime":"application/p12", "appId":"com.palm.app.certificate", "streamable":false },
+    {"extn":"pfx", "mime":"application/pfx", "appId":"com.palm.app.certificate", "streamable":false },
+    {"extn":"der", "mime":"application/der", "appId":"com.palm.app.certificate", "streamable":false },
+    {"extn":"crt", "mime":"application/crt", "appId":"com.palm.app.certificate", "streamable":false },
+    {"extn":"cer", "mime":"application/cer", "appId":"com.palm.app.certificate", "streamable":false },
+    {"extn":"crl", "mime":"application/crl", "appId":"com.palm.app.certificate", "streamable":false },
+
+    {"extn":"mp4", "mime":"video/mp4-generic", "appId":"com.palm.app.videoplayer", "streamable":true },
+    {"extn":"mp4", "mime":"video/quicktime", "appId":"com.palm.app.videoplayer", "streamable":true },
+    {"extn":"mp4", "mime":"video/mp4", "appId":"com.palm.app.videoplayer", "streamable":true },
+    {"extn":"mp4", "mime":"video/mpeg4", "appId":"com.palm.app.videoplayer", "streamable":true },
+    {"extn":"m4v", "mime":"video/mp4-generic", "appId":"com.palm.app.videoplayer", "streamable":true },
+    {"extn":"m4v", "mime":"video/quicktime", "appId":"com.palm.app.videoplayer", "streamable":true },
+    {"extn":"m4v", "mime":"video/mp4", "appId":"com.palm.app.videoplayer", "streamable":true },
+    {"extn":"m4v", "mime":"video/mpeg4", "appId":"com.palm.app.videoplayer", "streamable":true },
+    {"extn":"3gp", "mime":"video/3gp", "appId":"com.palm.app.videoplayer", "streamable":true },
+    {"extn":"3gp", "mime":"video/3gpp", "appId":"com.palm.app.videoplayer", "streamable":true },
+    {"extn":"3gpp", "mime":"video/3gp", "appId":"com.palm.app.videoplayer", "streamable":true },
+    {"extn":"3g2", "mime":"video/3gpp2", "appId":"com.palm.app.videoplayer", "streamable":true },
+    {"extn":"3gp2", "mime":"video/3gpp2", "appId":"com.palm.app.videoplayer", "streamable":true },
+    {"extn":"sdp", "mime":"application/sdp", "appId":"com.palm.app.videoplayer", "streamable":true },
+
+    {"extn":"3gp", "mime":"audio/3gpp", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"3gpp", "mime":"audio/3gpp", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"3ga", "mime":"audio/3gpp", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"3gp", "mime":"audio/3ga", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"3gpp", "mime":"audio/3ga", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"3ga", "mime":"audio/3ga", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"3g2", "mime":"audio/3gpp2", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"3gpp2", "mime":"audio/3gpp2", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"amr", "mime":"audio/amr", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"amr", "mime":"audio/x-amr", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"mp3", "mime":"audio/mpa", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"mp3", "mime":"audio/mp3", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"mp3", "mime":"audio/x-mp3", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"mp3", "mime":"audio/x-mpg", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"mp3", "mime":"audio/mpeg", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"mp3", "mime":"audio/mpeg3", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"mp3", "mime":"audio/mpg3", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"mp3", "mime":"audio/mpg", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+
+    {"extn":"mp4", "mime":"audio/mp4", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"m4a", "mime":"audio/mp4", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"m4a", "mime":"audio/m4a", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"aac", "mime":"audio/aac", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"aac", "mime":"audio/aacp", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"aac", "mime":"audio/x-aac", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"aac", "mime":"audio/mpeg", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"aac", "mime":"audio/mp4a-latm", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"wav", "mime":"audio/wav", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"wav", "mime":"audio/x-wav", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+
+    {"extn":"pls", "mime":"audio/x-scpls", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"m3u", "mime":"audio/mpegurl", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+    {"extn":"m3u", "mime":"audio/x-mpegurl", "appId":"com.palm.app.streamingmusicplayer", "streamable":true },
+
+    {"extn":"dm", "mime":"application/vnd.oma.drm.message", "appId":"com.palm.app.drm", "streamable":true },
+    {"extn":"dd", "mime":"application/vnd.oma.dd+xml", "appId":"com.palm.app.drm", "streamable":true },
+    {"extn":"dr", "mime":"application/vnd.oma.drm.rights+xml", "appId":"com.palm.app.drm", "streamable":true },
+    {"extn":"drc", "mime":"application/vnd.oma.drm.rights+wbxml", "appId":"com.palm.app.drm", "streamable":true },
+    {"extn":"dcf", "mime":"application/vnd.oma.drm.content", "appId":"com.palm.app.drm", "streamable":true },
+
+    {"extn":"mcd", "mime":"application/x-pcs-mcd+xml", "appId":"com.palm.mobitv.app.sprinttv", "streamable":true }
+],
+
+ 
+
+"commands":[
+    {"url":"^mailto:", "appId":"com.palm.app.email" },
+    {"url":"^im:", "appId":"com.palm.app.messaging" },
+    {"url":"^sms:", "appId":"com.palm.app.messaging" },
+    {"url":"^contact:", "appId":"com.palm.app.contacts" },
+    {"url":"^chatWith:", "appId":"com.palm.app.messaging" },
+    {"url":"^opencontact:", "appId":"com.palm.app.contacts" },
+    {"url":"^mojave:", "appId":"com.palm.app.mojave" },
+    {"url":"^https?:", "appId":"com.palm.app.browser"},
+    {"url":"^data:", "appId":"com.palm.app.browser"},
+    {"url":"^tel:", "appId":"com.palm.app.phone"},
+    {"url":"^mobi:", "appId":"com.palm.app.videoplayer"},
+    {"url":"^mapto:", "appId":"com.palm.app.maps"},
+    {"url":"^maploc:", "appId":"com.palm.app.maps"},
+    {"url":"^rtsp[tu]?:", "appId":"com.palm.app.videoplayer"},
+    {"url":"^sprinttv:", "appId":"com.palm.mobitv.app.sprinttv" },
+    {"url":"^sprint-music:", "appId":"com.palm.sprintmusicplus" },
+    {"url":"^ypc:", "appId":"com.palm.app.ypmobile" }
+]}
+485 Potrero Ave. Sunnyvale, CA 94085 
++1 408-617-7000 Main Phone
+Careers
+Sponsored by 
+© 2012 Hewlett-Packard Development Company, L.P. The information contained herein is subject to change without notice. 
+All screen images simulated. Site is best viewed in Chrome, Firefox, Safari, IE9 and above.  Privacy Policy  Terms of Use

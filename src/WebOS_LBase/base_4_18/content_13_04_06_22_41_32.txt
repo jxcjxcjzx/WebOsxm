@@ -1,0 +1,349 @@
+
+网站首页精品下载黑客地带网络技术编程乐园网站网页影音娱乐奇闻怪谈心情随笔留言联系开心软件园
+您的位置： 网站首页 > Linux > 阅读文章
+Linux安装Oracle配置详解（原创图文）
+
+
+　　Linux安装Oracle数据库我总共完整地安装过三次，第一次是在浙大网新的时候，自己照着一个技术文档边看边摸索着安装的。第二次就是前段时间我在自己的虚拟机Red Hat Enterprise Linux里安装的。第三次是我在自己公司一台Linux服务器上安装的。三次安装都是在Linux系统下进行，而且都很成功。当然安装之前我是看了不少关于Linux安装Oracle方面的技术文章，这是我的学习态度或者说方式。因为Linux与Oracle的版本不同，网上写的安装方法或过程很多地方不一样，我都一一对照后进行安装的。今天我就来介绍一下Red Hat Enterprise Linux AS 5.4安装Oracle 10g的全过程，图文并茂，详细讲解。
+一、下载Oracle 10g
+先详细说明一下我的环境，系统：虚拟机Red Hat Enterprise Linux AS 5.4，数据库：Oracle Database 10g Release 2 (10.2.0.1)。Oracle去官方网站下载，点击前往下载。我下载下来的文件是10201_database_linux32.zip。
+二、安装Oracle 10g前的配置
+其实Linux下安装Oracle 10g并不难，主要就是安装前的配置有点烦琐罢了。不过不要怕，安装过一两次你就会熟练了。开始了，Follow me！
+1、安装Oracle所需软件包
+先用rpm -qa | grep命令查询软件包是否安装了，没有的话再用rpm -ivh命令进行安装。
+# 从Red Hat Enterprise Linux AS5 光盘1
+cd /media/cdrom/Server
+rpm -ivh setarch-2*
+rpm -ivh make-3*
+rpm -ivh glibc-2*
+rpm -ivh libaio-0*
+# 从Red Hat Enterprise Linux AS5 光盘2
+cd /media/cdrom/Server
+rpm -ivh compat-libstdc++-33-3*
+rpm -ivh compat-gcc-34-3*
+rpm -ivh compat-gcc-34-c++-3*
+rpm -ivh gcc-4*
+rpm -ivh libXp-1*
+# 从Red Hat Enterprise Linux AS5 光盘3
+cd /media/cdrom/Server
+rpm -ivh openmotif-2*
+rpm -ivh compat-db-4*
+2、修改系统版本
+vi /etc/redhat-release
+redhat-4
+#Red Hat Enterprise Linux Server release 5.4 (Tikanga)
+因为oracle 的官方只支持到RHEL4为止，所以要修改版本说明。把Red Hat Enterprise Linux Server release 5.4 (Tikanga)这一行注释掉，前面加上一行redhat-4。当然oracle安装完成后要修改回来。redhat-4 必须为redhat-release文件的第一行，否则安装时还会报警告。
+3、修改内核参数
+#vi /etc/sysctl.conf
+增加下面的内容到文件中：
+kernel.shmall = 2097152
+kernel.shmmax = 2147483648
+kernel.shmmni = 4096
+# semaphores: semmsl, semmns, semopm, semmni
+kernel.sem = 250 32000 100 128
+fs.file-max = 65536
+net.ipv4.ip_local_port_range = 1024 65000
+net.core.rmem_default=262144
+net.core.rmem_max=262144
+net.core.wmem_default=262144
+net.core.wmem_max=262144
+我都加在最下面了，如下图：
+
+运行下面的命令使得内核参数生效：
+/sbin/sysctl –p
+以上的参数我不一一解释了，有疑问的你可以在下面留言，我会尽量为你解答。
+4、建立安装Oracle需要的用户、组及目录
+(1)新增组和用户：
+groupadd oinstall
+groupadd dba
+groupadd oper
+
+useradd -g oinstall -G dba oracle
+passwd oracle
+(2)创建Oracle的安装目录，并把权限付给oracle用户：
+mkdir -p /u01/app/oracle/product/10.2.0/db_1
+chown -R oracle.oinstall /u01
+5、设置oracle用户的shell limit
+#vi /etc/security/limits.conf
+增加下面的内容到文件 /etc/security/limits.conf 文件中：
+* soft nproc 2047
+* hard nproc 16384
+* soft nofile 1024
+* hard nofile 65536
+
+增加下面的内容到文件 /etc/pam.d/login 中，使shell limit生效：
+session required /lib/security/pam_limits.so
+6、配置静态IP地址
+安装RedHat Linux的时候最好采用静态IP地址，如果当时选择的是DHCP，现在需要更改/etc/sysconfig/network-scripts/ifcfg-eth0文件：
+DEVICE=eth0
+BOOTPROTO=dhcp
+HWADDR=00:0C:29:74:5B:62
+ONBOOT=yes
+HWADDR=00:0C:29:74:5B:62 #你的mac地址
+IPADDR=192.168.89.130 #你的IP地址
+NETMASK=255.255.255.0 #你的IP地址
+GATEWAY=192.168.89.1 #你的网关
+因为我安装Linux的时候配置了静态IP，所以这里我不去动它。如下图：
+
+7、修改/etc/hosts
+把127.0.0.1改为具体的ip地址，注意最好去掉那些无用的，格式如下：
+ip地址 – 主机名 – localhost
+
+8、关闭SeLinux
+因为SeLinux对oracle有影响，所以把Secure Linux设成无效，编辑文件/etc/selinux/config :
+SELINUX=disabled
+当然你也可以用图形界面下的工具 (系统 > 管理 > 安全级别和防火墙)，选择SELinux页面并且设为无效。
+9、配置Oracle用户的环境变量
+登录到oracle用户并且配置环境变量，编辑/home/oracle目录下的.bash_profile文件
+vi .bash_profile
+增加下面的内容到文件 .bash_profile
+# Oracle Settings
+TMP=/tmp; export TMP
+TMPDIR=$TMP; export TMPDIR
+
+ORACLE_BASE=/u01/app/oracle; export ORACLE_BASE
+ORACLE_HOME=$ORACLE_BASE/product/10.2.0/db_1; export ORACLE_HOME
+ORACLE_SID=orcl; export ORACLE_SID
+ORACLE_TERM=xterm; export ORACLE_TERM
+PATH=$PATH:$ORACLE_HOME/bin; export PATH
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ORACLE_HOME/lib; export LD_LIBRARY_PATH
+CLASSPATH=$ORACLE_HOME/JREORACLE_HOME/jlib:$ORACLE_HOME/rdbms/jlib; export CLASSPATH
+
+if [ $USER = "oracle" ]; then
+if [ $SHELL = "/bin/ksh" ]; then
+ulimit -p 16384
+ulimit -n 65536
+else
+ulimit -u 16384 -n 65536
+fi
+fi
+我同样加到文件最下面，如下图：
+
+里面的SID在安装数据库时候如果修改了，安装完后需要回来重新修改SID。修改完用“source .bash_profile”使其生效。
+10、修改开机使用文本模式登录
+如果没有下面这些步骤，oracle在安装时可能出现问题。可能会出现使用oracle用户启动安装界面的时候报错，无法启动图形化界面。
+#vi /etc/inittab
+把 id:5:initdefault: 修改为 id:3:initdefault，等oracle安装完成后可以修改回来。
+#reboot(重启)
+11、添加你的机器oracle用户可以使用图形化界面
+在文本模式下，用root登录，然后：
+# startx
+# xhost +
+# su - oracle
+$ export DISPLAY="192.168.89.130:0.0" #此处修改为你的IP地址
+$ export LANG=en_US #设置运行语言
+$ cd /hqw/databases #进入Oracle安装目录
+$ ./runInstaller #开始安装喽
+　　OK，完成了！接下去才是真正的安装过程。我们做了那么多配置还只是Linux安装Oracle前的准备工作而已，是不是很郁闷呐？不要郁闷，其实通过上述的操作你应该也学到不少Linux系统方面的东西，我们不要为了安装Oracle而安装，而是在安装的过程中学习更多的Linux知识。我突然想把Linux安装Oracle分成两篇日志写了，写在一篇里太长了，因为下面的安装过程还会很多的截图，先到这里吧！明天我再写。
+6
+您可能也喜欢：
+
+Linux安装Oracle（原创图文+全程截图）
+
+Linux安装Oracle乱码？轻松解决！（图）
+
+『Linux学习笔记』Telnet远程登录配置及使用
+
+Linux下LumaQQ的安装 - 体验Linux下的QQ聊天
+
+『原创』Linux时间变慢解决方法 - Linux时间命令date、hwclock和clock学习
+
+Linux下XMMS播放列表乱码的解决方法
+
+虚拟机Linux NAT方式上网图文详解
+
+『原创』Xmanager连接Linux远程桌面（图文详解+亲自测试）
+
+Linux命令大全chm（修改版）－包含了Linux下各方面的命令集
+
+Linux下fcitx（小企鹅输入法）详细图文安装教程
+
+黑客防线Linux特训班全部视频教程下载（1-23课）
+
+今天晚上买了《Linux9系统管理与服务器配置》，强烈推荐！
+无觅
+
+属于分类:	Linux
+本文标签:	Linux,Oracle
+人气指数:	44,702
+文章作者:	野球小子
+生产日期:	2010年6月10日 - 22时09分43秒
+上一篇 >：『原创』Xmanager连接Linux远程桌面（图文详解+亲自测试）
+下一篇 >：Linux安装Oracle（原创图文+全程截图）
+看看还有没有您感兴趣的：
+Linux下Weblogic的关闭、重启和卸载
+Linux安装Oracle乱码？轻松解决！（图）
+Linux安装Oracle（原创图文+全程截图）
+『原创』Xmanager连接Linux远程桌面（图文详解+亲自测试）
+『原创』Linux时间变慢解决方法 – Linux时间命令date、hwclock和clock学习
+评论 (13)
+
+宋然
+楼主您好，您的文章写的很专业，学习了！
+我在安装oracle10g的时候遇到一些问题，说是 Configuration assistant “Oracle Net Configuration Assistant” failed
+详细信息是Oracle Home set to /oracle/app/oracle/product/10.2.0/db_1
+Configuration directory is set to /oracle/app/oracle/product/10.2.0/db_1/cfgtoollogs. All xml files under the directory will be processed
+INFO: The “/oracle/app/oracle/product/10.2.0/db_1/cfgtoollogs/configToolFailedCommands” script contains all commands that failed, were skipped or were cancelled. This file may be used to run these configuration assistants outside of OUI. Note that you may have to update this script with passwords (if any) before executing the same.
+我很着急，希望能得到您的帮助！！我的qq是312708942
+发表于 2011-5-14 22:40
+ 
+吴
+你好楼主，安装你的配置参数设置，重启后在文本模式用root或oracle用户登录不了系统怎么回事呢，登录的时候一闪又回到输入用户名的地方？ 期望回复，谢谢
+发表于 2011-9-26 12:03
+ 
+asdf
+害人不淺~
+发表于 2011-10-4 13:53
+ 
+达
+第10步完成，重新启动，就没有办法登录到 系统，现象与2楼一样，希望楼主能给回复一下
+发表于 2011-11-1 15:11
+ 
+Helen
+我按照作者的参数配置也登录不了。
+然后我查看了系统日志，终于找到原因了。
+打开/etc/pam.d/login文件，将session required /lib/security/pam_limits.so
+修改为session required pam_limits.so，然后重启，就OK了。
+发表于 2012-9-11 12:09
+ 
+hehe
+我有视频 QQ491449964
+发表于 2011-11-12 11:40
+ 
+jinga50334
+还没有去装，回头试试去！
+发表于 2012-2-23 09:21
+ 
+小张
+楼主您好。在我执行安装的时候，出现
+./runInstaller
+Starting Oracle Universal Installer…
+Checking installer requirements…
+Checking operating system version: must be redhat-3, SuSE-9, redhat-4, UnitedLinux-1.0, asianux-1 or asianux-2
+Passed
+All installer requirements met.
+Preparing to launch Oracle Universal Installer from /tmp/OraInstall2012-06-23_11-52-12PM. Please wait …[oracle@zhdech database]$ Exception in thread “main” java.lang.InternalError: Can’t connect to X11 window server using ’192.168.99.100:0.0′ as the value of the DISPLAY variable.
+at sun.awt.X11GraphicsEnvironment.initDisplay(Native Method)
+at sun.awt.X11GraphicsEnvironment.(Unknown Source)
+at java.lang.Class.forName0(Native Method)
+at java.lang.Class.forName(Unknown Source)
+at java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment(Unknown Source)
+at java.awt.Window.init(Unknown Source)
+at java.awt.Window.(Unknown Source)
+at java.awt.Frame.(Unknown Source)
+at oracle.ewt.popup.PopupFrame.(Unknown Source)
+at oracle.ewt.lwAWT.BufferedFrame.(Unknown Source)
+at oracle.sysman.oio.oioc.OiocOneClickInstaller.(OiocOneClickInstaller.java:378)
+at oracle.sysman.oio.oioc.OiocOneClickInstaller.main(OiocOneClickInstaller.java:2091)
+在执行startx时总是执行不完。最后按的ctrl+c 终止的。不知道 是不是这个引起的
+发表于 2012-6-24 14:58
+ 
+小张
+解决了，不用回复了。谢谢
+发表于 2012-6-24 15:09
+和谐社会，请文明发言。
+你的大名 (*必填) ：
+ 
+E-Mail (*必须)：
+ 
+你的网站 (可选填)：
+评论内容 (*必填)：
+
+
+设置你的头像
+(Ctrl + Enter 快速提交)   
+最新速递
+移动CMCC登陆界面关闭后如何下线退出？
+PPI是什么？pixels per inch像素密度是什么？PPI如何计算？
+《死神来了5》720p高清版下载啦！（迅雷+电驴+磁力下载）
+屏幕录像专家2011最新完美注册版（附破解补丁），已亲测！
+我的iPhone3G是不是成了全球首款全触摸的iPhone？
+『原创』删除2345.com主页 – 看看2345是如何植入系统的
+什么是有锁、无锁、解锁、越狱、破解 – iPhone名词解释
+『原创』笔记本找不到WIFI无线信号的原因分析及终极解决方法
+轻松添加微软的网页翻译工具 – Translator Bookmarklet
+Chrome无法显示网站图片的问题终于解决了！
+移动CMCC无线网络IP是怎么回事？吓我一跳！
+桌面IE图标不见了？找回桌面IE的绝妙方法！
+腾讯已启用新的QQ等级加速算法，我的最高加速为5.16天！
+QQ恢复删除好友—原来QQ可以恢复6个月内删除的好友和QQ群
+『原创』Google搜索图片打不开、无法显示的解决方法
+好多好多的分类：
+Windows
+网络技术
+黑客地带
+编程乐园
+极品软件
+网站网页
+Linux
+奇闻怪谈
+影音娱乐
+网友们正在阅读：
+『原创』笔记本找不到WIFI无线信号的原因分析及终极解决方法
+《真爱如血》第三季第9集HD高清版下载+字幕下载
+我是如何用最简单的方法收看最新最清晰的《军情观察室》
+『原创』ASP & VBS木马免杀加密利器
+红色警戒2共和国之辉金钱修改，钱会越用越多！
+迅雷的自动上传分析和屏蔽
+我们大学的网络课程PPT课件 – 计算机网络（第四版）谢希仁编著
+喜欢DJ舞曲的朋友还在犹豫什么？高音质DJ音乐盒单文件绿色版下载
+IIS6.0服务器设置出错及解决方法收集
+解决嘉兴学院闪讯无法拨打网络电话的问题
+灰鸽子时代还能维持多久?
+我的Windows 2003优化笔记
+绍兴同城游（同城游大厅）最新版下载
+浙江教育科技频道高清晰在线收看 – 我和妈妈最喜欢的电视频道
+NOD32免激活破解版一最新NOD32 4.2.40.29 BE汉化版下载
+刚刚有人在说：
+
+周
+我的是之前安装了sql server 2005 之后协了，再安装了vs2010，现在想安...
+
+111
+www.susuxiaozhan.com/daili 这个...
+
+jleais
+我下载不了可以发到我的Q上嘛；842230632@qq.com谢谢...
+
+baobao
+youtube.ccnn.info这个也不错，用了好多年了。...
+
+＊＊＊＊＊
+你他妈就是个脑残...
+
+simplove
+试了下.还是可以的.不过有些图片仍然没法显示.IE下就可以全部显示. http://w...
+
+瑞
+下载不了，请发我邮箱。急。谢谢。381313148@qq.com...
+
+123
+沒辦法下載......
+
+www
+留下足迹： russian-mobile-power.ru www.fashio...
+
+www
+沙发 russian-mobile-power.ru www.fashionly...
+
+www
+不错的...
+
+qiaofanxing
+404 Not Found...
+网站统计
+
+开心技术乐园改建于：2011.03.01.
+园主老大写有文章数：578篇.
+很多小朋友加入乐园：47400 位.
+小朋友在乐园里唠叨：3687句.
+开门到现在接纳游客：17612490次.
+用户管理
+
+用户名
+密码
+  记住我
+注册会员
+找回密码
+﻿
+CopyRight 2007 - 2012，开心技术乐园 | 基于 WordPress 技术构建 | 浙ICP备11004787号 | 嘉兴学院南湖学院 | 联系站长　 

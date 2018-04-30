@@ -1,0 +1,333 @@
+
+
+•首页
+•开源项目◦Java 开源软件
+◦C# 开源软件
+◦PHP 开源软件
+◦C/C++ 开源软件
+◦Ruby 开源软件
+◦Python 开源软件
+◦Go开源软件
+◦JS开源软件
+
+•讨论区◦ 技术问答 » 
+◦ 技术分享 » 
+◦ IT大杂烩 » 
+◦ 职业生涯 » 
+◦ 站务/建议 » 
+◦ 支付宝专区 » 
+◦ 开源硬件专区 » 
+
+•代码
+•博客
+•翻译
+•资讯
+•移动开发◦Android开发专区
+◦iOS开发专区
+◦iOS代码库
+◦WP7开发专区
+
+•招聘
+•城市圈
+
+ 当前访客身份：游客 [ 登录 | 加入开源中国 ] 
+
+
+
+开源中国 
+讨论区
+ 当前位置：讨论区 » 技术分享» pcDuino 
+搜 索 
+
+
+
+
+
+
+
+
+
+
+手把手教你在pcduino上实现uspip--USB网络重定向 
+
+pc朵拉 发表于 2013-8-27 13:41 5天前, 0回/57阅 
+
+
+
+开源中国 5 周年，史上最牛定制开源马克杯！
+
+我们经常碰到一种情况，我们需要往pcduino上拷贝东西，新手都用U盘，高手一般都用samba这样的高级玩意儿。拷贝一次倒也无所谓，关键是有些情况下，我们需要多次测试，多次拷贝。pcduino的USB插多了，可就难看了。这里教大家一种简单的方法，无需要多次插拔，每次一个命令即可。
+首先，我们要需修改一下我们的内核，我们的内核还不支持USBIP，其实前面有一个帖子，我已经介绍了怎么修改和换内核，这里，我一图文并茂的形式教大家怎么玩。在pcduino上玩内核和驱动，主要的问题就是硬盘空间不足，这里教大家怎么把它扩展成几十个G，
+1，现在我们电脑上用virtualbox建一个linux虚拟机，我建的是ubuntu，怎么安装ubuntu的虚拟机我就不阐述了，一直点下一步就可以了。
+2，在虚拟机上搭建一个nfs服务器，具体步骤如下：
+
+1. sudo apt-get install nfs-kernel-server　 
+复制代码
+
+1. vim /etc/exports 
+复制代码在里面添加内容home/pillar/pcduino *(rw,sync,no_root_squash)保存退出。
+
+
+1. sudo /etc/init.d/portmap restart 
+复制代码
+
+1. sudo /etc/init.d/nfs-kernel-server restart 
+复制代码
+
+1. showmount -e 
+复制代码 这样nfs就搭建好了，现在把内核下载到pcduino的文件夹里面
+
+
+1. sudo apt-get install git git-core
+ 
+2. sudo git clone [url]https://github.com/linux-sunxi/linux-sunxi[/url]
+ 
+3. sudo git clone [url]https://github.com/pcduino/kernel/blob/master/patch/linux-sunxi/arch/arm/configs/sun4i_defconfig[/url]
+ 
+4. cp sun4i_defconfig  .config 
+复制代码 好了，为了让编译生成文件和源码隔离，我们建一个build文件
+
+
+1. mkdir build 
+复制代码 下载后文件内容中的内容如下：
+ 
+
+  
+3，转移到pcduino上，先安装一个软件，要不然挂载不了
+
+1. sudo apt-get install nfs-common 
+复制代码 开始挂载nfs
+
+
+1. sudo su 
+复制代码 现在来看看我们pcduino的硬盘
+
+ 
+
+够大了。
+4，配置编译内核，先在pcduino安装一些依赖文件。
+
+
+1. sudo apt-get install  u-boot-tools libncurses5 
+复制代码 然后开始配置内核
+
+
+1. cd linux
+ 
+2. cp .config  ../build/
+ 
+3. make menuconfig O=../build 
+复制代码
+
+ 
+进入
+
+
+1. General setup  --->   
+复制代码 去掉里面的路径，要不然会编译不过的。
+
+
+ 
+由于这个项目里面要把USBIP编译进去，这里告诉大家配置的办法。
+
+
+1. Device Drivers  ---> 
+ 
+2.          [*] Staging drivers  ---> 
+ 
+3.                        <M>   USB/IP support (EXPERIMENTAL) 
+ 
+4.                        <M>     VHCI hcd 
+ 
+5.                        <M>     Host driver
+ 
+6. 
+复制代码 然后退出，保存。
+
+
+1. make 
+ 
+2. make modules
+ 
+3. make modules_install
+ 
+4. make uImage
+ 
+5. mount  /dev/nanda     /boot
+ 
+6. cp arch/arm/boot/uImage   /boot   -f
+ 
+7. reboot 
+复制代码 make需要四个小时，中间不会报错的，重启完了之后，包含有usbip的内核已经加载到系统里面去了。
+5，手动加载USBIP驱动。
+
+
+1. modprobe  usbip-core
+ 
+2. modprobe  usbip-host
+ 
+3. modprobe  vhci-hcd
+ 
+4. vim /etc/modules 
+复制代码 在modules文件里面添加
+usbip-core
+ usbip-host
+ vhci-hcd
+ 
+6，配置编译USBIP。配置编译USBIP依然需要内核源码，回到第3步再把源码挂载一遍。然后
+
+
+1. cd /lib/modules/3.4.29+/linux/drivers/staging/usbip/userspace 
+复制代码 查看里面的INSTALL的文件，里面有详细的安装方法。 
+
+1. ./autogen.sh
+ 
+2. ./configure
+ 
+3. make
+ 
+4. make install 
+复制代码 安装完了之后，然后下载一个USBIP运行的依赖软件。 
+
+1. sudo apt-get install hwdata libsysfs-dev 
+复制代码 具体的使用方法在README里面也有。下面还是给大家演示一遍。
+先启动usbip进程
+
+
+1. sudo usbipd -D 
+复制代码 先说一下我pcduino上USB挂载情况，我的pcduino上现在挂载了一个U盘，一个摄像头，一个键盘
+，一个鼠标，一个hub.
+然后用usbip查看usb设备
+
+
+1. ubuntu@ubuntu :/lib/modules/3.4.29+/linux/drivers/staging/usbip/userspace$ usbip list -l
+ 
+2. Local USB devices
+ 
+3. =================
+ 
+4. - busid 3-1 (1c4f:0026)
+ 
+5.          3-1:1.0 -> usbhid
+ 
+6.          3-1:1.1 -> usbhid
+ 
+7. 
+
+8. - busid 4-1 (1a40:0101)
+ 
+9.          4-1:1.0 -> hub
+ 
+10. 
+
+11. - busid 4-1.1 (093a:2510)
+ 
+12.          4-1.1:1.0 -> usbhid
+ 
+13. 
+
+14. - busid 4-1.2 (0951:1665)
+ 
+15.          4-1.2:1.0 -> usb-storage
+ 
+16. 
+
+17. - busid 4-1.3 (0c45:62f1)
+ 
+18.          4-1.3:1.0 -> usb-stub-driver
+ 
+19.          4-1.3:1.1 -> usb-stub-driver
+ 
+20.          4-1.3:1.2 -> usb-stub-driver
+ 
+21.          4-1.3:1.3 -> usb-stub-driver 
+复制代码 看吧，都列出来了。现在我要把我U盘重定向到我的电脑上。输入一下命令：
+
+
+1. <blockquote>ubuntu@ubuntu :/lib/modules/3.4.29+/linux/drivers/staging/usbip/userspace$ sudo usbip bind -b 4-1.2 
+复制代码 6，好了现在到我电脑windows上。先把usbip的windows  驱动.rar (211.42 KB, 下载次数: 7, 售价: 30 金钱) 安装上，具体的安装方法如下：
+打开我的电脑管理--》管理--》添加过时硬件。
+
+
+ 
+
+然后选择从磁盘安装，把路径指到你解压的文件夹，就可以了。
+打开cmd，输入的命令都在图片里
+
+
+ 
+
+
+可以看出我已经成功的把USBIP重定向过来了。 
+
+转自：http://www.pcduino.org/forum.php?mod=viewthread&tid=262&highlight=%E6%89%8B%E6%8A%8A%E6%89%8B%E6%95%99%E4%BD%A0%E5%9C%A8pcduino%E4%B8%8A%E5%AE%9E%E7%8E%B0uspip--USB%E7%BD%91%E7%BB%9C%E9%87%8D%E5%AE%9A%E5%90%91 
+
+
+标签：pcDuino
+
+补充话题说明»
+
+ 
+
+
+分享到 
+
+收藏
+
+1
+
+举报
+
+踩0 | 顶0
+
+
+
+按默认排序 | 显示最新评论 | 回页面顶部共有0个评论 发表评论»
+
+
+
+
+
+
+回评论顶部 | 回页面顶部
+
+ 
+
+
+
+有什么技术问题吗？ 我要提问
+
+全部(71)...pc朵拉的其他问题•手把手教你在pcDuino上做语音识别，语音合成--基于科大讯飞 (0回/36阅,5天前)
+•手把手教你修改pcDuino系统默认的音频输出(0回/9阅,5天前)
+•今天这个必须要分享， 我刚刚用win32imagediskwrite 写了硬盘(0回/14阅,5天前)
+•安装 linux-headers, 然后在pcDuino上编译你自己写的pcDuino驱动(0回/123阅,16天前)
+
+
+
+类似的话题•pcDuino上运行GPRS Shield(1回/423阅,2个月前)
+•pcDuino上安装IOIO-OTG应用程序显示传感器波形(2回/466阅,2个月前)
+•pcDuino智能小车简单组装过程(32回/6709阅,2个月前)
+•【转】用pcDuino做猫脸识别(5回/804阅,1个月前)
+•如果只拿来做服务器，atom fanless完爆这类arm(9回/923阅,1个月前)
+• pcDuino是一个带 mini PC 功能的加强版Arduino，开源软件Linux和开源硬件Arduino在pcDuino上完美的结合(5回/451阅,1个月前)
+•在pcDuino的Android系统上控制IO(0回/125阅,1个月前)
+•pcDuino上控制视频监控机器人(0回/120阅,1个月前)
+•基于pcDuino的WiFi实时视频监控智能小车-——前言(0回/173阅,1个月前)
+•基于pcDuino的WiFi实时视频监控智能小车——硬件部分（一）(0回/258阅,1个月前)
+•基于pcDuino的WiFi实时视频监控智能小车——硬件部分（三）(0回/152阅,1个月前)
+•基于pcDuino的WiFi实时视频监控智能小车——软件部分（一）(2回/514阅,1个月前)
+•基于pcDuino的WiFi实时视频监控智能小车——软件部分（二）(0回/180阅,1个月前)
+•基于pcDuino的WiFi实时视频监控智能小车——软件部分（三）(1回/232阅,1个月前)
+•pcDuino 书籍_入门指南_引子(0回/138阅,27天前)
+• pcDuino 书籍_第一章:pcDuino的硬件和软件(0回/192阅,27天前)
+
+ 
+
+
+
+
+© 开源中国(OsChina.NET) | 关于我们 | 广告联系 | @新浪微博 | 开源中国手机版 | 粤ICP备12009483号-3
+ 
+开源中国手机客户端：AndroidiPhoneWP7 
+
+

@@ -1,0 +1,109 @@
+Copyright © 2003-2005, Peter Seibel
+12. They Called It LISP for a Reason: List Processing
+Lists play an important role in Lisp--for reasons both historical and practical. Historically, lists were Lisp's original composite data type, though it has been decades since they were its only such data type. These days, a Common Lisp programmer is as likely to use a vector, a hash table, or a user-defined class or structure as to use a list.
+
+Practically speaking, lists remain in the language because they're an excellent solution to certain problems. One such problem--how to represent code as data in order to support code-transforming and code-generating macros--is particular to Lisp, which may explain why other languages don't feel the lack of Lisp-style lists. More generally, lists are an excellent data structure for representing any kind of heterogeneous and/or hierarchical data. They're also quite lightweight and support a functional style of programming that's another important part of Lisp's heritage.
+
+Thus, you need to understand lists on their own terms; as you gain a better understanding of how lists work, you'll be in a better position to appreciate when you should and shouldn't use them. 
+
+"There Is No List"
+Spoon Boy: Do not try and bend the list. That's impossible. Instead . . . only try to realize the truth.
+Neo: What truth?
+Spoon Boy: There is no list.
+Neo: There is no list?
+Spoon Boy: Then you'll see that it is not the list that bends; it is only yourself.1
+The key to understanding lists is to understand that they're largely an illusion built on top of objects that are instances of a more primitive data type. Those simpler objects are pairs of values called cons cells, after the function CONS used to create them.
+
+CONS takes two arguments and returns a new cons cell containing the two values.2 These values can be references to any kind of object. Unless the second value is NIL or another cons cell, a cons is printed as the two values in parentheses separated by a dot, a so-called dotted pair.
+
+(cons 1 2) ==> (1 . 2)
+The two values in a cons cell are called the CAR and the CDR after the names of the functions used to access them. At the dawn of time, these names were mnemonic, at least to the folks implementing the first Lisp on an IBM 704. But even then they were just lifted from the assembly mnemonics used to implement the operations. However, it's not all bad that these names are somewhat meaningless--when considering individual cons cells, it's best to think of them simply as an arbitrary pair of values without any particular semantics. Thus:
+
+(car (cons 1 2)) ==> 1
+(cdr (cons 1 2)) ==> 2
+Both CAR and CDR are also SETFable places--given an existing cons cell, it's possible to assign a new value to either of its values.3
+
+(defparameter *cons* (cons 1 2))
+*cons*                 ==> (1 . 2)
+(setf (car *cons*) 10) ==> 10
+*cons*                 ==> (10 . 2)
+(setf (cdr *cons*) 20) ==> 20
+*cons*                 ==> (10 . 20)
+Because the values in a cons cell can be references to any kind of object, you can build larger structures out of cons cells by linking them together. Lists are built by linking together cons cells in a chain. The elements of the list are held in the CARs of the cons cells while the links to subsequent cons cells are held in the CDRs. The last cell in the chain has a CDR of NIL, which--as I mentioned in Chapter 4--represents the empty list as well as the boolean value false. 
+
+This arrangement is by no means unique to Lisp; it's called a singly linked list. However, few languages outside the Lisp family provide such extensive support for this humble data type.
+
+So when I say a particular value is a list, what I really mean is it's either NIL or a reference to a cons cell. The CAR of the cons cell is the first item of the list, and the CDR is a reference to another list, that is, another cons cell or NIL, containing the remaining elements. The Lisp printer understands this convention and prints such chains of cons cells as parenthesized lists rather than as dotted pairs. 
+
+(cons 1 nil)                   ==> (1)
+(cons 1 (cons 2 nil))          ==> (1 2)
+(cons 1 (cons 2 (cons 3 nil))) ==> (1 2 3)
+When talking about structures built out of cons cells, a few diagrams can be a big help. Box-and-arrow diagrams represent cons cells as a pair of boxes like this:
+
+
+
+The box on the left represents the CAR, and the box on the right is the CDR. The values stored in a particular cons cell are either drawn in the appropriate box or represented by an arrow from the box to a representation of the referenced value.4 For instance, the list (1 2 3), which consists of three cons cells linked together by their CDRs, would be diagrammed like this:
+
+
+
+However, most of the time you work with lists you won't have to deal with individual cons cells--the functions that create and manipulate lists take care of that for you. For example, the LIST function builds a cons cells under the covers for you and links them together; the following LIST expressions are equivalent to the previous CONS expressions:
+
+(list 1)     ==> (1)
+(list 1 2)   ==> (1 2)
+(list 1 2 3) ==> (1 2 3)
+Similarly, when you're thinking in terms of lists, you don't have to use the meaningless names CAR and CDR; FIRST and REST are synonyms for CAR and CDR that you should use when you're dealing with cons cells as lists. 
+
+(defparameter *list* (list 1 2 3 4))
+(first *list*)        ==> 1
+(rest *list*)         ==> (2 3 4)
+(first (rest *list*)) ==> 2
+Because cons cells can hold any kind of values, so can lists. And a single list can hold objects of different types.
+
+(list "foo" (list 1 2) 10) ==> ("foo" (1 2) 10)
+The structure of that list would look like this:
+
+
+
+Because lists can have other lists as elements, you can also use them to represent trees of arbitrary depth and complexity. As such, they make excellent representations for any heterogeneous, hierarchical data. Lisp-based XML processors, for instance, usually represent XML documents internally as lists. Another obvious example of tree-structured data is Lisp code itself. In Chapters 30 and 31 you'll write an HTML generation library that uses lists of lists to represent the HTML to be generated. I'll talk more next chapter about using cons cells to represent other data structures.
+
+Common Lisp provides quite a large library of functions for manipulating lists. In the sections "List-Manipulation Functions" and "Mapping," you'll look at some of the more important of these functions. However, they will be easier to understand in the context of a few ideas borrowed from functional programming. 
+
+Functional Programming and Lists
+The essence of functional programming is that programs are built entirely of functions with no side effects that compute their results based solely on the values of their arguments. The advantage of the functional style is that it makes programs easier to understand. Eliminating side effects eliminates almost all possibilities for action at a distance. And since the result of a function is determined only by the values of its arguments, its behavior is easier to understand and test. For instance, when you see an expression such as (+ 3 4), you know the result is uniquely determined by the definition of the + function and the values 3 and 4. You don't have to worry about what may have happened earlier in the execution of the program since there's nothing that can change the result of evaluating that expression.
+
+Functions that deal with numbers are naturally functional since numbers are immutable. A list, on the other hand, can be mutated, as you've just seen, by SETFing the CARs and CDRs of the cons cells that make up its backbone. However, lists can be treated as a functional data type if you consider their value to be determined by the elements they contain. Thus, any list of the form (1 2 3 4) is functionally equivalent to any other list containing those four values, regardless of what cons cells are actually used to represent the list. And any function that takes a list as an argument and returns a value based solely on the contents of the list can likewise be considered functional. For instance, the REVERSE sequence function, given the list (1 2 3 4), always returns a list (4 3 2 1). Different calls to REVERSE with functionally equivalent lists as the argument will return functionally equivalent result lists. Another aspect of functional programming, which I'll discuss in the section "Mapping," is the use of higher-order functions: functions that treat other functions as data, taking them as arguments or returning them as results. 
+
+Most of Common Lisp's list-manipulation functions are written in a functional style. I'll discuss later how to mix functional and other coding styles, but first you should understand a few subtleties of the functional style as applied to lists.
+
+The reason most list functions are written functionally is it allows them to return results that share cons cells with their arguments. To take a concrete example, the function APPEND takes any number of list arguments and returns a new list containing the elements of all its arguments. For instance:
+
+(append (list 1 2) (list 3 4)) ==> (1 2 3 4)
+From a functional point of view, APPEND's job is to return the list (1 2 3 4) without modifying any of the cons cells in the lists (1 2) and (3 4). One obvious way to achieve that goal is to create a completely new list consisting of four new cons cells. However, that's more work than is necessary. Instead, APPEND actually makes only two new cons cells to hold the values 1 and 2, linking them together and pointing the CDR of the second cons cell at the head of the last argument, the list (3 4). It then returns the cons cell containing the 1. None of the original cons cells has been modified, and the result is indeed the list (1 2 3 4). The only wrinkle is that the list returned by APPEND shares some cons cells with the list (3 4). The resulting structure looks like this:
+
+
+
+In general, APPEND must copy all but its last argument, but it can always return a result that shares structure with the last argument.
+
+Other functions take similar advantage of lists' ability to share structure. Some, like APPEND, are specified to always return results that share structure in a particular way. Others are simply allowed to return shared structure at the discretion of the implementation. 
+
+"Destructive" Operations
+If Common Lisp were a purely functional language, that would be the end of the story. However, because it's possible to modify a cons cell after it has been created by SETFing its CAR or CDR, you need to think a bit about how side effects and structure sharing mix.
+
+Because of Lisp's functional heritage, operations that modify existing objects are called destructive--in functional programming, changing an object's state "destroys" it since it no longer represents the same value. However, using the same term to describe all state-modifying operations leads to a certain amount of confusion since there are two very different kinds of destructive operations, for-side-effect operations and recycling operations.5
+
+For-side-effect operations are those used specifically for their side effects. All uses of SETF are destructive in this sense, as are functions that use SETF under the covers to change the state of an existing object such as VECTOR-PUSH or VECTOR-POP. But it's a bit unfair to describe these operations as destructive--they're not intended to be used in code written in a functional style, so they shouldn't be described using functional terminology. However, if you mix nonfunctional, for-side-effect operations with functions that return structure-sharing results, then you need to be careful not to inadvertently modify the shared structure. For instance, consider these three definitions: 
+
+(defparameter *list-1* (list 1 2))
+(defparameter *list-2* (list 3 4))
+(defparameter *list-3* (append *list-1* *list-2*))
+After evaluating these forms, you have three lists, but *list-3* and *list-2* share structure just like the lists in the previous diagram.
+
+*list-1*                  ==> (1 2)
+*list-2*                  ==> (3 4)
+*list-3*                  ==> (1 2 3 4)
+Now consider what happens when you modify *list-2*.
+
+(setf (first *list-2*) 0) ==> 0
+*list-2*                  ==> (0 4)     ; as expected
+*list-3*                  ==> (1 2 0 4) ; maybe not what you wanted
+

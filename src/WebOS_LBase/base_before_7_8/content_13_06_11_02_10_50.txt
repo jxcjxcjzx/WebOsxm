@@ -1,0 +1,594 @@
+
+ 
+	
+
+ 
+DISTROS	SYSADMIN	MOBILE	SOFTWARE	DATACENTER	HPC	DEVELOPMENT	LMTV
+ 	
+
+Scripting, Part Two: Looping for Fun and Profit
+Crafty System Administrators who want to conserve energy need to learn the fine art of looping.
+By Ken Hess
+Thursday, June 30th, 2011
+
+
+ 
+You energy-conserving* system administrators will enjoy learning to use loops in your scripts. Looping is a technique that allows you to repeat a process or set of commands indefintely or until the loop exhausts a particular list of items. For example, you want to copy a particular file to everyone’s home directory. How do you do it? Don’t say that you have a junior-level administrator do it. The correct answer is that you’d create a looping script to handle the job.
+
+Don’t worry if you aren’t a scripting master, I’m going to take it slow through this series so that you can absorb what’s going on. Looping is not a particularly advanced concept. Its purpose is to do some task quickly that would take hours or days to do it by hand. Looping leverages the computer’s power to do what it’s best at: repetitive processing.
+
+The Basics
+
+You need access to a Linux system and last week’s post, “Scripting, Part One”. You’ll also need access to an open mind about scripting. It isn’t difficult at all, so approach this with no fear and in no time, you’ll create your own scripts and possibly impress your leadership with your innovation, business concern, and cost-saving automation.**
+
+The Lively Loop
+
+There’s nothing particularly special about a loop. It takes a bit of thought to make one work but it’s well worth the effort. How do you know that you need to use a loop instead of simply running a script multiple times with different parameters? The answer depends on the amount of effort required to edit the script, execute the script, enter information interactively, and so on. It’s really a decision you’ll have to make as you gain experience with scripting. There’s no easy answer or number of iterations cutoff.
+
+My original example is a good one. You need to copy a file to everyone’s home directory and you have dozens of users. This task, if done manually, would take hours. The solution is to write a script to handle the task for you.
+
+First, look at what’s needed to make this happen: a list of users, the file in question, and, depending on the file’s purpose, an optional permissions change. Pretty simple task really. To make the reading (and writing) less tedious, I’ll use the handful of users on my system to make this happen.
+
+Next, put your needs into Linux terms. You need to iterate through a list of users from the /etc/passwd file, copy a file to each user’s /home/username directory, and then change its permissions so that the user has access to it.
+
+You have to grab a list of real user’s names from the password file. To do that, you have to write part of the script. Create a new file and enter that file in edit mode.
+
+#!/bin/bash
+
+# Grab a list of users from the /etc/passwd file
+
+cat /etc/passwd |grep bash |grep home | awk -F: '{print $1}'
+This part of the script reads the /etc/passwd file, selects only those entries with the term bash, further selects those that also contain home, and then pipes that output to awk. The awk piece divides each line into fields separated at a colon (:).
+
+An /etc/passwd file looks like: khess:x:1000:1000:Ken Hess,,,:/home/khess:/bin/bash. The awk command would break this line into seven fields. Using a field variable ($1, $2, $3,…$7), you could print any of them in any order.
+
+Try it at the command line to convince yourself of how awk works.
+
+cat /etc/passwd |grep khess | awk -F: '{print $1, $3, $5}'
+
+khess 1000 Ken Hess,,,
+Try it with other field variables in other files. If the only field separator is a space, then use awk -F” “ with a quoted space as the field separator.
+
+The output from the original script(cat /etc/passwd |grep bash |grep home | awk -F: ‘{print $1}’) is:
+
+khess
+nimbus
+bob
+matthew
+mark
+luke
+john
+The most difficult part of creating a list of users is done. The rest of the script is a simple while loop and some additions to make the whole thing a little prettier to read. Enter the following, as shown, into your editor and save the file to copy_file.sh. I’ve included comments in the file.
+
+#!/bin/bash
+
+# Grab a list of users from the /etc/passwd file and direct to a file.
+cat /etc/passwd |grep bash |grep home | awk -F: '{print $1}' > users.txt
+
+# Begin the while loop. The variable NAME will be read from users.txt
+while read NAME
+
+# Setup the file copy in the "do" part of the loop.
+do cp /tmp/test.txt /home/$NAME
+
+echo "Copied file to $NAME"
+echo " "
+
+# Change the permissions on the copied file to the user's.
+chown $NAME:$NAME /home/$NAME/test.txt
+echo "And, changed ownership to $NAME"
+echo " "
+
+# Tell the loop when to stop, when there's no more names in the list.
+done < names.txt
+Execute the file and watch the output from the echo commands.
+
+root@aspen:~# ./copy_file.sh
+
+Copied file to khess
+
+And, changed ownership to khess
+
+Copied file to nimbus
+
+And, changed ownership to nimbus
+
+Copied file to bob
+
+And, changed ownership to bob
+
+Copied file to matthew
+
+And, changed ownership to matthew
+
+Copied file to mark
+
+And, changed ownership to mark
+
+Copied file to luke
+
+And, changed ownership to luke
+
+Copied file to john
+
+And, changed ownership to john
+To test that the script ran correctly, check one of the user's home directories.
+
+ ls -la /home/matthew/
+total 24
+drwxr-xr-x  2 matthew matthew 4096 2011-06-12 14:54 .
+drwxr-xr-x 10 root    root    4096 2011-06-12 14:53 ..
+-rw-r--r--  1 matthew matthew  220 2011-06-12 14:20 .bash_logout
+-rw-r--r--  1 matthew matthew 3353 2011-06-12 14:20 .bashrc
+-rw-r--r--  1 matthew matthew  179 2011-06-12 14:20 examples.desktop
+-rw-r--r--  1 matthew matthew  675 2011-06-12 14:20 .profile
+-rw-r--r--  1 matthew matthew    0 2011-06-12 14:54 test.txt
+Now you can put any commands that you want into the loop. Generate a list of whatever you want, act upon each member of the list, and you're done.
+
+Creating a User Space Spy Script
+
+I call this script a user space "spy" because it creates a report in html that tells you how much space, in megabytes (MB), each user is using in his home directory. Here is the entire script and the explanation follows.
+
+#!/bin/bash
+
+# Create a list of users and direct it to a file.
+cat /etc/passwd |grep bash |grep home | awk -F: '{print $1}' > names.txt
+
+# Create an HTML file. This part must be outside the loop.
+echo "
+" > user_space.html
+echo "
+
+
+" >> user_space.html
+
+# Start the WHILE loop
+while read NAME
+
+do
+
+# This sets output of the command to the variable name, SPACE.
+SPACE=`du -sm /home/$NAME |awk -F" " '{print $1}'`
+
+echo "
+
+
+" >> user_space.html
+
+done < names.txt
+
+# End the table entry outside the loop.
+echo "
+User	Space
+$NAME	$SPACE
+
+
+" >> user_space.html
+Read the documentation inside the file and note that items that only appear once, need to be written outside the loop. Also remember to use double redirects (>>), when writing to a file that exists. If you use the single redirect, (>), you'll overwrite the file with each new line. Run the script and view the resulting HTML file in a web browser. Figure 1 shows the file in Firefox.
+
+
+Figure 1: The User Space Spy HTML File in Firefox.
+
+Note that you can set an entire command's output to a variable name. Use tick marks (`) to surround the shell command. Use no spaces between the variable name, the equal sign, and the first tick mark.
+
+For an independent assignment, write this script to make the HTML file fully HTML compliant and dress it up a bit with labels, bold headings, and more.
+
+This is a simple sample of what loops can do for you. You should also investigate For loops and Until loops. I've never used For or Until loops because the While loop is extremely versatile. The type of loop you use is entirely up to you and your needs. The BASH For loop is more versatile than its equivalent in other languages.
+
+Stay tuned next week for conditionals, which are better known as IF-THEN-ELSE statements. These types of programming structures allow your scripts to make decisions and give a bit of intelligence to your scripts. If you don't get caught in any infinite loops, I'll see you there.
+
+* A politically correct way of saying lazy.
+
+** Make it known that you're using your advanced System Administrator skills to automate certain processes as a labor-saving technique. That kind of attitude and business thinking may net you a cash bonus, promotion, or at the very least some positive recognition.
+
+Kenneth Hess is a Linux evangelist and freelance technical writer on a variety of open source topics including Linux, SQL, databases, and web services. Ken can be reached via his website at http://www.kenhess.com. Practical Virtualization Solutions by Kenneth Hess and Amy Newman is available now.
+
+Comments on "Scripting, Part Two: Looping for Fun and Profit"
+
+	nathanweeks
+A few comments regarding the first pipeline:
+
+
+cat /etc/passwd |grep bash |grep home | awk -F: '{print $1}'
+
+Since “grep” can accept a pathname argument, the use of cat isn’t necessary
+here (some people are fussy about this; see the Useless Use of Cat Award),
+and it saves a “cat” process & IPC through a pipe by allowing grep to directly
+read the file thus:
+
+
+grep bash /etc/passwd | grep home | awk -F: '{print $1}'
+
+This can be simplified further still by doing the entire loop in awk:
+
+
+awk -F: '/home/ && /bash/ {print $1}' /etc/passwd
+
+This can be made a little more robust by restricting the search for “home” to
+the 6th column, and “bash” to the 7th column of the passwd file (and perhaps
+selecting on “sh” so we catch all ksh/csh/tcsh/zsh/some_other_shell users as
+well):
+
+
+awk -F: '$6 ~ /home/ && $7 ~ /sh/ {print $1}' /etc/passwd
+
+Also, rather than writing to a temp file “users.txt” in loop in the
+copy_file.sh — which can be brittle in some circumstances, as it depends on
+having permissions / space to write to the current directory, as well as
+inhibiting concurrent execution of the same script (though that doesn’t
+really apply here) — a pipe can be used:
+
+
+awk -F: '$6 ~ /home/ && $7 ~ /sh/ {print $1}' /etc/passwd |
+while read NAME
+do
+# ... rest of code here...
+done
+
+For portability, one could put "#!/bin/sh" at the top of the script, as all of
+this is valid POSIX shell syntax. Another minor portability knit: a user's
+home directory isn't guaranteed to be in /home/$NAME; the home directory could
+be retrieved from /etc/passwd, though, e.g.:
+
+
+#!/bin/sh
+awk -F: '$6 ~ /home/ && $7 ~ /sh/ {print $1, $6}' /etc/passwd |
+while read NAME homedir
+do
+cp /tmp/test.txt $homedir
+
+echo "Copied file to $NAME"
+echo " "
+
+chown $NAME:$NAME $homedir/test.txt
+echo "And, changed ownership to $NAME"
+echo " "
+done
+
+Thanks for the article -- please keep 'em coming!
+
+July 1st, 2011 at 4:36 am
+Reply
+	
+HE’S TRYING NOT TO OVERWHELM NEWBIES WITH TOOOOOOOO MANY NEW COMMANDS. They’ll figure out the shortcuts later. It’s building blocks until they work up to cursive.
+
+November 8th, 2011 at 6:25 pm
+Reply
+	
+He is attempting to begin simple tutorials right off the bat, as the last person mentioned. He isn’t trying to blast those that aren’t use to scripting out of the water with a nuclear warhead. So he was KISSing it. He did fail to define a couple of the commands so that you fully understood what it was doing at every second, but using the man page can give you a bit of understanding as you’re looking through it.
+
+He is, as he had said, starting at the beginning. What you did, while it maybe correct, has absolutely no place (Nor did YOU give a full explanation) in a beginning tutorial. While your method works and may be a bit more robust, you basically lost all credibility and probably scared half of the green users trying to cut their teeth into not wanting to touch a script at all.
+
+It is, as the other comment inferred, like taking someone trying to learn to swim, and throwing them off the boat, and refusing to get them unless they drown. Simple building blocks helps others gain that greater understanding and expand their own intellect.
+
+I am currently enjoying the article, as I haven’t messed with scripts in years, and reestablishing very rusty pathways. I think he is doing a very good job, and would only ask that, (unless there’s a word limit for his file) to give a few more explanations of some of the path he is using rather than just immediately expose. It’s easy for someone re-familiarizing them self with it, a newbie might get a little more confused. All in all, I think Mr. Hess is doing a wonderful job, and want to thank him specifically for the information he is delivering to the community in clear, concise learning baby steps.
+
+June 20th, 2012 at 1:20 pm
+Reply
+	roaima
+Nathan’s written pretty much what I was about to say. However, in the interests of adding something useful to the conversation I’d also point out that not all users may even have an entry in /etc/passwd. (LDAP, Active Directory, NIS+ are three reasons why not.)
+
+On that basis a robust script shouldn’t really be parsing /etc/passwd at all, but instead one should use getent:
+
+
+awk -F: '$6 ~ /home/ && $7 ~ /sh/ {print $1, $6}' /etc/passwd
+
+getent passwd | awk -F: '$6 ~ /home/ && $7 ~ /sh/ {print $1, $6}'
+
+Oh, and to really nit-pick, The awk instruction /home/ searches for the string “home”, so could match “homer”, even though he might not have his directory in /home. So that pattern should really be /\/home\//
+
+Looking forward to the next installment. Really!
+
+July 1st, 2011 at 5:12 am
+Reply
+	krzysztof.golicz
+There is one mistake in copy_file.sh source (listing number 4).
+Script is writing user names to the users.txt:
+
+(…)
+cat /etc/passwd |grep bash |grep home | awk -F: ‘{print $1}’ > users.txt
+(…)
+
+but while loop reads from the names.txt file:
+
+(…)
+done < names.txt
+(…)
+
+July 1st, 2011 at 5:29 am
+Reply
+	dancrossnyc
+I guess this is what passes for scripting these days….
+
+Most of the other comments have hit the major points. A few minor nits:
+
+1. The ‘-m’ option to du(1) is non-standard (e.g., not specified by POSIX).
+
+2. There’s really no need to search the home directory field for ‘home’ or any of the rest. Just use:
+
+getent passwd | awk -F: '$7 ~ /sh$/ {print $1, $6}'
+
+Note the anchor in the regular expression.
+
+3. It’s not clear to me why the “echo” commands take a single quoted space character when all you want is a blank line. ‘echo’ on a line by itself emits a newline.
+
+4. Perhaps it’s an artifact of the markup, but it appears that the writing into the HTML file is all sorts of messed up; in particular, the echoing of the header as well as the individual entries happens after the loop, and in the same echo statement?
+
+July 1st, 2011 at 5:38 am
+Reply
+	stretch_kiwi
+2. Because you will pick up service home accounts which do not have a directory structure to work with.
+
+July 5th, 2011 at 10:37 pm
+Reply
+	humberto.fuentealba
+Great article,
+
+don’t worry i wont paste any code. LOL
+
+July 1st, 2011 at 6:25 am
+Reply
+	dragonwisard
+For once I can actually forgive this article for not being pedantically correct. He picked a pretty good example and demonstrated the real-world problem solving skills that a novice scripter would need to learn to write automation like this on their own.
+
+While he certainly could have gotten a lot fancier with grep an awk, that would have put an awful burden on the reader to be familiar with both Regular Expressions and the AWK programming language. Neither of which is a topic for beginners. In fact, I would almost argue that if your script makes non-trivial use of AWK you’re using the wrong scripting language. Perl, Python, Ruby or even just BASH can usually accomplish the same task with more clarity.
+
+July 1st, 2011 at 6:28 am
+Reply
+	mr_dee
+What dragonwisard said.
+
+This is supposed to be an introduction to scripting. Way to scare of the beginners with all your nitpicking. Did you guys heckle your physics teachers at school with this sort of nonsense?
+
+Thanks for theses articles, Ken.
+
+July 1st, 2011 at 7:15 am
+Reply
+	dancrossnyc
+Simplicity, fine. I can respect that for pedagogical purposes. But how about just plain correctness? This script, as posted above, does not do what it says that it does.
+
+July 1st, 2011 at 7:49 am
+Reply
+	zappepcs
+I have a nitpick too – with the comments. Some are trying to intimate that the advance topic nitpicks are ‘too much’ for beginning scripters. I argue the opposite. There were several comments which not only showed how to take the simple example script and make it better, but also make it Portable, POSIX compliant, more Robust, and account for several gotchas that can bite you even as a beginner. Not every user has a home directory is a good one, anchoring with the $, and on and on. The comments actually both show how and explain why you would make those changes and thus added what is essentially the ‘going further’ section for the article. Wild applause!
+
+For those that criticize either the original author or those comments which added advanced features… please be quiet.
+
+July 1st, 2011 at 8:07 am
+Reply
+	
+Fine, but it should work or should show the troubleshooting to make it work (fix users.txt to names.txt).
+
+February 22nd, 2013 at 7:12 am
+Reply
+	maximilianh
+A lot better than the last article! (despite the little bug)
+
+July 1st, 2011 at 10:26 am
+Reply
+	goarilla
+I wholeheartedly agree with zappepcs – overall this was a lot better than the previous one.
+
+But really let’s teach them right the first time.
+Shouldn’t we use tempfile,mktemp or/tmp/file.$$ for the creation of well i don’t know temporary files ?
+
+July 1st, 2011 at 11:19 am
+Reply
+	goarilla
+Another nitpick you can give a file an extension all you want but
+that won’t make it the extension that is NOT a html file.
+
+You can open a txt file just fine with a browser anyway.
+
+July 1st, 2011 at 11:21 am
+Reply
+	hydorah
+Bravo Ken for having the bravery to post these (very accessible and easy to digest) script examples and bravo Nathan for posting that super erudite set of tweaks and suggestion with very informative justifications
+
+I’m liking this series of articles, keep ‘em coming Ken!
+
+July 1st, 2011 at 11:43 am
+Reply
+	tink
+Indeed Ken, keep them coming at that poor and low level, because in conjunction with the comments from Nathan et al. they actually do make for an interesting read. In isolation (w/o the comments) they’d be just a list of poor practice, but with the comments they’re great learning material, as people give fairly detailed explanations as to WHY your stuff is poor style (linux-wise, your English is great ;}).
+
+Cheers
+
+July 1st, 2011 at 5:27 pm
+Reply
+	kimbokaz
+Nice simple example.
+
+Moaning minnies, get a grip. The task was to copy a file to a couple of dozen user’s home directories. There’s a dozen ways to script it. It’s a one-off throw away, and it will vary in complexity from place to place. If the file ends up where it should be, and usable, then JOB DONE!
+
+Saving an IPC isn’t going to do a lot mate – you’ll use more resources saying “man grep” to remind you how to specify the path on the command line ;-) And who the heck mentioned LDAP in the spec!
+
+July 2nd, 2011 at 7:18 am
+Reply
+	tbritton
+Unix (and its sibling Linux) is a wonderful system. There are often many ways to do something, as the “nit-pickers” have described. However, only one, I think, noticed that the code published couldn’t possibly produce the results claimed.
+Specifically, the statement
+echo ”
+User Space
+$NAME $SPACE
+”
+falls outside the loop and can only ever produce the headings (User Space” and one user’s name and space used (specifically the last user’s).
+NAME and SPACE are variables holding single values, not arrays and even if they were arrays, there’s no loop indexing through them.
+
+July 3rd, 2011 at 4:01 am
+Reply
+	xder345
+Agreed. Throw the header echo statements before the loop and the ‘echo $NAME $SPACE’ inside the loop. All done.
+
+July 11th, 2011 at 11:59 am
+Reply
+	roaima
+@ kimbokaz, you asked why I mentioned LDAP. Simply because out here in the real world these edge cases can be the norm. Grep through /etc/passwd by all means, but getent exists so that code can be portable and reliable. This is a beginners’ course, but I see no reason why I shouldn’t offer an alternative.
+
+July 3rd, 2011 at 2:31 pm
+Reply
+	eccomaggio
+To add my thoughts to the mix: I think this is a perfect linux article. It tells you a simple way to automate a useful task. Then other users come along and share their experiences, and tweaks, and tricks, and so you end up with the best of all worlds: a decent starting point, and lots of exciting and practical ways to go forward. And it’s all about people freely giving up their time and hard-won knowledge. All the things that are best in linux, and missing from Apple and Windows. Excellent job. Glad I read the article and the comments.
+Thanks to all. — Damn, I sound all preachy, but when things work like this, they deserve encouraging :)
+
+July 4th, 2011 at 2:54 am
+Reply
+	geeky2
+Thank you Ken, for the article. Please keep them coming.
+
+Thank you ALL for the fantastic dialog! Wow – some of the “KOBK” comments, actually brought me back to the old CIS days ;)
+
+As someone already pointed out, this is the “best of all worlds”.
+
+July 5th, 2011 at 8:23 am
+Reply
+	stretch_kiwi
+A nice article with some very good commentary below, even the recursive commentary on the commentary was good. More please!
+
+July 5th, 2011 at 11:22 pm
+Reply
+	coolpat72
+for loop is more common then oldschool while loop, as you can able to do perform task in oneshot…eg From above first example which cats username to users.txt and then run a while loop on them to do some sort of operation on each users….Same thing can be achived using below for loop as
+
+for i in `cat /etc/passwd |grep bash |grep home | awk -F: ‘{print $1}’` ; do cp /tmp/test.txt /home/$i ; chown $i:$i /home/$i/test.txt; done
+
+Simply
+
+July 19th, 2011 at 6:54 am
+Reply
+	khess
+It all worked on my system. And, whether or not the script is “correct” or adheres to the Hoyle’s Big Book of Scripting is of no real consequence. If any of you have ever been a teacher (I have), then you would know that you take new learners where they are and build on what they know. Most new Linux users know cat and what it does. Many don’t know grep or what it does.
+Thanks for your other examples, I’m sure others will appreciate them.
+There is no one correct way to do anything and that covers scripting.
+To those of you who enjoy throwing stones with nothing constructive to offer, you should use your time more effectively than writing pointless commentary. Restraint rather than reaction will serve you better.
+For those of you who enjoy the articles, thank you. Your scripts don’t have to adhere to any rules or dogma. They just need to work. That’s the true test of a good script.
+
+July 21st, 2011 at 9:33 am
+Reply
+	
+You are a great teacher. By far more helpful and knowledgeable than most of my professors in college. To hell with what the naysayers nitpick about, you are correct, if it works then it’s CORRECT.
+
+Thank you for all your effort and patience.
+
+November 8th, 2011 at 6:48 pm
+Reply
+	
+I am sorry but JSON is no way near competing with XML. XML is far superior to JSON!! wood pellet business I don\’t really know on what grounds is the author basing his conclusions!
+
+November 8th, 2011 at 12:07 am
+Reply
+	
+I’m planning to start my own website soon but I’m a little lost on everything. Would you recommend starting with a free platform like WordPress or go for a paid option? There are so many choices out there that I’m completely confused .. Any recommendations? Cheers!
+
+November 16th, 2011 at 12:46 am
+Reply
+	
+Jon / Nneke…I have to cefnoss, I’m still running 2.0.1 on here. I want to move it to a different hosting account so I’ve been procrastinating on the upgrade, so I can do both at the same time.
+
+February 7th, 2012 at 1:55 am
+Reply
+	
+yrJ3Uo cwcgecvwisjc
+
+February 8th, 2012 at 10:14 am
+Reply
+	
+Start on free websites. No point in paying while you learn. I use mine as bookmarks mostly so I don’t have to put them in every browser I use.
+
+February 22nd, 2013 at 7:25 am
+Reply
+	
+hang tags
+Any recommendations?
+
+November 16th, 2011 at 12:47 am
+Reply
+	
+We are trying to develop a GPL opensource product for database monitoring and database support. Shell scripting and SQL are best tools to develop this and achieve our goal. Nice article and information found here. I bookmarked this.
+
+November 29th, 2011 at 4:20 am
+Reply
+	
+Good article. Very informative for beginners, and a nice refresher for Linux veterans.
+http://www.techopedia.com/2/28282/networks/wireless/80211ac-gigabit-wireless-lan
+
+February 17th, 2012 at 6:51 am
+Reply
+	
+Good article. More sysadmins should automate stuff. It makes you a better admin. If it gets the job done and does not break anything, is a small inefficency in the script really a problem?
+
+for i in `cat boring_tasks`; do
+automate $i
+done
+
+now_do_fun_stuff
+
+April 12th, 2012 at 4:26 pm
+Reply
+	
+Two things I am having a problem with here:
+First, it writes no html to user_space.html
+
+Second, what is this “names.txt” file for?
+I see the script writing data to it, but then not doing anything with that file.
+I think parts of the code are not displayed.
+
+May 1st, 2012 at 8:03 am
+Reply
+	
+I am trying to generate a weekly HTML report using LINUX Scripting. This will have record counts of some files
+
+June 7th, 2012 at 5:26 am
+Reply
+	
+I always tell young and up becoming programmers. Decide before you start a project if you’re working for profit or not, deciding mid project is never a good idea and will usually effect your project . negatively like this one here that could of been a big script.
+
+January 20th, 2013 at 3:43 pm
+Reply
+Leave a Reply
+
+Your email address will not be published. Required fields are marked *
+
+Name *
+
+Email *
+
+Website
+
+Comment
+
+You may use these HTML tags and attributes: <a href="" title=""> <abbr title=""> <acronym title=""> <b> <blockquote cite=""> <cite> <code> <del datetime=""> <em> <i> <q cite=""> <strike> <strong>
+
+
+
+
+ 
+Software
+	Stick a Fork in Flock: Why it Failed
+	CentOS 5.6 Finally Arrives: Is It Suitable for Business Use?
+	Rooting a Nook Color: Is it Worth It?
+System Administration
+	Scripting, Part Two: Looping for Fun and Profit
+	Command Line Magic: Scripting, Part One
+	Making the Evolutionary Leap from Meerkat to Narwhal
+Storage
+	Extended File Attributes Rock!
+	Checksumming Files to Find Bit-Rot
+	What's an inode?
+
+ 
+Mobile
+	Putting Text to Speech to Work
+	Look Who's Talking: Android Edition
+	Upgrading Android: A Guided Tour
+HPC
+	A Little (q)bit of Quantum Computing
+	Emailing HPC
+	Chasing The Number
+
+
+ 
+
+Property of Quinstreet Enterprise.
+Terms of Service | Licensing & Reprints | About Us | Privacy Policy | Advertise
+Copyright 2013 QuinStreet Inc. All Rights Reserved.

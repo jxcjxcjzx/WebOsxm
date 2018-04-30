@@ -1,0 +1,218 @@
+
+ 
+	
+
+ 
+DISTROS	SYSADMIN	MOBILE	SOFTWARE	DATACENTER	HPC	DEVELOPMENT	LMTV
+ 	
+
+iotop: Per Process I/O Usage
+Based on a reader comment, we take iotop for a spin to see if it can be used for monitoring the IO usage of individual processes on a system. The result? It has some interesting capability that we haven't found in other tools.
+By Jeffrey B. Layton
+Wednesday, May 18th, 2011
+
+
+ 
+Introduction
+
+If you have been reading some of my articles you know my frustration at the lack of good storage management and monitoring tools for Linux. Many of the tools provide bits and pieces of the information storage administrators need but they are disconnected and collectively don’t provide the information required. So while we (or someone else) is developing appropriate tools for managing and monitoring storage, we have to use what tools are available.
+
+So I started examining various storage monitoring tools, starting with iostat which is a part of the sysstat tool set. Iostat can be used to watch the overall IO statistics of a particular or all block device(s) along with CPU usage statistics. This information can be useful since it provides something of an overall view of the IO usage but it can’t tell you which process or processes are creating (or abusing) the IO performance.
+
+In the comments section of the iostat article a user named mossholderm pointed to a tool called iotop that can help monitor the IO usage of the processes on a system. So I decided to take a look.
+
+Installing iotop
+
+The first step in using any new tool is installing it. Sometimes there are pre-built binaries and sometimes you have to install from source. Iotop is written in Python (a great language IMHO), so I decided to install it from source (plus I could not find an rpm for the latest version that matched my distribution but I didn’t look too hard to be honest). The last update to iotop was in 2007 so I was a little worried about being able to build it correctly. But before I could build it and run it there are some prerequisites that I needed to address.
+
+These prerequisites for iotop were a little beyond the usual, “find this package and install it” approach. For iotop to work correctly, it requires certain kernel versions and options to be configured. In particular, it states the following prerequisites are needed:
+
+Python >= 2.5 -or- Python 2.4 + ctypes
+2.6.20 kernel (or greater) with IO accounting and VM event counters configured
+
+The system I was using is a CentOS 5.4 system with an older 2.6.18 kernel. Plus it came with Python 2.4.3 so I needed to add ctypes to my system as well as find a kernel that either had the IO accounting patches back ported or was a newer kernel than 2.6.20.
+Installing ctypes was very easy. From the website, ctypes adds the following functionality:
+
+
+ctypes allows to call functions in dlls/shared libraries and has extensive facilities to create, access and manipulate simple and complicated C data types in Python – in other words: wrap libraries in pure Python. It is even possible to implement C callback functions in pure Python.
+
+Installation is very simple with two steps. The first step is,
+
+# python setup.py build
+
+And the second step is,
+
+# python setup.py install
+
+The next step in satisfying the prerequisites for iotop was to sort out the kernel. I initially tried using the stock CentOS kernel but it kept telling me it didn’t have IO accounting or VM event counters defined. So I chose to build my own kernel. I used 2.6.32 since I was building it for other reasons. The IO accounting kernel options is on the first very option as show below in Figure 1.
+
+
+Figure 1: 2.6.32 Kernel Configuration Screenshot
+
+Look right in the middle of the screen on the right hand side and you will see the options for enabling “per-task” storage I/O accounting”. Then all you do is build and install the kernel (for details on this process, just use Google – there are lots of articles describing how to build and install your own kernel).
+
+The next step is very easy – installing iotop. After uncompressing and untarring the iotop binary, the command is simply the following.
+
+# ./setup.py install
+
+That’s pretty much it – iotop is installed and ready to go.
+
+Running iotop
+
+Once iotop was installed the next step is to actually run it. Figure 2 below is the screenshot when I first started iotop without running any I/O intensive applications.
+
+
+Figure 2: Initial iotop Screenshot
+
+Notice the iotop looks sort of like “top”.
+
+At the very top of the output you see the sum of the “DISK READ” and “DISK WRITE” bandwidth in B/s (Bytes per second). After this is a list of all processes running on the system. Each process has a column labeled “DISK READ” and “DISK WRITE” as well as “SWAPIN” and “IO”. Finally the “COMMAND” column is the name of the process. By default iotop monitors all users on the system and all processes even if they really don’t do any IO. However, you can toggle iotop to show just the applications doing real I/O using “O” (capital O). My test system wasn’t doing any I/O so toggling the system from Figure 2 shows nothing so I’m not showing it. However, I can do something more interesting by running IOzone on the system and then using iotop.
+
+So I started running IOzone on an Intel X-25E SSD and then started iotop. Figure 3 below is iotop showing only the I/O intensive processes when running IOzone.
+
+
+Figure 3: Iotop Screenshot when running IOZone
+
+The filesystem is ext4 if you’re interested. Notice at the top of the output from iotop that the total disk throughput is listed as 216.73 MB/s. You can see the individual IOzone process below the top (PID 4307).
+
+To show you how many processes there are on a system and how many are really doing IO, compare Figure 3 to Figure 2. You can see that in this case there were few processes actually doing any IO.
+
+Just to be sure that iotop was actually doing what it said it was, I checked that iotop is actually measuring I/O by looking at gkrellm. A screen capture of the output is shown in Figure 4.
+
+
+Figure 4: Gkrellm Screenshot when running IOZone
+
+There are other options for iotop. The man pages are reasonable enough to figure out what the options do for you.
+
+Summary
+
+I’m a bit partial to Python because I’ve been doing a great deal of coding with it lately (probably not very Pythonic coding though). So when user mossholderm wrote about iotop in a comment about the iostat article, I had to try it out. It’s is a simple tool for watching the I/O usage on a per process basis on a system. The interface is something like a “top” interface which is something we all use in Linux so it’s pretty easy to understand the output.
+
+I’m still on my quest for a good management/monitoring tool for Linux storage. Iostat has some aspects I like, particularly the overall I/O view it provides as well as the ability to target individual devices within a system along with information on CPU usage and I/O scheduler requests. Iotop allows us to see the I/O usage of individual processes. Nfsiostat allows us to see NFS requests on NFS clients. Now we need to combine these tools into one while adding in some other bits and pieces. Anyone game?
+
+Jeff Layton is an Enterprise Technologist for HPC at Dell. He can be found lounging around at a nearby Frys enjoying the coffee and waiting for sales (but never during working hours).
+
+Comments on "iotop: Per Process I/O Usage"
+
+	illtud
+Skip the building bit, install the EPEL repo and ‘yum install iotop’. Works on my RHEL5.6 boxes and didn’t need to change kernel.
+
+May 19th, 2011 at 5:22 am
+Reply
+	badarijoshi
+It may work on RHEL but on ubuntu it complains that kernel is not enabled with CONFIG_TASK_DELAY_ACCT
+
+June 29th, 2011 at 7:01 am
+Reply
+	vtchernev
+You might want to have a look at atop. The best monitoring tool I have used up until now. Works well with recent kernels.
+
+May 19th, 2011 at 6:35 am
+Reply
+	dmesg
+I second the idea of combining these tools into a single interface. If I had any coding skills this is the very task I would take on, and I’d include a few other tools to monitor network resources like per client I/O.
+
+One of the tools I use a lot is iptstate. I’ve fantasized about using it’s output to identify clients, which are then correlated with other performance data.
+
+But when it comes to coding, I’d drown in 2 inches of water in a bathtub. I’m just a lowly network admin.
+
+May 19th, 2011 at 6:40 am
+Reply
+	alexeik
+Many thanks for posting the articles about the very valuable tools for linux admins, iotop and iostat. The installation steps, perhaps, should have been skipped as they are distribution dependent, for example, on Ubuntu and Debian,
+iotop comes as a package and can be simply installed by
+apt-get install iotop
+
+May 19th, 2011 at 9:17 am
+Reply
+	grdetil
+I agree with illtud that iotop and python-ctypes install fine from the epel repo with no kernel config needed. I did this on Scientific Linux 5.5 (RHEL 5.5 clone).
+
+If you try atop as vtchernev suggested, which I got from the dag/rpmforge repo, be aware that it causes an obscure issue with SELinux. I started getting a whole bunch of setroubleshoot messages of ‘SELinux is preventing dovecot-auth (dovecot_auth_t) “getattr” to / (fs_t).’ and ‘SELinux is preventing unix_update (updpwd_t) “getattr” to / (fs_t).’ I scratched my head a long time over these until I realized the errors started minutes after installing atop. I shut down the atop service and the errors stopped. Whatever it’s doing to hook into these processes to do its accounting, the current SELinux policy isn’t happy about it.
+
+June 2nd, 2011 at 11:11 am
+Reply
+	adamhough
+http://nmon.sourceforge.net/pmwiki.php
+
+Nmon is the tool that most of you are looking for with a combines resource utilization monitors but is easier to view the information then atop and other ones. This is a utility out of the AIX system environment.
+
+August 17th, 2011 at 2:51 pm
+Reply
+	rcxb
+I must have missed the list of “interesting capability that we haven’t found in other tools.” Seems pretty ho-hum, and a lot of hassle. Meanwhile, htop is very user-friendly, has some interface capabilities that make it useful when “top” is struggling, and works out of the box on RHEL5/6 without tweaking the kernel (from the rpmforge repo).
+
+October 10th, 2011 at 4:02 am
+Reply
+	
+Where in htop does it show I/O read/write/swap/wait per-process?
+
+November 4th, 2011 at 10:53 am
+Reply
+	
+Thanks for another wonderful article. Where else may just anybody get that kind of information in such a perfect approach of writing? I’ve a presentation subsequent week, and I’m on the look for such info.
+
+December 1st, 2011 at 3:52 am
+Reply
+	
+Good article.
+
+June 19th, 2012 at 1:24 am
+Reply
+	
+I see no processes getting listed in the o/p window of IOtop. However, the overall system usage is shown correctly on the first line of the o/p. Any idea what is going on.
+
+October 6th, 2012 at 10:35 am
+Reply
+	
+My test system wasn’t doing any I/O so toggling the system from Figure 2 shows nothing so I’m not showing it. However, This was really something very special and interesting.
+http://dissertation-masters.co.uk
+
+December 24th, 2012 at 4:26 am
+Reply
+Leave a Reply
+
+Your email address will not be published. Required fields are marked *
+
+Name *
+
+Email *
+
+Website
+
+Comment
+
+You may use these HTML tags and attributes: <a href="" title=""> <abbr title=""> <acronym title=""> <b> <blockquote cite=""> <cite> <code> <del datetime=""> <em> <i> <q cite=""> <strike> <strong>
+
+
+
+
+Software
+	Stick a Fork in Flock: Why it Failed
+	CentOS 5.6 Finally Arrives: Is It Suitable for Business Use?
+	Rooting a Nook Color: Is it Worth It?
+System Administration
+	Scripting, Part Two: Looping for Fun and Profit
+	Command Line Magic: Scripting, Part One
+	Making the Evolutionary Leap from Meerkat to Narwhal
+Storage
+	Extended File Attributes Rock!
+	Checksumming Files to Find Bit-Rot
+	What's an inode?
+
+ 
+Mobile
+	Putting Text to Speech to Work
+	Look Who's Talking: Android Edition
+	Upgrading Android: A Guided Tour
+HPC
+	A Little (q)bit of Quantum Computing
+	Emailing HPC
+	Chasing The Number
+
+
+ 
+
+Copyright 2013 QuinStreet Inc. All Rights Reserved.
+Terms of Service | Licensing & Permissions | Privacy Policy 
+About the IT Business Edge Network | Advertise

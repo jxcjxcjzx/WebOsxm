@@ -1,0 +1,187 @@
+djdhbjqdbwhjb0我的：收件箱资源博客空间设置|帮助|退出首页业界移动云计算研发论坛博客下载
+更多
+mumushou
+专注于android中上层开发：app（IME、settings），framework（vold、sensor、multimedia。。）
+目录视图摘要视图订阅
+公告：博客新增直接引用代码功能        专访谭海燕：移动互联网开发的那些事      CSDN博客频道自定义摘要、图片水印、热门标签等功能上线啦      CSDN博客第二期云计算最佳博主评选     
+ 让 TextView 自带滚动条
+分类： android应用相关 2012-04-26 18:22 2044人阅读 评论(1) 收藏 举报
+androidlayout情感xmljava
+在android上面让TextView 过多的文字实现有滚动条，之前想简单了以为设置TextView的属性就可以实现，结果还是需要ScrollView配合使用，才能达到滚动条的效果有两种方式实现，
+一种是代码写java的layout
+Java代码
+RelativeLayout.LayoutParams param = new RelativeLayout.LayoutParams(80,80);   
+//初始化滚动条控件   
+ScrollView scrollView =new ScrollView(this);   
+scrollView.setScrollContainer(true);   
+scrollView.setFocusable(true);   
+//初始化文字控件   
+TextView textView = new TextView(this);   
+textView.setHorizontallyScrolling(true);   
+textView.setText("走情感路线,哈哈哈,\n 走情感路线,哈哈哈");   
+  
+scrollView.addView(textView);   
+main_view.addView(scrollView, param);  
+ 
+另一种则用layout.xml来实现
+ 
+Xml代码
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"  
+        android:layout_width="fill_parent" android:layout_height="fill_parent"    
+android:scrollbars="vertical" android:fadingEdge="vertical">  
+        <TextView android:layout_width="fill_parent" android:layout_height="wrap_content"    
+android:id="@+id/text_view" android:textColor="#071907" android:paddingTop="5dip" />  
+</ScrollView>  
+
+=========================================================================================
+
+一、Xml代码
+
+<TextView  
+    android:id="@+id/textview"  
+    android:layout_width="fill_parent"  
+    android:layout_height="wrap_content"  
+    android:singleLine="false"  
+    android:maxLines="5"  
+    android:scrollbars="vertical"  
+    />
+二、还需要在代码中设置 TextView 相应的方法
+
+TextView textView = (TextView)findViewById(R.id.text_view);   
+textView.setMovementMethod(ScrollingMovementMethod.getInstance()); 
+好了，大功告成。
+
+ 
+
+附：
+
+  顺便讲下 TextView 自动滚动的实现方法，下面介绍两种方法：
+
+一、在代码中实现：
+
+     textView .setEllipsize(TextUtils.TruncateAt.MARQUEE);
+     textView .setSingleLine(true);
+     textView .setMarqueeRepeatLimit(6);
+
+二、在XML中实现：
+
+ <TextView android:id="@+id/TextView01" android:layout_width="wrap_content"
+  android:layout_height="wrap_content" android:singleLine="true"
+  android:text="dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  android:marqueeRepeatLimit="marquee_forever" android:ellipsize="marquee"
+  android:scrollHorizontally="true" android:width="150dip"></TextView>
+
+一切OK，当 textView 获取焦点后，就会自动滚动。
+
+
+分享到： 
+上一篇：Android http get/post传递参数
+下一篇：JVM 简介
+
+查看评论
+1楼 mvpstevenlin 2013-05-06 11:40发表 [回复]
+
+setMovementMethod(ScrollingMovementMethod.getInstance()); 这个方法能设置成水平吗?
+发表评论
+用 户 名：
+u011520465
+评论内容：
+
+
+  
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+ 
+个人资料
+  
+pochuanpiao
+ 
+访问：52284次
+积分：833分
+排名：第13818名
+原创：18篇转载：72篇译文：0篇评论：37条
+
+公告
+看着城市的熙来攘去，和很多人一样，每天从高楼大厦间走过，歇息在红绿灯的间奏里，日出而作日落而息，喜欢驻足在路口，喜欢咖啡也喜欢清茶，喜欢阳光也喜欢雨天，喜欢沙发也喜欢地板，寻找着灵魂流动和休憩的地方
+文章搜索
+
+文章分类
+android系统相关(21)
+android应用相关(20)
+c++基础(2)
+C语言基础(1)
+趣味java(7)
+关于生活(7)
+数字电视基础(1)
+Linux相关(3)
+网络科普(5)
+游戏(1)
+phone基础(1)
+android sensor分析(1)
+android 输入流程分析(2)
+android 播放分析(2)
+android 图形显示分析(3)
+android vold分析(1)
+android 网络分析(2)
+关系论(2)
+字符编码(3)
+文章存档
+2013年02月(3)
+2013年01月(1)
+2012年12月(13)
+2012年11月(3)
+2012年09月(4)
+展开
+阅读排行
+住在我隔壁储藏室的大学刚毕业的小夫妻(5428)
+android弹出对话框(5263)
+Android屏幕校准(3384)
+让 TextView 自带滚动条(2044)
+android文字阴影效果(1863)
+Android框架浅析之锁屏(Keyguard)机制原理(1801)
+判断大小端(1767)
+Android修改系统时间（应用程序获得系统权限）(1492)
+Android dip,px,pt,sp 的区别(1442)
+android版本区别(1298)
+评论排行
+Android自带的软键盘上面移动焦点(13)
+android弹出对话框(5)
+android ethernet移植- freescale i.mx23平台上移植android2.2-froyo(4)
+Android修改系统时间（应用程序获得系统权限）(2)
+Android屏幕校准(2)
+用桌面做应用的背景(2)
+NDK Stack(2)
+让 TextView 自带滚动条(1)
+判断大小端(1)
+Android HAL实例学习(1)
+推荐文章
+
+最新评论
+Android自带的软键盘上面移动焦点
+happybox: 好想与键盘布局有关吧
+让 TextView 自带滚动条
+mvpstevenlin: setMovementMethod(ScrollingMovementMethod.getInsta...
+android弹出对话框
+pochuanpiao: @a1a2a3aq:很早的了，当时只是方便自己记录一下。你可以写个demo看看，应该花不了多少时间
+android弹出对话框
+一米sunrise: 要是有图片效果就好了 看了不知道你实现出来的是什么样子
+Android屏幕校准
+pochuanpiao: @f839903061:这个应该都适用的吧，设置坐标。网上找找看
+Android屏幕校准
+雨焰: 楼主我想请教一下，针对android4.0.3的，有没有校准的博客？
+图像二值化（java代码）
+Antisunny: 楼主呀，怎么在网页中直接高亮显示代码？？？
+Android框架浅析之锁屏(Keyguard)机制原理
+浩: 这个案例不错，，学习中。。。
+浅谈ANR及log分析ANR
+lywei: mark
+NDK Stack
+pochuanpiao: @zhegenuaa:确实有用，转载的呢
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+  

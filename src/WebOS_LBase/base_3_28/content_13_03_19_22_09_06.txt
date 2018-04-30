@@ -1,0 +1,89 @@
+首页 资讯 精华 论坛 问答 博客 专栏 群组 更多 ▼ 您还未登录 ! 登录 注册
+yaogangshi
+博客微博相册收藏留言关于我
+  
+PyQt4安装方法
+
+博客分类： 框架
+PythonQtJavaScriptPerlGoogle 
+现在使用Qt4做淘宝助理5.0，对Qt还不算熟悉有时候想快速的看看某个类或者方法的用途，又不想新建一个项目。这时候Python for Qt就派上用场了。
+ 
+虽然在http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/pyqt4ref.html这里已经将安装方法描述的很清楚了，我这里再罗嗦一下，表明前面网址里的描述所言非虚。
+ 
+我使用的windows平台。
+安装Perl
+我安装的是activePerl 2.7版本，安装完了之后，设置到path环境变量中。
+安装PyQt4
+下载PyQt4安装包，进行安装即可
+安装SIP
+一个用来使用现有的C或者C++库的Python bindings的装置。
+下载SIP，解包，运行
+python configure.py
+会生成makefile文件，打开VS命令行提示使用nmake，然后再运行nmake install完成SIP的安装
+ 
+QList对应Python内置的list，比如说我使用QScriptValue.call方法时，需要传入QList<QScriptValue>就可以使用args=[QtSctipt.QScriptValue('tttt')]来构造一个list-of-QScriptValue
+ 
+也许是刚刚开始使用Python，感觉PyQt4不是很稳定
+调用QtWebKit进行HtmlDecode的例子
+Python代码  
+#!/usr/bin/env python  
+#coding=utf-8   
+import sys  
+from PyQt4 import QtGui,QtWebKit  
+  
+app = QtGui.QApplication(sys.argv)  
+view = QtWebKit.QWebView()  
+frame = view.page().mainFrame()  
+frame.setHtml("&times;&theta;&delta;")  
+str = frame.toPlainText()  
+print str.toUtf8()  
+view.show()  
+app.exec_()  
+ 
+下面给出了一个例子用来说明如何调用Qt Javascript的方法
+ 
+Python代码  
+#!/usr/bin/env python  
+#coding=utf-8   
+import sys  
+from PyQt4 import QtCore,QtScript  
+  
+app = QtCore.QCoreApplication(sys.argv) #构建app，因为引擎需要一个app  
+eng = QtScript.QScriptEngine() #构建script引擎  
+escapeFun = eng.globalObject().property("escape") #获取escape函数对象  
+args = [QtScript.QScriptValue("http://www.google.com/go?s=中国")] #构建调用函数的实参  
+print escapeFun.call(QtScript.QScriptValue(),args).toString() #调用函数并返回结果  
+
+分享到：    
+windows内核代码研究1 | Windows开发程序员需要知道的一些小工具
+2011-01-22 11:43浏览 4097评论(0)分类:编程语言相关推荐
+评论
+发表评论
+  您还没有登录,请您登录后再发表评论
+
+yaogangshi
+浏览: 13874 次
+性别: 
+来自: 杭州
+
+最近访客 更多访客>>
+dylinshi126Ongludu_bowasdju
+文章分类
+全部博客 (24)
+开发自动化 (2)
+实用小工具 (3)
+框架 (4)
+库 (4)
+社区版块
+我的资讯 (0)
+我的论坛 (0)
+我的问答 (0)
+存档分类
+2012-10 (2)
+2012-07 (3)
+2011-10 (1)
+更多存档...
+最新评论
+声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。
+© 2003-2012 ITeye.com. All rights reserved. [ 京ICP证110151号 京公网安备110105010620 ]
+

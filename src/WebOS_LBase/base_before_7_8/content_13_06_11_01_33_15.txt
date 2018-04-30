@@ -1,0 +1,194 @@
+登录注册收藏本站设为首页
+ 
+资讯
+评测
+教程
+拆解
+视频
+资料
+论坛
+商城
+在线课堂
+
+详细内容
+新版iPod touch 5 16GB完全拆
+详细内容
+谷歌携手“树莓派”为爱尔兰大学
+详细内容
+中国板Beaglebone-Black之micr
+详细内容
+在pcDuino上通过TCP/IP S
+现在的位置: 首页 ＞教程＞正文
+RSS
+小 中 大
+入门 Use Arduino Uno with pcDuino
+2013年06月09日 ⁄ 教程 ⁄ 暂无评论 ⁄ 被围观 0+
+pcDuino 具有Arduino UNO 提供的所有硬件接口，但是仍有一些情况你只是把pcDuino当做mini pc 和Arduino UNO一起使用。在pcDuino 上通过运行Arduino IDE 可以实现所有的Arduino UNO编程。
+
+这篇文章里我们介绍如何在pcDuino上运行Arduino UNO
+
+在 http://www.pcduino.com/?page_id=14 16号最新发布的ubuntu上没有可以执行Arduino UNO 的USB 驱动程序，应该很快会有新的Arduino UNO USB驱动程序版本发布吧。在pcDuino上用 Pitaya Ubuntu image同样也可以做这个实验。
+
+首先将介绍如何在pcDuino上安装Pitaya Ubuntu image
+
+Pitaya image 是基于Lbuntu 12.04版LXDE桌面，经过Suzuke 改进了uboot，最新的内核也已经被Toby Corkindale 编译成功。
+
+我们需要一个16G的Micro SD 卡，我已经测试了4级和10级的Sandisk，觉得4级的貌似最快…
+
+在lubuntu-1204-rikomagicuk.zip - 5.4 MB 2013-06-09 可以下载Pitaya image。
+
+接下来在SD卡上安装Pitaya image 以引导SD的安装。我们将涵盖Windows，Mac和Linux三种情况。
+
+Windows 用户：
+
+使用 7-zip解压缩磁盘image文件
+
+插入16GB SD卡
+
+用 win32diskimage.zip - 5.4 MB 2013-06-09 写入image文件到SD卡中，确保你选择了正确的驱动器，因为这个过程将会擦除整个SD卡内容
+
+弹出SD卡然后放入Pitaya并启动，30秒左右你应该可以在屏幕上看到登录界面。
+
+使用密码登录：miniand
+
+MAC用户:
+
+使用 Ez7z提取image文件
+
+把提取的image文件复制到你的主文件夹
+
+插入16G SD 卡
+
+现在SD卡最有可能作为可移动磁盘出现在 Mac OS ，所以需要将它卸载
+
+打开应用终端输入“diskutil list” 找到SD卡是哪个设备
+
+记录磁盘的盘符，注意记录的盘符和SD卡对应一致而不是系统盘
+
+输入： unmountdisk /dev/[INSERT YOUR SD DISK NO HERE]
+
+然后复制image文件到SD卡，要确保SD写入了image文件并且选择了正确的驱动否则会删除你的系统驱动器
+
+dd if=lubuntu-1204-rikomagicuk.img of=/dev/[INSERT YOUR SD DISK NO HERE]
+
+当image文件都复制到SD卡上后（7分钟左右）将会有消息提示这个过程是否成功
+
+弹出SD卡放入Pitaya并打开，30秒后在屏幕上应该出现登录界面
+
+使用密码登录：miniand
+
+Linux 用户：
+
+用 p7zip解压image文件： p7zip -d lubuntu-1204-rikomagicuk.7z
+
+插入SD卡
+
+用fdisk查找SD卡设备： sudo fdisk –l。这个和/dev/sdd很像
+
+通过dd复制image文件到SD卡上，要使用SD卡设备：dd if=lubuntu-1204-rikomagicuk.img of=/dev/sdd
+
+用sync确保SD卡完成写入：sudo sync
+
+移除SD 卡装入Pitaya并打开，30秒左右应该会出现登录界面
+
+使用密码登录：miniand
+
+和pcDuino配套的无线模块不能和Pitaya一起使用，所以我们用RJ45 网线连接，如果没有可连接的以太网口也可以用wifi搭建网桥，无线桥接器连接到pcDuino的USB接口充电。然后把Arduino UNO 连接到pcDuino的另一个USB接口，你会惊讶的发现当所有的设备连接好之后pcDuino能够提供足够的电力。
+
+注：如果pcDuino没有足够的USB接口，那么可以USB hub
+
+整个安装过程接线图
+
+
+
+使用命令“$ dmsg”检查 Arduino UNO 是否被正确识别，也可以用“$ls /dev/tty”命令看是否得到了“/dev/ttyACM0”，在这个例子中我们成功了。安装完硬件部分后，按照 the tutorial on pcDuino website安装 Arduino IDE。
+
+使用menu->Electronics->Arduino IDE启动Arduino IDE
+
+
+
+在pcDuino上Arduino UNO 显示为“/dev/ttyACM0”，如果点击“Upload”按钮，Arduino UNO上LED灯会慢慢闪烁，这样我们就成功了！
+
+注：原文可参考http://www.cutedigi.com/blog/?p=7
+
+更多 0 返回
+
+作者: GY@艳
+该文章由 GY@艳 于10 小时前发表在教程分类下， 你可以发表评论，并在保留原文地址及作者的情况下引用到你的网站或博客。 
+转载请注明: 入门 Use Arduino Uno with pcDuino | 爱板网 +复制链接
+关键字: pcDuino, pcDuino入门指南, pcDuino教程
+【上篇】双卡双待新品内部探秘 联想A3000平板拆解
+您可能还会对这些文章感兴趣！
+入门 Use Arduino Uno with pcDuino
+在pcDuino上摇杆控制贪吃蛇游戏
+挑战熊猫板：谁才是Geek最爱且最具性价比最高的单板机？
+在pcDuino上添加实时时钟（RTC）
+迷你计算机Pcduino评测（一）
+pcDuino运行LED strip driver
+pcDuino安装USB声卡实现放歌和录音功能
+pcDuino与Arduino通过xbee模块实现双灯互控
+ 
+ 
+ 
+ 
+
+给我留言
+  昵称 *
+ 邮箱 *
+ 网址
+
+                      
+  插入图片有人回复时邮件通知我
+最新文章热门文章
+入门 Use Arduino Uno with pcD
+双卡双待新品内部探秘 联想A3000平
+步NVIDIA后尘？AMD或涉足安
+智能机芯片将取代X86处理器占领超级
+FPS游戏鼠标新标准 罗技G400S拆
+ 
+ADA4940——低噪声、低失真、超低功耗的差分放大器
+产品列表数据手册立即购买功能框图小信号带宽：260 MHz外部可调增益失调电压：0.35 mV静态电流仅1.25 mA平衡输出
+ 
+厂商：Analog Devices, Inc.
+
+最新活动
+>>更 多
+6月
+27
+Designing with Freescale MCU/Ki...
+6月
+20
+2013 TI 多核DSP技术研讨会火热报名中 ！
+6月
+20
+PCB TECHNOLOGY FORUM 2013 CHINA--推动系统级设计平台
+随便看看
+Immersion展示丰富的触摸力反馈技
+32nm龙芯3B流片成功 真身照片自曝
+10个特殊用途的 Linux 发行版
+Maxim推出15款Pmod兼容的可插拔外
+英特尔发表新一代数位电子广告牌评
+飞思卡尔Kinetis L系列–实现入门
+在手机背面贴张“纸” 就能轻松充电
+德州仪器推出超低噪声高PSRR线
+TI推出节能性能优异的高效率电源
+Power Integrations推出A19 LE
+标签
+>>更 多
+Raspberry Pi  LPC111X教程  ARM  NXP恩智浦  STM32  ucos教学  TI德州仪器  intel  FPGA  Freescale飞思卡尔  stm32f051教程  AVR  三星  天狼星电子  笔记本  Arduino  拆解  Linux  LPC111X  STM32教程  stm32f051  ucos  Digilent德致伦  ST意法半导体  MCU  单片机  平板电脑  Microchip微芯  AMD  Xilinx赛灵思
+
+最新评论
+SYSTEM ERROR:
+产品广告，鉴定完毕！
+yingkongshi:
+英特尔的PC机处理器霸主地位
+Lumia Fan:
+可以在正文末尾留个原始链接啊
+Asmodeus:
+不就是一块电路板吗？
+Blake:
+没看出这和飞机有什么关系啊。
+网站地图友情链接联系我们关于我们
+返回首页
+Copyright © 2011-2013 爱板网  保留所有权利. 
+京ICP证:070212号  北京市公安局备案编号：1101033715  京ICP备：10038094号-4

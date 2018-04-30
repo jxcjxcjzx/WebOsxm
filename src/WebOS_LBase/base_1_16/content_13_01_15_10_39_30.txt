@@ -1,0 +1,466 @@
+
+
+BrainyCreatures.org
+
+
+
+ 
+
+
+About
+ 
+
+
+
+
+Writing a small compiler with SableCC and Java
+
+
+Creating the SableCC Specification File
+ 
+As was outlined in the previous section, the first step in creating a compiler with SableCC is the creation of the SableCC specification file (well, the first step is the design of the language, but let’s just assume that it has already been done.)
+ 
+Before we create the file itself, let’s first describe its syntax using BNF (Backus-Naur Format). Backus-Naur Format is a formal mathematical way to describe grammars for computer programming languages. We will not describe the Backus-Naur format in this article. Therefore, if the reader is interested, please read Gagnon (1998).
+ 
+Let’s start by describing the syntax of SableCC which is as follows:
+ 
+
+<grammar> → [<package declaration>] [<helper declarations>]
+ [<states declarations>] [<token declarations>]
+ [<ignored tokens>] [<productions>]
+ 
+What this grammar means is that the SableCC specification file can be an empty file, because anything between [ and ] means that it can only be the empty string or a single occurrence of whatever is between the brackets.
+ 
+From the allowed sections in a SableCC specification file, we will not take into account the <state declarations> section because we will not use it. But if the reader is interested to know how it works, he should refer to Gagnon (1998).
+ 
+Skipping the states declarations, we will now follow the description of the syntax of the package declaration, helper declarations, token declarations, ignored tokens declaration and the productions sections. The package declaration is used to name the destination root, that is, the directory where all the generated files will be placed. We declare the name of the package as follows:
+ 
+Package org.brainycreatures.smallpascal;
+ 
+In this example, the root directory will be org/brainycreatures/smallpascal (in this article I will be using Unix paths as opposed to Windows paths). Meaning that all the generated subfolders will be placed under this directory. A package name may be any sequence of identifiers, starting with a letter followed by zero or more letters or digits, separated by a dot.
+ 
+The helper declarations works like constants in Pascal. And, as its name imply, it is used as a helper of something, which in this case is the token declarations section (more about this next). To see how a helper declarations section is helpful let’s examine the following regular expression:
+ 
+
+id = [‘a’ .. ‘z’] ([‘a’ .. ‘z’] | [‘0’ .. ‘9’])*
+ 
+In this example we could simplify this regular expression by defining digit = [‘0’ .. ‘9’] and letter = [‘a’ .. ‘z’], then our regular expression ID becomes:
+ 
+
+id = letter (letter | digit)*
+ 
+Letter and digit are our helpers. Here’s how we declare helpers in SableCC:
+ 
+
+Helpers
+ letter = [‘a’ .. ‘z’];
+ digit = [‘0’ .. ‘9’];
+ 
+After the helper declarations follows the token declarations, which is where we define our terminals or tokens. Let’s use the example above to show how to declare tokens in SableCC:
+ 
+
+Tokens
+ id = letter (letter | digit)*;
+ 
+This is very similar to regular expressions as described in the Regular Expressions tutorial (I will put this online soon). A token defined by a string of characters is declared between quotes, e.g. program = ‘program’, and every declaration ends with a semicolon.
+ 
+Following the token declarations section is the ignored tokens section, where we declare the tokens to be ignored by the parser. For example, comments, blanks, carriage return, etc.
+ 
+Here’s an example:
+ 
+
+Helpers
+ any_charater = [0x0 .. 0xfffff];
+ nl = ‘\n’;
+ 
+Tokens
+ comment = ‘⁄⁄’ any_character nl
+ blank = 10 | 10 13 | 9;
+ 
+Ignored Tokens
+ comment,
+ blank;
+ 
+In this case, comment and blank will be ignored by the parser.
+ 
+Finally, in the productions section, we declare the grammar for the language. The productions are defined in BNF or EBNF (Extended Backus–Naur Form).
+ 
+Here’s an example of how to declare productions:
+ 
+
+Tokens
+ identifier = letter (letter | digit)*;
+ number = digit+;
+ plus = ‘+’;
+ 
+Productions
+ expression = identifier plus identifier minus number ;
+ 
+As we can see it is similar to the context-free grammars presented in the grammars tutorial (will provie this soon). The only difference is that in SableCC we don‘t declare a nonterminal surrounded by < and >, and we replace the → by =. In the productions section, it is sometimes required to precede a token by T. and a production by a P. This happens when we have a token and a production with the same name. For example if we have a production program and a token program, then in the production below we must precede program by T., because will not know if it is the token program or the production program.
+ 
+
+Tokens
+ program = ‘program’;
+ semicolon = ‘;’ ;
+ 
+Productions
+ program = T.program identifier semicolon ;
+ 
+Now that we are familiar with the syntax of SableCC, let’s implement the specification file for our programming language.
+ 
+The root of our package will be org.brainycreatures.smallpascal. Hence in the package declaration we will have
+ 
+Package org.brainycreatures.smallpascal;
+ 
+After defining the package, we are going to declare our helpers, which are shown below:
+ 
+
+Helpers 
+
+/**
+ 
+* Pascal is a case-insensitive language. So, we’ll use helpers
+ 
+* to simplify our regular expressions. E.g. Instead of writing,
+ 
+* for instance, end = (‘e’ | ‘E’) (‘n’ | ‘N’) (‘d’ | ‘D’), we
+ 
+* may write: end = e n d, which takes less space is makes the
+ 
+* regular expression more readable.
+ 
+*/
+ 
+a = ‘a’ | ‘A’ ; // this could also be written as ['a' + 'A']
+ 
+b = ‘b’ | ‘B’ ; // but I prefer the old lex style
+ 
+d = ‘d’ | ‘D’ ;
+ 
+e = ‘e’ | ‘E’ ;
+ 
+g = ‘g’ | ‘g’ ;
+ 
+i = ‘i’ | ‘I’ ;
+ 
+l = ‘l’ | ‘L’ ;
+ 
+m = ‘m’ | ‘M’ ;
+ 
+n = ‘n’ | ‘N’ ;
+ 
+o = ‘o’ | ‘O’ ;
+ 
+p = ‘p’ | ‘P’ ;
+ 
+r = ‘r’ | ‘R’ ;
+ 
+t = ‘t’ | ‘T’ ;
+ 
+v = ‘v’ | ‘V’ ;
+ 
+w = ‘w’ | ‘W’ ;
+ 
+ 
+ 
+l_curly_bracket = ‘{‘ ;
+ 
+r_curly_bracket = ‘}’ ;
+ 
+ascii_char = [32 .. 127] ;
+ 
+ 
+ 
+// letters and digits
+ 
+letter = [['a' .. 'z'] + ['A' .. 'Z']];
+ 
+digit = ['0' .. '9'] ;
+ 
+ 
+ 
+// un-printable characters
+ 
+tab = 9 ;
+ 
+cr = 13 ;
+ 
+lf = 10 ;
+ 
+blank = ‘ ‘ ;
+ 
+As is defined in the comments, we are defining helpers for letters a, b, etc… because we need to define Pascal keywords as case insensitive.
+ 
+In the following Tokens declaration it will become clearer why we have defined the letters as both lower and upper case alternatives.
+ 
+
+Tokens 
+
+// reserved words
+ 
+end = e n d ;
+ 
+div = d i v ; // integer division
+ 
+var = v a r ;
+ 
+begin = b e g i n ;
+ 
+program = p r o g r a m ;
+ 
+writeln = w r i t e l n ;
+ 
+// I prefer to let the parser do the job
+ 
+// of tracking the standard type rather
+ 
+// then processing it in the semantic phase
+ 
+integer = i n t e g e r ;
+ 
+ 
+ 
+// arithmetic symbols
+ 
+plus = ‘+’ ;
+ 
+minus = ‘-’ ;
+ 
+mult = ‘*’ ;
+ 
+assignop = ‘:=’ ;
+ 
+ 
+ 
+// symbols separators
+ 
+comma = ‘,’ ;
+ 
+colon = ‘:’ ;
+ 
+semicolon = ‘;’ ;
+ 
+dot = ‘.’ ;
+ 
+l_paren = ‘(‘ ;
+ 
+r_paren = ‘)’ ;
+ 
+ 
+ 
+// identifiers
+ 
+identifier = letter (letter | digit)* ;
+ 
+ 
+ 
+// numbers
+ 
+number = digit+ ; // integer numbers only
+ 
+ 
+ 
+// comments
+ 
+comment = l_curly_bracket [ascii_char - [l_curly_bracket + r_curly_bracket]]*
+ 
+r_curly_bracket ;
+ 
+ 
+ 
+// blanks
+ 
+blanks = blank | cr lf | cr | lf | tab ;
+ 
+Note the space between the letters in the definition of the keywords. In this case we need them, because each letter is a helper token, and Pascal is case insensitive. So, in defining our tokens, we have a sequence of helpers separated by a space.
+ 
+In our ignored tokens section, we will only declare two tokens:
+ 
+ 
+ 
+
+Ignored Tokens 
+
+comment,
+ 
+blanks ;
+ 
+In this case, we want our parser to ignore comments and blank spaces.
+ 
+Finally, we will describe the grammar for our language, by defining the productions section:
+ 
+
+Productions 
+
+program =
+ 
+program_heading
+ 
+declarations
+ 
+body
+ 
+dot ;
+ 
+program_heading =
+ 
+// program must be prefixed with T. because there is a token and a production with
+ 
+// the same name
+ 
+T.program identifier semicolon ;
+ 
+// declarations
+ 
+declarations =
+ 
+variables_declaration? ;
+ 
+variables_declaration =
+ 
+var variables_definition_list ;
+ 
+variables_definition_list =
+ 
+{single} variables_definition |
+ 
+{multiple} variables_definition_list variables_definition ;
+ 
+variables_definition =
+ 
+identifier_list colon type semicolon ;
+ 
+identifier_list =
+ 
+{single} identifier |
+ 
+{multiple} identifier_list comma identifier ;
+ 
+type =
+ 
+integer ; // only data type allowed is the integer data type
+ 
+// body definition
+ 
+body =
+ 
+begin
+ 
+statement_sequence
+ 
+end ;
+ 
+// statements
+ 
+statement_sequence =
+ 
+{single} statement |
+ 
+{multiple} statement_sequence semicolon statement ;
+ 
+statement =
+ 
+{writeln} writeln l_paren expression r_paren |
+ 
+{assignment} identifier assignop expression |
+ 
+{empty} ;
+ 
+// expressions
+ 
+expression =
+ 
+{term} term |
+ 
+{plus} expression plus term |
+ 
+{minus} expression minus term ;
+ 
+term =
+ 
+{factor} factor |
+ 
+{mult} term mult factor |
+ 
+{div} term div factor ;
+ 
+factor =
+ 
+{identifier} identifier |
+ 
+{number} number |
+ 
+{expression} l_paren expression r_paren;
+ 
+// end of grammar.
+
+Pages: 1 2 3
+
+
+
+25
+Sep2011
+
+POSTED BY Fidel Viegas
+
+POSTED IN Compiler Engineering
+
+DISCUSSION0 Comments
+
+TAGS 
+compiler, java, sablecc, smallpascal
+
+
+
+
+Leave a Reply 
+
+
+Your email address will not be published. Required fields are marked *
+
+Name * 
+
+Email * 
+
+Website
+
+Comment
+
+You may use these HTML tags and attributes: <a href="" title=""> <abbr title=""> <acronym title=""> <b> <blockquote cite=""> <cite> <code> <del datetime=""> <em> <i> <q cite=""> <strike> <strong> 
+
+
+
+
+
+Pages
+About
+
+
+Categories
+Compiler Engineering (1) 
+System Administration (1) 
+Ubuntu (1) 
+Web Development (1) 
+Website (2) 
+
+
+Archives
+March 2012 (1)
+February 2012 (1)
+October 2011 (2)
+September 2011 (2)
+ 
+
+Tags
+
+brainycreatures compiler csv java rails ruby sablecc smallpascal
+ 
+
+
+BrainyCreatures.org is proudly powered by WordPress 
+
+A quality product from 
+
+ English
+ Português (Portuguese (Portugal))
+ 

@@ -1,0 +1,303 @@
+HTML5中国
+帐号		自动登录	 找回密码
+密码		登录	 立即注册
+QQ登录
+只需一步，快速开始
+快捷导航
+首页HTML5资讯移动互联网应用推荐教程视频资源下载开发工具HTML5论坛
+	
+本版
+搜索	
+热搜: CanvasWebGLCSS3WebSocket离线存储工具
+HTML5中国›HTML5论坛›HTML5论坛›JavaScript交流›jQuery实现很酷的打字游戏
+返回列表发新帖
+查看: 1823|回复: 1
+打印 上一主题 下一主题
+jQuery实现很酷的打字游戏 [复制链接]
+华美
+
+金牌会员
+Rank: 6Rank: 6
+已累计签到115次
+升级  71.3%
+主题294精华0积分2426金钱1827 威望-22 贡献346 在线时间119 小时
+串个门加好友打招呼发消息	
+电梯直达跳转到指定楼层 楼主
+ 发表于 2012-9-11 15:43:37 |只看该作者 |倒序浏览
+ 1.jpg
+
+jQuery实现很酷的打字游戏
+
+HTML：
+
+<div id="toolbar">
+<div id="boxscore">
+<span>Score:</span> <span id="score">0</span>
+</div>
+<div id="boxcontrol">
+<a href="" id="btnplay">Play</a>
+</div>
+</div>
+<div id="container">
+<div class="animatedbox">
+<span class="match"></span><span class="unmatch"></span>
+</div>
+<div class="animatedbox">
+<span class="match"></span><span class="unmatch"></span>
+</div>
+</div>
+复制代码
+jQuery:
+
+function randomFromTo(from, to){
+return Math.floor(Math.random() * (to - from + 1) + from);
+}
+
+var score = 0;
+
+$(document).ready(function() {
+
+var children = $("#container").children();
+var child = $("#container div:first-child");
+
+var currentEl;
+var currentElPress;
+
+var win_width = $(window).width();
+var text_move_px = 500;
+var box_left = (win_width / 2) - (text_move_px / 2);
+
+var playGame;
+var stop;
+
+$(".animatedbox").css("left", box_left+"px");
+
+$("#btnplay").click(function() {
+
+if ($(this).text() == "Play") {
+startPlay();
+playGame = setInterval(startPlay, 23000);
+$(this).text("Pause");
+} else if ($(this).text() == "Pause") {
+stop = true;
+if ($("#container").find(".current").length == 0) {
+$(this).text("Play");
+} else {
+$(this).text("wait a moment");
+}
+clearInterval(playGame);
+}
+return false;
+});
+
+var con_height = $("#container").height();
+var con_pos = $("#container").position();
+var min_top = con_pos.top;
+
+// 56 = animated box top & bottom padding + font size
+var max_top = min_top + con_height - 56;
+
+function startPlay() {
+
+child = $("#container div:first-child");
+child.addClass("current");
+currentEl = $(".current");
+
+for (i=0; i<children.length; i++) {
+var delaytime = i * 3500;
+setTimeout(function() {
+randomIndex = randomFromTo(0, arrstring.length - 1);
+randomTop = randomFromTo(min_top, max_top);
+child.animate({"top": randomTop+"px"}, 'slow');
+child.find(".match").text("");
+child.find(".unmatch").text(arrstring[randomIndex]);
+child.show();
+child.animate({
+left: "+="+text_move_px
+}, 8000, function() {
+currentEl.removeClass("current");
+currentEl.fadeOut('fast');
+currentEl.animate({
+left: box_left+"px"
+}, 'fast');
+if (currentEl.attr("id") == "last") {
+child.addClass("current");
+currentEl = $(".current");
+if (stop) {
+$("#btnplay").text("Play");
+}
+} else {
+currentEl.next().addClass("current");
+currentEl = currentEl.next();
+}
+});
+child = child.next();
+}, delaytime);
+}
+}
+
+// on ie $(window).keypress() won't work
+$(document).keypress(function(event) {
+currentElPress = $(".current");
+
+var matchSpan = currentElPress.find(".match");
+var unmatchSpan = currentElPress.find(".unmatch");
+var unmatchText = unmatchSpan.text();
+var inputChar;
+
+if ( $.browser.msie || $.browser.opera ) {
+inputChar = String.fromCharCode(event.which);
+} else {
+inputChar = String.fromCharCode(event.charCode);
+}
+
+if (inputChar == unmatchText.charAt(0)) {
+unmatchSpan.text(unmatchText.replace(inputChar, ""));
+matchSpan.append(inputChar);
+if (unmatchText.length == 1) {
+currentElPress.stop().effect("explode", 500);
+currentElPress.animate({
+left: box_left+"px"
+}, 'fast');
+if (currentElPress.attr("id") == "last" && stop) {
+$("#btnplay").text("Play");
+}
+
+currentElPress.removeClass("current");
+currentElPress = currentElPress.next();
+currentElPress.addClass("current");
+currentEl = currentElPress;
+score += 50;
+$("#score").text(score).effect("highlight", {
+color: '#000000'
+}, 1000);
+} else {
+score += 10;
+$("#score").text(score);
+}
+}
+});
+});
+复制代码
+
+CSS:
+
+* {
+font-family: Arial;
+}
+#container {
+background: #333;
+width: 500px;
+height: 230px;
+margin: 0 auto;
+-webkit-border-radius: 0.7em;
+-moz-border-radius: 0.7em;
+border-radius: 0.7em;
+padding: 20px 0;
+}
+.animatedbox {
+background: #ff0084;
+position: absolute;
+padding: 8px 20px 12px 15px;
+font-size: 36px;
+color: #ffffff;
+-webkit-border-radius: 0.5em 2.5em 2.5em 0.5em;
+-moz-border-radius: 0.5em 2.5em 2.5em 0.5em;
+border-radius: 0.5em 2.5em 2.5em 0.5em;
+left: 500px;
+letter-spacing: 3px;
+display: none;
+}
+.match {
+color: #000000;
+}
+.current {
+background: #0099cc;
+}
+#toolbar {
+background: #ff0084;
+-webkit-border-radius: 1.0em;
+-moz-border-radius: 1.0em;
+border-radius: 1.0em;
+width: 500px;
+padding: 10px 0 10px 0;
+margin: 0 auto;
+text-align: center;
+margin-bottom: 10px;
+margin-top: 10px;
+}
+#boxscore {
+float: left;
+font-size: 22px;
+margin-left: 15px;
+color: #ffffff;
+}
+#score {
+font-weight: bold;
+font-size: 24px;
+padding: 0 3px;
+}
+#boxcontrol {
+float: right;
+margin-right: 15px;
+}
+#boxcontrol a {
+font-size: 22px;
+color: #ffffff;
+}
+.clear {
+margin-top: 5px;
+font-size: 11px;
+font-weight: bold;
+color: #ffffff;
+clear: both;
+}
+复制代码
+
+在线演示：http://www.aspxcs.net/index.php?m=content&c=index&a=down_file&id=1187
+
+本地下载：http://www.aspxcs.net/index.php?m=content&c=down&a_k=e1f3AlFWUgUIAgIHAF9SBQBZU1ECDwsDVgdQXQdeCFRSCgIUEltEWAUDFFENDkIXQ1tOGkJBRBgDEUZBV0QbCwZGGkcRCg1UXFRbW1VJBFMCU04FDAcCGVBSBwsEDgRUUwsHAlJTVQAAHEheQEBSXgJHDFpRU19fBl8EH1dWQQwHDwcC
+
+
+
+[发帖际遇]：华美 乐于助人，奖励 3 贡献.
+分享到:
+QQ空间QQ空间
+腾讯微博腾讯微博
+腾讯朋友腾讯朋友
+收藏收藏0
+3
+您可能也喜欢：
+
+分享7个不错的jQuery游戏
+
+6 个很棒的 jQuery 游戏开发教程
+
+Canvas游戏——俄罗斯方块
+
+JavaScript打字小游戏
+无觅关联推荐[?]
+使用道具 举报
+终极范特西
+
+新手上路
+Rank: 1
+升级  48%
+主题0精华0积分24金钱21 威望0 贡献0 在线时间1 小时
+串个门加好友打招呼发消息	
+沙发
+ 发表于 2013-3-9 11:22:14 |只看该作者
+顶一个，，
+[发帖际遇]：终极范特西 被钱袋砸中进医院，看病花了 2 金钱.
+使用道具 举报
+返回列表发新帖
+高级模式
+BColorImageLinkQuoteCodeSmilies
+您需要登录后才可以回帖 登录 | 立即注册  
+发表回复 回帖后跳转到最后一页
+﻿
+ 无觅相关文章插件
+关于我们|HTML5论坛|友情链接|手机版|站长统计
+Copyright @HTML5中国 All Right Reserved. Powered by Discuz! X2.
+京ICP备11006447号-7 京公网安备:110105011387 京公网安备：11010802010583号
+回顶部

@@ -1,0 +1,85 @@
+百度首页|登录注册 新闻网页贴吧知道音乐图片视频地图百科文库
+    帮助 首页 自然 文化 地理 历史 生活 社会 艺术 人物 经济 科技 体育 图片 数字博物馆 核心用户 百科商城 
+spoolsv.exe
+求助编辑百科名片  spoolsv.exespoolsv.exe 是Print Spooler的进程，管理所有本地和网络打印队列及控制所有打印工作。如果此服务被停用，本地计算机上的打印将不可用。该进程属 Windows 系统服务。 
+
+
+目录
+
+基本介绍进程信息
+描述
+木马spoolsv进程木马spoolsv进程信息:
+判别自己是否中毒
+清除方法
+杀毒后处理
+占用cpu100%问题
+spoolsv.exe 丢失
+spoolsv.exe修复方法
+展开基本介绍 进程信息 
+描述
+木马spoolsv进程 木马spoolsv进程信息: 
+判别自己是否中毒 
+清除方法 
+杀毒后处理
+占用cpu100%问题 
+spoolsv.exe 丢失 
+spoolsv.exe修复方法
+展开编辑本段基本介绍进程信息
+　　进程文件： spoolsv or spoolsv.exe 　　进程名称： Microsoft Printer Spooler Service 　　出品者： Microsoft Corp. 　　属于：Microsoft Windows 2000 and later 　　系统进程： 是 　　后台程序： 是 　　使用网络： 否 　　硬件相关： 否 　　常见错误： 未知N/A 　　内存使用： 未知N/A 　　安全等级 (0-5): 0 　　间谍软件： 否 　　Adware: 否 　　病毒： 否 　　木马: 否
+描述
+　　spoolsv.exe用于将Windows打印机任务发送给本地打印机，缓存打印数据等[1]，通常请下他会随着系统启动启动。注意spoolsv.exe也有可能是Backdoor.Ciadoor.B木马。该木马允许攻击者访问你的计算机，窃取密码和个人数据。该进程的安全级别是建议立即删除。编辑本段木马spoolsv进程木马spoolsv进程信息:
+　　描述: 　　这个垃圾软件利用将msicn\msibm.dll插入多个进程的方法对系统进行监控，在system32下创建如下的东西： 　　wmpdrm.dll 　　1116\ 　　msicn\msibm.dll 　　msicn\ube.exe 　　msicn\plugins\ 　　spoolsv\spoolsv.exe(这个还长得像微软打印服务，shit！！） 　　注册表加入如下垃圾： 　　[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run] 　　"spoolsv"="%System%\spoolsv\spoolsv.exe -printer" 　　[HKEY_CLASSES_ROOT\CLSID\\InprocServer32] 　　@="%System%\wmpdrm.dll" 　　[HKEY_CLASSES_ROOT\wmpdrm.cfsbho] 　　[HKEY_CLASSES_ROOT\wmpdrm.cfsbho.1] 　　[HKEY_CLASSES_ROOT\TypeLib\] 　　[HKEY_CLASSES_ROOT\Interface\] 　　然后每隔4秒左右对以上东西进行监控，前后互相照应，让你无从下手 　　启动项 c:/windows/system32/spoolsv/spoolsv.exe -printer 　　cfs2…… 相关文件、目录： 　　%System%\wmpdrm.dll 　　%System%\1116\ 　　%System%\msicn\msibm.dll 　　%System%\msicn\ube.exe 　　%System%\msicn\plugins\ 　　%System%\spoolsv\spoolsv.exe 　　%System%\spoolsv\spoolsv.exe，有一个启动项： 　　[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run] 　　"spoolsv"="%System%\spoolsv\spoolsv.exe -printer" 　　运行后会调用%System%\msicn\msibm.dll，创建%System%\1116\目录，备份用。 　　%System%\1116\目录是备份目录，里面是%System%\wmpdrm.dll、%System%\msicn\和%System%\spoolsv\spoolsv.exe的备份。 　　%System%\msicn\msibm.dll，会插入多个指定进程，大约每4秒钟监视恢复文件（从%System%\1116\目录）和注册表信息（启动项、BHO）： 　　[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run] 　　"spoolsv" 　　[HKEY_CLASSES_ROOT\CLSID\\InprocServer32] 　　@="%System%\wmpdrm.dll" 　　注："spoolsv"的数据不会被监视，所以修改它的数据也不会被恢复，只有删除"spoolsv"才会被恢复。 　　secp.exe是个安装程序，安装以下文件： 　　%System%\wmpdrm.dll 　　%System%\msicn\ube.exe 　　%System%\msicn\plugins\（目录里4个dll文件） 　　%System%\wmpdrm.dll是一个BHO，%System%\msicn\ube.exe像是卸载程序。 　　另外，在%System%\和%System%\msicn\目录里还有有一些从远程下载来的cpz、vxd文件，比如： 　　ava.vxd 　　guid.vxd 　　plgset.vxd 　　safep.vxd 　　%System%\wmpdrm.dll作为BHO被调用后，会尝试调用%System%\spoolsv\spoolsv.exe和%System%\msicn\msibm.dll。 　　注：如果%System%\spoolsv\spoolsv.exe没有被运行或被调用，也就不会备份还原，好像它就是用来备份的。 　　另外…… 　　在“开始菜单”>>“程序”里 可能 会有一项“NavAngel”，里面有个快捷方式NavAngel.lnk，指向：%System%\spoolsv\spoolsv.exe -ctrlfun:4,3 　　“添加/删除程序”里有一项“NavAngel”，对应命令是：%System%\spoolsv\spoolsv.exe -ctrlfun:4,2 　　还有一项“WinDirected 2.0”，对应命令是：%System%\spoolsv\spoolsv.exe -uninst 　　还可能会有mscache\目录，从名字看像是存放临时缓存文件的。 　　BHO相关注册表信息： 　　[HKEY_CLASSES_ROOT\CLSID\] 　　[HKEY_CLASSES_ROOT\wmpdrm.cfsbho] 　　[HKEY_CLASSES_ROOT\wmpdrm.cfsbho.1] 　　[HKEY_CLASSES_ROOT\TypeLib\] 　　[HKEY_CLASSES_ROOT\Interface\]
+判别自己是否中毒
+　　1、点开始－运行，输入msconfig，回车，打开实用配置程序，选择“启动”， 感染以后会在启动项里面发现运行Spoolsv.exe的启动项， 每次进入windows会有NTservice的对话框。 　　2、打开系统盘，假设C盘，看是否存在C:\WINDOWS\system32\spoolsv文件夹，里面有个spoolsv.exe文件，有“傲讯浏览器辅助工具”的字样说明，正常的spoolsv.exe打印机缓冲池文件应该在C:\WINDOWS\system32目录下。 　　3，打开任务管理器，会发现spoolsv.exe进程，而且CPU占用率很高。
+清除方法
+　　1、重新启动，开机按F8进入安全模式。 　　2、点开始－运行，输入cmd，进入dos。 　　利用rd命令删除以下目录（如果存在）（ 在dos窗口下输入：rd(空格）C:\WINDOWS\system32\spoolsv/s，回车，出现提示，输入y回车，即可删除整个目录。）： 　　C:\WINDOWS\system32\msibm 　　C:\WINDOWS\system32\spoolsv 　　C:\WINDOWS\system32\bakcfs 　　C:\WINDOWS\system32\msicn 　　  
+利用del命令删除下面的文件（如果存在）（比如在dos窗口下输入：del(空格）C:\windows\system32\spoolsv.exe，回车，即可删除被感染的spoolsv.exe，这个文件可以在杀毒结束后在别的正常的机器上复制正常的spoolsv.exe粘贴到 　　C:\windows\system32文件夹。）： 　　C:\windows\system32\spoolsv.exe 　　C:\WINDOWS\system32\wmpdrm.dll 　　3、重启按F8再次进入安全模式。 　　（1）桌面右键点击我的电脑，选择“管理”，点击“服务和应用程序”-“服务”，右键点击 　　NTservice，选择“属性”，修改启动类型为“禁用”。 　　、 　　（2）点开始，运行，输入regedit，回车打开注册表，点菜单上的编辑，选择查找，查找含有spoolsv.exe的注册表项目，删除。可以利用F3继续查找，将含有spoolsv.exe的注册表项目全部删除。 　　4、若以上操作完成后,仍然有该进程。请桌面右键点击我的电脑，选择“管理”，点击“服务和应用程序”-“服务”，右键点击print spooler，选择“属性”，先点“停止”然后修改启动类型为手动或“禁用”。随后重复以上步骤。 　　另外解决方案 直接删除C:\WINDOWS\system32\spool\PRINTERS 下的文件即可 　　我还遇到一种情况：经检查，不是以上所描述的病毒，但经常占CPU 100%，但是连续关进程几次，便不再出现，奇怪。 　　如上所述，在system32里有 spool文件夹。直接把 \PRINTERS 下的文件删除，便解决了这个问题。 　　这可能不是“病毒”问题，而是系统的故障，但出现了还是很麻烦的。
+杀毒后处理
+　　病毒清了后你的SPOOLSV.EXE文件就没有了，且在服务里你的后台打印print spooler也不能启动了，当然打印机也不能运行了，在运行里输入“services.msc”后，在“print spooler”服务中的“常规”项里的“可执行文件路径”也变得不可用，如启动会显示“错误3:找不到系统路径”的错误，这是因为你的注册表的相关项也删了，（在上面清病毒的时候） 　　解决方法： 　　1:在安装光盘里I386目录下把SPOOLSV.EX_文件复制到SYSTEM32目录下改名为spoolsv.exe,当然也可以在别人的系统时把这个文件拷过来，还可以用NT/XP的文件保护功能，即在CMD里键入SFC/SCANNOW全面修复，反正你把这个文件恢复就可以了。 　　2:修改注册表即可：进入“HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Spooler”目录下，新建一个可扩充字符串值，取名：“ImagePath”，其值为：“C:\WINDOWS\system32\spoolsv.exe”（不要引号）再进入控制面板中启动打印服务即可。编辑本段占用cpu100%问题　　前几天，太太的笔记本遇到了spoolsv.exe占cpu 99%的的问题，要我帮她重新安装操作系统。我是懒得重装的，所以在网上搜索了一下：大部分关于这个问题的文章都是将相关打印后台服务给禁用解决的，可是这样就不能打印了，岂不有点因噎废食？ 后来从国外网站上找到了这篇文章：tim's journal: spoolsv.exe hogging 99% of cpu - the fix 　　解决方法其实很简单，假设你已经使用了杀毒软件排除了病毒和已经使用防间谍软件排除了恶意软件的影响： 　　只要清空C:\WINDOWS\system32\spool\PRINTERS 目录下所有的文件即可。 　　而原因在Microsoft网站上也有文档说明：Windows 后台打印程序没有删除打印作业后台文件导致的打印程序可能会反复地尝试对该打印作业进行后台处理 　　解决方案： 　　为避免发生此问题，请不要在打印后台文件位于 %Systemroot%\System32\Spool\Printers 文件夹中时更改它的属性。 　　要解决此问题，请删除只读属性，然后将该后台文件从 %Systemroot%\System32\Spool\Printers 文件夹中删除。 　　要删除只读属性，请右键单击 Windows 资源管理器或我的电脑中的后台文件，单击属性，单击清除只读复选框，然后单击确定。 　　有关如何在 Windows 2000 中删除文件的更多信息，请单击开始，单击帮助，单击索引选项卡，键入删除，然后双击删除文件主题。 　　微软的解释 　　Windows 2000 后台打印程序没有删除打印作业后台文件 　　症状 　　您向打印机发送打印作业时，后台打印程序在打印作业完成后可能没有从 %Systemroot%\System32\Spool\Printers 文件夹删除打印后台文件，因而后台打印程序可能会反复地尝试对该打印作业进行后台处理。 　　该打印后台文件的存在并不会阻止其他打印作业的后台处理。 　　原因 　　如果打印作业的打印后台文件具有只读属性，就会发生这种问题。 　　解决方案 　　为避免发生此问题，请不要在打印后台文件位于 %Systemroot%\System32\Spool\Printers 文件夹中时更改它的属性。 　　要解决此问题，请删除只读属性，然后将该后台文件从 %Systemroot%\System32\Spool\Printers 文件夹中删除。 　　要删除只读属性，请右键单击 Windows 资源管理器或我的电脑中的后台文件，单击属性，单击清除只读复选框，然后单击确定。 　　有关如何在 Windows 2000 中删除文件的更多信息，请单击开始，单击帮助，单击索引选项卡，键入删除，然后双击删除文件主题。 　　状态 　　这种现象是设计所导致的。 　　更多信息 　　默认情况下，打印后台文件只有存档属性。打印后台文件属性只会在以下情况下发生更改：当文件位于 %Systemroot%\System32\Spool\Printers 文件夹中时，程序更改了它的属性；或者，用户或管理员特意更改了文件属性。 　　回到顶端 　　[2]​1:在安装光盘里I386目录下把SPOOLSV.EX_文件复制到SYSTEM32目录下改名为spoolsv.exe,当然也可以在别人的系统时把这个文件拷过来, 可以NT/XP的文件保护功能,即在CMD里键入SFC/SCANNOW全面修复,反正 你把这个文件恢复就可以了。 　　2:修改注册表,在新建一个可扩充字符串值取名为“ImagePath”然后在多字符串值再修改为(%systemRoot%\system32\spoolsv.exe)或者=“c:\windows\system32\spoolsv.exe”就可以了,再在电脑服务里面把Print Sppooler启动一下服务就可以了 　　按照我给 说的方法, 就可以打印 　　------------------------------------------------------------------ 　　如果只想解决CPU100%的问题.那删了不错.是可以解决.但是要真正解决实质的问题,如下操作: 　　在运行里打%Systemroot%\System32\Spool\Printers 　　打开文件后将其Printers下的文件全部删除.便可解决!编辑本段spoolsv.exe 丢失　　这是一个盗号木马导致，其感染相关文件并加载起来，一旦杀毒软件删除被感染的文件，就会导致相关组件缺失，导致运行网游时弹出系统文件丢失提示或者打印机不能使用  spoolsv.exe 丢失
+编辑本段spoolsv.exe修复方法　　电脑系统文件经常会受到病毒的侵扰，导致系统文件丢失、损坏。从网上下载系统文件进行替换，可能会因为系统文件版本与操作系统不相符造成不兼容的情况；建议使用专业的系统文件修复工具进行修复。 　　1、下载可牛杀毒系统急救箱。 　　2、点击“开始急救”，进行一键式修复，智能匹配与操作系统相符的系统文件。 　　3、使用可牛免费杀毒对电脑进行全面扫描，清除电脑中存在的潜在危险。 　　也可以使用金山网盾进行修复： 　　第一步：下载包含浏览器修复功能的金山网盾 　　第二步 安装金山网盾3.5,安装完以后点击主界面右侧的【修复浏览器】的按钮 （或者点击【浏览器修复】选项卡－点击【立即扫描】） 　　第三步 发现威胁，点击【立即处理】按钮，修复完成以后，根据提示重启系统或者键盘按 【F5】刷新桌面。  
+
+参考资料 
+1．  关于spoolsv.exe是什么进程的功能及病毒识别介绍  ．穆童博客 [引用日期2012-12-14] ．
+2．  百度知道-什么清除SPOOLSV.EXE  ．
+扩展阅读： 
+1 
+spoolsv.exe 官方原版：http://www.862686.com/thread-40738-1-1.html 
+2 
+spoolsv.exe出错：http://wenku.baidu.com/search?word=spoolsv.exe%B3%F6%B4%ED&lm=0&od=0 
+开放分类： 
+技术 电脑 杀毒 进程 程序 程序 任务管理器 
+
+
+百度百科中的词条正文与判断内容均由用户提供，不代表百度百科立场。如果您需要解决具体问题（如法律、医学等领域），建议您咨询相关领域专业人士。
+本词条对我有帮助添加到搜藏 分享到:更多
+合作编辑者 
+mtoou ， 养的就是它 ， xcyihan ， jlf25 ， w_ou ， _____一叶障目 ， 词条散人 ， wo笑笑2011 ， 4809281 ， 百科ROBOT ， 更多 
+如果您认为本词条还需进一步完善，百科欢迎您也来参与 编辑词条 在开始编辑前，您还可以先学习如何编辑词条
+如想投诉，请到百度百科投诉中心；如想提出意见、建议，请到百度百科吧。
+
+词条统计
+浏览次数：约 534815次
+编辑次数：35次 历史版本
+最近更新：2012-12-14
+创建者：5433333
+更多贡献光荣榜
+辛勤贡献者： 
+ chenqihubei    版本 
+ 51552448    版本 
+
+最新动态
+百科医学专家招募：
+
+百科消息：
+百科android客户端升级1.1版
+文库专题：过日子要有技术含量
+百科mini上线：聚合精彩主题APP
+2012年度十大科技谣言
+“速生鸡”，你还敢吃吗？
+百科新增功能维护词条权威
+
+© 2013 Baidu 使用百度前必读 | 百科协议 | 百度百科合作平台
+spoolsv.exe基本介绍进程信息描述木马spoolsv进程木马spoolsv进程信息:判别自己是否中毒清除方法杀毒后处理占用cpu100%问题spoolsv.exe 丢失spoolsv.exe修复方法
+
+  参考资料 
+

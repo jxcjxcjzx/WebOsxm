@@ -1,0 +1,125 @@
+
+　首页　Linux通用技术 - Linux发行版技术 - 企业应用 - 实验室	 　Linux论坛 -  网站导航
+ 
+
+
+您的位置：	首页 >> 网站导航 >> Linux通用技术 >> Linux技术与应用 >> 查看内容 －Linux学习推荐阅读 －最新Linux教程发布下载 －发新话题 (游客可发贴)
+
+
+关于Linux GUI,GNOME,的一点阅读心得
+ginceo发布于 2008-3-27 | 649次阅读   字号: 大 中 小  (网友评论 0 条) 我要评论
+
+ 
+以下表述非常不准确，仅对于自我理解加强一点记忆。
+
+1. D-Bus, DCOP, bonobo
+
+bonobo, 是GNOME中采用CORBA标准的一个组件模型。是受微软OLE的启发而开发出来的。
+
+DCOP是用于KDE3.X的一套IPC机制。而在新的GNOME以及KDE4中都采用D-Bus作为新的IPC机制。D-Bus是建立于HAL之上的一个系统，采用消息机制实现IPC。使用这些机制的好处是，可以很灵活地在不同进程间建立通信，使得进程执行更自动化更智能，比如我们可以通过DCOP的命令行接口来控制KDE的桌面，如改变背景，关闭一个采用DCOP的程序等。
+
+2.关于gtk+中的Widget,style,theme engine
+
+widget，英文意思是小玩意，在UI中表示窗口的部件，如按钮，复选框等。
+
+gtk+即是一套widget的组合，使用gtk+可以创建应用程序的UI。
+
+style是指widget显示的方式，比如色彩、字体、背景图像等。
+
+theme engine是一组共享的object，提供用以绘制app的代码；另外还包含配置文件，资源文件（位图等）。而一个theme则是一套配置文件的组合，指定了这个theme中的每个widget采用什么engine和style，另外可能还有一些自带的资源文件。
+
+3.GTK+是图形库吗？
+严格来说不是。GTK+提供了一套API用于绘制应用程序的GUI，而它的底层是Cairo。Cairo才是严格意义上的图形库，它提供了优质的矢量图绘制API。
+
+4.GNOME的组成部件
+
+架构如下：
+Glade,etc.
+GTK+
+GDK,Pango
+Cairo,GLib
+
+其中
+GDK是GTK+与最底层X Window之间的一个中间层，可以直接使用它来绘制UI。（类似Java中Swing与awt的关系）
+
+GLib（区别GLibc）提供了最基础的数据类型、宏等代码，以提供给上层程序使用。Pango是一套用以渲染、绘制字体的库。而Glade是更高层次的对GTK+的封装，通过编写XML配置文件可以容易地建立应用程序的UI，把编写UI与程序底层功能的代码分离了。有点类似MFC与Win32 API的关系。
+
+5.Nautilus
+是GNOME的标准文件管理器，提供给用户一个标准的界面，用以浏览文件系统，启动应用程序等。
+
+注意：GNOME中的"桌面"实际也是一个Nautilus的窗口。
+
+6.关于桌面"程序"
+KDE与GNOME均遵循freedesktop的desktop entry标准，采用一个配置文件来运行程序
+
+如：
+(xxx.desktop的内容如下)
+[Desktop Entry]
+Name=xxx
+exec=yyy
+comment=zzz
+...
+
+即是一个有效的desktop entry项，GNOME和KDE都会自动读取此配置文件信息同时执行里面描述的程序。
+
+ 
+【已有0位网友发表了看法】 【打印】 【关闭】
+
+ 
+
+ 我要评论
+发表评论，与各位同人交流。回复请点击下方的我要评论按钮(游客可回复)，要发表贴子请点击 发新话题 (游客可发贴)
+
+
+ 
+ 热点主题
+·	Fedora Core6下安装打印机
+·	linux局域网Dr.COM宽带认证
+·	wps支持linux这几点就比wo
+·	Linux下VMware虚拟机不能启
+·	linux下安装HP打印机驱动的
+·	Linux启动时卡在Starting
+·	linux下使用proe wildfire
+·	求助 双系统 xp下将未分区
+·	在Linux上安装Firefox 3 B
+·	mplayer解码包哪儿有下载啊
+ 最新主题
+·	二周学习LINUX总结
+·	现在证明了腾讯要出Linux下
+·	Linux启动时卡在Starting
+·	Linux下执行程序时发生错误
+·	linux下安装matlab
+·	求救。 请高手指点一下。
+·	有谁知道hald_addon_stora
+·	能够同时感染Linux和Widow
+·	解决pidgin在linux下无法登
+·	修改Linux系统时间
+ 关注热点
+
+ Linux紧张辩论
+和全球40万Linux爱好者热讨当今最热门的开源话题,寻找同城Linux人,发表你的见解...
+
+· 最新主题与激烈辩论主题，5分钟前由系统自动更新！
+· 24小时热点Top20与一周热点Top20主题，15分钟前由系统自动更新！
+下载1000部免费Linux教程,参与Linux社区文档的建设...
+
+
+
+ 各省Linux人：
+北京　上海　天津　重庆　广东
+湖北　四川　安徽　湖南　河北
+江西　河南　陕西　山东　福建
+江苏　浙江　山西　吉林　辽宁
+广西　宁夏　甘肃　贵州　云南
+新疆　西藏　青海　台湾　海南
+香港　澳门　内蒙古　黑龙江
+
+Linux精华文档　Linux同城人(交友)
+
+Linux爱好者在－全国高校
+
+热门栏目推荐：Linux业界新闻
+
+　
+合作　|　关于我们　|　联系我们　|　导航　|　会员注册
+©2013 红联 Powered by SupSite

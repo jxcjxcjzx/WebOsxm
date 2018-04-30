@@ -1,0 +1,117 @@
+
+Arduino 与 Windows 应用程序之间的数据传输 
+[复制链接] 
+
+
+
+
+
+
+
+
+
+
+
+SS15
+ 
+
+
+
+
+
+.
+
+
+
+ 
+
+
+
+
+
+
+
+20
+主题 
+
+4
+好友 
+
+789
+积分 
+
+高级会员
+ 
+
+
+
+
+
+发消息
+ . 
+
+
+电梯直达 
+楼主 
+
+
+
+发表于 2011-12-2 01:01:18 |只看该作者 |倒序浏览 
+
+
+
+
+
+
+
+
+可以用串口进行通讯...（废话，谁不知道）
+ 
+比方俺有一对经纬度数据：103.79835 24.35858 需要从Arduino 发到 Windows 程序，肿么办？
+ 
+简单，把这一个字符串通过Arduino的串口发到PC的串口不久结了？顶多中间加个分隔符嘛，像这样：103.79835/24.35858 或者 103.79835@24.35858 等等等等
+ 
+这个方法简单，但是捏，不大好。第一，这么发过去，两个数据至少就要18个字节了（一个字符一字节），如果Arduino和Windows程序之间通过GPRS之类按照流量计费的通讯方式连接的话，这可就是白花花的money那。其二，发送端要编码，接收端要解析字符串，费力，累。其三，数据保密性差
+ 
+有木有更好的办法？有，这么着
+ 
+Arduino 端：
+ 
+        byte szArduino[4];
+         long gLon, *pDat;
+ 
+        gLon = 10379835;        // 103.79835 为什麽变成了 10379835 呢？先乘100000再除100000不就完了
+         pDat = &g_dLon;
+ 
+        memset(szArduino, 0, 4);
+         memcpy(szArduino, pDat, 4);
+ 
+
+
+Windows 程序端：
+ 
+        BYTE szWin[4];
+         int  nData, *pDat;
+ 
+        memset(szWin, 0x00, 4);
+         pDat = &nData;
+ 
+        // 伪代码:
+         // 把 arduino 端 szArduino[4] 的内容依次赋给 szWin[4]
+         // 这两个数组实质上都是一段4字节的内存空间
+         
+        memcpy(pDat, szWin, 8);
+         ASSERT(nData == 10379835);                // 确认Window端接受的数据就是Arduino端发送的数据
+ 
+
+一个很重要的地方，Arduino端变量类型是long，而Windows端是int，为什么？
+ 因为arduino系统当中long类型变量占用空间为4 byte，在Windows里面，int类型变量也是4 byte，回答完毕
+ 
+那么 arduino端和Windows端都采用double 类型变量行不行？俺不知道...因为这个要研究一下double类型数据在arduino及Windows当中是如何表示的...表忘了，arduino当中的double只有4 byte，而Windows 的 double 有 8 byte.
+ 
+
+
+事实上，matlab 通过UDP与应用程序进行通讯就是这么整滴...
+ 
+
+

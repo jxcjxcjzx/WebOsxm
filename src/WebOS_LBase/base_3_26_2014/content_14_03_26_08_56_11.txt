@@ -1,0 +1,117 @@
+Android GUI 的更新过程
+作者: 李先静 xianjimli@gmail.com
+日期: 2010-01-14
+本文介绍了 Android GUI 的更新过程。文章转自http://www.limodev.cn/blog
+组件图
+
+相关组件如下图所示:
+
+
+
+ViewRoot
+在private void draw(boolean fullRedrawNeeded)中，会调用lockCanvas，从而获取一个Canvas对象，然后调用递归调用子窗口(View)的draw函数去绘制自己，最后调用unlockCanvasAndPost让Surface把自己更新到屏幕上。
+
+
+canvas = surface.lockCanvas(dirty);
+mView.draw(canvas);
+surface.unlockCanvasAndPost(canvas);
+
+android/view/Surface
+它主要对一些native函数的包装。
+
+
+    private native Canvas lockCanvasNative(Rect dirty);
+    public native   void unlockCanvasAndPost(Canvas canvas);
+
+android_view_Surface.cpp
+这是native函数的实现。
+
+Surface_lockCanvas它先锁住Surface，从而获取Surface相关的信息，如果格式、宽度、高度和像素缓冲区。然后创建一个bitmap，这个bitmap和View共享一个像素缓冲区，这样View就能直接把自己绘制到Surface上了。
+
+
+status_t err = surface->lock(&info, &dirtyRegion);
+bitmap.setPixels(info.bits);
+nativeCanvas->setBitmapDevice(bitmap);
+
+Surface_unlockCanvasAndPost它断开SkCanvas与Surface之间的关系，然后调用Surface的unlockAndPost。
+
+
+nativeCanvas->setBitmapDevice(SkBitmap());
+status_t err = surface->unlockAndPost();
+
+surfaceflinger_client/Surface.cpp
+Surface::lock调用dequeueBuffer获取一个可用的Buffer，dequeueBuffer会调用SharedBufferClient::dequeue等到backbuffer可用，然后锁住这个Buffer并填充相关信息。
+
+
+status_t err = dequeueBuffer(&backBuffer);
+err = lockBuffer(backBuffer.get());
+
+Surface::unlockAndPost先unlock Buffer，然后调queueBuffer显示Buffer。
+
+
+status_t err = mLockedBuffer->unlock();
+err = queueBuffer(mLockedBuffer.get());
+
+Surface::queueBuffer是比较有意思的，它设置更新的区域，然后通知服务端(SurfaceFlinger)。
+
+
+mSharedBufferClient->setDirtyRegion(bufIdx, mDirtyRegion);
+err = mSharedBufferClient->queue(bufIdx);
+client->signalServer();
+
+通过binder发送请求给服务：
+
+
+    virtual void signal() const
+    {
+       Parcel data, reply;
+       data.writeInterfaceToken(ISurfaceComposer::getInterfaceDescriptor());
+       remote()->transact(BnSurfaceComposer::SIGNAL, data, &reply, IBinder::FLAG_ONEWAY);
+    }
+
+SurfaceFlinger
+
+BnSurfaceComposer::onTransact
+       case SIGNAL: {
+           CHECK_INTERFACE(ISurfaceComposer, data, reply);
+           signal();
+       } break;
+
+这是SurfaceFlinger中处理SIGNAL的代码，它调用SurfaceFlinger::signal，再调用 SurfaceFlinger::signalEvent，最后调用MessageQueue::invalidate唤醒是 SurfaceFlinger的主循环。
+
+在主循环中waitForEvent返回，再handleRepaint去合成个Layer/Surface。
+
+
+bool SurfaceFlinger::threadLoop()
+{
+    waitForEvent();
+       handleRepaint();
+       postFramebuffer();
+}
+
+SurfaceFlinger::handleRepaint会调用composeSurfaces把需要绘制各个Surface合并起来，绘制到FrameBuffer的BackBuffer上。
+
+
+    for (size_t i=0 ; i<count ; ++i) {
+       const sp<LayerBase>& layer = layers[i];
+       const Region& visibleRegion(layer->visibleRegionScreen);
+       if (!visibleRegion.isEmpty())  {
+           /* broncho cy add */
+#ifdef USEOVERLAY
+           mToppest[1] = mToppest[0];
+           mToppest[0] = layer->getIdentity();
+#endif
+           /* broncho end */
+           const Region clip(dirty.intersect(visibleRegion));
+           if (!clip.isEmpty()) {
+               layer->draw(clip);
+           }
+       }
+    }
+
+SurfaceFlinger::postFramebuffer最后把FrameBuffer的BackBuffer显示到屏幕上：
+
+
+hw.flip(mInvalidRegion); -->eglSwapBuffers(dpy, surface);
+
+FrameBuffer具体的显示过程，下次再写吧。

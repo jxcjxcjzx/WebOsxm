@@ -1,0 +1,316 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+生命的意义在于战斗!
+
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年7月微软MVP申请开始啦！        CSDN博客移动开发排行榜      写“书评”赢下载分！ 
+【有奖提问】CSDN论坛第1期专家问答开始        来极客头条，赢下载积分        
+
+
+
+adpcm 转换wave 
+.
+分类： 应用misc2011-08-01 13:04412人阅读评论(0)收藏举报
+ 
+tablestructoutputfunctionavi平台
+
+
+项目中使用了ffmpeg做留影留言，由于ffmpeg一直到该平台式使用了adpcm压缩声音，所以录制的avi文件播放出来时需要将adpcm编码的声音解码出来，为此，移植了adpcm的解码器。
+ 
+实现如下：
+ 
+struct adpcm_state
+ {
+ short valprev; /* Previous output value */
+ char index; /* Index into stepsize table */
+ };
+ 
+/* Intel ADPCM step variation table */
+ static int indexTable[16] = {
+     -1, -1, -1, -1, 2, 4, 6, 8,
+     -1, -1, -1, -1, 2, 4, 6, 8,
+ };
+ 
+static int stepsizeTable[89] = {
+     7, 8, 9, 10, 11, 12, 13, 14, 16, 17,
+     19, 21, 23, 25, 28, 31, 34, 37, 41, 45,
+     50, 55, 60, 66, 73, 80, 88, 97, 107, 118,
+     130, 143, 157, 173, 190, 209, 230, 253, 279, 307,
+     337, 371, 408, 449, 494, 544, 598, 658, 724, 796,
+     876, 963, 1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066,
+     2272, 2499, 2749, 3024, 3327, 3660, 4026, 4428, 4871, 5358,
+     5894, 6484, 7132, 7845, 8630, 9493, 10442, 11487, 12635, 13899,
+     15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767
+ };
+ 
+ 
+ 
+/********************************************************************* 
+ 
+Function：使用adpcm解码将四位的压缩数据还原成16位pcm
+ 
+Author：Ericjiang
+ 
+Input：inbuff：要解码的数据；outbuff：已解码数据，len_of_in：输入的编码数据长度；state：上一次编码使用的编码值和索引（开始都赋值为0）
+ 
+Ouput：
+ 
+*********************************************************************/
+ 
+void adpcm_decoder(char *inbuff,char *outbuff,int len_of_in,struct adpcm_state * state )
+ {
+  int  i=0,j=0;
+  char tmp_data;
+  struct adpcm_state * tmp_state =state;
+  signed long diff; /* Difference between sample and predicted sample */
+  long step; /* Quantizer step size */
+  signed long predsample; /* Output of ADPCM predictor */
+  signed long diffq; /* Dequantized predicted difference */
+  int index; /* Index into step size table */
+  int indexa,indexb;
+ 
+ int Samp;
+  unsigned char SampH, SampL;
+  unsigned char inCode; 
+  
+  /* Restore previous values of predicted sample and quantizer step
+  size index
+  */
+  predsample = state->valprev;
+  index = state->index;
+  
+  for(i=0;i<len_of_in*2;i++)
+   {
+    tmp_data=inbuff[i/2];  
+    if(i%2)
+     inCode=(tmp_data& 0xf0) >> 4;
+    else
+     inCode=tmp_data & 0x0f;
+    {
+     
+     step = stepsizeTable[index];
+     /* Inverse quantize the ADPCM code into a predicted difference
+     using the quantizer step size
+     */
+     
+     diffq = step >> 3;
+     if( inCode & 4 )
+     diffq += step;
+     if( inCode & 2 )
+     diffq += step >> 1;
+     if( inCode & 1 )
+     diffq += step >> 2;
+     /* Fixed predictor computes new predicted sample by adding the
+     old predicted sample to predicted difference
+     */
+     if( inCode & 8 )
+     predsample -= diffq;
+     else
+     predsample += diffq;
+     /* Check for overflow of the new predicted sample
+     */
+     if( predsample > 32767 )
+     predsample = 32767;
+     else if( predsample < -32768 )
+     predsample = -32768;
+     /* Find new quantizer stepsize index by adding the old index
+     to a table lookup using the ADPCM code
+     */
+     index += indexTable[inCode];
+     /* Check for overflow of the new quantizer step size index
+     */
+     if( index < 0 )
+     index = 0;
+     if( index > 88 )
+     index = 88;
+     /* Return the new ADPCM code */
+     Samp=predsample;
+     
+    
+    }
+    if (Samp >= 0)
+     {
+     SampH=Samp / 256;
+     SampL = Samp - 256 * SampH;
+     }
+    else
+     {
+     Samp= 32768+Samp;
+     SampH = Samp / 256;
+     SampL = Samp - 256 * SampH;
+     SampH += 0x80;
+     }
+    outbuff[j++]=SampL;
+    outbuff[j++]=SampH;   
+   }
+  
+  /* Save the predicted sample and quantizer step size index for
+  next iteration
+  */
+  state->valprev  = predsample;
+  state->index  = index;
+ }
+ 
+ 
+ 
+分享到： 
+
+上一篇：iozone 移植
+下一篇：GUN C 的几个小技巧
+ . 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+wenjie345304221
+ 
+
+
+
+
+访问：9498次
+积分：312分
+排名：千里之外
+.原创：19篇
+转载：26篇
+译文：0篇
+评论：10条
+. 
+文章搜索
+
+. 
+文章分类驱动(8)
+misc(23)
+内核(4)
+应用(9)
+硬件(2)
+ 
+文章存档
+2013年04月(1).
+2013年03月(2).
+2013年01月(4).
+2012年11月(5).
+2012年09月(3).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+阅读排行如何学习嵌入式(2084)
+自动下载安装控件，浏览监控视频控件开发(717)
+.LDS 文件详解(567)
+视频变成黑白的原因(557)
+adpcm 转换wave(412)
+linux proc 调节系统性能(374)
+pppoe内核编译及服务器架设(238)
+iozone 移植(238)
+C++使用C代码(206)
+rtp负载与时间戳(182)
+ 
+评论排行如何学习嵌入式(6)
+编译oRTP库(2)
+live555 移植(1)
+自动下载安装控件，浏览监控视频控件开发(1)
+usb摄像头方案厂商(0)
+jffs2的制作(0)
+LDD3 DMA驱动(0)
+LDD3 工作队列(0)
+LDD3 tasklet 使用(0)
+LDD3 Timer定时器使用(0)
+ 
+推荐文章 
+最新评论 编译oRTP库
+kangear: 你好，这个rtpsend有没有更深的使用方法，用vlc进行播放，有没有办法呢？我用vlc播放时候会出... 
+
+编译oRTP库
+kangear: HISI都没有听过。利害。 
+
+live555 移植
+xumm_td: 非常实用。很好，谢谢！ 
+
+如何学习嵌入式
+Musketeer: @wenjie345304221: 谢谢指点！ 
+
+如何学习嵌入式
+wenjie345304221: 很多公司确实有学历的要求，但是如果别人邀请你面试了，说明已经排除了学历这个门槛。对于新人，我觉得最大... 
+
+如何学习嵌入式
+Musketeer: 嵌入式新人，在某培训机构培训完了，现在到沪找工作，但是都20天左右了，面试的没几个，还几乎是培训结构... 
+
+如何学习嵌入式
+kjl11070820: 非常感谢！！我打算寒假开始入手了，到时再向您请教请教！！呵呵！！ 
+
+如何学习嵌入式
+wenjie345304221: @kjl11070820:我不是老师，只是工作了几年。每每碰到愿意问问题的学生，总是特别高兴。学习首... 
+
+如何学习嵌入式
+kjl11070820: 老师您好，我是一名通信专业的大二学生，对嵌入式很感兴趣，目前学了一点单片机，不算非常精深，基础还是有... 
+
+自动下载安装控件，浏览监控视频控件开发
+local_752: 很详细，不错！ 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持Copyright © 1999-2012, CSDN.NET, All Rights Reserved  

@@ -1,0 +1,244 @@
+
+
+
+
+无为小丑
+
+求知若饥，虚心若愚
+
+
+ 
+
+
+•目录视图
+•摘要视图
+•订阅
+ 
+
+
+
+《这些年，我们读过的技术经典图书》主题有奖征文       专访李铁军：从医生到金山首席安全专家的转变      独一无二的职位：开源社区经理        CSDN博客第三期云计算最佳博主评选
+ 
+
+
+在LUA库中添加自己的函数库总结 
+
+2009-08-14 17:141091人阅读评论(35)收藏举报
+ 
+luanullstringincludeapimath
+
+ 
+1.首先下载基于VS的LUA源码，地址为http://luabinaries.luaforge.net/download.html
+ 
+2.在LIB工程中添加mylib.c文件
+ 
+3.在文件当中添加如下的代码
+ 
+#include "lua.h"
+#include "lauxlib.h"
+#include "lualib.h"
+static int myfun(lua_State* L)
+{
+	printf("myfun is succeed!");
+	return 0;
+}
+static const struct luaL_Reg mylib[] = 
+{
+	{"myfun",myfun},
+	{NULL,NULL}
+};
+LUALIB_API int luaopen_mylib(lua_State* L)
+{
+	luaL_register(L,"mylib",mylib);
+}
+ 
+4。在lualib.h中增加如下定义
+ 
+#define LUA_MYLIBNAME	"mylib"
+LUALIB_API int (luaopen_mylib) (lua_State *L); 
+
+5.在linit.c，中将
+ 
+ 
+ 
+static const luaL_Reg lualibs[] = {
+  {"", luaopen_base},
+  {LUA_LOADLIBNAME, luaopen_package},
+  {LUA_TABLIBNAME, luaopen_table},
+  {LUA_IOLIBNAME, luaopen_io},
+  {LUA_OSLIBNAME, luaopen_os},
+  {LUA_STRLIBNAME, luaopen_string},
+  {LUA_MATHLIBNAME, luaopen_math},
+  {LUA_DBLIBNAME, luaopen_debug},
+  {LUA_MYLIBNAME,luaopen_mylib},
+  {NULL, NULL}
+};
+ 
+最后增加一行，如上图所示
+ 
+6.更新include目录的lualib.h文件
+ 
+7.测试如下
+ 
+#include "stdafx.h"
+extern "C" {
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
+}
+int main()
+{
+	lua_State *L = luaL_newstate();
+	lua_cpcall(L, luaopen_base, 0);
+	lua_cpcall(L, luaopen_io, 0);
+	lua_cpcall(L, luaopen_string, 0);
+	lua_cpcall(L,luaopen_mylib,0);
+	const char *buf = "mylib.myfun()";//注意调用规则
+	//luaL_loadstring(L, buf);
+	int s = luaL_loadstring(L, buf);
+	if ( s==0 )
+	{
+		s = lua_pcall(L, 0, LUA_MULTRET, 0);
+	}
+	lua_close(L);
+	getchar();
+	return 0;
+}
+
+ 
+ok
+ 
+
+•上一篇：如在梦里，关于c++2009新标准
+•下一篇：LUA通过C语言运行时的错误处理机制分析
+ 
+
+
+查看评论
+ 
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+个人资料 
+
+dch4890164 
+
+
+
+
+◦访问：51370次
+◦积分：1210分
+◦排名：第9019名
+ ◦原创：47篇
+◦转载：20篇
+◦译文：2篇
+◦评论：127条
+ 
+
+文章搜索
+
+ 
+文章分类 • 状态机(9) 
+• 古文赏析(2) 
+
+文章存档 
+•2012年12月(1)
+•2012年11月(1)
+•2012年09月(1)
+•2012年07月(1)
+•2012年01月(3)
+•2011年10月(1)
+•2011年09月(1)
+•2011年08月(2)
+•2011年07月(3)
+•2011年05月(1)
+•2011年03月(2)
+•2011年02月(1)
+•2011年01月(1)
+•2010年12月(2)
+•2010年11月(1)
+•2010年10月(1)
+•2010年06月(2)
+•2010年04月(3)
+•2010年03月(8)
+•2010年02月(2)
+•2010年01月(4)
+•2009年12月(4)
+•2009年11月(2)
+•2009年09月(7)
+•2009年08月(3)
+•2009年06月(1)
+•2009年05月(2)
+•2009年03月(1)
+•2008年12月(1)
+•2008年10月(1)
+•2008年09月(1)
+•2008年08月(1)
+•2008年03月(1)
+•2007年06月(2)
+ 
+阅读排行 • 技术瓶颈突破感言(4628) 
+• 基于NOKIA Qt SDK开发流程总结(4387) 
+• Qt 和MFC对比及Qt跨平台优势(3396) 
+• 看编译原理（虎书）的一点总结(3060) 
+• wince下获取mac地址的简单方法！(2125) 
+• LUA通过C语言运行时的错误处理机制分析(1718) 
+• 实时计算——从技术变革到商业模式变革(1697) 
+• 传统工业提升到智能工业的关键------物联网在工业领域中的应用(1413) 
+• 什么才是状态机？什么又是状态？(1303) 
+• 曾国藩家书-致诸弟.戒傲戒娇(1301) 
+
+评论排行 • 技术瓶颈突破感言(49) 
+• 在LUA库中添加自己的函数库总结(35) 
+• 基于NOKIA Qt SDK开发流程总结(14) 
+• Qt 和MFC对比及Qt跨平台优势(5) 
+• 状态机我怎样才能把你说明白！(4) 
+• 做一个运动控制软件开发人员需要具备的条件！(3) 
+• wince下获取mac地址的简单方法！(3) 
+• 状态机的应用：几十ms在百万数据量中搜索(2) 
+• 100us我自己都不相信的劳动成果(2) 
+• 看编译原理（虎书）的一点总结(2) 
+
+推荐文章 
+最新评论 •在LUA库中添加自己的函数库总结
+zfjdiamond: 哥们，有点问题想问你，能留个邮箱或qq吗？ 
+
+•在LUA库中添加自己的函数库总结
+zfjdiamond: @qdujunjie:就是重新编译！ 
+
+•dxflib库的编译及使用
+jnu1214: 好像用不了那个库啊，可以帮忙解答一下吗？谢谢啦 
+
+•wince下获取mac地址的简单方法！
+mhtlee: 请问// Link with ws2_32.lib and iphlpapi.lib 是什么意思，我... 
+
+•推荐几个vxworks国外的比较好的两个论坛!
+ldh6512: 进不去呀 网页无法打开 
+
+•做一个运动控制软件开发人员需要具备的条件！
+dch4890164: @zhongziming:是在上海嘛？！那倒可以认识一下呢 
+
+•做一个运动控制软件开发人员需要具备的条件！
+zhongziming: 呵呵，哥们，我入行快2年了,估计就要搞这行了，感觉真的积累很重要！ 
+
+•100us我自己都不相信的劳动成果
+dch4890164: @curious_cat:谢谢你的指点，这是09年我写的，没想到还真会有人看。内部触发周期和实时处理... 
+
+•100us我自己都不相信的劳动成果
+curious_cat: 我的天！老外说的RTOS的100uS 概念绝对不是你理解的在100uS 时间内运行多少计算。在实时控... 
+
+•wince下获取mac地址的简单方法！
+qingcheng116: 在有的机器上获取不到，SendARP 返回OK，但ulLen为0 
+
+
+
+

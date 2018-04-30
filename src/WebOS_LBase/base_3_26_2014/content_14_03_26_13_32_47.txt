@@ -1,0 +1,68 @@
+Android系统源代码下载
+
+一、概述
+
+众所周知，Android移动操作系统是Google花费了很大的财力、物力及人力的前提下，推广到世界各个角落，以开放源代码的方式（当然也不是完全开放所有），使其在世界范围内迅速漫延开来，到目前虽说只有三四年的时间 ，火热程度，也不用我细说了，看看业界新闻就明白了。这里我们主要讨论Android系统源代码的下载，这里我们先了解两个工具：
+
+1、Git
+
+Git是面向Linux内核管理的一个工具，它是一种分布式的版本控制系统，即每一个工作目录下都是一个完整的仓库，因此也支持离线工作， 在本地提交后，便会稍后更新到服务器上。它这种结构比集中式版本控制系统（如常见的SVN、CVS等只有一个完整仓库）更加健壮。
+
+2、repo
+
+其实repo只是用Python编写的一个脚本，它是为了更好、更方便地管理Android操作系统下多个组成部分，如Kernel、Dalivk、Bionic、prebuild、build等多个项目。repo的目的就是为了统一管理这些项目，简化Git的使用过程。
+
+3、curl
+
+curl是一个利用URL语法在命令行模式下的文件传输工具。这里我们用它来获取repo脚本。
+
+二、源代码下载步骤
+
+   1、环境介绍：
+
+首先介绍一下我的环境：Windows7下通过Vmare 7.1虚拟出Ubuntu10.4.2 系统 （当然将Ubuntu安装到硬盘上也一样，只是我这Linux系统不方便上网）
+
+2、操作步骤：
+
+1）、安装Git工具
+
+命令：sudo apt-get install git
+
+当然也可以去http://git-scm.com上下载最新版本的源代码，在本地编译安装，这里不详述了。
+
+2）、安装curl:
+
+命令：sudo apt-get install curl
+
+2)、获取repo脚本并赋执行权限：
+
+说明一下，我打算将此脚本放到~/bin目录下面，并将此目录加入到环境变量PATH里，以方便运行repo
+
+命令：mkdir ~/bin
+
+            cd ~/bin
+
+curl http://android.git.kernel.org/repo>~/bin/repo
+
+chmod 755 repo
+
+若已经将~/bin目录添加到PATH变量中了，就可以在任意目录下执行repo了。
+3）、初始化库
+
+首先创建你要存放Android源代码的目录，这里我下载到~/android_src目录下，
+
+命令：mkdir ~/android_src
+
+cd ~/android_src
+
+repo init –u git://android.git.kernel.org/platform/manifest.git
+
+repo sync
+
+上面这句命令会将当前主线上的最新版本的源代码库全部取下来，若只需要其中一部分代码，也可通过再加一个-b [branchname]参数来取指定的分支代码。
+
+此下载过程就跟网络情况，下载时间一般都会很长，我这具体时间也不太清楚，一般是晚上睡觉前开始下载，早上起来一看，已经下载完毕了。
+
+三、扩展
+
+待补充。。。

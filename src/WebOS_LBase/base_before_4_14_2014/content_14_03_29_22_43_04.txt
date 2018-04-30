@@ -1,0 +1,421 @@
+linux rsync详解（一）
+
+http://www.moncleronlinemarts.com/2011/04/linux-rsync1/
+
+官网主页
+
+http://www.samba.org/rsync/
+
+Rsync: 有史以来最好的备份系统
+
+http://blog.chinaunix.net/u1/58969/showart_461524.html
+
+rsync 服务器架设方法 v0.1b （正在修订中）
+
+http://www.linuxsir.org/main/?q=node/256
+
+Backing up your files with rsync(参考一下英文文档，会显得比较有档次，哈哈)
+
+http://articles.slicehost.com/2007/10/9/backing-up-your-files-with-rsync
+
+测试环境
+
+下面的测试有2台机器组成：
+
+1虚拟机(OS:cenos5.4) 172.16.251.241 做源服务器
+
+2 free服务器(OS:freebsd8.0)172.16.251.45 做目标服务器
+
+文档写于2010.8.21
+
+什么是rsync
+
+Rsync 是一个小巧的算法的强大实现。
+
+它最基本的功能是高效地镜像一个文件系统的能力。使用 rsync，可以灵活地选用一组网络协议，诸如 nfs、smb 或 ssh，方便地让一个文件系统与另一个文件系统保持同步更新。
+
+Rsync 的第二个功能，也就是备份系统使用的功能，它可以把已经发生改变或是被删除的文件的老的版本归档。Rsync 的功能太多了，不可能在这里一一叙述，笔者强烈建议读者阅读 rsync.samba.org 上的资料来研读 rsync。
+
+结论：1我们一般只使用第一种同步复制文件的功能，这个功能最大的用处就是备份，他的最大优点就是：
+
+1）只备份改变的文件，因此备份速度特别快，而scp是不具备这样功能的。
+
+2）不用架设rsync服务器，只需要一个ssh自动登陆，一个cron, 就可以做到异地定时备份，比tar打包然后scp传输方便很多！
+
+3）支持被覆盖和删除的文件存档，任何文件的历史记录都能找到
+
+2也可能会用到镜像的功能，这样主服务器一旦当掉，马上启用备服务器的镜像文件
+
+3 用于发布源代码
+
+Svn的服务器将源代码检出到本地，然后用手动操作一个rsync脚本，同步到生产环境的nfs服务器上去。
+
+通常的备份策略
+
+1每日定时直接执行rsync脚本，同步主服务器和备份服务器
+
+2然后每周定时执行脚本，调用tar命令 ， 在备份服务器上打包归档。（这步可以不做，因为rsync可以保留被覆盖或者被删除的文件）
+
+安装rsync
+
+Centos一般都是自带的
+
+而free下需要安装 , whereis rsync找到位置 , 然后port安装即可
+
+基本的rsync语法
+
+用man rsync看到各种命令详细解释
+
+语法是这样的：和scp很类似，scp –r /backup root@172.1.251.45:/etc
+
+rsync –av /backup root@172.1.251.45:/etc
+
+1rsync [OPTION]… SRC [SRC]… DEST
+
+2 rsync [OPTION]… SRC [SRC]… [USER@]HOST:DEST
+
+3rsync [OPTION]… SRC [SRC]… [USER@]HOST::DEST
+
+4rsync [OPTION]… SRC [SRC]… rsync://[USER@]HOST[:PORT]/DEST
+
+5rsync [OPTION]… SRC
+
+6rsync [OPTION]… [USER@]HOST:SRC [DEST]
+
+7rsync [OPTION]… [USER@]HOST::SRC [DEST]
+
+8rsync [OPTION]… rsync://[USER@]HOST[:PORT]/SRC [DEST]
+
+可以看到：1我们可以在源服务器上执行rsync， 也可以在目标服务器执行rsync都是可以的, 我个人的喜欢是在目的也就是备份的服务器上执行的rsync
+
+2 第5个的意思是
+
+Usages with just one SRC arg and no DEST arg will list the source files
+
+instead of copying.
+
+这个命令最大的好处在于可以计算你要复制的文件有哪些，可以对比复制以后的文件数量，看是否复制成功，后面解释
+
+3 :和::的区别在于，前者利用系统自带的ssh 等传输，而::是利用rsync 服务器的协议来传输。
+
+当然， ::模式和rsync://[USER@]HOST[:PORT]/模式是等效的
+
+例子：最常用的复制-av 最好记的参数，av ，大家都知道这个词
+
+我想把虚拟机(OS:cenos5.4) 172.16.251.241的内容拷贝到free服务器(OS:freebsd8.0)172.16.251.45上
+
+登陆到172.16.251.45上 进入/root 是没有bashshell这个文件夹的
+
+在目标服务器172.16.251.45上执行以下命令
+
+rsync -av -e ssh root@172.16.251.241:/root/bashshell /root/bashshell 2> /root/rsync_error
+
+1以上的句子用的是第6种语法，将远端主机172.16.251.241的:/root/bashshell 上的内容拷贝到本地主机的/root/bashshell 上
+
+2 参数
+
+-a, –archive
+
+This is equivalent to -rlptgoD. It is a quick way of saying you
+
+want recursion and want to preserve almost everything (with -H
+
+being a notable omission). The only exception to the above
+
+equivalence is when –files-from is specified, in which case -r
+
+is not implied.
+
+Note that -a does not preserve hardlinks, because finding multi-
+
+ply-linked files is expensive. You must separately specify -H.
+
+-a 参数，相当于-rlptgoD，-r 是递归 -l 是链接文件，意思是拷贝链接文件；-p 表示保持文件原有权限；-t 保持文件原有时间；-g 保持文件原有用户组；-o 保持文件原有属主；-D 相当于块设备文件；
+
+这个参数又叫“归档”，不过我觉得应该叫做“all”，因为他就是把文件连同全部属性一起拷贝走了
+
+v显示详细拷贝过程
+
+av通常是必备的！！！
+
+-e ssh指定使用ssh方式 ，如果不用这个参数也可以复制，默认的就是ssh，还可以设定端口
+
+-e ‘ssh -p 30000′: this ensures rsync uses the SSH protocol and sets the port.
+
+3 2> /root/rsync_error
+
+显示错误的日志
+
+为了避免将日志文件删除，（后面说到—delete参数） ，请不要将这个日志文件放到要拷贝的文件夹下面 ，也就是说2> rsync_error是不行的。
+
+4以上句子实际上存在问题的
+
+因为最后生成的结果是这样
+
+/root/bashshell/bashshell 多出一个bashell文件夹了
+
+为什么呢，因为 系统判断：我复制的是一个叫做bashshell的文件夹，因此我会在目标服务器，新建路径/root/bashshell （不管这个路径是否存在），然后在这个路径下 新建文件夹 bashell ，然后将其内部数据全部复制，这样形成了/root/bashshell/bashshell
+
+正确的写法 ：目标路径只需要写为/root即可。
+
+其实这个问题是linux固有性质，你mv /root/bashshell /
+
+打开根目录一看，实际上还是存在/bashshell。
+
+因为移动的是“文件夹”bashshell , 而不是里面的文件。
+
+这点需要小心！！！！
+
+5如果复制单个文件的话，是不会自动新建目标的路径的，比如我复制文件123到目标/root/test下面，但是/root/test这个路径是不存在的，那么需要事先手动新建好，这个问题也要注意！！
+
+问题：现在我要求目标数据和源的数据完全一致的，怎么办？ –delete参数
+
+首先搞清楚几件事，对于源服务器文件的删除，修改和增加，同步以后是怎么处理的？
+
+1 如果源机器修改了文件 ，那么rsync应该怎么处理
+
+答案：应该目标机器和源机器文件内容一致，即目标机器的那个文件会被覆盖为最新的同名文件
+
+源机器有一个123的文件
+
+[root@CentOS5-4 bashshell]# cat 123
+
+11111
+
+执行rsync同步，这时候目标机器123也应该为11111
+
+然后修改源机器
+
+[root@CentOS5-4 bashshell]# cat 123
+
+22222
+
+再次执行 rsync , 目标机器也会变成22222
+
+[root@free /tmp]# cat bashshell/123
+
+22222
+
+2第二个问题：源服务器增加了文件，同步会怎么做？
+
+源服务器新增了一个touch文件
+
+执行rsync以后
+
+目标服务器出现了123文件
+
+3第三个问题：源服务器删除了文件，目标服务器怎么做？
+
+比如源服务器删除了xxxwenjian
+
+Rm xxx
+
+但是执行rsync以后，目标服务器是不会删除这个文件的
+
+问题就在这里，如果想要删除这个文件，必须加—delete参数
+
+结论：如果想要源和目标同步，也就是目标和源一样，那么必须增加—delete参数
+
+小心：用的时候要小心点，最好不要把已经有重要数所据的目录，当做本地更新目录，否则会把你的数据全部删除。千万当心了！！
+
+问题：如果我想保留—delete删除或者修改过的文件，方便以后寻找怎么办？用—-backup –backup-dir=`date +%Y-%m-%d`
+
+用—backup可以解决2个问题：
+
+1 delete会删除源服务器没有，而目标服务器上有的文件，应该如何保留这些文件
+
+2 源服务器修改了文件，但是现在更新了文件。
+
+一旦同步，目标服务器会更新成和源服务器一样最新的文件，但是现在我想保留原来的老版本的文件怎么办？
+
+用backup一切都可以得到解决
+
+测试1：首先同步 ，然后源服务器删除了文件xxx
+
+执行
+
+[root@free /tmp]# rsync -av –delete –backup –backup-dir=`date +%Y-%m-%d` root@172.16.251.241:/root/bashshell /tmp 2> /root/rsync_error
+
+root@172.16.251.241′s password:
+
+receiving file list … done
+
+deleting bashshell/xxx
+
+bashshell/
+
+可以看到 文件xxx被删除了
+
+但是可以在这里找到这个文件，2010-08-20就是=`date +%Y-%m-%d` 生成的文件夹
+
+[root@free /tmp]# ls /tmp/2010-08-20/bashshell/xxx
+
+/tmp/2010-08-20/bashshell/xxx
+
+–backup-dir=`date +%Y-%m-%d` 会在DEST也就是/tmp下生成对应的日期文件，用来存在删除的数据！！！
+
+如果一小时同步一次的话，可以使用更加详细的date模式。
+
+[root@free /tmp]# date ‘+%Y-%m-%d-%H’
+
+2010-08-20-10
+
+这里的10代表早上10点
+
+测试2 保存修改以后的文件
+
+源服务器上的文件123
+
+[root@CentOS5-4 bashshell]# cat 123
+
+111
+
+现在修改里面内容为222
+
+执行同步
+
+[root@free /tmp]# rsync -av –delete –backup –backup-dir=`date +%Y-%m-%d` root@172.16.251.241:/root/bashshell /tmp 2> /root/rsync_error
+
+root@172.16.251.241′s password:
+
+receiving file list … done
+
+bashshell/123
+
+会显示123传输的字样，目的服务器上123会被覆盖为新的123，内容为222
+
+查看目标服务器上的123文件
+
+[root@free /tmp]# cat bashshell/123
+
+222
+
+但是原来的文件123 ，也就是内容为111的， 会被存档在这里！！
+
+[root@free /tmp]# cat /tmp/2010-08-20/bashshell/123
+
+111
+
+结论：以下结构比较完美了
+
+rsync -av –delete –backup –backup-dir=`date +%Y-%m-%d` root@172.16.251.241:/root/bashshell /tmp 2> /root/rsync_error
+
+可以实现目标绝对和源保持一致，还可以将修改删除的文件保存下来，避免以后需要时候找不到
+
+问题：如果一个文件一天修改多次，但是因为rsync只同步一次，最多一天只能保存一个修改的版本，所以利用rsync监视每一个文件修改的版本是不现实的。他的作用只是尽最大可能的备份。
+
+最好还是用svn来保存每个文件的修改版本。
+
+问题: 我想得到详细的rsync同步过程日志内容怎么办？
+
+加上一句1>>/tmp/`date +%Y-%m-%d`.log 可以得到每次同步的详细信息
+
+我因为一天备份一次 ，以上语句够用了
+
+如果每小时或者不定时备份的话
+
+最好加上小时分秒 这样更加直观 可以知道具体什么时间做的
+
+研究下man date即可得知怎么写
+
+问题：想要rsync自动登陆服务器怎么办？
+
+通常我们rsync都是不同机器之间备份，如果同一个机器，还需要备份吗？
+
+现在的问题是 ，每次执行rsync都必须输入密码，手动同步倒是无所谓，但是如果要自动同步，也就是写到cron每天同步一次怎么办，必须实现自动输入密码
+
+实现自动登陆的方法很多种：
+
+1 利用ssh的自动登陆方法，两边保留钥匙，这个办法最简单方便的，但是安全性存在问题，因为就算你登陆用户密码无论怎么改，客户机也能登陆上去，非常牛逼，所以最好登陆用户为一般用户。
+
+2 expect脚本自动输入，很麻烦。
+
+3 在要访问的那台机器建立rsync服务器，然后用自定义的密码文件访问。
+
+也就是使用 –password-file 这个参数，登陆远端的rsync服务器，这个也很麻烦
+
+一般都是用第一种办法：详细的参看笔记ssh那章
+
+以下是过程：
+
+1 在客户端生成密钥
+
+目的机器登陆源机器，所以目的机器为客户端，在这台机器产生密钥，首先我目的机器是free服务器,不是很重要的，所以设置的操作用户为root即可
+
+这台机器是 freebsd，但是 ，生成密钥的命令的和linux一样
+
+下面可以看到，公匙被自动保存到了/root/.ssh/id_rsa.pub
+
+验证文件被保存到了 /root/.ssh/id_rsa
+
+[root@free /tmp]# ssh-keygen -t rsa
+
+Generating public/private rsa key pair.
+
+Enter file in which to save the key (/root/.ssh/id_rsa):
+
+Enter passphrase (empty for no passphrase):
+
+Enter same passphrase again:
+
+Your identification has been saved in /root/.ssh/id_rsa.
+
+Your public key has been saved in /root/.ssh/id_rsa.pub.
+
+The key fingerprint is:
+
+ea:9d:50:94:85:33:3a:01:ae:98:1f:f1:bd:17:6f:24 root@free.cd
+
+The key’s randomart image is:
+
++–[ RSA 2048]—-+
+
+| .. .. |
+
+| . . +o |
+
+| . . ooo |
+
+| o + .o. |
+
+|o o . ..E . |
+
+| . . + = |
+
+| . + . o |
+
+| . + o |
+
+| . o |
+
+2
+
+2将公匙拷贝到服务器登陆那个用户的家目录下
+
+~/.ssh/id_rsa.pub root@172.16.251.241:/home/yjwan
+
+这里我为了安全起见，并不想客户端登陆源服务器的时候，用root密码，所以我准备用一个一般用户 yjwan , 作为登陆的用户，你可以建立一个，因此，我把公共密钥拷贝到了/home/yjwan下
+
+3很重要的一步
+
+在源服务器上操作，在用户yjwan家目录下建立 .ssh文件夹 ，进入这个文件夹，并且将上一级的那个id_rsa.pub内容写入到authorized_keys文件
+
+[root@CentOS5-4 yjwan]# pwd
+
+/home/yjwan
+
+[root@CentOS5-4 yjwan]# mkdir .ssh
+
+[root@CentOS5-4 yjwan]# cd .ssh
+
+[root@CentOS5-4 .ssh]# cat ../id_rsa.pub >>authorized_keys
+
+4在客户端也就是目标服务器上 ，测试一下 是否大功告成了
+
+[root@free /tmp]# rsync -av –delete –backup –backup-dir=`date +%Y-%m-%d` yjwan@172.16.251.241:/home/yjwan /tmp 2> /root/rsync_error
+
+我用yjwan登陆的 yjwan@172.16.251.241 复制的是:/home/yjwan 因为yjwan用户对这个路径必定有读取权限
+
+执行这个命令以后，passwd的字样不会弹出，直接开始同步了。可以证明 ，不用输入密码 ，也可以传输文件了
+
+分享到：

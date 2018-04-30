@@ -1,0 +1,198 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+rrerre的专栏
+
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年1月当选微软MVP名单揭晓！    智能开发框架 JEECG 作者张代浩专访
+ 2012CSDN博客之星火热出炉！      2013年全国百所高校巡讲讲师招募 
+
+
+
+lingo sample code for a QP problem 
+.
+分类： lingo2011-09-08 11:17100人阅读评论(0)收藏举报
+
+
+
+
+[plain] view plaincopy
+01.model:  
+02.  
+03.sets:  
+04.    P/0,1,2,3,10/: pSize;         
+05.    P2P(P, P)/@file('e:/qali/pagesel/ham4.txt')/: distance;   
+06.    F/@file('e:/qali/pagesel/004a.gf.out')/: fSize;       
+07.    E(F, F, F): factor;  
+08.    F2P(F, P) | pSize(&1) #eq# 0 #or# &2 #ne# 0 : x,r;    
+09.    E2P2P(E, P, P): z;    
+10.      
+11.endsets  
+12.  
+13.data:  
+14.    pSize = 2048;     
+15.    distance = @file('e:/qali/pagesel/ham4.txt');  
+16.    fSize = @file('e:/qali/pagesel/004a.gf.out');  
+17.    E, factor = @file('e:/qali/pagesel/004a.gf.out');     
+18.  
+19.    !output;  
+20.    @text('e:/qali/pagesel/004a.txt') = x;  
+21.enddata  
+22.  
+23.!goal;  
+24.!min = @sum(E(f1, f2, f3):  @sum(P2P(p1,p2): x(f1,p1)*x(f2,p2)*distance(p1,p2)*factor(f1, f2, f3) ) );  
+25.min = @sum(E(f1,f2,i): @sum(P2P(p1,p2): z(f1,f2,i,p1,p2)*distance(p1,p2))) ;  
+26.  
+27.!binary constraits;  
+28.@for( F2P: @bin(x));  
+29.@for( E2P2P: @bin(z));  
+30.  
+31.!edge constraits;  
+32.@for(E(f1,f2,f3): @for(P2P(i,j): z(f1,f2,f3,i,j) > x(f1,i) + x(f2,j) - 1) );  
+33.@for( E(f1,f2,f3): @sum(P2P(i,j): z(f1,f2,f3,i,j) ) = 1);  
+34.  
+35.@for(F2P(i,j): r(i,j) >= fSize(i) + @sum(E(f1,f2,i): @sum(P2P(p1,p2): z(f1,f2,i,p1,p2)*distance(p1,p2))) + (x(i,j)-1)*pSize(j) );  
+36.  
+37.!allocate constraits;  
+38.@for( F(i): @sum(P(j): x(i,j)) = 1 );  
+39.  
+40.@for( P(j): @sum(F(i): r(i,j) ) <= pSize(j) );   
+41.!@for( P(j): @sum(F(i): x(i,j)*(fSize(i) + @sum(E(f1, f2, i):  @sum(P2P(p1,p2):@floor((x(f1,p1) + x(f2,p2))/2) * distance(p1,p2)*factor(f1, f2, i)) ) ) ) <= pSize(j) );  
+
+ 
+分享到： 
+
+上一篇：A brief survey on MCUs
+下一篇：lingo sample code for liveness analysis
+ . 
+
+
+查看评论
+ 
+
+  暂无评论
+
+
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+rrerre
+ 
+
+
+
+访问：11994次
+积分：475分
+排名：千里之外
+.原创：30篇
+转载：10篇
+译文：7篇
+评论：2条
+. 
+文章搜索
+
+. 
+文章分类gcc(10)
+代码优化(2)
+tools(14)
+linux(10)
+编译器(9)
+llvm(1)
+search engine(4)
+algorithm(0)
+电子(4)
+lingo(2)
+programming(2)
+专业笔记(1)
+系统管理(1)
+ 
+文章存档
+2012年11月(1).
+2012年10月(1).
+2012年08月(3).
+2012年03月(2).
+2011年11月(1).
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+阅读排行高德纳：Atmel是2008年8位MCU增长最快的厂商(1493)
+latex使用tabular和minipage排图(985)
+最大流最小割定理(640)
+寻找libdwarf(569)
+Linux系统中，main函数的执行过程(550)
+调试信息格式（Debugging Format）简介(467)
+Linux中缺少so文件的问题(450)
+Pin学习笔记1(376)
+libdwarf的使用(355)
+Pin学习笔记2(303)
+ 
+评论排行libdwarf编程举例(1)
+Linux系统中，main函数的执行过程(1)
+distcc: 一个快速、免费的分布式C/C++编译器(0)
+函数栈1：gcc编译后函数栈的布局(0)
+web搜索学习笔记(0)
+编程语言入门参考(0)
+linux程序的内存空间(0)
+lingo sample code for liveness analysis(0)
+lingo sample code for a QP problem(0)
+A brief survey on MCUs(0)
+ 
+推荐文章 
+最新评论 libdwarf编程举例
+warriorpaw: 博主，请问libdwarf这玩意有什么中文资料没？ 或者比较简单的英文入门资料？ 它自带的那个《... 
+
+Linux系统中，main函数的执行过程
+__阿飞__: 很不错,认真学习了. 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持 联系邮箱：webmaster(at)csdn.netCopyright © 1999-2012, CSDN.NET, All Rights Reserved  

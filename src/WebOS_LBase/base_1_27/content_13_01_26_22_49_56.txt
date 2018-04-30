@@ -1,0 +1,486 @@
+
+
+
+
+_開券有益`
+ 
+
+`上水若水, 水利万物而不争, 处众人之所恶, 故几于道.
+ 
+`见多方能识广, 志高尚可有为.. ` 知不如乐, 乐不若好 . 
+
+` 转载为己便, 取精华而涵纳, 原创皆心得, 见其道而通达 .
+ ___________________ps: 身为金老师相公, 我荣幸甚. 
+
+随笔 - 50, 文章 - 0, 评论 - 2, 引用 - 0
+ 
+
+
+
+
+SVM直观原理，以及LIBSVM的应用
+
+
+
+SVM的原理
+ 
+SVM的主要思想可以概括为两点：
+ 
+(1) 它是针对线性可分情况进行分析，对于线性不可分的情况，通过使用非线性映射算法将低维输入空间线性不可分的样本转化为高维特征空间使其线性可分，从而 使得高维特征空间采用线性算法对样本的非线性特征进行线性分析成为可能；
+ 
+(2) 它基于结构风险最小化理论之上在特征空间中建构最优分割超平面，使得学习器得到全局最优化,并且在整个样本空间的期望风险以某个概率满足一定上界。
+ 
+SVM方法是通过一个非线性映射p，把样本空间映射到一个高维乃至无穷维的特征空间中(Hilbert空间)，使得在原来的样本空间中非线性可分的问题转化为在特征空间中的线性可分的问题．简单地说，就是升
+ 
+维和线性化．升维，就是把样本向高维空间做映射，一般情况下这会增加计算的复杂性，甚至会引起“维数灾难”，因而人们很少问津．但是作为分类、回归等问题来说，很可能在低维样本空间无法线性处理的样本集，在高维特征空间中却可以通过一个线性超平面实现线性划分(或回归)．一般的升维都会带来计算的复杂化，SVM方法巧妙地解决了这个难题：应用核函数的展开定理，就不需要知道非线性映射的显式表达式；由于是在高维特征空间中建立线性学习机，所以与线性模型相比，不但几乎不增加计算的复杂性，而且在某种程度上避免了“维数灾难”．这一切要归功于核函数的展开和计算理论．
+ 
+选择不同的核函数，可以生成不同的SVM，常用的核函数有以下4种：
+ 
+(1)线性核函数K(x,y)=x·y；
+ 
+(2)多项式核函数K(x,y)=[(x·y)+1]d；
+ 
+(3)径向基函数K(x,y)=exp(-|x-y|^2/d^2)
+ 
+(4)二层神经网络核函数K(x,y)=tanh(a(x·y)+b)．
+ 
+       其中K就是核函数，起作用在于将低维度线性不可分样本向高纬线性可分样本作映射。
+ 
+       X‘ = K(w, X) + b; 将低维度的X映射到了高纬度上的X’
+ 
+[引于：SVM百度百科]
+ 
+ 
+ 
+LIBSVM的应用
+ 
+LIBSVM是台湾大学林智仁(Lin Chih-Jen)副教授等开发设计的一个简单、易于使用和快速有效的SVM模式识别与回归的软件包，他不但提供了编译好的可在Windows系列系统的执行文件，还提供了源代码，方便改进、修改以及在其它操作系统上应用；该软件对SVM所涉及的参数调节相对比较少，提供了很多的默认参数，利用这些默认参数可以解决很多问题；并提供了交互检验(Cross Validation)的功能。
+ 
+libsvm下载地址
+ 
+train： C++版本的加入svm.h 和 svm.cpp, 自己调用函数做svm train的时候，需要自己建一个svm_problem的结构体。
+ 
+svm_problem{
+ 
+  svm_node**x;//样本集
+ 
+  double* y;// 每个样本集对应的类的标志
+ 
+  int l;// 数据集包含样本的数目
+ 
+}
+ 
+svm_node{
+ 
+  double value;//对应的值
+ 
+  int index;//维度标号
+ 
+}
+ 
+样本表示的方法有多种，可以自由选择，例如bag-of-words等常用的方法。
+ 
+每个样本用svm_node* 表示，并且每个样本以 .index = -1作为结束标志（计算响亮点击时所需）。样本集是一个二维的列表。
+ 
+按照这个格式建立起两个 svm_problem ，一个用来train 一个用来test。
+ 
+随后需要配置svm的参数，包括核函数选择，最大迭代次数等，见ConstructParam()。
+ 
+调用svm_train(&_prob, &_param)并用svm_save_model(const char* path, const svm_problem* svmprob) 保存;
+ 
+ 
+ 
+predict: 
+
+对于一个新的输入构造好对应的svm向量形式，然后调用库函数svm_predict(svm_problem* _prob, svm_node* xnew)得到一个值。
+ 
+此值是你的输入的trainning set中的所有的y值中的一个。
+ 
+ 
+ 
+void DoCrossValidation() 
+{ 
+    int gBegin, gEnd, gStep, cBegin, cEnd, cStep; 
+    int nrFold = 5; 
+    gBegin = -15; gEnd = 3; gStep = 2; 
+    cBegin = -5; cEnd = 15; cStep = 2; 
+    double tempG, tempC, bestG, bestC; 
+    double bestAccuracy = 0;
+ 
+
+    for (int i=gBegin; i<=gEnd; i+=gStep) 
+    { 
+        tempG = pow(2.0, 1.0*i); 
+        g_param.gamma = tempG; 
+        for (int j=cBegin; j<=cEnd; j+=cStep) 
+        { 
+            double *target = new double[g_prob.l]; 
+            int totalCorrect = 0; 
+            tempC = pow(2.0, 1.0*j); 
+            g_param.C = tempC;
+ 
+            svm_cross_validation(&g_prob, &g_param, nrFold, target); 
+            for (int k=0; k<g_prob.l; k++) 
+            { 
+                if (target[k] == g_prob.y[k]) 
+                { 
+                    totalCorrect++; 
+                } 
+            } 
+            if ((totalCorrect*1.0/g_prob.l) > bestAccuracy) 
+            { 
+                bestC = tempC; 
+                bestG = tempG; 
+                bestAccuracy = totalCorrect*1.0/g_prob.l; 
+            }
+ 
+            delete []target; 
+        } 
+    } 
+    g_param.C = bestC; 
+    g_param.gamma = bestG; 
+    printf("bestC : %lf  ", bestC); 
+    printf("bestG : %lf  ", bestG); 
+    printf("bestAccuracy : %lf\n", bestAccuracy); 
+}
+ 
+ 
+ 
+（返回继续阅读）
+ 
+int ConstructParam() 
+{ 
+    g_param.svm_type = C_SVC; 
+    g_param.kernel_type = RBF; 
+    g_param.degree = 3; 
+    g_param.gamma = (double)1/30;    // 1/k 
+    g_param.coef0 = 0; 
+    g_param.nu = 0.5; 
+    g_param.cache_size = 100; 
+    g_param.C = 1; 
+    g_param.eps = 1e-3; 
+    g_param.p = 0.1; 
+    g_param.shrinking = 1; 
+    g_param.probability = 0; 
+    g_param.nr_weight = 0; 
+    g_param.weight_label = NULL; 
+    g_param.weight = NULL; 
+    //do grid-search and cross-validation 
+    printf("on the process of param selection...\n"); 
+    DoCrossValidation(); 
+    return 0;
+ 
+}
+
+
+_
+ 
+_
+ 
+_
+ ******************************************** 
+****** Never ever let you down. *****
+ ******************************************** 
+
+
+
+
+
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+
+
+
+
+amojry
+ 关注 - 1
+ 粉丝 - 1 
+
+
+
++加关注 
+
+
+1
+
+0
+
+
+ (请您对文章做出评价) 
+
+
+« 博主上一篇：规并排序 以及 在其基础上的逆序对
+
+ 
+posted on 2011-11-12 15:04 amojry 阅读(566) 评论(0) 编辑 收藏
+
+ 
+
+
+刷新评论刷新页面返回顶部
+ 
+
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+
+IE10：全面支持HTML5，让你创造更多
+找优秀程序员，就在博客园
+
+ 
+博客园首页博问新闻闪存程序员招聘知识库
+ 
+
+
+
+
+
+最新IT新闻:
+ · 宽2.8公里 旧金山海湾大桥将成全球最大灯景工程
+ · 微软邮件泄露GTA5发布日期？
+ · WindowsAndroid在PC上运行Android
+ · 三星要求苹果公开iOS6源代码 苹果称“荒唐”
+ · 360多款应用被苹果App Store下架
+» 更多新闻...
+
+最新知识库文章:
+
+ · 360的困兽之斗——重新探讨奇虎商业模式
+ · Map Reduce – the Free Lunch is not over?
+ · 从游戏设计机制以及玩家心理特征谈互联网产品设计理念
+ · 浏览器的重绘与重排
+ · Mac OS X 背后的故事
+
+» 更多知识库文章... 
+
+
+
+
+
+导航
+ 博客园
+ 首页
+ 新随笔
+ 联系
+ 订阅 
+管理
+ 
+
+
+
+
+
+
+
+<
+
+2011年11月
+
+>
+
+ 
+
+
+日
+
+一
+
+二
+
+三
+
+四
+
+五
+
+六
+
+
+
+30
+
+31
+
+1
+
+2
+
+3
+
+4
+
+5
+
+
+
+6
+
+7
+
+8
+
+9
+
+10
+
+11
+
+12
+
+
+
+13
+
+14
+
+15
+
+16
+
+17
+
+18
+
+19
+
+
+
+20
+
+21
+
+22
+
+23
+
+24
+
+25
+
+26
+
+
+
+27
+
+28
+
+29
+
+30
+
+1
+
+2
+
+3
+
+
+
+4
+
+5
+
+6
+
+7
+
+8
+
+9
+
+10
+
+ 
+公告
+ 
+
+Interestings: 
+NLP / CV / ML 
+Languages: 
+C# / C++ / C / Java 
+JS / JQuery 
+Python
+
+ 
+昵称：amojry
+园龄：2年5个月
+粉丝：1
+关注：1
++加关注
+
+ 
+
+搜索
+ 
+ 
+ 
+ 
+ 
+常用链接
+ 我的随笔
+我的评论
+我的参与
+最新评论
+我的标签
+ 
+
+
+最新随笔
+ 
+1. SVM直观原理，以及LIBSVM的应用
+2. 规并排序 以及 在其基础上的逆序对
+3. 操作符重载
+4. zz 排序算法 稳定性
+5. 非递归实现 二叉树 先序、后序、中序遍历
+6. 由树先序遍历和中序遍历输出其后续遍历
+7. 写好一段正确并且完整的二分查找也不容易
+8. Interview at TAOBAO
+9. 几个搜索算法
+10. GOOGLE API - 翻译， 后台c# 调用前台js代码， asp.net后台调用js代码
+ 
+随笔分类(48)
+MyLifeYourEntertainment(3)
+myPlan(1)
+NLP(12)
+WebDevelopment(2)
+编程语言(22)
+数学模型及算法(2)
+温故而知新(6)
+
+友情链接
+leeing格物致知
+TaiWan蔡志浩NPL技术主页
+跳动的代码_SilverLight
+我爱自然语言处理
+张逸:晴窗笔记
+
+积分与排名
+ 积分 - 4963 
+排名 - 16746 
+
+最新评论
+ 
+
+
+阅读排行榜
+ 
+
+1. C# 中文分词[基于统计的朴素贝叶斯算法](789)
+2. SVM直观原理，以及LIBSVM的应用(566)
+3. vs2010 ASP.NET, C#, Ajax 页面局部更新(480)
+4. Colletions List 具体类sort 重写compareTo(T)(474)
+5. 反射机制(433)
+ 
+评论排行榜
+ 
+
+1. Interview at TAOBAO(1)
+2. java 多线程同步/ 消费者生产者问题.(1)
+3. C# TIMER定时激活某个时间/ StopWatch来计算模块计算时间(0)
+4. lucene[java] 搜索框架初步(0)
+5. Python 嵌入C++/C等(0)
+ 
+
+
+Powered by: 
+博客园
+Copyright © amojry 
+

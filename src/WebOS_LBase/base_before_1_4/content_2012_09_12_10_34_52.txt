@@ -1,0 +1,54 @@
+12个有趣的C语言面试题
+
+
+ 发表于09-06 09:15| 46232次阅读| 来源CSDN| 146 条评论| 作者王然
+.
+面试题C
+
+摘要：12个C语言面试题，涉及指针、进程、运算、结构体、函数、内存，看看你能做出几个！ 
+
+
+1.gets()函数
+ 
+问：请找出下面代码里的问题：
+ 1.#include<stdio.h> 2.int main(void) 3.{ 4.    char buff[10]; 5.    memset(buff,0,sizeof(buff)); 6. 7.    gets(buff); 8. 9.    printf("\n The buffer entered is [%s]\n",buff); 10. 11.    return 0; 12.}  
+答：上面代码里的问题在于函数gets()的使用，这个函数从stdin接收一个字符串而不检查它所复制的缓存的容积，这可能会导致缓存溢出。这里推荐使用标准函数fgets()代替。
+ 
+2.strcpy()函数
+ 
+问：下面是一个简单的密码保护功能，你能在不知道密码的情况下将其破解吗？
+ 1.#include<stdio.h> 2. 3.int main(int argc, char *argv[]) 4.{ 5.    int flag = 0; 6.    char passwd[10]; 7. 8.    memset(passwd,0,sizeof(passwd)); 9. 10.    strcpy(passwd, argv[1]); 11. 12.    if(0 == strcmp("LinuxGeek", passwd)) 13.    { 14.        flag = 1; 15.    } 16. 17.    if(flag) 18.    { 19.        printf("\n Password cracked \n"); 20.    } 21.    else 22.    { 23.        printf("\n Incorrect passwd \n"); 24. 25.    } 26.    return 0; 27.}  
+答：破解上述加密的关键在于利用攻破strcpy()函数的漏洞。所以用户在向“passwd”缓存输入随机密码的时候并没有提前检查“passwd”的容量是否足够。所以，如果用户输入一个足够造成缓存溢出并且重写“flag”变量默认值所存在位置的内存的长“密码”，即使这个密码无法通过验证，flag验证位也变成了非零，也就可以获得被保护的数据了。例如：
+ 1.$ ./psswd aaaaaaaaaaaaa 2. 3.Password cracked  
+虽然上面的密码并不正确，但我们仍然可以通过缓存溢出绕开密码安全保护。
+ 
+要避免这样的问题，建议使用 strncpy()函数。
+ 
+作者注：最近的编译器会在内部检测栈溢出的可能，所以这样往栈里存储变量很难出现栈溢出。在我的gcc里默认就是这样，所以我不得不使用编译命令‘-fno-stack-protector’来实现上述方案。
+ 
+3.main()的返回类型
+ 
+问：下面的代码能 编译通过吗？如果能，它有什么潜在的问题吗？
+ 1.#include<stdio.h> 2. 3.void main(void) 4.{ 5.    char *ptr = (char*)malloc(10); 6. 7.    if(NULL == ptr) 8.    { 9.        printf("\n Malloc failed \n"); 10.        return; 11.    } 12.    else 13.    { 14.        // Do some processing 15.        free(ptr); 16.    } 17. 18.    return; 19.}  
+答：因为main()方法的返回类型，这段代码的错误在大多数编译器里会被当作警告。main()的返回类型应该是“int”而不是“void”。因为“int”返回类型会让程序返回状态值。这点非常重要，特别当程序是作为依赖于程序成功运行的脚本的一部分运行时。
+ 
+4.内存泄露
+ 
+问：下面的代码会导致内存泄漏吗？
+ 1.#include<stdio.h> 2. 3.void main(void) 4.{ 5.    char *ptr = (char*)malloc(10); 6. 7.    if(NULL == ptr) 8.    { 9.        printf("\n Malloc failed \n"); 10.        return; 11.    } 12.    else 13.    { 14.        // Do some processing 15.    } 16. 17.    return; 18.}  
+答：尽管上面的代码并没有释放分配给“ptr”的内存，但并不会在程序退出后导致内存泄漏。在程序结束后，所有这个程序分配的内存都会自动被处理掉。但如果上面的代码处于一个“while循环”中，那将会导致严重的内存泄漏问题！
+ 
+提示：如果你想知道更多关于内存泄漏的知识和内存泄漏检测工具，可以来看看我们在Valgrind上的文章。
+ 
+5.free()函数
+ 
+问：下面的程序会在用户输入'freeze'的时候出问题，而'zebra'则不会，为什么？
+ 1.#include<stdio.h> 2. 3.int main(int argc, char *argv[]) 4.{ 5.    char *ptr = (char*)malloc(10); 6. 7.    if(NULL == ptr) 8.    { 9.        printf("\n Malloc failed \n"); 10.        return -1; 11.    } 12.    else if(argc == 1) 13.    { 14.        printf("\n Usage  \n"); 15.    } 16.    else 17.    { 18.        memset(ptr, 0, 10); 19. 20.        strncpy(ptr, argv[1], 9); 21. 22.        while(*ptr != 'z') 23.        { 24.            if(*ptr == '') 25.                break; 26.            else 27.                ptr++; 28.        } 29. 30.        if(*ptr == 'z') 31.        { 32.            printf("\n String contains 'z'\n"); 33.            // Do some more processing 34.        } 35. 36.       free(ptr); 37.    } 38. 39.    return 0; 40.}  
+答：这里的问题在于，代码会（通过增加“ptr”）修改while循环里“ptr”存储的地址。当输入“zebra”时，while循环会在执行前被终止，因此传给free()的变量就是传给malloc()的地址。但在“freeze”时，“ptr”存储的地址会在while循环里被修改，因此导致传给free()的地址出错，也就导致了seg-fault或者崩溃。
+ 
+6.使用_exit退出
+ 
+问：在下面的代码中，atexit()并没有被调用，为什么？
+ 1.#include<stdio.h> 2. 3.void func(void) 4.{ 5.    printf("\n Cleanup function called \n"); 6.    return; 7.} 8. 9.int main(void) 10.{ 11.    int i = 0; 12. 13.    atexit(func); 14. 15.    for(;i<0xffffff;i++); 16. 17.    _exit(0); 18.}  
+这是因为_exit()函数的使用，该函数并没有调用atexit()等函数清理。如果使用atexit()就应当使用exit()或者“return”与之相配合。 
+

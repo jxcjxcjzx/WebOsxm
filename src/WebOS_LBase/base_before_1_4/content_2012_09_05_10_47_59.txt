@@ -1,0 +1,88 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
+<title>三家银行搜索</title>
+<script type="text/javascript" src="http://api.map.baidu.com/api?key=46ce9d0614bf7aefe0ba562f8cf87194&v=1.1&services=true">
+</script>
+</head>
+<body>
+<div style="width:520px;height:340px;border:1px solid gray" id="container"></div>
+<input type="button" onclick="milk_zs();" value="招商银行" />
+<input type="button" onclick="milk_zg();" value="中国银行" />
+<input type="button" onclick="milk_js();" value="建设银行" />
+</body>
+</html>
+<script type="text/javascript">
+//查询完毕添加自定义标注
+function addMarker(results,point, index){
+    // 创建招商银行的标注图标
+    var zsIcon = new BMap.Icon("http://ui-love.com/baidumap/bank/marker.gif",   //图片地址
+                 new BMap.Size(40, 64),                // 标注显示大小
+                {
+                    offset: new BMap.Size(20, 64),     // 标注底部小尖尖的偏移量
+                    imageOffset: new BMap.Size(0, 0)   // 这里相当于CSS sprites
+                });
+    // 创建中国银行的标注图标
+    var zgIcon = new BMap.Icon("http://ui-love.com/baidumap/bank/marker.gif",   //图片地址
+                 new BMap.Size(40, 64),                // 标注显示大小
+                {
+                    offset: new BMap.Size(20, 64),     // 标注底部小尖尖的偏移量
+                    imageOffset: new BMap.Size(0, -64)   // 这里相当于CSS sprites
+                });
+    // 创建建设银行的标注图标
+    var jsIcon = new BMap.Icon("http://ui-love.com/baidumap/bank/marker.gif",   //图片地址
+                 new BMap.Size(40, 64),                // 标注显示大小
+                {
+                    offset: new BMap.Size(20, 64),     // 标注底部小尖尖的偏移量
+                    imageOffset: new BMap.Size(0, -128)   // 这里相当于CSS sprites
+                });
+    var myIcon = "";
+    if(results.keyword == "招商银行"){
+        myIcon = zsIcon;
+    }else if(results.keyword == "中国银行"){
+        myIcon = zgIcon;
+    }else if(results.keyword == "建设银行"){
+        myIcon = jsIcon;
+    }else{
+        myIcon = zsIcon;
+    }
+    var marker = new BMap.Marker(point.point, {icon: myIcon});
+
+    var infoWindow = new BMap.InfoWindow(point.title);  // 创建信息窗口对象
+    marker.addEventListener("click",
+        function(){
+            marker.openInfoWindow(infoWindow);
+        }
+    );
+    map.addOverlay(marker);
+}
+
+//查询完毕的回调函数
+var searchComplete = function (results){   
+    if (local.getStatus() != BMAP_STATUS_SUCCESS){
+        return ;
+    }
+    for(var cnt = 0; cnt < results.getCurrentNumPois(); cnt++){
+        var point = results.getPoi(cnt);
+        addMarker(results,point, cnt);
+    }
+}
+
+var map = new BMap.Map("container");    //创建地图容器
+map.centerAndZoom(new BMap.Point(116.404, 39.915), 11); //初始化地图
+var local = new BMap.LocalSearch(map,{onSearchComplete: searchComplete});   //构造一个查询
+
+//定义三个不同的查询
+function milk_zs(){
+    map.clearOverlays();
+    local.search('招商银行');
+}
+function milk_zg(){
+    map.clearOverlays();
+    local.search('中国银行');
+}
+function milk_js(){
+    map.clearOverlays();
+    local.search('建设银行');
+}
+</script>

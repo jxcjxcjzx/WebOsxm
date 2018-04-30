@@ -1,0 +1,357 @@
+网易 新闻 
+微博 
+邮箱 
+相册 
+阅读 
+有道 
+摄影 
+爱拍 
+优惠券 
+云笔记 
+闪电邮 
+手机邮 
+印像派 
+网易识字 
+ 
+更多   博客 手机博客 
+博客搬家 
+博客VIP服务 
+ 
+LiveWriter写博 
+word写博 
+邮件写博 
+短信写博 
+ 
+群博客 
+博客油菜地 
+博客话题 
+博客热点 
+博客圈子 
+找朋友 发现小组风格   网易真人搭配社区iStyle旅行达人猫力，送签名版新书 >>旅行达人猫力，送签名版新书 >>旅行达人猫力，送签名版新书 >>创建博客 登录    加关注   显示下一条  |  关闭 温馨提示！由于新浪微博认证机制调整，您的新浪微博帐号绑定已过期，请重新绑定！立即重新绑定新浪微博》  |  关闭 半路出家的博客
+导航
+首页 日志 相册 博友 关于我      日志    模板的简单使用  vc中操作excel的方法
+C++ mutable  2009-11-06 16:13:00|  分类： C基础例子 |  标签： |字号大
+中
+小 订阅 
+[转]关键字 mutable的中文意思是：“可变的、易变的”与constant（即C++中 const）是反义词。C++中的mutable是为了突破const限制而设置的，被mutable修饰的变量将永远处于可变状态，即使是位于const修饰的函数中。mutable又是一个奇怪的修饰符（specifier），它只能够用于一个类的非静态数据成员。下面我将讨论 mutable 的语义和用法，但是首先我要解释一下 C++ 对象模型的一个关键概念。 
+对象的状态
+    一个对象的状态由其非静态数据成员的值构成，因此，修改一个数据成员将会改变整个对象的状态。将一个成员函数声明为 const 能够保证它不会改变对象的状态。
+
+    然而在一些情况下，对象的逻辑状态与其物理状态之间可能有差别。例如，对于一个表示绘画图像的对象就存在这种情况。如果图像还没有更改，那么我们就认为其状态没有发生变化。然而，从底层实现方面来说，如果大对象在一段时间没有活动，那么它们的内存通常会被交换到一个文件中。交换一个图像并不会真地影响其状态，但是对象的一些数据成员可能会发生变化，在这里可能会发生变化的是指针、标志位等。
+
+    在用户调用一个诸如 Redraw() 之类的 const 成员函数时，他们并不关心这个函数在内部是如何实现的。从他们的角度来说，这个函数并不改变对象的逻辑状态，因此被声明为 const。Redraw() 有可能修改对象的物理状态这一事实是一个他们不应该关心的实现细节。例如：
+
+        int Image::Redraw() const
+        {
+           if (isLoaded==false)
+           {
+                 //..read image data from a disk into a local buffer
+                 isLoaded=true; //changing a data member's value
+           }
+             //..paint image in the screen
+        }
+
+可变（mutable）数据成员
+    如果尝试编译这段代码，你会得到一个编译错误。虽然 Redraw() 声明为 const，但是它修改了一个数据成员。解决这个编译错误的方法是将 isLoaded 声明为一个 mutable 数据成员：
+
+        class Image {
+        public:
+           int Redraw() const;
+           //..
+        private:
+           mutable bool isLoaded;//can be changed by a const function
+        };
+
+不像普通的数据成员，const 成员函数可以修改 mutable 数据成员。
+
+    Mutable 数据成员的使用看上去像是骗术，因为它能够使 const 函数修改对象的数据成员。然而，明智地使用 mutable 关键字可以提高代码质量，因为它能够让你向用户隐藏实现细节，而无须使用不确定的东西，比如 const_cast<>。
+
+mutalbe的中文意思是“可变的，易变的”，跟constant（既C++中的const）是反义词。
+
+　　在C++中，mutable也是为了突破const的限制而设置的。被mutable修饰的变量，将永远处于可变的状态，即使在一个const函数中。
+
+　　我们知道，如果类的成员函数不会改变对象的状态，那么这个成员函数一般会声明成const的。但是，有些时候，我们需要在const的函数里面修改一些跟类状态无关的数据成员，那么这个数据成员就应该被mutalbe来修饰。
+
+　　下面是一个小例子：
+
+class ClxTest
+{
+　public:
+　　void Output() const;
+};
+
+void ClxTest::Output() const
+{
+　cout << "Output for test!" << endl;
+}
+
+void OutputTest(const ClxTest& lx)
+{
+　lx.Output();
+}
+
+　　类ClxTest的成员函数Output是用来输出的，不会修改类的状态，所以被声明为const的。
+
+　　函数OutputTest也是用来输出的，里面调用了对象lx的Output输出方法，为了防止在函数中调用其他成员函数修改任何成员变量，所以参数也被const修饰。
+
+　　如果现在，我们要增添一个功能：计算每个对象的输出次数。如果用来计数的变量是普通的变量的话，那么在const成员函数Output里面是不能修改该变量的值的；而该变量跟对象的状态无关，所以应该为了修改该变量而去掉Output的const属性。这个时候，就该我们的mutable出场了——只要用mutalbe来修饰这个变量，所有问题就迎刃而解了。
+
+　　下面是修改过的代码：
+
+class ClxTest
+{
+　public:
+　　ClxTest();
+　　~ClxTest();
+
+　　void Output() const;
+　　int GetOutputTimes() const;
+
+　private:
+　　mutable int m_iTimes;
+};
+
+ClxTest::ClxTest()
+{
+　m_iTimes = 0;
+}
+
+ClxTest::~ClxTest()
+{}
+
+void ClxTest::Output() const
+{
+　cout << "Output for test!" << endl;
+　m_iTimes++;
+}
+
+int ClxTest::GetOutputTimes() const
+{
+　return m_iTimes;
+}
+
+void OutputTest(const ClxTest& lx)
+{
+　cout << lx.GetOutputTimes() << endl;
+　lx.Output();
+　cout << lx.GetOutputTimes() << endl;
+}
+
+　　计数器m_iTimes被mutable修饰，那么它就可以突破const的限制，在被const修饰的函数里面也能被修改
+
+  评论这张  转发至微博    转发至微博  0人  |  分享到：         阅读(580)| 评论(0)| 转载 (1) |举报 
+ 
+  模板的简单使用  vc中操作excel的方法
+历史上的今天
+
+最近读者
+
+评论
+    this.p={  m:2,
+              b:2,
+              id:'fks_095070081084086069084083086095085094088074085094087064083',
+              blogTitle:'C++ mutable',
+              blogAbstract:'<div\><div id=\"sina_keyword_ad_area2\" class=\"articalContent  \"\>    [转]关键字 mutable的中文意思是：“可变的、易变的”与constant（即C++中 const）是反义词。C++中的mutable是为了突破const限制而设置的，被mutable修饰的变量将永远处于可变状态，即使是位于const修饰的函数中。mutable又是一个奇怪的修饰符（specifier），它只能够用于一个类的非静态数据成员。下面我将讨论 mutable 的语义和用法，但是首先我要解释一下 C++ 对象模型的一个关键概念。 <p\>对象的状态<br/\>     一个对象的状态由其非静态数据成员的值构成，因此，修改一个数据成员将会改变整个对象的状态。将一个成员函数声明为 const 能够保证它不会改变对象的状态。</p\></div\></div\>',
+              blogTag:'',
+              blogUrl:'blog/static/1899181372009106413070',
+              isPublished:1,
+              istop:false,
+              type:0,
+              modifyTime:0,
+              publishTime:1257495180070,
+              permalink:'blog/static/1899181372009106413070',
+              commentCount:0,
+              mainCommentCount:0,
+              recommendCount:0,
+              bsrk:-100,
+              publisherId:0,
+              recomBlogHome:false,
+              currentRecomBlog:false,
+              attachmentsFileIds:[],
+              vote:{},
+              groupInfo:{},
+              friendstatus:'none',
+              followstatus:'unFollow',
+              pubSucc:'',
+              visitorProvince:'',
+              visitorCity:'',
+              visitorNewUser:false,
+              postAddInfo:{},
+              mset:'000',
+              mcon:'',
+              srk:-100,
+              remindgoodnightblog:false,
+              isBlackVisitor:false,
+              isShowYodaoAd:false,
+              hostIntro:'',
+              hmcon:'1',
+              selfRecomBlogCount:'0',
+              lofter_single:'<a hidefocus="true" target="_blank" href="http://maolimaolimaoli.lofter.com/post/243879_8f0a2c?act=danpianrizhiyouce_20130925_15"><img onload="var nimg = new Image(); nimg.src=\'http://blog.163.com/newpage/images/analyse.png?lofter_single&t=\'+new Date().getTime()" border="0" src="http://img.ph.126.net/n2EkDjdxEnY0wL5rvrwZvA==/1993405785164918394.jpg"/></a>'
+            }
+       {list a as x}
+    {if !!x}
+    <div class="iblock nbw-fce nbw-f40">
+      <a class="fc03 noul" target="_blank" hidefocus="true" href="http://blog.163.com/${x.visitorName}/">
+      {if x.visitorName==visitor.userName}
+      <img alt="${x.visitorNickname|escape}" onerror="this.src=location.f40" class="cwd bdwa bdc0" src="${fn1(x.visitorName)}&r=${visitor.imageUpdateTime}"/>
+      {else}
+      <img alt="${x.visitorNickname|escape}" onerror="this.src=location.f40" class="cwd bdwa bdc0" src="${fn1(x.visitorName)}"/>
+      {/if}
+      </a>
+      <div class="cwd vname thide">
+        {if x.moveFrom=='wap'}
+          <a class="noul pnt" target="_blank" href="http://blog.163.com/services/wapblog.html?frompersonalbloghome"><span title="来自网易手机博客" class="iblock wapIcon"> </span></a>
+        {elseif x.moveFrom=='iphone'}
+          <a class="noul pnt" target="_blank"><span title="来自iPhone客户端" class="iblock iphoneIcon"> </span></a>
+        {elseif x.moveFrom=='android'}
+          <a class="noul pnt" target="_blank"><span title="来自Android客户端" class="iblock androidIcon"> </span></a>
+        {elseif x.moveFrom=='mobile'}
+          <a class="noul pnt" target="_blank" href="http://blog.163.com/services/emsblog.html?frompersonalbloghome"><span title="来自网易短信写博" class="iblock wapIcon"> </span></a>
+        {/if}
+        <a class="fc03 m2a"  target="_blank" hidefocus="true" href="http://blog.163.com/${x.visitorName}/">
+          ${fn(x.visitorNickname,8)|escape}
+        </a>
+      </div>
+    </div>
+    {/if}
+    {/list}
+       {if !!a}
+    <a target="_blank" href="http://blog.163.com/${a.userName}/"><img class="bdwa bdc0 pnt" onerror="this.src=location.f60" src="${fn1(a.userName)}"/></a>
+    <a target="_blank" class="fc03 m2a" href="http://blog.163.com/${a.userName}/">${fn(a.nickname,8)|escape}</a>
+    <div class="intro fc05">${a.selfIntro|escape}{if great260}${suplement}{/if}</div>
+	    <div class="acts ztag"></div>
+	  <div class="mbga phide xtag">
+        <div class="mbgai"> </div>
+        <a class="fc03 xtag m2a" href="#" target="_blank"></a>
+      </div>
+    {/if}
+   <#--最新日志，群博日志-->     {list a as x}
+    {if !!x}
+    <li class="thide"><a target="_blank" class="fc03 m2a" href="${furl()}${x.permalink}/?latestBlog">${fn(x.title,26)|escape}</a></li>
+    {/if}
+    {/list}
+   <#--推荐日志-->     <p class="fc06">推荐过这篇日志的人：</p>
+    <div>
+      {list a as x}
+      {if !!x}
+      <div class="iblock nbw-fce nbw-f40">
+        <a class="fc03 noul" target="_blank" hidefocus="true" href="http://blog.163.com/${x.recommenderName}/">
+        <img alt="${x.recommenderNickname|escape}" onerror="this.src=location.f40" class="cwd bdwa bdc0" src="${fn1(x.recommenderName)}"/>
+        </a>
+        <div class="cwd thide">
+          <a class="fc03 m2a" target="_blank" hidefocus="true" href="http://blog.163.com/${x.recommenderName}/">
+            ${fn(x.recommenderNickname,6)|escape}
+          </a>
+        </div>
+      </div>
+      {/if}
+      {/list}
+    </div>
+    {if !!b&&b.length>0}
+    <p  class="fc06">他们还推荐了：</p>
+    <ul>
+    {list b as y}
+      {if !!y}
+        <li class="rrb"><span class="iblock">·</span><a class="fc03 m2a" target="_blank" href="http://blog.163.com/${y.recommendBlogPermalink}/?from=blog/static/1899181372009106413070">${y.recommendBlogTitle|escape}</a></li>
+      {/if}
+    {/list}
+    </ul>
+    {/if}
+   <#--引用记录-->     <span class="pleft fc07">转载记录：</span>
+    <ul class="tbac">
+    {list d as x}
+      <li class="clearfix">
+        <span class="pleft iblock">·</span>
+        <div class="tbl thide pleft"><span><a target="_blank" class="fc07 m2a" href="${x.referBlogUrl}">${x.referBlogTitle|escape}</a></span></div>
+        <div class="tbr pleft"><span><a target="_blank" class="fc07 m2a" href="${x.referHomePage}">${x.referUserName|escape}</a></span></div>
+      </li>
+    {/list}
+    </ul>
+   <#--博主推荐-->     {list a as x}
+    {if !!x}
+    <li class="thide"><a target="_blank" class="fc03 m2a" href="http://blog.163.com/${x.userName}/${x.permalink}/?recommendBlog" title="${x.title|default:""|escape}">${x.title|default:""|escape}</a></li>
+    {/if}
+    {/list}
+   <#--随机阅读-->     {list a as x}
+    {if !!x}
+    <li class="thide"><a target="_blank" class="fc03 m2a" href="http://blog.163.com/${x.userName}/${x.permalink}/?personalRecomBlog" title="${x.title|default:""|escape}">${x.title|default:""|escape}</a></li>
+    {/if}
+    {/list}
+   <#--首页推荐-->     {list a as x}
+    {if !!x}
+    <li class="thide"><a target="_blank" class="fc03 m2a" target="_blank" href="${x.blogUrl|default:""|escape}?recommendReader" title="${x.blogTile|default:""|escape}">${x.blogTile|default:""|escape}</a></li>
+    {/if}
+    {/list}
+   <#--历史上的今天-->     <ul>
+      {list a as x}
+      {if x_index>4}{break}{/if}
+      {if !!x}
+        <li class="thide fc03">
+          <a class="m2a" target="_blank"  href="http://blog.163.com/${x.userName}/${x.permalink|default:""}"  title="${x.title|default:""|escape}">${fn1(x.title,60)|escape}</a><span class="fc07">${fn2(x.publishTime,'yyyy-MM-dd HH:mm:ss')}</span>
+        </li>
+      {/if}
+      {/list}
+    </ul>
+   <#--被推荐日志-->     {list a as x}
+    {if !!x}
+    <li class="thide"><a target="_blank" class="fc03 m2a" href="${furl()}${x.permalink}/">${fn(x.title,26)|escape}</a></li>
+    {/if}
+    {/list}
+   <#--右边模块结构-->     <div class="uinfo ztag"></div>
+    <h4 class="fc07 fs0 ltt phide ztag">被推荐日志</h4>
+    <ul class="ztag blst"></ul>
+    <h4 class="fc07 fs0 ltt phide ztag">最新日志</h4>
+    <ul class="ztag blst"></ul>
+    <h4 class="fc07 fs0 ltt phide ztag">该作者的其他文章</h4>
+    <ul class="ztag blst"></ul>
+    <h4 class="fc07 fs0 ltt phide ztag">博主推荐</h4>
+    <ul class="ztag blst"></ul>
+    <h4 class="fc07 fs0 ltt phide ztag">随机阅读</h4>
+    <ul class="ztag blst"></ul>
+    <h4 class="fc07 fs0 ltt phide ztag">首页推荐</h4>
+    <ul class="ztag blst"></ul>
+    <div class="more"><a target="_blank" class="fc03 m2a" href="http://blog.163.com">更多>></a></div>
+    <br/><br/>
+    <div id="yodaoad_r" style="display:none;_zoom:1;"></div>
+    <div id="lofter_single"></div>
+   <#--评论模块结构-->     <div class="publish ztag"></div>
+    <div class="bdwt bds2 bdc0 phide" id="yodaoad_2" style="_zoom:1;"></div>
+    <div class="ztag bdwt bds2 bdc0">
+      <div class="case"></div>
+      <div class="clearfix"></div>
+    </div>
+   <#--引用模块结构-->      <div class="close">
+       <span class="ztag iblock icn0 icn0-57"> </span>
+     </div>
+	 <div class="ztag phide"></div>
+   <#--博主发起的投票-->     {list a as x}
+    {if !!x}
+      <li>
+      <a href="http://blog.163.com/${x.userName}/" target="_blank" class="m2a fc03">${x.nickName|escape}</a>  投票给
+        {var first_option = true;}
+        {list x.voteDetailList as voteToOption}
+            {if voteToOption==1}
+              {if first_option==false},{/if}  “${b[voteToOption_index]}”  
+            {/if}
+        {/list}
+        {if (x.role!="-1") },“我是${c[x.role]}”  {/if}
+            <span class="fc07">    ${fn1(x.voteTime)}</span>
+        {if x.userName==''}{/if}
+    {/if}
+    {/list}
+                 页脚
+公司简介 - 联系方法 - 招聘信息 - 客户服务 - 隐私政策 - 博客风格 - 手机博客 - VIP博客 - 订阅此博客 
+网易公司版权所有 ©1997-2013
+  <a rel="nofollow" class="pr" target="_blank" href="http://help.163.com/special/007525FT/blog.html?b13aze1">帮助</a>
+  <span class="fr iblock space icn1 icn1-4"> </span>
+  <a class="pr" target="_blank" href="http://blog.163.com/activation.do?host=activation&&username=${u}">${u}</a>
+       {list wl as x}
+        <div class="grp">${x.g}</div>
+        {list x.l as y}
+        <a class="itm noul" href="#" hidefocus="true" name="{if typeof(y.v)=='string'}${y.v}{else}${y_index}{/if}">${y.n}</a>
+        {/list}
+      {/list}
+ 	{if defined('wl')}
+        {list wl as x}<a class="itm noul" href="#" hidefocus="true" name="${x.v}">${x.n}</a>{/list}
+    {/if}
+ 

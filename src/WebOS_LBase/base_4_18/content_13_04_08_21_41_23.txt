@@ -1,0 +1,810 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+Tech is Online(物联网技术传播)
+
+物联网（M2M）软硬件平台拓展者、架设者
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+2013年7月微软MVP申请开始啦！        CSDN博客移动开发排行榜      写“书评”赢下载分！ 
+2013年4月微软MVP会员名单揭晓！      来极客头条，赢下载积分      专访关东升：将人文融入到科技产品中 
+
+
+
+Adpcm编解码 
+.
+ 分类： TCPMP2010-01-27 19:361081人阅读评论(1)收藏举报
+ 
+nullqtclasstablecodecoutput
+
+ 
+ADPCM压缩算法
+ 
+　ADPCM(Adaptive Differential Pulse Code Modulation)，是一种针对 16bits( 或8bits或者更高) 声音波形数据的一种有损压缩算法,它将声音流中每次采样的 16bit 数据以 4bit 存储,所以压缩比 1:4. 而且压缩/解压缩算法非常简单,所以是一种低空间消耗，高质量高效率声音获得的好途径。保存声音的数据文件后缀名为 .AUD 的大多用ADPCM 压缩。
+　　ADPCM 主要是针对连续的波形数据的，保存的是波形的变化情况，以达到描述整个波形的目的，由于它的编码和解码的过程却很简洁，列在后面，相信大家能够看懂。
+　　8bits采样的声音人耳是可以勉强接受的，而 16bit 采样的声音可以算是高音质了。ADPCM 算法却可以将每次采样得到的 16bit 数据压缩到 4bit 。需要注意的是，如果要压缩/解压缩得是立体声信号，采样时，声音信号是放在一起的，需要将两个声道分别处理。
+ 
+ADPCM 压缩过程
+ 
+　　首先我们认为声音信号都是从零开始的,那么需要初始化两个变量 
+
+　　　　int index=0,prev_sample=0;
+ 
+　　下面的循环将依次处理声音数据流，注意其中的 getnextsample() 应该得到一个 16bit 的采样数据，而 outputdata() 可以将计算出来的数据保存起来，程序中用到的 step_table[],index_adjust[] 附在后面：
+ 
+　　　　int index=0,prev_sample:=0;
+ 
+　　　　while (还有数据要处理)
+　　　　{
+　　　　　　cur_sample=getnextsample();　　　　　　　　// 得到当前的采样数据
+　　　　　　delta=cur_sample-prev_sample;　　　　　　　// 计算出和上一个的增量
+　　　　　　if (delta<0) delta=-delta,sb=8;　　　　　　// 取绝对值
+　　　　　　else sb = 0 ;　　　　　　　　　　　　　　　// sb 保存的是符号位
+　　　　　　code = 4*delta / step_table[index];　　　　// 根据 steptable[]得到一个 0-7 的值
+　　　　　　if (code>7) code=7;　　　　　　　　　　　　// 它描述了声音强度的变化量
+　　　　　　index += index_adjust[code] ;　　　　　　　// 根据声音强度调整下次取steptable 的序号
+　　　　　　if (index<0) index=0;　　　　　　　　　　　// 便于下次得到更精确的变化量的描述
+　　　　　　else if (index>88) index=88;
+　　　　　　prev_sample=cur_sample;
+　　　　　　outputode(code|sb);　　　　　　　　　　　　// 加上符号位保存起来
+　　　　}
+ 
+　
+ 
+ADPCM 解压缩过程 
+
+　　接压缩实际是压缩的一个逆过程，同样其中的 getnextcode() 应该得到一个编码，,而 outputsample() 可以将解码出来的声音信号保存起来。这段代码同样使用了同一个的 setp_table[] 和 index_adjust() 附在后面：
+ 
+　　　　int index=0,cur_sample=0;
+ 
+　　　　while (还有数据要处理) 
+　　　　{
+　　　　　　　　code=getnextcode();　　　　　　　　　　　　　　　　　　　　　　　// 得到下一个数据
+　　　　　　　　if ((code & 8) != 0) sb=1 else sb=0;
+　　　　　　　　code&=7;　　　　　　　　　　　　　　　　　　　　　　　　　　　　// 将 code 分离为数据和符号
+　　　　　　　　delta = (step_table[index]*code)/4+step_table[index]/8;　　　　　// 后面加的一项是为了减少误差
+　　　　　　　　if (sb==1) delta=-delta;
+　　　　　　　　cur_sample+=delta; 　　　　　　　　　　　　　　　　　　　　　　　// 计算出当前的波形数据
+　　　　　　　　if (cur_sample>32767) output_sample(32767);
+　　　　　　　　else if (cur_sample<-32768) output_sample(-32768);
+　　　　　　　　else output_sample(cur_sample);
+　　　　　　　　index+=index_adjust[code];
+　　　　　　　　if (index<0) index=0;
+　　　　　　　　if (index>88) index=88;
+　　　　　}
+ 
+附表 
+
+　　　　　int index_adjust[8] = {-1,-1,-1,-1,2,4,6,8};
+ 
+　　　　　int step_table[89] = 
+　　　　　{
+　　　　　　　7,8,9,10,11,12,13,14,16,17,19,21,23,25,28,31,34,37,41,45,
+　　　　　　　50,55,60,66,73,80,88,97,107,118,130,143,157,173,190,209,230,253,279,307,337,371,
+　　　　　　　408,449,494,544,598,658,724,796,876,963,1060,1166,1282,1411,1552,1707,1878,2066,
+　　　　　　　2272,2499,2749,3024,3327,3660,4026,4428,4871,5358,5894,6484,7132,7845,8630,9493,
+　　　　　　　10442,11487,12635,13899,15289,16818,18500,20350,22385,24623,27086,29794,32767
+　　　　　}
+
+ 
+TCPMP原代码赏析
+ 
+/*****************************************************************************
+ *
+ * This program is free software ; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ *
+ * $Id: adpcm.h 271 2005-08-09 08:31:35Z picard $
+ *
+ * The Core Pocket Media Player
+ * Copyright (c) 2004-2005 Gabor Kovacs
+ *
+ ****************************************************************************/
+ 
+#ifndef __ADPCM_H
+#define __ADPCM_H
+ 
+#define ADPCM_CLASS  FOURCC('A','D','P','C')
+#define ADPCM_MS_ID  FOURCC('A','D','M','S')
+#define ADPCM_IMA_ID FOURCC('A','D','I','M')
+#define ADPCM_IMA_QT_ID FOURCC('A','D','I','Q')
+#define ADPCM_G726_ID FOURCC('G','7','2','6')
+ 
+extern void ADPCM_Init();
+extern void ADPCM_Done();
+ 
+#endif
+ 
+ 
+ 
+/*****************************************************************************
+ *
+ * This program is free software ; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+ *
+ * $Id: adpcm.c 565 2006-01-12 14:11:44Z picard $
+ *
+ * The Core Pocket Media Player
+ * Copyright (c) 2004-2005 Gabor Kovacs
+ *
+ ****************************************************************************/
+ 
+#include "../common/common.h"
+#include "adpcm.h"
+#include "g726/g72x.h"
+ 
+typedef struct state 
+{
+    int Predictor;
+    int StepIndex;
+    int Step;
+    int Sample1;
+    int Sample2;
+    int CoEff1;
+    int CoEff2;
+    int IDelta;
+ 
+} state;
+ 
+typedef struct adpcm
+{
+ codec Codec;
+ buffer Data;
+ 
+ int Channel; //IMA_QT
+ int16_t* Buffer;
+ state State[2];
+ g726_state G726[2];
+ 
+} adpcm;
+ 
+static const int IndexTable[16] = 
+{
+    -1, -1, -1, -1, 2, 4, 6, 8,
+    -1, -1, -1, -1, 2, 4, 6, 8,
+};
+ 
+static const int StepTable[89] = 
+{
+    7, 8, 9, 10, 11, 12, 13, 14, 16, 17,
+    19, 21, 23, 25, 28, 31, 34, 37, 41, 45,
+    50, 55, 60, 66, 73, 80, 88, 97, 107, 118,
+    130, 143, 157, 173, 190, 209, 230, 253, 279, 307,
+    337, 371, 408, 449, 494, 544, 598, 658, 724, 796,
+    876, 963, 1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066,
+    2272, 2499, 2749, 3024, 3327, 3660, 4026, 4428, 4871, 5358,
+    5894, 6484, 7132, 7845, 8630, 9493, 10442, 11487, 12635, 13899,
+    15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767
+};
+ 
+// AdaptationTable[], AdaptCoeff1[], and AdaptCoeff2[] are from libsndfile
+static const int AdaptationTable[] = 
+{
+ 230, 230, 230, 230, 307, 409, 512, 614,
+ 768, 614, 512, 409, 307, 230, 230, 230
+};
+static const int AdaptCoeff1[] = 
+{
+ 256, 512, 0, 192, 240, 460, 392
+};
+static const int AdaptCoeff2[] = 
+{
+ 0, -256, 0, 64, 0, -208, -232
+};
+ 
+static _INLINE int IMA_Calc(state* s, int v)
+{
+    int StepIndex;
+    int Predictor;
+    int Diff,Step;
+ 
+    Step = StepTable[s->StepIndex];
+    StepIndex = s->StepIndex + IndexTable[v];
+ 
+    if (StepIndex < 0) 
+  StepIndex = 0;
+    else if (StepIndex > 88) 
+  StepIndex = 88;
+ 
+    Diff = ((2 * (v & 7) + 1) * Step) >> 3;
+ 
+    Predictor = s->Predictor;
+    if (v & 8) 
+  Predictor -= Diff;
+    else 
+  Predictor += Diff;
+ 
+ if (Predictor > 32767) 
+  Predictor = 32767;
+ else if (Predictor < -32768) 
+  Predictor = -32768;
+ 
+    s->Predictor = Predictor;
+    s->StepIndex = StepIndex;
+ 
+    return Predictor;
+}
+ 
+static _INLINE int MS_Calc(state* s, int v)
+{
+    int Predictor;
+ 
+    Predictor = ((s->Sample1 * s->CoEff1) + (s->Sample2 * s->CoEff2)) >> 8;
+    Predictor += ((v & 0x08) ? v-0x10:v) * s->IDelta;
+ 
+ if (Predictor > 32767) 
+  Predictor = 32767;
+ else if (Predictor < -32768) 
+  Predictor = -32768;
+ 
+    s->Sample2 = s->Sample1;
+    s->Sample1 = Predictor;
+    s->IDelta = (AdaptationTable[v] * s->IDelta) >> 8;
+    if (s->IDelta < 16) 
+  s->IDelta = 16;
+ 
+    return Predictor;
+}
+ 
+static int Process(adpcm* p, const packet* Packet, const flowstate* State)
+{
+ int i;
+ int Predictor;
+ const uint8_t* In;
+ const uint8_t* InEnd;
+ int16_t* Out = p->Buffer;
+ 
+ if (Packet)
+ {
+  if (Packet->RefTime >= 0)
+   p->Codec.Packet.RefTime = Packet->RefTime;
+ 
+  BufferPack(&p->Data,0);
+  BufferWrite(&p->Data,Packet->Data[0],Packet->Length,1024);
+ }
+ else
+  p->Codec.Packet.RefTime = TIME_UNKNOWN;
+ 
+ if (!BufferRead(&p->Data,&In,p->Codec.In.Format.Format.Audio.BlockAlign))
+  return ERR_NEED_MORE_DATA;
+ 
+ InEnd = In + p->Codec.In.Format.Format.Audio.BlockAlign;
+ 
+ switch (p->Codec.Node.Class)
+ {
+ case ADPCM_G726_ID:
+ {
+  g726_state *g1,*g2;
+  g1 = g2 = &p->G726[0];
+  if (p->Codec.In.Format.Format.Audio.Channels==2)
+   ++g2;
+ 
+  switch (p->Codec.In.Format.Format.Audio.Bits)
+  {
+  case 2:
+   for (;In<InEnd;++In,Out+=4)
+   {
+    Out[0] = (int16_t)g726_16_decoder(In[0] >> 6,g1);
+    Out[1] = (int16_t)g726_16_decoder(In[0] >> 4,g2);
+    Out[2] = (int16_t)g726_16_decoder(In[0] >> 2,g1);
+    Out[3] = (int16_t)g726_16_decoder(In[0],g2);
+   }
+   break;
+  case 3:
+   InEnd -= 2;
+   for (;In<InEnd;In+=3,Out+=8)
+   {
+    Out[0] = (int16_t)g726_24_decoder(In[0] >> 5,g1);
+    Out[1] = (int16_t)g726_24_decoder(In[0] >> 2,g2);
+    Out[2] = (int16_t)g726_24_decoder((In[0] << 1) | (In[1] >> 7),g1);
+    Out[3] = (int16_t)g726_24_decoder(In[1] >> 4,g2);
+    Out[4] = (int16_t)g726_24_decoder(In[1] >> 1,g1);
+    Out[5] = (int16_t)g726_24_decoder((In[1] << 2) | (In[2] >> 6),g2);
+    Out[6] = (int16_t)g726_24_decoder(In[2] >> 3,g1);
+    Out[7] = (int16_t)g726_24_decoder(In[2] >> 0,g2);
+   }
+   break;
+  case 4:
+   for (;In<InEnd;++In,Out+=2)
+   {
+    Out[0] = (int16_t)g726_32_decoder(In[0] >> 4,g1);
+    Out[1] = (int16_t)g726_32_decoder(In[0],g2);
+   }
+   break;
+  case 5:
+   InEnd -= 4;
+   for (;In<InEnd;In+=5,Out+=8)
+   {
+    Out[0] = (int16_t)g726_40_decoder(In[0] >> 3,g1);
+    Out[1] = (int16_t)g726_40_decoder((In[0] << 2) | (In[1] >> 6),g2);
+    Out[2] = (int16_t)g726_40_decoder(In[1] >> 1,g1);
+    Out[3] = (int16_t)g726_40_decoder((In[1] << 4) | (In[2] >> 4),g2);
+    Out[4] = (int16_t)g726_40_decoder((In[2] << 1) | (In[3] >> 7),g1);
+    Out[5] = (int16_t)g726_40_decoder(In[3] >> 2,g2);
+    Out[6] = (int16_t)g726_40_decoder((In[3] << 3) | (In[4] >> 5),g1);
+    Out[7] = (int16_t)g726_40_decoder(In[4] >> 0,g2);
+   }
+   break;
+  }
+  break;
+ }
+ case ADPCM_IMA_QT_ID:
+ {
+  int No,Ch;
+  Ch = p->Codec.In.Format.Format.Audio.Channels;
+  for (No=0;No<Ch;++No)
+  {
+   state *s;
+   s = &p->State[0];
+   s->Predictor = (int16_t)((In[1] & 0x80) | (In[0] << 8));
+ 
+   s->StepIndex = In[1] & 0x7F;
+   if (s->StepIndex > 88) 
+    s->StepIndex = 88;
+ 
+   In+=2;
+   InEnd=In+32;
+   Out = p->Buffer+No;
+ 
+   for (;In<InEnd;++In)
+   {
+    *Out = (int16_t)IMA_Calc(s, In[0] & 0x0F);
+    Out+=Ch;
+    *Out = (int16_t)IMA_Calc(s, In[0] >> 4);
+    Out+=Ch;
+   }
+  }
+ 
+  Out = p->Buffer+Ch*64;
+  break;
+ }
+ 
+ case ADPCM_IMA_ID:
+ {
+  state *s1,*s2;
+  s1 = &p->State[0];
+  s1->Predictor = (int16_t)(In[0] | (In[1] << 8));
+  In+=2;
+ 
+  s1->StepIndex = *In++;
+  if (s1->StepIndex > 88) 
+   s1->StepIndex = 88;
+  ++In;
+ 
+  if (p->Codec.In.Format.Format.Audio.Channels == 2)
+  {
+   s2 = &p->State[1];
+   s2->Predictor = (int16_t)(In[0] | (In[1] << 8));
+   In+=2;
+ 
+   s2->StepIndex = *In++;
+   if (s2->StepIndex > 88) 
+    s2->StepIndex = 88;
+   ++In;
+ 
+   for (i=4;In<InEnd;++In,Out+=4)
+   {
+    Out[0] = (int16_t)IMA_Calc(s1, In[0] & 0x0F);
+    Out[1] = (int16_t)IMA_Calc(s2, In[4] & 0x0F);
+    Out[2] = (int16_t)IMA_Calc(s1, In[0] >> 4);
+    Out[3] = (int16_t)IMA_Calc(s2, In[4] >> 4);
+ 
+    if (--i==0)
+    {
+     i=4;
+     In+=4;
+    }
+   }
+  }
+  else
+  {
+   for (;In<InEnd;++In,Out+=2)
+   {
+    Out[0] = (int16_t)IMA_Calc(s1, In[0] & 0x0F);
+    Out[1] = (int16_t)IMA_Calc(s1, In[0] >> 4);
+   }
+  }
+  break;
+ }
+ case ADPCM_MS_ID:
+ {
+  state *s1,*s2;
+  s1 = &p->State[0];
+  s2 = p->Codec.In.Format.Format.Audio.Channels==2 ? &p->State[1] : s1;
+ 
+  Predictor = *In++;
+  if (Predictor > 7)
+   Predictor = 7;
+  s1->CoEff1 = AdaptCoeff1[Predictor];
+  s1->CoEff2 = AdaptCoeff2[Predictor];
+ 
+  if (s2 != s1)
+  {
+   Predictor = *In++;
+   if (Predictor > 7)
+    Predictor = 7;
+   s2->CoEff1 = AdaptCoeff1[Predictor];
+   s2->CoEff2 = AdaptCoeff2[Predictor];
+  }
+ 
+  s1->IDelta = (int16_t)(In[0] | (In[1] << 8));
+  In+=2;
+ 
+  if (s2 != s1)
+  {
+   s2->IDelta = (int16_t)(In[0] | (In[1] << 8));
+   In+=2;
+  }
+ 
+  s1->Sample1 = (int16_t)(In[0] | (In[1] << 8));
+  In+=2;
+  if (s2 != s1)
+  {
+   s2->Sample1 = (int16_t)(In[0] | (In[1] << 8));
+   In+=2;
+  }
+ 
+  s1->Sample2 = (int16_t)(In[0] | (In[1] << 8));
+  In+=2;
+  if (s2 != s1)
+  {
+   s2->Sample2 = (int16_t)(In[0] | (In[1] << 8));
+   In+=2;
+  }
+ 
+  *Out++ = (int16_t)s1->Sample1;
+  if (s2 != s1) *Out++ = (int16_t)s2->Sample1;
+ 
+  *Out++ = (int16_t)s1->Sample2;
+  if (s2 != s1) *Out++ = (int16_t)s2->Sample2;
+ 
+  for (;In<InEnd;++In,Out+=2)
+  {
+   Out[0] = (int16_t)MS_Calc(s1, In[0] >> 4);
+   Out[1] = (int16_t)MS_Calc(s2, In[0] & 0x0F);
+  }
+  break;
+ }
+ }
+ 
+ p->Codec.Packet.Length = (uint8_t*)Out - (uint8_t*)p->Buffer;
+ return ERR_NONE;
+}
+ 
+static int UpdateInput(adpcm* p)
+{
+ BufferClear(&p->Data);
+ free(p->Buffer);
+ p->Buffer = NULL;
+ 
+ if (p->Codec.In.Format.Type == PACKET_AUDIO)
+ {
+  PacketFormatPCM(&p->Codec.Out.Format,&p->Codec.In.Format,16);
+ 
+  if (!p->Codec.In.Format.Format.Audio.BlockAlign)
+   p->Codec.In.Format.Format.Audio.BlockAlign = 1024;
+ 
+  if (p->Codec.Node.Class == ADPCM_IMA_QT_ID)
+   p->Codec.In.Format.Format.Audio.BlockAlign = (32+2)*p->Codec.In.Format.Format.Audio.Channels;
+ 
+  if (p->Codec.Node.Class == ADPCM_G726_ID)
+  {
+   p->Codec.In.Format.Format.Audio.BlockAlign = 120;
+   g726_init_state(&p->G726[0]);
+   g726_init_state(&p->G726[1]);
+  }
+ 
+  p->Buffer = (int16_t*) malloc(sizeof(int16_t)*4*p->Codec.In.Format.Format.Audio.BlockAlign);
+  if (!p->Buffer)
+   return ERR_OUT_OF_MEMORY;
+ 
+  p->Codec.Packet.Data[0] = p->Buffer;
+ }
+ 
+ return ERR_NONE;
+}
+ 
+static int Flush(adpcm* p)
+{
+ if (p->Codec.Node.Class == ADPCM_G726_ID)
+ {
+  g726_init_state(&p->G726[0]);
+  g726_init_state(&p->G726[1]);
+ }
+ BufferDrop(&p->Data);
+ p->Channel = 0;
+ return ERR_NONE;
+}
+ 
+static int Create(adpcm* p)
+{
+ p->Codec.Process = (packetprocess)Process;
+ p->Codec.UpdateInput = (nodefunc)UpdateInput;
+ p->Codec.Flush = (nodefunc)Flush;
+ return ERR_NONE;
+}
+ 
+static const nodedef ADPCM =
+{
+ sizeof(adpcm)|CF_ABSTRACT,
+ ADPCM_CLASS,
+ CODEC_CLASS,
+ PRI_DEFAULT,
+ (nodecreate)Create,
+ NULL,
+};
+ 
+static const nodedef ADPCM_MS =
+{
+ 0, //parent size
+ ADPCM_MS_ID,
+ ADPCM_CLASS,
+ PRI_DEFAULT,
+ NULL,
+ NULL,
+};
+ 
+static const nodedef ADPCM_IMA =
+{
+ 0, //parent size
+ ADPCM_IMA_ID,
+ ADPCM_CLASS,
+ PRI_DEFAULT,
+ NULL,
+ NULL,
+};
+ 
+static const nodedef ADPCM_IMA_QT =
+{
+ 0, //parent size
+ ADPCM_IMA_QT_ID,
+ ADPCM_CLASS,
+ PRI_DEFAULT,
+ NULL,
+ NULL,
+};
+ 
+static const nodedef ADPCM_G726 =
+{
+ 0, //parent size
+ ADPCM_G726_ID,
+ ADPCM_CLASS,
+ PRI_DEFAULT,
+ NULL,
+ NULL,
+};
+ 
+void ADPCM_Init()
+{
+ NodeRegisterClass(&ADPCM);
+ NodeRegisterClass(&ADPCM_MS);
+ NodeRegisterClass(&ADPCM_IMA);
+ NodeRegisterClass(&ADPCM_IMA_QT);
+ NodeRegisterClass(&ADPCM_G726);
+}
+ 
+void ADPCM_Done()
+{
+ NodeUnRegisterClass(ADPCM_MS_ID);
+ NodeUnRegisterClass(ADPCM_IMA_ID);
+ NodeUnRegisterClass(ADPCM_IMA_QT_ID);
+ NodeUnRegisterClass(ADPCM_G726_ID);
+ NodeUnRegisterClass(ADPCM_CLASS);
+}
+ 
+ 
+ 
+分享到： 
+
+上一篇：三十分钟掌握STL
+下一篇：线程池就好像一个池子，可以容纳各种液体
+ . 
+
+
+查看评论
+ 
+1楼 草根聪 2012-09-13 09:18发表[回复] 您好博主，我想请教一下对于后面那个index_adjust以及step_table是如果预测得出的？谢谢您
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料
+
+xxxluozhen
+ 
+
+
+
+
+访问：196235次
+积分：3964分
+排名：第1189名
+.原创：173篇
+转载：59篇
+译文：1篇
+评论：239条
+. 
+文章搜索
+
+. 
+文章分类C/C++(54)
+DirectX(13)
+DoNET(5)
+MFC/BCG(17)
+TCPMP(7)
+JAVA(1)
+云计算(OpenStack)(7)
+数据库(3)
+企业运作(16)
+多核计算(1)
+开源社区(1)
+分布式应用(1)
+皓月身影(4)
+软件/框架设计(12)
+音视频编解码(6)
+ReactOS(0)
+Linux操作系统(4)
+Window内核编程(40)
+WinCE嵌入式系统(33)
+操作系统实现(X86)(0)
+ 
+文章存档
+2012年11月(1).
+2012年07月(1).
+2012年06月(1).
+2012年05月(1).
+2012年04月(1).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+阅读排行让你的代码变的更加强大(Making your C++ code robust)(21288)
+Windows CE嵌入式导航系统研究(内核相关)(5563)
+Windows RPC编程详解(4580)
+多线程程序操作共享区域（文件）的一点体会(4311)
+软件开发，标准化流水线式开发的实施构想(3252)
+WinXP下USB驱动开发(五)(3131)
+WinXP下USB驱动开发(二) (2999)
+WinXP下USB驱动开发(六) (2973)
+WinXP下USB驱动开发(七) (2768)
+WinXP下USB驱动开发(三) (2766)
+ 
+评论排行让你的代码变的更加强大(Making your C++ code robust)(78)
+软件开发，标准化流水线式开发的实施构想(42)
+多线程程序操作共享区域（文件）的一点体会(26)
+恭喜您成为 2011 年度 Microsoft MVP !(10)
+WinXP下USB驱动开发(十) (9)
+ WINCE声音驱动模型概述(4)(9)
+SGI STL空间适配器freelist设计(5)
+Qt-WinCE安装、开发及部署全解(4)
+S3C2440A WiinCE下CMOS驱动程序修改和摄像头应用程序(3)
+Window Mobile RDA数据库操作解决方案研究(3)
+ 
+推荐文章 
+最新评论 Windows RPC编程详解
+chzuping: 写得真不错啊 
+
+SGI STL空间适配器freelist设计
+legend2015: 非常好的内容。 
+
+SGI STL空间适配器freelist设计
+zhaohu199: OIK 
+
+SGI STL空间适配器freelist设计
+zhaohu199: 顶 
+
+SGI STL空间适配器freelist设计
+yumenjiebaixinyun: 非常好，特别棒 
+
+SGI STL空间适配器freelist设计
+fhl10509: 很不错,学习了,有意思... 
+
+WinXP下USB驱动开发(一)
+shimingliabc: 哇，真的好牛，我要一口气读完这十篇， 学习中... 
+
+WinXP下USB驱动开发(十) 
+hfz8867879: 学习，感谢 
+
+WinXP下USB驱动开发(一)
+hfz8867879: 学习了，感恩 
+
+Adpcm编解码
+草根聪: 您好博主，我想请教一下对于后面那个index_adjust以及step_table是如果预测得出的？... 
+
+
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持Copyright © 1999-2012, CSDN.NET, All Rights Reserved  

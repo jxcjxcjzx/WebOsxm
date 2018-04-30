@@ -1,0 +1,46 @@
+arm-linux—gcc如何下载安装
+
+分类： linux c语言 2012-03-29 14:26 2780人阅读 评论(0) 收藏 举报
+gccpath编译器2010测试ubuntu
+ubuntu下交叉编译环境构建（arm-linux-gcc-4.4.3-20100728.tar.gz ）
+1.下载arm-linux-gcc-4.4.3-20100728.tar.gz到任意的目录下。
+　　arm-linux-gcc-4.4.3-20100728.tar.gz 的下载：点击下载
+2.解压 arm-linux-gcc-4.4.3-20100728.tar.gz
+　　#tar -zxvf arm-linux-gcc-4.4.3-20100728.tar.gz
+　　解压过程需要一段时间，解压后的文件形成了opt/FriendlyARM/文件夹，进入该文件夹，将toolschain文件夹拷贝到/usr/local/下
+
+　　#cp -rv toolschain /usr/local/
+　　现在交叉编译程序集都在/usr/local/toolschain/4.4.3/bin下面了
+3. 　修改环境变量，把交叉编译器的路径加入到PATH。(有三种方法，强烈推荐使用方法一)
+　　方法一：修改/etc/bash.bashrc文件
+     #vim /etc/bash.bashrc
+            在最后加上：
+   export PATH＝$PATH:/usr/local/toolschain/4.4.3/bin
+export PATH
+    （如果不能编辑，先修改相关文件的权限使用chmod命令。）
+4.　立即使新的环境变量生效，不用重启电脑：
+　#source /root/.bashrc
+5.　检查是否将路径加入到PATH：
+　　 # echo $PATH
+　　显示的内容中有/usr/local/toolschain/4.4.3/bin，说明已经将交叉编译器的路径加入PATH。至此，交叉编译环境安装完成。
+6.测试是否安装成功
+# arm-linux-gcc -v
+上面的命令会显示arm-linux-gcc信息和版本，这是我显示的信息：
+Using built-in specs.
+Target: arm-none-linux-gnueabi
+Configured with: /opt/FriendlyARM/mini2440/build-toolschain/working/src/gcc-4.4.3/configure --build=i386-build_redhat-linux-gnu --host=i386-build_redhat-linux-gnu --target=arm-none-linux-gnueabi --prefix=/opt/FriendlyARM/toolschain/4.4.3 --with-sysroot=/opt/FriendlyARM/toolschain/4.4.3/arm-none-linux-gnueabi//sys-root --enable-languages=c,c++ --disable-multilib --with-arch=armv4t --with-cpu=arm920t --with-tune=arm920t --with-float=soft --with-pkgversion=ctng-1.6.1 --disable-sjlj-exceptions --enable-__cxa_atexit --with-gmp=/opt/FriendlyARM/toolschain/4.4.3 --with-mpfr=/opt/FriendlyARM/toolschain/4.4.3 --with-ppl=/opt/FriendlyARM/toolschain/4.4.3 --with-cloog=/opt/FriendlyARM/toolschain/4.4.3 --with-mpc=/opt/FriendlyARM/toolschain/4.4.3 --with-local-prefix=/opt/FriendlyARM/toolschain/4.4.3/arm-none-linux-gnueabi//sys-root --disable-nls --enable-threads=posix --enable-symvers=gnu --enable-c99 --enable-long-long --enable-target-optspace
+Thread model: posix
+gcc version 4.4.3 (ctng-1.6.1) 
+
+7.编译Hello World程序，测试交叉工具链
+   写下下面的Hello World程序，保存为 hello.c
+#include <stdio.h>
+int main()
+{
+printf("Hello World!\n");
+return 0;
+}
+   执行下面的命令：
+# arm-linux-gcc -o hello hello.c
+    源程序有错误的话会有提示，没有任何提示的话，就是通过了，就可以下载到ARM目标板上运行了！
+接着可以输入file hello的命令，查看生成的hello文件的类型，要注意的是生成的可执行文件只能在ARM体系下运行，不能在其于X86的PC机上运行。

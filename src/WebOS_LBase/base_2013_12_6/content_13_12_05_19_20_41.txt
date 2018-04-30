@@ -1,0 +1,92 @@
+
+相册广场游戏登录注册关注此空间
+亦步亦趋，枫声水起
+天堂里沉沦，地狱中爆发
+2010-06-17 17:36 GTK程序--GTKIMAGE使用
+//简单的使用GTKIMAGE，包含两个按钮，一个显示，一个隐藏
+#include <gtk-2.0/gtk/gtk.h>
+void gtk_win_destroy(GtkWidget *widget,gpointer data)
+{
+        gtk_main_quit();
+}
+//这个是显示图片的按钮对应的回调函数
+void btn_show_pic(GtkWidget *widget,gpointer data)
+{
+        GtkWidget *image = data;
+        gtk_widget_show(image);
+}
+//隐藏图片
+void btn_hide_pic(GtkWidget *widget,gpointer data)
+{
+        GtkWidget *image = data;
+        gtk_widget_hide(image);
+}
+int main(int argc,char *argv[])
+{
+        GtkWidget *window;
+        GtkWidget *button_show;
+        GtkWidget *button_hide;
+        GtkWidget *vbox;
+        GtkWidget *hbox;
+        GtkWidget *image;
+        gtk_init(&argc,&argv);
+        window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+        button_show = gtk_button_new_with_label("Show");
+        button_hide = gtk_button_new_with_label("Hide");
+        vbox = gtk_vbox_new(FALSE,10);
+        hbox = gtk_hbox_new(FALSE,10);
+        image = gtk_image_new_from_file("cover.jpg");
+        //Set window properties
+        gtk_window_set_title(GTK_WINDOW(window),"GtkImage");
+        gtk_window_set_default_size(GTK_WINDOW(window),1000,600);
+        gtk_window_set_resizable(GTK_WINDOW(window),TRUE);
+        //Pack box
+        gtk_box_pack_start(hbox,button_show,TRUE,FALSE,10);
+        gtk_box_pack_start(hbox,button_hide,TRUE,FALSE,10);
+        gtk_box_pack_start(vbox,image,TRUE,FALSE,10);
+        gtk_box_pack_start(vbox,hbox,TRUE,FALSE,10);
+        //Connect signals
+        g_signal_connect(GTK_OBJECT(window),"destroy",GTK_SIGNAL_FUNC(gtk_win_destroy),NULL);
+        g_signal_connect(GTK_OBJECT(button_show),"clicked",GTK_SIGNAL_FUNC(btn_show_pic),image);
+        g_signal_connect(GTK_OBJECT(button_hide),"clicked",GTK_SIGNAL_FUNC(btn_hide_pic),image);
+        gtk_container_add(GTK_CONTAINER(window),vbox);
+        gtk_widget_show_all(window);
+        gtk_main();
+        return 0;
+}
+#gtk+2.0
+分享到： 举报 浏览(613) 评论 转载
+你可能也喜欢
+
+ 陈晓西装大片尽展时尚绅士风格
+陈晓西装大片尽展时尚绅士风格
+ 美国传媒业巨头赫斯特家族的继承人、上流社会名媛、时尚名模莉蒂亚·赫斯特 Lydia Hearst
+美国传媒业巨头赫斯特家族的继承人、上流社会名媛、时尚名模莉蒂亚·赫斯特 Lydia Hearst
+ 中国第一美女花瓶——2013福布斯中国名人榜冠军范冰冰唯美时尚大片
+中国第一美女花瓶——2013福布斯中国名人榜冠军范冰冰唯美时尚大片
+ 柳岩最新照
+柳岩最新照
+ 艾薇儿《Glamour》杂志写真诠释意式风情
+艾薇儿《Glamour》杂志写真诠释意式风情
+ 张雨绮《时尚cosmo》12月封面
+张雨绮《时尚cosmo》12月封面
+ GTK程序--使用按钮（事件、信号的使用）
+GTK程序--使用按钮（事件、信号的使用）
+本文最近访客
+
+ 夜飞雪lv5
+夜飞雪lv5
+9月6日
+ zhurilin
+zhurilin
+1月8日
+评论
+
+ 发布 
+帮助中心 | 空间客服 | 投诉中心 | 空间协议
+©2013 Baidu
+
+百度空间，让世界发现你
+向世界展示自己，发布喜爱的图片、文字和音乐
+简单注册登录
+

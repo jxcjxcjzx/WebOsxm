@@ -1,0 +1,321 @@
+我使用过的Linux命令之for - Bash中的For循环
+
+本文链接：http://codingstandards.iteye.com/blog/778999   （转载请注明出处）
+
+ 
+
+用途说明
+
+在shell中用于循环。类似于其他编程语言中的for，但又有些不同。for循环是Bash中最常用的语法结构。
+
+常用格式
+
+格式一
+
+for 变量
+
+do
+
+    语句
+
+done
+
+格式二
+
+for 变量 in 列表
+
+do
+
+    语句
+
+done
+
+格式三
+
+for ((变量=初始值; 条件判断; 变量变化))
+
+do
+
+    语句
+
+done
+
+使用示例
+
+示例一
+
+for s in ac apropos at arp
+do
+     echo $s
+done 
+ 
+
+ 
+
+[root@jfht ~]# for s in ac apropos at arp 
+> do 
+>     echo $s 
+> done 
+ac
+apropos
+at
+arp
+[root@jfht ~]#
+
+示例二
+
+for f in *
+do
+    echo $f
+done
+ 
+ 
+
+[root@jfht ~]# for f in * 
+> do 
+>     echo $f 
+> done 
+anaconda-ks.cfg
+bak181
+hlx
+install.log
+install.log.syslog
+job.sh
+job.txt
+mbox
+mini
+setup
+temp
+vsftpd-2.0.5-16.el5.i386.rpm
+vsftpd.conf
+work191
+[root@jfht ~]#
+
+ 
+
+示例三
+
+ls >ls.txt
+for s in $(cat ls.txt)
+do
+    echo $s
+done
+ 
+[root@jfht ~]# ls >ls.txt
+
+[root@jfht ~]# for s in $(cat ls.txt) 
+> 
+> do 
+> 
+>     echo $s 
+> 
+> done 
+anaconda-ks.cfg
+bak181
+hlx
+install.log
+install.log.syslog
+job.sh
+job.txt
+ls.txt
+mbox
+mini
+setup
+temp
+vsftpd-2.0.5-16.el5.i386.rpm
+vsftpd.conf
+work191
+[root@jfht ~]#
+
+ 
+
+示例四
+
+print_args()
+{
+    for arg in "$@"
+    do
+        echo $arg
+    done
+}
+print_args 1 2 3 4
+print_args "this is a test"
+print_args this is a test
+
+
+
+[root@smsgw root]# print_args() 
+> { 
+>     for arg in "$@" 
+>     do 
+>         echo $arg 
+>     done 
+> } 
+[root@smsgw root]# print_args 1 2 3 4 
+1
+2
+3
+4
+[root@smsgw root]# print_args "this is a test" 
+this is a test
+[root@smsgw root]# print_args this is a test 
+this
+is
+a
+test
+
+示例五
+
+for ((i=0; i<10; ++i))
+do
+    echo $i
+done
+ 
+
+[root@smsgw root]# for ((i=0; i<10; ++i)) 
+> do 
+>     echo $i 
+> done 
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+
+ 
+
+示例六 列表为数组
+AREAS=(1901 1902 1903 1904 1905 1906 1907   1908 1909 1910 1911 1912 1913)
+NAMES=(南京 无锡 徐州 常州 苏州 南通 连云港 淮安 盐城 扬州 镇江 泰州 宿迁)
+NUM_OF_AREAS=13
+area_name_of()
+{
+    for ((I=0; I<$NUM_OF_AREAS; ++I))
+    do
+        if [ "$1" == "${AREAS[I]}" ]; then
+            echo "${NAMES[I]}"
+        fi
+    done
+}
+echo $(area_name_of 1903)
+for AREA in ${AREAS[*]};
+do
+    echo $AREA $(area_name_of $AREA)
+done
+ 
+
+[root@smsgw root]# AREAS=(1901 1902 1903 1904 1905 1906 1907   1908 1909 1910 1911 1912 1913) 
+[root@smsgw root]# NAMES=(南京 无锡 徐州 常州 苏州 南通 连云港 淮安 盐城 扬州 镇江 泰州 宿迁) 
+[root@smsgw root]# NUM_OF_AREAS=13 
+[root@smsgw root]# area_name_of() 
+> { 
+>     for ((I=0; I<$NUM_OF_AREAS; ++I)) 
+>     do 
+>         if [ "$1" == "${AREAS[I]}" ]; then 
+>             echo "${NAMES[I]}" 
+>         fi 
+>     done 
+> } 
+[root@smsgw root]# echo $(area_name_of 1903) 
+徐州
+[root@smsgw root]# for AREA in ${AREAS[*]}; 
+> do 
+>     echo $AREA $(area_name_of $AREA) 
+> done 
+1901 南京
+1902 无锡
+1903 徐州
+1904 常州
+1905 苏州
+1906 南通
+1907 连云港
+1908 淮安
+1909 盐城
+1910 扬州
+1911 镇江
+1912 泰州
+1913 宿迁
+[root@smsgw root]#
+
+ 
+
+示例七 bash version 3.0+
+
+bash --version
+for i in {1..5}
+do
+   echo "Welcome $i times"
+done 
+ 
+
+[root@smsgw root]# bash --version 
+GNU bash, version 2.05b.0(1)-release (i386-redhat-linux-gnu)
+Copyright (C) 2002 Free Software Foundation, Inc.
+[root@smsgw root]# for i in {1..5} 
+> do 
+>    echo "Welcome $i times" 
+> done 
+Welcome {1..5} times
+[root@smsgw root]#
+
+换个较高版本的Linux。
+
+[root@jfht ~]# bash --version 
+GNU bash, version 3.2.25(1)-release (i686-redhat-linux-gnu)
+Copyright (C) 2005 Free Software Foundation, Inc.
+[root@jfht ~]# for i in {1..5} 
+> do 
+>    echo "Welcome $i times" 
+> done 
+Welcome 1 times
+Welcome 2 times
+Welcome 3 times
+Welcome 4 times
+Welcome 5 times
+[root@jfht ~]#
+
+ 
+
+示例八 Bash v4.0+
+
+echo "Bash version ${BASH_VERSION}..."
+for i in {0..10..2}
+  do
+     echo "Welcome $i times"
+ done
+ 
+
+[root@smsgw root]# echo "Bash version ${BASH_VERSION}..."
+Bash version 2.05b.0(1)-release...
+[root@smsgw root]# for i in {0..10..2}
+>   do
+>      echo "Welcome $i times"
+>  done
+Welcome {0..10..2} times
+[root@smsgw root]#
+
+换个较高版本的Linux。
+
+[root@jfht ~]# echo "Bash version ${BASH_VERSION}..."
+Bash version 3.2.25(1)-release...
+[root@jfht ~]# for i in {0..10..2}
+>   do
+>      echo "Welcome $i times"
+>  done
+Welcome {0..10..2} times
+[root@jfht ~]#
+
+传说Bash4.0可以支持这种语法。
+
+Bash version 4.0.33(0)-release...
+Welcome 0 times
+Welcome 2 times
+Welcome 4 times
+Welcome 6 times
+Welcome 8 times
+Welcome 10 times

@@ -1,0 +1,972 @@
+
+
+Chinaunix首页　| 　论坛　| 　问答　| 　博客登录 | 注册
+
+
+
+博文博主
+
+
+
+
+
+
+
+
+
+张同光：Hello everyone !ztguang.blog.chinaunix.net
+
+Let us make progress together every day !
+
+
+•征集贴：技术Surper Men集中营 
+• 【原创评选】8-9月原创博文评选开始啦！
+•2013第二季度“ChinaUnix博客之星”评选活动
+
+首页　| 　博文目录　| 　关于我
+ 
+
+
+
+
+ztguang
+•博客访问： 553815 
+•博文数量： 754 
+•博客积分： 12444 
+•博客等级： 上将 
+•技术积分： 6711 
+•用 户 组： 普通用户
+•注册时间： 2008-03-13 21:34 
+•
+
+•
+•
+•
+•
+
+
+个人简介
+
+......
+
+
+文章分类
+
+
+全部博文（754）
+•教学--选修--考试（10） 
+•嵌入式开发（3） 
+•嵌入式实验（20） 
+
+
+
+
+
+•操作系统原理（10） 
+•学生学习成果（13） 
+•网站开发（81） 
+•教育（37） 
+•2009级嵌入式方向（53） 
+•2010级嵌入式方向（81） 
+•Linux教程(第二版（200） 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+•健身与保健（13） 
+•随想--&--相册（8） 
+
+
+
+•Windows（9） 
+•编程（26） 
+•信息发布（27） 
+•嵌入式资料（15） 
+•信息安全（5） 
+•发表论文（5） 
+•教材/著作（13） 
+•网文（46） 
+•IT & Linux文章（36） 
+•linux内核（43） 
+•未分配的博文（0） 
+
+
+文章存档
+
+
+2013年（101）
+
+
+
+
+
+
+
+
+
+2012年（243）
+
+
+
+
+
+
+
+
+
+
+
+
+
+2011年（216）
+
+
+
+
+
+
+
+
+
+
+
+
+
+2010年（170）
+
+
+
+
+
+
+
+
+
+
+
+
+
+2009年（24）
+
+
+
+
+
+
+我的朋友
+•
+dragon43
+
+•
+kowems
+
+•
+caption4
+
+•
+q3594458
+
+•
+anhzhi
+
+•
+zhaocunh
+
+•
+95459106
+
+•
+z5428583
+
+•
+lyUnix
+
+
+
+最近访客
+•
+yz382641
+
+•
+zealouss
+
+•
+阔海一石
+
+•
+叶子的背
+
+•
+dragon43
+
+•
+skyiwusu
+
+•
+lqetetg
+
+•
+a1993_04
+
+•
+cadgj
+
+
+
+订阅
+•
+•
+
+
+推荐博文
+•·nginx的tmp文件过大导致磁盘...
+•·CS8900网卡驱动程序分析(学习...
+•·Linux系统下的单调时间函数...
+•·谈谈网站安全性的问题...
+•· python之MySQLdb库的使用...
+
+
+热词专题
+•·qtp11 破解安装
+•·linux basename
+•·linux 趣味脚本
+•·rcobject symbian
+•·linux 网桥原理分析
+ 
+
+
+
+How much faster is assembly language?2013-04-05 12:20:01
+
+
+
+分类： 嵌入式
+
+
+http://www.fourtheye.org/armstrong.shtml
+ 
+
+
+How much faster is assembly language? 
+
+On reading about the philosophy behind the Raspberry Pi and the emphasis on teaching programming I looked for a book I have called Problems For Computer Solution which I have used on occasion to learn. I was also asked, when talking about the ARM processor in my SheevaPlug at my local Linux User Group, how much faster code was when written in assembly language.
+ 
+As an experiment, I chose to code the seventh problem, to locate all of the Armstrong numbers of 2, 3 or 4 digits.
+ 
+I coded the different versions in the following order: 
+1. Perl - short and clear (armstrong4.pl). 
+2. C - using sprintf into a string to separate the digits. A little more involved (armstrong4string.c). 
+3. Assembly language - I sketched a flow chart and then coded it (armstrong.s). 
+4. Assembly language with a macro - I realised that I was repeating code in the previous version so abstracted it to a macro (armstrong4macro.s). 
+5. A version in C which uses division to separate the digits and follows a similar algorithm to the assembly language version (armstrong4divide.c). 
+
+The code is listed in the appendix. See also 
+
+Timing 
+
+Here is the cpuinfo for the machine. 
+bob@poland:~/src/problems_for_computer_solution/07_armstrong_numbers$ cat /proc/cpuinfo 
+Processor	: Feroceon 88FR131 rev 1 (v5l)
+BogoMIPS	: 1192.75
+Features	: swp half thumb fastmult edsp 
+CPU implementer	: 0x56
+CPU architecture: 5TE
+CPU variant	: 0x2
+CPU part	: 0x131
+CPU revision	: 1
+
+Hardware	: Marvell SheevaPlug Reference Board
+Revision	: 0000
+Serial		: 0000000000000000
+bob@poland:~/src/problems_for_computer_solution/07_armstrong_numbers$
+ 
+I extended the search space to 5 and 6 digits to allow for longer runtimes. 
+
+
+
+Maximum number
+ of digits 
+
+Perl 
+
+C - string 
+
+C - divide 
+
+Assembly code 
+
+
+
+4 
+
+
+
+
+time perl armstrong4.pl 
+
+
+
+real 0m0.583s 
+
+
+
+user 0m0.580s 
+
+
+
+sys 0m0.000s 
+
+
+
+
+
+time ./armstrong4divide 
+
+
+
+real 0m0.256s 
+
+
+
+user 0m0.260s 
+
+
+
+sys 0m0.000s 
+
+
+
+
+
+time ./armstrong4string 
+
+
+
+real 0m0.267s 
+
+
+
+user 0m0.270s 
+
+
+
+sys 0m0.000s 
+
+
+
+
+
+time ./armstrong4macro 
+
+
+
+real 0m0.007s 
+
+
+
+user 0m0.020s 
+
+
+
+sys 0m0.000s 
+
+
+
+
+5 
+
+
+
+
+time perl armstrong5.pl 
+
+
+
+real 0m6.202s 
+
+
+
+user 0m6.180s 
+
+
+
+sys 0m0.020s 
+
+
+
+
+
+time ./armstrong5string 
+
+
+
+real 0m3.302s 
+
+
+
+user 0m3.300s 
+
+
+
+sys 0m0.000s 
+
+
+
+
+
+time ./armstrong5divide 
+
+
+
+real 0m3.198s 
+
+
+
+user 0m3.200s 
+
+
+
+sys 0m0.000s 
+
+
+
+
+
+time ./armstrong5macro 
+
+
+
+real 0m0.044s 
+
+
+
+user 0m0.060s 
+
+
+
+sys 0m0.000s 
+
+
+
+
+6 
+
+
+
+
+time perl armstrong6.pl 
+
+
+
+real 1m10.881s 
+
+
+
+user 1m10.650s 
+
+
+
+sys 0m0.010s 
+
+
+
+
+
+time ./armstrong6string 
+
+
+
+real 0m39.312s 
+
+
+
+user 0m39.200s 
+
+
+
+sys 0m0.000s 
+
+
+
+
+
+time ./armstrong6divide 
+
+
+
+real 0m40.903s 
+
+
+
+user 0m38.230s 
+
+
+
+sys 0m0.000s 
+
+
+
+
+
+time ./armstrong6macro 
+
+
+
+real 0m0.512s 
+
+
+
+user 0m0.510s 
+
+
+
+sys 0m0.000s 
+
+
+
+The assembly language is the first draft, apart from the abstraction of the macro. It could probably be further optimised to shave a few cycles if performance were important. The ARM is a RISC processor and the version I have in the SheevaPlug (5TE) has no divide instruction (though I think that ARMv7 does?). Division can be achieved via repeated subtraction and counting which is the approach followed here.
+ 
+Engineering is often a tradeoff between different constraints - here coding time and run time. If the code is to be run once - or once a day, then it makes sense to write it in Perl (or some other high-level language); if, however, it is to be run a million times per day then it makes sense to invest the time to make it run efficiently.
+ 
+I documented some preliminary investigations into assembly language programming on the ARM here.
+ 
+I have just been reading about THUMB mode - which allows the 32 bit processor to run 16 bit instructions. There are, however, restrictions on what is permissible in this mode, and I am not convinced of the benefits of having smaller instruction (quicker to load and execute?). However, I was curious to see if the switch (.thumb) would work, and if it ran faster. It may, but requires investigation which I may do?
+ 
+I have no experience of teaching, so if anyone has any ideas as to how I could improve this page, or the code, please email me.
+ 
+Arnaud tested the code on his Nokia 900 phone, which is an ARMV7 with approx 250 BogoMIPS (c.f. the SheevaPlug with approx 1000 BogoMIPS). The relative performances of Perl, C and assembly language were similar to those seen on the SheevaPlug.
+ 
+Appendix - The code 
+1. Perl version 
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+foreach my $number (10 .. 9999) {
+  my $size = length $number;
+  my @digits = split(//, $number);
+  my $total = 0;
+  for (my $index = 0; $index < $size; $index++) {
+    $total += $digits[$index] ** $size;
+  }
+  print "ARMSTRONG NUMBER is $number\n" if ($total == $number);
+}
+
+ 2. C versions 
+
+N.B. These are functionally equivalent. 
+◦ First version using a string 
+#include "stdio.h"
+#include "math.h"
+#include "stdlib.h"
+
+/* we allocate sufficient space to store the widest integer */
+#define MAXWIDTH 4
+
+/* numeric string characters are offset from their value */
+#define NUMOFFSET 48
+
+int main()
+{
+  int number;
+  for (number=10; number < 10000; number++)
+  {
+    char string[MAXWIDTH+1] = {};
+    snprintf(string, MAXWIDTH+1, "%d", number);
+    int numlen = strnlen(string, MAXWIDTH);
+     
+    int total = 0;
+    int j;
+    for (j=0; j < numlen; j++)
+    {
+      int digit = string[j] - NUMOFFSET;
+      total += pow(digit, numlen);
+    }
+    if (total == number)
+      printf("ARMSTRONG NUMBER is %d\n", total);
+  }
+  exit(0);
+}
+
+ ◦ Second version using division 
+#include "stdio.h"
+#include "stdint.h"
+#include "stdlib.h"
+#include "math.h"
+
+/* work on base 10 */
+#define BASE 10
+
+int main()
+{
+  uint8_t numlen = 2;
+  uint16_t number;
+  for (number=10; number < 10000; number++)
+  {
+    if (number >= 1000)
+      numlen = 4;
+    else if (number >= 100)
+      numlen = 3;
+
+    uint32_t counter = number;
+    uint8_t digit = counter % BASE;
+    uint32_t armstrong = pow(digit, numlen);
+    while (counter = (uint32_t) floor(counter / BASE))
+    {
+      digit = counter % BASE;
+      armstrong += pow(digit, numlen);
+    }
+
+    if (armstrong == number)
+      printf("ARMSTRONG NUMBER is %d\n", armstrong);
+  }
+  exit(0);
+}
+
+ 3. Assembly language 
+◦ Power function 
+# this subroutine returns the passed digit to the passed power
+#
+# inputs
+#   r0 - digit
+#   r1 - power 
+#
+# outputs
+#   r0 - digit ** power
+#
+# locals
+#   r4
+.globl _power
+.align 2
+        .text
+_power:
+	nop
+        stmfd	sp!, {r4, lr}		@ save variables to stack
+
+	subs	r1, r1, #1		@ leave unless power > 1
+	ble	_power_end
+
+	mov	r4, r0			@ copy digit
+_power_loop_start:
+	mul	r0, r4, r0		@ raise to next power
+	subs	r1, r1, #1		
+	beq	_power_end		@ leave when done
+	b	_power_loop_start	@ next iteration
+_power_end:
+        ldmfd   sp!, {r4, pc}		@ restore state from stack and leave subroutime
+
+ ◦ Armstrong function 
+# inputs
+#   r0 - number
+#
+# outputs
+#   r0 - armstrong number
+#
+# local r4, r5, r6, r7, r8
+
+.equ ten,10
+.equ hundred,100
+.equ thousand,1000
+.equ ten_thousand,10000
+
+number .req r4
+width .req r5
+digit .req r6
+current .req r7
+armstrong .req r8
+
+.globl _armstrong
+.align 2
+        .text
+_armstrong:
+        nop
+        stmfd   sp!, {r4, r5, r6, r7, r8, lr}   @ save variables to stack
+
+        mov     number, r0			@ copy passed parameter to working number
+	cmp	number, #ten			@ exit unless number > 10
+	blt	_end
+
+        ldr     current, =ten_thousand		@ exit unless number < 10000
+	cmp	number, current
+	bge	_end
+
+	mov	width, #0			@ initialise
+	mov	digit, #0
+	mov	armstrong, #0
+	ldr	current, =thousand		@ handle 1000 digit
+_thousand_start:
+	cmp	number, current
+	blt	_thousand_end			@ exit thousand code if none left
+	
+	mov	width, #4			@ width must be 4
+	add	current, current, #thousand	@ bump thousand counter
+	add	digit, digit, #1		@ and corresponding digit count
+	b	_thousand_start			@ and loop
+_thousand_end:
+	add	number, number, #thousand	@ need number modulo thousand
+	sub	number, number, current
+	mov	r0, digit			@ push digit
+	mov	r1, width			@ and width
+	bl	_power				@ to compute digit **width
+	add	armstrong, r0, armstrong	@ and update armstrong number with this value
+
+	ldr	current, =hundred		@ then we do the hundreds as we did the thousands
+	mov	digit, #0
+_hundred_start:
+	cmp	number, current
+	blt	_hundred_end
+	
+	teq	width, #0			@ and only set width if it is currently unset
+	moveq	width, #3
+_hundred_width:
+	add	current, current, #hundred	@ yada yada as thousands above
+	add	digit, digit, #1
+	b	_hundred_start
+_hundred_end:
+	add	number, number, #hundred
+	sub	number, number, current
+	mov	r0, digit
+	mov	r1, width
+	bl	_power
+	add	armstrong, r0, armstrong
+
+	ldr	current, =ten			@ then the tens as the hundred and thousands above
+	mov	digit, #0
+_ten_start:
+	cmp	number, current
+	blt	_ten_end
+	
+	teq	width, #0
+	moveq	width, #2
+_ten_width:
+	add	current, current, #ten
+	add	digit, digit, #1
+	b	_ten_start
+_ten_end:
+	add	number, number, #ten
+	sub	number, number, current
+	mov	r0, digit
+	mov	r1, width
+	bl	_power
+	add	armstrong, r0, armstrong
+
+	mov	r0, number			@ then add in the trailing digits
+	mov	r1, width
+	bl	_power
+	add	armstrong, r0, armstrong
+
+	mov	r0, armstrong			@ and copy the armstrong number back to r0 for return
+_end:
+        ldmfd   sp!, {r4, r5, r6, r7, r8, pc}   @ restore state from stack and leave subroutine
+
+ ◦ Armstrong function with a macro to abstract repeated code 
+
+N.B. This is functionally equivalent but much shorter than the previous function. The variable \@ here is a magic variable, incremented each time the macro is instantiated. This enables the use of distinct labels, which we need here. 
+# inputs
+#   r0 - number
+#
+# outputs
+#   r0 - armstrong number
+#
+# local r4, r5, r6, r7, r8
+
+.equ ten,10
+.equ hundred,100
+.equ thousand,1000
+.equ ten_thousand,10000
+
+number .req r4
+width .req r5
+digit .req r6
+current .req r7
+armstrong .req r8
+
+.macro armstrong_digit a, b
+	ldr	current, =\a
+	mov	digit, #0
+_start\@:
+	cmp	number, current
+	blt	_end\@
+	
+	teq	width, #0			@ and only set width if it is currently unset
+	moveq	width, #\b
+	add	current, current, #\a
+	add	digit, digit, #1
+	b	_start\@
+_end\@:
+	add	number, number, #\a
+	sub	number, number, current
+	mov	r0, digit
+	mov	r1, width
+	bl	_power
+	add	armstrong, r0, armstrong
+.endm
+
+.globl _armstrong
+.align 2
+        .text
+_armstrong:
+        nop
+        stmfd   sp!, {r4, r5, r6, r7, r8, lr}   @ save variables to stack
+
+        mov     number, r0			@ copy passed parameter to working number
+	cmp	number, #ten			@ exit unless number > 10
+	blt	_end
+
+        ldr     current, =ten_thousand		@ exit unless number < 10000
+	cmp	number, current
+	bge	_end
+
+	mov	width, #0			@ initialise
+	mov	armstrong, #0
+
+	armstrong_digit thousand 4
+	armstrong_digit hundred 3
+	armstrong_digit ten 2
+
+	mov	r0, number			@ then add in the trailing digits
+	mov	r1, width
+	bl	_power
+	add	armstrong, r0, armstrong
+
+	mov	r0, armstrong			@ and copy the armstrong number back to r0 for return
+_end:
+        ldmfd   sp!, {r4, r5, r6, r7, r8, pc}   @ restore state from stack and leave subroutine
+
+ ◦ Armstrong_main function 
+.equ ten,10
+.equ ten_thousand,10000
+
+.section	.rodata
+	.align	2
+string:
+	.asciz "armstrong number of %d is %d\n"
+.text
+	.align	2
+	.global	main
+	.type	main, %function
+main:
+	ldr	r5, =ten
+	ldr	r6, =ten_thousand
+
+	mov	r4, r5		@ start with n = 10
+_main_loop:
+	cmp	r4, r6		@ leave if n = 10_000
+	beq	_main_end
+
+	mov	r0, r4		@ call the _armstrong function
+	bl	_armstrong
+
+	teq	r0, r4		@ if the armstong value = n print it
+	bne	_main_next		@ else skip
+
+	mov	r2, r0
+	mov	r1, r4
+	ldr	r0, =string	@ store address of start of string to r0
+	bl	printf		@ call the c function to display information
+_main_next:
+	add	r4, r4, #1
+	b	_main_loop
+_main_end:
+	mov	r7, #1		@ set r7 to 1 - the syscall for exit
+	swi	0		@ then invoke the syscall from linux
+
+ 4. A Makefile for the armstrong code 
+AS      := /usr/bin/as
+CC      := /usr/bin/gcc
+LD      := /usr/bin/ld
+
+ASOPTS  := -gstabs
+CCOPTS  := -g
+CLIBS   := -lm
+
+all: armstrong4 armstrong5 armstrong6
+
+#harness: harness.s armstrong4macro.s power.s
+#armstrong: armstrong4main.s armstrong.s power.s
+
+armstrong4: armstrong4macro armstrong4string armstrong4divide 
+armstrong4macro: armstrong4main.s armstrong4macro.s power.s
+armstrong4string: armstrong4string.c
+armstrong4divide: armstrong4divide.c
+
+armstrong5: armstrong5macro armstrong5string armstrong5divide
+armstrong5macro: armstrong5main.s armstrong5macro.s power.s
+armstrong5divide: armstrong5divide.c
+armstrong5divide: armstrong5divide.c
+
+armstrong6: armstrong6macro armstrong6string armstrong6divide
+armstrong6macro: armstrong6main.s armstrong6macro.s power.s
+armstrong6string: armstrong6string.c
+armstrong6divide: armstrong6divide.c
+
+
+%: %.c
+	$(CC) $(CCOPTS) -o $@ $^ $(CLIBS)
+
+clean:
+	rm -f armstrong harness armstrong4macro armstrong4string armstrong4divide armstrong5macro armstrong5string armstrong5divide armstrong6macro armstrong6string armstrong6divide
+
+ 
+
+
+
+阅读(68) | 评论(0) | 转发(0) | 
+
+
+0
+
+上一篇：A number of problems from coded in ARM assembly language Problems
+
+下一篇：从ARMASM汇编到GNU ARM ASM汇编 
+
+
+相关热门文章
+•linux守护进程的几个关键地方...
+•stagefright与opencore对比
+•嵌入式Linux之我行——u-boot-...
+•嵌入式Linux之我行——内核、...
+•android的logcat详细用法
+•mysql整形数据类型插入0001数...
+•weblogic集群下启动服务有一个...
+•nagios pnp 报错
+•关于hadoop开发的问题
+•请教大神，我现在有这么一些数...
+
+
+
+给主人留下些什么吧！~~
+
+
+
+
+评论热议
+
+
+ 请登录后评论。 
+登录 注册
+ 
+
+关于我们 | 关于IT168 | 联系方式 | 广告合作 | 法律声明 | 免费注册
+Copyright 2001-2010 ChinaUnix.net All Rights Reserved 北京皓辰网域网络信息技术有限公司. 版权所有 
+
+感谢所有关心和支持过ChinaUnix的朋友们 
+京ICP证041476号 京ICP证060528号
+ 

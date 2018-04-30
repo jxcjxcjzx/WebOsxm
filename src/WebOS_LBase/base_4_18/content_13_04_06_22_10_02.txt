@@ -1,0 +1,152 @@
+繁體
+你好，游客 登录 注册 搜索
+	
+首页Linux新闻Linux教程数据库技术Linux编程服务器应用Linux安全Linux下载Linux认证Linux主题Linux壁纸Linux软件数码手机电脑
+首页 → Linux编程
+  
+
+
+背景：       阅读新闻
+Android中Service(服务)详解
+
+[日期：2012-07-22]	来源：Linux社区  作者：唐韧_Ryan	[字体：大 中 小]
+
+
+ 
+Service是Android中四大组件之一，在Android开发中起到非常重要的作用，先来看一下官方对Service的定义：
+
+A Service is an application component that can perform long-running operations in the background and does not provide a user interface. Another application component can start a service and it will continue to run in the background even if the user switches to another application. Additionally, a component can bind to a service to interact with it and even perform interprocess communication (IPC). For example, a service might handle network transactions, play music, perform file I/O, or interact with a content provider, all from the background.
+
+翻译过来就是：Service（服务）是一个没有用户界面的在后台运行执行耗时操作的应用组件。其他应用组件能够启动Service，并且当用户切换到另外的应用场景，Service将持续在后台运行。另外，一个组件能够绑定到一个service与之交互（IPC机制），例如，一个service可能会处理网络操作，播放音乐，操作文件I/O或者与内容提供者（content provider）交互，所有这些活动都是在后台进行。
+
+Service有两种状态，“启动的”和“绑定”
+
+Started
+
+A service is "started" when an application component (such as an activity) starts it by calling startService(). Once started, a service can run in the background indefinitely, even if the component that started it is destroyed. Usually, a started service performs a single operation and does not return a result to the caller. For example, it might download or upload a file over the network. When the operation is done, the service should stop itself.
+
+Bound
+
+A service is "bound" when an application component binds to it by calling bindService(). A bound service offers a client-server interface that allows components to interact with the service, send requests, get results, and even do so across processes with interprocess communication (IPC). A bound service runs only as long as another application component is bound to it. Multiple components can bind to the service at once, but when all of them unbind, the service is destroyed.
+
+通过startService()启动的服务处于“启动的”状态，一旦启动，service就在后台运行，即使启动它的应用组件已经被销毁了。通常started状态的service执行单任务并且不反悔任何结果给启动者。比如当下载或上传一个文件，当这项操作完成时，service应该停止它本身。
+
+还有一种“绑定”状态的service，通过调用bindService()来启动，一个绑定的service提供一个允许组件与service交互的接口，可以发送请求、获取返回结果，还可以通过夸进程通信来交互（IPC）。绑定的service只有当应用组件绑定后才能运行，多个组件可以绑定一个service，当调用unbind()方法时，这个service就会被销毁了。
+
+另外，在官方的说明文档中还有一个警告：
+
+Caution: A service runs in the main thread of its hosting process—the service does not create its own thread and does not run in a separate process (unless you specify otherwise). This means that, if your service is going to do any CPU intensive work or blocking operations (such as MP3 playback or networking), you should create a new thread within the service to do that work. By using a separate thread, you will reduce the risk of Application Not Responding (ANR) errors and the application's main thread can remain dedicated to user interaction with your activities.
+
+意思是service与activity一样都存在与当前进程的主线程中，所以，一些阻塞UI的操作，比如耗时操作不能放在service里进行，比如另外开启一个线程来处理诸如网络请求的耗时操作。如果在service里进行一些耗CPU和耗时操作，可能会引发ANR警告，这时应用会弹出是强制关闭还是等待的对话框。所以，对service的理解就是和activity平级的，只不过是看不见的，在后台运行的一个组件，这也是为什么和activity同被说为Android的基本组件。
+
+Service生命周期中的一些方法：
+
+
+
+通过这个图可以看到，两种启动service的方式以及他们的声明周期，bind service的不同之处在于当绑定的组件销毁后，对应的service也就被kill了。service的声明周期相比与activity的简单了许多，只要好好理解两种启动service方式的异同就行。
+
+service生命周期也涉及一些回调方法，这些方法都不用调用父类方法，具体如下：
+
+public class ExampleService extends Service {  
+    int mStartMode;       // indicates how to behave if the service is killed   
+    IBinder mBinder;      // interface for clients that bind   
+    boolean mAllowRebind; // indicates whether onRebind should be used   
+  
+    @Override  
+    public void onCreate() {  
+        // The service is being created   
+    }  
+    @Override  
+    public int onStartCommand(Intent intent, int flags, int startId) {  
+        // The service is starting, due to a call to startService()   
+        return mStartMode;  
+    }  
+    @Override  
+    public IBinder onBind(Intent intent) {  
+        // A client is binding to the service with bindService()   
+        return mBinder;  
+    }  
+    @Override  
+    public boolean onUnbind(Intent intent) {  
+        // All clients have unbound with unbindService()   
+        return mAllowRebind;  
+    }  
+    @Override  
+    public void onRebind(Intent intent) {  
+        // A client is binding to the service with bindService(),   
+        // after onUnbind() has already been called   
+    }  
+    @Override  
+    public void onDestroy() {  
+        // The service is no longer used and is being destroyed   
+    }  
+}<
+
+ 
+12下一页
+
+2
+顶一下
+0
+点击进入
+
+领航教育●国内顶尖IT技术-专注于提供高端Linux、Oracle、Cisco技术人才。
+
+Unity3D 几个默认函数的区分
+UCOS_II的移植到S3C2440 ADS 1.2
+相关资讯       Android入门教程 
+Android实现电蚊香/Service服务管  (今 19:38)
+Android老版本项目导入到新版SDK提  (02月05日)
+Android--取得多组电话号码/  (02月05日)
+Android--常驻BroadReceiver实现短  (02月05日)
+Android--用手指移动画面里的照片/  (02月05日)
+Android--判断发送短信后的状态/发  (02月05日)
+图片资讯      
+Android实现电蚊香/Android--常驻Android--取得多组电Android--判断发送短Android之收音机UI实Android入门：File文Android入门：广播接Android入门：
+本文评论 　　查看全部评论 (0)
+表情：  姓名：   匿名 字数  
+点评：   
+　　　同意评论声明 　　　发表
+评论声明
+尊重网上道德，遵守中华人民共和国的各项有关法律法规
+承担一切因您的行为而直接或间接导致的民事或刑事法律责任
+本站管理人员有权保留或删除其管辖留言中的任意内容
+本站有权在网站内转载或引用您的评论
+参与本评论即表明您已经阅读并接受上述条款
+
+
+
+ 
+最新资讯
+Android实现电蚊香/Service服务管理类
+Ubuntu 12.04下安装skyeye1.3.3
+Linux/Unix shell 自动 FTP 备份档案
+Linux/Unix shell 自动导入Oracle数据库
+Solaris 下的 DNS 配置详解
+DataGuard 之物理STANDBY 的监控与管理
+Linux NFS 服务配置及AIX NFS 客户端挂载实施步
+Linux添加虚拟内存解决swap空间不足问题
+CentOS 5.6 上安装 Oracle 11g R2 单实例数据库
+Linux 上修改 IP 地址和 hostname 的方法
+本周热门
+Android核心分析
+Android手机Root授权原理细节全解析
+Linux shell脚本全面学习
+在Windows平台下使用安装GCC(图)
+Android SD卡路径问题以及如何获取SDCard 内存
+Ubuntu 10.04下编译OpenWrt完全新手教程
+Android Binder设计与实现 – 设计篇
+Android的onCreateOptionsMenu()创建菜单Menu详
+Android利用NDK实现C++开发
+Linux设备驱动程序学习笔记
+
+Linux公社简介 - 广告服务 - 网站地图 - 帮助信息 - 联系我们
+本站（LinuxIDC）所刊载文章不代表同意其说法或描述，仅为提供更多信息，也不构成任何建议。
+主编：漏网的鱼 (QQ:3165270) 联系邮箱: (如有版权及广告合作请联系) 
+本站带宽由[6688.CC]友情提供
+关注Linux，关注LinuxIDC.com，请向您的QQ好友宣传LinuxIDC.com，多谢支持！ 
+Copyright © 2006-2011　Linux公社　All rights reserved 浙ICP备06018118号
+
+ 
+
+ 

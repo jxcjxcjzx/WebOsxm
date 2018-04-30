@@ -1,0 +1,349 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+xichba的专栏
+目录视图摘要视图订阅
+CSDN客服工作问卷调查        智能开发框架 JEECG 作者张代浩专访 
+2012CSDN博客之星火热出炉！        2013年全国百所高校巡讲讲师招募
+ 函数式编程(三)
+分类： python 2013-01-30 23:42 11人阅读 评论(0) 收藏 举报
+内建函数（Built-infunction）
+我们一起看一下经常和迭代器一起使用的内建函数的细节。
+Python的两个内建函数 map() 喝 filter()反映了生成器表达式的特性：
+map(f, iterA, iterB, ...)返回一个迭代器，该迭代器代表序列f(iterA[0], iterB[0]), f(iterA[1], iterB[1]), f(iterA[2], iterB[2]), ...
+>>> defupper(s):
+...     return s.upper()
+ 
+>>> list(map(upper, ['sentence','fragment']))
+['SENTENCE', 'FRAGMENT']
+>>> [upper(s)for s in ['sentence','fragment']]
+['SENTENCE', 'FRAGMENT']
+ 
+你当然可以用列表解析来实现同样的效果。
+filter(predicate, iter) 返回一个代表所有符合要求的元素的序列，类似于列表解析。一个predicate是一个函数，返回某些条件下的真值；要使用filter()，predicate必须是一个值。
+>>> defis_even(x):
+...     return (x %2)==0
+ 
+>>> list(filter(is_even,range(10)))
+[0, 2, 4, 6, 8]
+ 
+这同样可以用列表解析来写：
+>>> list(xfor x inrange(10)if is_even(x))
+[0, 2, 4, 6, 8]
+ 
+enumerate(iter)对迭代器内的元素进行计数，返回一个2元组，包含了计数值和每一个元素。
+>>> for item inenumerate(['subject','verb','object']):
+...     print(item)
+(0, 'subject')
+(1, 'verb')
+(2, 'object')
+ 
+enumerate() 经常用来遍历一个列表，记录符合某种条件的位置索引：
+f=open('data.txt','r')
+for i, line inenumerate(f):
+    if line.strip()=='':
+        print('Blank line at line #%i'% i)
+ 
+sorted(iterable, key=None, reverse=False)把迭代器的所有元素放入一个列表，对其排序，返回有序的结果。参数key和 reverse传递给列表内建函数sort()。
+>>> importrandom
+>>> # Generate 8 random numbers between [0, 10000)
+>>> rand_list= random.sample(range(10000),8)
+>>> rand_list  
+[769, 7953, 9828, 6431, 8442, 9878, 6213, 2207]
+>>> sorted(rand_list)  
+[769, 2207, 6213, 6431, 7953, 8442, 9828, 9878]
+>>> sorted(rand_list, reverse=True)  
+[9878, 9828, 8442, 7953, 6431, 6213, 2207, 769]
+ 
+（要了解更多关于排序的细节讨论，请看 SortingHOW TO。）
+ 内建函数any(iter) 和all(iter)得到一个迭代器内容的真值。当迭代器内任何一个元素是真值时any()为真，当所有为真时all()为真：
+>>> any([0,1,0])
+True
+>>> any([0,0,0])
+False
+>>> any([1,1,1])
+True
+>>> all([0,1,0])
+False
+>>> all([0,0,0])
+False
+>>> all([1,1,1])
+True
+ 
+zip(iterA, iterB, ...)从每个迭代器中拿出一个元素，然后把它们放进一个元组中返回：
+zip(['a','b','c'], (1,2,3))=>
+  ('a',1), ('b',2), ('c',3)
+ 
+这个函数并没有在内存建立一个列表，在返回前读入所有的输入迭代器；相反，元组只当它们被请求时才建立。（这种行为的技术叫做惰性计算（ lazy evaluation）。）
+这个迭代器需要和同样长度的迭代器一同使用。如果迭代器长度不一致，返回的流的长度与最短的迭代器一致。
+zip(['a','b'], (1,2,3))=>
+  ('a',1), ('b',2)
+ 
+你应该避免这么做，因为更长的迭代器中的元素可能被丢弃。这意味着你不能继续使用这个迭代器，因为你冒险尝试跳过已被丢弃的元素。
+ 
+Itertools模块
+itertools模块包含很多经常被使用的迭代器和绑定一些迭代器的函数。这一节将通过例子介绍这些模块的内容。
+这些模块函数属于以下几个大类中：
+l  基于一个存在的迭代器，创建一个新的迭代器。
+l  将迭代器的元素当做函数参数。
+l  选择一个迭代器输出的部分元素。
+l  对一个迭代器的输出进行分类。
+ 
+创建一个新的迭代器
+itertools.count(n)返回一个无限的整数流，每次加1.你可以有选择地提供起始数值，默认是0：
+itertools.count()=>
+  0,1,2,3,4,5,6,7,8,9,...
+itertools.count(10)=>
+  10,11,12,13,14,15,16,17,18,19,...
+ 
+itertools.cycle(iter) 保存给定迭代器内容的副本，然后返回一个从头到尾不断循环副本内容的新迭代器。
+itertools.cycle([1,2,3,4,5])=>
+  1,2,3,4,5,1,2,3,4,5,...
+ 
+itertools.repeat(elem, [n]) 返回n此给定的元素，如果n没有提供，则不停地返回。
+itertools.repeat('abc')=>
+  abc, abc, abc, abc, abc, abc, abc, abc, abc, abc, ...
+itertools.repeat('abc',5)=>
+  abc, abc, abc, abc, abc
+ 
+itertools.chain(iterA, iterB, ...)接受任意数量的迭代器作为输入，返回第一个迭代器的所有元素，然后第二、第三个直到最后一个。
+itertools.chain(['a','b','c'], (1,2,3))=>
+  a, b, c, 1,2,3
+ 
+itertools.islice(iter, [start], stop, [step])返回迭代器的一个片段。如果只有stop参数，将会返回前stop个元素。如果提供了起始索引，能得到stop-start个元素。如果提供了step参数，会跳过相应的元素。不像Python里的字符串和列表片段，这里的参数不能是负数。
+itertools.islice(range(10),8)=>
+  0,1,2,3,4,5,6,7
+itertools.islice(range(10),2,8)=>
+  2,3,4,5,6,7
+itertools.islice(range(10),2,8,2)=>
+  2,4,6
+ 
+itertools.tee(iter, [n])复制一个迭代器，返回n个独立的迭代器，它们都返回源迭代器的内容。如果你不提供n的值，默认为2。复制迭代器要求保存源迭代器的一些内容，所以如果迭代器很长的话会消耗大量的内存，而且其中一个新的迭代器会消耗地比其它迭代器多。
+itertools.tee( itertools.count() ) =>
+   iterA, iterB
+ 
+where iterA ->
+   0,1,2,3,4,5,6,7,8,9,...
+ 
+and   iterB ->
+   0,1,2,3,4,5,6,7,8,9,...
+ 
+对元素调用函数
+operator模块包含了一系列与Python的运算符相关的函数。比如 operator.add(a, b) (将两个值相加)， operator.ne(a, b) (等价于a != b)，以及operator.attrgetter('id') (返回一个可回调函数，取得.id的属性)。
+itertools.starmap(func, iter)假定迭代器会返回一个元组流，然后调用func，并以这些元组作为参数。
+itertools.starmap(os.path.join,
+                  [('/bin','python'), ('/usr','bin','java'),
+                   ('/usr','bin','perl'), ('/usr','bin','ruby')])
+=>
+  /bin/python,/usr/bin/java,/usr/bin/perl,/usr/bin/ruby
+ 
+选择元素
+另一组函数根据断言选择迭代器元素的一个子集。
+itertools.filterfalse(predicate, iter)相反，当断言为假时返回所有的元素：
+itertools.filterfalse(is_even, itertools.count())=>
+  1,3,5,7,9,11,13,15,...
+ 
+itertools.takewhile(predicate, iter)在断言为真时不停地返回元素，一旦断言为假则停止。
+defless_than_10(x):
+    return x <10
+ 
+itertools.takewhile(less_than_10, itertools.count())=>
+  0,1,2,3,4,5,6,7,8,9
+ 
+itertools.takewhile(is_even, itertools.count())=>
+  0
+ 
+itertools.dropwhile(predicate, iter) 在断言为真时舍弃元素，然后返回迭代器剩余的元素。
+itertools.dropwhile(less_than_10, itertools.count())=>
+  10,11,12,13,14,15,16,17,18,19,...
+ 
+itertools.dropwhile(is_even, itertools.count())=>
+  1,2,3,4,5,6,7,8,9,10,...
+ 
+元素分类
+最后讨论的函数 itertools.groupby(iter, key_func=None)是最复杂的。key_func(elem) 为迭代器返回的每一个元素计算一个值。如果没有提供这个键函数，那么键就是元素自己。
+groupby() 将拥有同样键值的迭代器的连续元素收集起来，然后返回一个2元组，元组里包括键值和拥有这个键值的迭代器。
+city_list= [('Decatur','AL'), ('Huntsville','AL'), ('Selma','AL'),
+             ('Anchorage','AK'), ('Nome','AK'),
+             ('Flagstaff','AZ'), ('Phoenix','AZ'), ('Tucson','AZ'),
+             ...
+            ]
+ 
+defget_state(city_state):
+    return city_state[1]
+ 
+itertools.groupby(city_list, get_state) =>
+  ('AL', iterator-1),
+  ('AK', iterator-2),
+  ('AZ', iterator-3),...
+ 
+where
+iterator-1=>
+  ('Decatur','AL'), ('Huntsville','AL'), ('Selma','AL')
+iterator-2=>
+  ('Anchorage','AK'), ('Nome','AK')
+iterator-3=>
+  ('Flagstaff','AZ'), ('Phoenix','AZ'), ('Tucson','AZ')
+ 
+groupby()假定原本的迭代器内容已通过键值进行过排序。注意到返回的迭代器仍用原始的迭代方式，所以你必须先调用iterator-1，然后才能请求iterator-2和相关的键值。
+ 
+functools模块
+Python2.5中的functools模块包含一些高阶函数。一个高阶函数包含一个或更多的函数作为输入然后返回一个新的函数。这个模块里最有用的是functools.partial() 函数。
+对于用函数式方式写的程序，你仍会想建立一些现有函数的变体，变体中有一些参数。考虑一个Python函数f(a, b, c)，你可能想创建一个新的函数g(b, c)，等价于f(1, b,c)，你需要向f()的一个参数中填入一个值。这称为“partial function application”。
+构造partial()函数需要参数(function, arg1, arg2, ...,kwarg1=value1, kwarg2=value2)，返回的对象也是可调用的，所以你可以通过调用它来使用嵌入参数。
+这是一个简单但实际的例子：
+importfunctools
+ 
+deflog(message, subsystem):
+    """Write the contents of 'message' to the specified subsystem."""
+    print('%s: %s'% (subsystem, message))
+    ...
+ 
+server_log= functools.partial(log, subsystem='server')
+server_log('Unable to open socket')
+ 
+functools.reduce(func, iter, [initial_value])递归地地对迭代器的所有元素做同样的操作，所以迭代器不能是无限的。Func必须是一个接受两个参数并返回一个值的函数。 functools.reduce()接受迭代器返回的A和B两个元素，然后计算func(A, B)。然后请求第三个元素C，计算func(func(A, B), C)，结合返回的第四个元素，继续同样的操作直到结束。如果迭代器根本没有返回值，则会抛出TypeError异常。如果初始化值被提供，那么它会作为起点，首先计算func(initial_value, A)。
+>>> importoperator,functools
+>>> functools.reduce(operator.concat, ['A','BB','C'])
+'ABBC'
+>>> functools.reduce(operator.concat, [])
+Traceback (most recent call last):
+  ...
+TypeError: reduce() of empty sequence with no initial value
+>>> functools.reduce(operator.mul, [1,2,3],1)
+6
+>>> functools.reduce(operator.mul, [], 1)
+1
+ 
+如果你一起用函数 operator.add() 和functools.reduce()，你可以将迭代器的所有元素相加。这种情况很普遍，所以有一个内建函数sum() 来计算它：
+>>> importfunctools
+>>> functools.reduce(operator.add, [1,2,3,4],0)
+10
+>>> sum([1,2,3,4])
+10
+>>> sum([])
+0
+ 
+尽管functools.reduce()的用法很多，用for循环来实现其实更清晰。
+importfunctools
+# Instead of:
+product= functools.reduce(operator.mul, [1,2,3],1)
+ 
+# You can write:
+product=1
+for i in [1,2,3]:
+    product *= i
+ 
+operator模块
+operator 模块早先提到过。它包含和Python运算符有关的一系列函数。这些函数在函数式编程时很有用，因为它们节约了你写那些不重要的、只实现一个功能的函数的时间。
+这个模块里的一些函数为：
+数学运算：add(), sub(), mul(), floordiv(), abs(), 
+逻辑运算：not_(), truth()
+位运算：and_(), or_(), invert()
+比较运算：eq(), ne(), lt(), le(), gt(), and ge()
+对象识别：is_(), is_not()
+ 
+可以查阅该模块文档得到完整列表。
+ 
+小函数和Lambda表达式
+当写函数式程序时，你经常会需要类似断言或者以某种方式组合元素的小函数。
+如果Python里有合适的内建函数或者模块函数，你就根本不需要定义一个新的函数了：
+stripped_lines= [line.strip()for line in lines]
+existing_files=filter(os.path.exists, file_list)
+ 
+如果你需要的函数不存在，你就需要编写它。使用lambda 语句是写小函数的一种方式。lambda 接受一系列参数和绑定这些参数的表达式，然后创造一个返回这个表达式结果的匿名函数：
+adder=lambda x, y: x+y
+ 
+print_assign=lambda name, value: name +'='+str(value)
+ 
+另一个可供选择的方法就是用def语句，像一般方式一样定义函数：
+defadder(x, y):
+    return x + y
+ 
+defprint_assign(name, value):
+    return name +'='+str(value)
+ 
+哪一种选择更好呢？这是一个风格问题。我一般情况下避免用lambda。
+我这么选择的一个原因是lambda在定义函数时限制太多。结果必须以一个单独的表达式的形式进行计算，这意味着你不能实现if... elif... else这样的多路比较以及 try... except 功能。如果你想在lambda语句中做太多的事，你会得到一个完全复杂且难以阅读的表达式。比如，下面的代码做了什么？
+importfunctools
+total= functools.reduce(lambda a, b: (0, a[1]+ b[1]), items)[1]
+ 
+你能得到结果，但需要时间拆解表达式来分析到底发生了什么。用一个短小的内嵌 def语句可以让事情变得好一些：
+importfunctools
+defcombine(a, b):
+    return0, a[1]+ b[1]
+ 
+total= functools.reduce(combine, items)[1]
+ 
+但是如果我仅仅用for循环，效果会最好：
+total=0
+for a, b in items:
+    total += b
+ 
+或者用内建函数sum()和一个生成器表达式：
+total=sum(bfor a,b in items)
+ 
+Fredrik Lundh曾经对lambda的重建用法给出了下面一系列建议：
+1、写一个lambda函数。
+2、写一个注释解释这个lambda到底做了什么。
+3、思考一会这个注释，想出一个能体现注释精髓的名字。
+4、将lambda转换成def语句，用这个名字命名。
+5、删掉注释。
+ 
+我很喜欢这些规则，但由你决定是否觉得lambda方式更好。
+分享到： 
+上一篇：函数式编程(二)
+
+查看评论
+
+  暂无评论
+
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+个人资料
+  
+xichba
+ 
+访问：183次
+积分：43分
+排名：千里之外
+原创：0篇转载：6篇译文：3篇评论：0条
+文章搜索
+
+文章分类
+流媒体(0)
+panda3D(2)
+游戏开发(3)
+python(3)
+文章存档
+2013年01月(9)
+阅读排行
+翻译：Panda3D Manual/V. Programming with Panda/G. Intervals(48)
+函数式编程(一)(29)
+MAYA教程——Hypershade中的Maya渲染节点(25)
+panda3d 根据collision detection（碰撞检测）实例探究Panda3d类组织结构(16)
+游戏里实现碰撞检测方法(15)
+如何学好3D游戏引擎编程(14)
+一个游戏程序员的学习资料(13)
+函数式编程(二)(11)
+函数式编程(三)(11)
+评论排行
+翻译：Panda3D Manual/V. Programming with Panda/G. Intervals(0)
+MAYA教程——Hypershade中的Maya渲染节点(0)
+游戏里实现碰撞检测方法(0)
+panda3d 根据collision detection（碰撞检测）实例探究Panda3d类组织结构(0)
+一个游戏程序员的学习资料(0)
+如何学好3D游戏引擎编程(0)
+函数式编程(一)(0)
+函数式编程(二)(0)
+函数式编程(三)(0)
+推荐文章
+
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+ 联系邮箱：webmaster(at)csdn.net
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+

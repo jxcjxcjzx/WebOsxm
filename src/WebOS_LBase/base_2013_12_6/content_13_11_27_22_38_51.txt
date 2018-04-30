@@ -1,0 +1,551 @@
+
+
+
+
+牟尼的专栏
+
+你想要得到你从未拥有过的东西，你就必须付出你从未付出的东西！
+
+
+ 
+
+
+目录视图
+摘要视图
+订阅
+ . 
+
+
+
+亲，“社区之星”已经一周岁了！        MDCC2013中国移动开发者大会社区赠票申请      Tag功能介绍—我们为什么打Tag      订阅CSDN社区周刊，及时了解社区精华内容 
+
+
+
+几个有意思的算法题 
+.
+ 分类： 算法java2013-11-05 01:111865人阅读评论(44)收藏举报
+ 
+java算法
+
+
+1.题目标题: 高斯日记
+ 
+    大数学家高斯有个好习惯：无论如何都要记日记。
+ 
+    他的日记有个与众不同的地方，他从不注明年月日，而是用一个整数代替，比如：4210
+ 
+    后来人们知道，那个整数就是日期，它表示那一天是高斯出生后的第几天。这或许也是个好习惯，它时时刻刻提醒着主人：日子又过去一天，还有多少时光可以用于浪费呢？
+ 
+    高斯出生于：1777年4月30日。
+     
+    在高斯发现的一个重要定理的日记上标注着：5343，因此可算出那天是：1791年12月15日。
+ 
+    高斯获得博士学位的那天日记上标着：8113  
+ 
+    请你算出高斯获得博士学位的年月日。
+ 
+提交答案的格式是：yyyy-mm-dd, 例如：1980-03-21
+ 
+请严格按照格式，通过浏览器提交答案。
+ 注意：只提交这个日期，不要写其它附加内容，比如：说明性的文字。
+ 
+分析：这实际就是“三天打鱼、两天晒网问题”。
+ 
+
+程序实现：（java写的）
+ package Forth;
+
+public class DateOfNdays {
+/*
+ * 高斯日记(给定日期，算出X天后的日期)
+ */
+	/*
+	 * 是否是闰年
+	 */
+	boolean IsleapYear(int year){
+		return (year % 400 == 0 || year % 4 == 0 && year % 100 != 0);
+	}
+	
+	/*
+	 * 获得某年某月的最大天数
+	 */
+	int GetMaxDay(int year,int month,int day){
+		switch(month){
+		case 1:
+		case 3:
+		case 5:
+		case 7:
+		case 8:
+		case 10:
+		case 12:
+			return 31;
+		case 4:
+		case 6:
+		case 9:
+		case 11:
+			return 30;
+		case 2:
+			return (IsleapYear(year)?29:28);
+		default:
+			return -1;
+		}
+	}
+	/*
+	 * 获得X天后的日期
+	 */
+	void GetXDays(int year,int month,int day,int X){
+		for(int i = 1; i <= X; i++){
+			if(day != GetMaxDay(year,month,day)){
+				day++;
+			}else{
+				if(month != 12){
+					month++;
+					day = 1;
+				}else{
+					month = day = 1;
+					year++;
+				}
+			}
+				
+		}
+		System.out.println(X+"天后的日期是"+year+"/"+month+"/"+day);
+	}
+
+} 
+答案：1799-7-16
+ 
+ 
+ 
+2.题目标题: 排它平方数
+ 
+    小明正看着 203879 这个数字发呆。
+ 
+    原来，203879 * 203879 = 41566646641
+ 
+    这有什么神奇呢？仔细观察，203879 是个6位数，并且它的每个数位上的数字都是不同的，并且它平方后的所有数位上都不出现组成它自身的数字。
+ 
+    具有这样特点的6位数还有一个，请你找出它！
+ 
+    再归纳一下筛选要求：
+     1. 6位正整数
+     2. 每个数位上的数字不同
+     3. 其平方数的每个数位不含原数字的任何组成数位
+ 
+答案是一个6位的正整数。
+ 
+请通过浏览器提交答案。
+ 注意：只提交另一6位数，题中已经给出的这个不要提交。
+ 注意：不要书写其它的内容（比如：说明性的文字）。
+ package Forth;
+
+public class ExcludeNumber {
+/*
+ * 排它平方数
+ */
+	long PingNum = 0; //存储平方
+	
+	/*
+	 * 判断一个数是否有重复数字
+	 */
+	public boolean IsSame(long x){
+		long store[] = new long[7];
+		long r;
+		int i = 0;
+		while(x != 0){ //分离该数的每一位，存入store数组
+			r = x % 10;
+			x = x / 10;
+			store[i] = r;
+			i++;
+		}
+		
+		long result;
+		for(int j = 0; j < 5; j++){ //判断有无重复数
+			result = store[j];
+			for(int k = j+1; k < 6; k++){
+				if(result == store[k])
+					return true;
+			}
+		}
+		
+		return false;
+	}
+	public boolean IsSame2(long Num,long n){
+		long store[] = new long[7];
+		long r;
+		int i = 0;
+		while( n != 0){
+			r = n % 10;
+			n = n / 10;
+			store[i] = r;
+			i++;
+		}
+		
+		long storeping[] = new long[18];
+		i = 0;
+		while(Num != 0){
+			r = Num % 10;
+			Num = Num / 10;
+			storeping[i] = r;
+			i++;
+		}
+				
+		for(int k = 0; k < 6; k++){   //将该数的每一位与其平方的每一位比较，看是否有相同的数
+			for(int j = 0; j < i; j++){
+				if(store[k] == storeping[j])
+					return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public void selectNum(){ //筛选排他数
+		
+		for(long n = 100000; n <= 999999;n++){
+			if(IsSame(n))  //有相同的数字，则跳过
+				continue;
+			else{
+				PingNum = n*n;
+				if(IsSame2(PingNum,n)) //该数的平方中是否有与该数相同的数字
+					continue;
+				else                   //符合条件，则打印
+					System.out.println(n);
+			}
+		}
+	}
+} 
+答案：639172
+ 
+3.标题: 振兴中华
+ 
+    小明参加了学校的趣味运动会，其中的一个项目是：跳格子。
+ 
+    地上画着一些格子，每个格子里写一个字，如下所示：（也可参见p1.jpg）
+ 
+从我做起振
+ 我做起振兴
+ 做起振兴中
+ 起振兴中华
+ 
+
+    比赛时，先站在左上角的写着“从”字的格子里，可以横向或纵向跳到相邻的格子里，但不能跳到对角的格子或其它位置。一直要跳到“华”字结束。
+ 
+
+    要求跳过的路线刚好构成“从我做起振兴中华”这句话。
+ 
+    请你帮助小明算一算他一共有多少种可能的跳跃路线呢？
+ 
+答案是一个整数，请通过浏览器直接提交该数字。
+ 注意：不要提交解答过程，或其它辅助说明类的内容。
+ 
+/*
+ * 振兴中华
+ */
+	int array[][] = 
+		   {{0,1,2,3,4},
+			{1,2,3,4,5},
+			{2,3,4,5,6},
+			{3,4,5,6,7}};
+	int copyarray[][] = new int[4][5]; //显示路径的拷贝数组
+	int startI = 0, startJ = 0;  // 入口
+	int endI = 3, endJ = 4;  // 出口
+	int success = 0;
+	int count = 0;
+
+	
+	/*
+	 * 初始化拷贝数组
+	 */
+	public void initcopy(){ 
+		for(int k = 0; k < 4; k++){
+			for(int d = 0; d < 5; d++){
+				copyarray[k][d] = 10;
+			}
+		}
+	}
+	/*
+	 * 遍历访问
+	 */
+	public void visit(int i,int j){
+			copyarray[i][j] = array[i][j];
+		if(i == endI &&  j == endJ){
+			count++;
+			System.out.print("\n 显示路径：\n");
+			for(int k = 0; k < 4; k++){
+				for(int d = 0; d < 5; d++){
+					if(copyarray[k][d] == 0)
+						System.out.print("从");
+					else if(copyarray[k][d] == 1)
+						System.out.print("我");
+					else if(copyarray[k][d] == 2)
+						System.out.print("做");
+					else if(copyarray[k][d] == 3)
+						System.out.print("起");
+					else if(copyarray[k][d] == 4)
+						System.out.print("振");
+					else if(copyarray[k][d] == 5)
+						System.out.print("兴");
+					else if(copyarray[k][d] == 6)
+						System.out.print("中");
+					else if(copyarray[k][d] == 7)
+						System.out.print("华");	
+					else if(copyarray[k][d] == 10)
+						System.out.print("一");	
+	                else 
+	                	System.out.print("一");	
+
+				}
+				System.out.println();
+			}
+		}
+		if(j != 4 && array[i][j+1] == array[i][j]+1) visit(i,j+1);
+		if(i != 3 && array[i+1][j] == array[i][j]+1) visit(i+1,j);
+		
+		copyarray[i][j] = 10;
+	}
+	/*
+	 * 主调方法
+	 */
+	public void test(){
+
+		initcopy();
+		visit(startI,startJ);
+		System.out.println("共有 "+count+" 种");
+	}
+	
+}
+ 
+结果截图:
+ 
+
+
+4.标题: 颠倒的价牌
+ 
+
+    小李的店里专卖其它店中下架的样品电视机，可称为：样品电视专卖店。
+ 
+    其标价都是4位数字（即千元不等）。
+ 
+    小李为了标价清晰、方便，使用了预制的类似数码管的标价签，只要用颜色笔涂数字就可以了（参见p1.jpg）。
+ 
+    这种价牌有个特点，对一些数字，倒过来看也是合理的数字。如：1 2 5 6 8 9 0 都可以。这样一来，如果牌子挂倒了，有可能完全变成了另一个价格，比如：1958 倒着挂就是：8561，差了几千元啊!!
+ 
+    当然，多数情况不能倒读，比如，1110 就不能倒过来，因为0不能作为开始数字。
+ 
+    有一天，悲剧终于发生了。某个店员不小心把店里的某两个价格牌给挂倒了。并且这两个价格牌的电视机都卖出去了!
+ 
+    庆幸的是价格出入不大，其中一个价牌赔了2百多，另一个价牌却赚了8百多，综合起来，反而多赚了558元。
+ 
+    请根据这些信息计算：赔钱的那个价牌正确的价格应该是多少？
+ 
+
+答案是一个4位的整数，请通过浏览器直接提交该数字。
+ 注意：不要提交解答过程，或其它辅助说明类的内容。
+ package Forth;
+
+public class ReverseNumber {
+
+	/*
+	 * 实现数字的翻转
+	 */
+	public int reverse(int n){
+	
+		int store[] = new int[4];
+		int result = 0;
+		int r;
+		int i = 0;
+		
+		while( n != 0){ //分离每个数，存入store中
+			r = n % 10;
+			n = n / 10;
+			store[i] = r;
+			i++;
+		}
+		for(int k = 0; k < i; k++){
+			if(store[k] == 3 || store[k] == 4 || store[k] == 7)//数字中有3、4、7的不能翻转
+				return -1;
+			else if(store[k] == 6)//数字中有6,则转为9
+				store[k] = 9;
+			else if(store[k] == 9)//数字中有9,则转为6
+				store[k] = 6;
+		}
+		for(int j = 0; j < i; j++){//计算翻转后的数
+			if(store[0] == 0) //最后一个数字为0,不能翻转
+				return -1;
+			
+			if(j == 0)
+				result = store[j];
+			else
+			    result = result*10 +store[j];
+		}
+
+	//	System.out.println(result);
+		return result;
+	}
+	public void selectNum(){
+		int sub = 0;
+		int sub2 = 0;
+	
+		for(int i = 1000; i <= 9999; i++){//遍历所有4位数
+			
+		    if(reverse(i) == -1)
+		    	continue;
+		    sub = i-reverse(i);
+		    
+		    if(sub < 200 || sub >= 300)
+		    	continue;
+			for(int j = 1000; j <= 9999; j++){
+				
+				if(reverse(j) == -1)
+					continue;
+				sub2 = reverse(j)-j;
+				
+				if(sub2 < 800 || sub2 >= 900)
+					continue;	
+				if((sub2-sub) == 558){
+					System.out.println("赔钱的正确价格为："+i);
+					//System.out.println("赚钱的正确价格为："+j);
+				}
+			}
+		}
+		
+	}
+}
+ 
+答案：9088
+ 
+
+转载请标明出处：http://blog.csdn.net/u012027907
+ 
+更多 
+
+上一篇：另一种求大数阶乘的算法
+ . 
+顶8踩2. 
+
+
+查看评论
+ 
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+核心技术类目
+
+全部主题数据挖掘SOAUML开放平台HTML5开源移动开发iOSAndroid移动游戏Windows PhoneJavaScriptCSS游戏引擎云计算大数据HadoopOpenStack云平台PHPMongoDBJSONXcodeNode.js前端开发神经网络安全Java.NETMySQLtextviewBigTableweb框架SQLRedisCouchDBLinux可穿戴计算NoSQLRubyAPIGPLXAMLASP.NET前端开发虚拟化框架机器学习数据中心IE10敏捷集群
+
+ 
+
+
+个人资料 
+
+u012027907 
+
+
+
+
+◦访问：14459次
+◦积分：614分
+◦排名：千里之外
+ . ◦原创：35篇
+◦转载：8篇
+◦译文：0篇
+◦评论：81条
+ . 
+文章搜索
+
+. 
+博客专栏
+
+
+
+
+算法入门
+文章：10篇
+阅读：4740 
+
+文章分类 • 算法(13) 
+• 数据库(11) 
+• C++(4) 
+• VC(5) 
+• 面向对象设计原则(1) 
+• java(3) 
+• 2014百度校招笔试题(1) 
+• 项目管理(2) 
+• 游戏(2) 
+• C#(1) 
+• COM技术(1) 
+• unity3d(1) 
+• eclipse插件安装(1) 
+• 面试题(2) 
+• 计算机视觉(1) 
+• oracle(2) 
+• C语言(2) 
+
+文章存档 
+2013年11月(2).
+2013年10月(30).
+2013年09月(11).
+ . 
+阅读排行 • 几个有意思的算法题(1865) 
+• VC版的贪吃蛇游戏(1308) 
+• C语言经典算法100例（一）(1105) 
+• C语言经典算法100例（三）(946) 
+• C语言经典算法100例（二）(709) 
+• 如何用10只实验鼠检验出1000个药瓶中哪个有毒药？(698) 
+• 关于日期的常用算法(661) 
+• 另一种求大数阶乘的算法(583) 
+• 基于COM技术的ATM自动存款机实现（C#版）(543) 
+• 2014百度校招笔试题(533) 
+
+评论排行 • 几个有意思的算法题(44) 
+• VC版的贪吃蛇游戏(10) 
+• C语言经典算法100例（一）(9) 
+• 另一种求大数阶乘的算法(4) 
+• C语言经典算法100例（三）(4) 
+• C语言经典算法100例（二）(3) 
+• VC版黑白棋游戏(2) 
+• C++版贪吃蛇游戏(2) 
+• 如何用10只实验鼠检验出1000个药瓶中哪个有毒药？(1) 
+• 一个类似“火柴棍”问题的面试题(1) 
+
+推荐文章 
+最新评论 •几个有意思的算法题
+u012027907: @u012079596:手误！是year % 100 != 0,谢谢你及时发现！ 
+
+•几个有意思的算法题
+u011986223: 振兴中华 斜线遍历1 1 1 1 11 2 3 4 5 1 3... 
+
+•几个有意思的算法题
+u012079596: 判断是闰年那个代码错了吧 应该是year%100!=0 
+
+•几个有意思的算法题
+linzi5202008: mark,IQ编程题。 
+
+•几个有意思的算法题
+u012339743: 腾讯微博看到你了，原来咱们是一个学校的！ 
+
+•另一种求大数阶乘的算法
+u012730635: 看不懂 
+
+•几个有意思的算法题
+qqrh8820: 变连续int数组，太有道理了 
+
+•几个有意思的算法题
+qqrh8820: 振兴中华那个，很受启发 
+
+•VC版的贪吃蛇游戏
+kenden23: 写得很好啊。顶。 
+
+•几个有意思的算法题
+u011420538: 挺有意思的！ 
+
+
+
+. 

@@ -1,0 +1,421 @@
+
+I come, I see, I conquer
+
+                    —Gaius Julius Caesar
+
+  博客园 :: 首页 :: 博问 :: 闪存 :: 新随笔 :: 联系 :: 订阅  :: 管理 ::		
+  25 随笔 :: 318 文章 :: 77 评论 :: 54 引用
+公告
+
+拷贝构造函数与重载赋值操作符的使用[C++][code]
+1. 为什么要使用拷贝构造函数？
+
+    请看以下程序，我们创建了两个Node对象，第二个对象的创建直接拷贝第一个已创建的对象。然后我们想修改第二个对象node2的name字段，采用库函数strcpy()。但是并没有得到预期的结果。
+   
+#include<iostream.h>
+#include<string.h>
+
+struct Node
+{
+    char *name;
+    int age;
+    Node(char *n="", int a=0)
+    {
+        name=new char[strlen(n)+1];
+        strcpy(name, n);
+        age=a;
+    }
+};
+
+void main()
+{
+    Node node1("Roger", 20);
+    Node node2(node1);//创建了对象node1的逐位复制件，且包含了一个指向对象node1的指针
+
+    strcpy(node2.name, "Wendy");//修改node2的name的同时，node1的name也被修改
+    node2.age=30;
+
+    cout<<node1.name<<' '<<node1.age<<' '
+        <<node2.name<<' '<<node2.age<<endl;
+}
+
+运行结果：
+Wendy 20 Wendy 30
+
+    解决办法是使用显式的拷贝构造函数，程序如下所示：
+
+#include<iostream.h>
+#include<string.h>
+
+struct Node
+{
+    char *name;
+    int age;
+    Node(char *n="", int a=0)
+    {
+        name=new char[strlen(n)+1];
+        strcpy(name, n);
+        age=a;
+    }
+    Node(const Node &n) //copy constructor
+    {
+        name=new char[strlen(n.name)+1];
+        strcpy(name, n.name);
+        age=n.age;
+    }
+};
+
+void main()
+{
+    Node node1("Roger", 20)
+    Node node2(node1);//调用了显式的拷贝构造函数
+
+    strcpy(node2.name, "Wendy");
+    node2.age=30;
+
+    cout<<node1.name<<' '<<node1.age<<' '
+        <<node2.name<<' '<<node2.age<<endl;
+}
+
+运行结果：
+Roger 20 Wendy 30
+
+2. 什么时候需要显式创建复制构造函数？
+
+    假定对象包含一个用来动态为对象分配内存的指针，如果创建了对象的逐位复制件，它会包含指向与原对象中的指针所指向的相同的内存位置的指针。当对象的复制件销毁时，析构函数将会释放仍然由原始对象使用的内存。原始对象将会因此销毁，从而产生错误。为防止这种类型的错误，应该使用复制构造函数
+    注意：析构函数的调用次数等于全部构造函数(常规构造与复制构造函数)的调用总数
+    
+    拷贝构造函数使用举例：
+
+//program demonstrates a practical use of the copy constructor
+#include <iostream>
+#include <cstring>
+using namespace std;
+
+class Message
+{
+    char *mes;
+public:
+    Message(char *m);
+    Message(const Message &cm);
+    ~Message();
+    void printMes() { cout<<"\t Message: "<<mes<<endl; }
+    char *getMes() { return mes; }
+};
+
+Message::Message(char *m) //regular constructor definition
+{
+    cout<<" Normal constructor called!" <<" ";
+    mes=new char[strlen(m)+1];
+    cout<<" mes: "<<(int)mes<<endl;
+    if(!mes)
+    {
+        cout<<" Allocation Error! ";
+        exit(1);
+    }
+    strcpy(mes, m);
+}
+
+Message::Message(const Message &cm) //copy constructor definition
+{
+    cout<<" Copy constructor called!" <<" ";
+    mes=new char[strlen(cm.mes)+1];
+    cout<<" mes: "<<(int)mes<<endl;
+    if(!mes)
+    {
+        cout<<" Allocation Error! ";
+        exit(1);
+    }
+    strcpy(mes, cm.mes);
+}
+
+Message::~Message() //deconstructor definition
+{
+    cout<<" Deconstructor called!" <<" ";
+    cout<<" mes: "<<(int)mes<<endl;
+    delete []mes;
+}
+
+void upperMes(Message m)
+{
+    int n=strlen(m.getMes());
+    char *t=m.getMes();
+    for(int i=0; i<n; i++)
+        t[i]=toupper(t[i]);
+    t[n]='\0';
+    Message temp(t);
+    temp.printMes();
+}
+
+void main()
+{
+    Message m1("PROGRAM_1");
+    m1.printMes();
+
+    Message m2("copy constructor test!");
+    Message m3=m2; //calls the copy constructor
+
+    m3.printMes();
+    upperMes(m3); //calls the copy constructor
+}
+
+运行结果：
+Normal constructor called! mes: 4726064
+            Message: PROGRAM_1
+Normal constructor called! mes: 4725424
+Copy constructor called! mes: 4725344
+            Message: copy constructor test!
+Copy constructor called! mes: 4725696
+Normal constructor called! mes: 4725616
+            Message: COPY CONSTRUCTOR TEST!
+Deconstructor called! mes: 4725616
+Deconstructor called! mes: 4725696
+Deconstructor called! mes: 4725344
+Deconstructor called! mes: 4725424
+Deconstructor called! mes: 4726064
+
+
+3. 赋值运算符的重载
+    
+#include<iostream.h>
+#include<string.h>
+
+struct Node
+{
+    char *name;
+    int age;
+    Node(char *n="", int a=0)
+    {
+        name=new char[strlen(n)+1];
+        strcpy(name, n);
+        age=a;
+    }
+    Node(const Node &n) //copy constructor   
+    {
+        name=new char[strlen(n.name)+1];
+        strcpy(name, n.name);
+        age=n.age;
+    }
+    
+    Node & operator=(const Node &n) //operator '=' overload
+    {
+        if(this!=&n)
+        {
+            if(name!=0)
+                delete []name;
+            name=new char[strlen(n.name)+1];
+            strcpy(name, n.name);
+            age=n.age;
+        }
+        return *this;
+    }
+};
+
+void main()
+{
+    Node node1("Roger", 20);
+
+    Node node2;
+    
+    node2=node1; //调用重载的赋值运算符
+
+    strcpy(node2.name, "Wendy");
+    node2.age=30;
+
+    cout<<node1.name<<' '<<node1.age<<' '
+        <<node2.name<<' '<<node2.age<<endl;
+} 
+
+运行结果：
+Roger 20 Wendy 30
+
+
+3. 示例程序
+
+/* ***********************向函数传递和从函数返回对象*************************
+ * 1. C和C++编译器在内存中创建值的复制件传递给函数，然后在函数终止时销毁它们　
+ * 2. 如果通过指针或引用传递值，就不会创建值的复制件，而是传递保存初始值的内存位置的指针
+ * 3. 在向函数传递对象时，会创建复制件，但不会调用类构造函数。构造函数的主要作用是初始化新创建的
+ * 　 的对象。当该对象传递给函数时，需要创建保存在对象中的当前值而不是初始值的复制件。
+ * 4. 当具有以类对象作为参数的函数终止时，传递给函数的对象的复制件将会销毁。
+ * 5. 下例中构造函数调用2次而析构函数调用了4次。次数不相等会导致一些严重的逻辑问题
+ * 6. 向函数传递对象可能导致各种逻辑错误。而一种在把对象传递给函数时防止析构函数调用的方法是传递
+ *    对象的引用或地址，而不是对象的值
+ *******************e.g. 2.2****************
+ * 1. 返回对象的函数首先在内存中创建一个临时对象来保存返回的值，然后把值返回给调用函数的程序语句。
+ *    值返回之后，自动调用类析函数来销毁临时对象
+ *******************e.g. 2.1****************
+ * 1. Pixel p1; //calls the default constructor to initialize p1
+ * 2. Pixel p2=p1; //p1 initialize p2 calls the copy constructor
+ * 3. Pixel p3(p1); //p1 initialize p3 calls the copy constructor
+ * 4. fun1(p1); //p1 is passed to fun1(); calls the copy constructor
+ * 5. p2=fun2(); //fun2() returns an object to p2; calls the copy constructor
+ * 6. p3=p2; //the copy constructor is not called here
+ * 6. 当把一个对象赋值给另一个对象时，如果不是声明语句，不会调用复制构造函数
+ *
+ ********************什么时候需要显式创建复制构造函数？*****************
+ * 假定对象包含一个用来动态为对象分配内存的指针，如果创建了对象的逐位复制件，它会包含指向与原
+ * 对象中的指针所指向的相同的内存位置的指针。当对象的复制件销毁时，析构函数将会释放仍然由原始
+ * 对象使用的内存。原始对象将会因此销毁，从而产生错误。为防止这种类型的错误，应该使用复制构造函数
+ */
+
+//program e.g. 1 demonstrates the process of passing objects to functions
+//program e.g. 2 demonstrates functions returning objects
+#include <iostream>
+using namespace std;
+
+int bcount=0; //counter that counts objects
+
+class Box //e.g. 1
+{
+    float side1, side2, side3; //three sides of a box
+public:
+    Box(float s1, float s2, float s3)
+    {
+        side1=s1; side2=s2; side3=s3;
+        bcount++; //Increments counter
+    }
+    ~Box()
+    {
+        bcount--;
+        cout<<"\t \tBox destroyed!\n";
+    }
+    float getVolume() { return side1*side2*side3; }
+};
+
+class Pixel//e.g. 2
+{
+    int x, y; //x and y coordinates of a pixel
+public:
+    
+    //--------------------e.g. 2.1----------------
+    Pixel(int a, int b) : x(a), y(b)//regular constructor
+    {
+        cout<<"\tNormal constructor "<<endl;
+    }
+    Pixel(const Pixel &p)
+    {
+        x=p.x; y=p.y;
+        cout<<"\tCopy constructor "<<endl;
+    }
+    void setX(int x1) { x=x1; }
+    void setY(int y1) { y=y1; }
+    void showXY() { cout<<" X="<<x<<" Y="<<y<<endl; }
+    //---------------------
+
+    //---------------------------------------------e.g. 2.2----------------
+    Pixel() : x(0), y(0) {} //default constructor
+    ~Pixel() { cout<<"\t \tPixel destroyed! "<<endl; }
+    void setXY(int x1, int y1) { x=x1; y=y1; }
+    void getCoord()
+    {
+        cout<<"Pixel's coordinates: "<<endl;
+        cout<<"X="<<x<<" Y="<<y<<endl;
+    }
+    Pixel move_10(Pixel t)
+    {
+        t.x+=10; t.y+=10; return t;
+    }//at this moment, object t and the returned object's copy will be destroyed
+    //----------------------------------------------
+};
+
+Pixel center(Pixel tp) //e.g. 2.1
+{
+    tp.setX(512);
+    tp.setY(512);
+    return tp;
+}
+
+Pixel setCoord() //e.g. 2.1
+{
+    int x1, y1;
+    cout<<" Enter x and y coordinates=>";
+    cin>>x1>>y1;
+    Pixel temp;
+    temp.setXY(x1, y1);
+    return temp;
+} //at this moment, object t and the returned object's copy will be destroyed
+//float addBoxes(Box, Box); //objects as function parameters
+float addBoxes(Box &, Box &); //e.g. 2.2
+
+void main()
+{
+    cout<<"-----------------------e.g. 1--------------------"<<endl;
+    Box a(1, 2, 3), b(2, 3, 4);
+    cout<<bcount<<" boxes built so far.\n";
+    cout<<"\t \tTotal volume="<<addBoxes(a, b)<<endl;
+    cout<<bcount<<" boxes built so far.\n";
+    cout<<"-----------------------e.g. 2.2--------------------"<<endl;
+    //----------------------------e.g. 2.2-------------------
+    Pixel p1, p2;
+    p1=setCoord(); //a non-member function returning an object
+    p1.getCoord();
+
+    p2=p1.move_10(p1); ////a member function returning an object
+    p2.getCoord();
+    p1.getCoord();
+    cout<<"-----------------------e.g. 2.1-------------------"<<endl;
+    //----------------------------e.g. 2.1-------------------
+    Pixel p3(10, 20); //calls regular constructor
+    p3.showXY();
+    Pixel p4=p3; //calls the copy constructor
+    p4.showXY();
+    p4=center(p3); //calls the copy constructor twice
+    p4.showXY();
+    cout<<"-----------------------end of main()-----------------"<<endl;
+}//at this moment, objects a and b of Box, p1,p2,p3,p4 of Pixel will be destroyed
+
+//float addBoxes(Box b1, Box b2)
+float addBoxes(Box &b1, Box &b2)
+{
+    cout<<"\t \tAdding boxes: \n";
+    cout<<"\t \t"<<bcount<<" boxes built so far. \n";
+    return b1.getVolume() + b2.getVolume();
+}
+
+运行结果：
+-----------------------e.g. 1--------------------
+2 boxes built so far.
+                Adding boxes:
+                2 boxes built so far.
+                Total volume=30
+2 boxes built so far.
+-----------------------e.g. 2.2--------------------
+ Enter x and y coordinates=>33 55  回车
+        Copy constructor
+                Pixel destroyed!
+                Pixel destroyed!
+Pixel's coordinates:
+X=33 Y=55
+        Copy constructor
+        Copy constructor
+                Pixel destroyed!
+                Pixel destroyed!
+Pixel's coordinates:
+X=43 Y=65
+Pixel's coordinates:
+X=33 Y=55
+-----------------------e.g. 2.1-------------------
+        Normal constructor
+ X=10 Y=20
+        Copy constructor
+ X=10 Y=20
+        Copy constructor
+        Copy constructor
+                Pixel destroyed!
+                Pixel destroyed!
+ X=512 Y=512
+-----------------------end of main()-----------------
+                Pixel destroyed!
+                Pixel destroyed!
+                Pixel destroyed!
+                Pixel destroyed!
+                Box destroyed!
+                Box destroyed!
+Press any key to continue
+posted on 2008-03-06 21:29 jcsu 阅读(...) 评论(...)  编辑 收藏
+刷新评论刷新页面返回顶部
+博客园首页博问新闻闪存程序员招聘知识库
+Powered by: 
+博客园 
+Copyright © jcsu

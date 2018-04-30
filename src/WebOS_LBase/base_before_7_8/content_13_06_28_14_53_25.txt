@@ -1,0 +1,229 @@
+hello
+
+test
+
+dolphi
+重装windows后修复grub2引导
+
+使用安装版的windows重装windows时会改写mbr，造成grub丢失，可以用grub4dos引导进入ubuntu后修复grub或用livecd启动后修复grub。
+
+1、用grub4dos修复ubuntu
+
+先下载最新版的grub4dos，下载地址http://sourceforge.net/projects/grub4dos/files/GRUB4DOS/，如果是xp系统，把grub4dos压缩包内的grldr复制到C盘根目录下，修改boot.ini，在最后加上一行 c:\grldr=”grub4dos”，
+
+对 于vista/win7系统，把压缩包内的grldr.mbr和grldr复制到C盘根目录下，在C盘自己建立一个boot.ini文件，若有boot隐 藏分区的，先给boot分区分配盘符.
+再把grldr，grldr.mbr和boot.ini放在boot分区下，boot.ini内容如下：
+
+Win7使用软改激活的请不要使用此方法，否则会造成win7不能启动。
+
+然后在根目录新建一个menu.lst，内容为
+
+timeout 0
+default 0
+
+title grub2
+find –set-root /boot/grub/core.img
+
+kernel /boot/grub/core.img
+boot
+
+(有/boot分区的改为
+
+find –set-root /grub/core.img
+
+kernel /grub/core.img)
+
+重启后选择Grub4Dos会自动转入grub2，从grub2菜单项选择ubuntu启动后，在终端执行
+
+sudo grub-install /dev/sda
+
+将grub装入第一硬盘的mbr，如要装入第二硬盘的mbr把sda改为sdb，第三硬盘为sdc，类推。
+至于要把grub装到sda或sdb或sdc的mbr上，需根据自己情况确定，看看要设置哪一块硬盘为启动盘，就把grub装到那块硬盘的mbr上。
+
+2、用livecd修复grub
+
+用ubuntu9.10的livecd启动后，打开终端
+
+假如你的ubuntu的 / 分区是sda7，又假如 /boot分区是 sda6，用livecd启动，在终端下输入
+sudo -i
+mount /dev/sda7 /mnt
+mount /dev/sda6 /mnt/boot （如果没 /boot 单独分区这步跳过）
+grub-install –root-directory=/mnt /dev/sda
+
+和前面一样，要装入第二硬盘的把sda改为sdb。
+
+如果grub.cfg己丢失，或grub.cfg出现错误，需要重建的继续执行下面操作：
+
+mount –bind /proc /mnt/proc
+mount –bind /dev /mnt/dev
+mount –bind /sys /mnt/sys
+chroot /mnt update-grub
+umount /mnt/sys
+umount /mnt/dev
+umount /mnt/proc
+
+exit
+
+3、用带grub启动的光盘或U盘修复
+
+如果手上有grub启动的工具盘，用工具盘启动，在grub菜单上按c进入命令行状态，
+
+在grub>提示符下输入
+
+grub>find /boot/grub/core.img (有/boot分区的用find /grub/core.img)
+
+(hdx,y) (显示查找到的分区号）
+
+grub>root (hdx,y)
+
+grub>kernel /boot/grub/core.img (/boot分区的用 kernel /grub/core.img)
+
+grub>boot
+
+执行boot后能转入grub2菜单，启动ubuntu后，再在ubuntu终端下执行
+
+sudo grub-install /dev/sda (或sdb，sdc等）修复grub。
+如果ubuntu的启动分区使用ext4格式，要有支持ext4格式的grub才能修复。
+
+4、没安装引导器的 grub4dos引导ubuntu的方法
+按第一步的方法使用 boot.ini 建立grub4dos引导项，自己编写 menu.lst，内容如下
+
+timeout 3
+default 0
+
+title Ubuntu 9.10
+root (hdx,y) ——–> (hd0x,y) 为 /boot分区的分区号
+kernel /vmlinuz-xxx-generic root=/dev/sdxy ——->/dev/sdxy 为 / 分区的分区号
+
+initrd /initrd.img-xxx-generic
+
+没 /boot 分区的用
+timeout 3
+default 0
+
+title Ubuntu 9.10
+root (hdx,y)
+kernel /boot/vmlinuz-xxx-generic root=/dev/sdxy
+initrd /boot/initrd.img-xxx-generic
+
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+dolphi
+关注 - 5
+粉丝 - 4
++加关注
+0 0
+(请您对文章做出评价)
+« 上一篇：Ubuntu 11.04禁用触摸板
+» 下一篇：Opensuse 11.3下安装 Cadence Allegro SPB 16.30.000
+posted on 2012-04-30 18:40 dolphi 阅读(4641) 评论(0) 编辑 收藏
+
+刷新评论刷新页面返回顶部
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+博客园首页博问新闻闪存程序员招聘知识库
+
+最新IT新闻:
+· iOS 7带给开发者5大新鲜事 文本转语音 3D地图
+· 百万奖金加创业生态扶持 阿里云助力云创业梦想
+· 微软获Unity引擎全平台支持 包括Xbox One
+· 谷歌版HTC One源代码放出
+· 盖茨欲将女儿培养成世界级骑手 斥巨资购马场
+» 更多新闻...
+最新知识库文章:
+· 写给想当程序员的朋友 -- 一个还不太老的程序员的体会
+· 面试时，如何向公司提问？
+· 10岁学编程：虚幻引擎创始人Tim Sweeney专访
+· 想学编程？这样开始
+· 如何在两个月内快速教会女友编程
+» 更多知识库文章...
+
+Powered by: 
+博客园 
+Copyright © dolphi
+
+<	2012年4月	>
+日	一	二	三	四	五	六
+25	26	27	28	29	30	31
+1	2	3	4	5	6	7
+8	9	10	11	12	13	14
+15	16	17	18	19	20	21
+22	23	24	25	26	27	28
+29	30	1	2	3	4	5
+导航
+博客园
+首页
+新随笔
+联系
+订阅
+管理
+统计
+随笔 - 43
+文章 - 1
+评论 - 3
+引用 - 0
+公告
+IT新闻:
+iOS 7带给开发者5大新鲜事 文本转语音 3D地图 1小时前
+百万奖金加创业生态扶持 阿里云助力云创业梦想 2小时前
+微软获Unity引擎全平台支持 包括Xbox One 3小时前
+谷歌版HTC One源代码放出 3小时前
+盖茨欲将女儿培养成世界级骑手 斥巨资购马场 3小时前
+hello
+
+test
+
+昵称：dolphi
+园龄：2年2个月
+粉丝：4
+关注：5
++加关注
+搜索
+ 
+ 
+常用链接
+我的随笔
+我的评论
+我的参与
+最新评论
+我的标签
+随笔档案
+2013年4月 (1)
+2013年3月 (4)
+2013年2月 (1)
+2013年1月 (2)
+2012年12月 (1)
+2012年11月 (1)
+2012年10月 (1)
+2012年8月 (14)
+2012年7月 (3)
+2012年5月 (3)
+2012年4月 (3)
+2012年3月 (9)
+C/C++
+SlickEdit 2011 (rss)
+最新评论
+1. Re:应用SMB/CIFS协议
+好的，我看看 谢了
+--iguor
+2. Re:应用SMB/CIFS协议
+@iguor我最近是想做一个服务端，做一个远程文件系统，我也查了好多，这篇是转来的，发现很多资料都是针对这个协议的客户端的，服务端只有一个samba开源软件，可是代码好多，不想看下去了你做客户端的话应该好一点，samba这个开源项目组做了一个JCIFS的项目，是给java语言做的一些cifs协议客户端的函数封装你还得继续找找资料，关键字：cifs,SMB,NetBios
+--dolphi
+3. Re:应用SMB/CIFS协议
+直接说我的难点吧，我现在要做一个用iphone手机可以不用数据线连接，
+      向windows 共享文件夹中传输照片或文件，现在可以向指定ip的共享文件夹中传输，
+      但是我现在想找到周围所有机器的共享文件夹列表，找了好多资料没有实现，
+       如果你能知道解决办法希望能给些建议。
+--iguor
+阅读排行榜
+1. 重装windows后修复grub2引导(4641)
+2. Linux下的 Source Insight (转载)(3524)
+3. [转]SlickEdit 2012(2339)
+4. 【转载】arm指令(891)
+5. NFS作为根文件系统时server not responding问题的解决(745)
+评论排行榜
+1. [转]应用SMB/CIFS协议(3)
+2. 【转】CIFS服务端开发笔记(0)
+3. 最近在做linux的移植工作(0)
+4. [转]SlickEdit 2012(0)
+5. Slickedit中文显示与输入(0)
+推荐排行榜
+1. [转]应用SMB/CIFS协议(1)

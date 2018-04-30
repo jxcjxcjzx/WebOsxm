@@ -1,0 +1,464 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+houapple的记忆屋学无止境，宁静致远...
+目录视图摘要视图订阅
+亲，“社区之星”已经一周岁了！        WebApp实时开源框架Clouda---认识心得      Tag功能介绍—我们为什么打Tag      订阅CSDN社区周刊，及时了解社区精华内容
+ 二叉树的常用操作
+2010-05-24 21:18 170人阅读 评论(0) 收藏 举报
+null存储unixcn2终端
+      二叉树是每个节点至多有两颗子树的有序树。有以下特点：
+      1、在二叉树的第i层至多有2^(i-1)个结点(i>=1)；
+      2、深度为k的二叉树至多有2^k-1个结点；
+      3、对任何一个二叉树，如果其终端结点数为n0，度为2的结点数为n2，则n0 = n2 + 1；
+      分类
+      满二叉树：一颗深度为k且有2^k-1个节点的二叉树称为满二叉树
+      完全二叉树：深度为k的，有n个节点的二叉树，当且仅当其每一个结点都与深度为k的满二叉树中编号从1到n的结点一一对应时，称为完全二叉树。特点：
+          1、具有n个节点的完全二叉树的深度为log2n + 1
+          2、如果对一颗有n个结点的完全二叉树(深度为log2n + 1)的结点按层序编号(从第1层到第og2n + 1层，每层从左到右)，则对任一结点i(1=<i<=n)，有：
+              a、如果i = 1，则结点i是二叉树的根，无双亲；如果i>1，则其双亲PARENT(i)是结点i/2。
+              b、如果2i > n，则结点i无左孩子(结点i为叶子结点)；否则其左孩子LCHILD(i)是结点2i。
+              c、若果2i + 1 > n，则结点i无右孩子；否则其右孩子RCHILD(i)是结点2i + 1。
+      顺序存储结构在二叉树不是完全二叉树的情况下很浪费空间。所以，这里采用链式存储结构
+接口：
+
+Code:
+#ifndef _BITREE_H   
+#define _BITREE_H   
+#define TElemType char   
+#define Nil ' '   
+#define clear_bitree destory_bitree   
+  
+#ifdef _MSC_VER   
+#define bool int    
+#define true 1    
+#define false 0     
+#else   
+#include <stdbool.h>   
+#include <stdint.h>   
+#endif   
+  
+struct BiTNode;   
+  
+void init_bitree(struct BiTNode **T);   
+bool create_bitree(struct BiTNode **T);   
+void destory_bitree(struct BiTNode **T);   
+  
+bool bitree_empty(struct BiTNode *T);   
+int bitree_depth(struct BiTNode *T);   
+  
+TElemType root(struct BiTNode *T);   
+struct BiTNode *point(struct BiTNode *T, TElemType e);   
+  
+TElemType parent(struct BiTNode *T, TElemType e);   
+TElemType left_child(struct BiTNode *T, TElemType e);   
+TElemType right_child(struct BiTNode *T, TElemType e);   
+  
+TElemType left_sibling(struct BiTNode *T, TElemType e);   
+TElemType right_sibling(struct BiTNode *T, TElemType e);   
+  
+bool insert_child(struct BiTNode *p, int LR, struct BiTNode *c);   
+bool delete_child(struct BiTNode *p, int LR);   
+  
+TElemType value(struct BiTNode *p);   
+void assign(struct BiTNode *p, TElemType e);   
+  
+void pre_order(struct BiTNode *T, void (*visit)(TElemType e));   
+void in_order(struct BiTNode *T, void (*visit)(TElemType e));   
+void post_order(struct BiTNode *T, void (*visit)(TElemType e));   
+  
+#endif   
+实现：
+
+Code:
+#include "queue.h"   
+#include "bitree.h"   
+#include <stdio.h>   
+#include <stdlib.h>   
+#include <assert.h>   
+  
+struct BiTNode {   
+    TElemType data;   
+    struct BiTNode *lchild, *rchild;   
+};   
+  
+/* init the binary tree with NULL */  
+void init_bitree(struct BiTNode **T)   
+{   
+    *T = NULL;   
+}   
+  
+/* create binary tree by previous order input */  
+bool create_bitree(struct BiTNode **T)   
+{   
+    TElemType ch;   
+    scanf("%c", &ch);   
+    if (ch == Nil)   
+        *T = NULL;   
+    else {   
+        *T = (struct BiTNode *)malloc(sizeof(struct BiTNode));   
+        if (*T == NULL)   
+            return false;   
+        (*T)->data = ch;   
+        create_bitree(&(*T)->lchild);   
+        create_bitree(&(*T)->rchild);   
+    }   
+    return true;   
+}   
+  
+  
+void destory_bitree(struct BiTNode **T)   
+{   
+    if (*T != NULL) {   
+        if ((*T)->lchild != NULL)   
+            destory_bitree(&(*T)->lchild);   
+        if ((*T)->rchild != NULL)   
+            destory_bitree(&(*T)->rchild);   
+        free(*T);   
+        *T = NULL;   
+    }   
+}   
+  
+bool bitree_empty(struct BiTNode *T)   
+{   
+    if (T != NULL)   
+        return false;   
+    else  
+        return true;   
+}   
+  
+int bitree_depth(struct BiTNode *T)   
+{   
+    int i, j;   
+    if (T == NULL)   
+        return 0;   
+           
+    if (T->lchild != NULL)   
+        i = bitree_depth(T->lchild);   
+    else  
+        i = 0;   
+  
+    if (T->rchild != NULL)   
+        j = bitree_depth(T->rchild);   
+    else  
+        j = 0;   
+           
+    return i > j ? i+1 : j+1;   
+}   
+  
+TElemType root(struct BiTNode *T)   
+{   
+    if (bitree_empty(T))   
+        return Nil;   
+    else  
+        return T->data;   
+}   
+  
+/* return the pointer of node whose data is e */  
+struct BiTNode * point(struct BiTNode *T, TElemType e)   
+{   
+    QElemType a;   
+    struct queue *q = NULL;   
+      
+    if (T != NULL) {   
+        q = init_queue();   
+        en_queue(q, T);   
+           
+        while (! queue_empty(q)) {   
+            a = gethead(q);   
+            de_queue(q);   
+               
+            if (a->data == e) {   
+                destory_queue(q);   
+                return a;   
+            }   
+            if (a->lchild != NULL)   
+                en_queue(q, a->lchild);   
+            if (a->rchild != NULL)   
+                en_queue(q, a->rchild);   
+        }   
+    }   
+    return NULL;   
+}   
+  
+/* return the data of parent of node whose data is e */  
+TElemType parent(struct BiTNode *T, TElemType e)   
+{   
+    struct queue *q = NULL;   
+    if (T != NULL) {   
+        q = init_queue();   
+        en_queue(q, T);   
+        while (! queue_empty(q)) {   
+            QElemType a = gethead(q);   
+            de_queue(q);   
+               
+            /* find the node whose data is e */  
+            if ((a->lchild != NULL && a->lchild->data == e) ||    
+                (a->rchild != NULL && a->rchild->data == e)) {   
+                destory_queue(q);   
+                return a->data;   
+            } else {   
+                if (a->lchild != NULL)   
+                    en_queue(q, a->lchild);   
+                if (a->rchild != NULL)   
+                    en_queue(q, a->rchild);   
+            }   
+        }   
+    }   
+    return Nil;   
+}   
+  
+/* return the data of left child of node whose data is e */  
+TElemType  left_child(struct BiTNode *T, TElemType e)   
+{   
+    struct BiTNode *a;   
+    if (T != NULL) {   
+        a = point(T, e);   
+        if (a != NULL && a->lchild != NULL)   
+            return a->lchild->data;   
+    }   
+    return Nil;   
+}   
+  
+/* return the data of right child of node whose data is e */  
+TElemType right_child(struct BiTNode *T, TElemType e)   
+{   
+    struct BiTNode *a;   
+    if (T != NULL) {   
+        a = point(T, e);   
+        if (a != NULL && a->rchild != NULL)   
+            return a->rchild->data;   
+    }   
+    return Nil;   
+}   
+  
+/* assume the node whose data is e names A, then return the data of left   
+ * brother of A, if A is the left child of T, or A hasn't left brother,  
+ * return Nil  
+ */  
+TElemType left_sibling(struct BiTNode *T, TElemType e)   
+{   
+    TElemType a;   
+    struct BiTNode *p;   
+       
+    if (T != NULL) {   
+        a = parent(T, e);   
+        if (a != Nil) {   
+            p = point (T, a);   
+            if (p->lchild != NULL && p->rchild != NULL && p->rchild->data == e)   
+                return p->lchild->data;   
+        }   
+    }   
+    return Nil;   
+}   
+  
+TElemType right_sibling(struct BiTNode *T, TElemType e)   
+{   
+    TElemType a;   
+    struct BiTNode *p;   
+       
+    if (T != NULL) {   
+        a = parent(T, e);   
+        if (a != Nil) {   
+            p = point(T, a);   
+            if (p->rchild != NULL && p->lchild != NULL && p->lchild->data == e)   
+                return p->rchild->data;   
+        }   
+    }   
+    return Nil;   
+}   
+  
+/* according to the value of LR, insert c into the left or right child of p.  
+ * the former left or right tree be the right tree of c.  
+ */  
+bool insert_child(struct BiTNode *p, int LR, struct BiTNode *c)   
+{   
+    if (p != NULL) {   
+        if (LR == 0) {   
+            c->rchild = p->lchild;   
+            p->lchild = c;   
+        } else {   
+            c->rchild = p->rchild;   
+            p->rchild = c;   
+        }   
+        return true;   
+    }   
+    return false;   
+}   
+/* delete the left or right child tree of p, by the value of LR */  
+bool delete_child(struct BiTNode *p, int LR)   
+{   
+    if (p != NULL) {   
+        if (LR == 0)   
+            clear_bitree(&p->lchild);   
+        else  
+            clear_bitree(&p->rchild);   
+        return true;   
+    }   
+    return false;   
+}   
+  
+TElemType value(struct BiTNode *p)   
+{   
+    assert(p != NULL);   
+    return p->data;   
+}   
+  
+void assign(struct BiTNode *p, TElemType e)   
+{   
+    assert(p != NULL);   
+    p->data = e;   
+}   
+  
+void pre_order(struct BiTNode *T, void (*visit)(TElemType e))   
+{   
+    if (T != NULL) {   
+        visit(T->data);   
+        pre_order(T->lchild, visit);   
+        pre_order(T->rchild, visit);   
+    }   
+}   
+  
+void in_order(struct BiTNode *T, void (*visit)(TElemType e))   
+{   
+    if (T != NULL) {   
+        in_order(T->lchild, visit);   
+        visit(T->data);   
+        in_order(T->rchild, visit);   
+    }   
+}   
+  
+void post_order(struct BiTNode *T, void (*visit)(TElemType e))   
+{   
+    if (T != NULL) {   
+        post_order(T->lchild, visit);   
+        post_order(T->rchild, visit);   
+        visit(T->data);   
+    }   
+}   
+  
+ 接口看起来不太美观，个人不喜欢匈牙利命名法，更喜欢unix风格的命名，但采用下划线的方式有时又导致名称太长！矛盾中...后面给出非递归遍历的实现。测试代码：
+
+Code:
+#include "bitree.h"   
+#include <stdio.h>   
+  
+void print(TElemType e)   
+{   
+    printf("%c", e);   
+}   
+  
+int main()   
+{   
+    struct BTNode *p = NULL;   
+       
+    create_bitree(&p);   
+    pre_order(p, print);   
+       
+    printf("/n");   
+    in_order(p, print);   
+       
+    printf("/n");   
+    post_order(p, print);   
+       
+    printf("/n");   
+    char ch = parent(p, 'E');   
+    printf("%c", ch);   
+    destory_bitree(&p);   
+    return 0;   
+}   
+ 
+
+更多 0
+上一篇：一级指针不能做函数参数传递动态内存的理解
+下一篇：二叉树的非递归遍历
+
+查看评论
+
+  暂无评论
+
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+ TOP
+核心技术类目
+全部主题 数据挖掘 SOA UML 开放平台 HTML5 开源 移动开发 iOS Android 移动游戏 Windows Phone JavaScript CSS 游戏引擎 云计算 大数据 Hadoop OpenStack 云平台 PHP MongoDB JSON Xcode Node.js 前端开发 神经网络 安全 Java .NET MySQL textview BigTable web框架 SQL Redis CouchDB Linux 可穿戴计算 NoSQL Ruby API GPL XAML ASP.NET 前端开发 虚拟化 框架 机器学习 数据中心 IE10 敏捷 集群
+个人资料
+ 访问我的空间 
+houapple
+ 
+访问：23059次
+积分：632分
+排名：千里之外
+原创：34篇转载：0篇译文：0篇评论：45条
+文章搜索
+
+文章分类
+c/c++(0)
+DirectX(0)
+unix/linux(0)
+windows(0)
+数据结构(0)
+生活(1)
+算法(0)
+编程随想(0)
+读书(0)
+文章存档
+2010年12月(1)
+2010年05月(4)
+2010年04月(6)
+2010年03月(8)
+2010年01月(1)
+展开
+阅读排行
+排序算法——桶排序(7027)
+stl内存池学习（一）——内存池初认识(2220)
+stl内存池学习（二）——走近内存池(1829)
+内存池技术（三）——近观内存池(1099)
+排序算法——堆排序（递归版本）(751)
+栈的简单应用（数制转换、括号匹配检验、行编辑、迷宫求解）(738)
+栈的应用——表达式求值(707)
+排序算法——基数排序(553)
+排序算法总结(513)
+排序算法——希尔排序(482)
+评论排行
+一个简易的c垃圾收集器(9)
+栈的应用——表达式求值(7)
+排序算法总结(6)
+栈的简单操作(5)
+内存池技术（三）——近观内存池(5)
+typedef和#define的区别(3)
+实习的一点感受(3)
+排序算法——桶排序(3)
+排序算法——希尔排序(2)
+单链表的常用操作(1)
+推荐文章
+
+最新评论
+排序算法——桶排序
+Anoddity: nihao
+排序算法——桶排序
+niningwuhen: 楼上正解，这个程序存在很大的问题，最好用链表存储而不是数组
+排序算法——桶排序
+罗马骑士: LZ你好，我测试的时候发现了一个问题，当单个桶内的数据个数如果超过了10，排序结果会出错。我分析了一...
+内存池技术（三）——近观内存池
+ZOUHUST: 楼主强大，chunk_alloc() 部分，第18行好像有笔误。
+typedef和#define的区别
+huawei_hao: 又了解了一些方法，感谢分享
+排序算法总结
+houapple: @why_up:有例子啊，你看我之前的文章，好像各个排序都给出了例子的。
+约瑟夫环问题
+fengren64: 你好，有个疑问，你这个程序应该是只适用于k<=n的情况不是吗？所以(k % n == 1)这句其实等...
+typedef和#define的区别
+m739247200: Good
+排序算法总结
+Dark_Passion: 最好有个例子啊
+typedef和#define的区别
+SunnyWun: en 不错
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved GongshangLogo
+  

@@ -1,0 +1,185 @@
+u0101527420我的：收件箱资源博客空间设置|帮助|退出首页业界移动云计算研发论坛博客下载
+更多
+i专栏
+目录视图摘要视图订阅
+2013年7月微软MVP申请开始啦！        CSDN博客移动开发排行榜      写“书评”赢下载分！ 
+2013年4月微软MVP会员名单揭晓！      来极客头条，赢下载积分      专访关东升：将人文融入到科技产品中
+ J2EE常用的开源框架
+2012-01-31 14:19 183人阅读 评论(0) 收藏 举报
+框架springhibernatewebworkappfuseibatis
+主要就我所了解的J2EE开发的框架或开源项目做个介绍,可以根据需求选用适当的开源组件进行开发.主要还是以Spring为核心,也总结了一些以前web开发常用的开源工具和开源类库
+1持久层:
+1)Hibernate
+这个不用介绍了,用的很频繁,用的比较多的是映射,包括继承映射和父子表映射
+对于DAO在这里介绍个在它基础上开发的包bba96, 目前最新版本是bba96 2.0它对Hibernate进行了封装, 查询功能包括执行hsql或者sql查询/更新的方法，如果你要多层次逻辑的条件查询可以自己组装QueryObject.可以参考它做 HibernateDAO.也可以直接利用它
+2) iBATIS
+另一个ORM工具,没有Hibernate那么集成,自由度比较大,所以使用时普遍性能上比Hibernate要快一些.
+2:SpringMVC
+       原理说明和快速入门:
+       配置文件为:
+Spring的配置文件默认为WEB-INF/xxxx-servelet.xm其中xxx为web.xml中org.springframework.web.servlet.DispatcherServlet的servlet-name。
+       Action分发:
+Spring将按照配置文件定义的URL，Mapping到具体Controller类，再根据URL里的action= xxx或其他参数，利用反射调用Controller里对应的Action方法。
+输入数据绑定:
+Spring提供Binder 通过名字的一一对应反射绑定Pojo，也可以直接从request.getParameter()取数据。
+输入数据验证
+Sping 提供了Validator接口当然还可以使用开源的Commons-Validaor支持最好
+Interceptor(拦截器)
+Spring的拦截器提供接口需要自己编写,在这点不如WebWork做的好.全面
+       (这里提一下WebWork和Struts的区别最主要的区别在于WebWork在建立一个Action时是新New一个对象而Struts是SingleMoule所有的都继承它的一个Action,所以根据项目需要合适的选择.)
+3:View层
+1) 标签库:JSP2.0/JSTL
+由于Webwork或Spring的标签确实很有限,一般view层用JSTL标签,而且据说JSTL设计很好速度是所有标签中最快的使用起来也很简单
+2) 富客户端:DOJO Widgets, YUI(YahooUI),FCKEditor, Coolest日历控件
+Dojo主要提供Tree, Tab等富客户端控件,可以用其进行辅助客户端开发
+YahooUI和DOJO一样它有自己的一套javascript调试控制台,主要支持ajax开发也有很多Tree,Table,Menu等富客户端控件
+FCKEditor 最流行的文本编辑器
+Coolest日历控件 目前很多日历控件可用,集成在项目中也比较简单,这个只是其中的一个,界面不错的说..
+3) style="text-indent: 21pt;" twffan="done">Prototype.js 作为javascript的成功的开源框架，封装了很多好用的功能,通过它很容易编写AJAX应用,现在AJAX技术逐渐成熟,框架资源比较丰富,比如 YUI,DWR等等,也是因为JavaScript没有合适的调试工具,所以没有必要从零开始编写AJAX应用,个人认为多用一些成熟的Ajax框架实现 无刷新更新页面是不错的选择.
+4)表格控件:Display Tag ,Extreme Table
+这两个的功能差不多,都是View层表格的生成,界面也比较相向,可以导出Excel,Pdf,对Spring支持很容易.
+相比较而言比较推荐ExtremeTable,它的设计很好功能上比DisplayTag多一些,支持Ajax,封装了一些拦截器,而且最方面的是在主页wiki中有详细的中文使用文档.
+5):OSCache
+OSCache是OpenSymphony组织提供的一个J2EE架构中Web应用层的缓存技术实现组件,Cache是一种用于提高系统响应速度、改善系统运行性能的技术。尤其是在Web应用中，通过缓存页面的输出结果，可以很显著的改善系统的稳定性和运行性能。
+它主要用在处理短时间或一定时间内一些数据或页面不会发生变化,或将一些不变的统计报表,缓冲在内存,可以充分的减轻服务器的压力,防治负载平衡,快速重启服务器(通过硬盘缓存).
+6)SiteMesh
+sitemesh 应用Decorator模式主要用于提高页面的可维护性和复用性，其原理是用Filter截取request和response,把页面组件head, content,banner结合为一个完整的视图。通常我们都是用include标签在每个jsp页面中来不断的包含各种header, stylesheet, scripts and footer，现在，在sitemesh的帮助下，我们删掉他们轻松达到复合视图模式.
+Sitemesh也是 OpenSymphony的一个项目现在最近的版本是2.2,目前OpenSymphony自从04年就没有更新的版本了..感觉它还是比较有创新的一种页面组装方式, OpenSymphony开源组织的代码一般写的比较漂亮,可以改其源代码对自己的项目进行适配.
+测试发现Sitemesh还存在一些问题,比如中文问题,它的默认编码是iso-8859-1在使用时候需要做一些改动.
+7)CSS,XHTML
+这个不用说了,遵循W3C标准的web页面开发.
+8)分页标签: pager-taglib组件
+Pager-taglib 是一套分页标签库，可以灵活地实现多种不同风格的分页导航页面，并且可以很好的与服务器分页逻辑分离.使用起来也比较简单.
+9)Form: Jodd Form taglib
+Jodd Form taglib使用比较简单,只要把<form>的头尾以<jodd:form bean= "mybean">包住
+就会自动绑定mybean, 自动绑定mybean的所有同名属性到普通html标记input, selectbox, checkbox,radiobox.....在这些input框里不用再写任何代码…
+      
+10)Ajax:DWR
+       J2EE应用最常用的ajax框架
+      
+       11)报表 图表
+Eclipse BIRT功能比较强大,也很庞大..好几十M,一般没有特别需求或别的图表设计软件可以解决的不用它
+JasperReports+ iReport是一个基于Java的开源报表工具，它可以在Java环境下像其它IDE报表工具一样来制作报表。JasperReports支持PDF、 HTML、XLS、CSV和XML文件输出格式。JasperReports是当前Java开发者最常用的报表工具。
+JFreeChart主要是用来制作各种各样的图表，这些图表包括：饼图、柱状图(普通柱状图以及堆栈柱状图)、线图、区域图、分布图、混合图、甘特图以及一些仪表盘等等。
+       琴棋报表,国产的..重点推荐,适合中国的情况,开放源代码，使用完全免费。纯JAVA开发，适用多种系统平台。特别适合B/S结构的系统。官方网站有其优点介绍,看来用它还是不错的选择,最重要的是支持国产呵呵
+4:权限控制: Acegi
+Acegi是Spring Framework 下最成熟的安全系统，它提供了强大灵活的企业级安全服务，如完善的认证和授权机制，Http资源访问控制，Method 调用访问控制等等,支持CAS
+(耶鲁大学的单点登陆技术,这个单点登陆方案比较出名.我也进行过配置使用,可以根据项目需要,如果用户分布在不同的地方不同的系统通用一套登陆口令可以用它进行解决,一般注册机登陆机就是这样解决的)
+       Acegi只是于Spring结合最好的安全框架,功能比较强大,当然还有一些其他的安全框架,这里列举一些比较流行的是我从网上找到的,使用方法看其官方文档把…
+JAAS, Seraph, jSai - Servlet Security, Gabriel, JOSSO, Kasai, jPAM, OpenSAML都是些安全控制的框架..真够多的呵呵
+5:全文检索
+       1) Lucene
+       Lucene是一套全文索引接口,可以 通过它将数据进行倒排文件处理加入索引文件,它的索引速度和查询速度是相当快的,查询百万级数据毫秒级出结果,现在最火的 Apache开源项目,版本更新速度很快现在已经到了2.0,每个版本更新的都比较大,目前用的最多的版本应该是1.4.3,但它有个不太方面的地方单个 索引文件有2G文件限制,现在2.0版本没有这个限制,我研究的比较多,它的扩展性比较好,可以很方面的扩充其分词接口和查询接口.
+       基于它的开发的系统很多,比如最常用的Eclipse的搜索功能,还有一些开源的软件比如Compass,Nutch,Lius,还有我最近做的InSearch(企业级FTP文件网页搜索)
+6:公共Util类
+       主要是Jakarta-Commons类库,其中最常用得是以下几个类库
+1) Jakarta-Commons-Language
+       最常用得类是StringUtils类,提供了使用的字符串处理的常用方法效率比较高
+2) Jakarta-Commons-Beantuils
+       主要用Beantuils能够获得反射函数封装及对嵌套属性，map,array型属性的读取。
+3) Jakarta-Commons-Collections
+       里面有很多Utils方法
+7 日志管理
+       Log4J
+       任务是日志记录,分为Info,Warn,error几个层次可以更好的调试程序
+8 开源的J2EE框架
+       1) Appfuse
+              Appfuse是Matt Raible 开发的一个指导性的入门级J2EE框架, 它对如何集成流行的Spring、Hibernate、iBatis、Struts、Xdcolet、JUnit等基础框架给出了示范. 在持久层，AppFuse采用了Hibernate O/R映射工具；在容器方面，它采用了Spring,用户可以自由选择Struts、Spring/MVC，Webwork，JSF这几个Web框架。
+      
+       2) SpringSide
+       .SpringSide较完整的演示了企业应用的各个方面,是一个电子商务网站的应用 SpringSide也大量参考了Appfuse中的优秀经验。最重要的是它是国内的一个开源项目,可以了解到国内现在的一些实际技术动态和方向很有指导意义…
+9:模版 Template
+主要有Veloctiy和Freemarker
+模板用Servlet提供的数据动态地生成 HTML。编译器速度快，输出接近静态HTML             页面的速度。
+10:工作流
+       我所知道比较出名的主要有JBpm Shark Osworkflow,由于对它没有过多的研究所以还不是很清楚之间有什么区别.
+项目管理软件
+dotProject:是一个基于LAMP的开源项目管理软件。最出名的项目管理软件
+JIRA: 项目计划，任务安排，错误管理
+Bugzilla:提交和管理bug,和eclipse集成,可以通过安装MyEclipse配置一下即可使用
+BugFree借鉴微软公司软件研发理念、免费开放源代码、基于Web的精简版Bug管理
+CVS:这个就不介绍了都在用.
+SVN: SubVersion已逐渐超越CVS，更适应于JavaEE的项目。Apache用了它很久后，Sourceforge刚刚推出SVN的支持。
+测试用例:主要JUnit单元测试,编写TestCase,Spring也对Junit做了很好的支持
+后记:
+       以Spring 为主的应用开发可选用的组件中间件真是眼花缭乱,所以针对不同的项目需求可以利用不同的开源产品解决,比如用Spring+Hibernate/ iBATIS或Spring+WebWork+Hibernate/ iBATIS或Spring+Struts+Hibernate/ iBATIS,合理的框架设计和代码复用设计对项目开发效率和程序性能有很大的提高,也有利于后期的维护.
+
+
+from :http://hi.baidu.com/xizenyin/blog/item/40b1cb3d2fef7acf9f3d6284.html
+
+分享到： 
+上一篇：HTML
+下一篇：SVN 目录结构要设计合理
+
+查看评论
+
+  暂无评论
+
+发表评论
+用 户 名：
+u010152742
+评论内容：
+
+
+  
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+个人资料
+  
+iDeputy
+ 
+
+访问：26709次
+积分：1259分
+排名：第7243名
+原创：95篇转载：38篇译文：0篇评论：5条
+文章搜索
+
+文章存档
+2012年05月(2)
+2012年04月(13)
+2012年03月(27)
+2012年02月(53)
+2012年01月(28)
+展开
+阅读排行
+skype出错弹出Access violation at address in module ‘ntdll.dll’.write of address 问题分析及解决(2542)
+Oracle between区间(1816)
+中国机动车驾驶证准驾车型代码对照表(1272)
+delphi 读取CSV文件(856)
+Sqlite 自增id(850)
+2012节日安排(635)
+解决Delphi7 CPU窗口老出现NTDLL.DbgBreakPoint断点问题(632)
+Delphi ClientDataSet Filter过滤(561)
+元旦开始，杭州四大汽车站、各售票网点同步发售春运长途汽车票，预售期为21天。到1月22日恢复5天预售期。(554)
+有5个砝码 分别是1,3,9,27,81 可以组合成1--121之间任意整数(550)
+评论排行
+CSDN博客备份(2)
+skype出错弹出Access violation at address in module ‘ntdll.dll’.write of address 问题分析及解决(1)
+Collections.binarySearch用法(1)
+Android EditText限制输入数字及长度(1)
+Problem 14(0)
+Problem 13(0)
+Problem 12(0)
+Problem 11(0)
+Problem 10(0)
+Problem 9(0)
+最新评论
+Collections.binarySearch用法
+鸿: 呵呵，不错，刚用到。不过参与排序的元素不是简单的String而是一个对象呢？
+skype出错弹出Access violation at address in module ‘ntdll.dll’.write of address 问题分析及解决
+bo5509: 总报错 愁死我了
+CSDN博客备份
+Bird: 博主，我做了一个备份博客的网站，www.chenxianlu.cn你看看如何
+CSDN博客备份
+Bird: 博主，我做了一个这样的网站,www.chenxianlu.cn你看看怎么样，也是用来备份博客的
+Android EditText限制输入数字及长度
+san0503: 高端
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+

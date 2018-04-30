@@ -1,0 +1,727 @@
+依睛(IT blog) 我回来了，PHP<-->C/C++ LINUX
+笨鸟
+导航
+IT博客
+首页
+新随笔
+联系
+聚合
+管理
+<	2007年7月	>
+日	一	二	三	四	五	六
+24	25	26	27	28	29	30
+1	2	3	4	5	6	7
+8	9	10	11	12	13	14
+15	16	17	18	19	20	21
+22	23	24	25	26	27	28
+29	30	31	1	2	3	4
+留言簿(25)
+给我留言
+查看公开留言
+查看私人留言
+随笔分类(315)
+嵌入式开发ARM(1) (rss)
+???问的睛(8) (rss)
+C/C++学习资料库(169) (rss)
+Linux 学习库(69) (rss)
+UNIX(6) (rss)
+UNIX高级环境编程(3) (rss)
+VXworks资料(3) (rss)
+大补英语(3) (rss)
+学习资料库(14) (rss)
+日语学习(2) (rss)
+生活日记(26) (rss)
+电子与通信技术(专业)(1) (rss)
+看看就行的资料(3) (rss)
+精巧小例子(谁都知)(2) (rss)
+网站资料库(3) (rss)
+面试题目收集 (2) (rss)
+文章分类(5)
+转(感处和理论)(5) (rss)
+收藏夹
+UNIX 高级环境编程 (rss)
+随笔档案(330)
+2009年11月 (3)
+2009年2月 (32)
+2009年1月 (28)
+2008年12月 (42)
+2008年11月 (16)
+2008年10月 (18)
+2008年9月 (20)
+2008年7月 (1)
+2008年5月 (1)
+2008年3月 (2)
+2008年2月 (9)
+2008年1月 (35)
+2007年12月 (4)
+2007年11月 (1)
+2007年10月 (8)
+2007年9月 (23)
+2007年8月 (31)
+2007年7月 (12)
+2007年6月 (20)
+2007年5月 (10)
+2007年4月 (14)
+文章档案(11)
+2008年2月 (2)
+2007年10月 (1)
+2007年6月 (1)
+2007年4月 (7)
+相册
+大学生活照(南京)
+大学相册
+志文相册
+阅读排行榜
+1. fscanf和fprintf 的详细用法 (17403)
+2. fstat、stat和lstat 区别(转)(9401)
+3. freopen (stdin stdout ) 详解+实例(6132)
+4. 文件操作 FILE结构体(C语言版) (6026)
+5. strcpy()、memcpy()、memmove()、memset()的实现(5489)
+评论排行榜
+1. VxWorks 操作系统学习笔记(20)
+2. 值和传引用、传地址的区别是什么？(15)
+3. 想有个家(9)
+4. linux 用法(9)
+5. 编程导学之C/C++中命令行参数的原理(8)
+统计
+随笔 - 330
+文章 - 11
+评论 - 147
+引用 - 0
+积分与排名
+积分 - 195461
+排名 - 12
+友情连接
+小刺猬 (左手程序，右手妻)
+$$Am 11:11 迷失
+『 天道酬勤 』
+AIX and UNIX
+Andy's Redemption
+CHENG XU
+IBM developerWorks IBM
+Javascript研究
+jesse (常用)
+Linux笔记
+Mythma‘s C++ blog
+Top大杂烩
+任我行
+叮叮咚咚XYZ(
+好好喔~~
+嵌入式
+嵌入式,GoodLucky...... (LINUX 全部实例子 )
+樊奇 Xseries eServer 工程师, IBM TSS China Beijing
+江湖·郎中·路
+源码工作室
+耗子的一亩三分自留地
+飞翔,嵌入式linux
+最新评论  
+1. re: "bps"是什么单位?是什么意思?
+..................
+--..
+2. re: “这次培训从形式到效果，《表演英语精英特训营》，
+是真的吗
+--陈振花
+3. re: 文件操作 FILE结构体(C语言版)
+谢谢
+--lyhyaya
+4. re: C中诸如isdigit
+存在即合理，学习了
+--dragoo1
+5. re: linux 用法
+评论内容较长,点击标题查看
+--BlevinsELISA32
+(精 转 )新手学Linux多线程编程的基本的函数
+
+新手看看是很不错,   我看到编程还真难适应学,  看到都想不通, 理论看了还要去写,  只会理论基础不行, 多看代码, 哎....学了这么长都不敢看LINUX,  总感觉那是高人学的东西,  
+其实只要是人都能学会,  编程里没有高低之分,  强人再强也是要吃饭, 强人再强也要走路,  强人也没长两个翅膀, 
+也没有聪明和笨蛋,  都一样,  
+
+                                                            笔者 : 石 头(岩石)
+
+
+1线程创建
+    函数原型：                  
+
+#include <pthread.h>
+int pthread_create(pthread_t *restrict tidp,const pthread_attr_t *restrict attr, void *(*start_rtn)(void),void *restrict arg);
+    返回值：若是成功建立线程返回0,否则返回错误的编号
+    形式参数：
+                pthread_t *restrict tidp 要创建的线程的线程id指针
+                const pthread_attr_t *restrict attr 创建线程时的线程属性
+                void* (start_rtn)(void) 返回值是void类型的指针函数
+                vodi *restrict arg   start_rtn的行参
+   例题1：
+       功能：测试建立一个新的线程
+       程序名称： pthread_test.c      
+#include <pthread.h>
+#include <stdio.h>
+void *create(void *arg)
+...{
+    printf("new thread created ..... ");
+    
+}
+int main(int argc,char *argv[])
+...{
+    pthread_t tidp;
+    int error;
+
+    error=pthread_create(&tidp,NULL,create,NULL);
+    if(error!=0)
+    ......{
+        printf("pthread_create is not created ... ");
+        return -1;
+    }
+    printf("prthread_create is created... ");
+    return 0;
+}
+
+     编译方法：
+
+#gcc -Wall -lpthread pthread_test.c
+    因为pthread的库不是linux系统的库，所以在进行编译的时候要加上-lpthread，否则编译不过，会出现下面错误
+
+thread_test.c: 在函数 ‘create’ 中：
+thread_test.c:7: 警告： 在有返回值的函数中，程序流程到达函数尾
+/tmp/ccOBJmuD.o: In function `main':thread_test.c:(.text+0x4f)：对‘pthread_create’未定义的引用
+collect2: ld 返回 1
+
+
+
+
+
+
+现在我们能建立了一个线程了，我们可以从函数的原型看到，在创建线程的时候，是可以在对我们的函数进行传递参数，在pthread_create的第四个行参。我们看一下例题2~3.
+    例题2
+
+    功能：向新的线程传递整形值
+    程序名称：pthread_int.c   
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+void *create(void *arg)
+...{
+    int *num;
+    num=(int *)arg;
+    printf("create parameter is %d  ",*num);
+    return (void *)0;
+}
+int main(int argc ,char *argv[])
+...{
+    pthread_t tidp;
+    int error;
+    
+    int test=4;
+    int *attr=&test;
+    
+    error=pthread_create(&tidp,NULL,create,(void *)attr);
+
+    if(error!=0)
+    ...{
+        printf("pthread_create is created is not created ... ");
+        return -1;
+    }
+    sleep(1);
+    printf("pthread_create is created is  created ... ");
+    return 0;
+}
+    编译方法：
+
+gcc -lpthread thread_int.c -Wall
+    执行结果：
+
+create parameter is 4
+pthread_create is created is  created ...
+    例题总结：
+    可以看出来，我们在main函数中传递的整行指针，传递到我们新建的线程函数中。
+    在上面的例子可以看出来我们向新的线程传入了另一个线程的int数据，线程之间还可以传递字符串或是更复杂的数据结构。
+
+    例题3：
+    程序功能：向新建的线程传递字符串
+    程序名称：thread_char.c   
+#include <pthread.h>
+#include <stdio.h>
+#include <unistd.h>
+void *create(void *arg)
+...{
+    char *name;
+    name=(char *)arg;
+    printf("arg is %s  ",name);
+    return (void *)0;
+}
+int main(int argc,char *argv[])
+...{
+    char *a="wang";
+    int error;
+    pthread_t tidp;
+
+    error=pthread_create(&tidp,NULL,create,(void *)a);
+
+    if(error!=0)
+    ...{
+        printf("pthread is not created  ");
+        return -1;
+    }
+    sleep(1);
+    printf("pthread is created... ");
+    return 0;
+}    
+
+
+    编译方法：
+
+gcc -Wall thread_char.c -lpthread
+
+
+    执行结果：
+
+arg is wang
+pthread is created...
+
+    例题总结：
+    可以看出来main函数中的字符串传入了新建里的线程中。
+
+    例题4
+    程序名称：thread_struct.c   
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <stdlib.h> /**//*malloc()*/
+struct test
+...{
+    int a;
+    char *s;
+};
+
+void *create(void *arg)
+...{
+    struct test *temp;
+    temp=(struct test *)arg;
+    printf("test->a ==%d  ",temp->a);
+    printf("test->s ==%s  ",temp->s);
+    return (void *)0;
+}
+int main(int argc,char *argv[])
+...{
+    pthread_t tidp;
+    int error;
+    struct test *b;
+    b=(struct test *)malloc(sizeof(struct test));
+    b->a=4;
+    b->s="wang";
+
+    error=pthread_create(&tidp,NULL,create,(void *)b);
+
+    if(error!=0)
+    ...{
+        printf("phread is not created... ");
+        return -1;
+    }
+    sleep(1);
+    printf("pthread is created... ");
+    return 0;
+}
+
+
+    编译方法：
+
+gcc -Wall -lpthread thread_struct.c
+
+    执行结果：
+test->a ==4
+test->s ==wang
+pthread is created...
+
+
+
+
+
+
+线程包含了标识进程内执行环境必须的信息。他集成了进程中的所有信息都是对线程进行共享的，包括文本程序、程序的全局内存和堆内存、栈以及文件描述符。
+
+    例题5
+    程序目的：验证新建立的线程可以共享进程中的数据
+    程序名称：thread_share.c   
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+static int a=4;
+void *create(void *arg)
+...{
+    printf("new pthread ... ");
+    printf("a==%d  ",a);
+    return (void *)0;
+}
+int main(int argc,char *argv[])
+...{
+    pthread_t tidp;
+    int error;
+    a=5;
+
+    error=pthread_create(&tidp,NULL,create,NULL);
+
+    if(error!=0)
+    ...{
+        printf("new thread is not create ... ");
+        return -1;
+    }
+    sleep(1);
+    printf("new thread is created ... ");
+    return 0;
+}
+
+
+    编译方法：
+
+gcc -Wall -lpthread thread_share.c
+
+
+    执行结果：
+
+new pthread ...
+a==5
+new thread is created ...
+
+    
+    例题总结：可以看出来，我们在主线程更改了我们的全局变量a的值的时候，我们新建立的线程则打印出来了改变的值，可以看出可以访问线程所在进程中的数据信息。   
+
+
+如果进程中任何一个线程中调用exit，_Exit,或者是_exit，那么整个进程就会终止，与此类似，如果信号的默认的动作是终止进程，那么，把该信号发送到线程会终止进程。
+    线程的正常退出的方式：
+       (1) 线程只是从启动例程中返回，返回值是线程中的退出码
+       (2) 线程可以被另一个进程进行终止
+       (3) 线程自己调用pthread_exit函数
+    两个重要的函数原型：  
+#include <pthread.h>
+void pthread_exit(void *rval_ptr);
+/*rval_ptr 线程退出返回的指针*/
+
+int pthread_join(pthread_t thread,void **rval_ptr);
+   /*成功结束进程为0,否则为错误编码*/
+    例题6
+    程序目的：线程正常退出，接受线程退出的返回码
+    程序名称：exit_return.c   
+   #include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+void *create(void *arg)
+...{
+    printf("new thread is created ... ");
+    return (void *)2;
+}
+int main(int argc,char *argv[])
+...{
+    pthread_t tid;
+    int error;
+    void *temp;
+
+    error=pthread_create(&tid,NULL,create,NULL);
+
+    if(error!=0)
+    ...{
+        printf("thread is not created ... ");
+        return -1;
+    }
+    error=pthread_join(tid,&temp);
+
+    if(error!=0)
+    ...{
+        printf("thread is not exit ... ");
+        return -2;
+    }
+    printf("thread is exit code %d  ",(int )temp);
+    sleep(1);
+    printf("thread is created... ");
+    return 0;
+}
+
+
+    编译方法：
+
+gcc -Wall exit_return.c -lpthread
+
+    执行结果：
+
+new thread is created ...
+thread is exit code 2
+thread is created...
+
+    线程退出不仅仅可以返回线程的int数值，还可以返回一个复杂的数据结构
+    例题7
+    程序目的：线程结束返回一个复杂的数据结构
+    程序名称：exit_thread.c   
+   #include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+struct test
+...{
+    int a;
+    char *b;
+};
+
+struct test temp=
+...{
+    .a    =4,
+    .b    ="wang"
+};
+
+void *create(void *arg)
+...{
+    printf("new thread ... ");
+    return (void *)&temp;
+}
+
+int main(int argc,char *argv[])
+...{
+    int error;
+    pthread_t tid;
+    struct test *c;
+
+    error=pthread_create(&tid,NULL,create,NULL);
+    
+    if(error!=0)
+    ...{
+        printf("new thread is not created ... ");
+        return -1;
+    }
+    printf("main ... ");
+
+    error=pthread_join(tid,(void *)&c);
+
+    if(error!=0)
+    ...{
+        printf("new thread is not exit ... ");
+        return -2;
+    }
+    printf("c->a ==%d  ",c->a);
+    printf("c->b ==%s  ",c->b);
+    sleep(1);
+    return 0;
+}
+
+
+    编译方法：
+ 
+gcc -Wall -lpthread exit_struct.c
+    
+    执行结果：
+
+main ...
+new thread ...
+c->a ==4
+c->b ==wang
+
+
+    例题总结：一定要记得返回的数据结构要是在这个数据要返回的结构没有释放的时候应用，如果数据结构已经发生变化，那返回的就不会是我们所需要的，而是藏数据阿。
+
+
+
+
+ 3、线程标识
+    函数原型：
+   
+
+#include <pthread.h>
+pthread_t pthread_self(void);
+
+    例题8
+    程序目的：实现在新建立的线程中打印该线程的id和进程id
+    程序名称：thread_self.c
+   
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h> /*getpid()*/
+void *create(void *arg)
+{
+    printf("new thread .... ");
+    printf("thread_tid==%u  ",(unsigned int)pthread_self());
+    printf("thread pid is %d  ",getpid());
+    return (void *)0;
+}
+int main(int argc,char *argv[])
+{
+    pthread_t tid;
+    int error;
+
+    printf("Main thread is starting ... ");
+
+    error=pthread_create(&tid,NULL,create,NULL);
+
+    if(error!=0)
+    {
+        printf("thread is not created ... ");
+        return -1;
+    }
+    printf("main pid is %d  ",getpid());
+    sleep(1);
+    return 0;
+}
+
+
+
+    编译方法：
+
+   
+gcc -Wall -lpthread thread_self.c
+
+    执行结果：
+
+Main thread is starting ...
+main pid is 6860
+new thread ....
+thread_tid==3084954544
+thread pid is 6860
+
+
+   4、 线程的处理程序
+
+    函数原型：   
+
+#include <pthread.h>
+void pthread_cleanup_push(void (*rtn)(void *),void *arg);
+    函数rtn是清理函数，arg是调用参数
+
+void pthread_cleanup_pop(int execute);
+
+    在前面讲过线程的终止方式，是正常终止还是非正常终止，都会存在一个资源释放的问题，在posix中提供了一组，就是我们上面看的函数进行线程退出的处理函数，有些像在进程中的atexit函数。释放的方式是指pthread_cleanup_push的调用点到pthread_cleanup_pop之间程序段进行终止。
+
+
+
+
+
+
+  pthread_cleanup_push()/pthread_cleanup_pop采用先入后出的方式的栈的管理方式，void *rtn(void *),在执行pthread_cleanup_push()时压入函数栈，多次执行pthread_cleanup_push()形成一个函数链，在执行这个函数链的时候会以反方向弹出，即先入后出。execute参数表识，是否执行弹出清理函数，当execute=0时不进行弹出清理函数，非零的时候弹出处理函数。
+
+    例题9
+
+    程序目的：实现在正常结束线程的时候，进行函数处理
+
+    程序名称：thread_clean.c
+
+    编译方法：
+
+    执行结果： 
+
+thread 1 start
+thread 1 push complete
+thread 1 exit code 1
+thread 2 start
+thread 2 push complete
+cleanup :thread 2 second handler
+cleanup :thread 2 first handler
+thread 2 exit code 2
+
+
+
+ gcc -Wall -lpthread thread_clean.c
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+void *clean(void *arg)
+{
+    printf("cleanup :%s  ",(char *)arg);
+    return (void *)0;
+}
+void *thr_fn1(void *arg)
+{
+    printf("thread 1 start  ");
+    pthread_cleanup_push(clean,"thread 1 first handler");
+    pthread_cleanup_push(clean,"thread 1 second hadler");
+    printf("thread 1 push complete  ");
+    if(arg)
+    {
+        return((void *)1);
+    }
+    pthread_cleanup_pop(0);
+    pthread_cleanup_pop(0);
+    return (void *)1;
+}
+void *thr_fn2(void *arg)
+{
+    printf("thread 2 start  ");
+    pthread_cleanup_push(clean,"thread 2 first handler");
+    pthread_cleanup_push(clean,"thread 2 second handler");
+    printf("thread 2 push complete  ");
+    if(arg)
+    {
+        pthread_exit((void *)2);
+    }
+    pthread_cleanup_pop(0);
+    pthread_cleanup_pop(0);
+    pthread_exit((void *)2);
+}
+int main(void)
+{
+    int err;
+    pthread_t tid1,tid2;
+    void *tret;
+
+    err=pthread_create(&tid1,NULL,thr_fn1,(void *)1);
+    if(err!=0)
+    {
+        printf("error .... ");
+        return -1;
+    }
+    err=pthread_create(&tid2,NULL,thr_fn2,(void *)1);
+
+    if(err!=0)
+    {
+        printf("error .... ");
+        return -1;
+    }
+    err=pthread_join(tid1,&tret);
+    if(err!=0)
+    {
+        printf("error .... ");
+        return -1;
+    }
+    printf("thread 1 exit code %d  ",(int)tret);
+
+    err=pthread_join(tid2,&tret);
+    if(err!=0)
+    {
+        printf("error .... ");
+        return -1;
+    }
+ gcc -Wall -lpthread thread_clean.c
+
+    printf("thread 2 exit code %d  ",(int)tret);
+    exit(0);
+}
+
+
+
+
+posted on 2007-12-26 15:46 向左向右走 阅读(328) 评论(0)  编辑 收藏 引用 所属分类: Linux 学习库
+
+
+
+博问 - 解决您的IT难题
+IT新闻：
+博客园首页  IT新闻  IT问答  程序员招聘
+标题		
+姓名		
+主页		
+验证码	*	
+内容(提交失败后,可以通过“恢复上次提交”恢复刚刚提交的内容)
+
+
+ Remember Me?
+	  登录  使用高级评论  新用户注册  返回页首  恢复上次提交      
+[使用Ctrl+Enter键可以直接提交]
+ 
+博客园首页随笔：
+博客园   IT新闻   BlogJava   博客生活   C++博客   PHP博客  
+相关文章:
+Linux下c实现 IP转为域名
+Linux下C实现通过域名得到IP收藏
+线程同步
+线程同步(两个线程同步 加锁)
+pthread_cond_wait() (转)
+fstat printf用法
+fstat、stat和lstat 区别(转)
+用mmap()共享内存(转)
+Makefile 实例子
+Linux中/proc目录下文件详解
+Powered by: 
+IT博客 
+Copyright © 向左向右走

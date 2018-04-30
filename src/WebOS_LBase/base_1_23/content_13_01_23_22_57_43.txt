@@ -1,0 +1,122 @@
+分享到一键分享QQ空间新浪微博百度搜藏人人网腾讯微博百度相册开心网腾讯朋友百度贴吧豆瓣网搜狐微博百度新首页QQ好友和讯微博更多...百度分享
+下载2频道 我的主页帐号设置退出秀才　二级|私信(1)|我的百科我的贡献草稿箱我的任务为我推荐|百度首页 新闻网页贴吧知道音乐图片视频地图百科文库
+    帮助 首页 自然 文化 地理 历史 生活 社会 艺术 人物 经济 科技 体育 图片 数字博物馆 核心用户 百科商城 
+求助编辑svm目录
+
+SVM(support vector machine 支持向量机）
+一般特征
+SVM原理简介
+主要软件包
+SVM(Secure Virtual Machine Mode)
+编辑本段SVM(support vector machine 支持向量机）支持向量机SVM(Support Vector Machine）作为一种可训练的机器学习方法，依靠小样本学习后的模型参数进行导航星提取，可以得到分布均匀且恒星数量大为减少的导航星表
+基本情况　Vapnik等人在多年研究统计学习理论基础上对线性分类器提出了另一种设计最佳准则。其原理也从线性可分说起，然后扩展到线性不可分的情况。甚至扩展到使用非线性函数中去，这种分类器被称为支持向量机（Support Vector Machine，简称SVM）。支持向量机的提出有很深的理论背景。
+支持向量机方法是在近年来提出的一种新方法。
+SVM的主要思想可以概括为两点：⑴它是针对线性可分情况进行分析，对于线性不可分的情况，通过使用非线性映射算法将低维输入空间线性不可分的样本转化为高维特征空间使其线性可分，从而 使得高维特征空间采用线性算法对样本的非线性特征进行线性分析成为可能；
+举例来说：
+如右图：  
+将1维的“线性不可分”上升到2维后就成为线性可分了。
+⑵它基于结构风险最小化理论之上在特征空间中建构最优分割超平面，  
+使得学习器得到全局最优化，并且在整个样本空间的期望风险以某个概率满足一定上界。
+在学习这种方法时，首先要弄清楚这种方法考虑问题的特点，这就要从线性可分的最简单情况讨论起，在没有弄懂其原理之前，不要急于学习线性不可分等较复杂的情况，支持向量机在设计时，需要用到条件极值问题的求解，因此需用拉格朗日乘子理论，但对多数人来说，以前学到的或常用的是约束条件为等式表示的方式，但在此要用到以不等式作为必须满足的条件，此时只要了解拉格朗日理论的有关结论就行。
+编辑本段一般特征⑴SVM学习问题可以表示为凸优化问题，因此可以利用已知的有效算法发现目标函数的全局最小值。而其他分类方法（如基于规则的分类器和人工神经网络）都采用一种基于贪心学习的策略来搜索假设空间，这种方法一般只能获得局部最优解。
+⑵SVM通过最大化决策边界的边缘来控制模型的能力。尽管如此，用户必须提供其他参数，如使用核函数类型和引入松弛变量等。
+⑶通过对数据中每个分类属性引入一个哑变量，SVM可以应用与分类数据。
+⑷SVM一般只能用在二类问题，对于多类问题效果不好。
+编辑本段SVM原理简介SVM方法是通过一个非线性映射p，把样本空间映射到一个高维乃至无穷维的特征空间中（Hilbert空间），使得在原来的样本空间中非线性可分的问题转化为在特征空间中的线性可分的问题．简单地说，就是升维和线性化．升维，就是把样本向高维空间做映射，一般情况下这会增加计算的复杂性，甚至会引起“维数灾难”，因而人们很少问津．但是作为分类、回归等问题来说，很可能在低维样本空间无法线性处理的样本集，在高维特征空间中却可以通过一个线性超平面实现线性划分（或回归）．一般的升维都会带来计算的复杂化，SVM方法巧妙地解决了这个难题：应用核函数的展开定理，就不需要知道非线性映射的显式表达式；由于是在高维特征空间中建立线性学习机，所以与线性模型相比，不但几乎不增加计算的复杂性，而且在某种程度上避免了“维数灾难”．这一切要归功于核函数的展开和计算理论．
+选择不同的核函数，可以生成不同的SVM，常用的核函数有以下4种：
+⑴线性核函数K(x,y)=x·y；
+⑵多项式核函数K(x,y)=[(x·y)+1]d；
+⑶径向基函数K(x,y)=exp(-|x-y|^2/d^2）
+⑷二层神经网络核函数K(x,y)=tanh(a(x·y)+b）．
+编辑本段主要软件包Lush -- an Lisp-like interpreted/compiled language with C/C++/Fortran interfaces that has  svm 系列
+packages to interface to a number of different SVM implementations. Interfaces to LASVM,LIBSVM,mySVM,SVQP,SVQP2 (SVQP3 in future) are available. Leverage these against Lush's other interfaces to machine learning,hidden markov models,numerical libraries (LAPACK,BLAS,GSL),and builtin vector/matrix/tensor engine. 
+SVMlight -- a popular implementation of the SVM algorithm by Thorsten Joachims; it can be used to solve classification,regression and ranking problems. 
+LIBSVM -- A Library for Support Vector Machines,Chih-Chung Chang and Chih-Jen Lin 
+YALE -- a powerful machine learning toolbox containing wrappers for SVMLight,LibSVM,and MySVM in addition to many evaluation and preprocessing methods. 
+LS-SVMLab - Matlab/C SVM toolbox - well-documented,many features 
+Gist -- implementation of the SVM algorithm with feature selection. 
+Weka -- a machine learning toolkit that includes an implementation of an SVM classifier; Weka can be used both interactively though a graphical interface or as a software library. (One of them is called "SMO". In the GUI Weka explorer,it is under the "classify" tab if you "Choose" an algorithm.) 
+OSU SVM - Matlab implementation based on LIBSVM 
+Torch - C++ machine learning library with SVM  svm 机器
+Shogun - Large Scale Machine Learning Toolbox with interfaces to Octave,Matlab,Python,R 
+Spider - Machine learning library for Matlab 
+kernlab - Kernel-based Machine Learning library for R 
+e1071 - Machine learning library for R 
+SimpleSVM - SimpleSVM toolbox for Matlab 
+SVM and Kernel Methods Matlab Toolbox 
+PCP -- C program for supervised pattern classification. Includes LIBSVM wrapper. 
+TinySVM -- a small SVM implementation,written in C++
+SVM 即 SVPWM（space vector PWM）意为空间矢量脉宽调制，是基于空间矢量的一种PWM控制技术。主要用于电机调速以及逆变器控制。
+编辑本段SVM(Secure Virtual Machine Mode)计算机BIOS系统中的一个选项：安全虚拟机模式，AMD K10独有
+
+扩展阅读： 
+1 
+http://www.bcbj.net 
+2 
+分类原理详见：http://www.5yiso.cn/2008/04/29070.html 
+开放分类： 
+数据挖掘 人工智能 数学理论 算法 计算机技术 神经网络 ， 机器学习 
+
+
+百度百科中的词条正文与判断内容均由用户提供，不代表百度百科立场。如果您需要解决具体问题（如法律、医学等领域），建议您咨询相关领域专业人士。
+397本词条对我有帮助添加到搜藏 分享到:更多
+合作编辑者 
+yangke19941112 ， w_ou ， jzsh2000 ， cascn ， hhxhanhaixia ， zhaoxiao90 ， 更多 
+如果您认为本词条还需进一步完善，百科欢迎您也来参与 编辑词条 在开始编辑前，您还可以先学习如何编辑词条
+如想投诉，请到百度百科投诉中心；如想提出意见、建议，请到百度百科吧。
+百度百科内容方针
+提倡有可靠依据、权威可信的内容 鼓励客观、中立、严谨的表达观点 不欢迎恶意破坏、自我或商业宣传 在这里你可以
+编辑
+质疑
+投诉
+全方位的质量监督
+学术委员会：为亿万网友提供权威意见 质量委员会：把控质量，做更好的知识 下载2频道
+00
+
+去兑换>>您尚无道具可使用
+成长任务加速升级，快速成长。我要去参加>>日常任务本月累计点亮0天。今日笑脸还没点亮哦。
+名符图实：参加任务，拿点亮任务日历获得财富值热词推送编辑热词可获得额外经验值
+词条动态进入我的百科您目前的等级是2级
+您目前的经验值是184点
+您还需316点经验值即可升为3级
+
+
+词条统计
+浏览次数：约 96543次
+编辑次数：22次 历史版本
+最近更新：2012-10-05
+创建者：绽琨
+更多贡献光荣榜
+辛勤贡献者： 
+ creatstar    版本 
+
+最新动态
+数字博物馆新馆上线：
+
+百科消息：
+百科android客户端升级1.1版
+文库专题：过日子要有技术含量
+百科mini上线：聚合精彩主题APP
+一种细菌如何让污水变清？
+百科数字博物馆突破30家
+百科新增功能维护词条权威
+推广链接
+亚马逊Z.cn:《svm》满29元..
+亚马逊Z.cn:《svm》超低价.全球著名的中文网上书店,送货上门,货..
+www.Amazon.cn
+
+
+
+
+© 2013 Baidu 使用百度前必读 | 百科协议 | 百度百科合作平台
+svmSVM(support vector machine 一般特征SVM原理简介主要软件包SVM(Secure Virtual Machine M
+  参考资料 
+
+退出 
+若有错误，请划词选中错误内容并按提示质疑，为词条的质量提升做出贡献。
+
+展开收起
+若您对这些内容有可信的参考资料，并掌握百科编辑技巧，欢迎你直接编辑词条。
+
+如果你想了解更详细的质疑原因，并参与更多的词条讨论，欢迎进入词条讨论页。 
+参与质疑×

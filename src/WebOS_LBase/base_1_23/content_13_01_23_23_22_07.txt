@@ -1,0 +1,208 @@
+
+
+
+我行我思
+
+
+
+
+
+
+
+ 
+
+首 页
+技术 
+生活 
+阅读分享 
+
+
+
+« 有用网站分享lighttpd gzip 开启 »
+
+
+
+
+markdown标记语言要点
+
+[技术/03月 15, 2012]markdown 标签语言
+
+概述
+ •易读易写
+ •兼容HTML
+ •特殊字符自动转换
+ 
+--------------------------------------------------------------------------------
+
+下面分别介绍每一个元素的一些要点
+ 
+兼容HTML
+ 
+markdown中可以与html部分兼容，html区块元素div,table,pre,p标签需要另外起一行，而且头尾标签不能缩进，这样markdown就不会加上额外的P标签了。需要注意的是markdown不会对html标签里面的元素进行转义。html的行内标签比如span
+ ，cite，del可以在markdown段落内部随意使用，比如喜欢使用a或者img标签，也可以直接使用，不需要使用markdown的格式
+ 
+特殊字符自动转换
+ 
+在html中有一些特殊字符，比如>需要写成>gt;的格式，但是在markdown段落中，如果它确实是一个标签的话，那么就不给它转换，如果它不是一个标签(4<5)的话，那么它就会自动转换成>gt格式。
+ 
+段落和换行
+ 
+markdown认为的段落是由一个以上的空行(只包含空白字符)隔开的部分，段落内部的强行换行都不会生成br标签，如果需要生成br标签，需要在行末尾加上2个以上的空格
+ 
+标题
+ 
+标题有两种方式，一种是=和-表示H1和H2，还有就是行首1-6个#号表示H1-H6。第二种方式中行尾也可以使用#来表示美观
+ 
+区块引用
+ 
+区块引用在行首使用>，类似与email中的引用，不内嵌的区块可以在第一行使用>既可，多阶区块可以使用层级的>，区块内部可以使用标题，列表，代码块等markdown语法
+ 
+列表
+ 
+无序列表使用 * ，+ 或者 -加空格或者制表符开头都可以，有序的用数字然后后面加英文句点.英文数字只是表示给看markdown标记语言的人看的，最后显示出来的数字和mark-down上面的不一定一致。列表下面的项目不能用空行隔开，那样会被加上p标签。列表后的项目也可以包含多个段落，每个项目下的段落必须是缩进四个空格或者一个制表符。列表项目内放引用，需要让>缩进。列表项目内放代码，需要缩进2个制表符
+ 
+代码块
+ 
+在markdown中建立代码块很简单，只需要简单地缩进4个空格或者一个制表符一个代码库会一直持续到没有缩进那一行或者文件结尾。在代码区块中markdown
+ 语法元素不会被解析，所以你可以在代码块中很容易地写markdown语法
+ 
+分割线
+ 
+你可以在一行中有3个以上的 * 来表示分割线，但是行内不能有其它字符。
+ 
+链接
+ 
+markdown支持两种形式的链接表示方式，一种是行内式，比如:
+ This is [an example](http://example.com/ "Title") inline link.
+ 
+也可以是参考式，比如行内如下这样写:
+ This is [an example][id] inline link.
+ 
+然后在如何地方像下面这样写:
+ [id]: http://example.com/  "Optional Title Here"
+ 
+上面那样的[id]中的id也可以省略，这样会直接用前面那个显示的内容来做id
+ 
+强调
+ 
+可以使用 * 或者 _ 来紧紧包围需要强调的文本，会加入em标签。如果 * 和_ 两边都有空白的话，那么就表示符号本身
+ 
+图片
+ 
+插入图片与插入链接相似，只不过使用!开头，图片也有行内以及参考式两种：
+ ![Alt text](/path/to/img.jpg)
+
+![Alt text][id]
+[id]: url/to/image  "Optional title attribute"
+ 
+自动链接
+ 
+markdown也支持比较简单的方式来写链接，比如：
+ <http://example.com/>
+ 
+会转换成如下的html代码：
+ <a href="http://example.com/">http://example.com/</a>
+ 
+反斜杠
+ 
+markdown可以使用反斜杠来表示在markdown语法中有特殊意义的字符，不过一般情况下一段代码的话可以使用code来表示就比较好了
+ 
+把Markdown语言转换为HTML
+ 
+安装python-markdown2 Python-Markdown,装完之后就可以直接使用命令行来操作了，不用写其它代码
+ 
+如果安装了Python，直接输入一下命令行
+ python -m markdown [options] [args]
+ 
+如果是2.5和2.6，输入如下这个命令
+ python -m markdown.__main__ [options] [args]
+ 
+由于这个可执行程序也接受从标准输入传入的内容，所以在vim中可以很方便的使用filter
+ 来把markdown过滤成html文件，可以输入代码
+ !python -m markdown
+ 
+参考: http://packages.python.org/Markdown/cli.html
+
+
+日志信息 »
+
+该日志于2012-03-15 14:24由 powerfj 发表在技术分类下， 你可以发表评论。除了可以将这个日志以保留源地址及作者的情况下引用到你的网站或博客，还可以通过RSS 2.0订阅这个日志的所有评论。 
+
+
+没有评论 ▼
+ 
+
+发表评论 »
+
+
+
+
+
+
+名称 （必填）
+
+邮箱（不会被公开） （必填）
+
+网址
+
+
+ »
+
+最新日志
+关于ADB Daemon打不开的问题
+一点想法
+Android服务器时间校准
+准年终总结
+UTF8格式文件转GBK
+蟑螂患
+LinearLayout layout_weight 参数
+解决Eclipse编译Android卡的问题
+蛋疼的Java Enum
+Android ScrollView的一个bug
+
+
+日志存档
+01月 2013 (1)
+12月 2012 (3)
+11月 2012 (7)
+10月 2012 (2)
+09月 2012 (7)
+06月 2012 (5)
+05月 2012 (7)
+04月 2012 (9)
+03月 2012 (7)
+02月 2012 (5)
+12月 2011 (5)
+11月 2011 (3)
+
+
+最新评论
+ powerfj:代码可以发我邮箱.. readyState是EventSource对
+ kimmy:代码果然被过滤了。。PHP端就是声明text/event-stream
+ kimmy:你好，我在chrom浏览器中用php试了下server_sent ev
+ powerfj:对，是的，换行符是这三种，但是vim里面对于同一个文件，它只认一种，如
+ Alex Rezit:你所说的换行符就是指Line-Ending吧. 主要有三种, CR
+ rst:多謝你的經驗分享，非常有用！
+ Dana:拜读了！
+ Adriana:thanks for share!
+ blankyao:可以试下用个模块化的系统，比如seajs
+ Jessica:我喜欢，顶一个！
+ 
+
+标签云
+
+1067 android array concat blog bug chrome dhcp client Eclipse firefox gonzui gvim Html5 java javascript markdown netsh nodejs npm process.stdin.resume Server-Sent Events services surround.vim vim vimpress VPS web开发工具 window 中文 代码重构 右键 命令行 域名申请 技术 插件 服务器端事件 本地代码搜索 桌面搜索 独立BLog 破窗理论 移动互联网 缩写 聊天系统 路径 软件开发 链接
+
+
+友情链接
+ Prower
+ WP官方
+ 尚尚小屋-女装
+ 
+
+
+©2008-2009 我行我思 All Rights Reservied
+ Powered by WordPress. Theme by Prower.Support By Wopus
+ 
+
+

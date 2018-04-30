@@ -1,0 +1,1183 @@
+
+您还未登录！|登录|注册|帮助
+ 首页
+ 业界
+ 移动
+ 云计算
+ 研发
+ 论坛
+ 博客
+ 下载
+ 
+更多
+ 
+
+
+
+
+
+
+
+结构之法 算法之道
+ 
+Google或baidu搜索：“结构之法”，进入本博客
+ 
+
+
+
+
+目录视图
+ 摘要视图
+ 订阅
+ . 
+
+
+
+【免费有礼】欧美最新网络营销技巧分享        博客导入工具      【限时优惠】第五届云计算大会社区门票抢购 
+探究云计算数据中心节能增效之道      专访邓凡平：Android开发路上的快速学习之道      CSDN博客第二期最佳移动开发博主评选 
+
+
+
+程序员编程艺术第二十八~二十九章：最大连续乘积子串、字符串编辑距离 
+. 
+分类： 12.TAOPP string 11.TAOPP（编程艺术） 2013-03-20 06:52 45423人阅读 评论(59) 收藏 举报 
+
+
+
+目录(?)[+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+               第二十八~二十九章：最大连续乘积子串、字符串编辑距离
+
+
+
+
+前言
+
+    时间转瞬即逝，一转眼，又有4个多月没来更新blog了，过去4个月都在干啥呢？对的，今2013年元旦和朋友利用业余时间一起搭了个方便朋友们找工作的编程面试算法论坛：为学论坛http://www.51weixue.com/。最近则开始负责一款在线编程挑战平台：英雄会http://hero.pongo.cn/，包括其产品运营，出题审题，写代码测试，制定比赛规则等等。
+
+    前几天跟百度的几个朋友线下闲聊，听他们说，百度校招群内的不少朋友在找工作的时候都看过我的blog，一听当即便激起了自己重写此blog的欲望，恰巧眼下阳春三月(虽说已是3月，奇妙的是，前两天北京还下了一场大雪)，又是找工作的季节(相对于每年的9月份来说，3月则是一个小高潮)，那就从继续更新专为IT人员找工作时准备笔试面试的程序员编程艺术系列开始吧。
+
+    再者从去年4月份上传的编程艺术前27章的PDF文档的1.3万下载量来看http://download.csdn.net/detail/v_july_v/4256339，此系列确确实实帮助了成千上万的人。Yeah，本文讲两个问题，
+•第二十八章、最大连续乘积子串，
+•第二十九章、字符串编辑距离，
+
+    这两个问题皆是各大IT公司最喜欢出的笔试面试题，比如说前者是小米2013年校招笔试原题，而后者则更是反复出现，如去年9月26日百度一二面试题，10月9日腾讯面试题第1小题，10月13日百度2013校招北京站笔试题第二 大道题第3小题，及去年10月15日2013年Google校招笔试最后一道大题皆是考察的这个字符串编辑距离问题。
+
+    OK，欢迎朋友们在本文下参与讨论，如果在线编译自己的代码（编程语言任选C/C++/Java/C#），可以上英雄会提交你的代码，有任何问题，欢迎随时不吝批评或指正，感谢。
+
+
+
+
+第二十九章、最大连续乘积子串
+
+题目描述：给一个浮点数序列，取最大乘积连续子串的值，例如 -2.5，4，0，3，0.5，8，-1，则取出的最大乘积连续子串为3，0.5，8。也就是说，上述数组中，3 0.5 8这3个数的乘积3*0.5*8=12是最大的，而且是连续的。
+
+提醒：此最大乘积连续子串与最大乘积子序列不同，请勿混淆，前者子串要求连续，后者子序列不要求连续。也就是说：最长公共子串（Longest CommonSubstring）和最长公共子序列（LongestCommon Subsequence，LCS）的区别：
+
+•子串（Substring）是串的一个连续的部分，
+•子序列（Subsequence）则是从不改变序列的顺序，而从序列中去掉任意的元素而获得的新序列；
+    更简略地说，前者（子串）的字符的位置必须连续，后者（子序列LCS）则不必。比如字符串“ acdfg ”同“ akdfc ”的最长公共子串为“ df ”，而它们的最长公共子序列LCS是“ adf ”，LCS可以使用动态规划法解决。
+
+解答：
+
+    解法一、穷举，所有的计算组合：
+    或许，读者初看此题，自然会想到最大乘积子序列问题类似于最大子数组和问题：http://blog.csdn.net/v_JULY_v/article/details/6444021，可能立马会想到用最简单粗暴的方式：两个for循环直接轮询。
+
+
+
+
+
+01.double max=0;  
+02.double start=0;  
+03.double end=0;  
+04.for (int i=0;i<num;i++) {  
+05.    double x=arrs[i];  
+06.    for (int j = i+1; j < num; j++) {  
+07.        x*=arrs[j];  
+08.        if(x>max){  
+09.            max=x;  
+10.            start=arrs[i];  
+11.            end=arrs[j];  
+12.        }  
+13.    }  
+
+     解法二、虽说类似于最大子数组和问题，但实际上具体处理起来诸多不同。为什么呢，因为乘积子序列中有正有负也还可能有0。我们可以把问题简化成这样：数组中找一个子序列，使得它的乘积最大；同时找一个子序列，使得它的乘积最小（负数的情况）。因为虽然我们只要一个最大积，但由于负数的存在，我们同时找这两个乘积做起来反而方便。也就是说，不但记录最大乘积，也要记录最小乘积。So，我们让
+
+•maxCurrent表示当前最大乘积的candidate，
+•minCurrent反之，表示当前最小乘积的candidate，
+•而maxProduct则记录到目前为止所有最大乘积candidates的最大值。
+
+	（以上用candidate这个词是因为只是可能成为新一轮的最大/最小乘积）
+    由于空集的乘积定义为1，在搜索数组前，maxCurrent，minCurrent，maxProduct都赋为1。
+假设在任何时刻你已经有了maxCurrent和minCurrent这两个最大/最小乘积的candidates，新读入数组的元素x(i)后，新的最大乘积candidate只可能是maxCurrent或者minCurrent与x(i)的乘积中的较大者，如果x(i)<0导致maxCurrent<minCurrent，需要交换这两个candidates的值。
+    当任何时候maxCurrent<1，由于1（空集）是比maxCurrent更好的candidate，所以更新maxCurrent为1，类似的可以更新minCurrent。任何时候maxCurrent如果比最好的maxProduct大，更新maxProduct。
+    代码一：
+
+
+
+01.template <typename Comparable>    
+02.Comparable maxprod( const vector<Comparable>&v)    
+03.{    
+04.    int i;    
+05.    Comparable maxProduct = 1;    
+06.    Comparable minProduct = 1;    
+07.    Comparable maxCurrent = 1;    
+08.    Comparable minCurrent = 1;    
+09.    //Comparable t;    
+10.    
+11.    for( i=0; i< v.size() ;i++)    
+12.    {    
+13.        maxCurrent *= v[i];    
+14.        minCurrent *= v[i];    
+15.        if(maxCurrent > maxProduct)     
+16.            maxProduct = maxCurrent;    
+17.        if(minCurrent > maxProduct)    
+18.            maxProduct = minCurrent;    
+19.        if(maxCurrent < minProduct)    
+20.            minProduct = maxCurrent;    
+21.        if(minCurrent < minProduct)    
+22.            minProduct = minCurrent;    
+23.        if(minCurrent > maxCurrent)    
+24.            swap(maxCurrent,minCurrent);    
+25.        if(maxCurrent<1)    
+26.            maxCurrent = 1;    
+27.        //if(minCurrent>1)    
+28.        //    minCurrent =1;    
+29.    }    
+30.    return maxProduct;     
+31.}    
+
+    代码二：思路，记录以第i个结尾的最大乘积M和最小乘积m，并且记录这两个区间的起点（终点都是i），不断更新，来源http://www.51weixue.com/thread-246-1-1.html：
+
+
+
+
+01.pair<int,int> maxproduct(double *f,int n) { //返回最大乘积的起点终点  
+02.int R = 0, r = 0;   //最大最小区间的 起点  
+03.pair<int,int> ret = make_pair(0, 0);   //最大 最小的区间下标  
+04.double M = f[0], m = f[0], answer = f[0];     // 最大 最小值  
+05.    for (int i = 1; i < n; ++i) {  
+06.        double t0 = f[i] * M, t1 = f[i] * m;  
+07.        if (t0 > t1) {  
+08.            M = t0;  
+09.            m = t1;  
+10.        }  
+11.        else {  
+12.            int t = R;  
+13.            R = r;  
+14.            r = t;  
+15.            M = t1;  
+16.            m = t0;  
+17.        }  
+18.        if (M < f[i]) {  
+19.            M = f[i];  
+20.            R = i;  
+21.        }  
+22.        if (m > f[i]) {  
+23.            m = f[i];  
+24.            r = i;  
+25.        }  
+26.        if (answer < M) {  
+27.            answer = M;  
+28.            ret = make_pair(R, i);  
+29.        }  
+30.           
+31.           
+32.    }  
+33.    return ret;  
+34.}  
+
+
+    解法三、
+    本题除了上述类似最大子数组和的解法，也可以直接用动态规划求解（其实，上述的解法一本质上也是动态规划，只是解题所表现出来的具体形式与接下来的解法二不同罢了。这个不同就在于下面的解法二会写出动态规划问题中经典常见的DP方程，而解法一是直接求解）。具体解法如下：
+    假设数组为a[]，直接利用动归来求解，考虑到可能存在负数的情况，我们用Max来表示以a结尾的最大连续子串的乘积值，用Min表示以a结尾的最小的子串的乘积值，那么状态转移方程为：
+       Max=max{a, Max[i-1]*a, Min[i-1]*a};
+       Min=min{a, Max[i-1]*a, Min[i-1]*a};
+    初始状态为Max[1]=Min[1]=a[1]。
+
+    C/C++代码一，很简洁的一小段代码：
+
+
+
+
+01.double func(double *a,const int n)  
+02.{  
+03.    double *maxA = new double[n];  
+04.    double *minA = new double[n];  
+05.    maxA[0] = minA[0] =a[0];  
+06.    double value = maxA[0];  
+07.    for(int i = 1 ; i < n ; ++i)  
+08.    {  
+09.        maxA[i] = max(max(a[i],maxA[i-1]*a[i]),minA[i-1]*a[i]);  
+10.        minA[i] = min(min(a[i],maxA[i-1]*a[i]),minA[i-1]*a[i]);  
+11.        value=max(value,maxA[i]);  
+12.    }  
+13.    return value;  
+14.}  
+
+    C/C++代码二：
+
+
+
+
+01./*  
+02. 给定一个浮点数数组，有正有负数，0，正数组成,数组下标从1算起  
+03. 求最大连续子序列乘积，并输出这个序列，如果最大子序列乘积为负数，那么就输出-1  
+04. 用Max[i]表示以a[i]结尾乘积最大的连续子序列  
+05. 用Min[i]表示以a[i]结尾乘积最小的连续子序列  因为有复数，所以保存这个是必须的  
+06.*/    
+07.void longest_multiple(double *a,int n){    
+08. double *Min=new double[n+1]();    
+09. double *Max=new double[n+1]();    
+10. double *p=new double[n+1]();    
+11. //初始化    
+12. for(int i=0;i<=n;i++){    
+13.  p[i]=-1;    
+14. }    
+15. Min[1]=a[1];    
+16. Max[1]=a[1];    
+17. double max_val=Max[1];    
+18. for(int i=2;i<=n;i++){    
+19.  Max[i]=max(Max[i-1]*a[i],Min[i-1]*a[i],a[i]);    
+20.  Min[i]=min(Max[i-1]*a[i],Min[i-1]*a[i],a[i]);    
+21.  if(max_val<Max[i])    
+22.   max_val=Max[i];    
+23. }    
+24. if(max_val<0)    
+25.  printf("%d",-1);    
+26. else    
+27.  printf("%d",max_val);    
+28.//内存释放    
+29. delete [] Max;    
+30. delete [] Min;    
+31.}  
+
+    C#版完整代码(代码来自参加英雄会在线编程挑战之1019、最大乘积连续子串：http://hero.pongo.cn/Question/Details?ID=19&ExamID=19的在线提交代码的用户)：
+
+
+
+
+01.//答题英雄：danielqkj  
+02.using System;  
+03.public class Test   
+04.{  
+05.    void Max(double a, double b, double c)  
+06.    {  
+07.        double d = (a>b)?a:b;  
+08.        return (d>c)?d:c;      
+09.    }  
+10.      
+11.    void Min(double a, double b, double c)  
+12.    {  
+13.        double d = (a>b)?b:a;  
+14.        return (d>c)?c:d;  
+15.    }  
+16.      
+17.      
+18.    public static void Main()  
+19.    {  
+20.        int n = Int32.parse(Console.readline());  
+21.        double[] a = new double[n];  
+22.        double maxvalue = a[0];  
+23.        double[] max = new double[n];  
+24.        double[] min = new double[n];  
+25.        double start, end;  
+26.          
+27.        String[] s = Console.readline().split(' ');  
+28.        for (int i = 0; i < n; i++)  
+29.        {  
+30.            a[i] = Double.parse(s[i])  
+31.        }  
+32.          
+33.        max[0] = a[0];  
+34.        min[0] = a[0];  
+35.        start = 0, end = 0;  
+36.          
+37.        for (int i = 1; i < n; i++)  
+38.        {  
+39.            max[i]=Max(a[i], a[i]*max[i-1], a[i]*min[i-1]);  
+40.            min[i]=Min(a[i], a[i]*max[i-1], a[i]*min[i-1]);  
+41.              
+42.            if (max[i] > maxvalue)  
+43.            {  
+44.                maxvalue = max[i];  
+45.                end = i;  
+46.            }  
+47.        }  
+48.          
+49.        double mmm = maxvalue;  
+50.        while ( (mmm - 0.0) > 0.00001 )  
+51.        {  
+52.            start = end;  
+53.            mmm = mmm / a[start];  
+54.        }  
+55.          
+56.        Console.Writeline(a[start] + " " + a[end] + " " + maxvalue);  
+57.          
+58.    }  
+59.}  
+
+变种
+
+  此外，此题还有另外的一个变种形式，即给定一个长度为N的整数数组，只允许用乘法，不能用除法，计算任意（N-1）个数的组合中乘积最大的一组，并写出算法的时间复杂度。
+  我们可以把所有可能的（N-1）个数的组合找出来，分别计算它们的乘积，并比较大小。由于总共有N个（N-1）个数的组合，总的时间复杂度为O（N2），显然这不是最好的解法。
+  OK，以下解答来自编程之美
+    解法1
+
+
+
+    解法2
+  此外，还可以通过分析，进一步减少解答问题的计算量。假设N个整数的乘积为P，针对P的正负性进行如下分析（其中，AN-1表示N-1个数的组合，PN-1表示N-1个数的组合的乘积）。
+1.P为0
+          那么，数组中至少包含有一个0。假设除去一个0之外，其他N-1个数的乘积为Q，根据Q的正负性进行讨论：
+
+Q为0
+说明数组中至少有两个0，那么N-1个数的乘积只能为0，返回0；
+Q为正数
+返回Q，因为如果以0替换此时AN-1中的任一个数，所得到的PN-1为0，必然小于Q；
+Q为负数
+如果以0替换此时AN-1中的任一个数，所得到的PN-1为0，大于Q，乘积最大值为0。
+
+
+     2.    P为负数
+
+
+根据“负负得正”的乘法性质，自然想到从N个整数中去掉一个负数，使得PN-1为一个正数。而要使这个正数最大，这个被去掉的负数的绝对值必须是数组中最小的。我们只需要扫描一遍数组，把绝对值最小的负数给去掉就可以了。
+
+      3.    P为正数
+    类似地，如果数组中存在正数值，那么应该去掉最小的正数值，否则去掉绝对值最大的负数值。
+    上面的解法采用了直接求N个整数的乘积P，进而判断P的正负性的办法，但是直接求乘积在编译环境下往往会有溢出的危险（这也就是本题要求不使用除法的潜在用意），事实上可做一个小的转变，不需要直接求乘积，而是求出数组中正数（+）、负数（-）和0的个数，从而判断P的正负性，其余部分与以上面的解法相同。
+
+    在时间复杂度方面，由于只需要遍历数组一次，在遍历数组的同时就可得到数组中正数（+）、负数（-）和0的个数，以及数组中绝对值最小的正数和负数，时间复杂度为O（N）。
+
+
+
+
+第二十九章、字符串编辑距离
+
+题目描述：给定一个源串和目标串，能够对源串进行如下操作：
+   1.在给定位置上插入一个字符
+   2.替换任意字符
+   3.删除任意字符
+写一个程序，返回最小操作数，使得对源串进行这些操作后等于目标串，源串和目标串的长度都小于2000。
+
+提醒：上文前言中已经说过了，此题反复出现，最近考的最多的是百度和Google的笔试面试经常考察。下图则是2013年Google的校招试题原景重现：
+
+
+
+
+
+解答：
+
+    解法一、    此题跟上面的最大连续乘积子串类似，常见的思路是动态规划，下面是简单的DP状态方程：
+
+
+
+
+01.//动态规划：    
+02.    
+03.//f[i,j]表示s[0...i]与t[0...j]的最小编辑距离。    
+04.f[i,j] = min { f[i-1,j]+1,  f[i,j-1]+1,  f[i-1,j-1]+(s[i]==t[j]?0:1) }    
+05.    
+06.//分别表示：添加1个，删除1个，替换1个（相同就不用替换）。   
+
+    解法二、本解法来自为学论坛：http://www.51weixue.com/thread-482-1-1.html。
+
+     编辑距离的定义和计算方法如下：
+Given two strings A and B, edit A to B with the minimum number of edit operations:
+
+•a) .Replace a letter with another letter
+•b) .Insert a letter
+•c) .Delete a letter
+    E.g.
+A = interestingly    _i__nterestingly
+B = bioinformatics   bioinformatics__
+                     1011011011001111
+Edit distance = 11
+    Instead of minimizing the number of edge operations, we can associate a cost function to the
+operations and minimize the total cost. Such cost is called edit distance. Instead of using string edit, in computational biology, people like to use string alignment.We use similarity function, instead of cost function, to evaluate the goodness of the alignment.
+    E.g. of similarity function: match – 2, mismatch, insert, delete – -1.
+Consider two strings ACAATCC and AGCATGC.
+One of their alignment is
+
+
+
+
+
+
+
+In the above alignment, space (‘_’) is introduced to both strings. There are 5 matches, 1
+mismatch, 1 insert, and 1 delete.The alignment has similarity score 7.
+    A_CAATCC
+    AGCA_TGC
+    Note that the above alignment has the maximum score.Such alignment is called optimal
+alignment.String alignment problem tries to find the alignment with the maximum similarity
+score!String alignment problem is also called global alignment problem.
+Needleman-Wunsch algorithm
+    Consider two strings S[1..n] and T[1..m].Define V(i, j) be the score of the optimal alignment
+between S[1..i] and T[1..j].
+Basis:
+V(0, 0) = 0
+V(0, j) = V(0, j-1) + d(_, T[j])：Insert j times
+V(i, 0) = V(i-1, 0) + d(S, _)：Delete i times
+that is:
+
+
+
+
+
+Example :
+
+
+
+
+
+
+
+
+
+
+
+下面是代码，测试数据比较少，若有问题请指正：
+
+
+
+
+01.//copyright@ peng_weida  
+02.//实现代码如下：  
+03.//头文件StrEditDistance.h  
+04.#pragma once  
+05.#include <string>  
+06.class CStrEditDistance  
+07.{  
+08.public:  
+09.    CStrEditDistance(std::string& vStrRow, std::string& vStrColumn);  
+10.    ~CStrEditDistance(void);  
+11.    int  getScore()    { return m_Score;   }  
+12.    int  getEditDis()  { return m_EditDis; }  
+13.    void setEditDis(int vDis) { m_EditDis = vDis; }  
+14.    void setScore(int vScore) { m_Score = vScore; }  
+15.private:  
+16.    void process(const std::string& vStrRow, const std::string& vStrColumn);  
+17.    int getMaxValue(int a, int b, int c)  
+18.    {  
+19.        if (a < b){ if (b < c) return c; return b; }  
+20.        else { if (b > c) return a; return a < c ? c : a; }  
+21.    }  
+22.private:  
+23.    int   m_EditDis;  
+24.    int   m_Score;  
+25.};  
+26.//源文件StrEditDistance.cpp  
+27.#include "StrEditDistance.h"  
+28.#include <iostream>  
+29.#include <iomanip>  
+30.#define MATCH        2  
+31.#define MISS_MATCH   -1  
+32.#define INSERT       -1  
+33.#define DELETE       -1  
+34.CStrEditDistance::CStrEditDistance(std::string& vStrRow, std::string& vStrColumn)  
+35.{  
+36.    process(vStrRow, vStrColumn);  
+37.}  
+38.CStrEditDistance::~CStrEditDistance(void)  
+39.{  
+40.}  
+41.//FUNCTION:  
+42.void CStrEditDistance::process(const std::string& vStrRow, const std::string& vStrColumn)  
+43.{  
+44.    int editDis = 0;     //编辑距离  
+45.    int row = vStrColumn.length();    
+46.    int column = vStrRow.length();  
+47.    const int sizeR = row + 1;  
+48.    const int sizeC = column + 1;  
+49.   
+50.    int **pScore = new int*[sizeR];  //二维指针  
+51.    for (int i = 0; i <= row; i++)  
+52.    pScore = new int[sizeC];  
+53.   
+54.    //初始化第一行和第一列  
+55.    for (int c = 0; c <= column; c++)  
+56.        pScore[0][c] = 0 - c;  
+57.    for (int r = 0; r <= row; r++)  
+58.        pScore[r][0] = 0 - r;  
+59.   
+60.    //从v(1,1)开始每列计算  
+61.    for (int c = 1; c <= column; c++)  
+62.    {  
+63.        for (int r = 1; r <= row; r++)  
+64.        {  
+65.          //计算v(i,j)  
+66.          int valueMatch;  
+67.          if (vStrColumn[r-1] == vStrRow[c-1])  
+68.              valueMatch = MATCH;  
+69.          else  
+70.              valueMatch = MISS_MATCH;    
+71.          int A = pScore[r-1][c] + INSERT;  
+72.          int B = pScore[r][c-1] + DELETE;  
+73.          int C = pScore[r-1][c-1] + valueMatch;  
+74.          pScore[r][c] = getMaxValue(A, B, C);  
+75.        }  
+76.    }  
+77.   
+78.    //计算编辑距离  
+79.    int r = row, c = column;  
+80.    while(r > 0 && c > 0)  
+81.    {  
+82.        if (pScore[r][c]+1 == pScore[r-1][c])      { editDis++; r--; continue; }  
+83.        else if (pScore[r][c]+1 == pScore[r][c-1]) { editDis++; c--; continue; }  
+84.        else if (pScore[r][c]+1 == pScore[r-1][c-1]){ editDis++; r--; c--; continue; }  
+85.        else { r--; c--; }  
+86.    }  
+87.    if (r > 0 && c == 0)  editDis += r;  
+88.    else if (c > 0 && r == 0) editDis += c;  
+89.   
+90.    std::cout << std::endl;  
+91.    //----------------DEBUG-------------------//  
+92.    //打印数据  
+93.    for (int i = 0; i <= row; i++)  
+94.    {  
+95.         for (int j = 0; j <= column; j++)  
+96.         std::cout << std::setw(2) << pScore[j] << "  ";  
+97.         std::cout << std::endl;  
+98.    }  
+99.    std::cout << std::endl;  
+100.   
+101.    //设置编辑距离和得分  
+102.    setEditDis(editDis);  
+103.    setScore(pScore[row][column]);  
+104.   
+105.    for (int i = 0; i <= row; i++)   //释放内存  
+106.    {  
+107.        delete pScore;  
+108.        pScore = NULL;  
+109.    }  
+110.    delete[] pScore;  
+111.}  
+
+
+类似
+
+    上述问题类似于编程之美上的下述一题「以下内容摘自编程之美第3.3节」：
+
+许多程序会大量使用字符串。对于不同的字符串，我们希望能够有办法判断其相似程度。我们定义了一套操作方法来把两个不相同的字符串变得相同，具体的操作方法为：
+
+1.修改一个字符（如把“a”替换为“b”）；
+2.增加一个字符（如把“abdd ”变为“aebdd ”）；
+3.删除一个字符（如把“travelling”变为“traveling”）。
+    比如，对于“abcdefg”和“abcdef ”两个字符串来说，我们认为可以通过增加/减少一个“g”的方式来达到目的。上面的两种方案，都仅需要一次操作。把这个操作所需要的次数定义为两个字符串的距离，而相似度等于“距离+1”的倒数。也就是说，“abcdefg”和“abcdef”的距离为1，相似度为1 / 2 = 0.5。
+给定任意两个字符串，你是否能写出一个算法来计算出它们的相似度呢？
+
+
+
+
+    这样，很快就可以完成一个递归程序，如下所示：
+
+
+
+
+
+
+01.Int CalculateStringDistance(string strA, int pABegin, int pAEnd,    
+02.   string strB, int pBBegin, int pBEnd)     
+03.{    
+04.     if(pABegin > pAEnd)    
+05.     {    
+06.          if(pBBegin > pBEnd)    
+07.               return 0;     
+08.          else    
+09.     
+10.               return pBEnd – pBBegin + 1;    
+11.     }    
+12.    
+13.     if(pBBegin > pBEnd)    
+14.     {    
+15.          if(pABegin > pAEnd)    
+16.               return 0;    
+17.          else    
+18.               return pAEnd – pABegin + 1;    
+19.     }    
+20.    
+21.     if(strA[pABegin] == strB[pBBegin])    
+22.     {    
+23.          return CalculateStringDistance(strA, pABegin + 1, pAEnd,    
+24.            strB, pBBegin + 1, pBEnd);    
+25.     }    
+26.     else    
+27.     {    
+28.          int t1 = CalculateStringDistance(strA, pABegin, pAEnd, strB,     
+29.            pBBegin + 1, pBEnd);    
+30.          int t2 = CalculateStringDistance(strA, pABegin + 1, pAEnd,     
+31.            strB,pBBegin, pBEnd);    
+32.          int t3 = CalculateStringDistance(strA, pABegin + 1, pAEnd,    
+33.            strB,pBBegin + 1, pBEnd);    
+34.          return minValue(t1,t2,t3) + 1;    
+35.     }    
+36.}    
+
+
+
+    上面的递归程序，有什么地方需要改进呢？在递归的过程中，有些数据被重复计算了。比如，如果开始我们调用CalculateStringDistance(strA,1, 2, strB, 1, 2)，下图是部分展开的递归调用。
+
+
+
+
+     可以看到，圈中的两个子问题被重复计算了。为了避免这种不必要的重复计算，可以把子问题计算后的解存储起来。如何修改递归程序呢？还是DP！请看此链接：http://www.cnblogs.com/yujunyong/articles/2004724.html。 
+
+
+
+深入
+
+1.详细读者朋友们也已经看到了，百度/Google经常喜欢出这个字符串编辑距离，实际上，关于这个“编辑距离”问题在搜索引擎中有着重要的作用，如搜索引擎关键字查询中拼写错误的提示，如下图所示，当你输入“Jult”后，因为没有这个单词“Jult”，所以搜索引擎猜测你可能是输入错误，进而会提示你是不是找“July”：
+但这个拼写错误检查的原理是什么呢？Google是基于贝叶斯统计推断的方法，相关原理详情可以看下Google的研发总监Peter Norvig写的这篇文章：http://norvig.com/spell-correct.html，以及fuanyif写的这篇：http://www.ruanyifeng.com/blog/2012/10/spelling_corrector.html。
+2.关于什么是“编辑距离”：一个快速、高效的Levenshtein算法实现，这个是计算两个字符串的算法，Levenshtein距离又称为“编辑距离”，是指两个字符串之间，由一个转换成另一个所需的最少编辑操作次数。当然，次数越小越相似。这里有一个BT树的数据结构，挺有意思的：http://blog.notdot.net/2007/4/Damn-Cool-Algorithms-Part-1-BK-Trees；
+3.最后，Lucene中也有这个算法的实现(我想，一般的搜索引擎一般都应该会有此项拼写错误检查功能的实现)，下面是lucene的源码(并没有太多优化，与实际工程中java注重实用性的原则并不背离)：
+
+
+
+01.public final class LevensteinDistance {  
+02.   
+03.    public LevensteinDistance () {  
+04.    }  
+05.      
+06.// Compute Levenshtein distance:   
+07.// see org.apache.commons.lang.StringUtils#getLevenshteinDistance(String, String)  
+08.      
+09.    public float getDistance (String target, String other) {  
+10.      char[] sa;  
+11.      int n;  
+12.      int p[];   
+13.//'previous' cost array, horizontally  
+14.      int d[];   
+15.// cost array, horizontally  
+16.      int _d[];   
+17.//placeholder to assist in swapping p and d  
+18.   
+19.        sa = target.toCharArray();  
+20.        n = sa.length;  
+21.        p = new int[n+1];   
+22.        d = new int[n+1];   
+23.         
+24.        final int m = other.length();  
+25.        if (n == 0 || m == 0) {  
+26.          if (n == m) {  
+27.            return 1;  
+28.          }  
+29.          else {  
+30.            return 0;  
+31.          }  
+32.        }   
+33.          
+34.// indexes into strings s and t  
+35.        int i;   
+36.// iterates through s  
+37.        int j;   
+38.// iterates through t  
+39.   
+40.        char t_j;   
+41.// jth character of t  
+42.   
+43.        int cost;   
+44.// cost  
+45.   
+46.        for (i = 0; i<=n; i++) {  
+47.            p[i] = i;  
+48.        }  
+49.   
+50.        for (j = 1; j<=m; j++) {  
+51.            t_j = other.charAt(j-1);  
+52.            d[0] = j;  
+53.   
+54.            for (i=1; i<=n; i++) {  
+55.                cost = sa[i-1]==t_j ? 0 : 1;  
+56.                  
+57.// minimum of cell to the left+1, to the top+1, diagonally left and up +cost  
+58.                d[i] = Math.min(Math.min(d[i-1]+1, p[i]+1),  p[i-1]+cost);  
+59.            }  
+60.   
+61.              
+62.// copy current distance counts to 'previous row' distance counts  
+63.            _d = p;  
+64.            p = d;  
+65.            d = _d;  
+66.        }  
+67.   
+68.          
+69.// our last action in the above loop was to switch d and p, so p now  
+70.          
+71.// actually has the most recent cost counts  
+72.        return 1.0f - ((float) p[n] / Math.max(other.length(), sa.length));  
+73.    }  
+74.   
+75.}  
+
+
+扩展
+
+    当然，面试官还可以继续问下去，如请问，如何设计一个比较两篇文章相似性的算法？这个问题的讨论可以看看这里：http://t.cn/zl82CAH。OK，字符串编辑距离这个问题实用性很强，限于篇幅，详情读者自己深入吧。
+
+
+
+
+
+
+
+参考文献及推荐阅读
+
+1.参与最大乘积连续子串问题的讨论：http://www.51weixue.com/thread-246-1-1.html，在线提交你的代码：http://hero.pongo.cn/Question/Details?ID=19&ExamID=19；
+2.参与字符串编辑距离问题的讨论：http://www.51weixue.com/thread-482-1-1.html，在线提交你的代码：http://hero.pongo.cn/Question/Details?ID=20&ExamID=20；
+3.杨氏矩阵查找、最大乘积连续子串、字符串循环右移、社区很忙等5题集中讨论地址：http://bbs.csdn.net/topics/390398519；
+
+4.编程之美；
+5.程序员第一~二十九章集锦：http://blog.csdn.net/v_JULY_v/article/details/6460494；
+6.http://www.bjwilly.com/archives/395.html；
+
+
+
+
+
+后记
+
+    有种人喜欢远观代码，以欣赏代码的角度阅读代码，所谓如镜中美女只可远观不可亵玩焉，发现自己也陷入了这种境地。昨天买的一本《提高C++性能的编程技术》，书不错，推荐给大家。
+
+    想看编程面试算法题的讲解，就进本blog；想参与笔试面试题的讨论，就上为学论坛；想在线刷笔试面试题，就上英雄会，祝各位好运，享受生活，享受工作，享受思考和编码的乐趣。
+
+    July、二零一三年三月二十一日。
+
+ 
+分享到： 
+
+上一篇：数据挖掘中所需的概率论与数理统计知识、上
+ . 
+顶 27 踩 0 . 
+
+
+查看评论
+ 
+26楼 Adrastos 2013-05-02 19:50发表 [回复] 博主的第二十九章、最大连续乘积子串的解法二的代码一部分思路貌似有问题啊（别的方法我没有检查），如果给一个测试用例全部是绝对值小于1的数，运行结果是不正确的（如0.5,0.8,-0.6,0.7,-0.8），问题的原因还是博主自行找一下原因吧Re: v_JULY_v 2013-05-02 22:05发表 [回复] 回复Adrastos：你说的下面这段代码么？
+
+
+
+
+01.template <typename Comparable>      
+02.Comparable maxprod( const vector<Comparable>&v)      
+03.{      
+04.    int i;      
+05.    Comparable maxProduct = 1;      
+06.    Comparable minProduct = 1;      
+07.    Comparable maxCurrent = 1;      
+08.    Comparable minCurrent = 1;      
+09.     
+10.    for( i=0; i< v.size() ;i++)      
+11.    {      
+12.        maxCurrent *= v[i];      
+13.        minCurrent *= v[i];      
+14.        if(maxCurrent > maxProduct)       
+15.            maxProduct = maxCurrent;      
+16.        if(minCurrent > maxProduct)      
+17.            maxProduct = minCurrent;      
+18.        if(maxCurrent < minProduct)      
+19.            minProduct = maxCurrent;      
+20.        if(minCurrent < minProduct)      
+21.            minProduct = minCurrent;      
+22.        if(minCurrent > maxCurrent)      
+23.            swap(maxCurrent,minCurrent);      
+24.        if(maxCurrent<1)      
+25.            maxCurrent = 1;      
+26.        //if(minCurrent>1)      
+27.        //    minCurrent =1;      
+28.    }      
+29.    return maxProduct;       
+30.}   
+Re: Adrastos 2013-05-02 22:57发表 [回复] 回复v_JULY_v：对，你可以测试一下，如果数组全部是绝对值小于1的数的话，你的这个执行结果是1.Re: v_JULY_v 2013-05-02 23:03发表 [回复] 回复Adrastos：恩，这个主要是最大乘积连续子串小于1的，都给赋值为1了..
+
+
+
+
+01.if(maxCurrent<1)      
+02.            maxCurrent = 1;    
+25楼 luhang257891 2013-04-23 21:53发表 [回复] 楼主神一般的人!不仅牛,人品也值得膜拜啊24楼 NaoTengdogZuoPi 2013-04-09 11:52发表 [回复] 那个编辑距离，解法一的DP方程里面，最下面的注释应该对应的是删除、插入和替换吧Re: v_JULY_v 2013-04-09 13:15发表 [回复] 回复NaoTengdogZuoPi：你是说的下面这段代码？
+ 解法一、 此题跟上面的最大连续乘积子串类似，常见的思路是动态规划，下面是简单的DP状态方程：
+
+//动态规划： 
+
+//f[i,j]表示s[0...i]与t[0...j]的最小编辑距离。 
+f[i,j] = min { f[i-1,j]+1, f[i,j-1]+1, f[i-1,j-1]+(s[i]==t[j]?0:1) } 
+
+//分别表示：添加1个，删除1个，替换1个（相同就不用替换）。Re: NaoTengdogZuoPi 2013-04-15 13:52发表 [回复] 回复v_JULY_v：开始有的地方没太理解，后来想想那个alignment才明白过来，那个地方没啥问题，无非是横轴和纵轴换一下23楼 topcoderoneone 2013-04-04 01:06发表 [回复] 解法2 代码1有问题吧？
+如果最大子串的乘积最大值小于1则有问题；
+比如{0.5，0.3，0.2}；运行结果输出是1；貌似不对吧？Re: v_JULY_v 2013-04-04 12:11发表 [回复] 回复topcoderoneone：恩，我看到了，主要是因为如文章中所说的“由于空集的乘积定义为1，在搜索数组前，maxCurrent，minCurrent，maxProduct都赋为1。”
+有任何其它问题，欢迎随时反馈！22楼 Razor87 2013-04-03 17:46发表 [回复] 最大连续子序列乘积问题，我想到一个类似于最大连续子序列求和的思路，从最左端和最右端分别计算出最大连续子序列乘积，然后选择较大的就是：
+
+
+
+
+01.int maxproduct(int* arr, int N)      
+02.{      
+03.    if (0 ==  N) return 1;      
+04.      
+05.    int max = 0;      
+06.    int current = 1;          
+07.    for (int i = 0; i < N; i++)   // 先从左端开始计算    
+08.    {      
+09.        if (0 == arr[i])    // 如果数组元素为0，则current赋值为1，下同      
+10.        {      
+11.            current = 1;      
+12.            continue;      
+13.        }      
+14.        current *= arr[i];      
+15.        if (current > max) max = current;      
+16.    }      
+17.      
+18.    current = 1;      
+19.    for (int i = N - 1; i >= 0; i--)   // 再从右端开始计算    
+20.    {      
+21.        if (0 == arr[i])      
+22.        {      
+23.            current = 1;      
+24.            continue;      
+25.        }      
+26.        current *= arr[i];      
+27.        if (current > max) max = current;      
+28.    }      
+29.      
+30.    return max;      
+31.}      
+Re: v_JULY_v 2013-04-07 01:00发表 [回复] 回复Razor87：可测试下，跑下结果..21楼 yjflinchong 2013-04-01 09:17发表 [回复] 似乎有点高深。20楼 lizaminelli 2013-03-29 10:15发表 [回复] 学习了，谢谢楼主，但我觉得这样好一点吧，
+
+
+
+
+01.double the_max_Sequence(double *pSource,size_t iNum,size_t &iStart,size_t &iEnd)  
+02.  
+03.double dbMax=0;  
+04.for(size_t i=0;i<iNum;++i){  
+05.    if(dbMax<=pSource[i]){  
+06.        iStart=iEnd=i;  
+07.        dbMax=pSource[i];  
+08.  
+09.    }  
+10.    double dbTemp=pSource[i];  
+11.    for(size_t j=i+1;j<iNum;++j){  
+12.        dbTemp*=p[j];  
+13.        if(dbTemp>=dbMax){  
+14.            dbMax=dbTemp;  
+15.            iStart=i;  
+16.            iEnd=j;  
+17.        }  
+18.  
+19.    }  
+20.}  
+21.return dbMax;  
+19楼 lizaminelli 2013-03-29 10:14发表 [回复] 学习了，谢谢楼主，我觉得这样好一点吧
+
+
+
+
+01.double the_max_Sequence(double *pSource,size_t iNum,size_t &iStart,size_t &iEnd)  
+02.  
+03.double dbMax=0;  
+04.for(size_t i=0;i<iNum;++i){  
+05.    if(dbMax<=pSource[i]){  
+06.        iStart=iEnd=i;  
+07.        dbMax=pSource[i];  
+08.  
+09.    }  
+10.    double dbTemp=pSource[i];  
+11.    for(size_t j=i+1;j<iNum;++j){  
+12.        dbTemp*=p[j];  
+13.        if(dbTemp>=dbMax){  
+14.            dbMax=dbTemp;  
+15.            iStart=i;  
+16.            iEnd=j;  
+17.        }  
+18.  
+19.    }  
+20.}  
+21.return dbMax;  
+18楼 ltsrf 2013-03-29 07:57发表 [回复] 学习了，谢谢！！17楼 cjoooooo 2013-03-27 12:08发表 [回复] 你的论坛用模板改的，呵呵。Re: v_JULY_v 2013-03-27 12:23发表 [回复] 回复Sins_Cj：恩， 是的呢，就是基于discuz！的基础上修改搭建而成的。16楼 william_xue 2013-03-26 21:34发表 [回复] 请教29章解法二中的score“打分”怎么理解，它的含义是什么？Re: v_JULY_v 2013-03-26 23:03发表 [回复] 回复william_xue：恩？有score“打分” 这个词么Re: william_xue 2013-03-26 23:53发表 [回复] 回复v_JULY_v：这个score似乎在打分，把最佳匹配的变换过程记录下来了。然后根据这个路径。再计算出距离。Re: william_xue 2013-03-26 23:40发表 [回复] 回复v_JULY_v：有啊，英文那段，第一次出现：
+“The alignment has similarity score 7.” 以及后面：
+”Note that the above alignment has the maximum score.Such alignment is called optimal
+alignment.String alignment problem tries to find the alignment with the maximum similarity
+score!String alignment problem is also called global alignment problem.“15楼 Razor87 2013-03-25 17:34发表 [回复] 哥们重出江湖了？Re: v_JULY_v 2013-03-25 18:26发表 [回复] 回复Razor87：恩，是的，4个月后，重出山了。14楼 shuyecy 2013-03-24 11:37发表 [回复] C#版完整代码那确实是有点小问题
+max[0] = a[i]; 
+min[0] = a[i];
+这里应该是max[0]=a[0]等,maxvalue;=max[0];
+不过我觉得完全不必纠结这个，我想大多数人看你的文章是来学习算法思想的，不是来给代码挑错的。就算不给代码或者只给伪码又怎么样呢？Re: v_JULY_v 2013-03-24 17:50发表 [回复] 回复shuyecy：恩，非常感谢你，代码已经修正。
+额，算法思想要看，但代码也不能有任何bug，否则将来若成书了便会误导初学者，你说，是得不呢？
+
+所以，本编程艺术系列包括本blog内任何一篇文章，或任何一段代码都有任何问题，或者bug，恳请广大读者随时不吝批评指正，这不只是对代码负责，更是对后来读者负责。
+再次感谢大家。13楼 liuxiaobin_bluegiant 2013-03-23 20:19发表 [回复] 本人算法http://blog.csdn.net/liuxiaobin_bluegiant/article/details/8707900，希望大家积极发言哟，希望超越v_JULY_v。Re: v_JULY_v 2013-03-23 20:24发表 [回复] 回复liuxiaobin_bluegiant：其实，我昨天已经回复你了的呢：
+
+昨天 23:17发表
+回复liuxiaobin_bluegiant：Good Job！不过，仍然希望你可以给程序添加上注释，方便他人理解你的具体思路，你说，是不？12楼 liuxiaobin_bluegiant 2013-03-23 20:15发表 [回复] 作者方法有误， void longest_multiple(int *a,int n){ }
+【for(int i=0;i<=n;i++){ 
+p[i]=-1; 
+} 
+Min[1]=a[1]; 
+Max[1]=a[1]; 
+int max_val=Max[1]; 
+for(int i=2;i<=n;i++){ 
+Max[i]=max(Max[i-1]*a[i],Min[i-1]*a[i],a[i]); 
+Min[i]=min(Max[i-1]*a[i],Min[i-1]*a[i],a[i]); 
+if(max_val<Max[i]) 
+max_val=Max[i]; 
+} 
+if(max_val<0) 
+printf("%d",-1); 
+else 
+printf("%d",max_val); 】
+此中本人使用double dp[8]={-6 ,3, 0.5, 0, -2, 2.6, 2.5, 0.8};时出现结果是错误的，最大应该是2.6*2.5结果值6.5，而不是结果6, 解法存在多种问题，第一是不该用int, 应使用double, 第二结果是错误的，肯定算法有问题，第三，数组首数应该用a[0]表示，你说我说的有道理么，反正 有问题自己去检查……………………Re: v_JULY_v 2013-03-23 20:32发表 [回复] 回复liuxiaobin_bluegiant：恩，我看下
+程序之所以第一个数用a[1]表示，是因为程序上有注释提到：“给定一个整数数组，有正有负数，0，正数组成,数组下标从1算起”。
+
+但有点你说得对，就是应该声明的是double变量，我改下，谢谢你。Re: liuxiaobin_bluegiant 2013-03-23 20:37发表 [回复] 回复v_JULY_v：
+引用“liuxiaobin_bluegiant”的评论：回复zqw1990：C#完整版的也是错误多处，public class T...
+
+还有这条，我测试下有问题Re: v_JULY_v 2013-03-23 20:42发表 [回复] 回复liuxiaobin_bluegiant：能指出具体有哪几处错误么？Re: liuxiaobin_bluegiant 2013-03-23 20:36发表 [回复] 回复v_JULY_v：反正程序运行结果错误，那a[0]不要了，怎么处理呗11楼 zqw1990 2013-03-23 01:40发表 [回复] 好，学习！Re: liuxiaobin_bluegiant 2013-03-23 20:32发表 [回复] 回复zqw1990：C#完整版的也是错误多处，public class Test ，中经本人修改一些语法错误外，经测试，起始数据有误，望作者更正………………10楼 liuxiaobin_bluegiant 2013-03-22 20:35发表 [回复] 本人刚完成了自己的算法，有别于v_JULY_v，也可以算作它的一个补充吧，此文中缺少java版的，且本人思想不同于v_JULY_v，希望大家观赏【http://blog.csdn.net/liuxiaobin_bluegiant/article/details/8707900】，给出自己的宝贵意见，不要吝啬自己的笔墨哟，欢迎批评，同时希望JULY给出指正意见…………9楼 liuxiaobin_bluegiant 2013-03-22 20:30发表 [回复] 本人自己完成的算法，有别于v_JULY_v, 可以算作是他的一个补充吧，希望大家对本人的算法提出宝贵意见，【http://blog.csdn.net/liuxiaobin_bluegiant/article/details/8707900】，同时希望v_JULY_v,对本人作出指正……8楼 shuyecy 2013-03-22 17:01发表 [回复] 解法一是想穷举吧，虽然代码有点错误，但本质没错吧，虽然是o(n^2)的Re: cheermc 2013-03-22 17:10发表 [回复] 回复shuyecy：我也一直好奇那里写的不正确是为什么Re: v_JULY_v 2013-03-22 17:17发表 [回复] 回复cheermc：之前说解法一存在问题的结论的确有待商榷，原文已经修订，谢谢两位。Re: shuyecy 2013-03-22 17:21发表 [回复] 回复v_JULY_v：解法一 double x=arrs[i];这里也可能是最大值。7楼 chunyang2178 2013-03-22 16:53发表 [回复] 刚参加完研究生复试，不管结果如何了，这几天跟着博主学习一下。6楼 zhangliang_571 2013-03-22 12:31发表 [回复] 顶，顶，顶。
+老大，一直关注着你的微博，祝一切顺利！！！5楼 ydm2011 2013-03-22 11:15发表 [回复] 作者的程序只是输出了连续子串的的最大值，连续子串的输出好像并没有体现！Re: liuxiaobin_bluegiant 2013-03-22 21:37发表 [回复] 回复ydm2011：确实如此啊，+1Re: v_JULY_v 2013-03-22 11:33发表 [回复] 回复ydm2011：恩， 是的，文章中第二十八章内C/C++代码没有输出最大连续乘积的起始值、结束值，不过，那份C#完整代码输出了起始值和结束值。Re: ydm2011 2013-04-14 21:44发表 [回复] 回复v_JULY_v：励志像大哥你学习！4楼 zhaoyl03 2013-03-21 23:52发表 [回复] 感谢博主提供的最大连续乘积子串的动态求解思路，代码很清楚。不过，也正是因为清楚，发现解法2那个c++代码的瑕疵，maxProduct 等的初值不能取为1，而应该取数组的第一个值，循环从i=1开始，否则像数组A=[-2.5,0,-1,0,-0.5,0,-1]就会返回最大的连乘值是1，但是实际上是0.我是不是太吹毛求疵了？Re: topcoderoneone 2013-04-04 14:37发表 [回复] 回复zhaoyl03：将maxProduct都赋为最小有点问题负数即可解决问题；
+楼主“由于空集的乘积定义为1，在搜索数组前，maxCurrent，minCurrent，maxProduct都赋为1。”
+这个定义有点问题。maxCurrent，minCurrent在运算过程中扮演了空集的作用（求最大值的时候maxCurrent空集的意义更大一些，求最小值的时候minCurrent空集的意义更大一些）；而maxProduct在运算过程中完全没有扮演任何空集的意义，所以初始化时maxProduct应该赋值为最小无穷小的负数，因为maxProduct在运算过程中只参与了比较运算，而未参与集合的扩充Re: topcoderoneone 2013-04-04 13:11发表 [回复] 回复zhaoyl03：呵呵 比如{0.5，0.3，0.2}；运行结果输出是1；
+这个也会出现问题，如果最大积为【0，1)的时候会出现问题，呵呵Re: liuxiaobin_bluegiant 2013-03-22 21:53发表 [回复] 回复zhaoyl03：问题提得太点~~,不过此问题应该考虑，对于一个健全程序来说不容错失，呵呵，你可以考虑去做测试了。Re: zhaoyl03 2013-03-22 23:10发表 [回复] 回复liuxiaobin_bluegiant：其实给变量赋初值是很讲究滴。3楼 v_JULY_v 2013-03-21 22:43发表 [回复] 怎么有2条评论没显示了？...
+程序员编程艺术第二十八~二十九章：最大连续乘积子串、字符串编辑距离
+liuxiaobin_bluegiant: 针对最大连续乘积子串问题，本人已经使用了JAVA实现了其功能，见博客http://blog.csdn...
+
+程序员编程艺术第二十八~二十九章：最大连续乘积子串、字符串编辑距离
+hww836967373: 占座学习，thanks
+
+程序员编程艺术第二十八~二十九章：最大连续乘积子串、字符串编辑距离
+pyemma: 顶，最喜欢楼主写的算法系列了，好好学习，向大牛看齐，最近正想申请亚研院的实习生，打算好好复习复习算法Re: liuxiaobin_bluegiant 2013-03-22 21:38发表 [回复] 回复v_JULY_v：昨晚发现代码有点问题，处于修改状态，所以关闭了，现在又重新呈上了，http://blog.csdn.net/liuxiaobin_bluegiant/article/details/8707900，敬请指正。Re: v_JULY_v 2013-03-22 23:17发表 [回复] 回复liuxiaobin_bluegiant：Good Job！不过，仍然希望你可以给程序添加上注释，方便他人理解你的具体思路，你说，是不？2楼 hww836967373 2013-03-21 18:12发表 [回复] 占座学习，thanks1楼 pyemma 2013-03-21 18:04发表 [回复] 顶，最喜欢楼主写的算法系列了，好好学习，向大牛看齐，最近正想申请亚研院的实习生，打算好好复习复习算法
+ 
+
+
+您还没有登录,请[登录]或[注册]
+ 
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+
+个人资料 
+
+v_JULY_v 
+
+
+
+
+
+
+访问：4195754次
+ 积分：25982分
+ 排名：第50名
+ . 原创：134篇
+ 转载：0篇
+ 译文：5篇
+ 评论：10137条
+ . 
+博客公告 ①.本blog开通于2010年10月11日，高级C /Algorithms交流群：149977547；北京程序员联盟：172727781。②.狂热算法，热爱数据挖掘，关注机器学习、统计分析，爱好文学数学。③.微博：研究者July，邮箱：zhoulei0907@yahoo.cn，July，二零一三年三月二十九日。 
+我的微博 
+文章分类 03.Algorithms（实现）(9) 
+01.Algorithms（研究）(27) 
+02.Algorithms（后续）(22) 
+04.Algorithms（讨论）(1) 
+05.MS 100' original(7) 
+06.MS 100' answers(13) 
+07.MS 100' classify(4) 
+08.MS 100' one Keys(6) 
+09.MS 100' follow-up(3) 
+10.MS 100' comments(4) 
+11.TAOPP（编程艺术）(26) 
+12.TAOPP string(6) 
+13.TAOPP array(10) 
+14.TAOPP list(2) 
+15.stack/heap/queue(0) 
+16.TAOPP tree(1) 
+17.TAOPP c/c++(2) 
+18.TAOPP function(2) 
+19.TAOPP algorithms(7) 
+20.number operations(1) 
+21.Essays(8) 
+22.Big Data Processing(5) 
+23.Redis/MongoDB(0) 
+24.data structures(12) 
+25.Red-black tree(7) 
+26.Image Processing(3) 
+27.Architecture design(4) 
+28.Source analysis(3) 
+29.Recommend&Search(4) 
+30.Machine L&Data Mining(5) 
+
+博客专栏 
+
+
+
+
+微软面试100题系列 
+文章：17篇
+ 阅读：1246146 
+
+
+
+
+
+程序员编程艺术 
+文章：24篇
+ 阅读：859743 
+
+
+
+
+
+经典算法研究 
+文章：32篇
+ 阅读：1110635 
+
+阅读排行 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(186273) 
+九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(141620) 
+教你如何迅速秒杀掉：99%的海量数据处理面试题(137467) 
+横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(127654) 
+从B树、B+树、B*树谈到R 树(122031) 
+十道海量数据处理面试题与十个方法大总结(101550) 
+九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(87335) 
+十一、从头到尾彻底解析Hash表算法(78390) 
+微软公司等数据结构+算法面试100题(第1-100题)全部出炉(75917) 
+支持向量机通俗导论（理解SVM的三层境界）(74618) 
+
+评论排行 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(371) 
+九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(361) 
+九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(331) 
+当今世界最为经典的十大算法--投票进行时(320) 
+从B树、B+树、B*树谈到R 树(264) 
+横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(263) 
+十三个经典算法研究与总结、目录+索引(216) 
+我的大学生涯(214) 
+程序员编程艺术第一章、左旋转字符串(203) 
+三五杆枪，可干革命，三五个人，可以创业(198) 
+
+最新评论 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦 
+v_JULY_v: @q1w2ok11:替我感谢你的同事:-) 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦 
+q1w2ok11: 同事推荐，太给力了，必须好好学习，楼主辛苦 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦 
+kiritor: 谢谢博主的分享,先收藏了 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦 
+v_JULY_v: @zhouqinxiong:哪个学校呢？替我谢谢你的老师:-) 
+
+程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦 
+zhouqinxiong: 老师推荐的，lz，你的博客非常给力 
+
+快速排序算法 
+康天崽: 太给力了，我喜欢，爱死你了 
+
+我的大学生涯 
+msjcool: 看完楼主的经历，感觉自己弱爆了 
+
+B树的C实现 
+hao138548: 好贴 
+
+教你如何迅速秒杀掉：99%的海量数据处理面试题 
+xiyandeng: 虽然看得不是很懂，以后可以慢慢消化！感谢博主啊 
+
+程序员编程艺术第一章、左旋转字符串 
+dusx1981: void RightShift4(string &str, int k){ int len = st... 
+
+
+01、本blog索引 3、微软100题维护地址
+1、微软100题横空出世
+5、经典算法研究系列
+7、红黑树系列集锦
+6、程序员编程艺术系列
+2、微软面试全部100题
+0、经典4大原创系列集锦
+4、微软100题下载地址
+ 
+02、Google or baidu? Google搜--"结构之法"（My BLOG）
+baidu 搜--"结构之法"（My BLOG）
+ 
+03、个人标签 本BLOG RSS订阅
+zhoulei0907@yahoo.cn
+csdn blog订阅排行榜
+TAOPP修订wiki
+julymsn@live.cn
+电子工程网专家VIP
+ 博客园blog-成为推荐博客
+ ITpub-代码优化专家
+ 
+04、我的驻点 01. 为学论坛-万物皆数 终生为学
+ 02、Harry
+ 03、NoSQLFan
+ 04、酷勤网
+ 05、52nlp
+ 06、北大朋友的挖掘乐园
+ 07、跟Sophia_qing一起读硕士
+ 08、面试问答社区51nod
+ 09、韩寒
+ 10、我的有鱼
+ 11、曾经的叛逆与年少
+ 12、老D之MongoDB源码分析
+ 14、code4app:iOS代码示例
+ 17、斯坦福机器学习公开课
+ 18、TheItHome算法版块版主
+ 19、36氪--关注互联网创业
+ 20、德问--编程是一种艺术创作
+ 21、善科网
+ 22、百度搜索研发部
+ 23、淘宝搜索技术博客
+ 24、interviewstreet
+ 25、LeetCode
+ 26、Team_Algorithms人人小组
+ 
+文章存档 
+2013年03月(1).
+2012年12月(1).
+2012年11月(1).
+2012年09月(1).
+2012年06月(1).
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+
+展开.
+ 
+
+. 
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320京 ICP 证 070598 号北京创新乐知信息技术有限公司 版权所有世纪乐知(北京)网络技术有限公司 提供技术支持江苏乐知网络技术有限公司 提供商务支持Copyright © 1999-2012, CSDN.NET, All Rights Reserved  

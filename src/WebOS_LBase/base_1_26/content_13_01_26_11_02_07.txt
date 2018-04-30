@@ -1,0 +1,109 @@
+分享到QQ空间新浪微博百度搜藏人人网腾讯微博开心网腾讯朋友百度空间豆瓣网搜狐微博百度新首页QQ收藏和讯微博我的淘宝百度贴吧更多...百度分享
+首页我的主页相册广场消息 私信(1) 模板 设置 退出 关注此空间DIVIDING BY ZERO
+/* Life is undefined, so you cannot find a definite answer for it. Go explore! */
+2012-12-20 23:11 Matlab中的randperm和randsample函数用法对比构建替代数据的时候，一种常见的思路是打乱原数据的排列次序，通过随机置换原数据的排列次序从而产生和原数据系列统计特征（如均值、方差、分布）一致的随机数据。具体到Matlab中，此思路的实现会涉及到两个命令：randperm和randsample
+
+
+
+
+p.s. 相关的重新排序命令还包括：
+
+1
+2
+3
+4
+5
+6
+7
+8
+9 Reordering Algorithms amd           Approximate minimum degree permutation colamd        Column approximate minimum degree permutation colperm       Sparse column permutation based on nonzero count dmperm        Dulmage-Mendelsohn decomposition ldl           Block LDL' factorization for Hermitian indefinite matrices randperm      Random permutation symamd        Symmetric approximate minimum degree permutation symrcm        Sparse reverse Cuthill-McKee ordering 
+
+
+
+
+1、RANDPERM
+
+
+
+
+根据Matlab文档，randperm最常用的用法是是返回一个从1-n的包含n个数的随机排列（每个数字只出现一次）——以行向量的形式
+
+1 p = randperm(n) returns a row vector containing a random permutation of the integers from 1 to n inclusive 
+
+如果希望从1-n的数字序列里面随机返回k个数，则可以使用
+
+1 p = randperm(n,k) 
+
+其中，这k个数之间彼此也是不相同的。可见，randperm能够产生不重复的随机排列，结合原数据，可写成类似下面的形式：
+
+1 new = old( randperm(  size(old,1)  ) , : ); 
+
+这样新数组中的各行就被重排了。如果各列也需要重排，则可以嵌套使用。
+
+Matlab文档中还说，randperm完成的是不重复的重排采样（k-permutations），如果结果中的数需要重复多次出现的情况，则可以用：
+
+1 randi(n,1,k) 
+
+randperm和rand、randi、randn一样，其随机数的生成是收到rng命令控制的，因此，可通过该命令影响随机数据流rand stream的情况。
+
+
+
+
+2、RANDSAMPLE
+
+
+
+
+randsample的命令组合比randperm要复杂，事实上这个命令内部也有对randperm的调用。因此，在适当的情况下，使用randperm的速度理论上比randsample快。（事实上也快很多）
+
+randsample的命令格式：
+
+1
+2
+3
+4
+5
+6
+7 y = randsample(n,k) y = randsample(population,k) y = randsample(n,k,replacement) y = randsample(population,k,replacement) y = randsample(n,k,true,w) y = randsample(population,k,true,w) y = randsample(s,...) 
+
+第一种情形，randsample(n,k)和randperm(n,k)的功能一样，都是产生k个不相同的数（1-n）。
+
+第二种情形，randsample(ARRAY,k)，事实上就是randperm和原数组结合使用的形式，从ARRAY数组里面随机取出k个不相同的数。
+
+第三种情形，replacement是一个bool变量，为1的时候，取出的数可能是重复的，为0的时候，可能不重复。
+
+
+
+
+很显然，看到这里，会发现randsample和randperm很相似，譬如，之前旧数组随机排序的需求可写成下面的样式：
+
+1
+2
+3 new = old( randsample( 1:length(matrix) , length(matrix) ,0),: ); or new = randsample( old, length(old), 0 );   <-- I preferred this. 
+
+事实上更有用的是第四种情形，多出来一个w，是权重系数，能够根据此权重系数在原数组（或1-n数组）里面选出可能重复的k个数。典型用法譬如：
+
+
+1 R = randsample('ACGT',48,true,[0.15 0.35 0.35 0.15]) 
+
+上面的语句能够产生48个内容为ATCG的随机字串，且A出现的权重为0.15，其余类推。这个显然在生物信息学中很有用。ATCG也就是DNA的碱基序列。
+
+第五种情形，可以用自己提供的随机数stream替换系统默认的随机数，s必须派生自Matlab的RandStream类。
+
+
+
+
+小结
+
+
+
+
+通过对比，我们很容易的发现randperm比randsample更直接更底层，而randsample则是对各种使用的情形进行了封装。randsample最有用的优势是可以很方便的实现随机数的权重分布。
+#实验室工作 #Matlab #randperm #randsample #random #随机数 #替代数据 #Shuffling #Data 分享到： 举报 浏览(119) 评论 转载 
+你可能也喜欢
+ 【拍案设计】COORDINATION设计的创意衣帽架  歪七扭八的事故车  秘鲁，利马，海滨别墅I-5  Sam Chirnside 设计作品  能撕开的AA制账单  Nivea妮维雅推出新的品牌形象及包装设计  被Scientific Reports接收了 评论
+
+ 同时评论给  
+ 同时评论给原文作者   发布 500/0
+收起|查看更多
+帮助中心 | 空间客服 | 投诉中心 | 空间协议©2013 Baiduabcdef

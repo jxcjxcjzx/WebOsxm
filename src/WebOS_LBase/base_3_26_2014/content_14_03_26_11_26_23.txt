@@ -1,0 +1,89 @@
+Android开启闪光灯的几种办法
+
+分类： Android 2012-03-18 13:16 4710人阅读 评论(3) 收藏 举报
+androidparametersnullexceptionsymbian测试
+
+一、控制硬件的情节
+早在2008年开发Symbian和WM程序的时候，就非常好奇如何用我们的代码来控制硬件设备，比如闪光灯就是一个很好的控制对象。我们开发程序，很多乐趣就在于控制。这是一种精神上的愉悦，无论在哪个领域，控制其他事物都是很吸引人的。那么转眼间到了2012年，Android开发也做了几年了，控制它的硬件却一直没有时间做，真是惭愧。今天得空，学习了一下，控制闪光灯大致有两种办法。下面就一一道来。
+二、用IHardwareService直接控制
+Android1.5以前是直接提供这个接口的，之后呢，需要我们自己来做一下。
+在你的项目中新建一个包android.os,新建一个IHardwareService.aidl文件，内容如下：
+package android.os;
+
+/** {@hide} */
+interface IHardwareService
+{
+    // obsolete flashlight support
+    boolean getFlashlightEnabled();
+    void setFlashlightEnabled(boolean on);
+}
+然后在你的程序中引入
+import android.os.IHardwareService;
+
+	/**
+	 * 设置闪光灯的开启和关闭
+	 * @param isEnable
+	 * @author linc
+	 * @date 2012-3-18
+	 */
+	private void setFlashlightEnabled(boolean isEnable)
+	{
+		try
+		{
+			Method method = Class.forName("android.os.ServiceManager").getMethod("getService", String.class);
+			IBinder binder = (IBinder) method.invoke(null, new Object[] { "hardware" });
+			
+			IHardwareService localhardwareservice = IHardwareService.Stub.asInterface(binder);
+			localhardwareservice.setFlashlightEnabled(isEnable);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+	}
+这样就可以开启闪光灯了。要使用的权限：
+	<uses-permission android:name="android.permission.FLASHLIGHT" />
+  	<uses-permission android:name="android.permission.HARDWARE_TEST" />  
+三、用照相机来控制闪光灯
+这是思维的另一个方向。Camera自带丰富的接口与Parameters，我们只管拿来使用就好了。
+    private Camera camera = null;
+    private Parameters parameters = null;
+//直接开启
+camera = Camera.open();	
+				parameters = camera.getParameters();
+				parameters.setFlashMode(Parameters.FLASH_MODE_TORCH);//开启
+				camera.setParameters(parameters);
+//直接关闭
+parameters.setFlashMode(Parameters.FLASH_MODE_OFF);//关闭
+				camera.setParameters(parameters);
+				camera.release();
+如果这样遇到问题的话，可以尝试用camera的preview方法：
+    private void OpenLightOn()    {
+    	if ( null == m_Camera )
+    	{
+    		m_Camera = Camera.open();    
+    	}
+    	
+    	Camera.Parameters parameters = m_Camera.getParameters();             
+    	parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);  
+        m_Camera.setParameters( parameters );           
+    	m_Camera.autoFocus( new Camera.AutoFocusCallback (){  
+        public void onAutoFocus(boolean success, Camera camera) {  
+    	        }    	          
+    	    }); 
+    	m_Camera.startPreview();   	
+    }
+    
+    private void CloseLightOff()   {
+    	if ( m_Camera != null )
+    	{
+    		m_Camera.stopPreview();
+    		m_Camera.release();
+    		m_Camera = null;
+    	}    	
+    }
+四、结束
+测试的时候注意啦，一定要用有闪光灯的手机来测哦，我用三星i9001测试，怎么测都不行，后来才发现人家根本就没有闪光灯，浪费了好多时间，^_^。
+上面的程序参考了网上的例子，如果侵犯了您的权利，请通知我。
+转载请注明，谢谢。

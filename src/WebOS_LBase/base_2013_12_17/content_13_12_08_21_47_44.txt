@@ -1,0 +1,412 @@
+网易 新闻 微博 邮箱 相册 阅读 有道 摄影 爱拍 优惠券 云笔记 闪电邮 手机邮 印像派 网易识字  更多   博客 手机博客 博客搬家 博客VIP服务  LiveWriter写博 word写博 邮件写博 短信写博  群博客 博客油菜地 博客话题 博客热点 博客圈子 找朋友 发现小组风格   网易真人搭配社区iStyle
+网易轻博客LOFTER.创建博客 登录    加关注..   显示下一条  |  关闭 
+基于普通摄像头的机器视觉研究
+基于普通摄像头的机器视觉研究
+
+导航
+首页 日志 相册 音乐 收藏 博友 关于我 .  
+   
+日志    opencv与摄像头  深刻了解opencv（转）.
+Arduino的串行通信 （转）  2009-03-17 22:55:21|  分类： 施健 |  标签： |字号大中小 订阅 .
+
+转自：http://www.icdev.com.cn/?20513/viewspace-3877
+
+ 
+
+  刚开始看到引脚读写函数的时候觉得很鸡肋，还不如以前端口直接赋值简单。但是继续往下看Arduino提供的通讯函数就发现真的是要比以前方便多了...
+
+       上次把键盘做好，现在要把键盘按下的信息通过串口发给PC，如果以前用单片机自己来写串口程序做，对有基础的人来说其实也不难...但是如果用Arduino来做，会发现简直是傻瓜操作，合适初学者，也合适有基础的懒人...
+
+        先了解一下相关的一些串口通信函数：
+
+        Serial.begin(int speed)
+
+        初始化串口比特率函数，直接输入相应的数值就把串口通信的寄存器设置为对应的比特率了，够傻瓜吧..当然，可以使用的值也不是随便设的，一般4800 9600 14400……等等
+
+         Serial.available()
+
+         串口输入数据读取前的判断函数，返回值为1 串口buff中有数据 0 串口buff中无数据或者数据已经读取出来过。经常if(Serial.available())来询问监视串口。
+
+         Serial.read()
+
+         从串口buff中读取数据进来..比如 infomaition = Serial.read(); 则buff中的数据会赋值给infomaition变量
+
+        Serial.print(data)
+
+         把data从串口把数据发送出去...
+
+         注意的是使用找个函数的时候可以有几种发送方法：
+
+         1  Serial.print(data)
+
+          这样的话Arduino会把data发送成字符串ASCII出去。如 int data = 79 ; Serial.print(data) ;那串口发送出去的就是string"79" 的ASCII..
+
+          2  Serial.print(data,DEC)
+
+           这样发送的是data的10进制字符串。如 int data = 79; Serial.print(data,DEC); 那串口发出去的就是string"79"
+
+          3  Serial.print(data,HEX)
+
+           这样发送的是data的16进制字符串。如 int data = 79; Serial.print(data,HEX); 那串口发出去的就是string"4F"          
+
+          4  Serial.print(data,OCT)
+
+            这样发送的是data的8进制字符串。如 int data = 79; Serial.print(data,OCT); 那串口发出去的就是string"117"
+
+          5  Serial.print(data,BIN)
+
+           这样发送的是data的二进制字符串。如 int data = 79; Serial.print(data,BIN); 那串口发出去的就是string"1001111"
+
+          6  Serial.print(data,BYTE)
+
+           这样是把data作为ASCII码对应的字符后发送。如 int data = 79; Serial.print(data,BYTE); 那串口发出去的就是string"O"
+
+           
+
+         Serial.println(data)
+
+        功能类似上面的发送函数，也是把数据发送出去，不同的是发送的数据后面带上换行符号
+
+          有了上面的这些函数，就可以轻松的和PC进行串口通讯了。现在做个实验：先根据键盘按下的按键向PC发送对应的键值，然后PC接受到键值做相应的判断处理后将结果返回给Arduino执行。
+
+           因为要检查出按键的具体键值，上次用来实验输入输出的键盘代码是不能用了。这次键盘的原理和上次一样，先行扫描，然后读取4条列线，如果有按键按下则把扫到的键值从串口发送出去。
+
+           先定义变量：
+
+           int KeyOPin =2;              int KeyIPin =6;              int LedPin = 13;                   
+
+           int i ;                                 int n;
+
+           int key = 0;                       int ldkey = 0;              int press = 0;
+
+           int reg = 1;
+
+           int ASCII[16]={'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'} ;
+
+           初始化Arduino：
+
+           void setup() 
+
+          {
+
+                 Serial.begin(9600);
+
+                 for(i=0;i<4;i++)     pinMode((KeyOPin + i), OUTPUT);     
+
+                 for (i=0;i<4;i++)    pinMode(( KeyIPin + i), INPUT);  
+
+                 pinMode( LedPin, OUTPUT);
+
+           }     
+
+           循环执行扫描、对比和确认发送数据
+
+           void loop()
+
+          {
+
+             reg = 1;
+
+             for (i=0;i<4;i++)
+
+             {
+
+                  for (n=0;n<4;n++)
+
+                       {
+
+                             if((reg>>n)&1)        digitalWrite(KeyOPin+n , HIGH); 
+
+                            else                          digitalWrite(KeyOPin+n , LOW);
+
+                       }   
+
+                  for (n=0;n<4;n++)
+
+                      {
+
+                          if(digitalRead(KeyIPin + n))
+
+                            {     key = key | (1<<(4+n));    key = key | reg ; }                    
+
+                      }
+
+                  reg = reg << 1;
+
+               }
+
+ 
+
+              if (key & 0xf0)
+
+             {
+
+                   if (key!=oldkey)   {   press = 1;  oldkey = key ; }
+
+             }
+
+             else       oldkey = 0;
+
+  
+
+              if (press)
+
+            {
+
+                 Serial.print(tab[key/16],BYTE);
+
+                 Serial.print(tab[key%16],BYTE);  
+
+            }
+
+             press = 0;
+
+             key = 0;
+
+          }
+
+          把程序编译后烧进Arduino，然后把按下Arduino编程软件的Serial Monitor按钮，在代码窗口下面就会显示出串口监视器的串口，在下拉列表中把波特率改为9600即我们设置的通信波特率。然后按下键盘上的按钮，就能在窗口中看到对应的键值被发送过来了。
+
+           PS：因为不需要是实现检测长按或者点按，所以平时无按键的0x00不会发送过来，如果一个按钮未放开按下新按钮则会发送组合键值过来，PC做相应初判断处理。
+
+                    
+
+           PC端的接收可以使用Processing软件来编写，或者使用Flash的AS脚本来实现接收，具体的接收通信部分下次再验证~ 先继续点LED Matrix ...显示字符的时候行扫描总是亮度不够 >.< 郁闷 调延时又还对AVR的timer不熟悉只能用for...
+
+  评论这张 
+ 转发至微博 
+ 转发至微博 
+ 0人  |  分享到：         阅读(1410)| 评论(0)| 转载 (0) |举报 .
+ 
+  opencv与摄像头  深刻了解opencv（转）.
+历史上的今天.
+相关文章.
+最近读者
+.评论.
+    this.p={  m:2,
+              b:2,
+              id:'fks_085074092082086066080085086095085087081070093084081071087',
+              blogTitle:'Arduino的串行通信 （转）',
+              blogAbstract:'<P\>转自：<A rel=\"nofollow\" href=\"http://www.icdev.com.cn/?20513/viewspace-3877\"  \>http://www.icdev.com.cn/?20513/viewspace-3877</A\></P\>  <P\> </P\>  <P style=\"TEXT-INDENT: 2em;\"  \>  刚开始看到引脚读写函数的时候觉得很鸡肋，还不如以前端口直接赋值简单。但是继续往下看Arduino提供的通讯函数就发现真的是要比以前方便多了...</P\>  <P style=\"TEXT-INDENT: 2em;\"  \>       上次把键盘做好，现在要把键盘按下的信息通过串口发给PC，如果以前用单片机自己来写串口程序做，对有基础的人来说其实也不难...但是如果用Arduino来做，会发现简直是傻瓜操作，合适初学者，也合适有基础的懒人...</P\>',
+              blogTag:'',
+              blogUrl:'blog/static/1105927432009217105521343',
+              isPublished:1,
+              istop:false,
+              type:0,
+              modifyTime:1316933816996,
+              publishTime:1237301721343,
+              permalink:'blog/static/1105927432009217105521343',
+              commentCount:0,
+              mainCommentCount:0,
+              recommendCount:0,
+              bsrk:-100,
+              publisherId:0,
+              recomBlogHome:false,
+              attachmentsFileIds:[],
+              vote:{},
+              groupInfo:{},
+              friendstatus:'none',
+              followstatus:'unFollow',
+              pubSucc:'',
+              visitorProvince:'江苏',
+              visitorCity:'南京',
+              postAddInfo:{"postAdSetting":{"title":"youdaonote","linkUrl":"http://g.163.com/a?CID=15476&Values=2827336800&Redirect=http://e.cn.miaozhen.com/r.gif?k=1002527&p=3xxDj0&ae=1000291&vo=39fe9ccaa&vr=2&o=http%3A%2F%2Fkfc.qq.com%2Fdinner","imageUrl":"http://img1.126.net/channel8/012229_290260_7.23.swf","expireDay":"14","modifyTime":"1343005046061","flashUrl":"http://img1.126.net/channel8/012229_290260_7.23.swf"},"isAdShow":true,"postAdContent":{"special":[{"title":"蔡成平：日本为何陷入失去的十年","url":"http://blog.163.com/caichengping@126/blog/static/172933602201263012755203/"},{"title":"倪金节：欧洲央行拿什么来捍卫欧元","url":"http://piaoni2006.blog.163.com/blog/static/10919431820126299926546/"},{"title":"陶短房：保加利亚以色列游客被炸案","url":"http://taoduanfang.blog.163.com/blog/static/25091713201262910363566/"}],"blog":[{"title":"北美人割鱼取神秘药材","pic":"http://img6.cache.netease.com/cnews/2012/7/30/2012073000181489308.jpg","url":"http://blog.163.com/"},{"title":"张艺谋不该倒向铁老大的腐败怀抱","url":"http://blog.163.com/"},{"title":"中国是否希望朝鲜进行'改革开放'","url":"http://cskun1989.blog.163.com/blog/static/12767822420126297269866/"},{"title":"张宾：为什么中国运动员都特别爱哭","url":"http://blog.163.com/special/0012rt/lundunaoyun.html"},{"title":"牛刀：公布住宅信息高房价立马崩溃","url":"http://sunny-9196271.blog.163.com/blog/static/1602993201262982338693/"},{"title":"蒋丰：日本女警受热捧不仅因为性感","url":"http://jiangfengxhq.blog.163.com/blog/static/1349226822012629943082/"}]}},
+              mset:'000',
+              mcon:'',
+              srk:-100,
+              remindgoodnightblog:false,
+              isBlackVisitor:false,
+              isShowYodaoAd:false,
+              hostIntro:'',
+              hmcon:'',
+              selfRecomBlogCount:'0',
+              lofter_single:'<a hidefocus="true" target="_blank" href="http://jidi.lofter.com/post/c45da_1d0048"><img onload="var nimg = new Image(); nimg.src=\'http://blog.163.com/newpage/images/analyse.png?lofter_single&t=\'+new Date().getTime()" border="0" src="http://b2.bst.126.net/newpage/images/lofter_single9.jpg"/></a>'
+            }
+       {list a as x}
+    {if !!x}
+    <div class="iblock nbw-fce nbw-f40">
+      <a class="fc03 noul" target="_blank" hidefocus="true" href="http://blog.163.com/${x.visitorName}/">
+      {if x.visitorName==visitor.userName}
+      <img alt="${x.visitorNickname|escape}" onerror="this.src=location.f40" class="cwd bdwa bdc0" src="${fn1(x.visitorName)}&r=${visitor.imageUpdateTime}"/>
+      {else}
+      <img alt="${x.visitorNickname|escape}" onerror="this.src=location.f40" class="cwd bdwa bdc0" src="${fn1(x.visitorName)}"/>
+      {/if}
+      </a>
+      <div class="cwd vname thide">
+        {if x.moveFrom=='wap'}
+          <a class="noul pnt" target="_blank" href="http://blog.163.com/services/wapblog.html?frompersonalbloghome"><span title="来自网易手机博客" class="iblock wapIcon"> </span></a>
+        {elseif x.moveFrom=='iphone'}
+          <a class="noul pnt" target="_blank"><span title="来自iPhone客户端" class="iblock iphoneIcon"> </span></a>
+        {elseif x.moveFrom=='android'}
+          <a class="noul pnt" target="_blank"><span title="来自Android客户端" class="iblock androidIcon"> </span></a>
+        {elseif x.moveFrom=='mobile'}
+          <a class="noul pnt" target="_blank" href="http://blog.163.com/services/emsblog.html?frompersonalbloghome"><span title="来自网易短信写博" class="iblock wapIcon"> </span></a>
+        {/if}
+        <a class="fc03 m2a"  target="_blank" hidefocus="true" href="http://blog.163.com/${x.visitorName}/">
+          ${fn(x.visitorNickname,8)|escape}
+        </a>
+      </div>
+    </div>
+    {/if}
+    {/list}
+       {if !!a}
+    <a target="_blank" href="http://blog.163.com/${a.userName}/"><img class="bdwa bdc0 pnt" onerror="this.src=location.f60" src="${fn1(a.userName)}"/></a>
+    <a target="_blank" class="fc03 m2a" href="http://blog.163.com/${a.userName}/">${fn(a.nickname,8)|escape}</a>
+    <div class="intro fc05">${a.selfIntro|escape}{if great260}${suplement}{/if}</div>
+	    <div class="acts ztag"></div>
+	  <div class="mbga phide xtag">
+        <div class="mbgai"> </div>
+        <a class="fc03 xtag m2a" href="#" target="_blank"></a>
+      </div>
+    {/if}
+   <#--最新日志，群博日志-->     {list a as x}
+    {if !!x}
+    <li class="thide"><a target="_blank" class="fc03 m2a" href="${furl()}${x.permalink}/?latestBlog">${fn(x.title,26)|escape}</a></li>
+    {/if}
+    {/list}
+   <#--推荐日志-->     <p class="fc06">推荐过这篇日志的人：</p>
+    <div>
+      {list a as x}
+      {if !!x}
+      <div class="iblock nbw-fce nbw-f40">
+        <a class="fc03 noul" target="_blank" hidefocus="true" href="http://blog.163.com/${x.recommenderName}/">
+        <img alt="${x.recommenderNickname|escape}" onerror="this.src=location.f40" class="cwd bdwa bdc0" src="${fn1(x.recommenderName)}"/>
+        </a>
+        <div class="cwd thide">
+          <a class="fc03 m2a" target="_blank" hidefocus="true" href="http://blog.163.com/${x.recommenderName}/">
+            ${fn(x.recommenderNickname,6)|escape}
+          </a>
+        </div>
+      </div>
+      {/if}
+      {/list}
+    </div>
+    {if !!b&&b.length>0}
+    <p  class="fc06">他们还推荐了：</p>
+    <ul>
+    {list b as y}
+      {if !!y}
+        <li class="rrb"><span class="iblock">·</span><a class="fc03 m2a" target="_blank" href="http://blog.163.com/${y.recommendBlogPermalink}/?from=blog/static/1105927432009217105521343">${y.recommendBlogTitle|escape}</a></li>
+      {/if}
+    {/list}
+    </ul>
+    {/if}
+   <#--引用记录-->     <span class="pleft fc07">转载记录：</span>
+    <ul class="tbac">
+    {list d as x}
+      <li class="clearfix">
+        <span class="pleft iblock">·</span>
+        <div class="tbl thide pleft"><span><a target="_blank" class="fc07 m2a" href="${x.referBlogUrl}">${x.referBlogTitle|escape}</a></span></div>
+        <div class="tbr pleft"><span><a target="_blank" class="fc07 m2a" href="${x.referHomePage}">${x.referUserName|escape}</a></span></div>
+      </li>
+    {/list}
+    </ul>
+   <#--博主推荐-->     {list a as x}
+    {if !!x}
+    <li class="thide"><a target="_blank" class="fc03 m2a" href="http://blog.163.com/${x.userName}/${x.permalink}/?recommendBlog" title="${x.title|default:""|escape}">${x.title|default:""|escape}</a></li>
+    {/if}
+    {/list}
+   <#--随机阅读-->     {list a as x}
+    {if !!x}
+    <li class="thide"><a target="_blank" class="fc03 m2a" href="http://blog.163.com/${x.userName}/${x.permalink}/?personalRecomBlog" title="${x.title|default:""|escape}">${x.title|default:""|escape}</a></li>
+    {/if}
+    {/list}
+   <#--首页推荐-->     {list a as x}
+    {if !!x}
+    <li class="thide"><a target="_blank" class="fc03 m2a" target="_blank" href="${x.blogUrl|default:""|escape}?recommendReader" title="${x.blogTile|default:""|escape}">${x.blogTile|default:""|escape}</a></li>
+    {/if}
+    {/list}
+   <#--相关文章-->     <ul>
+      {list a as x}
+      {if x_index>9}{break}{/if}
+      {if !!x}
+        <li class="thide fc03">
+          <a class="m2a" target="_blank" target="_blank"  href="${x.url|default:""}?fromdm&fromSearch&isFromSearchEngine=${isFromSearchEngine|default:"no"}"  title="${x.title|default:""|escape}">${x.title|default:""|escape}</a><span class="fc07">${fn2(parseInt(x.date),'yyyy-MM-dd HH:mm:ss')}</span>
+        </li>
+      {/if}
+      {/list}
+    </ul>
+   <#--历史上的今天-->     <ul>
+      {list a as x}
+      {if x_index>4}{break}{/if}
+      {if !!x}
+        <li class="thide fc03">
+          <a class="m2a" target="_blank"  href="http://blog.163.com/${x.userName}/${x.permalink|default:""}"  title="${x.title|default:""|escape}">${fn1(x.title,60)|escape}</a><span class="fc07">${fn2(x.publishTime,'yyyy-MM-dd HH:mm:ss')}</span>
+        </li>
+      {/if}
+      {/list}
+    </ul>
+   <#--被推荐日志-->     {list a as x}
+    {if !!x}
+    <li class="thide"><a target="_blank" class="fc03 m2a" href="${furl()}${x.permalink}/">${fn(x.title,26)|escape}</a></li>
+    {/if}
+    {/list}
+   <#--右边模块结构-->     <div class="uinfo ztag"></div>
+    <h4 class="fc07 fs0 ltt phide ztag">被推荐日志</h4>
+    <ul class="ztag blst"></ul>
+    <h4 class="fc07 fs0 ltt phide ztag">最新日志</h4>
+    <ul class="ztag blst"></ul>
+    <h4 class="fc07 fs0 ltt phide ztag">该作者的其他文章</h4>
+    <ul class="ztag blst"></ul>
+    <h4 class="fc07 fs0 ltt phide ztag">博主推荐</h4>
+    <ul class="ztag blst"></ul>
+    <h4 class="fc07 fs0 ltt phide ztag">相关日志</h4>
+    <ul class="ztag blst"></ul>
+    <h4 class="fc07 fs0 ltt phide ztag">随机阅读</h4>
+    <ul class="ztag blst"></ul>
+    <h4 class="fc07 fs0 ltt phide ztag">首页推荐</h4>
+    <ul class="ztag blst"></ul>
+    <div class="more"><a target="_blank" class="fc03 m2a" href="http://blog.163.com">更多>></a></div>
+    <br/><br/>
+    <div id="yodaoad_r" style="display:none;_zoom:1;"></div>
+    <div id="lofter_single"></div>
+   <#--评论模块结构-->     <div class="publish ztag"></div>
+    <div class="bdwt bds2 bdc0 phide" id="yodaoad_2" style="_zoom:1;"></div>
+    <div class="ztag bdwt bds2 bdc0">
+      <div class="case"></div>
+      <div class="clearfix"></div>
+    </div>
+   <#--引用模块结构-->      <div class="close">
+       <span class="ztag iblock icn0 icn0-57"> </span>
+     </div>
+	 <div class="ztag phide"></div>
+   <#--博主发起的投票-->     {list a as x}
+    {if !!x}
+      <li>
+      <a href="http://blog.163.com/${x.userName}/" target="_blank" class="m2a fc03">${x.nickName|escape}</a>  投票给
+        {var first_option = true;}
+        {list x.voteDetailList as voteToOption}
+            {if voteToOption==1}
+              {if first_option==false},{/if}  “${b[voteToOption_index]}”  
+            {/if}
+        {/list}
+        {if (x.role!="-1") },“我是${c[x.role]}”  {/if}
+            <span class="fc07">    ${fn1(x.voteTime)}</span>
+        {if x.userName==''}{/if}
+    {/if}
+    {/list}
+        .
+ 
+ 
+ 
+ 
+ 
+ 
+   
+页脚
+公司简介 - 联系方法 - 招聘信息 - 客户服务 - 隐私政策 - 博客风格 - 手机博客 - VIP博客 - 订阅此博客 
+网易公司版权所有 ©1997-2012
+
+  <a rel="nofollow" class="pr" target="_blank" href="http://help.163.com/special/007525FT/blog.html?b13aze1">帮助</a>
+  <span class="fr iblock space icn1 icn1-4"> </span>
+  <a class="pr" target="_blank" href="http://blog.163.com/activation.do?host=activation&&username=${u}">${u}</a>
+       {list wl as x}
+        <div class="grp">${x.g}</div>
+        {list x.l as y}
+        <a class="itm noul" href="#" hidefocus="true" name="{if typeof(y.v)=='string'}${y.v}{else}${y_index}{/if}">${y.n}</a>
+        {/list}
+      {/list}
+ 	{if defined('wl')}
+        {list wl as x}<a class="itm noul" href="#" hidefocus="true" name="${x.v}">${x.n}</a>{/list}
+    {/if}
+ 

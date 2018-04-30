@@ -1,0 +1,74 @@
+Linux下修改root密码以及找回密码的方法
+2011-05-18 00:00中国IT实验室佚名
+关键字：Linux
+　　以root身份登陆,执行：
+
+　　# passwd 用户名 (修改密码)
+
+　　# useradd 用户名 (添加用户)
+
+　　具体示例如下：[root@bogon ~]# passwd root
+
+　　Changing password for user root.
+
+　　New UNIX password:
+
+　　BAD PASSWORD: it is based on a dictionary word
+
+　　Retype new UNIX password:
+
+　　passwd: all authentication tokens updated successfully.
+
+　　linux下root密码找回方法
+
+　　============================================================================
+
+　　linux的root享有至高无上的权力,一旦root密码忘记或者被盗,是一件非常头痛的事情,那么怎么样才能找回root的密码呢,本人把其总结如下：
+
+　　(一)Linux 系统密码破解
+
+　　1.在grub选项菜单按e进入编辑模式
+
+　　2.编辑kernel那行 /init 1 (或/single)
+
+　　3.按B重启
+
+　　4.进入后执行下列命令
+
+　　root@#passwd root (配置root的密码)
+
+　　Enter new unix password:输入新的密码
+
+　　root@#init 6
+
+　　============================================================================
+
+　　(二)debian linux 系统密码破解
+
+　　1.在grub选项菜单’Debian GNU/Linux,...(recovery mode)’,按e进入编辑模式
+
+　　2.编辑kernel那行面的 ro single 改成 rw single init=/bin/bash,按b执行重启
+
+　　3.进入后执行下列命令
+
+　　root@(none)#mount -a
+
+　　root@(none)#passwd root
+
+　　root@(none)#reboot
+
+　　============================================================================
+
+　　(三)Freebsd 系统密码破解
+
+　　1.开机进入引导菜单
+
+　　2.选择每项(按4)进入单用户模式
+
+　　3.进入之后输入一列命令
+
+　　root@#mount -a
+
+　　root@#fsck -y
+
+　　root@#passwd(修改密码命令)

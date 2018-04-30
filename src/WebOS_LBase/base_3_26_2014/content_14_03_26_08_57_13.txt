@@ -1,0 +1,120 @@
+SDL
+编辑
+
+SDL（Simple DirectMedia Layer）是一套开放源代码的跨平台多媒体开发库，使用C语言写成。SDL提供了数种控制图像、声音、输出入的函数，让开发者只要用相同或是相似的代码就可以开发出跨多个平台（Linux、Windows、Mac OS X等）的应用软件。目前SDL多用于开发游戏、模拟器、媒体播放器等多媒体应用领域。
+目录
+
+1SDL游戏库
+
+简介
+功能介绍
+支持系统
+其它
+2规范与描述语言
+
+简单介绍
+SDL的适应范围
+SDL软件工具现状
+3软件安全开发周期
+
+1SDL游戏库
+
+简介
+
+
+  title
+
+SDL（Simple DirectMedia Layer）被广泛的用于许多著名的游戏。最著名的游戏是赢得Linux组游戏开发大奖的 文明：权利的召唤（Civilization: Call To Power）。
+SDL的作者是Sam Lantinga, Loki Entertainment Software的主力程序员（Lead Programmer）。[1]
+功能介绍
+
+·SDL有哪些功能？
+·视频
+设置8bpp或更高的任意色彩深度的视频模式。如果某个模式硬件不支持，可以选择转化为另一模式。
+直接写入线性的图像帧缓冲（framebuffer）。
+用颜色键值（colorkey）或者alpha混合属性创建surface。
+Surface的blit能自动的转化为目标格式。blit是优化过的，并能使用硬件加速。x86平台上有针对MMX优化过的blit。
+硬件加速的blit和fill（填充）操作，如果硬件支持的话。
+·事件
+提供以下事件：
+应用程序的visibility发生改变
+键盘输入
+鼠标输入
+用户要求的退出
+每种事件都能通过SDL_EventState()关闭或者打开。
+事件经由用户指定的过滤函数再被加入到内部的事件队列。
+线程安全的事件队列。
+·音频
+设置8位和16位的音频，单声道或者立体声，如果格式硬件不支持，可以选择转换。
+由独立的线程执行音频部分，并提供用户回调（callback）机制。
+设计上考虑到了客户定制的软混音器，但实际上在例程中就包含了一个完整的音频/音乐输出库。
+·CD音频
+完整的CD音频控制API
+·线程
+简单的线程创建API
+用于同步的简单的二进制信号量（semaphores）
+·定时器
+读取已流逝的毫秒数。
+等待指定的毫秒数。
+设置一个10毫秒精度的周期性定时器。
+·字节序无关
+侦测当前系统的字节序
+快速转换数据的函数
+读写指定字节序的数据
+支持系统
+
+·SDL支持哪些系统平台？
+·Linux
+视频显示使用X11，利用XFree86 DGA扩展的优势，全屏显示使用新的w MTRR加速。
+声音使用OSS API。
+使用clone()系统调用和SysV IPC，或者glibc-2.1的pthreads实现线程。
+·Win32
+有两个版本，一个是适合所有基于Win32的系统的安全版本，另一个是基于DirectX的高性能版本。
+安全版本的视频显示采用GDI。高性能版本采用DirectDraw，并支持硬件加速。
+安全版本的音频回放采用waveOut API。高性能版本采用DirectSound
+·BeOS
+视频显示采用BWindow。
+音频回放采用BSoundPlayer API。
+·非正式的移植版本，进展中Solaris, IRIX, FreeBSD MacOS
+其它
+
+SDL内置了调用OpenGL的函数。
+通过使用SDL_image、SDL_ttf、SDL_mixer、SDL_net等外部扩展库，可以轻松实现JPG、PNG、TIFF图像的加载使用，TrueType字体的使用，MP3文件的使用、网络相关的使用等。
+SDL也有其他语言的包装，可以在这里查看　SDL用C语言写成，但是可以很容易在C++下面工作，并且SDL绑定了许多其它的语言，这其中就包括Ada, C#, Eiffel, Erlang, Euphoria, Guile, Haskell, Java, Lisp, Lua, ML, Objective C, Pascal, Perl, PHP, Pike, Pliant, Python, Ruby, and Smalltalk。
+包装得比较好的是python语言的pygame。不过仍然建议你熟悉c/c++环境下的SDL后再使用，会得心应手许多。
+最后，我们来了解一下SDL的版权问题，SDL在GNU LGPL 2（一个国际上的开源组织）下发布，这个版本允许你将SDL以动态链接库（dynamic link library）的形式免费地用于商业游戏软件的开发。
+2规范与描述语言
+
+规范与描述语言(Specification and Description Language)
+简单介绍
+
+SDL(Specification and Description Language)语言是CCITT推荐的规格与描述性语言。由ITU-T发展和标准化，定义在兰皮书Z.100建议中（1992年，1996年增补）。作为国际标准化的正式语言，它被用来规范描述实时系统。目前，SDL-96是SDL的最新版本。作为SDL相关技术，本文把Z.120建议：消息序列图(message sequence charts, MSC)和Z.105建议：抽象语法符号-一(abstract syntax notation -one, ASN.1)作为SDL的一部分理解。
+ITU将SDL描述为"实时系统的特性描述语言"。绝大多数SDL概念有文本和图形两种表述形式。由于缺乏某些范围内的高层结构和一些象C语言的概念，SDL并非编程语言。SDL并不描述系统发展进程。因此，在实际应用中，开发人员将应用用SDL图形描述，再由SDL工具将其转化为C语言源代码，或者CHILL源代码，最后嵌入到实际开发环境中。
+使用SDL，可以半图形、半文本地定义特定类型的嵌入式系统的功能描述。这种方法的高度正式性，使得SDL工具有可能生成和测试完整的嵌入式应用。国外大量软件评论家认为，SDL的这种正式方法，应该推荐扩展应用到嵌入式系统之外。事实上，如SDL的消息顺序图，已经被普通的面向对象技术CASE工具，如Rational Rose，在交互式图形部分广泛采用。
+SDL的适应范围
+
+SDL的使用范围甚至可以超出电信领域的范畴。但是，SDL也有一些限制。SDL不能适应所有类型的实时系统，例如系统需要描述精确行为，和（或）需要处理复杂数学问题或类似变换，就不适合。需要大量进程间的紧密协作时也不合适。SDL可以很好地处理多种并行处理应用，但仅当它们可用消息传送和非优先级排队模型很好地表述时。另外，SDL难于表示系统的一套复杂静态规则和数据关系，并缺乏对访问稳定数据的有效支持。
+SDL方法适合于以下系统：
+·主要与其他系统通讯（嵌入式系统）
+·精确准时行为非关键。
+·与其他系统主要是数字通讯，而不是模拟信号。
+·无须执行复杂计算。
+·需要并发运行，异步通讯。（并行系统）
+·极少需要复杂数据关系模型。
+SDL使用有限状态机FSM的概念来描述对象。SDL进程本质上是对象，它们具有各种不同的状态，在每种状态下发送、接收和处理进程消息，对封装的数据完成处理，并具有确定的状态行为。当然，其数据处理能力远不如描述进程能力强。SDL进程的任务是处理输入消息队列。为了提高效率，SDL进程并发运行，相互之间异步通讯。SDL进程之间也可以通过特定的"SDL远程调用"信号同步通讯。
+由于SDL的种种特性，它最适合的场合时描述呼叫处理和协议处理。事实上，大量ITU-T的标准都是用SDL描述的，或者象国标中常常采用消息顺序图(MSC)来描述。MSC比SDL图更加直观，但其描述不足以生成为实际应用程序，它一般被用来作为系统设计用。在当前的多数SDL软件工具中， 都提供了从SDL到MSC的生成工具，用以作为后期设计系统的正确性验证用。在如Telelogic的SDT软件中，甚至提供了SDL调试中动态MSC跟踪功能。
+对于主机数据库开发，用SDL就不合适。因为在这里，需要大量单任务，同步通讯一个进程调用另外一个进程。SDL可以处理这种过程直接调用模型，但其真正的长处在于处理并行多任务之间的异步通讯。当然，在协调并发任务之间的同步机制上，SDL仅提供了高级的支持。对于一部分流行的支持抢先式多任务的操作系统，如pSOS, VxWorks, Win32等，部分SDL工具附带提供了SDL与操作系统的紧耦合接口库。
+SDL软件工具现状
+
+SDL的商用工具主要有以下几种：
+·CATT的SDL工具Melba。
+·Kvatro Telecom的SDL到CHILL转换器，与Telelogic的SDT集成在一起。CHILL工具CHIPSY。
+·Telelogic的SDL工具SDT，和其他相关工具。
+·Verilog的SDL工具ObjectGEODE，和其他相关工具。
+另外，还有一些SDL的共享软件工具。
+由于SDL语言在工程设计中所处的层次较低，及它已经面向应用开发的最末端（可以生成机器代码），SDL在系统分析方面，尤其是面向对象的分析方面有自身的不足，SDL-92开始引入面向对象的概念。而在SDL工具软件中，则大量使用流行的OMT/UML对象标准模型(Object Modeling Technique)，并提供CORBA/IDL支持。SDT也不例外。其UML(Unified Modeling Language)编辑工具，采用的就是OMT/UML标准文法及标注方式。在分布式应用面向对象模型CORBA中，两个重要的部件是ORB(Object Request Broker)和IDL(Interface Description Language)。SDT支持用IDL写CORBA对象描述，然后通过SDT提供的IDL-SDL转换工具，自动转换并实现在SDL中。
+3软件安全开发周期
+
+软件安全开发周期(Security Development Lifecycle)
+即Security Development Lifecycle (SDL)，是微软提出的从安全角度指导软件开发过程的管理模式。SDL不是一个空想的理论模型。它是微软为了面对现实世界中安全挑战，在实践中的一步步发展起来的[2]模式。
+SDL的核心理念就是将软件安全的考虑集成在软件开发的每一个阶段 需求分析、设计、编码、测试和维护。

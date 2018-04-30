@@ -1,0 +1,446 @@
+
+
+相册广场登录注册关注此空间
+文子记录
+2006-11-07 16:54 [学习小记]Java的反射机制
+Java 的反射机制是使其具有动态特性的非常关键的一种机制，也是在JavaBean 中广泛应用的一种特性。
+运用JavaBean 的最常见的问题是：根据指定的类名，类字段名和所对应的数据，得到该类的实例，下面的一个例子演示了这一实现。
+-|Base.java //抽象基类
+ |Son1.java //基类扩展1
+ |Son2.java //基类扩展2
+ |Util.java 
+/**
+ * @author metaphy
+ * create 2005-4-14 9:06:56
+ * 说明：
+ */
+（1）Base.java 抽象基类只是一个定义
+public abstract class Base {
+}
+（2）Son1.java /Son2.java 是已经实现的JavaBean
+public class Son1 extends Base{
+    private int id ;
+    private String name ;
+    
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    public void son1Method(String s){
+        System.out.println(s) ; 
+    }
+}
+（3）
+public class Son2 extends Base{
+    private int id;
+    private double salary;
+    
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
+    public double getSalary() {
+        return salary;
+    }
+    public void setSalary(double salary) {
+        this.salary = salary;
+    }
+}
+（4）Util.java 演示了如何根据指定的类名，类字段名和所对应的数据，得到一个类的实例
+import java.lang.reflect.Method;
+public class Util {
+    //此方法的最大好处是没有类名Son1,Son2 可以通过参数来指定，程序里面根本不用出现
+    public static Base convertStr2ServiceBean(String beanName,String fieldSetter,String paraValue){
+        Base base = null ; 
+        try {
+            Class cls = Class.forName(beanName) ;
+            base = (Base)cls.newInstance() ;
+            Class[] paraTypes = new Class[]{String.class };
+            Method method = cls.getMethod(fieldSetter, paraTypes) ;
+            String[] paraValues = new String[]{paraValue} ;
+            method.invoke(base, paraValues) ;
+        } catch (Throwable e) {
+            System.err.println(e);
+        }
+        return base ;
+    }
+    
+    
+    public static void main(String[] args){
+        Son1 son1 =(Son1) Util.convertStr2ServiceBean("trying.reflect.Son1","setName","wang da sha");
+        System.out.println("son1.getName() :"+son1.getName())  ;
+    }
+}
+//调用结果：
+//son1.getName() :wang da sha
+
+谢谢！希望能给大家一点启发！
+－－－－－－－－－－－－－－－－－－－－
+附：
+//下面这篇文档来源于Internet，作者不详
+Reflection 是 Java 程序开发语言的特征之一，它允许运行中的 Java 程序对自身进行检查，或者说“自审”，并能直接操作程序的内部属性。例如，使用它能获得 Java 类中各成员的名称并显示出来。
+Java 的这一能力在实际应用中也许用得不是很多，但是在其它的程序设计语言中根本就不存在这一特性。例如，Pascal、C 或者 C++ 中就没有办法在程序中获得函数定义相关的信息。
+JavaBean 是 reflection 的实际应用之一，它能让一些工具可视化的操作软件组件。这些工具通过 reflection 动态的载入并取得 Java 组件(类) 的属性。
+1. 一个简单的例子
+考虑下面这个简单的例子，让我们看看 reflection 是如何工作的。
+import java.lang.reflect.*;
+public class DumpMethods {
+   public static void main(String args[]) {
+       try {
+           Class c = Class.forName(args[0]);
+           Method m[] = c.getDeclaredMethods();
+           for (int i = 0; i < m.length; i++)
+               System.out.println(m[i].toString());
+       } catch (Throwable e) {
+           System.err.println(e);
+       }
+   }
+}
+按如下语句执行：
+java DumpMethods java.util.Stack
+它的结果输出为：
+public java.lang.Object java.util.Stack.push(java.lang.Object)
+public synchronized java.lang.Object java.util.Stack.pop()
+public synchronized java.lang.Object java.util.Stack.peek()
+public boolean java.util.Stack.empty()
+public synchronized int java.util.Stack.search(java.lang.Object)
+这样就列出了java.util.Stack 类的各方法名以及它们的限制符和返回类型。
+这个程序使用 Class.forName 载入指定的类，然后调用 getDeclaredMethods 来获取这个类中定义了的方法列表。java.lang.reflect.Methods 是用来描述某个类中单个方法的一个类。
+2.开始使用 Reflection
+用于 reflection 的类，如 Method，可以在 java.lang.relfect 包中找到。使用这些类的时候必须要遵循三个步骤：第一步是获得你想操作的类的 java.lang.Class 对象。在运行中的 Java 程序中，用 java.lang.Class 类来描述类和接口等。
+下面就是获得一个 Class 对象的方法之一：
+Class c = Class.forName("java.lang.String");
+这条语句得到一个 String 类的类对象。还有另一种方法，如下面的语句：
+Class c = int.class;
+或者
+Class c = Integer.TYPE;
+它们可获得基本类型的类信息。其中后一种方法中访问的是基本类型的封装类 (如 Integer) 中预先定义好的 TYPE 字段。
+第二步是调用诸如 getDeclaredMethods 的方法，以取得该类中定义的所有方法的列表。
+一旦取得这个信息，就可以进行第三步了——使用 reflection API 来操作这些信息，如下面这段代码：
+Class c = Class.forName("java.lang.String");
+Method m[] = c.getDeclaredMethods();
+System.out.println(m[0].toString());
+它将以文本方式打印出 String 中定义的第一个方法的原型。
+在下面的例子中，这三个步骤将为使用 reflection 处理特殊应用程序提供例证。
+模拟 instanceof 操作符
+得到类信息之后，通常下一个步骤就是解决关于 Class 对象的一些基本的问题。例如，Class.isInstance 方法可以用于模拟 instanceof 操作符：
+class A {
+}
+public class instance1 {
+   public static void main(String args[]) {
+       try {
+           Class cls = Class.forName("A");
+           boolean b1 = cls.isInstance(new Integer(37));
+           System.out.println(b1);
+           boolean b2 = cls.isInstance(new A());
+           System.out.println(b2);
+       } catch (Throwable e) {
+           System.err.println(e);
+       }
+   }
+}
+在这个例子中创建了一个 A 类的 Class 对象，然后检查一些对象是否是 A 的实例。Integer(37) 不是，但 new A() 是。
+3.找出类的方法
+找出一个类中定义了些什么方法，这是一个非常有价值也非常基础的 reflection 用法。下面的代码就实现了这一用法：
+import java.lang.reflect.*;
+public class method1 {
+   private int f1(Object p, int x) throws NullPointerException {
+       if (p == null)
+           throw new NullPointerException();
+       return x;
+   }
+   public static void main(String args[]) {
+       try {
+           Class cls = Class.forName("method1");
+           Method methlist[] = cls.getDeclaredMethods();
+           for (int i = 0; i < methlist.length; i++) {
+               Method m = methlist[i];
+               System.out.println("name = " + m.getName());
+               System.out.println("decl class = " + m.getDeclaringClass());
+               Class pvec[] = m.getParameterTypes();
+               for (int j = 0; j < pvec.length; j++)
+                   System.out.println("param #" + j + " " + pvec[j]);
+               Class evec[] = m.getExceptionTypes();
+               for (int j = 0; j < evec.length; j++)
+                   System.out.println("exc #" + j + " " + evec[j]);
+               System.out.println("return type = " + m.getReturnType());
+               System.out.println("-----");
+           }
+       } catch (Throwable e) {
+           System.err.println(e);
+       }
+   }
+}
+这个程序首先取得 method1 类的描述，然后调用 getDeclaredMethods 来获取一系列的 Method 对象，它们分别描述了定义在类中的每一个方法，包括 public 方法、protected 方法、package 方法和 private 方法等。如果你在程序中使用 getMethods 来代替 getDeclaredMethods，你还能获得继承来的各个方法的信息。
+取得了 Method 对象列表之后，要显示这些方法的参数类型、异常类型和返回值类型等就不难了。这些类型是基本类型还是类类型，都可以由描述类的对象按顺序给出。
+输出的结果如下：
+name = f1
+decl class = class method1
+param #0 class java.lang.Object
+param #1 int
+exc #0 class java.lang.NullPointerException
+return type = int
+-----
+name = main
+decl class = class method1
+param #0 class [Ljava.lang.String;
+return type = void
+-----
+
+4.获取构造器信息
+获取类构造器的用法与上述获取方法的用法类似，如：
+import java.lang.reflect.*;
+public class constructor1 {
+   public constructor1() {
+   }
+   protected constructor1(int i, double d) {
+   }
+   public static void main(String args[]) {
+       try {
+           Class cls = Class.forName("constructor1");
+           Constructor ctorlist[] = cls.getDeclaredConstructors();
+           for (int i = 0; i < ctorlist.length; i++) {
+               Constructor ct = ctorlist[i];
+               System.out.println("name = " + ct.getName());
+               System.out.println("decl class = " + ct.getDeclaringClass());
+               Class pvec[] = ct.getParameterTypes();
+               for (int j = 0; j < pvec.length; j++)
+                   System.out.println("param #" + j + " " + pvec[j]);
+               Class evec[] = ct.getExceptionTypes();
+               for (int j = 0; j < evec.length; j++)
+                   System.out.println("exc #" + j + " " + evec[j]);
+               System.out.println("-----");
+           }
+       } catch (Throwable e) {
+           System.err.println(e);
+       }
+   }
+}
+这个例子中没能获得返回类型的相关信息，那是因为构造器没有返回类型。
+这个程序运行的结果是：
+name = constructor1
+decl class = class constructor1
+-----
+name = constructor1
+decl class = class constructor1
+param #0 int
+param #1 double
+-----
+5.获取类的字段(域)
+找出一个类中定义了哪些数据字段也是可能的，下面的代码就在干这个事情：
+
+import java.lang.reflect.*;
+public class field1 {
+   private double d;
+   public static final int i = 37;
+   String s = "testing";
+   public static void main(String args[]) {
+       try {
+           Class cls = Class.forName("field1");
+           Field fieldlist[] = cls.getDeclaredFields();
+           for (int i = 0; i < fieldlist.length; i++) {
+               Field fld = fieldlist[i];
+               System.out.println("name = " + fld.getName());
+               System.out.println("decl class = " + fld.getDeclaringClass());
+               System.out.println("type = " + fld.getType());
+               int mod = fld.getModifiers();
+               System.out.println("modifiers = " + Modifier.toString(mod));
+               System.out.println("-----");
+           }
+       } catch (Throwable e) {
+           System.err.println(e);
+       }
+   }
+}
+这个例子和前面那个例子非常相似。例中使用了一个新东西 Modifier，它也是一个 reflection 类，用来描述字段成员的修饰语，如“private int”。这些修饰语自身由整数描述，而且使用 Modifier.toString 来返回以“官方”顺序排列的字符串描述 (如“static”在“final”之前)。这个程序的输出是：
+name = d
+decl class = class field1
+type = double
+modifiers = private
+-----
+name = i
+decl class = class field1
+type = int
+modifiers = public static final
+-----
+name = s
+decl class = class field1
+type = class java.lang.String
+modifiers =
+-----
+和获取方法的情况一下，获取字段的时候也可以只取得在当前类中申明了的字段信息 (getDeclaredFields)，或者也可以取得父类中定义的字段 (getFields) 。
+
+6.根据方法的名称来执行方法
+文本到这里，所举的例子无一例外都与如何获取类的信息有关。我们也可以用 reflection 来做一些其它的事情，比如执行一个指定了名称的方法。下面的示例演示了这一操作：
+import java.lang.reflect.*;
+public class method2 {
+   public int add(int a, int b) {
+       return a + b;
+   }
+   public static void main(String args[]) {
+       try {
+           Class cls = Class.forName("method2");
+           Class partypes[] = new Class[2];
+           partypes[0] = Integer.TYPE;
+           partypes[1] = Integer.TYPE;
+           Method meth = cls.getMethod("add", partypes);
+           method2 methobj = new method2();
+           Object arglist[] = new Object[2];
+           arglist[0] = new Integer(37);
+           arglist[1] = new Integer(47);
+           Object retobj = meth.invoke(methobj, arglist);
+           Integer retval = (Integer) retobj;
+           System.out.println(retval.intvalue());
+       } catch (Throwable e) {
+           System.err.println(e);
+       }
+   }
+}
+假如一个程序在执行的某处的时候才知道需要执行某个方法，这个方法的名称是在程序的运行过程中指定的 (例如，JavaBean 开发环境中就会做这样的事)，那么上面的程序演示了如何做到。
+上例中，getMethod 用于查找一个具有两个整型参数且名为 add 的方法。找到该方法并创建了相应的 Method 对象之后，在正确的对象实例中执行它。执行该方法的时候，需要提供一个参数列表，这在上例中是分别包装了整数 37 和 47 的两个 Integer 对象。执行方法的返回的同样是一个 Integer 对象，它封装了返回值 84。
+7.创建新的对象
+对于构造器，则不能像执行方法那样进行，因为执行一个构造器就意味着创建了一个新的对象 (准确的说，创建一个对象的过程包括分配内存和构造对象)。所以，与上例最相似的例子如下：
+import java.lang.reflect.*;
+public class constructor2 {
+   public constructor2() {
+   }
+   public constructor2(int a, int b) {
+       System.out.println("a = " + a + " b = " + b);
+   }
+   public static void main(String args[]) {
+       try {
+           Class cls = Class.forName("constructor2");
+           Class partypes[] = new Class[2];
+           partypes[0] = Integer.TYPE;
+           partypes[1] = Integer.TYPE;
+           Constructor ct = cls.getConstructor(partypes);
+           Object arglist[] = new Object[2];
+           arglist[0] = new Integer(37);
+           arglist[1] = new Integer(47);
+           Object retobj = ct.newInstance(arglist);
+       } catch (Throwable e) {
+           System.err.println(e);
+       }
+   }
+}
+根据指定的参数类型找到相应的构造函数并执行它，以创建一个新的对象实例。使用这种方法可以在程序运行时动态地创建对象，而不是在编译的时候创建对象，这一点非常有价值。
+8.改变字段(域)的值
+reflection 的还有一个用处就是改变对象数据字段的值。reflection 可以从正在运行的程序中根据名称找到对象的字段并改变它，下面的例子可以说明这一点：
+import java.lang.reflect.*;
+public class field2 {
+   public double d;
+   public static void main(String args[]) {
+       try {
+           Class cls = Class.forName("field2");
+           Field fld = cls.getField("d");
+           field2 f2obj = new field2();
+           System.out.println("d = " + f2obj.d);
+           fld.setDouble(f2obj, 12.34);
+           System.out.println("d = " + f2obj.d);
+       } catch (Throwable e) {
+           System.err.println(e);
+       }
+   }
+}
+这个例子中，字段 d 的值被变为了 12.34。
+9.使用数组
+本文介绍的 reflection 的最后一种用法是创建的操作数组。数组在 Java 语言中是一种特殊的类类型，一个数组的引用可以赋给 Object 引用。观察下面的例子看看数组是怎么工作的：
+import java.lang.reflect.*;
+public class array1 {
+   public static void main(String args[]) {
+       try {
+           Class cls = Class.forName("java.lang.String");
+           Object arr = Array.newInstance(cls, 10);
+           Array.set(arr, 5, "this is a test");
+           String s = (String) Array.get(arr, 5);
+           System.out.println(s);
+       } catch (Throwable e) {
+           System.err.println(e);
+       }
+   }
+}
+例中创建了 10 个单位长度的 String 数组，为第 5 个位置的字符串赋了值，最后将这个字符串从数组中取得并打印了出来。
+下面这段代码提供了一个更复杂的例子：
+import java.lang.reflect.*;
+public class array2 {
+   public static void main(String args[]) {
+       int dims[] = new int[]{5, 10, 15};
+       Object arr = Array.newInstance(Integer.TYPE, dims);
+       Object arrobj = Array.get(arr, 3);
+       Class cls = arrobj.getClass().getComponentType();
+       System.out.println(cls);
+       arrobj = Array.get(arrobj, 5);
+       Array.setInt(arrobj, 10, 37);
+       int arrcast[][][] = (int[][][]) arr;
+       System.out.println(arrcast[3][5][10]);
+   }
+}
+例中创建了一个 5 x 10 x 15 的整型数组，并为处于 [3][5][10] 的元素赋了值为 37。注意，多维数组实际上就是数组的数组，例如，第一个 Array.get 之后，arrobj 是一个 10 x 15 的数组。进而取得其中的一个元素，即长度为 15 的数组，并使用 Array.setInt 为它的第 10 个元素赋值。
+注意创建数组时的类型是动态的，在编译时并不知道其类型。
+#学习摘要
+分享到： 浏览(7283) 评论(5) 转载(3)
+你可能也喜欢
+
+ 
+【古风插画】如花美眷，似水流年
+ 
+蛋蛋帮元宵节壁纸
+ 
+凝聚橙元素、雕刻出不一样的美女 via@沧桑的头
+ 
+纪念已经过去的下雪天
+ 
+立陶宛插画家Natalie shau【是童话还是鬼话】
+ 
+俄罗斯艺术家 尤金Gavlin的梦幻四季
+ 
+How My Computer Changed My Life
+本文最近访客
+
+ 
+tl528428
+19分钟前
+ 
+124252172
+昨天13:44
+ 
+宝井林檎
+2月19日
+ 
+asmh1989
+2月4日
+ 
+我是一川
+1月28日
+ 
+tomyu168
+1月24日
+ 
+csforgood
+1月19日
+评论
+
+ 发布 
+6HXY163偷取资料2012-10-08 17:02回复
+princekaisarjava反射机制2012-08-05 10:28回复
+mating29受益匪浅！呵呵，这样真是浅显易懂！2009-11-21 19:30回复
+蓝魔Storm很详细~说到了关键2009-08-13 15:11回复
+zjb_dill很精彩的文章,具有参巧价值!!2008-03-21 09:08回复
+帮助中心 | 空间客服 | 投诉中心 | 空间协议
+©2013 Baidu
+
+百度空间，让世界发现你
+向世界展示自己，发布喜爱的图片、文字和音乐
+简单注册登录
+

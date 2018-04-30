@@ -1,0 +1,33 @@
+
+
+pcDuino做代理服务墙科学上网
+
+pc朵拉 发表于 2013-8-16 22:51 16天前, 0回/103阅 
+
+
+
+开源中国 5 周年，史上最牛定制开源马克杯！
+
+一、申请Google App Engine账号:
+请参考：http://maolihui.com/wallproxy-de ... f-the-tutorial.html
+如果已经有Google App Engine账号，可以跳过。
+二、下载配置WallProxy：
+WallProxy下载地址：https://code.google.com/p/wallproxy/
+一般linux下载简化版就可以了，下载完解压后得到两个目录，local和server目录，一般只上传local目录即可。
+把local改名成wallproxy后，利用winscp上传到/etc目录。当然这时你的ubuntu如果没有权限写入的话，可以利用putty进入ubuntu，然后输入sudo passwd root，这时会叫你输入密码，输入完后，你可以在winscp下直接用root登陆并上传。
+打开proxy.ini，
+[listen]
+ip = 127.0.0.1改为ip = 0.0.0.0或pcDuino的ip地址。
+[pac]
+;file = proxy.pac前的;去掉。
+[gae]
+appid = appid1|appid2把appid1|appid2改为申请的Google App Engine账号，每个账号可以用|分隔，可以多个账号同时使用。
+password =如果在上传Google App Engine账号时没有加密码的话可以不用修改，如果加了密码就要在这里输入Google App Engine账号的密码，注意这里不是gmail邮件的密码。
+三、安装python、gevent和pyopenssl：
+用putty进入pcDuino的指令窗口，输入以下命令行：
+1、sudo apt-get install python-dev libevent-dev python-setuptools
+2、sudo easy_install greenlet gevent pyopenssl
+以上指令如中途出错，可以再次运行，基本上没什么问题，输入完以后，到/etc目前下，找到rc.local，在ext 0上面加入nohup python /etc/wallproxy/startup.py&保存，重启pcduino后，代理服务器就开始运行了。
+四、IE浏览器设置：
+1、在IE中输入http://xxx.xxx.xxx.xxx:8087/ca.crt，xxx.xxx.xxx.xxx为pcDuino的ip，输入完后，会导入ca证书。
+2、在IE的Internet选项上，点击“连接”、然后点“局域网设置”，在“使用自动配置脚本”前勾选，并在“地址（R）”后面输入http://xxx.xxx.xxx.xxx:8087/proxy.pac，确定。

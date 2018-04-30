@@ -1,0 +1,480 @@
+下载2频道 我的主页帐号设置退出秀才　二级|消息 私信通知|我的百科我的贡献草稿箱我的任务为我推荐|百度首页 新闻网页贴吧知道音乐图片视频地图百科文库
+    帮助 首页 自然 文化 地理 历史 生活 社会 艺术 人物 经济 科技 体育 图片 数字博物馆 核心用户 百科商城 禽流感究竟多危险
+最小生成树
+求助编辑百科名片
+  最小生成树一个有 n 个结点的连通图的生成树是原图的极小连通子图，且包含原图中的所有 n 个结点，并且有保持图联通的最少的边。
+
+目录
+
+概述
+应用
+性质性质说明
+性质证明
+算法描述
+Kruskal
+Prim
+展开概述 
+应用 
+性质 性质说明 
+性质证明
+算法描述 
+Kruskal 
+Prim
+展开编辑本段概述在一个具有几个顶点的连通图G中，如果存在子图G'包含G中所有顶点和一部分边，且不形成回路，则称G'为图G的生成树，代价最小生成树则称为最小生成树。
+许多应用问题都是一个求无向连通图的最小生成树问题。例如：要在n个城市之间铺设光缆，主要目标是要使这 n 个城市的任意两个之间都可以通信，但铺设光缆的费用很高，且各个城市之间铺设光缆的费用不同；另一个目标是要使铺设光缆的总费用最低。这就需要找到带权的最小生成树。
+编辑本段应用生成树和最小生成树有许多重要的应用。
+【例】网络G表示n个城市之间的通信线路网线路（其中顶点表示城市，边表示两个城市之间的通信线路，边上的权值表示线路的长度或造价）。可通过求该网络的最小生成树达到求解通信线路或总代价最小的最佳方案。
+编辑本段性质性质说明
+最小生成树性质：设G=(V，E）是一个连通网络，U是顶点集V的一个真子集。若(u，v）是G中一条“一个端点在U中（例如：u∈U），另一个端点不在U中的边（例如：v∈V-U），且（u，v）具有最小权值，则一定存在G的一棵最小生成树包括此边（u，v）。
+性质证明
+为方便说明，先作以下约定：
+①将集合U中的顶点看作是红色顶点，②而V-U中的顶点看作是蓝色顶点，③连接红点和蓝点的边看作是紫色边，④权最小的紫边称为轻边（即权重最"轻"的边）。于是，MST性质中所述的边（u，v）就可简称为轻边。
+用反证法证明MST性质：
+假设G中任何一棵MST都不含轻边（u，v）。则若T为G的任意一棵MST，那么它不含此轻边。
+根据树的定义，则T中必有一条从红点u到蓝点v的路径P，且P上必有一条紫边（u'，v'）连接红点集和蓝点集，否则u和v不连通。当把轻边（u，v）加入树T时，该轻边和P必构成了一个回路。删去紫边（u'，v'）后回路亦消除，由此可得另一生成树T'。
+T'和T的差别仅在于T'用轻边（u，v）取代了T中权重可能更大的紫边（u'，v'）。因为w(u，v）≤w(u'，v'），所以
+w(T')=w(T)+w(u，v)-w(u'，v'）≤w(T)
+即T'是一棵比T更优的MST，所以T不是G的MST，这与假设矛盾。
+所以，MST性质成立。
+编辑本段算法描述求MST的一般算法可描述为：针对图G，从空树T开始，往集合T中逐条选择并加入n-1条安全边（u，v），最终生成一棵含n-1条边的MST。
+当一条边（u，v）加入T时，必须保证T∪{(u，v)}仍是MST的子集，我们将这样的边称为T的安全边。
+用伪代码可将算法描述为：
+GenerieMST(G){//求G的某棵MST
+T〈-￠； //T初始为空，是指顶点集和边集均空
+while T未形成G的生成树 do{
+找出T的一条安全边（u，v）；//即T∪{(u，v)}仍为MST的子集
+T=T∪{(u，v)}； //加入安全边，扩充T
+}
+return T； //T为生成树且是G的一棵MST
+}
+注意：
+下面给出的两种求MST的算法均是对上述的一般算法的求精，两算法的区别仅在于求安全边的方法不同。
+为简单起见，下面用序号0，1，…，n-1来表示顶点集，即是：
+V(G)={0，1，…，n-1}，
+G中边上的权解释为长度，并设T=(U，TE）。
+求最小生成树的具体算法（pascal):
+A.Prim算法：
+procedure prim(v0:integer); 
+var 
+lowcost,closest:array[1..maxn] of integer; 
+i,j,k,min:integer; 
+begin 
+for i:=1 to n do begin 
+lowcost[i]:=cost[v0,i]; 
+closest:=v0; 
+end; 
+for i:=1 to n-1 do begin 
+{寻找离生成树最近的未加入顶点 k} 
+min:=maxlongint; 
+for j:=1 to n do 
+if (lowcost[j]<min) and (lowcost[j]<>0) then begin 
+min:=lowcost[j]; 
+k:=j; 
+end; 
+lowcost[k]:=0; {将顶点k 加入生成树} 
+{生成树中增加一条新的边 k 到 closest[k]} 
+{修正各点的 lowcost 和 closest 值} 
+for j:=1 to n do 
+if cost[k,j]<lowcost[j] then begin 
+lowcost[j]:=cost[k,j]; 
+closest[j]:=k; 
+end; 
+end; 
+end; 
+B.Kruskal算法：（贪心） 
+按权值递增顺序删去图中的边，若不形成回路则将此边加入最小生成树。
+function find(v:integer):integer; {返回顶点 v 所在的集合} 
+var i:integer; 
+begin 
+i:=1; 
+while (i<=n) and (not v in vset) do inc(i); 
+if i<=n then find:=i else find:=0; 
+end; 
+procedure kruskal; 
+var 
+tot,i,j:integer; 
+begin 
+for i:=1 to n do vset:=i;{初始化定义 n 个集合，第 I个集合包含一个元素 I} 
+p:=n-1; q:=1; tot:=0; {p 为尚待加入的边数，q 为边集指针} 
+sort; 
+{对所有边按权值递增排序，存于 e中，e.v1 与 e.v2 为边 I 所连接的两个顶点的
+序号，e.len 为第 I条边的长度} 
+while p>0 do begin 
+i:=find(e[q].v1）;j:=find(e[q].v2）; 
+if i<>j then begin 
+inc(tot,e[q].len); 
+vset:=vset+vset[j];vset[j]:=[]; 
+dec(p); 
+end; 
+inc(q); 
+end; 
+writeln(tot); 
+end; 
+C语言完整代码如下（已编译通过）：
+#include<stdio.h>
+#include<stdlib.h>
+#include<iostream.h>
+#define MAX_VERTEX_NUM 20
+#define OK 1
+#define ERROR 0
+#define MAX 1000
+typedef struct Arcell
+{
+double adj;
+}Arcell,AdjMatrix[MAX_VERTEX_NUM][MAX_VERTEX_NUM]; 
+typedef struct
+{
+char vexs[MAX_VERTEX_NUM]; //节点数组
+AdjMatrix arcs; //邻接矩阵
+int vexnum,arcnum; //图的当前节点数和弧数
+}MGraph;
+typedef struct Pnode //用于普利姆算法
+{
+char adjvex; //节点
+double lowcost; //权值
+}Pnode,Closedge[MAX_VERTEX_NUM]; //记录顶点集U到V-U的代价最小的边的辅助数组定义
+typedef struct Knode //用于克鲁斯卡尔算法中存储一条边及其对应的2个节点
+{
+char ch1; //节点1
+char ch2; //节点2
+double value;//权值
+}Knode,Dgevalue[MAX_VERTEX_NUM];
+//-----------------------------------------------------------------------------------
+int CreateUDG(MGraph & G,Dgevalue & dgevalue);
+int LocateVex(MGraph G,char ch);
+int Minimum(MGraph G,Closedge closedge);
+void MiniSpanTree_PRIM(MGraph G,char u);
+void Sortdge(Dgevalue & dgevalue,MGraph G);
+//-----------------------------------------------------------------------------------
+int CreateUDG(MGraph & G,Dgevalue & dgevalue) //构造无向加权图的邻接矩阵
+{
+int i,j,k;
+cout<<"请输入图中节点个数和边/弧的条数：";
+cin>>G.vexnum>>G.arcnum;
+cout<<"请输入节点：";
+for(i=0;i<G.vexnum;++i)
+cin>>G.vexs[i];
+for(i=0;i<G.vexnum;++i)//初始化数组
+{
+for(j=0;j<G.vexnum;++j)
+{
+G.arcs[i][j].adj=MAX;
+}
+}
+cout<<"请输入一条边依附的定点及边的权值："<<endl;
+for(k=0;k<G.arcnum;++k)
+{
+cin >> dgevalue[k].ch1 >> dgevalue[k].ch2 >> dgevalue[k].value;
+i = LocateVex(G,dgevalue[k].ch1）;
+j = LocateVex(G,dgevalue[k].ch2）;
+G.arcs[i][j].adj = dgevalue[k].value;
+G.arcs[j][i].adj = G.arcs[i][j].adj;
+}
+return OK;
+}
+int LocateVex(MGraph G,char ch) //确定节点ch在图G.vexs中的位置
+{
+int a ;
+for(int i=0; i<G.vexnum; i++)
+{
+if(G.vexs[i] == ch)
+a=i;
+}
+return a;
+}
+void MiniSpanTree_PRIM(MGraph G,char u)//普利姆算法求最小生成树
+{
+int i,j,k;
+Closedge closedge;
+k = LocateVex(G,u);
+for(j=0; j<G.vexnum; j++)
+{
+if(j != k)
+{
+closedge[j].adjvex = u;
+closedge[j].lowcost = G.arcs[k][j].adj;
+}
+}
+closedge[k].lowcost = 0;
+for(i=1; i<G.vexnum; i++)
+{
+k = Minimum(G,closedge);
+cout<<"("<<closedge[k].adjvex<<","<<G.vexs[k]<<","<<closedge[k].lowcost<<")"<<endl;
+closedge[k].lowcost = 0;
+for(j=0; j<G.vexnum; ++j)
+{
+if(G.arcs[k][j].adj < closedge[j].lowcost)
+{
+closedge[j].adjvex = G.vexs[k];
+closedge[j].lowcost= G.arcs[k][j].adj;
+}
+}
+}
+}
+int Minimum(MGraph G,Closedge closedge) //求closedge中权值最小的边，并返回其顶点在vexs中的位置
+{
+int i,j;
+double k = 1000;
+for(i=0; i<G.vexnum; i++)
+{
+if(closedge[i].lowcost != 0 && closedge[i].lowcost < k)
+{
+k = closedge[i].lowcost;
+j = i;
+}
+}
+return j;
+}
+void MiniSpanTree_KRSL(MGraph G,Dgevalue & dgevalue)//克鲁斯卡尔算法求最小生成树
+{
+int p1,p2,i,j;
+int bj[MAX_VERTEX_NUM]; //标记数组
+for(i=0; i<G.vexnum; i++) //标记数组初始化
+bj[i]=i;
+Sortdge(dgevalue,G);//将所有权值按从小到大排序
+for(i=0; i<G.arcnum; i++)
+{
+p1 = bj[LocateVex(G,dgevalue[i].ch1）];
+p2 = bj[LocateVex(G,dgevalue[i].ch2）];
+if(p1 != p2）
+{
+cout<<"("<<dgevalue[i].ch1<<","<<dgevalue[i].ch2<<","<<dgevalue[i].value<<")"<<endl;
+for(j=0; j<G.vexnum; j++)
+{
+if(bj[j] == p2）
+bj[j] = p1;
+}
+}
+}
+}
+void Sortdge(Dgevalue & dgevalue,MGraph G)//对dgevalue中各元素按权值按从小到大排序
+{
+int i,j;
+double temp;
+char ch1,ch2;
+for(i=0; i<G.arcnum; i++)
+{
+for(j=i; j<G.arcnum; j++)
+{
+if(dgevalue[i].value > dgevalue[j].value)
+{
+temp = dgevalue[i].value;
+dgevalue[i].value = dgevalue[j].value;
+dgevalue[j].value = temp;
+ch1 = dgevalue[i].ch1;
+dgevalue[i].ch1 = dgevalue[j].ch1;
+dgevalue[j].ch1 = ch1;
+ch2 = dgevalue[i].ch2;
+dgevalue[i].ch2 = dgevalue[j].ch2;
+dgevalue[j].ch2 = ch2;
+}
+}
+}
+}
+void main()
+{
+int i,j;
+MGraph G;
+char u;
+Dgevalue dgevalue;
+CreateUDG(G,dgevalue);
+cout<<"图的邻接矩阵为："<<endl;
+for(i=0; i<G.vexnum; i++)
+{
+for(j=0; j<G.vexnum; j++)
+cout << G.arcs[i][j].adj<<" ";
+cout<<endl;
+}
+cout<<"=============普利姆算法===============\n";
+cout<<"请输入起始点：";
+cin>>u;
+cout<<"构成最小代价生成树的边集为：\n";
+MiniSpanTree_PRIM(G,u);
+cout<<"============克鲁斯科尔算法=============\n";
+cout<<"构成最小代价生成树的边集为：\n";
+MiniSpanTree_KRSL(G,dgevalue);
+}
+编辑本段Kruskalprogram didi;
+var
+a:array[0..100000] of record
+s,t,len:longint;
+end;
+fa,r:array[0..10000] of longint;
+n,i,j,x,y,z:longint;
+tot,ans:longint;
+count,xx:longint;
+procedure quick(l,r:longint);
+var
+i,j,x,y,t:longint;
+begin
+i:=l;j:=r;
+x:=a[(l+r) div 2].len;
+repeat
+while x>a[i].len do inc(i);
+while x<a[j].len do dec(j);
+if i<=j then
+begin
+y:=a[i].len;a[i].len:=a[j].len;a[j].len:=y;
+y:=a[i].s;a[i].s:=a[j].s;a[j].s:=y;
+y:=a[i].t;a[i].t:=a[j].t;a[j].t:=y;
+inc(i);dec(j);
+end;
+until i>j;
+if i<r then quick(i,r);
+if l<j then quick(l,j);
+end;
+function find(x:longint):longint;
+begin
+if fa[x]<>x then fa[x]:=find(fa[x]);
+find:=fa[x];
+end;
+procedure union(x,y:longint);{启发式合并}
+var
+t:longint;
+begin
+x:=find(x);
+y:=find(y);
+if r[x]>r[y] then
+begin
+t:=x;x:=y;y:=t;
+end;
+if r[x]=r[y] then inc(r[x]);
+fa[x]:=y;
+end;
+begin
+readln(xx,n);
+for i:=1 to xx do fa[i]:=i;
+for i:=1 to n do
+begin
+read(x,y,z);
+inc(tot);
+a[tot].s:=x;
+a[tot].t:=y;
+a[tot].len:=z;
+end;
+quick（1,tot);{将边排序}
+ans:=0;
+count:=0;
+i:=0;
+while count<=x-1 do{count记录加边的总数}
+begin
+inc(i);
+with a[i] do
+if find(s)<find(t) then
+begin
+union(s,t);
+ans:=ans+len;
+inc(count);
+end;
+end;
+write(ans);
+end.　
+编辑本段Primvar
+m,n:set of 1..100;
+s,t,min,x,y,i,j,k,l,sum,p,ii:longint;
+a:array[1..100,1..100]of longint;
+begin
+readln(p);
+for ii:=1 to p do
+begin
+k:=0; sum:=0;
+fillchar(a,sizeof(a),255);
+readln(x);
+m:=[1];
+n:=[2..x];
+for i:=1 to x do
+begin
+for j:=1 to x do
+begin
+read(a[i,j]);
+if a[i,j]=0
+then a[i,j]:=maxlongint;
+end;
+readln;
+end;
+for l:=1 to x-1 do
+begin
+min:=maxlongint;
+for i:=1 to x do
+if i in m
+then begin
+for j:=1 to x do
+begin
+if (a[i,j]<min)and(j in n)
+then begin
+min:=a[i,j];
+s:=i;
+t:=j;
+end;
+end;
+end;
+sum:=sum+min;
+m:=m+[t];
+n:=n-[t];
+inc(k);
+end;
+writeln(sum);
+end;
+end.
+
+扩展阅读： 
+1 
+普里姆算法（Prim） 克鲁斯卡尔算法（Kruskal） 
+开放分类： 
+算法 图论 程序设计 应用科学 术语 科学 计算机术语 
+
+
+我来完善 “最小生成树”相关词条： 
+
+哈夫曼树 
+百度百科中的词条正文与判断内容均由用户提供，不代表百度百科立场。如果您需要解决具体问题（如法律、医学等领域），建议您咨询相关领域专业人士。
+本词条对我有帮助添加到搜藏 分享到:更多
+合作编辑者 
+cjycp32 ， kk2505061 ， king小编 ， w_ou ， 摩羯_小蟹 ， 1379647085 ， yangke19941112 ， dingdi2409 ， liuziyuan1996 ， hjj506177837 更多 
+如果您认为本词条还需进一步完善，百科欢迎您也来参与 编辑词条 在开始编辑前，您还可以先学习如何编辑词条
+如想投诉，请到百度百科投诉中心；如想提出意见、建议，请到百度百科吧。
+百度百科内容方针
+提倡有可靠依据、权威可信的内容鼓励客观、中立、严谨的表达观点不欢迎恶意破坏、自我或商业宣传在这里你可以
+编辑
+质疑
+投诉
+全方位的质量监督
+学术委员会：为亿万网友提供权威意见质量委员会：把控质量，做更好的知识下载2频道
+00
+
+去兑换>>您尚无道具可使用
+成长任务日常任务本月累计点亮0天。今日笑脸还没点亮哦。
+名符图实：参加任务，拿点亮任务日历获得财富值热词推送编辑热词可获得额外经验值
+词条动态进入我的百科您目前的等级是2级
+您目前的经验值是214点
+您还需286点经验值即可升为3级
+
+
+词条统计
+浏览次数：约 95986次
+编辑次数：35次 历史版本
+最近更新：2013-02-02
+创建者：swj05652
+更多贡献光荣榜
+辛勤贡献者： 
+ yangke1994...   版本 
+ dingdi2409   版本 
+ hjj5061778...   版本 
+
+最新动态
+禽流感为何总在亚洲爆发：
+
+百科消息：
+专题：没有退路的灵魂才会呐喊 
+百科校园热力招募 这里你是主角
+玩拼图游戏，赢iPad mini啦！ 
+app女神评选，赢千元大奖
+网易云阅读APP 百万好书随心阅 
+
+© 2013 Baidu 使用百度前必读 | 百科协议 | 百度百科合作平台
+最小生成树概述应用性质性质说明性质证明算法描述KruskalPrim
+
+  参考资料 
+ 
+
+×

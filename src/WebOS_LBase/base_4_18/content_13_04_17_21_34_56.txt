@@ -1,0 +1,119 @@
+void ImEffectWidget::slotComBox(int index)  //slot 处理
+{
+QString text;
+QColor color;
+QFont font;
+QObject *obj = sender();
+/* 1. for crop  ***************************/
+if (obj->objectName() == "comboxZoom"){
+  doComboxValue(m_ui.comboxZoom, "effect_crop_aspect_name", index);
+}
+/* 2. for effect  ***************************/
+else if (obj->objectName() == "comboxEffect"){
+  doComboxValue(m_ui.comboxEffect, "filter_effect_name", index);
+  m_treeItem->setMediaData("filter_effect_index", index); //for player
+}
+/* 3. for watermark  ***************************/
+else if (obj->objectName() == "comboxFont"){
+  doComboxValue(m_ui.comboxFont, "effect_item_font_family", index, true);
+}else if (obj->objectName() == "comboxColor"){
+  doComboxValue(m_ui.comboxColor, "effect_item_color", index, true);
+}else if (obj->objectName() == "comboxSize"){
+  doComboxValue(m_ui.comboxFont, "effect_item_font_size", index, true);
+}else if (obj->objectName() == "comboxStyle"){
+  slotChangeStyle(index);
+}
+/* 5. for subtitle  ***************************/
+else if (obj->objectName() == "comboxSTCodec"){
+  text = m_ui.comboxSTCodec->itemText(index);
+  m_treeItem->setMediaData("effect_subtitle_codec", text);
+}else if (obj->objectName() == "comboxSTFrontColor"){
+  doComboxValue(m_ui.comboxSTFrontColor, "effect_subtitle_front_color", index);
+}else if (obj->objectName() == "comboxSTBackColor"){
+  doComboxValue(m_ui.comboxSTBackColor, "effect_subtitle_back_color", index);
+}else if (obj->objectName() == "comboxSTOutlineColor"){
+  doComboxValue(m_ui.comboxSTOutlineColor, "effect_subtitle_outline_color", index);
+}else if (obj->objectName() == "comboxSTScaleX"){
+  doComboxValue(m_ui.comboxSTScaleX, "effect_subtitle_scalex", index);  
+}else if (obj->objectName() == "comboxSTScaleY"){
+  doComboxValue(m_ui.comboxSTScaleY, "effect_subtitle_scaley", index);
+}else if (obj->objectName() == "comboxSTFont"){
+  doComboxValue(m_ui.comboxSTFont, "effect_subtitle_font_family", index);
+}else if (obj->objectName() == "comboxSTSize"){
+  doComboxValue(m_ui.comboxSTSize, "effect_subtitle_font_size", index);
+}else if (obj->objectName() == "comboxSTStyle"){
+  slotChangeStyle(index);
+}else if (obj->objectName() == "comboxSTSpacing"){
+  doComboxValue(m_ui.comboxSTSpacing, "effect_subtitle_spacing", index);
+}else if (obj->objectName() == "comboxSTTimer"){
+  doComboxValue(m_ui.comboxSTTimer, "effect_subtitle_spacing", index);
+}
+
+sendEffectEvent(); //for sdl event
+}
+
+#define COLORVAL() \
+if (comboxIndex < 0) return; \
+ImColorComboBox *oc = qobject_cast<ImColorComboBox *>(o); \
+color = oc->color(comboxIndex); \
+
+#define FONTVAL() \
+if (saveKey.indexOf("subtitle") != -1) \
+  fontKey = "effect_subtitle_font"; \
+else \
+  fontKey = "effect_item_font"; \
+if (bSaveList==true) { \
+  font = qVariantValue<QFont>(m_treeItem->mdata(fontKey)); \
+}else{ \
+  font = qVariantValue<QFont>(m_treeItem->getDataItem(fontKey)); \
+}
+
+void ImEffectWidget::doComboxValue(QComboBox *o, const QString &saveKey, int comboxIndex, bool bSaveList)
+{
+QString text, dataKey, fontKey;
+QFont font;
+QColor color;
+if (comboxIndex > -1)
+  text = o->itemText(comboxIndex);
+else
+  text = o->currentText();
+
+bool bFont  = o->property("font").toBool();
+bool bColor = o->property("color").toBool();
+if (bFont || bColor) dataKey=QString("%1_data").arg(saveKey);
+
+if (bFont)
+{
+  FONTVAL();
+
+  if (text == "effect_item_font_family")
+   font.setFamily(text);
+  else if(text == "effect_item_font_size")
+   font.setPointSize(text.toInt());
+}
+
+if (bSaveList)
+{
+  if (bFont){  // font
+   m_treeItem->setDataItem(saveKey, text);
+   m_treeItem->setDataItem(fontKey, qVariantFromValue<QFont>(font));
+  }else if(bColor){ //color
+   COLORVAL();
+
+   m_treeItem->setDataItem(saveKey, text);
+   m_treeItem->setDataItem(dataKey, qVariantFromValue(color));
+  }else   //other
+   m_treeItem->setDataItem(saveKey, text);
+}else{
+  if (bFont){
+   m_treeItem->setMediaData(saveKey, text);
+   m_treeItem->setMediaData(fontKey, qVariantFromValue<QFont>(font));
+  }else if(bColor){
+   COLORVAL();
+
+   m_treeItem->setMediaData(saveKey, text);
+   m_treeItem->setMediaData(dataKey, qVariantFromValue(color));
+  }else
+   m_treeItem->setMediaData(saveKey, text);
+}
+}

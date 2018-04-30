@@ -1,0 +1,70 @@
+分享到QQ空间新浪微博百度搜藏人人网腾讯微博开心网腾讯朋友百度空间豆瓣网搜狐微博百度新首页QQ收藏和讯微博我的淘宝百度贴吧更多...百度分享
+首页我的主页相册广场消息 私信(1) 模板 设置 退出 关注此空间月落无声
+2011-03-08 20:03 发现ie浏览器302重定向漏洞做web开发的都知道，天下不会有比ie更垃圾的浏览器，先不说它那些该死的bug和兼容问题，这几天又发现了一个它的302重定向有问题。
+先看抓包数据：
+GET /group/go-6877.html HTTP/1.1
+Accept: */*
+Referer: http://www.028tuan.cn/group/6877.html
+Accept-Language: zh-cn
+UA-CPU: x86
+Accept-Encoding: gzip, deflate
+User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; TencentTraveler 4.0; .NET CLR 2.0.50727)
+Host: www.028tuan.cn
+Connection: Keep-Alive
+Cookie: lzstat_uv=4405669512415637025|1747814; cityID=czoyOiIxMyI7; referrals_uid=aToxNTI1MDs%3D; PHPSESSID=3d06miehcrt4namgudvcav9jp6; Hm_lpvt_11d7c2bedc76875b5d82725ee5122e4b=1298789364671; lzstat_ss=2949425397_30_1298818164_1747814
+
+
+HTTP/1.1 302 Found
+Date: Sun, 27 Feb 2011 06:49:29 GMT
+Server: Apache/2.2.3 (CentOS)
+X-Powered-By: PHP/5.2.14
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+Pragma: no-cache
+Set-Cookie: cityID=czoyOiIxMyI7; expires=Mon, 28-Feb-2011 06:49:29 GMT; path=/
+Location: http://www.womentuanzhengpinwang.com/index.php?m=Goods&a=show&id=800&ru=15250
+Content-Length: 0
+Keep-Alive: timeout=15, max=100
+Connection: Keep-Alive
+Content-Type: text/html
+
+
+GET /index.php?m=Goods&a=show&id=800&ru=15250 HTTP/1.1
+Accept: */*
+Referer: http://www.028tuan.cn/group/6877.html
+Accept-Language: zh-cn
+UA-CPU: x86
+Accept-Encoding: gzip, deflate
+User-Agent: Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; TencentTraveler 4.0; .NET CLR 2.0.50727)
+Host: www.028tuan.cn
+Connection: Keep-Alive
+Cookie: lzstat_uv=4405669512415637025|1747814; cityID=czoyOiIxMyI7; referrals_uid=aToxNTI1MDs%3D; PHPSESSID=3d06miehcrt4namgudvcav9jp6; Hm_lpvt_11d7c2bedc76875b5d82725ee5122e4b=1298789364671; lzstat_ss=2949425397_30_1298818164_1747814
+
+
+HTTP/1.1 200 OK
+Date: Sun, 27 Feb 2011 06:49:31 GMT
+Server: Apache/2.2.3 (CentOS)
+X-Powered-By: PHP/5.2.14
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: private
+Pragma: no-cache
+Set-Cookie: cityID=czoyOiIxMyI7; expires=Mon, 28-Feb-2011 06:49:31 GMT; path=/
+Set-Cookie: referrals_uid=aToxNTI1MDs%3D; expires=Wed, 02-Mar-2011 06:49:31 GMT; path=/
+Keep-Alive: timeout=15, max=99
+Connection: Keep-Alive
+Transfer-Encoding: chunked
+Content-Type: text/html; charset=utf-8
+
+从抓包数据上可以很明显的看出ie的302跳转弄错了域，但奇怪的是第二次跳转却跳对了！同样的网页和跳转，使用firefox浏览器没有问题，一次就跳对了。ie真是垃圾！
+琢磨了一下，把跳转地址改短成 http://womentuanzhengpinwang.com/team.php?id=800&ru=15250 就能一次跳对了。但是，跳到正确的域上后也不能立即做长地址302跳转，否则会跳回来源域！ 看来ie对长域名的支持不好。
+这个问题目前测试至少存在于ie6,ie7两个版本。垃圾ie！！
+#其他 分享到： 举报 浏览(284) 评论(1) 转载 
+你可能也喜欢
+ 库尔滨河雾凇 14  精明的  红胁蓝尾鸲全家福  壹  黄是为了新绿 落是为了更生  鹡鸰飞  【转】vps上LNMP（Centos+Nginx+Mysql+PHP）的安装配置教程（中-续） 本文最近访客
+ chengyong983 1月14日 248828412 1月14日 onlyouangie 1月8日 心之兰儿 12月31日 Fangqiong168 12月18日 elite 12月14日 逍遥一元 12月11日评论
+
+ 同时评论给  
+ 同时评论给原文作者   发布 500/0
+HYN_Stone最近在考虑重定向的问题，看来IE是够恶心的。 2011-03-17 21:52回复
+收起|查看更多
+帮助中心 | 空间客服 | 投诉中心 | 空间协议©2013 Baiduabcdef

@@ -1,0 +1,230 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+我是传奇
+其实，我是一个程序员
+目录视图摘要视图订阅
+博客专家信息更新登记表        社区专家谈 12306      CSDN社区程序员回乡见闻活动火爆开始！ 
+专访陈勇： 敏捷开发现状及发展之路        “传统商家移动化之路”会议        2013年全国百所高校巡讲讲师招募
+ 算法笔记之 全排列算法 一 递归求解
+分类： C/C++ 数据结构/基础算法 2013-03-04 22:29 14754人阅读 评论(9) 收藏 举报
+集合R={1,2,3,4}的全排列
+可以分解为：1,{2,3,4}的全排列 + 2,{1,3,4}的全排列 + 3,{1,2,4}的全排列 + 4,{1,2,3}的全排列。
+继续分解：{2,3,4} 为 2,{3,4}的全排列，3,{2,4},  4,{2,3}………………………………
+…………
+直到集合里只有一个元素，就可直接输出了.
+
+这个是非递归的方法：http://blog.csdn.net/gaotong2055/article/details/8646290
+[cpp] view plaincopy
+#include <iostream>  
+  
+using namespace std;  
+  
+//char * str;  
+//int len = 2;  
+  
+/** 
+ *产生list[start:end]的所有排列, 通常为0，len-1 
+ */  
+template <class Type>  
+void Perm(Type list[],int start,int end){  
+  
+    //单元素序列  
+    if( start == end){ //即此时集合里只有一个元素  
+        for(int i=0; i<=end; i++)  
+            cout << list[i];  
+        cout << endl;  
+    }  
+  
+    //多元素序列，递归产生排列  
+    else{  
+        for(int i= start; i<= end; i++){  
+            Swap(list[start], list[i]);//交换可得：1,{2,3,4} ; 2,{1,3,4};  3,{1,2,4}; 4,{1,2,3}  
+              
+            Perm(list, start+1, end);  
+            Swap(list[start], list[i]);//输出排列之后，要再交换回到初始状态:{1,2,3,4}  
+              
+  
+        }  
+    }  
+  
+}  
+  
+  
+template <class Type>  
+inline void Swap(Type &a, Type &b){  
+    Type temp = a;  
+    a = b;  
+    b = temp;  
+}  
+  
+  
+  
+int main() {  
+    char str[] = "abcd";  
+    Perm(str, 0,3);  
+  
+    //cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!  
+    return 0;  
+}  
+
+
+输出：
+abcd
+abdc
+acbd
+acdb
+adcb
+adbc
+bacd
+badc
+bcad
+bcda
+bdca
+bdac
+cbad
+cbda
+cabd
+cadb
+cdab
+cdba
+dbca
+dbac
+dcba
+dcab
+dacb
+dabc
+
+
+
+分享到： 
+下一篇：正则表达式
+顶
+9
+踩
+0
+
+查看评论
+7楼 haoxiangtianxia 13小时前发表 [回复]
+
+手机居然不能收藏
+6楼 pingfanJL 昨天 13:17发表 [回复]
+
+经典的分治策略
+5楼 sszgg2006 3天前 11:04发表 [回复]
+
+楼主，如果将重复的不输出呢？
+比如：输入的是aabb.
+Re: 从此醉 3天前 18:14发表 [回复]
+
+回复sszgg2006：http://blog.csdn.net/morewindows/article/details/7370155
+4楼 yinyichao0107 3天前 10:36发表 [回复]
+
+很好
+3楼 songwsdy 4天前 20:40发表 [回复]
+
+我写了一个c版的，但交换的没有提炼复用，回头得改改。
+2楼 goosman 6天前 17:35发表 [回复]
+
+额, 上次面试就被问了这个题, 以前没碰到过, 一下懵了, 想了十多分钟才整出来...
+Re: 从此醉 4天前 22:18发表 [回复]
+
+回复lgg201：厉害，能做出来已经不错了！我还是看书上的……
+1楼 xx7758521xx 6天前 15:56发表 [回复]
+
+。。。
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+ 
+个人资料
+  
+从此醉
+ 
+
+访问：48632次
+积分：1276分
+排名：第7119名
+原创：75篇转载：6篇译文：0篇评论：29条
+个人简介
+北京，在读硕士，研一，方向：物联网，移动互联网，云计算，算法等。
+擅长：Java，web开发，网络编程。
+学习中：算法，C/C++/C#/PHP相关
+热爱编程，热爱新技术，热爱所有计算机相关……
+希望结识热爱技术的朋友
+文章搜索
+
+文章分类
+Java(13)
+J2EE(13)
+PHP(7)
+Joomla(4)
+CSS/HTML(1)
+android(0)
+C/C++(12)
+ACM - 算法(11)
+flex/flash(3)
+C#/.net(6)
+MySql(5)
+Oracle(0)
+数据结构/基础算法(4)
+杂谈(0)
+文章存档
+2013年03月(6)
+2013年02月(10)
+2013年01月(20)
+2012年12月(4)
+2012年11月(19)
+展开
+阅读排行
+算法笔记之 全排列算法 一 递归求解(14752)
+题目1025：最大报销额 （dfs深度优先搜索）(1403)
+mysql笔记 数据类型：char varchar year datatime(1316)
+C++ 之 const 修饰符用法 详解！(1217)
+MySql 数据库group by 的用法，order by 嵌套使用。优化问题(1124)
+C++之static静态修饰符详解(1118)
+c# 委托 事件 EventHandler 观察者模式 详解，以及和java的比较(1077)
+看看大型网站都是用什么语言写的(1075)
+C#和java的异常处理性能对比(1007)
+spring单例和多例详解。如何在单例中调用多例对象(983)
+评论排行
+算法笔记之 全排列算法 一 递归求解(9)
+算法笔记之 全排列的 非递归求解(4)
+二叉排序树 遍历 ACM 试题 C语言实现(3)
+看看大型网站都是用什么语言写的(3)
+题目1025：最大报销额 （dfs深度优先搜索）(2)
+题目1008：最短路径问题 java实现(2)
+算法笔记 之 快速排序的几种写法(2)
+C++ 之 const 修饰符用法 详解！(1)
+spring单例和多例详解。如何在单例中调用多例对象(1)
+mysql笔记 数据类型：char varchar year datatime(1)
+推荐文章
+
+最新评论
+算法笔记之 全排列的 非递归求解
+从此醉: @lianyuequan:应该是不一样的。这个是按照字典排序，要比较元素大小
+算法笔记之 全排列算法 一 递归求解
+haoxiangtianxia: 手机居然不能收藏
+算法笔记之 全排列算法 一 递归求解
+pingfanJL: 经典的分治策略
+C++ 之 const 修饰符用法 详解！
+ymzzh1303: hhh
+算法笔记之 全排列算法 一 递归求解
+从此醉: @sszgg2006:http://blog.csdn.net/morewindows/articl...
+算法笔记之 全排列的 非递归求解
+lianyuequan: int arr[] = {3，2，1}; 跟int arr[] = {1，2，3};排出来的结果不一...
+算法笔记 之 快速排序的几种写法
+从此醉: @wodeweilaibushimengy:是C，最后一个是Java，这东西确实容易忘~ 次数多了就...
+算法笔记 之 快速排序的几种写法
+wodeweilaibushimengy: 这是用C写的吧，现在都忘完了
+算法笔记之 全排列的 非递归求解
+从此醉: @yinyichao0107:你补充的其实就是我注释掉的部分：// int total =...
+算法笔记之 全排列算法 一 递归求解
+sszgg2006: 楼主，如果将重复的不输出呢？比如：输入的是aabb.
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+ 联系邮箱：webmaster(at)csdn.net
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+

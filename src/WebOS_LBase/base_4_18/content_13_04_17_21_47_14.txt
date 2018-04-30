@@ -1,0 +1,363 @@
+ 博客首页登录注册拍下最美的人间四月天 发博文  博文        ×推荐：不可错过京城赏花地昆曲中的同性之爱
+推荐：不可错过京城赏花地昆曲中的同性之爱【海纳百川】
+http://blog.sina.com.cn/thw111 [订阅][手机订阅]首页 博文目录 图片 关于我个人资料 
+ 海纳百川 
+Qing 微博 
+加好友 发纸条 
+
+写留言 加关注 
+
+
+博客等级： 博客积分：1250 博客访问：58,992 关注人气：50 
+精彩图文 
+十大经典爱情电影台词
+绍兴醉人夕阳
+
+新浪Qing
+
+柔情似水伊甸园
+
+新浪Qing
+
+沙滩比基尼盛宴
+
+新浪Qing
+
+日本八音盒殿堂
+
+新浪Qing
+
+香港美食攻略
+
+新浪Qing
+
+最美樱花校园
+
+新浪Qing
+
+
+查看更多>>
+相关博文 
+坚持梦想，传递正能量
+365达人专访
+曹操一家为啥都喜欢有夫之妇？
+微三国
+虚拟局域网VLAN（二）
+张洪洋
+交换机VTP的配置
+吴明显
+WayOS软路由用交换机扩展
+深圳创明电脑网络中心
+Trunk 中继
+善解人衣
+VTP (VLAN Trunking Protocol)
+善解人衣
+虚拟化网络技术实现IaaS的
+品高云计算官方博客
+理解交换机中命令的含义
+未来的黑客
+[交换]CISCO私有VLA
+prolove90
+关于路由器VLAN的划分应用
+海蜘蛛
+虚拟地址
+谢先斌
+更多>>
+推荐博文 
+十年·十人
+柴静
+叶永烈：金日成突然离世内幕，急
+叶永烈
+第九百五十四篇•古建
+马未都
+治理高考作弊，应打破利益链
+熊丙奇
+圣奴隶
+李承鹏
+脏话的蝴蝶效应
+韩浩月
+国五条后排队离婚的那些悲喜剧
+张国
+H7N9,谁来承担费用
+清华医院王仲
+让沉默之物发声
+筲箕凹
+当我们讨论薛晓路的时候，我们在
+mtmt3542
+
+
+花仙子降临荷兰花园
+
+
+瑞士大好风光无处不在
+
+
+精美斜阳陪伴罗马斗兽场
+
+
+苏格兰“被发明”的传统
+
+
+实拍印度庙的拜火仪式
+
+
+巨大象龟骑着走
+
+查看更多>>
+谁看过这篇博文 
+
+开始、…
+4月14日
+
+michae…
+4月2日
+
+Joseph
+4月2日
+
+Simon孙
+3月29日
+
+远岚
+3月14日
+
+张天乐XL
+3月6日
+
+大虾
+2月22日
+
+飘飘鬼
+12月23日
+
+enchan…
+7月2日
+
+一生有你
+1月18日
+
+正文 字体大小：大 中 小 
+生成树 (2010-08-09 15:34:33)转载▼标签： vlan网桥优先级树算法端口杂谈 分类： 【网络技术】  
+
+
+
+
+1、生成树基础
+
+（1）.生成树简介
+
+STP的任务是找到网络中的所有链路，并关闭任何冗余的链路，这样就可以防止网络环路的产生。STP首先选举一个根桥，由根桥来负责决定网络拓扑。一旦所有的交换机都同意将某台交换机选举为根桥，其余的每台交换机就必须找到其根端口。如果在交换机之间有多条链路，就只能由唯一的一个指定端口。
+
+（2）.生成树的种类
+
+当前STP相关的协议有：IEEE 802.1D（STP），802.1W（RSTP），802.1（MSTP）。其中802.1D是最早关于STP的标准。RSTP（Rapid Spanning Tree Protocol）是STP的扩展，其主要特点是增加了端口状态快速切换的机制，能够实现网络拓扑的快速转换。MSTP（Multiple Spanning Tree Protocol）提出了多生成树的概念，可以把不同的vlan映射到不同的生成树，从而达到网络负载均衡的目。
+
+（3）. 生成树算法
+　　     生成树协议运行生成树算法（STA）。生成树算法很复杂，但是其过程可以归纳为一下三个部分。
+　　    （1）选择根网桥
+　　    （2）选项根端口
+　　    （3）选择指定端口
+　　选择根网桥的依据是交换机的网桥优先级，网桥优先级是用来衡量网桥在生成树算法中优先级的十进制数，取值范围是0～65535.默认值是32768，网桥ID是由网桥优先级和网桥MAC地址组成的。共有8个字节。
+　　选择根端口的依据是
+　　（1）到跟网桥的最低路径成本。
+　　根路径成本是两个网桥间的路径上所有链路的成本之和，也就是某个网桥到达根网桥的中间所有链路的路径成本之和，一条链路的带宽越大，他的传输成本就越低。
+　　（2）直连的网桥ID最小
+　　（3）端口ID最小
+　　选择指定端口的依据是：
+　　（1）根路径成本较低
+　　（2）所在的交换机网桥ID值最小
+　　（3）端口ID值最小
+
+特    征
+ 默 认 设 置
+ 
+启用状态
+ VLAN1启用，最多可以启用64STP
+ 
+交换机优先级
+ 32768
+ 
+STP端口优先级
+ 128
+ 
+STP端口费用
+ 1000 Mbps: 4
+
+100 Mbps: 19
+
+10 Mbps: 100
+ 
+STP VLAN端口优先级
+ 128
+ 
+STP VLAN端口费用
+ 1000 Mbps: 4
+
+100 Mbps: 19
+
+bps: 100
+ 
+
+ 
+
+2、传统生成树(STP)
+
+STP（Spanning Tree Protocol）是生成树协议的英文缩写。该协议可应用于环路网络，通过一定的算法实现路径冗余，同时将环路网络修剪成无环路的树型网络，从而避免报文在环路网络中的增生和无限循环。　　STP的基本原理是，通过在交换机之间传递一种特殊的协议报文（在IEEE 802.1D中这种协议报文被称为“配置消息”）来确定网络的拓扑结构。配置消息中包含了足够的信息来保证交换机完成生成树计算。
+（1）．启用Spanning-Tree
+
+Switch(config)# spanning-tree                           [锐捷]
+Switch(config)# spanning-tree vlan vlan-id              [思科]
+
+（2）．将交换机配置为根交换机
+
+1数情况下做如下配置：
+　spanning -tree vlan vlan-id root primary （主ＲＯＯＴ网桥优先级被置为24576）
+　spanning-tree vlan vlan-id root secondary（备份ＲＯＯＴ网桥优先级被置为28672）
+　　2修改网桥优先级：
+　　spanning-tree vlan vlan-id priority priority
+
+ （优先级值0~65536之间，是4096的倍数默认为32768）
+
+（3）．配置端口优先值
+
+如果VLAN内有拓扑环，Spanning-Tree将使用端口优先值确定将哪个接口置于转发状态，因此，可以为欲首先选择的端口赋予较高优先级值（较小的数值）。如果所有端口都有相同的优先级值，那么，具有最小端口号的端口将被设置为转发状态，其他接口则处于阻塞状态。
+
+1为接口配置优先级值，取值范围为0~255，默认值为128。数值越低，优先级越高。
+
+Switch(config)# interface f0/1
+Switch(config-if)# spanning-tree port-priority priority
+2为接口配置VLAN端口优先级。取值范围为0~255，默认值为128。数值越低，优先级越高。
+
+Switch(config)# interface f0/1
+Switch(config-if)# spanning-tree vlan vlan-id port-priority priority
+
+(4)配置路径费用
+
+Spanning-Tree路径费用的默认值取决于接口的类型与速率。当VLAN中有拓扑环时，Spanning-Tree使用路径费用选择将哪个接口置于转发状态。具有最低端口费用的端口将被选择用于向所有的VLAN转发帧。如果所有接口的成本值都相同，那么，具有最小端口号的端口将被设置为转发状态，其他接口则处于阻塞状态。
+
+Switch(config-if)# spanning-tree cost cost    (范围1~200 000 000)
+Switch(config-if)# spanning-tree vlan vlan_id cost cost   (范围1~200 000 000)
+
+
+
+3、快速生成树（RSTP）
+
+RSTP利用点到点线路并提供生成树的快速收敛。生成树可在1秒内重新配置，对于像语音和视频这些对延迟敏感的网络承载流量来说是至关重要的。
+
+SwitchA(config)# spanning-tree   ！打开生成树
+
+SwitchA(config)# spanning-tree mode rstp   ! 采用生成树RSTP模式
+
+（可选）
+
+SwitchA(config)# spanning-tree hello-time 4   ! 配置交换机发送BPDU报文的时间间隔为4s（秒），缺省为2s，范围是1—10s 。若要恢复到缺省值，用命令no spanning-tree hello-time
+
+SwitchA(config)# spanning-tree forward-time 30   ! 配置进入转发状态的时间为20s，缺省为15s，范围是4—30s
+
+SwitchA(config)# spanning-tree max-age 40     !配置BPDU报文的有效存活时间为40s，缺省为20s，范围是6—40s
+
+（端口可选）
+
+Switch(config)#interface interface                                进入需要配置的端口
+
+Switch(config-if)#spanning-tree link-type { point-to-point | shared  配置端口链路类型
+
+可以根据需要将端口配置为点对点模式或共享模式，point-to-point为点对点模式，shared为共享模式。
+
+Switch#clear spanning-tree detected-protocols           对所有端口进行强制版本检查：
+
+Switch#clear spanning-tree detected-protocols interface interface      对特定端口进行强制版本检查
+
+ 
+
+SwitchA#show spanning-tree    ! 显示交换机当前的计时器参数
+
+StpVersion : RSTP
+
+SysStpStatus : Enabled
+
+BaseNumPorts : 24
+
+MaxAge : 20         ！BPDU报文的有效存活时间为20s（秒）
+
+HelloTime : 2        ！发送BPDU报文的时间间隔为2s
+
+ForwardDelay : 15    ！进入转发状态的时间为15s
+
+4多生成树（MSTP）
+
+MSTP，他用RSTP来快速收敛，使VLANs被分组进入一个生成树实例，每个实例有一个独立于其他生成树实例的生成树拓扑。这种布置方法为数据流量提供多转发路径，使负载平衡，并且减少因支持许多VLANs所需的生成树实例数量。
+MSTP分为CST，MST两种模式
+CST（Common Spanning Tree）模式整个网络形成一颗生成树，STP基于端口设置状态。如STP设置端口阻塞，则所有VLAN在该端口上都处于阻塞状态。该模式的特点是配置、实现简单，适合小型网络。缺点是没有vlan的概念，当用户VLAN的拓扑配置不一样的时候，可能造成部分VLAN不能正常通信。
+MST（Multiple Spanning Tree）模式是对CST的扩展，可以把多台交换机虚拟成一个MST域，该MST域类似CST的一个桥，和CST桥互通。在MST域内，可以把具有相同拓扑的多个vlan映射到一个生成树实例，即MSTI（Multiple Spanning Tree Instance）。每个MSTI在域内可以有不同的拓扑，实现流量均衡的目的。
+
+S2126-A (config)#spanning-tree                   ！开启生成树
+
+S2126-A (config)#spanning-tree mode mstp        ！配置生成树模式为MSTP
+
+S2126-A(config)#spanning-tree mst configuration    ! 进入MSTP配置模式
+
+S2126-A(config-mst)#instance 1 vlan 1,10    ！配置instance 1（实例1）并关联Vlan 1和10
+
+S2126-A(config-mst)#instance 2 vlan 20,40         ！配置实例2并关联Vlan 20和40
+
+S2126-A(config-mst)#name region1                 ！配置域名称
+
+S2126-A(config-mst)#revision 1                     ！配置版本（修订号）
+
+S2126-A (config)#spanning-tree mst 1 priority 4096   ！配置交换机S3550-A在instance 1中的优先级为4096  ，缺省是32768，值越小越优先成为该instance中的root switch
+
+5、STP PortFast
+
+STP PortFast是一个Catalyst的一个特性，能使交换机或中继端口跳过侦听学习状态。立即进入STP转发状态，在基于IOS交换机上，PortFast只能用于连接到终端工作站的接入端口上。
+
+Switch(config-if)#spanning-tree portfast [trunk]
+
+分享： 分享到新浪Qing 0
+喜欢
+
+阅读(164)┊ 评论 (0)┊ 收藏(0) ┊转载(0) ┊ 喜欢▼ ┊打印┊举报 已投稿到：  排行榜 圈子  
+
+转载列表：
+转载 
+转载是分享博文的一种常用方式...
+
+前一篇：暑假进行时----白开水后一篇：《江姐》——江竹筠  丁柳元挑大梁出演江姐
+评论 重要提示：警惕虚假中奖信息|[商讯]我有明星气势签名[发评论]评论加载中，请稍候...
+
+发评论 [商讯]爱心签名换梦想，天天派奖|[商讯]提高博客人气新方法
+  更多>>
+
+登录名： 密码： 找回密码 注册 记住登录状态
+昵   称：
+
+ 分享到微博    评论并转载此博文
+
+验证码： 请点击后输入验证码 收听验证码 
+匿名评论发评论 
+以上网友发言只代表其个人观点，不代表新浪网的观点或立场。
+< 前一篇
+暑假进行时----白开水后一篇 >
+《江姐》——江竹筠  丁柳元挑大梁出演江姐
+  新浪BLOG意见反馈留言板　不良信息反馈　电话：4006900000 提示音后按1键（按当地市话标准计费）　欢迎批评指正
+
+新浪简介 | About Sina | 广告服务 | 联系我们 | 招聘信息 | 网站律师 | SINA English | 会员注册 | 产品答疑 
+
+Copyright © 1996 - 2013 SINA Corporation, All Rights Reserved
+
+新浪公司 版权所有
+
+
+写365
+长微博
+微语录
+九宫格
+发照片
+发视频
+发商品
+博文博主音乐视频播主 X分享到...选择其他平台 >>
+最近喜欢了的博主：
+加载中…Qing博客转载原文采编长微博分享到新浪Qing分享到新浪微博为了您的账号安全，请绑定邮箱
+
+分享到X
+腾讯微博一键通新浪微博QQ空间人人网天涯凤凰微博朋友网人民微博豆瓣网搜狐微博新华微博手机网易微博开心网百度空间QQ好友更多平台... (132)bShare幻灯播放关闭

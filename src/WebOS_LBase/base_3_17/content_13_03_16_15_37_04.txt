@@ -1,0 +1,484 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Linux Today
+
+首页
+ 译文
+ 新闻
+ 入门 
+
+
+
+运维 
+
+
+
+
+
+
+
+
+
+桌面 
+
+
+
+
+
+编程
+ 嵌入
+ 更多 
+
+
+
+
+
+
+
+
+
+
+新浪微博腾讯微博微信互动
+ . 
+当前位置：首页 > 编程语言 > Linux Shell 编程常用技巧、实例（三） 
+
+Linux Shell 编程常用技巧、实例（三）
+
+
+发布日期：2012-01-301,140阅评论(暂无评论)
+
+
+更多0
+
+本文接上一篇：Linux Shell 编程常用技巧、实例（二）
+ 
+十三、格式化输出指定用户的当前运行进程：
+
+ 
+在这个例子中，我们通过脚本参数的形式，将用户列表传递给该脚本，脚本在读取参数后，以树的形式将用户列表中用户的所属进程打印出来。
+ /> cat > test13.sh
+#!/bin/sh
+
+#1. 循环读取脚本参数，构造egrep可以识别的用户列表变量(基于grep的扩展正则表达式)。
+#2. userlist变量尚未赋值，则直接使用第一个参数为它赋值。
+#3. 如果已经赋值，且脚本参数中存在多个用户，这里需要在每个用户名之间加一个竖线，在egrep中，竖线是分割的元素之间是或的关系。
+#4. shift命令向左移动一个脚本的位置参数，这样可以使循环中始终操作第一个参数。
+
+while [ $# -gt 0 ]
+do
+if [ -z "$userlist" ]; then
+userlist="$1"
+else
+userlist="$userlist|$1"
+fi
+shift
+done
+
+#5. 如果没有用户列表，则搜索所有用户的进程。
+#6. "^ *($userlist) ": 下面的调用方式，该正则的展开形式为"^ *(root|avahi|postfix|rpc|dbus) "。其含义为，以0个或多个空格开头，之后将是root、avahi、postfix、rpc或dbus之中的任何一个字符串，后面再跟随一个空格。
+
+if [ -z "$userlist" ]; then
+userlist="."
+else
+userlist="^ *($userlist) "
+fi
+
+#7. ps命令输出所有进程的user和命令信息，将结果传递给sed命令，sed将删除ps的title部分。
+#8. egrep过滤所有进程记录中，包含指定用户列表的进程记录，再将过滤后的结果传递给sort命令。
+#9. sort命令中的-b选项将忽略前置空格，并以user，再以进程名排序，将结果传递个uniq命令。
+#10.uniq命令将合并重复记录，-c选项将会使每条记录前加重复的行数。
+#11.第二个sort将再做一次排序，先以user，再以重复计数由大到小，最后以进程名排序。将结果传给awk命令。
+#12.awk命令将数据进行格式化，并删除重复的user。
+
+ps -eo user,comm | sed -e 1d | egrep "$userlist" |
+sort -b -k1,1 -k2,2 | uniq -c | sort -b -k2,2 -k1nr,1 -k3,3 |
+awk ' { user = (lastuser == $2) ? " " : $2;
+lastuser = $2;
+printf("%-15s\t%2d\t%s\n",user,$1,$3)
+}'
+CTRL+D
+
+/> ./test13.sh root avahi postfix rpc dbus
+avahi 2 avahi-daemon
+dbus 1 dbus-daemon
+postfix 1 pickup
+1 qmgr
+root 5 mingetty
+3 udevd
+2 sort
+2 sshd
+... ...
+rpc 1 rpcbind
+ 
+十四、用脚本完成which命令的基本功能：
+
+ 
+我们经常会在脚本中调用其他的应用程序，为了保证脚本具有更好的健壮性，以及错误提示的准确性，我们可能需要在执行前验证该命令是否存在，或者说是否可以被执行。这首先要确认该命令是否位于PATH变量包含的目录中，再有就是该文件是否为可执行文件。
+ /> cat > test14.sh
+
+#!/bin/sh
+
+#1. 该函数用于判断参数1中的命令是否位于参数2所包含的目录列表中。需要说明的是，函数里面的$1和$2是指函数的参数，而不是脚本的参数，后面也是如此。
+#2. cmd=$1和path=$2，将参数赋给有意义的变量名，是一个很好的习惯。
+#3. 由于PATH环境变量中，目录之间的分隔符是冒号，因此这里需要临时将IFS设置为冒号，函数结束后再还原。
+#4. 在for循环中，逐个变量目录列表中的目录，以判断该命令是否存在，且为可执行程序。
+
+isInPath() {
+cmd=$1 path=$2 result=1
+oldIFS=$IFS IFS=":"
+for dir in $path
+do
+if [ -x $dir/$cmd ]; then
+result=0
+fi
+done
+IFS=oldifs
+return $result
+}
+
+#5. 检查命令是否存在的主功能函数，先判断是否为绝对路径，即$var变量的第一个字符是否为/，如果是，再判断它是否有可执行权限。
+#6. 如果不是绝对路径，通过isInPath函数判断是否该命令在PATH环境变量指定的目录中。
+
+checkCommand() {
+var=$1
+if [ ! -z "$var" ]; then
+if [ "${var:0:1}" = "/" ]; then
+if [ ! -x $var ]; then
+return 1
+fi
+elif ! isInPath $var $PATH ; then
+return 2
+fi
+fi
+}
+
+#7. 脚本参数的合法性验证。
+
+if [ $# -ne 1 ]; then
+echo "Usage: $0 command" >&2;
+fi
+
+#8. 根据返回值打印不同的信息。我们可以在这里根据我们的需求完成不同的工作。
+
+checkCommand $1
+case $? in
+0) echo "$1 found in PATH." ;;
+1) echo "$1 not found or not executable." ;;
+2) echo "$1 not found in PATH." ;;
+esac
+exit 0
+CTRL+D
+
+/> ./test14.sh echo
+echo found in PATH.
+
+/> ./test14.sh MyTest
+MyTest not found in PATH.
+
+/> ./test14.sh /bin/MyTest
+/bin/MyTest not found or not executable.
+ 
+十五、验证输入信息是否合法：
+
+ 
+这里给出的例子是验证用户输入的信息是否都是数字和字母。需要说明的是，之所以将其收集到该系列中，主要是因为它实现的方式比较巧妙。
+ /> cat > test15.sh
+#!/bin/sh
+echo -n "Enter your input: "
+read input
+
+#1. 事实上，这里的巧妙之处就是先用sed替换了非法部分，之后再将替换后的结果与原字符串比较。这种写法也比较容易扩展。
+
+parsed_input=`echo $input | sed 's/[^[:alnum:]]//g'`
+if [ "$parsed_input" != "$input" ]; then
+echo "Your input must consist of only letters and numbers."
+else
+echo "Input is OK."
+fi
+CTRL+D
+
+/> ./test15.sh
+Enter your input: hello123
+Input is OK.
+
+/> ./test15.sh
+Enter your input: hello world
+Your input must consist of only letters and numbers.
+ 
+十六、整数验证：
+
+ 
+整数的重要特征就是只是包含数字0到9和负号(-)。
+ /> cat > test16.sh
+#!/bin/sh
+
+#1. 判断变量number的第一个字符是否为负号(-)，如果只是则删除该负号，并将删除后的结果赋值给left_number变量。
+#2. "${number#-}"的具体含义，可以参考该系列博客中"Linux Shell常用技巧(十一)"，搜索关键字"变量模式匹配运算符"即可。
+
+number=$1
+if [ "${number:0:1}" = "-" ]; then
+left_number="${number#-}"
+else
+left_number=$number
+fi
+
+#3. 将left_number变量中所有的数字都替换掉，因此如果返回的字符串变量为空，则表示left_number所包含的字符均为数字。
+
+nodigits=`echo $left_number | sed 's/[[:digit:]]//g'`
+if [ "$nodigits" != "" ]; then
+echo "Invalid number format!"
+else
+echo "You are valid number."
+fi
+CTRL+D
+
+/> ./test16.sh -123
+You are valid number.
+
+/> ./test16.sh 123e
+Invalid number format!
+ 
+十七、判断指定的年份是否为闰年：
+
+ 
+这里我们先列出闰年的规则：
+ 1.不能被4整除的年一定不是闰年；
+ 2.可以同时整除4和400的年一定是闰年；
+ 3.可以整除4和100，但是不能整除400的年，不是闰年；
+ 4.其他可以整除的年都是闰年。
+ #!/bin/sh
+year=$1
+if [ "$((year % 4))" -ne 0 ]; then
+echo "This is not a leap year."
+exit 1
+elif [ "$((year % 400))" -eq 0 ]; then
+echo "This is a leap year."
+exit 0
+elif [ "$((year % 100))" -eq 0 ]; then
+echo "This is not a leap year."
+exit 1
+else
+echo "This is a leap year."
+exit 0
+fi
+CTRL+D
+
+/> ./test17.sh 1933
+This is not a leap year.
+
+/> ./test17.sh 1936
+This is a leap year.
+ 
+十八、将单列显示转换为多列显示：
+
+ 
+我们经常会在显示时将单行的输出，格式化为多行的输出，通常情况下，为了完成该操作，我们将加入更多的代码，将输出的结果存入数组或临时文件，之后再重新遍历它们，从而实现单行转多行的目的。在这里我们介绍一个使用xargs命令的技巧，可以用更简单、更高效的方式来完成该功能。
+ /> cat > test18.sh
+#!/bin/sh
+
+#1. passwd文件中，有可能在一行内出现一个或者多个空格字符，因此在直接使用cat命令的结果时，for循环会被空格字符切开，从而导致一行的文本被当做多次for循环的输入，这样我们不得不在sed命令中，将cat输出的每行文本进行全局替换，将空格字符替换为%20。事实上，我们当然可以将cat /etc/passwd的输出以管道的形式传递给cut命令，这里之所以这样写，主要是为了演示一旦出现类似的问题该如果巧妙的处理。
+#2. 这里将for循环的输出以管道的形式传递给sort命令，sort命令将基于user排序。
+#3. -xargs -n 2是这个技巧的重点，它将sort的输出进行合并，-n选项后面的数字参数将提示xargs命令将多少次输出合并为一次输出，并传递给其后面的命令。在本例中，xargs会将从sort得到的每两行数据合并为一行，中间用空格符分离，之后再将合并后的数据传递给后面的awk命令。事实上，对于awk而言，你也可以简单的认为xargs减少了对它(awk)的一半调用。
+#4. 如果打算在一行内显示3行或更多的行，可以将-n后面的数字修改为3或其它更高的数字。你还可以修改awk中的print命令，使用更为复杂打印输出命令，以得到更为可读的输出效果。
+
+for line in `cat /etc/passwd | sed 's/ /%20/g'`
+do
+user=`echo $line | cut -d: -f1`
+echo $user
+done | \
+sort -k1,1 | \
+xargs -n 2 | \
+awk '{print $1, $2}'
+CTRL+D
+
+/> ./test18.sh
+abrt adm
+apache avahi
+avahi-autoipd bin
+daemon daihw
+dbus ftp
+games gdm
+gopher haldaemon
+halt lp
+mail nobody
+ntp operator
+postfix pulse
+root rtkit
+saslauth shutdown
+sshd sync
+tcpdump usbmuxd
+uucp vcsa
+
+
+ 
+
+与 shell 相关的文章： 
+•python调用shell脚本
+•监控网站可用性超实用脚本分享
+•bash/shell并发
+•使用shell监控重要进程
+•按时按登录IP记录Linux所有用户操作日志的方法（附脚本）
+
+
+Java的ORM框架，jOOQ 2.0.3 发布给程序员们的工资报价提醒
+
+
+转载文章：Linux Shell 编程常用技巧、实例（三） / 标签：shell
+
+原文链接：http://www.cnblogs.com/stephen-liu74/
+
+
+
+
+
+
+最新最早最热
+0条评论
+还没有评论，沙发等你来抢
+.
+
+
+
+社交帐号登录:
+
+微博
+QQ
+人人
+豆瓣
+更多»
+
+
+
+
+
+.
+
+ 
+说点什么吧…
+
+发布
+.
+
+Linux Today正在使用多说
+
+
+
+
+ .
+ 
+
+
+
+
+
+
+
+本站最新发布
+1.Linux Deepin 下如何订阅 RSS 新闻源
+2.分享PHP隐藏文件的真实路径实现下载功能
+3.Google继续大扫除，关闭Google Reader
+4.GNOME计划到明年春完整支持Wayland
+5.nginx缓存服务器加强版
+6.WordPress评论发图片地址转换成图片
+7.ubuntu linux[server/64]安装svn及svnmanager
+8.VMware复制Ubuntu虚拟机后,新虚拟机网卡无法使用解决办法
+9.Fedora 19 KDE 公众测试日
+10.openSUSE 12.3 正式发布
+ . 
+（Linux单行命令技巧）把所有文件的后辍由rm改为rmvb：rename 's/.rm$/.rmvb/' *
+ 
+
+
+
+关于
+
+关于我们
+站长博客
+联系我们
+论坛
+
+
+关注
+
+微信互动
+新浪微博
+腾讯微博
+订阅到邮箱
+收藏Ctrl+D
+
+
+帮助
+
+网站地图
+标签汇总
+网友投稿
+站长信箱
+友情链接
+
+
+
+
+
+©2013 Linux Today 关注Linux/Unix应用技术、业界新闻，同时也发布开源、移动互联网等新鲜资讯！交流QQ群：86575616
+
+ . 
+运行在Linux+Nginx+MySQL+PHP，推荐您使用Firefox、Chrome浏览本站，请不要使用古代的浏览器（IE6）
+ 
+
+

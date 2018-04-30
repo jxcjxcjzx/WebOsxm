@@ -1,0 +1,549 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+qinjuning、lets go
+编程珠玑 JVM Android爱好者QQ群：55945620
+目录视图摘要视图订阅
+文思海辉第一届在线编程大赛      消灭0回答，赢下载分      订阅CSDN社区周刊，及时了解社区精华内容      办公大师系列经典丛书 诚聘译者
+ Android中Context详解 ---- 你所不知道的Context
+分类： Andoird框架浅析 2012-03-01 21:17 26289人阅读 评论(35) 收藏 举报
+androidapplicationservicenullstringclass
+目录(?)[+]
+                                            
+                                                                                       本文原创 ，转载必须注明出处 :http://blog.csdn.net/qinjuning
+ 
+ 
+             前言：本文是我读《Android内核剖析》第7章 后形成的读书笔记 ，在此向欲了解Android框架的书籍推荐此书。
+ 
+ 
+ 
+ 
+        大家好，  今天给大家介绍下我们在应用开发中最熟悉而陌生的朋友-----Context类 ，说它熟悉，是应为我们在开发中
+   时刻的在与它打交道，例如：Service、BroadcastReceiver、Activity等都会利用到Context的相关方法 ； 说它陌生，完全是
+   因为我们真正的不懂Context的原理、类结构关系。一个简单的问题是，一个应用程序App中存在多少个Context实例对象呢？
+   一个、两个？ 在此先卖个关子吧。读了本文，相信您会豁然开朗的 。
+ 
+      Context，中文直译为“上下文”，SDK中对其说明如下：
+         Interface to global information about an application environment. This is an abstract class whose implementation
+  is provided by the Android system. It allows access to application-specific resources and classes, as well as up-calls 
+  for application-level operations such as launching activities, broadcasting and receiving intents, etc
+ 
+    从上可知一下三点,即：
+        1、它描述的是一个应用程序环境的信息，即上下文。
+        2、该类是一个抽象(abstract class)类，Android提供了该抽象类的具体实现类(后面我们会讲到是ContextIml类)。
+        3、通过它我们可以获取应用程序的资源和类，也包括一些应用级别操作，例如：启动一个Activity，发送广播，接受Intent
+      信息 等。。
+ 
+ 
+   于是，我们可以利用该Context对象去构建应用级别操作(application-level operations) 。
+ 
+ 一、Context相关类的继承关系
+ 
+                         
+ 
+  相关类介绍：
+ 
+   Context类    路径： /frameworks/base/core/java/android/content/Context.java
+            说明：  抽象类，提供了一组通用的API。
+      源代码(部分)如下：   
+[java] view plaincopyprint?
+public abstract class Context {  
+     ...  
+     public abstract Object getSystemService(String name);  //获得系统级服务  
+     public abstract void startActivity(Intent intent);     //通过一个Intent启动Activity  
+     public abstract ComponentName startService(Intent service);  //启动Service  
+     //根据文件名得到SharedPreferences对象  
+     public abstract SharedPreferences getSharedPreferences(String name,int mode);  
+     ...  
+}  
+ 
+  ContextIml.java类  路径 ：/frameworks/base/core/java/android/app/ContextImpl.java
+          说明：该Context类的实现类为ContextIml，该类实现了Context类的功能。请注意，该函数的大部分功能都是直接调用
+      其属性mPackageInfo去完成，这点我们后面会讲到。    
+         源代码(部分)如下：
+[java] view plaincopyprint?
+/** 
+ * Common implementation of Context API, which provides the base 
+ * context object for Activity and other application components. 
+ */  
+class ContextImpl extends Context{  
+    //所有Application程序公用一个mPackageInfo对象  
+    /*package*/ ActivityThread.PackageInfo mPackageInfo;  
+      
+    @Override  
+    public Object getSystemService(String name){  
+        ...  
+        else if (ACTIVITY_SERVICE.equals(name)) {  
+            return getActivityManager();  
+        }   
+        else if (INPUT_METHOD_SERVICE.equals(name)) {  
+            return InputMethodManager.getInstance(this);  
+        }  
+    }   
+    @Override  
+    public void startActivity(Intent intent) {  
+        ...  
+        //开始启动一个Activity  
+        mMainThread.getInstrumentation().execStartActivity(  
+            getOuterContext(), mMainThread.getApplicationThread(), null, null, intent, -1);  
+    }  
+}  
+ 
+
+ 
+  ContextWrapper类 路径 ：\frameworks\base\core\java\android\content\ContextWrapper.java
+        说明： 正如其名称一样，该类只是对Context类的一种包装，该类的构造函数包含了一个真正的Context引用，即ContextIml
+       对象。    源代码(部分)如下：
+[java] view plaincopyprint?
+public class ContextWrapper extends Context {  
+    Context mBase;  //该属性指向一个ContextIml实例，一般在创建Application、Service、Activity时赋值  
+      
+    //创建Application、Service、Activity，会调用该方法给mBase属性赋值  
+    protected void attachBaseContext(Context base) {  
+        if (mBase != null) {  
+            throw new IllegalStateException("Base context already set");  
+        }  
+        mBase = base;  
+    }  
+    @Override  
+    public void startActivity(Intent intent) {  
+        mBase.startActivity(intent);  //调用mBase实例方法  
+    }  
+}  
+ 
+
+ 
+   ContextThemeWrapper类 路径：/frameworks/base/core/java/android/view/ContextThemeWrapper.java
+      说明：该类内部包含了主题(Theme)相关的接口，即android:theme属性指定的。只有Activity需要主题，Service不需要主题，
+   所以Service直接继承于ContextWrapper类。
+      源代码(部分)如下：
+[java] view plaincopyprint?
+public class ContextThemeWrapper extends ContextWrapper {  
+     //该属性指向一个ContextIml实例，一般在创建Application、Service、Activity时赋值  
+       
+     private Context mBase;  
+    //mBase赋值方式同样有一下两种  
+     public ContextThemeWrapper(Context base, int themeres) {  
+            super(base);  
+            mBase = base;  
+            mThemeResource = themeres;  
+     }  
+  
+     @Override  
+     protected void attachBaseContext(Context newBase) {  
+            super.attachBaseContext(newBase);  
+            mBase = newBase;  
+     }  
+}  
+ 
+ 
+     Activity类 、Service类 、Application类本质上都是Context子类， 更多信息大家可以自行参考源代码进行理解。
+ 
+ 
+二、 什么时候创建Context实例 
+ 
+      熟悉了Context的继承关系后，我们接下来分析应用程序在什么情况需要创建Context对象的？应用程序创建Context实例的
+ 情况有如下几种情况：
+      1、创建Application 对象时， 而且整个App共一个Application对象
+      2、创建Service对象时
+      3、创建Activity对象时
+ 
+    因此应用程序App共有的Context数目公式为：
+ 
+                     总Context实例个数 = Service个数 + Activity个数 + 1（Application对应的Context实例）
+ 
+  具体创建Context的时机
+ 
+     1、创建Application对象的时机
+ 
+       每个应用程序在第一次启动时，都会首先创建Application对象。如果对应用程序启动一个Activity(startActivity)流程比较
+清楚的话，创建Application的时机在创建handleBindApplication()方法中，该函数位于 ActivityThread.java类中 ，如下：
+[java] view plaincopyprint?
+//创建Application时同时创建的ContextIml实例  
+private final void handleBindApplication(AppBindData data){  
+    ...  
+    ///创建Application对象  
+    Application app = data.info.makeApplication(data.restrictedBackupMode, null);  
+    ...  
+}  
+  
+public Application makeApplication(boolean forceDefaultAppClass, Instrumentation instrumentation) {  
+    ...  
+    try {  
+        java.lang.ClassLoader cl = getClassLoader();  
+        ContextImpl appContext = new ContextImpl();    //创建一个ContextImpl对象实例  
+        appContext.init(this, null, mActivityThread);  //初始化该ContextIml实例的相关属性  
+        ///新建一个Application对象   
+        app = mActivityThread.mInstrumentation.newApplication(  
+                cl, appClass, appContext);  
+       appContext.setOuterContext(app);  //将该Application实例传递给该ContextImpl实例           
+    }   
+    ...  
+}  
+ 
+ 
+    2、创建Activity对象的时机
+ 
+       通过startActivity()或startActivityForResult()请求启动一个Activity时，如果系统检测需要新建一个Activity对象时，就会
+  回调handleLaunchActivity()方法，该方法继而调用performLaunchActivity()方法，去创建一个Activity实例，并且回调
+ onCreate()，onStart()方法等， 函数都位于 ActivityThread.java类 ，如下：
+[java] view plaincopyprint?
+//创建一个Activity实例时同时创建ContextIml实例  
+private final void handleLaunchActivity(ActivityRecord r, Intent customIntent) {  
+    ...  
+    Activity a = performLaunchActivity(r, customIntent);  //启动一个Activity  
+}  
+private final Activity performLaunchActivity(ActivityRecord r, Intent customIntent) {  
+    ...  
+    Activity activity = null;  
+    try {  
+        //创建一个Activity对象实例  
+        java.lang.ClassLoader cl = r.packageInfo.getClassLoader();  
+        activity = mInstrumentation.newActivity(cl, component.getClassName(), r.intent);  
+    }  
+    if (activity != null) {  
+        ContextImpl appContext = new ContextImpl();      //创建一个Activity实例  
+        appContext.init(r.packageInfo, r.token, this);   //初始化该ContextIml实例的相关属性  
+        appContext.setOuterContext(activity);            //将该Activity信息传递给该ContextImpl实例  
+        ...  
+    }  
+    ...      
+}  
+ 
+ 
+   3、创建Service对象的时机
+ 
+       通过startService或者bindService时，如果系统检测到需要新创建一个Service实例，就会回调handleCreateService()方法，
+ 完成相关数据操作。handleCreateService()函数位于 ActivityThread.java类，如下：
+[java] view plaincopyprint?
+//创建一个Service实例时同时创建ContextIml实例  
+private final void handleCreateService(CreateServiceData data){  
+    ...  
+    //创建一个Service实例  
+    Service service = null;  
+    try {  
+        java.lang.ClassLoader cl = packageInfo.getClassLoader();  
+        service = (Service) cl.loadClass(data.info.name).newInstance();  
+    } catch (Exception e) {  
+    }  
+    ...  
+    ContextImpl context = new ContextImpl(); //创建一个ContextImpl对象实例  
+    context.init(packageInfo, null, this);   //初始化该ContextIml实例的相关属性  
+    //获得我们之前创建的Application对象信息  
+    Application app = packageInfo.makeApplication(false, mInstrumentation);  
+    //将该Service信息传递给该ContextImpl实例  
+    context.setOuterContext(service);  
+    ...  
+}  
+
+ 
+    另外，需要强调一点的是，通过对ContextImp的分析可知，其方法的大多数操作都是直接调用其属性mPackageInfo(该属性类
+型为PackageInfo)的相关方法而来。这说明ContextImp是一种轻量级类，而PackageInfo才是真正重量级的类。而一个App里的
+所有ContextIml实例，都对应同一个packageInfo对象。
+            
+ 
+     最后给大家分析利用Context获取SharedPreferences类的使用方法，SharedPreferences类想必大家都使用过，其一般获取方
+法就是通过调用getSharedPreferences()方法去根据相关信息获取SharedPreferences对象。具体流程如下：
+ 
+    1 、调用  getSharedPreferences()获取对应的的文件，该函数实现功能如下：
+ 
+[java] view plaincopyprint?
+//Context类静态数据集合，以键值对保存了所有读取该xml文件后所形成的数据集合  
+private static final HashMap<File, SharedPreferencesImpl> sSharedPrefs =   
+       new HashMap<File, SharedPreferencesImpl>();   
+  
+@Override  
+public SharedPreferences getSharedPreferences(String name, int mode){  
+     //其所对应的SharedPreferencesImpl对象 ，该对象已一个HashMap集合保存了我们对该文件序列化结果  
+     SharedPreferencesImpl sp;    
+     File f = getSharedPrefsFile(name);  //该包下是否存在对应的文件，不存在就新建一个  
+     synchronized (sSharedPrefs) {       //是否已经读取过该文件，是就直接返回该SharedPreferences对象  
+         sp = sSharedPrefs.get(f);  
+         if (sp != null && !sp.hasFileChanged()) {  
+             //Log.i(TAG, "Returning existing prefs " + name + ": " + sp);  
+             return sp;  
+         }  
+     }  
+     //以下为序列化该xml文件，同时将数据写到map集合中       
+     Map map = null;  
+     if (f.exists() && f.canRead()) {  
+         try {  
+             str = new FileInputStream(f);  
+             map = XmlUtils.readMapXml(str);  
+             str.close();  
+         }   
+         ...  
+     }  
+       
+     synchronized (sSharedPrefs) {  
+         if (sp != null) {  
+             //Log.i(TAG, "Updating existing prefs " + name + " " + sp + ": " + map);  
+             sp.replace(map);   //更新数据集合  
+         } else {  
+             sp = sSharedPrefs.get(f);  
+             if (sp == null) {    
+                 //新建一个SharedPreferencesImpl对象，并且设置其相关属性  
+                 sp = new SharedPreferencesImpl(f, mode, map);    
+                 sSharedPrefs.put(f, sp);  
+             }  
+         }  
+         return sp;  
+     }  
+}  
+ 
+   2、 SharedPreferences 不过是个接口，它定义了一些操作xml文件的方法，其真正实现类为SharedPreferencesImpl ，该类是
+    ContextIml的内部类，该类如下：
+ 
+[java] view plaincopyprint?
+//soga，这种形式我们在分析Context ContextIml时接触过   
+//SharedPreferences只是一种接口，其真正实现类是SharedPreferencesImpl类  
+private static final class SharedPreferencesImpl implements SharedPreferences{  
+     private Map mMap;  //保存了该文件序列化结果后的操作， 键值对形式  
+       
+     //通过key值获取对应的value值  
+     public String getString(String key, String defValue) {  
+         synchronized (this) {  
+             String v = (String)mMap.get(key);  
+             return v != null ? v : defValue;  
+         }  
+     }  
+     ...  
+     //获得该SharedPreferencesImpl对象对应的Edito类，对数据进行操作  
+     public final class EditorImpl implements Editor {  
+         private final Map<String, Object> mModified = Maps.newHashMap(); //保存了对键值变化的集合  
+     }  
+}  
+ 
+
+
+       基本上获取SharedPreferences 对象就是这么来的，关于Context里的更多方法请大家参照源代码认真学习吧。
+ 
+ 
+ 
+更多 3
+上一篇：Android中启动Activity(startActivity)流程图分析
+下一篇：Linux学习笔记一 ---- Linux基础知识认知以及初识Linux下C编程入门
+顶
+36
+踩
+0
+
+查看评论
+21楼 Dingo妹 2013-11-16 16:57发表 [回复]
+
+学习中，mark下，谢谢博主
+20楼 Freedom229 2013-11-12 14:02发表 [回复]
+
+大致明白一点，但是不明白这些东西对于写代码有哪些作用或者意义！求解。。。。。。。
+19楼 zhqcqupt 2013-10-28 20:58发表 [回复]
+
+应该是你的地图mapview 利用上下文绑定了一个所在活动的一个资源，也就是说mapview有了这个活动的引用，但是这个mapview的生命周期比所在的activity长，这样，activity就不能正常走过它的生命周秋，在活动资源被释放的时候出错。所以要通过应用程序上下文引用资源，这样mapview的生命周期与所在活动无关了，活动也就被正常释放了。
+18楼 asking1233 2013-09-22 02:13发表 [回复]
+
+楼主 其实我只是想知道，Context 和 ApplicationContext的区别，因为我在做项目的时候，发现了一个很奇怪的问题，就是在tabhost中，加载地图，一定要LocClient(getApplicationContext())，不能用普通的this（也就是Context）我搞不懂啊，我用的是百度地图，但是用另外Activity启动这个Activity的时候，就可以定位了，是不是就是说，Context这个东西，不单单跟当前对象有关，也就是说跟它前一个对象有关系，是不是我理解的有问题，楼主请指教啊
+Re: zhqcqupt 2013-10-28 20:59发表 [回复]
+
+回复asking1233：应该是你的地图mapview 利用上下文绑定了一个所在活动的一个资源，也就是说mapview有了这个活动的引用，但是这个mapview的生命周期比所在的activity长，这样，activity就不能正常走过它的生命周期，在活动资源被释放的时候出错。所以要通过应用程序上下文引用资源，这样mapview的生命周期与所在活动无关了，活动也就被正常释放了。
+Re: asking1233 2013-10-29 19:10发表 [回复]
+
+回复u012604992：你说的有道理，可是还有一个问题，这个mapview是这个活动下的一个实例变量，那他们的生命周期怎么会不一样呢，还有我用startActivity启动的时候跟tabhost加载一个Activity这两个有什么不同呢,求指教啊
+17楼 Yolanda8766 2013-09-06 10:33发表 [回复]
+
+果然，我看不懂
+16楼 本草洋葱 2013-07-22 22:20发表 [回复]
+
+想问个问题，能在Receiver里面发短信吗？PendingIntent.getBroadcast(this, 0, sendIntent, 0);如果用this是不行的，换成onReceive()方法里的 context也没有成功
+Re: qinjuning 2013-07-23 10:27发表 [回复]
+
+回复u011026237：onReceive(context, ) 的Context对象指代的是该Appl中存在的一个Context，或许是Application,可以输出看看。可以正常发送短信的，或许权限不足？
+Re: 本草洋葱 2013-07-24 15:35发表 [回复]
+
+回复qinjuning：多谢，已经解决
+15楼 第一滴泪 2013-07-05 17:44发表 [回复]
+
+其它的都讲得很好，但是对于最后
+
+“另外，需要强调一点的是，通过对ContextImp的分析可知，其方法的大多数操作都是直接调用其属性mPackageInfo(该属性类型为PackageInfo)的相关方法而来” 这句话不苟同啊 ， PackageInfo 里面几乎没有任何实现。
+Re: qinjuning 2013-07-23 10:23发表 [回复]
+
+回复leizuishuai201314： //所有Application程序公用一个mPackageInfo对象 
+/*package*/ ActivityThread.PackageInfo mPackageInfo; 
+
+不是	android.content.pm.PackageInfo类。可以研究哈。
+14楼 suchttta 2013-06-24 16:39发表 [回复]
+
+楼主我想问一个问题，我一个app应用没有Activity，是做成后台运行的Service,但是在服务中无法使用startActivityForResult()方法,该方法只存在Activity中,将Service的context强制类型转换为Activity对象也不行.望指点
+Re: qinjuning 2013-06-24 20:31发表 [回复]
+
+回复suchttta：这个当然不行的，Service和Activity属于不同的类。在Service中不能使用startActivityForResult()，不同的Task之间也不能使用。你可以换个方式，例如：全局Handler，广播等实现。
+Re: suchttta 2013-06-25 13:58发表 [回复]
+
+回复qinjuning：噢，原来是这么一回事。我现在的情况是，这个app没有Activity，一启动就是Service,我想在这个Service中打开设备管理器(DevicePolicyManager),开始用startActivityForResult()不行,之后我换了一种方式:
+Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, componentName);
+intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "打开设备管理器");
+intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); 
+context.startActivity(intent); 
+
+这会是没有报错了,但是就是没有效果.您知道如何解决吗?
+
+如果不加intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); 这条语句就会报错:
+06-25 13:57:35.549: E/AndroidRuntime(7746): Caused by: android.util.AndroidRuntimeException: Calling startActivity() from outside of an Activity context requires the FLAG_ACTIVITY_NEW_TASK flag. Is this really what you want?
+
+现在纠结着呢
+Re: 胖虎 2013-07-08 09:13发表 [回复]
+
+回复suchttta：我觉得应该来说是Activity被使用在后台了？？？
+试试下面两种：
+1.
+intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+2.
+intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); 
+intent.addFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+13楼 jack_tianzhenhai 2013-06-06 17:32发表 [回复]
+
+楼主写的很好，学习了。
+有个问题想和楼主讨论一下，在Activity中我们通常可以获取的Application的context实例，这个实例也可以实现对资源调用等功能。我们通常使用的时候是用Activity自身的context好还是用application中的？
+Re: leehong2005 2013-06-15 16:37发表 [回复]
+
+回复jack_tianzhenhai：我来回复你：通常情况下appliction context与activity的context用法没有太大区别，只是app的context生命周期长于activity。如果你想保存一个静态全局的资源的话，你不能使用activity的context。这样会导致内存泄露。
+12楼 pillow_zhou 2013-06-05 13:35发表 [回复]
+
+楼主写的很好，但是我还有个疑问，就是这三种方式得到的Context有什么区别呢？
+Re: leehong2005 2013-06-15 17:01发表 [回复]
+
+回复pillow_zhou：哪有里有三种方式？不明白，请指教
+11楼 HeeLoo1 2013-06-05 11:41发表 [回复]
+
+虽然很深奥，但是解决了我的问题
+10楼 hejinya 2013-05-21 17:45发表 [回复]
+
+你好，问一下，android4.0以上版本ContextIml类在哪个地方，这个地方是不是跟2.3以前实现不同了，我没发现这个类
+Re: qinjuning 2013-05-22 17:39发表 [回复]
+
+回复hejinya：额，写错了，是ContextImpl类。 命名方式你懂的。可以搜搜Context类的继承结构的。
+Re: leehong2005 2013-06-15 17:02发表 [回复]
+
+回复qinjuning：在高版本的系统中，有些类都重命名了。比如在2.3上，ViewRoot，但是4.0以上，改名为ViewRootImpl。
+9楼 franksunny 2013-05-08 10:45发表 [回复]
+
+你比书上将的更加浅显和易于理解。消化的挺好的。
+8楼 heimantou1 2013-05-06 11:36发表 [回复]
+
+学习了。
+7楼 jackly_n 2013-03-27 18:00发表 [回复]
+
+刚好搜到有关Context类的解析，很有帮助，正迷惑呢！
+6楼 Linus_Xie 2012-12-28 11:00发表 [回复]
+
+鸟蛋路过，以后多多向前辈学习。。。嘿嘿。。。
+5楼 zy_zhangyuan88 2012-09-20 16:36发表 [回复]
+
+有这个书的电子书吗？
+4楼 newcman 2012-07-24 23:28发表 [回复]
+
+学楼主，果断买书！
+3楼 fchangfa 2012-07-24 11:01发表 [回复]
+
+很好！博主的Android功底应该不错，以后还需要多指点。rss了。
+Re: qinjuning 2012-07-26 09:02发表 [回复]
+
+回复fchangfa： 还是菜鸟啊。多多沟通交流。
+2楼 banxi 2012-03-31 10:10发表 [回复]
+
+学习SharedPreferences的时候,想了解下源代码,找了下找不到.哈哈,然后在这里看到了,谢谢!
+Re: qinjuning 2012-03-31 12:32发表 [回复]
+
+回复banxi1988：无心插柳柳成荫咯。是不是改把博客的标题变长点，呵呵。
+多看源码进步快，加油。
+1楼 gejisit 2012-03-26 17:41发表 [回复]
+
+精辟
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+核心技术类目
+全部主题 数据挖掘 SOA UML 开放平台 HTML5 开源 移动开发 iOS Android 移动游戏 Windows Phone JavaScript CSS 游戏引擎 云计算 大数据 Hadoop OpenStack 云平台 PHP MongoDB JSON Xcode Node.js 前端开发 神经网络 安全 Java .NET MySQL textview BigTable web框架 SQL Redis CouchDB Linux 可穿戴计算 NoSQL Ruby API GPL XAML ASP.NET 前端开发 虚拟化 框架 机器学习 数据中心 IE10 敏捷 集群
+个人资料
+ 访问我的空间 
+qinjuning
+ 
+
+访问：438599次
+积分：4115分
+排名：第1494名
+原创：42篇转载：0篇译文：3篇评论：653条
+通知
+本文博客欢迎转载, 请保留出处。谢谢合作
+武汉Android联盟QQ群
+Android爱好者QQ群：55945620 ， 希望热爱武汉Android同胞能够加入。
+博客专栏
+	Android框架浅析
+文章：10篇
+阅读：179590
+	Android技巧拾取
+文章：17篇
+阅读：171820
+文章分类
+Andoird技巧拾取(27)
+Andoird框架浅析(11)
+Java技巧拾取(3)
+Linux学习笔记(1)
+总结:难得糊涂(3)
+阅读排行
+Android中View绘制流程以及invalidate()等相关方法分析(47470)
+Android框架浅析之锁屏(Keyguard)机制原理(35503)
+Android中获取应用程序(包)的信息-----PackageManager的使用(一)(29293)
+Android中Context详解 ---- 你所不知道的Context(26289)
+Android中Preference的使用以及监听事件分析(21280)
+Android中滑屏初探 ---- scrollTo 以及 scrollBy方法使用说明(20430)
+Android中滑屏实现----手把手教你如何实现触摸滑屏以及Scroller类详解(18090)
+Android中将布局文件/View添加至窗口过程分析 ---- 从setContentView()谈起(17393)
+Android中内容观察者的使用---- ContentObserver类详解(16389)
+Android中获取正在运行的应用程序-----ActivityManager.RunningAppProcessInfo类详解(15461)
+评论排行
+Android中View绘制流程以及invalidate()等相关方法分析(65)
+毕业半年，点滴在心中(56)
+Android框架浅析之锁屏(Keyguard)机制原理(50)
+Android中滑屏实现----手把手教你如何实现触摸滑屏以及Scroller类详解(42)
+Android中获取应用程序(包)的信息-----PackageManager的使用(一)(40)
+Android中Context详解 ---- 你所不知道的Context(35)
+Android中内容观察者的使用---- ContentObserver类详解(32)
+Android中获取应用程序(包)的大小-----PackageManager的使用(二)(29)
+Android学习进阶路线导航线路(Android源码分享)(28)
+Android中滑屏初探 ---- scrollTo 以及 scrollBy方法使用说明(28)
+文章存档
+2013年04月(1)
+2013年03月(1)
+2013年01月(1)
+2012年11月(1)
+2012年10月(2)
+展开
+最新评论
+Android中Preference的使用以及监听事件分析
+zhaoshenan: 学习了，挺使用的
+Android学习进阶路线导航线路(Android源码分享)
+QQ718225250: mark 顶 支持
+Android中内容观察者的使用---- ContentObserver类详解
+zxciop110: 我其实就有一个问题 就是onChange方法 是否执行多次！
+Android中View(视图)绘制不同状态背景图片原理深入分析以及StateListDrawable使用详解
+tonyzzp: Arrays.equals是比如两个数组的每一个对应位置是否相等。也就是说在记录states时必须使...
+Android中View(视图)绘制不同状态背景图片原理深入分析以及StateListDrawable使用详解
+tonyzzp: 当多state组合存在时，怎么样判断状态是否相同？
+Android中MediaButtonReceiver广播监听器的机制分析
+欧阳鹏: 谢谢楼主，看完之后茅塞顿开啊。对我理解代码帮助很大！
+Android中内容观察者的使用---- ContentObserver类详解
+冲撒肖: 短信数据库为什么在观察者里onChange会多次被执行 而不是执行一次 在接收到短信的时候不是...
+Android自定义锁屏实现----仿正点闹钟滑屏解锁
+everfountain: 你好，横竖屏切换之后会出现双重解锁的问题，请问怎么解决
+Android中MediaButtonReceiver广播监听器的机制分析
+码农巴布亚: @ljkever_2008:目前我的处理就是不让media button事件传给google mus...
+Android中滑屏实现----手把手教你如何实现触摸滑屏以及Scroller类详解
+ziyouzhifeng007: 学到了不少 顶了
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved GongshangLogo
+  

@@ -1,0 +1,164 @@
+
+
+ChinaUnix.net	
+首页 | 论坛 | 博客 | Linux | 人才 | 培训 | 精华 | Wiki | 读书 | 资料 | 手册 | 下载 | 搜索
+
+ChinaUnix首页 > 精华文章 > 网络安全 > 正文	 
+
+
+[保留] 喜欢linux的朋友请进来分析一下
+http://www.chinaunix.net 作者:lz_fying  发表于：2004-08-16 01:11:46
+【发表评论】 【查看原文】 【网络安全讨论区】【关闭】
+
+我最近看了看iptables 写了个简单的防火墙总觉得有很多不完美之处，请各位高手帮忙看看，小弟拜谢了！！！ 
+其中最明显的就是本机的域名无法解析 
+
+#!/bin/sh 
+case "$1" in 
+ start) 
+         echo -n "Starting Iptables: " 
+         echo 
+         #加载内存模块 
+         /sbin/modprobe ip_tables 
+  /sbin/modprobe iptable_nat 
+  /sbin/modprobe ip_conntrack 
+  /sbin/modprobe ip_conntrack_ftp 
+  /sbin/modprobe ip_nat_ftp 
+  #/sbin/modprobe ipt_LOG 
+  #/sbin/modprobe ipt_MARK 
+  #/sbin/modprobe ipt_MASQUERADE 
+  #/sbin/modprobe ipt_REDIRECT 
+  #/sbin/modprobe ipt_REJECT 
+  #/sbin/modprobe ipt_TOS 
+  #/sbin/modprobe ipt_limit 
+  #/sbin/modprobe ipt_mac 
+  #/sbin/modprobe ipt_mark 
+  #/sbin/modprobe ipt_multiport 
+  #/sbin/modprobe ipt_state 
+  #/sbin/modprobe ipt_tos 
+  #/sbin/modprobe iptable_mangle 
+         echo '1'>; /proc/sys/net/ipv4/ip_forward 
+  echo '1'>; /proc/sys/net/ipv4/conf/eth1/rp_filter 
+         echo -n "the kernel modules ok..." 
+         echo 
+   
+  #清空现有的防火墙规则 
+  iptables -F #清空防火墙规则表 
+      iptables -Z FORWARD  
+      iptables -F -t nat 
+      iptables -X  
+      iptables -P INPUT ACCEPT #禁止进入的包 
+      iptables -P OUTPUT ACCEPT #允许出去的包 
+      iptables -P FORWARD ACCEPT #禁止转发包 
+         iptables -t nat -P PREROUTING DROP  
+  echo -n "the Refresh ok..." 
+         echo 
+       
+         #配置防火墙规则 
+          
+         #配置lockback规则 
+       
+      #设置转发规则 
+  iptables -t nat -A PREROUTING -i eth0 -j ACCEPT 
+  iptables -t nat -A POSTROUTING -s 192.168.0.2 -j SNAT --to-source 211.99.110.1 
+55 
+  iptables -t nat -A PREROUTING -i eth1  -d 211.99.110.x -p tcp --destination 
+-port 6022 -j ACCEPT    iptables -t nat -A PREROUTING -i eth1  -d 211.99.110.x -p tcp --destination 
+-port 21 -j DNAT --to-destination 192.168.0.2:21  
+  iptables -t nat -A PREROUTING -i eth1  -d 211.99.110.x -p tcp --destination 
+-port 80 -j DNAT --to-destination 192.168.0.2:80   #iptables -t nat -A PREROUTING -i eth1  -d 211.99.110.x -p tcp --destination 
+-port 3389 -j DNAT --to-destination 192.99.0.2:3389 
+   
+  #iptables -t nat -A PREROUTING -i eth1  -d 211.99.110.x -p tcp --destination 
+-port 1024:65535 -j DNAT --to-destination 192.168.0.2 
+      
+  #iptables -t nat -A POSTROUTING -s 192.168.0.3 -j SNAT --to-source 211.99.110. 
+153   #iptables -t nat -A PREROUTING -i eth1  -d 211.99.110.x -p tcp --destination 
+-port  21 -j DNAT --to-destination 192.168.0.3:21   #iptables -t nat -A PREROUTING -i eth1  -d 211.99.110.x -p tcp --destination 
+-port  80 -j DNAT --to-destination 192.168.0.3:80 
+  #iptables -t nat -A PREROUTING -i eth1  -d 211.99.110.x -p tcp --destination 
+-port 1024:65535 -j DNAT --to-destination 192.168.0.3  
+  ;; 
+   stop) 
+         echo -n "Shutting Firewalling: " 
+      #清除所有当前的规则 
+      iptables -F 
+      iptables -Z FORWARD 
+      iptables -F -t nat 
+      #删除用户自定义的规则 
+      iptables -X 
+      #重启协议链 
+      iptables -P INPUT   ACCEPT 
+      iptables -P OUTPUT  ACCEPT 
+      iptables -P FORWARD ACCEPT 
+         iptables -t nat -P PREROUTING ACCEPT 
+  ;; esac 
+echo "done" exit 0 
+
+
+
+
+ lz_fying 回复于：2004-07-15 22:31:00
+
+那位牛人大哥帮忙改一下 急用谢谢了 
+
+QQ:153087713  
+请注明linux
+
+ skylove 回复于：2004-07-16 03:22:37
+
+你要允许udp方式 用53连你本机的1024:65535，也允许你的1024：65535 连对方的53才可以啊
+
+ 網中人 回复于：2004-07-16 12:10:18
+
+試試多加一行: 
+iptables -t nat -I PREROUTING -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+ lz_fying 回复于：2004-07-16 20:55:52
+
+请问四楼的朋友 
+加那句的作用是什么我对iptables不太很熟 
+谢谢了·！！！
+
+ 網中人 回复于：2004-07-17 00:22:22
+
+那是 iptables 對連線封包狀態的分類.  
+你可 man iptables 或看 netfilter HOWTO 加以了解. 
+
+若不嫌棄, 也可參考我幾年前寫的舊文章: 
+http://www.study-area.org/linux/servers/linux_nat.htm
+
+ lz_fying 回复于：2004-07-17 10:43:37
+
+收获不小！ 
+
+谢谢楼上的兄弟了
+
+ mayzi1201 回复于：2004-07-19 13:00:33
+
+楼上D楼上真厉害呀。。。几年前都写出来了
+
+ lz_fying 回复于：2004-07-20 23:01:54
+
+是啊
+
+ speedy 回复于：2004-08-16 01:11:46
+
+up,up,学习中！
+
+
+
+
+
+原文链接：http://bbs.chinaunix.net/viewthread.php?tid=367792
+转载请注明作者名及原文出处
+
+
+
+
+Copyright © 2001-2006 ChinaUnix.net   All Rights Reserved
+
+
+感谢所有关心和支持过ChinaUnix的朋友们
+
+京ICP证041476号

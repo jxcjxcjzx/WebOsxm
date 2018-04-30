@@ -1,0 +1,485 @@
+ORACLE DBA 经验总结分享
+李世侠
+随笔 - 32, 文章 - 1, 评论 - 14, 引用 - 0
+LINUX的awk和sed的常用用法
+awk的用法
+a w k语言的最基本功能是在文件或字符串中基于指定规则浏览和抽取信息
+ 
+调用awk
+
+有三种方式调用a w k，
+第一种是命令行方式，如：
+
+     awk –F : ‘commands’ input-files
+
+    第二种方法是将所有a w k命令插入一个文件，并使a w k程序可执行，然后用a w k命令作为脚本的首行，以便通过键入脚本名称来调用它。
+第三种方式是将所有的a w k命令插入一个单独文件，然后调用：
+
+awk –f awk-script-file input-files
+ 
+awk脚本
+
+模式和动作
+
+在命令中调用a w k时，a w k脚本由各种操作和模式组成。模式包括两个特殊字段B E G I N和E N D。
+
+使用B E G I N语句设置计数和打印头。B E G I N语句使用在任何文本浏览动作之前。E N D语句用来在a w k完成文本浏览动作后打印输出文本总数和结尾状态标志。
+
+实际动作在大括号{ }内指明。
+
+ 
+
+域和记录
+
+$ 0，意即所有域
+
+ 
+
+• 确保整个a w k命令用单引号括起来。
+
+• 确保命令内所有引号成对出现。
+
+• 确保用花括号括起动作语句，用圆括号括起条件语句。
+
+ 
+awk中的正则表达式
+
++ 使用+匹配一个或多个字符。
+
+？ 匹配模式出现频率。例如使用/X Y?Z/匹配X Y Z或Y Z。
+
+ 
+
+awk '{if($4~/Brown/) print $0}' tab2
+
+等效于
+
+awk '$0 ~ /Brown/' tab2
+
+ 
+
+内置变量
+
+awk '{print NF,NR,$0}END{print FILENAME}' tab1
+
+NF 域的总数
+
+NR已经读取的记录数
+
+FILENAME
+
+ 
+
+awk '{if(NR>0 && $2~/JLNQ/) print $0}END{print FILENAME}' tab1
+
+ 
+
+显示文件名
+
+echo "/app/oracle/ora_dmp/lisx/tab1" | awk -F/ '{print $NF}'
+
+ 
+
+定义域名
+
+awk '{owner=$2;number=$3;if(owner~/SYSADMIN/ && number!=12101)print $0}END{print FILENAME}' tab1
+
+ 
+
+awk 'BEGIN{NUM1=7}{if($1<=NUM1) print $0}END{print FILENAME}' tab1
+
+ 
+
+当在a w k中修改任何域时，重要的一点是要记住实际输入文件是不可修改的，修改的只是保存在缓存里的a w k复本
+awk 'BEGIN{NUM1=7}{if($1<=NUM1) print $1+2,$2,$3+100}END{print FILENAME}' tab1
+
+ 
+
+只打印修改部分：用{}
+
+awk 'BEGIN{NUM1=7}{if($1<=NUM1){$2="ORACLE"; print $0}}END{print "filename:"FILENAME}' tab1
+ 
+
+ 可以创建新的域
+awk 'BEGIN{NUM1=7;print "COL1"tCOL2"tCOL3"tCOL4"}{if($1<=NUM1){$4=$1*$3;$2="ORACLE"; print $0}}END{print "filename:"FILENAME}' tab1
+
+ 
+打印总数：
+awk 'BEGIN{NUM1=7;print "COL1"tCOL2"tCOL3"tCOL4"}{if($1<=NUM1){tot+=$3;$4=$1*$3;$2="ORACLE"; print $0}}END{print "filename:"FILENAME "total col3:" tot}' tab1
+ 
+使用此模式打印文件名及其长度，然后将各长度相加放入变量t o t中。
+
+ls -l | awk '/^[^d]/ {print$9""t"$5} {tot+=$5}END{print "total KB:" tot}'
+
+ 
+
+内置字符串函数
+
+gsub 字符要用引号，数字不用
+
+awk 'gsub(/12101/,"hello") {print $0} END{print FILENAME}' tab1
+
+awk 'gsub(/12101/,3333) {print $0} END{print FILENAME}' tab1
+
+ 
+
+index
+
+awk '{print index($2,"D")""t";print $0}' tab1
+
+awk '{print index($2,"D")""t" $0}' tab1
+
+ 
+
+length
+
+awk '{print length($2)""t" $0}' tab1
+
+ 
+
+ma
+
+awk '{print match($2,"M")""t" $0}' tab1
+
+ 
+
+split
+
+awk '{print split($2,new_array,"_")""t" $0}' tab1
+
+ 
+
+sub 替换成功返回1,失败返回0
+
+awk '{print sub(/SYS/,"oracle",$2)""t" $0}' tab1
+
+ 
+
+substr
+
+awk '{print substr($2,1,3)""t" $0}' tab1
+
+ 
+
+从s h e l l中向a w k传入字符串
+
+echo "Stand-by" | awk '{print length($0)""t"$0}'
+
+8                                 Stand-by
+ 
+
+file1="tab1"
+
+cat $file1 | awk '{print sub(/ADMIN/,"sss",$2)""t"$0}'
+
+ 
+
+字符串屏蔽序列
+
+" b 退格键      " t t a b键
+
+" f 走纸换页    " d d d 八进制值
+
+" n 新行         " c 任意其他特殊字符，例如" "为反斜线符号
+
+" r 回车键
+
+ 
+awk printf修饰符
+
+- 左对齐
+
+Wi d t h 域的步长，用0表示0步长
+
+. p r e c 最大字符串长度，或小数点右边的位数
+
+ 
+
+如果用格式修饰输出，要指明具体的域，程序不会自动去分辨
+
+awk '{printf "%-2d %-10s %d"n", $1,$2,$3}' tab1
+
+输出结果
+
+9 SYSADMIN   12101
+
+9 SYSADMIN   12101
+
+14 SYSADMIN   121010000012002
+
+9 SYSADMIN   12101
+
+2 JLNQ       12101
+
+2 JLNQ       12101
+
+7 SYSADMIN   12101
+
+7 SYSADMIN   12101
+
+6 ac_ds_e_rr_mr 13333
+
+ 
+
+向一行a w k命令传值
+
+awk 'BEGIN{SYS="SYSADMIN"}{if($2==SYS) printf "%-2d %-10s %d"n", $1,$2,$3}' tab1
+
+在动作后面传入
+
+awk '{if($2==SYS) printf "%-2d %-10s %d"n", $1,$2,$3}' SYS="SYSADMIN" tab1
+
+ 
+
+awk脚本文件
+
+ 
+
+ 
+
+SED用法
+sed怎样读取数据
+
+s e d从文件的一个文本行或从标准输入的几种格式中读取数据，将之拷贝到一个编辑缓冲区，然后读命令行或脚本的第一条命令，并使用这些命令查找模式或定位行号编辑它。重复此过程直到命令结束。
+ 
+调用s e d有三种方式
+
+使用s e d命令行格式为：
+sed [选项]  s e d命令   输入文件。
+记住在命令行使用s e d命令时，实际命令要加单引号。s e d也允许加双引号。
+使用s e d脚本文件，格式为：
+sed [选项] -f    sed脚本文件   输入文件
+要使用第一行具有s e d命令解释器的s e d脚本文件，其格式为：
+s e d脚本文件 [选项]   输入文件
+使用s e d在文件中定位文本的方式
+
+x             x为一行号，如1
+
+x , y         表示行号范围从x到y，如2，5表示从第2行到第5行
+
+/ p a t t e r n / 查询包含模式的行。例如/ d i s k /或/[a-z]/
+
+/ p a t t e r n / p a t t e r n / 查询包含两个模式的行。例如/ d i s k / d i s k s /
+
+p a t t e r n / , x 在给定行号上查询包含模式的行。如/ r i b b o n / , 3
+
+x , / p a t t e r n / 通过行号和模式查询匹配行。3 , / v d u /
+
+x , y ! 查询不包含指定行号x和y的行。1 , 2 !
+
+ 
+
+sed编辑命令
+
+p  打印匹配行
+=  显示文件行号
+a"  在定位行号后附加新文本信息
+i"  在定位行号后插入新文本信息
+d  删除定位行
+c"  用新文本替换定位文本
+s 使用替换模式替换相应模式
+r 从另一个文件中读文本
+w 写文本到一个文件
+q 第一个模式匹配完成后推出或立即推出
+l 显示与八进制A S C I I代码等价的控制字符
+{ } 在定位行执行的命令组
+n 从另一个文件中读文本下一行，并附加在下一行
+g 将模式2粘贴到/pattern n/
+y 传送字符
+n 延续到下一输入行；允许跨行的模式匹配语句
+ 
+sed编程举例
+
+打印单行     sed -n '2p' quo*
+
+打印范围    sed -n '1,3p' quote.txt
+
+打印有此模式的行    sed -n '/disco/'p quote.txt
+
+使用模式和行号进行查询  sed -n '4,/The/'p quote.txt  
+
+sed -n '1,/The/'p quote.txt 会打印所有记录？
+
+用.*代表任意字符   sed -n '/.*ing/'p quote.txt
+
+打印行号 sed -e '/music/'= quote.txt 或sed -e '/music/=' quote.txt
+如果只打印行号及匹配行，必须使用两个s e d命令，并使用e选项。
+
+第一个命令打印模式
+匹配行，第二个使用=选项打印行号，格式为sed -n -e /pattern/p -e /pattern/=。
+sed -n -e '/music/p' -e '/music/'= quote.txt
+
+ 
+
+先打印行号，再打印匹配行
+
+sed -n -e '/music/=' -e '/music/'p quote.txt
+
+ 
+
+替换
+
+sed 's/The/Wow!/' quote.txt
+
+ 
+
+保存到文件
+
+sed '1,2 w filedt' quote.txt
+
+ 
+
+读取文件，在第一行后面读取
+
+sed '1 r sedex.txt' quote.txt
+
+ 
+
+替换字符系列
+
+如果变量x含有下列字符串：
+x="Department+payroll%Building G"
+要实现以下转换：
++ to 'of'  
+% to located
+语句： echo $x | sed 's/"+/ of /g' | sed 's/"%/ located /g'
+ 
+
+ 
+
+ 
+
+--------------------------------------------------------------
+多交流，多思考，多总结，坚持学好ORACLE ！ 
+E-mail:dlut_lsx@163.com
+
+QQ:23336581
+
+分类: Linux永远的开源世界
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+李世侠
+关注 - 1
+粉丝 - 2
++加关注
+1 0
+(请您对文章做出评价)
+« 博主上一篇：linux正则表达式 grep egrep用法
+» 博主下一篇：linux的文本处理（学习笔记）
+posted on 2009-04-27 15:37 李世侠 阅读(25779) 评论(1) 编辑 收藏
+
+评论
+
+#1楼   
+我收藏了，有内容！
+支持(0)反对(0)
+2012-08-08 15:15 | linuxdog  
+刷新评论刷新页面返回顶部
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+博客园首页博问新闻闪存程序员招聘知识库
+
+最新IT新闻:
+· 名门之后，ThinkPad Tablet 2 评测
+· 唱吧 iPad 版上线 Windows Phone版正在研发
+· 伊坎与戴尔签保密协议 可查看公司账目
+· 学徒程序员
+· 德国研发去中心化社交网络框架
+» 更多新闻...
+最新知识库文章:
+· 云计算里AWS和Azure的探究
+· SQL Server 高性能写入的一些总结
+· Facebook如何实现PB级别数据库自动化备份
+· 源代码管理十诫
+· 如何成为强大的程序员？
+» 更多知识库文章...
+
+导航
+博客园
+首页
+新随笔
+联系
+订阅 
+管理
+<	2009年4月	>
+日	一	二	三	四	五	六
+29	30	31	1	2	3	4
+5	6	7	8	9	10	11
+12	13	14	15	16	17	18
+19	20	21	22	23	24	25
+26	27	28	29	30	1	2
+3	4	5	6	7	8	9
+公告
+昵称：李世侠
+园龄：4年2个月
+粉丝：2
+关注：1
++加关注
+搜索
+ 
+ 
+常用链接
+我的随笔
+我的评论
+我的参与
+最新评论
+我的标签
+我的标签
+linux(4)
+ORACLE(2)
+oracle10g安装升级补丁(2)
+p6810189_10204_Linux-x86-64.zip(2)
+paste(1)
+RAC(1)
+RMAN(1)
+sort(1)
+split(1)
+tr(1)
+更多
+随笔分类(25)
+Linux永远的开源世界(12)
+Oracle人类智慧的里程碑(13)
+随笔档案(32)
+2012年3月 (1)
+2011年4月 (1)
+2011年1月 (1)
+2010年8月 (1)
+2010年7月 (1)
+2010年6月 (1)
+2010年3月 (2)
+2010年1月 (1)
+2009年11月 (1)
+2009年10月 (1)
+2009年8月 (2)
+2009年7月 (1)
+2009年6月 (2)
+2009年5月 (1)
+2009年4月 (3)
+2009年3月 (3)
+2009年1月 (8)
+2008年12月 (1)
+百科
+中文爱百科
+可信赖的中文百科全书
+最新评论
+1. Re:linux正则表达式 grep egrep用法
+很好 谢谢分享
+--sigma_cd2012
+2. Re:LINUX的awk和sed的常用用法
+我收藏了，有内容！
+--linuxdog
+阅读排行榜
+1. LINUX的awk和sed的常用用法(25779)
+2. linux正则表达式 grep egrep用法(24250)
+3. RAC以及ASM安装全过程整理(3404)
+4. ORACLE分组函数stddev和variance，我心存的疑问(3384)
+5. oracle很有用的统计函数rank和cume_dist(1597)
+评论排行榜
+1. ORACLE分组函数stddev和variance，我心存的疑问(4)
+2. 对ORACLE的onling redo log files的操作(2)
+3. linux正则表达式 grep egrep用法(2)
+4. oracle功能强大的with子句(2)
+5. oracle很有用的统计函数rank和cume_dist(1)
+推荐排行榜
+1. LINUX的awk和sed的常用用法(1)
+Powered by: 
+博客园 
+Copyright © 李世侠

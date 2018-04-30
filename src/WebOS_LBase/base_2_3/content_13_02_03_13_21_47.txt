@@ -1,0 +1,292 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+xichba的专栏
+目录视图摘要视图订阅
+CSDN客服工作问卷调查        智能开发框架 JEECG 作者张代浩专访 
+2012CSDN博客之星火热出炉！        2013年全国百所高校巡讲讲师招募
+ 函数式编程(二)
+分类： python 2013-01-30 23:41 12人阅读 评论(0) 收藏 举报
+迭代器（Iterators）
+迭代器是写函数式程序的重要基础，我将从Python语言的特性开始描述。
+迭代器是一个代表数据流的对象；这个对象一次返回数据中的一个元素。Python迭代器必须支持__next__()方法。该方法不接受参数，返回流中的下个元素。如果流中没有元素了，__next__()必须抛出StopIteration异常。迭代器不需要是有限的，完全可以写一个产生无限数据流的迭代器。
+内置的iter() 函数接受一个任意的对象并尝试返回一个迭代器，该迭代器将返回对象的内容或元素，如果对象不支持迭代器则抛出TypeError异常。几种Python内置的数据类型支持迭代器。最常见的是列表和字典。若你能给一个对象赋予迭代器，则称该对象是可迭代的。
+你能手工实验迭代器接口：
+>>> L=[1,2,3]
+>>> it=iter(L)
+>>> it 
+<...iterator object at ...>
+>>> it.__next__()  # same as next(it)
+1
+>>> next(it)
+2
+>>> next(it)
+3
+>>> next(it)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+StopIteration
+>>> 
+ 
+Python在一些上下文中希望有迭代器对象，最重要的是for语句。在语句 for X in Y中，Y必须是迭代器，或者是通过iter()可以创造迭代器的对象。这两种语句是等价的：
+for i initer(obj):
+    print(i)
+ 
+for i in obj:
+    print(i)
+ 
+迭代器能通过列表或元组来实现，方式是利用list() 和 tuple()构造函数：          
+>>> L= [1,2,3]
+>>> iterator=iter(L)
+>>> t=tuple(iterator)
+>>> t
+(1, 2, 3)
+ 
+序列拆包也支持迭代器：如果你知道一个迭代器将返回N个元素，可以将它们拆成N元组：
+>>> L= [1,2,3]
+>>> iterator=iter(L)
+>>> a,b,c= iterator
+>>> a,b,c
+(1, 2, 3)
+ 
+像max() 和 min()这样的内置函数可以接受一个单独的迭代器作为输入，返回其中最大或最小的元素。"in" 和 "not in"运算符也支持迭代器：当X在迭代器返回的流中时，X in iterator为真。当迭代器为无限时你将陷入明显的问题中：max(),和min()永远不返回；如果元素X永远不在流中出现，"in" 和 "not in"运算符也永远不会返回。
+必须注意的是，在一个迭代器中你只能往前走，没有方法能得到早先的一个元素、重置迭代器、复制迭代器。迭代器对象当然可以随意地提供这些功能，但迭代器协议里只指定了__next__()方法。函数因此可能耗尽迭代器所有的输出，如果你需要对流进行一些其他操作，你不得不重新创作一个迭代器。
+ 
+支持迭代器的数据格式
+我们已经了解了列表和元组如何支持迭代器。实际上，Python中所有的序列格式，比如字符串，都自动支持迭代器的创建。
+在一个字典中调用iter()会返回一个迭代器，该迭代器会遍历所有的字典键码：
+>>> m= {'Jan':1,'Feb':2,'Mar':3,'Apr':4,'May':5,'Jun':6,
+...      'Jul':7,'Aug':8,'Sep':9,'Oct':10,'Nov':11,'Dec':12}
+>>> for key in m:  
+...     print(key, m[key])
+Mar 3
+Feb 2
+Aug 8
+Sep 9
+Apr 4
+Jun 6
+Jul 7
+Jan 1
+May 5
+Nov 11
+Dec 12
+Oct 10
+ 
+要注意到其中的顺序本质上是随机的，因为字典中的对象是哈希排序的。
+对一个字典应用iter() 能遍历所有的键码。但字典有返回其他种类迭代器的方法。如果你想迭代键值或键/值对，你可以明确地调用values() 和 items()方法来得到合适的迭代器。
+dict()构造函数能接受一个迭代器并返回一个有限的(key,value)元组：
+>>> L= [('Italy','Rome'), ('France','Paris'), ('US','Washington DC')]
+>>> dict(iter(L))  
+{'Italy': 'Rome', 'US': 'Washington DC', 'France': 'Paris'}
+ 
+通过调用readline()方法，文件也可以支持迭代器，该方法持续到文件里没有更多的行。这意味你能读取文件里的每一行：
+for line in file:
+    # do something for each line
+    ...
+ 
+对于集合，可以通过迭代器遍历得到它的内容：
+S= {2,3,5,7,11,13}
+for i in S:
+    print(i)
+ 
+生成器表达式和列表解析
+对迭代器的输出会有两个常见的操作：1、对每个元素进行操作，2、选出符合某些条件的元素。比如，给定一条字符串，你可能需要删去每行最后的空格，或者在所有字符串前扩展一个给定的子串
+列表解析和生成器表达式（简称“listcomps” 和 “genexps”）是这种操作的简明方法，引用自函数式编程语言Haskell。你可以用以下代码跳过一个字符流中所有的空格：
+line_list= ['  line 1\n','line 2  \n',...]
+ 
+# Generator expression -- returns iterator
+stripped_iter= (line.strip()for line in line_list)
+ 
+# List comprehension -- returns list
+stripped_list= [line.strip()for line in line_list]
+ 
+你可以通过增加if条件选择某些元素：
+stripped_list= [line.strip()for line in line_list
+                 if line !=""]
+ 
+一个列表解析式返回一个Python列表。stripped_list是个包含结果行的列表而不是迭代器。生成器表达式返回一个迭代器。这个迭代器一次只计算需要的数值，而不是所有的数值。这意味者列表解析对于需要返回无限长的流或大量的数据是不合适的。而生成器表达式对这种情况是非常合适的。
+生成器表达式用圆括号，列表解析用方括号。生成器表达式是这样的形式：
+( expression for expr in sequence1
+             if condition1
+             for expr2 in sequence2
+             if condition2
+             for expr3 in sequence3 ...
+             if condition3
+             for exprN in sequenceN
+             if conditionN )
+ 
+列表解析只有外面的括号是不同的（用方括号代替圆括号）。
+生成器的输出元素将是expression 的连续值。 If 语句是可选的；如果有，只有当条件为真时expression才被计算并加入到结果中。
+生成器表达式经常写在圆括号里面，但括号外的函数也可以被计算。如果你想创造一个迭代器并立即传递给函数，可以这样写：
+obj_total=sum(obj.countfor obj in list_all_objects())
+ 
+for...in语句包含了一个迭代的序列。序列不需要是同样的长度，因为它们是从左往右迭代的，而不是并行的。 sequence1, sequence2的每个元素从开头遍历。然后sequence3对 sequence1和sequence2的结果对进行遍历。
+从另一个角度看，下面的Python代码中列表解析和生成器表达式是等价的：
+for expr1 in sequence1:
+    ifnot (condition1):
+        continue   # Skip this element
+    for expr2 in sequence2:
+        ifnot (condition2):
+            continue    # Skip this element
+        ...
+        for exprN in sequenceN:
+             ifnot (conditionN):
+                 continue   # Skip this element
+ 
+             # Output the value of
+             # the expression.
+ 
+这意味着当有多个 for...in语句而没有if语句时，输出结果的长度等于所有序列长度的乘积。如果你有两个长度为3的列表，输出列表就有9个元素。
+>>> seq1='abc'
+>>> seq2= (1,2,3)
+>>> [(x, y) for x in seq1 for y in seq2]  
+[('a', 1), ('a', 2), ('a', 3),
+ ('b', 1), ('b', 2), ('b', 3),
+ ('c', 1), ('c', 2), ('c', 3)]
+ 
+为了避免在Python语法中引入歧义，如果expression创造了一个元组，它必须用圆括号包围。下面的第一个列表解析式语法错误，第二个是对的：
+# Syntax error
+[x, y for x in seq1 for y in seq2]
+# Correct
+[(x, y) for x in seq1 for y in seq2]
+ 
+生成器
+生成器是一类特殊的函数，它可以简化些迭代器的任务。常规函数计算一个值并返回它，但生成器返回一个迭代器，该迭代器返回一个数值流。
+你肯定对Python和C中对常用函数的调用很熟悉。当你调用一个函数时，它会在局部变量被创造时得到一个私有的命名空间。当函数运行到return语句时，局部变量被销毁，然后返回值给调用者。后续的对同样函数的调用创造了一个新的私有命名空间和一个新的局部变量集合。但是，如果局部变量没有在退出函数时被舍弃，而且你能从函数上次退出的地方继续运行，会怎么样呢？这就是生成器提供的功能；它们可以认为是可恢复的函数（resumable functions）。
+这是生成器最简单的功能：
+>>> defgenerate_ints(N):
+...    for i inrange(N):
+...        yield i
+一个包含关键词yield 的函数就是生成器函数，这是用Python中专门负责编译此类函数的编译器 bytecode检测的。
+当年调用一个生成器函数时，它不会返回一个单独的值；相反它会返回一个支持迭代器协议的生成器对象。一旦执行到yield表达式，生成器输出i的值，类似于return语句。Yield和return语句的主要区别是当运行到yield语句时，生成器的执行状态是被挂起的，局部变量也被保存起来。当生成器的__next__() 被调用时，函数会继续执行。
+下面是生成器generate_ints()的使用例子：
+>>> gen= generate_ints(3)
+>>> gen  
+<generator object generate_ints at ...>
+>>> next(gen)
+0
+>>> next(gen)
+1
+>>> next(gen)
+2
+>>> next(gen)
+Traceback (most recent call last):
+  File "stdin", line 1, in ?
+  File "stdin", line 2, in generate_ints
+StopIteration
+ 
+你也可以等价地写成for i in generate_ints(5)或者a,b,c = generate_ints(3)｡
+在一个生成器函数中，return value在语义上等价于raiseStopIteration(value)。如果没有值返回或者已经到达函数末尾了，那么值队列将终止而且生成器不再继续返回值了。
+你可以自己写类并把所有生成器的局部变量当成实例变量，实现生成器同样的效果。比如，返回一系列整数能写出self.count to 0，用__next__()方法增加self.count并返回。然而，对于一个比较复杂的生成器，要写一个相关的类是更麻烦的。
+Python库文件中的测试组件 Lib/test/test_generators.py包含了许多有趣的例子。这里是一个生成器，它递归地使用生成器顺序遍历一棵树。
+# A recursive generator that generates Tree leaves in in-order.
+definorder(t):
+    if t:
+        for x in inorder(t.left):
+            yield x
+ 
+        yield t.label
+ 
+        for x in inorder(t.right):
+            yield x
+ 
+test_generators.py还提供了其他两个例子。一个是N-Queens（把N个皇后放在NxN的棋盘里，使得没有皇后会威胁其它皇后）问题的解决方案，另一个是Knight’s Tour（为骑士找到一条路线，使骑士能到达NxN的棋盘的每一个方格并且不重复）问题的解决方案。
+ 
+向生成器中传递值
+在Python2.4和更早版本中，生成器只能输出值。一旦一个生成器被调用来创建一个迭代器，当迭代器开始后就没有办法向其传递任何信息。你可以通过让生成器读取全局变量，或者接受一些调用者随后会修改的不定对象来实现这个功能，但这些方式都很麻烦。
+在Python2.5中有个简单的办法向生成器传递值。yield变成一个表达式，返回一个值，该值能向其它变量赋值，或者做其它操作：
+val= (yield i)
+ 
+我建议当你要取yield表达式的返回值时在外面加圆括号，就像上述例子一样。圆括号并不是一定需要，但总是加上它好过记住什么时候需要它。
+（PEP 342解释了确定的规则，yield表达式总是要加上圆括号的，除了当它在一个顶层赋值语句的右边时不需要。这意味着你可以写val = yield i，但当该式上有其他操作时需要加圆括号，比如val = (yield i) + 12）
+数值用send(value)方法传递给生成器。这个方法重置生成器的代码，yield表达式返回这个指定的值。当调用常规的__next__()方法时，yield返回None。
+这是个简单计数器，每次加1，而且允许改变内部计数器的值。
+defcounter(maximum):
+    i =0
+    while i < maximum:
+        val = (yield i)
+        # If value provided, change counter
+        if val isnotNone:
+            i = val
+        else:
+            i +=1
+ 
+下面的例子改变了计数器：
+>>> it= counter(10)  
+>>> next(it)  
+0
+>>> next(it)  
+1
+>>> it.send(8)  
+8
+>>> next(it)  
+9
+>>> next(it)  
+Traceback (most recent call last):
+  File "t.py", line 15, in ?
+    it.next()
+StopIteration
+ 
+由于yield总是可能返回None，你需要经常检查这种情况。不要在表达式中用它的值，除非你能确保send()方法是重置生成器函数的唯一方法。
+除了send()，生成器中还有另外两个方法：
+throw(type, value=None, traceback=None)用来在生成器中抛出一个异常；当生成器的运行被暂停时yield表达式抛出这个异常。
+close()抛出一个GeneratorExit异常，终止生成器中的迭代器。当得到这个异常时，生成器的代码要么抛出GeneratorExit异常，要么是StopIteration异常；捕获异常并做任何事都是非法的，而且会触发RuntimeError。当生成器被垃圾回收时，close()也会被Python的垃圾回收器调用。
+当年想在GeneratorExit异常发生时清除代码，我建议你用try: ... finally组合，而不是捕获 GeneratorExit。
+生成器已经变成协同程序（coroutines），一种更加普遍形式的子程序.子程序从一个点进入并从另一个点离开（函数顶部和return语句），但是协同程序能在许多不同的点上进入、退出和重置（ yield 语句）。
+分享到： 
+上一篇：函数式编程(一)
+下一篇：函数式编程(三)
+
+查看评论
+
+  暂无评论
+
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+个人资料
+  
+xichba
+ 
+访问：183次
+积分：43分
+排名：千里之外
+原创：0篇转载：6篇译文：3篇评论：0条
+文章搜索
+
+文章分类
+流媒体(0)
+panda3D(2)
+游戏开发(3)
+python(3)
+文章存档
+2013年01月(9)
+阅读排行
+翻译：Panda3D Manual/V. Programming with Panda/G. Intervals(48)
+函数式编程(一)(29)
+MAYA教程——Hypershade中的Maya渲染节点(25)
+panda3d 根据collision detection（碰撞检测）实例探究Panda3d类组织结构(16)
+游戏里实现碰撞检测方法(15)
+如何学好3D游戏引擎编程(14)
+一个游戏程序员的学习资料(13)
+函数式编程(二)(11)
+函数式编程(三)(11)
+评论排行
+翻译：Panda3D Manual/V. Programming with Panda/G. Intervals(0)
+MAYA教程——Hypershade中的Maya渲染节点(0)
+游戏里实现碰撞检测方法(0)
+panda3d 根据collision detection（碰撞检测）实例探究Panda3d类组织结构(0)
+一个游戏程序员的学习资料(0)
+如何学好3D游戏引擎编程(0)
+函数式编程(一)(0)
+函数式编程(二)(0)
+函数式编程(三)(0)
+推荐文章
+
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+ 联系邮箱：webmaster(at)csdn.net
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+

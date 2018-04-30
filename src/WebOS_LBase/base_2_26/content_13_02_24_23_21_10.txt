@@ -1,0 +1,179 @@
+
+Discover  Docs  Blog  Community Sign inSign up   
+Docs
+Open webOS Architecture
+Developer Guide
+Developer Reference
+webOS Application APIs
+Add Contact
+Browser
+Calendar
+Email
+webOS Foundations
+webOS Service APIs
+webOS Data Types
+webOS Configuration Files
+Building Open webOS
+Porting Open webOS
+Share on linkedin Share on facebook Share on twitter Share on email More Sharing Services
+Email
+You can use the Application Manager's open method to bring up the Email application in compose view and, optionally, pre-populate the message with the recipient addresses, subject, body, and attachments.
+
+The URI for this service call is:
+
+com.palm.applicationManager/open
+open
+
+There are two ways to bring up the Email application in compose view:
+
+Using a standard "mailto:" URI. Use only the target parameter for this.
+
+Pre-populate message fields with subject, body, attachments and recipient addresses. For this, use the id and params fields together.
+
+(Note that you can also bring up the Email application into the default view using the "launch" method. See the Services sample code for an illustration of this technique.)
+
+Syntax
+{
+    target : string,
+    id     : string,
+    params: {
+       account : string,
+       summary : string,
+       text    : string,
+       recipients: [{
+           type           : string,
+           role           : int,
+           value          : string,
+           contactDisplay : string
+        }],
+       attachments : [{
+           fullPath    : string,
+           displayName : string,
+           mimeType    : string
+       }],      
+}       
+Parameters
+Parameter	Required	Type	Description
+target	No	string	A "mailto:" URI formatted as specified in RFC2368. Launches the Email application to the compose view with a "mailto:" URI. Required if not using id/params.
+id	No	string	Set to "com.palm.app.email". Required if not using target.
+params	No	object	Parameter object. Required if not using target.
+account	No	integer	ID of account sending email. If not specified, the default account is used. You can use the accountList Account API to retrieve an account list.
+summary	No	string	Subject line text.
+text	No	string	Body text.
+attachments	No	object array	Array of attachment objects. See fields below.
+fullPath	No	string	Full path and file name of attachment. Required for each attachment.
+displayName	No	string	Attachment display name.
+mimeType	No	string	Attachment's mime type.
+recipients	No	object array	Array of recipient objects. See fields below.
+contactDisplay	No	string	Recipient display name.
+role	No	integer	Recipient type:
+1 = To
+2 = CC
+3 = BCC
+type	No	string	Set to "email".
+value	No	string	Recipient's email address.
+Examples
+luna-send example using "mailto"
+
+luna-send -n 1  luna://com.palm.applicationManager/open '{ "target": "mailto: someguy@somewebsite.com"}'
+{ "processId": "success", "returnValue": true }
+Enyo example using "mailto"
+
+. . .
+{
+    name: "openEmailCall",
+    kind: "PalmService",
+    service: "palm://com.palm.applicationManager/",
+    method: "open",
+    onSuccess: "openEmailSuccess",
+    onFailure: "openEmailFailure",
+    onResponse: "gotResponse",
+    subscribe: true
+},
+. . .
+
+openEmailSuccess : function(inSender, inResponse) {
+    enyo.log("Open email success, results=" + enyo.json.stringify(inResponse));
+},
+openEmailFailure : function(inSender, inResponse) {
+    enyo.log("Open email failure, results=" + enyo.json.stringify(inResponse));
+},
+sendEmail : function(inSender, inResponse)
+{
+    this.$.openEmailCall.call({"target": "mailto: holeeSmokes@batman.com"});
+}
+Enyo example using "id" and "params"
+
+. . .
+{
+    name: "openEmailCall",
+    kind: "PalmService",
+    service: "palm://com.palm.applicationManager/",
+    method: "open",
+    onSuccess: "openEmailSuccess",
+    onFailure: "openEmailFailure",
+    onResponse: "gotResponse",
+    subscribe: true
+},
+. . .
+
+openEmailSuccess : function(inSender, inResponse) {
+    enyo.log("Open email success, results=" + enyo.json.stringify(inResponse));
+},
+openEmailFailure : function(inSender, inResponse) {
+    enyo.log("Open email failure, results=" + enyo.json.stringify(inResponse));
+},
+sendEmail : function(inSender, inResponse)
+{
+    var params =  {
+        "summary":"Not working out",
+        "text":"Not u, me; passion gone, u deserve better. C u when I c u. lol. PS. Give my resume to ur HR, thx", 
+        "recipients":[{"type": "email",
+            "contactDisplay":"Sal Manilla", 
+            "role":1, 
+            "value":"chesterfields99@hotmail.com"}],
+        "attachments": [{"fullPath":"/media/internal/MyResume.doc", 
+            "displayName":"My Resume"}]
+    };
+    this.$.openEmailCall.call({"id": "com.palm.app.email", "params":params});
+}  
+Mojo example using "mailto"
+
+this.controller.serviceRequest("palm://com.palm.applicationManager", {
+      method:"open",
+      parameters:{
+          "target": "mailto: address@email.com"
+      },
+      onSuccess : function (e){ Mojo.Log.info("Open success, results="+JSON.stringify(e)); },
+      onFailure : function (e){ Mojo.Log.info("Open failure, results="+JSON.stringify(e)); }    
+});
+Mojo example using "id" and "params"
+
+this.controller.serviceRequest('palm://com.palm.applicationManager/', {
+    method: 'open',
+    parameters: {
+        "id": "com.palm.app.email", 
+        "params": {
+            "summary":"Attention mateys!",
+            "text":"Yo ho ho and a bottle of rum", 
+            "recipients":[{"type": "email",
+                "contactDisplay":"Sir Lunchalot", 
+                "role":1,
+                "value":"chesterfields99@hotmail.com"}], 
+            "attachments": [{"fullPath":"/media/internal/tconfig.txt", 
+                "displayName":"tconfig", 
+                "mimeType":"text/plain"}]
+            }
+        },
+        onSuccess : function (e){ Mojo.Log.info("Open success, results="+JSON.stringify(e)); },
+        onFailure : function (e){ Mojo.Log.info("Open failure, results="+JSON.stringify(e)); }
+    });
+Success
+
+Open success, results={"processId":"success","returnValue":true}
+485 Potrero Ave. Sunnyvale, CA 94085 
++1 408-617-7000 Main Phone
+Careers
+Sponsored by 
+© 2012 Hewlett-Packard Development Company, L.P. The information contained herein is subject to change without notice. 
+All screen images simulated. Site is best viewed in Chrome, Firefox, Safari, IE9 and above.  Privacy Policy  Terms of Use

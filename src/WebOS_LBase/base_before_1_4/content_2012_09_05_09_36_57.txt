@@ -1,0 +1,215 @@
+Ubuntu成长历程-内核配置menuconfig详解（一）
+[此博文包含图片] (2010-07-24 10:16:17)
+转载▼
+标签：
+network
+support
+atm
+tcp/ip
+ipv6
+socket
+内核配置
+menuconfig
+2.6.34.
+	分类： Linux-Ubuntu
+
+                 Ubuntu成长历程-内核配置menuconfig详解（一）
+
+                                               ----Networking support
+
+   申明：本文的主要目的是研究一下内核编译中，make menuconfig配置中各个项的含义，为以后编译合适内核做一个参考资料，部分参考了《鸟哥的Linux私房菜》，更多的则是靠自己收集，查询，理解来解释各个配置的含义，所用OS 为Ubuntu 10.04 新内核为linux-2.6.34.1，因为新内核里面增加了许多新内容，许多较老资料上都没有涉及到，希望能给大家提供一个帮助。
+
+标记说明：1.红色表示这是一个大块（如Networking support），蓝色表示的是这是该部分下面的一个大块（如Networking support--->networking options），黑色表示这些选项为蓝色部分的子选项（如Networking support--->networking options-->Packet socket），若黑色选项下面还有子版块，则用//标记。
+
+          2.##文字为解释说明，并且不断更新。
+
+ 
+
+一、menuconfig界面
+
+Ubuntu成长历程-内核配置menuconfig详解（一）
+二、相关项配置详解
+
+   （注：顺序不一样，请查阅后续文章）
+
+  1、Networking support 网络支持
+
+Ubuntu成长历程-内核配置menuconfig详解（一）
+
+这部分包含以下：
+
+—————————————————————————————————————————————————
+1.1-networking options
+
+<*> Packet socket  
+
+##包套接口(计算机为TCP/IP数据转换所保留的一系列存贮地址)
+包协议被很多程序用来直接连接网络设备，而不需要内核执行中间网络协议，比如 tcpdump 。选m编译成模块。模块名： af_packet    
+
+<*> Unix domain sockets 
+
+##一种仅运行于本机上的效率高于TCP/IP的Socket,简称Unix socket.许多程序都使用它在操作系统内部进行进程间通信(IPC)
+<M> Transformation user configuration interface  
+
+##对用户设置接口转换功能进行支持，比如本地LINUX工具用到的 IPsec 
+[ ] Transformation sub policy support (EXPERIMENTAL)  
+
+##XFRM子策略支持,仅供开发者使用
+
+[ ] Transformation migrate database (EXPERIMENTAL)                                         
+
+[ ] Transformation statistics (EXPERIMENTAL)  
+
+<M> PF_KEY sockets  
+
+##用于可信任的密钥管理程序和操作系统内核内部的密钥管理进行通信,IPsec依赖于它   
+[ ]   PF_KEY MIGRATE (EXPERIMENTAL)                                                         
+[*]TCP/IP networking  
+
+##TCP/IP网络支持，不解释，必须的。  
+
+[*]   IP: multicasting  
+
+##网络广播支持，支持IP多播, 一般用于MBONE(因特网上的音频、视频多播)
+这是在一个时间里访问多个地址的代码，将会增大内核2KB。  
+
+[*]   IP: advanced router 
+
+##如果你想让你的LINUX机器作成路由，比如，用来转信和回环网络包，选*。你将可以得到更多的选项来精确地控制你的路由进程。在这的回答不会直接影响到内核。选N只是让配置程序跳过所有的关于高级路由的问题。
+如果不清楚，选N。                                                                  
+      Choose IP: FIB lookup algorithm (choose FIB_HASH if unsure) (FIB_HASH)  --->
+
+      ##选择IP： FIB 查找算法
+[*]   IP: policy routing 
+
+##IP：路由规则,通常，一个路由仅仅由包的最终目的地来决定如何应对一个接收包。如果你选*，LINUX路由也可以考虑包的来源地.  
+[*]   IP: equal cost multipath 
+
+##IP：多路径平等开支.通常，路由表对确定的给定包采用定义好的一致方式处理。如果你选*，对同样的包类型可以采用不同的方式，可以有效地变换路径来传输这些包。路由以平等的开支方式考虑所有的这些路径，当匹配的包到达时，选择一条不确定的路径。用于路由的基于目的地址的负载均衡     
+                                                             
+[*]   IP: verbose routemonitoring 
+
+##显示冗余的路由监控信息,如果你选*，内核将会打印详细的路由信息，比如，接收到危险包时出现警告，这可能是某个机器对你进行攻击的征兆。信息可以通过 klogd 守护进程进行设置。
+
+[ ]  IP:kernel level autoconfiguration 
+
+##在内核启动时自动配置ip地址/路由表等,需要从网络启动的无盘工作站才需要这个东西 
+
+<M>   IP: tunneling 
+
+##IP:隧道传输,大多数时候用不上，取消。 
+<M>   IP: GRE tunnels over IP  
+
+##GRE(Generic Routing Encapulation)隧道技术，允许在IPV4上封装IPV6。 
+[*]     IP: broadcast GRE over IP                                                          
+[*]   IP: multicast routing 
+
+##IP:多播路由，当主机需要成为路由器的时候选这个
+
+[*]     IP: PIM-SM version 1 support                                                          
+[*]     IP: PIM-SM version 2 support 
+
+##以上两个说多播协议                                                       
+[ ]   IP: ARP daemon support  
+
+##地址解析协议的后台支持，服务器上比较需要   
+[*]   IP: TCP syncookie support (disabled per default) 
+
+##防止SYN攻击的一个东西
+
+<M>   IP: AH transformation
+
+<M>  IP:ESP transformation  
+
+<M>   IP: IPComp transformation                                                             
+ <M>  IP:IPsectransportmode  <M> IP:IPsectunnelmode  <M>IP:IPsecBEETmode                          ##这三个和IPSEC有关，不需要这个用处的话直接取消就好。                     
+ -*-   Large Receive Offload (ipv4/tcp)                                                     
+ <*>   INET: socket monitoring interface                                                       [*]   TCP: advanced congestion control  --->                                                
+[*]   TCP: MD5 Signature Option support (RFC2385)(EXPERIMENTAL)      
+
+<*>   The IPv6 protocol  --->  
+
+##ipv6协议不使用的话取消，需要的话最好
+[*] Net Label subsystem support  
+
+ -*- Security Marking                                                                        
+ [*] Network packet filtering framework (Netfilter)  ---> 
+
+##上两个和网络安全相关 **
+
+ <M> The DCCP Protocol (EXPERIMENTAL)  --->                                                 
+{M} The SCTP Protocol (EXPERIMENTAL)  --->                                                  
+<M> The RDS Protocol (EXPERIMENTAL)                                                        
+<M>   RDS over Infiniband and iWARP                                                        
+ <M>   RDS over TCP                                                                            
+ [ ]   RDS debugging messages                                                               
+ <M> The TIPC Protocol (EXPERIMENTAL)  --->    ##以上默认就好，也可以不要。   
+ <M> Asynchronous Transfer Mode (ATM)                                                        
+ <M>   Classical IP over ATM                                                                 
+ [ ]     Do NOT send ICMP if no neighbour                                                         <M>   LAN Emulation (LANE) support   ##ATM相关，个人感觉不常用，可以取消           
+ <M>     Multi-Protocol Over ATM (MPOA) support 
+M>   RFC1483/2684 Bridged protocols                                                         
+ [ ]     Per-VC IP filter kludge                                                             
+ <M> 802.1d Ethernet Bridging                                                                [*]   IGMP snooping (NEW)                                                                     
+[*] Distributed Switch Architecture support  --
+
+......
+
+Network testing  --->   
+
+##从上面一直到此，按系统默认就好，一些技术，中国内很少用，尽量选择成模块。
+
+—————————————————————————————————————————————————
+
+1.2 [ ]   Amateur Radio support  --->   
+
+##业余广播支持，没什么用处，取消。  
+
+—————————————————————————————————————————————————
+
+1.3 <M>   CAN bus subsystem support  ---> 
+
+##控制器局域网总线技术（ControllerAreaNetwork-BUS） 
+
+—————————————————————————————————————————————————
+
+1.4 <M>   IrDA (infrared) subsystem support  ---> 
+
+##红外通信模块
+
+—————————————————————————————————————————————————
+
+1.5 <M>   Bluetooth subsystem support  ---> 
+
+##蓝牙模块
+
+—————————————————————————————————————————————————
+
+1.6 {M}   RxRPC session sockets    
+
+    [ ]     RxRPC dynamic debugging   
+
+    <M>     RxRPC Kerberos security  
+
+—————————————————————————————————————————————————
+
+1.7 -*-   Wireless  --->
+
+##无线模块
+
+—————————————————————————————————————————————————
+
+1.8 <M>   WiMAX Wireless Broadband support  ---> 
+
+##WIMAX支持
+
+—————————————————————————————————————————————————
+
+1.9 <*>   RF switch subsystem support  ---> 
+
+    <M>   Plan 9 Resource Sharing Support (9P2000) (Experimental)  -- >  
+
+##概念网络操作系统 
+
+—————————————————————————————————————————————————             
+

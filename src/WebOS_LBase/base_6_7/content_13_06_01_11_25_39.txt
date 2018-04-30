@@ -1,0 +1,299 @@
+南瓜饼
+随笔 - 71, 文章 - 0, 评论 - 47, 引用 - 0
+linux下C语言多线程编程
+
+#include <pthread.h>
+#include <stdio.h>
+#include <sys/time.h>
+#include <string.h>
+#define MAX 10
+pthread_t thread[2];
+pthread_mutex_t mut;
+int number=0, i;
+void *thread1()
+{
+        printf ("thread1 : I'm thread 1\n");
+        for (i = 0; i < MAX; i++)
+        {
+                printf("thread1 : number = %d\n",number);
+                pthread_mutex_lock(&mut);
+                        number++;
+                pthread_mutex_unlock(&mut);
+                sleep(2);
+        }
+        printf("thread1 :主函数在等我完成任务吗？\n");
+        pthread_exit(NULL);
+}
+void *thread2()
+{
+        printf("thread2 : I'm thread 2\n");
+        for (i = 0; i < MAX; i++)
+        {
+                printf("thread2 : number = %d\n",number);
+                pthread_mutex_lock(&mut);
+                        number++;
+                pthread_mutex_unlock(&mut);
+                sleep(3);
+        }
+        printf("thread2 :主函数在等我完成任务吗？\n");
+        pthread_exit(NULL);
+}
+void thread_create(void)
+{
+        int temp;
+        memset(&thread, 0, sizeof(thread));          //comment1
+        /*创建线程*/
+        if((temp = pthread_create(&thread[0], NULL, thread1, NULL)) != 0)       //comment2
+                printf("线程1创建失败!\n");
+        else
+                printf("线程1被创建\n");
+        if((temp = pthread_create(&thread[1], NULL, thread2, NULL)) != 0)  //comment3
+                printf("线程2创建失败");
+        else
+                printf("线程2被创建\n");
+}
+void thread_wait(void)
+{
+        /*等待线程结束*/
+        if(thread[0] !=0) {                   //comment4
+                pthread_join(thread[0],NULL);
+                printf("线程1已经结束\n");
+        }
+        if(thread[1] !=0) {                //comment5
+                pthread_join(thread[1],NULL);
+                printf("线程2已经结束\n");
+        }
+}
+int main()
+{
+        /*用默认属性初始化互斥锁*/
+        pthread_mutex_init(&mut,NULL);
+        printf("我是主函数哦，我正在创建线程，呵呵\n");
+        thread_create();
+        printf("我是主函数哦，我正在等待线程完成任务阿，呵呵\n");
+        thread_wait();
+        return 0;
+}
+
+执行结果
+
+
+我是主函数哦，我正在创建线程，呵呵
+线程1被创建
+线程2被创建
+我是主函数哦，我正在等待线程完成任务阿，呵呵
+thread1 : I'm thread 1
+thread1 : number = 0
+thread2 : I'm thread 2
+thread2 : number = 1
+thread1 : number = 2
+thread2 : number = 3
+thread1 : number = 4
+thread2 : number = 5
+thread1 : number = 6
+thread1 : number = 7
+thread2 : number = 8
+thread1 : number = 9
+thread2 : number = 10
+thread1 :主函数在等我完成任务吗？
+线程1已经结束
+thread2 :主函数在等我完成任务吗？
+线程2已经结束
+
+下面一个稍微复杂的多线程
+
+extern int pthread_join __P ((pthread_t __th, void **__thread_return));
+　　第一个参数为被等待的线程标识符，第二个参数为一个用户定义的指针，它可以用来存储被等待线程的返回值。这个函数是一个线程阻塞的函数，调用它的线程将一直等待到被等待的线程结束为止，当函数返回时，被等待线程的资源被收回。一个线程的结束有两种途径，一种是象我们上面的例子一样，函数结束了，调用它的线程也就结束了；另一种方式是通过函数pthread_exit来实现。它的函数原型为：
+　　extern void pthread_exit __P ((void *__retval)) __attribute__ ((__noreturn__));
+　　唯一的参数是函数的返回代码，只要pthread_exit中的参数retval不是NULL，这个值将被传递给 thread_return。最后要说明的是，一个线程不能被多个线程等待，否则第一个接收到信号的线程成功返回，其余调用pthread_join的线程则返回错误代码ESRCH。
+
+实例：
+
+
+#include <stdio.h>
+#include <pthread.h>
+#include <stdlib.h>
+pthread_t       tid1, tid2; 
+void            *tret;
+ 
+void *
+thr_fn1(void *arg)
+{
+        sleep(1);//睡眠一秒，等待TID2结束。
+        pthread_join(tid2, &tret);//tid1一直阻赛，等到tid2的退出，获得TID2的退出码
+         printf("thread 2 exit code %d\n", (int)tret);
+    printf("thread 1 returning\n");
+    return((void *)2);
+}
+void *
+thr_fn2(void *arg)
+{      
+    printf("thread 2 exiting\n");
+     pthread_exit((void *)3);
+}
+int
+main(void)
+{
+    int            err;
+    err = pthread_create(&tid1, NULL, thr_fn1, NULL);
+    if (err != 0)
+        printf("can't create thread 1\n");
+    err = pthread_create(&tid2, NULL, thr_fn2, NULL);
+    if (err != 0)
+        printf("can't create thread 2\n");
+    err = pthread_join(tid1, &tret);//祝线程一直阻赛，等待TID1的返回。
+    if (err != 0)
+        printf("can't join with thread 1\n");
+    printf("thread 1 exit code %d\n", (int)tret);
+      //err = pthread_join(tid2, &tret);
+    //if (err != 0)
+    //    printf("can't join with thread 2\n");
+//    printf("thread 2 exit code %d\n", (int)tret);
+    exit(0);
+}
+ 
+
+命令：＃gcc -lthread myfile11-3.c
+        ：＃./a.out
+运行结果：
+thread 2 exiting
+thread 2 exit code 3
+thread 1 returning
+thread 1 exit code 2
+
+分类: C语言基础
+绿色通道： 好文要顶 关注我 收藏该文与我联系 
+南瓜饼
+关注 - 6
+粉丝 - 34
++加关注
+0 0
+(请您对文章做出评价)
+« 上一篇：【转】 equal和hashcode
+» 下一篇：在VMware虚拟机上安装Ubuntu 10.04
+posted on 2012-07-25 20:46 南瓜饼 阅读(3837) 评论(1) 编辑 收藏
+
+评论
+
+#1楼   
+好！
+支持(0)反对(0)
+2012-12-04 11:06 | 来也  
+刷新评论刷新页面返回顶部
+注册用户登录后才能发表评论，请 登录 或 注册，访问网站首页。
+找优秀程序员，就在博客园
+博客园首页博问新闻闪存程序员招聘知识库
+
+最新IT新闻:
+· Yelp CFO表示有意与Facebook图谱搜索展开合作
+· Twitter利用位置标签绘制纽约等城市地图
+· 很震撼：将全世界iPhone的屏幕组合之后
+· 美司法部欲强迫谷歌向FBI交出用户个人数据
+· 三星Galaxy S4年内销量可能突破8000万
+» 更多新闻...
+最新知识库文章:
+· 谈谈.NET中常见的内存泄露问题——GC、委托事件和弱引用
+· BPM流程管理软件的五大创新
+· IT固化是流程管理成功的重要手段
+· 持续交付模式
+· 关于软件开发的一些常识和思考
+» 更多知识库文章...
+
+导航
+博客园
+首页
+新随笔
+联系
+订阅 
+管理
+<	2012年7月	>
+日	一	二	三	四	五	六
+24	25	26	27	28	29	30
+1	2	3	4	5	6	7
+8	9	10	11	12	13	14
+15	16	17	18	19	20	21
+22	23	24	25	26	27	28
+29	30	31	1	2	3	4
+公告
+昵称：南瓜饼
+园龄：1年1个月
+粉丝：34
+关注：6
++加关注
+搜索
+ 
+ 
+常用链接
+我的随笔
+我的评论
+我的参与
+最新评论
+我的标签
+随笔分类
+android(12)
+android_handler(2)
+android_jni(2)
+android_monkey(2)
+android_动画效果(3)
+android_广播接收者(1)
+android_界面效果(3)
+android_内存优化(1)
+android开发基础教程(7)
+C语言基础(6)
+ffmpeg(4)
+ios(10)
+java_基础(5)
+MAC(1)
+object-c基础(4)
+xcode(2)
+设计模式(1)
+随笔档案
+2013年3月 (3)
+2013年2月 (8)
+2013年1月 (13)
+2012年12月 (19)
+2012年11月 (4)
+2012年10月 (2)
+2012年9月 (8)
+2012年7月 (2)
+2012年6月 (2)
+2012年5月 (3)
+2012年4月 (7)
+最新评论
+1. Re:Android用Animation-list实现逐帧动画
+谢谢分享，楼主分享的内容都是干货
+--邢同举
+2. Re:android 大图片在listview中内存溢出的问题
+原来也是压缩的!!!
+--zeng7
+3. Re:android pcm编解码
+如何将任意数据编码成PCM格式呢？
+--小人物key
+4. Re:android开发第二天文件存储
+我是来看楼终头像的。
+--陌上青青草
+5. Re:android开发第一天打电话发短信
+@Tim_et
+嗯 下载链接里面有加 忘记写到博客了 马上加 谢谢提醒
+--南瓜饼
+阅读排行榜
+1. linux下C语言多线程编程(3837)
+2. ffmpeg编程(二)(1888)
+3. android pcm编解码(1877)
+4. ffmpeg编程(一)(1784)
+5. android 第一次运行应用的引导界面(1286)
+评论排行榜
+1. android pcm编解码(8)
+2. android开发第一天打电话发短信(6)
+3. android开发第二天文件存储(5)
+4. android 第一次运行应用的引导界面(5)
+5. IOS委托机制(5)
+推荐排行榜
+1. ubuntu下android移植ffmpeg0.10(3)
+2. IOS委托机制(2)
+3. ffmpeg编程(二)(2)
+4. YUV简介(1)
+5. android的Service和Notification学习(1)
+Powered by: 
+博客园 
+Copyright © 南瓜饼

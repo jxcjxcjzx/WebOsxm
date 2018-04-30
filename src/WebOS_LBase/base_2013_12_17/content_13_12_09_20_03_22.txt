@@ -1,0 +1,558 @@
+
+
+
+
+张兴业的博客
+
+专注移动互联网开发。
+
+
+ 
+
+
+•目录视图
+•摘要视图
+•订阅
+ 
+
+
+
+《这些年，我们读过的技术经典图书》主题有奖征文       专访李铁军：从医生到金山首席安全专家的转变      独一无二的职位：开源社区经理        CSDN博客第三期云计算最佳博主评选
+ 
+
+
+mysql中文问题全处理 
+
+分类： Web 方向2009-05-12 13:28760人阅读评论(0)收藏举报
+ 
+mysqlcharactercollation数据库variablesdatabase
+
+ 
+
+1、在dos环境下，用mysql --default-character-set=gbk -u root -p 这句话进入mysql~~
+ 
+2、建数据库、表，如下：
+ 
+create database admin;
+ 
+use admin;
+ 
+CREATE TABLE admin (
+ 
+admin_name char(20) NOT NULL,
+ 
+admin_password char(20) NOT NULL
+ 
+) TYPE=MyISAM,
+ 
+default character set gbk;
+ 
+　　2， JDBC的设置问题：(这里主要讲的是mysql-connector-java-3.1.8这个JDBC驱动程序而言)
+ 
+这只是一个压缩包，并不需要安装，只要将其解压，使用的是文件夹mysql-connector-java-3.1.8里的文件：mysql-connector-java-3.1.8-
+ 
+bin.jar．
+ 
+需要配置环境变量的是JDBC驱动．在配置前先要把刚才说到的
+ 
+mysql-connector-java-3.1.8-bin.jar放到本地硬盘某处（我放的地方：E:/JAVA/MySQLJDBC），然后根据你放的地方，配置classpath，我的
+ 
+配置是这样的：
+ 
+　　.;E:/Java/j2se5.0/lib/tools.jar; E:/Java/j2se5.0/lib/mysql-connector-java-3.1.8-bin-g.jar; E:/JAVA/MySQLJDBC/mysql-
+ 
+connector-java-3.1.8-bin.jar
+ 
+　　配置这个的目的是让你的java应用程序找到连接mysql的驱动．
+ 
+　　配置完环境变量后还有很重要一步就是为JSP连接数据库配置驱动，这个其实很简单，就是把mysql-connector-java-3.1.8-bin.jar拷到某
+ 
+些文件夹里就行了，我在网上看了很多资料问了很多人，各种说法都有，我综合了一下，为了保险，我都全做了，呵呵，反正就是拷一个400K
+ 
+的文件而已，现列出要把mysql-connector-java-3.1.8-bin.jar拷进去的文件夹，如下：E:/Java/Tomcat5.0/common/lib
+ 
+　　E:/Java/Tomcat5.0/shared/lib
+ 
+一般情况下只要考到Tomcat5.0上面的两个问题夹里面就可以解决问题了，如果需要，也可以将mysql-connector-java-3.1.8-bin.jar这个驱动
+ 
+文件拷贝到你的WEB站点的 …/WEB-INF/lib 目录下面。
+ 
+　　3， Eclipse中数据库插件中操作数据库时的中文编码问题：
+ 
+当在Eclipse中装上来你所喜欢的数据库插件的时候，都会出现在你查询某一个数据库之后出现记录中的汉字乱码。解决方法很简单，只要在你
+ 
+建立数据库连接的时候把URL设置成下面这个样子就可以了：
+ 
+URL= jdbc:mysql://localhost:3306/?useUnicode=true&characterEncoding=GBK
+ 
+　　4， 在JSP网页编辑中个人经验：在经过很多的次调试之后，发现在装了myeclipse之后，有这么条小巧：
+ 
+①在用myeclipse编写HTML文件时charset=GBK设置成这个样子，那么在浏览器中浏览时就不会出现乱码； ②而在用myeclipse编辑JSP文件时，
+ 
+<%@ page contentType="text/html;charset=GB2312" %>设置成这样子，且这条语句必须是整个JSP文件的第一条语句,就可以避免JSP文件在浏
+ 
+览器中显示时出现乱码；
+ 
+③对于如果在JSP网页中要从HTML页面中接收数据，那么在JSP中的接收语句的汉字编码应与数据来源的HTML的汉字编码相同；例如②中的HTML
+ 
+的汉字编码为charset=GBK，那么在JSP中的接收语句就应该这样设置：request.setCharacterEncoding("GBK");如果还要将接受的数据插入到
+ 
+数据库中(以插入MySQL5.0数据库为例)，那么在插入数据库时的汉字编码也应与HTML文件中的汉字编码相同，我的设置如下：con=
+ 
+DriverManager.getConnection("jdbc:mysql://localhost:3306/sample_db?
+ 
+user=dazern&password=5201314&useUnicode=true&characterEncoding=GBK")这样设置后数据库中的数据才不会乱码.
+ 
+以上经验都是在myeclipse3.8.3 Tomcat5.0.28中测试过，没有错误！在此仅供大家借三、数据库存取乱码
+ 
+当然，在写数据库时，也要保正数据库的编码与其它一致：
+ 
+我们可以在系统盘windows目录下的my.ini文件，在文件中插入一行default-character-set=GBK,但上面说了这么多，大家也应该明白些了吧，
+ 
+改动太多的默认设置不是我的风格，因此上，这一行还是不要加的好。
+ 
+但不管怎么样，我们还是要创建一个基于中文编码的数据库，当然，用客户端登录的时候，某些客户用自动把字体编码转换成中文编码。在这
+ 
+里，我想说一下在DOS下创建中文编码数据库的方法：
+ 
+在进入数据库的时候，用mysql --default-character-set=gbk -u root -p 这句话进入mysql，然后创建数据库，如：create database
+ 
+admin;这样创建起来的数据库就是基于中文编码的了。
+ 
+用连接数据库的时候，读出的数据也可能是乱码，解决这个问题的方法非常简单，只要在你建立数据库连接的时候把URL设置成下面这个样子就
+ 
+可以了：URL= jdbc:mysql://localhost:3306/my_database?useUnicode=true&characterEncoding=GBK
+ 
+好了，说了这么多，总结一句话结束吧，把各种地方的编码统一起来，那么，所在的乱码问题就都解决了！
+ 
+鉴，具体情况还得具体分析！
+ 
+文章整理：西部数码--专业提供域名注册、虚拟主机服务
+-------------------
+mysql中文乱码终结
+2008-03-20 13:00
+接下来就是创建数据库，名字为sample
+ 
+然后建立一个table: employee,内容如下（其中应该是email,可是我不小心在建数据库打错了，将错就错了）：
++-------------+------------------+------+-----+---------+----------------+
+| Field       | Type             | Null | Key | Default | Extra          |
++-------------+------------------+------+-----+---------+----------------+
+| employee_id | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
+| last_name   | varchar(20)      | YES |     | NULL    |                |
+| first_name | varchar(20)      | YES |     | NULL    |                |
+| birth       | date             | YES |     | NULL    |                |
+| sex         | enum('m','f')    | YES |     | m       |                |
+| emmail      | varchar(39)      | YES |     | NULL    |                |
++-------------+------------------+------+-----+---------+----------------+
+ 
+如果只是这样的话，就会出现这样的错误：报告的错误是：sqle=com.mysql.jdbc.MysqlDataTruncation:
+Data truncation: Data too long
+for column 'last_name' at row 1 从 employee！
+有的情况是：| name         |
++-------------+
+| ??           |
+| 54243654321 |
+| ??           |
+| ??           |
++-------------+出现问号！
+ 
+前面我们已经说过了，mysql默认的编码是latin1,不是我们所需要的gbk,所以我们要修改成为utf8，因为若要正确显示中文繁、简、日文、韩
+ 
+文 使用utf8，修改方法如下：
+ALTER DATABASE sample ####这里修改整个数据库的编码
+       CHARACTER SET utf8
+       DEFAULT CHARACTER SET utf8
+       COLLATE utf8_general_ci
+       DEFAULT COLLATE utf8_general_ci;
+当然了，你也可在在建数据库的时候指定编码，比如：
+ 
+CREATE DATABASE sample
+ 
+       CHARACTER SET utf8
+       DEFAULT CHARACTER SET utf8
+       COLLATE utf8_general_ci
+       DEFAULT COLLATE utf8_general_ci ;
+ 
+接下来要做的是打开mysql所在的目录下的my.nin
+ 
+
+在[mysqld]段加入一下代码改成：default-character-set=utf8 启动mysql，输入：执行下列语句，看看结果是不是下面的：mysql> show
+ 
+variables like '%character%';+--------------------------+-------------------------------------------+| Variable_name         
+ 
+  | Value                                     |+--------------------------+-------------------------------------------+|
+ 
+character_set_client     | latin1                                    || character_set_connection | latin1                    
+ 
+               || character_set_database   | utf8                                      || character_set_results    | latin1  
+ 
+                                 || character_set_server     | utf8                                                          
+ 
+              | character_set_system     | utf8                                      || character_sets_dir       |
+ 
+C:/MySQL/MySQL Server 5.0/share/charsets/ |+--------------------------+-------------------------------------------+mysql>
+ 
+show variables like '%collation%';+----------------------+-------------------+| Variable_name        | Value             |+-
+ 
+---------------------+-------------------+| collation_connection | latin1_swedish_ci || collation_database   |
+ 
+utf8_general_ci   || collation_server     | utf8_general_ci   |+----------------------+-------------------+
+ 
+接着你再看看执行那个Mysql.html 文件：这回你可以看到的是
+mysql> select * from employee;
++-------------+-----------+------------+------------+------+--------------+
+| employee_id | last_name | first_name | birth      | sex | emmail       |
++-------------+-----------+------------+------------+------+--------------+
+|          12 | ?         | ??         | 1978-12-11 | f    | aaa@asdf.com |
+|          13 | ?         | ??         | 1978-12-11 | f    | aaa@asdf.com |
+|          14 | ?         | ??         | 1978-12-11 | f    | aaa@asdf.com |
+|          15 | ?         | ??         | 1978-12-11 | f    | aaa@asdf.com |
+|          16 | ?         | ??         | 1978-12-11 | f    | aaa@asdf.com |
+|          17 | ?         | ??         | 1978-12-11 | f    | aaa@asdf.com |
++-------------+-----------+------------+------------+------+--------------+
+ 
+这当然不是我们希望看到的，我们需要的现实完美正确的中文：
+我们还有最后一招：
+mysql> SET NAMES 'gbk' ;
+Query OK, 0 rows affected (0.00 sec)
+因为我们需要的是gbk.
+看看mysql中的character设置情况：
+mysql> SHOW VARIABLES LIKE '%character%' ;
++--------------------------+-------------------------------------------+
+| Variable_name            | Value                                     |
++--------------------------+-------------------------------------------+
+| character_set_client     | gbk                                       |
+| character_set_connection | gbk                                       |
+| character_set_database   | utf8                                      |
+| character_set_results    | gbk                                       |
+| character_set_server     | utf8                                      |
+| character_set_system     | utf8                                      |
+| character_sets_dir       | C:/MySQL/MySQL Server 5.0/share/charsets/ |
++--------------------------+-------------------------------------------+
+7 rows in set (0.00 sec)
+ 
+mysql> SHOW VARIABLES LIKE '%collation%' ;
++----------------------+-----------------+
+| Variable_name        | Value           |
++----------------------+-----------------+
+| collation_connection | gbk_chinese_ci |
+| collation_database   | utf8_general_ci |
+| collation_server     | utf8_general_ci |
++----------------------+-----------------+
+ 
+这个才是我们最终需要的。
+在来查看执行完Mysql_jstl.jsp后的数据库中的结果：
+mysql> select * from employee;
+|          14 | 王        | 彭给       | 1978-12-11 | f    | aaa@asdf.com |
+|          15 | 田        | 王光       | 1978-12-11 | f    | aaa@asdf.com |
+|          16 | 息        | 存入       | 1978-12-11 | f    | aaa@asdf.com |
+|          17 | 往        | 小杯       | 1978-12-11 | f    | aaa@asdf.com |
++-------------+-----------+------------+------------+------+--------------+
+ 
+可以高兴得看到了中文，并且在浏览器中也显示正确。
+ 
+但是仅仅这样的话，当你重新启动mysql的时候
+所有的设置又失效了。
+mysql> show variables like '%character%';
++--------------------------+-------------------------------------------+
+| Variable_name            | Value                                     |
++--------------------------+-------------------------------------------+
+| character_set_client     | latin1                                    |
+| character_set_connection | latin1                                    |
+| character_set_database   | utf8                                      |
+| character_set_results    | latin1                                    |
+| character_set_server     | utf8                                      |
+| character_set_system     | utf8                                      |
+| character_sets_dir       | C:/MySQL/MySQL Server 5.0/share/charsets/ |
++--------------------------+-------------------------------------------+
+ 
+mysql> SHOW VARIABLES LIKE '%collation%' ;
++----------------------+-------------------+
+| Variable_name        | Value             |
++----------------------+-------------------+
+| collation_connection | latin1_swedish_ci |
+| collation_database   | utf8_general_ci   |
+| collation_server     | utf8_general_ci   |
++----------------------+-------------------+
+重新读取又出现乱码：
+mysql> select * from employee;
++-------------+-----------+------------+------------+--
+| employee_id | last_name | first_name | birth      | s
++-------------+-----------+------------+------------+--
+|          12 | ?         | ??         | 1978-12-11 | f
+|          13 | ?         | ??         | 1978-12-11 | f
+|          14 | ?         | ??         | 1978-12-11 | f
+|          15 | ?         | ??         | 1978-12-11 | f
+|          16 | ?         | ??         | 1978-12-11 | f
+|          17 | ?         | ??         | 1978-12-11 | f
++-------------+-----------+------------+------------+--
+所以我们需要在客户端设置系统能识别中文的编码gbk并没有保存到my.ini文件中。所以要修改my.ini文件
+ 
+在[mysql]段加入一下代码改成：default-character-set=gbk 这样设置就得到保存了。
+重启就可以了。
+mysql> show variables like '%character%';
++--------------------------+----------------
+| Variable_name            | Value+--------------------------
++----------------| character_set_client     | gbk
+| character_set_connection | gbk
+| character_set_database   | utf8
+| character_set_results    | gbk
+| character_set_server     | utf8
+| character_set_system     | utf8
+| character_sets_dir       | C:/MySQL/MySQL
++--------------------------+----------------
+mysql> SHOW VARIABLES LIKE '%collation%' ;
++----------------------+-----------------+
+| Variable_name        | Value           |
++----------------------+-----------------+
+| collation_connection | gbk_chinese_ci  |
+| collation_database   | utf8_general_ci |
+| collation_server     | utf8_general_ci |
++----------------------+-----------------+
+ 
+MySQL的默认编码是Latin1，不支持中文，那么如何修改MySQL的默认编码呢，下面以UTF-8为例来说明
+ 
+需要注意的是，要修改的地方非常多，相应的修改方法也很多。下面是一种最简单最彻底的方法：
+ 
+一、Windows
+1、中止MySQL服务
+2、在MySQL的安装目录下找到my.ini，如果没有就把my-medium.ini复制为一个my.ini即可
+3、打开my.ini以后，在[client]和[mysqld]下面均加上default-character-set=utf8，保存并关闭
+4、启动MySQL服务
+ 
+二、Linux
+1、中止MySQL服务（bin/mysqladmin -u root shutdown）
+2、在/etc/下找到my.cnf，如果没有就把MySQL的安装目录下的support-files目录下的my-medium.cnf复制到/etc/下并改名为my.cnf即可
+3、打开my.cnf以后，在[client]和[mysqld]下面均加上default-character-set=utf8，保存并关闭
+4、启动MySQL服务（bin/mysqld_safe &）
+ 
+非常简单，这样的修改一劳永逸，今后MySQL一切相关的默认编码均为UTF-8了，创建新表格的时候无需再次设置
+ 
+需要注意的是，当前数据库中已经存在的数据仍保留现有的编码方式，因此需要自行转码，方法在网上有很多，不再赘述
+ 
+
+•上一篇：思考
+•下一篇：中文乱码（二）
+ 
+
+
+查看评论
+ 
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+个人资料 
+
+xyz_lmn 
+
+
+
+
+◦访问：758352次
+◦积分：10175分
+◦排名：第280名
+ ◦原创：207篇
+◦转载：224篇
+◦译文：10篇
+◦评论：567条
+ 
+
+新浪微博 
+android 开发群 
+android 开发进阶 
+
+
+1群：241395671
+ 
+
+
+2群：278401545[满]
+ 
+
+
+
+
+博客专栏
+
+
+
+
+iOS学习
+文章：17篇
+阅读：23790 
+
+
+
+
+
+android应用安全
+文章：6篇
+阅读：17989 
+
+
+
+
+
+Android JNI入门
+文章：11篇
+阅读：29878 
+
+
+
+
+
+Android网络开发
+文章：6篇
+阅读：11463 
+
+
+
+
+
+Android UI开发专栏
+文章：30篇
+阅读：150115 
+
+文章分类 • android 应用安全(6) 
+• android UI（常用）(31) 
+• android 网络编程(11) 
+• android NDK（含语音编解码）(11) 
+• android（综合）(127) 
+• android web（html5）(6) 
+• android 自动化测试(6) 
+• android xmpp(7) 
+• MongoDB(5) 
+• SIP/RTP/RTSP(24) 
+• 技术思考(7) 
+• Windows Mobile UI(10) 
+• Windows Mobile(67) 
+• iphone(19) 
+• java(8) 
+• c#(13) 
+• 基础知识(5) 
+• 思考人生(4) 
+• Web 方向(6) 
+• WINCE程序设计笔记(5) 
+• VC++(5) 
+• win32(15) 
+
+文章存档 
+•2013年08月(1)
+•2013年07月(7)
+•2013年06月(7)
+•2013年05月(7)
+•2013年04月(4)
+•2013年03月(5)
+•2013年02月(1)
+•2013年01月(1)
+•2012年12月(5)
+•2012年11月(1)
+•2012年10月(10)
+•2012年09月(11)
+•2012年08月(7)
+•2012年07月(5)
+•2012年06月(1)
+•2012年05月(2)
+•2012年04月(1)
+•2012年03月(8)
+•2012年02月(4)
+•2012年01月(5)
+•2011年12月(8)
+•2011年11月(25)
+•2011年10月(25)
+•2011年06月(1)
+•2011年05月(1)
+•2011年04月(1)
+•2011年03月(3)
+•2011年02月(9)
+•2011年01月(15)
+•2010年12月(34)
+•2010年11月(11)
+•2010年10月(5)
+•2010年09月(3)
+•2010年08月(3)
+•2010年07月(1)
+•2010年06月(5)
+•2010年05月(2)
+•2010年04月(5)
+•2010年03月(14)
+•2010年02月(23)
+•2010年01月(22)
+•2009年12月(25)
+•2009年11月(46)
+•2009年10月(7)
+•2009年09月(9)
+•2009年08月(30)
+•2009年07月(8)
+•2009年06月(1)
+•2009年05月(5)
+•2009年03月(1)
+ 
+阅读排行 • adb logcat 查看日志(23355) 
+• Android Studio 初体验(17213) 
+• Android中Intent传递对象的两种方法(Serializable,Parcelable)(14042) 
+• Android UI开发第十七篇——Android Fragment实例(13942) 
+• Android UI开发第三十篇——使用Fragment构建灵活的桌面(13201) 
+• Android Fragment使用(12205) 
+• Android FragmentManage FragmentTransaction介绍(11461) 
+• Android UI开发第十八篇——ActivityGroup实现tab功能(11079) 
+• Android UI开发第二十一篇——下拉刷新列表实现（pull to refresh）(10358) 
+• 如何在windows7 Home家庭版中创建Administrator管理员账户(10245) 
+
+推荐文章 
+最新评论 •Android视频采集+H264编码
+qyc898: /sdcard/camera.h264这文件最终能用264播放器放出来??反正我是放不出来...SP... 
+
+•speex编解码在android上实现
+u010275765: speex.decode为什么会抛异常呢，数组越界，是怎么回事 
+
+•android实现卸载提示
+lfdfhl: 楼主 思路很好 Thank you very much 
+
+•android实现卸载提示
+xiaoxiaofang123: 这个代码有点高深哟 
+
+•android实现卸载提示
+xyz_lmn: @lfdfhl:eclipse的问题 
+
+•android实现卸载提示
+xyz_lmn: @lfdfhl:我测试过几款三星和摩托的都没问题。 
+
+•android实现卸载提示
+xyz_lmn: @lfdfhl:是不是更换包名了 
+
+•android实现卸载提示
+xyz_lmn: @lfdfhl:在什么型号的手机上出现的情况？ 
+
+•android实现卸载提示
+xyz_lmn: @lfdfhl:在什么型号的手机上出现的情况？ 
+
+•android实现卸载提示
+xyz_lmn: @lfdfhl:运行示例程序，再卸载示例程序，会有提示。 
+
+
+评论排行 • AndroidPN真机环境测试(47) 
+• Android UI开发第十六篇——分享一个popuwindow实例(40) 
+• Android Studio 初体验(28) 
+• Android UI开发第十七篇——Android Fragment实例(17) 
+• java中判断socket服务器端是否断开连接(14) 
+• URL短地址压缩算法 微博短地址原理解析 （Java实现）(14) 
+• speex编解码在android上实现(13) 
+• ViewPager实现引导界面以及进入下一个activity解决办法(13) 
+• android实现卸载提示(12) 
+• Android JNI入门第六篇——C调用Java(11) 
+
+文章搜索
+
+ 
+
+

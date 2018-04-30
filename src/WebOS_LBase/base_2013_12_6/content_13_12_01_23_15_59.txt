@@ -1,0 +1,577 @@
+
+
+
+
+结构之法 算法之道
+
+Google或baidu搜索：“结构之法”，进入本博客
+
+
+ 
+
+
+•目录视图
+•摘要视图
+•订阅
+ 
+
+
+
+《这些年，我们读过的技术经典图书》主题有奖征文       专访李铁军：从医生到金山首席安全专家的转变      独一无二的职位：开源社区经理        CSDN博客第三期云计算最佳博主评选
+ 
+
+
+二之三续、Dijkstra 算法+Heap堆的完整c实现源码 
+
+分类： 01.Algorithms（研究）02.Algorithms（后续）03.Algorithms（实现）2011-03-24 18:2212330人阅读评论(27)收藏举报
+ 
+算法cnull工作structexchange
+
+ 
+                二之三续、Dijkstra 算法+Heap堆的完整c实现源码
+ 
+
+作者:JULY、二零一一年三月十八日
+出处：http://blog.csdn.net/v_JULY_v。
+------------------------------------------
+ 
+引言：
+    此文的写作目的很简单，就一个理由，个人认为：上一篇文章，二之再续、Dijkstra 算法+fibonacci堆的逐步c实现，写的不够好，特此再写Dijkstra 算法的一个续集，谓之二之三续。
+    鉴于读者理解斐波那契堆的难度，本文，以简单的最小堆为示例。同时，本程序也有参考网友的实现。有任何问题，欢迎指正。
+ 
+
+Dijkstra 算法+Heap堆完整算法思想
+    在前一篇文章中，我们已经了解到，Dijkstra 算法如下：
+ 
+DIJKSTRA(G, w, s)
+1  INITIALIZE-SINGLE-SOURCE(G, s)  //1、初始化结点工作
+2  S ← Ø
+3  Q ← V[G]   //2、初始化队列
+4  while Q ≠ Ø
+5      do u ← EXTRACT-MIN(Q) //3、从最小队列中，抽取最小结点(在此之前，先建立最小堆)
+6         S ← S ∪{u}
+7         for each vertex v ∈ Adj[u]
+8             do RELAX(u, v, w)  //4、松弛操作。
+ 
+    如此，咱们不再赘述，直接即可轻松编写如下c/c++源码：
+ 
+void dijkstra(ALGraph G,int s,int d[],int pi[],int Q[])
+{ //Q[]是最小优先队列，Q[1..n]中存放的是图顶点标号,Q[0]中存放堆的大小
+ //优先队列中有key的概念，这里key可以从d[]中取得。比如说，Q[2]的大小(key)为 d[ Q[2] ]
+ 
+ initSingleSource(G,s,d,pi);  //1、初始化结点工作
+ 
+ //2、初始化队列
+ Q[0] = G.vexnum;
+ for(int i=1;i<=Q[0];i++)
+ 
+ {
+  Q[i] = i-1;
+ }
+ Q[1] = s;
+ Q[s+1] = 0;
+ 
+ int u;
+ int v;
+ while(Q[0]!=0)
+ 
+ {
+  buildMinHeap(Q,d);     //3.1、建立最小堆
+  u = extractMin(Q,d);   //3.2、从最小队列中，抽取最小结点
+  ArcNode* arcNodePt = G.vertices[u].firstarc;
+  while(arcNodePt!=NULL)
+ {
+   v = arcNodePt->adjvex;
+   relax(u,v,G,d,pi);    //4、松弛操作。
+   arcNodePt = arcNodePt->nextarc;
+  }
+ }
+ 
+}
+ 
+    ok，接下来，咱们一步一步编写代码来实现此Dijkstra 算法，先给出第1、初始化结点工作，和4、松弛操作俩个操作的源码：
+ 
+void initSingleSource(ALGraph G,int s,int d[],int pi[]) 
+{       //1、初始化结点工作
+ for(int i=0;i<G.vexnum;i++)
+ 
+ {
+  d[i] = INFINITY;
+  pi[i] = NIL;
+ }
+ d[s] = 0;
+}
+ 
+void relax(int u,int v,ALGraph G,int d[],int pi[])
+{ //4、松弛操作。
+        //u是新加入集合S的顶点的标号
+ if(d[v]>d[u]+getEdgeWeight(G,u,v))
+ 
+ {
+  d[v] = d[u] + getEdgeWeight(G,u,v);
+  pi[v] = u;
+ }
+}
+ 
+    ok，接下来，咱们具体阐述第3个操作，3、从最小队列中，抽取最小结点(在此之前，先建立最小堆)。
+ 
+
+Heap最小堆的建立与抽取最小结点
+    在我的这篇文章二、堆排序算法里头，对最大堆的建立有所阐述：
+2.3.1、建堆(O（N）)
+ 
+BUILD-MAX-HEAP(A)
+1  heap-size[A] ← length[A]
+2  for i ← |_length[A]/2_| downto 1
+3       do MAX-HEAPIFY(A, i)    
+//建堆，怎么建列?原来就是不断的调用MAX-HEAPIFY(A, i)来建立最大堆。
+ 
+    建最小堆，也是一回事，把上述代码改俩处即可，一，MAX->MIN，二，MAX-HEAPIFY(A, i)->MIN-HEAPIFY(A, i)。如此说来，是不是很简单列，是的，本身就很简单。
+ 
+    先是建立最小堆的工作：
+ 
+void buildMinHeap(int Q[],int d[]) //建立最小堆
+{
+ for(int i=Q[0]/2;i>=1;i--)
+ {
+  minHeapify(Q,d,i); //调用minHeapify，以保持堆的性质。
+ }
+}
+ 
+    然后，得编写minHeapify代码，来保持最小堆的性质：
+ 
+void minHeapify(int Q[],int d[],int i)
+{ //smallest,l,r,i都是优先队列元素的下标，范围是从1 ~ heap-size[Q]
+ int l = 2*i;
+ int r = 2*i+1;
+ int smallest;
+ if(l<=Q[0] && d[ Q[l] ] < d[ Q[i] ])
+ 
+ {
+  smallest = l;
+ } 
+ else
+ {
+  smallest = i;
+ }
+ if(r<=Q[0] && d[ Q[r] ] < d[ Q[smallest] ])
+ 
+ {
+  smallest = r;
+ }
+ if(smallest!=i)
+ {
+  int temp = Q[i];
+  Q[i] = Q[smallest];
+  Q[smallest] = temp;  
+ 
+  minHeapify(Q,d,smallest);
+ }
+}
+ 
+你自个比较一下建立最小堆，与建立最大堆的代码，立马看见，如出一辙，不过是改几个字母而已：
+ 
+MAX-HEAPIFY(A, i)   //建立最大堆的代码
+ 1 l ← LEFT(i)
+ 2 r ← RIGHT(i)
+ 3 if l ≤ heap-size[A] and A[l] > A[i]
+ 4    then largest ← l
+ 5    else largest ← i
+ 6 if r ≤ heap-size[A] and A[r] > A[largest]
+ 7    then largest ← r
+ 8 if largest ≠ i
+ 9    then exchange A[i] <-> A[largest]
+10         MAX-HEAPIFY(A, largest) 
+
+    ok，最后，便是3、从最小队列中，抽取最小结点的工作了，如下：
+ 
+int extractMin(int Q[],int d[])   //3、从最小队列中，抽取最小结点
+{ //摘取优先队列中最小元素的内容，这里返回图中顶点的标号(0 ~ G.vexnum-1)，
+ //这些标号是保存在Q[1..n]中的
+ if(Q[0]<1)
+ {
+  cout<<"heap underflow!"<<endl;
+  return -10000;
+ }
+ int min = Q[1];
+ Q[1] = Q[Q[0]];
+ Q[0] = Q[0] - 1;
+ minHeapify(Q,d,1);
+ return min;
+}
+ 
+
+ALGraph图的建立
+    先定义几个宏，
+ 
+#define MAX_VERTEX_NUM 20 //图中最大的节点数目
+#define INFINITY 10000
+#define NIL -1
+ 
+    再建立几个数据结构：
+ 
+typedef struct ArcNode  //弧节点，就是邻接链表的表节点
+{  
+ int adjvex;    //该弧所指向尾节点的位置，其实保存的就是数组的下标
+ ArcNode *nextarc;  //指向下一条弧的指针
+ int weight;        //权重。
+}ArcNode;
+ 
+typedef struct VNode
+{
+ ArcNode* firstarc;
+}VNode,AdjList[MAX_VERTEX_NUM];
+ 
+typedef struct
+{
+ AdjList vertices;
+ int vexnum,arcnum;
+}ALGraph;
+ 
+    编写几个功能函数：
+ 
+void initALGraph(ALGraph* GPt,int vn)   //初始化结点
+{
+ GPt->arcnum = 0;
+ GPt->vexnum = vn;
+ for(int i=0;i<vn;i++)
+ 
+ {
+  GPt->vertices[i].firstarc = NULL;
+ }
+}
+ 
+void insertArc(ALGraph* GPt,int vhead,int vtail,int w) //增加结点操作
+{
+ ArcNode* arcNodePt = new ArcNode;
+ arcNodePt->nextarc = NULL;
+ arcNodePt->adjvex = vtail;
+ arcNodePt->weight = w;
+ 
+ ArcNode* tailPt = GPt->vertices[vhead].firstarc;
+ if(tailPt==NULL)
+ {
+  GPt->vertices[vhead].firstarc = arcNodePt;
+ }
+ else
+ {
+  while(tailPt->nextarc!=NULL)
+  {
+   tailPt = tailPt->nextarc;
+  }
+  tailPt->nextarc = arcNodePt;
+ }
+ GPt->arcnum ++;
+}
+ 
+void displayGraph(ALGraph G)  //打印结点
+{
+ ArcNode* arcNodePt;
+ for(int i=0;i<G.vexnum;i++)
+ {
+  arcNodePt = G.vertices[i].firstarc;
+  cout<<"vertex"<<i<<": ";
+  while(arcNodePt!=NULL)
+  {
+   cout<<arcNodePt->adjvex<<"("<<"weight"<<arcNodePt->weight<<")"<<" ";
+   arcNodePt = arcNodePt->nextarc;
+  }
+  cout<<endl;
+ }
+}
+ 
+int getEdgeWeight(ALGraph G,int vhead,int vtail)  //求边的权重
+{
+ ArcNode* arcNodePt = G.vertices[vhead].firstarc;
+ while(arcNodePt!=NULL)
+ {
+  if(arcNodePt->adjvex==vtail)
+  {
+   return arcNodePt->weight;
+  }
+  arcNodePt = arcNodePt->nextarc;
+ }
+ return INFINITY;
+}
+ 
+
+主函数测试用例
+    最后，便是编写主函数测试本程序：
+ 
+int main(){
+ 
+ ALGraph G;
+ ALGraph* GPt = &G;
+ initALGraph(GPt,5);
+ 
+ insertArc(GPt,0,1,10);
+ insertArc(GPt,0,3,5);
+ insertArc(GPt,1,2,1);
+ insertArc(GPt,1,3,2);
+ insertArc(GPt,2,4,4);
+ insertArc(GPt,3,1,3);
+ insertArc(GPt,3,2,9);
+ insertArc(GPt,3,4,2);
+ insertArc(GPt,4,2,4);
+ insertArc(GPt,4,0,7);
+ 
+ cout<<"显示出此构造的图:"<<endl;
+ displayGraph(G);
+ cout<<endl;
+ 
+ int d[MAX_VERTEX_NUM];
+ int pi[MAX_VERTEX_NUM];
+ int Q[MAX_VERTEX_NUM+1]; 
+        //Q[]的第一个元素只保存堆的大小，不保存元素。所以定义长度时+1
+ 
+ dijkstra(G,0,d,pi,Q);
+ 
+ for(int i=0;i<G.vexnum;i++)
+        {
+  cout<<"从源点0到点"<<i<<"的最短路径信息:"<<endl;
+  cout<<"长度为"<<d[i]<<endl;
+  cout<<"路径为";
+  printRoute(i,pi);
+  cout<<endl;
+  if(i==G.vexnum-1)
+                {
+   cout<<endl;
+  }
+ }
+ return 0; 
+}
+ 
+最后的运行结果，如下所示： 
+
+      
+
+全文，到此完。
+ 
+ 
+ 
+版权所有。转载本BLOG内任何文章，请以超链接形式注明出处。
+否则，一经发现，必定永久谴责+追究法律责任。谢谢，各位。
+ 
+
+•上一篇：十二之再续：快速排序算法之所有版本的c/c++实现
+•下一篇：十三、通过浙大上机复试试题学SPFA 算法
+ 
+
+
+查看评论
+ 
+
+
+
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+ 
+
+
+
+
+
+
+
+个人资料 
+
+v_JULY_v 
+
+
+
+
+◦访问：4771643次
+◦积分：27387分
+◦排名：第46名
+ ◦原创：138篇
+◦转载：0篇
+◦译文：5篇
+◦评论：10756条
+ 
+
+博客公告 ①.本blog开通于2010年10月11日，高级C++/算法交流群：128691433；北京程序员联盟：172727781。②.狂热算法，热爱数据挖掘，关注机器学习、统计分析，爱好文学数学。③.微博：研究者July，邮箱：zhoulei97@aliyun.com，或zhoulei0907@yahoo.cn，July，二零一三年八月七日。 
+我的微博 
+文章分类 • 03.Algorithms（实现）(9) 
+• 01.Algorithms（研究）(27) 
+• 02.Algorithms（后续）(22) 
+• 04.Algorithms（讨论）(1) 
+• 05.MS 100' original(7) 
+• 06.MS 100' answers(13) 
+• 07.MS 100' classify(4) 
+• 08.MS 100' one Keys(6) 
+• 09.MS 100' follow-up(3) 
+• 10.MS 100' comments(4) 
+• 11.TAOPP（编程艺术）(29) 
+• 12.TAOPP string(8) 
+• 13.TAOPP array(12) 
+• 14.TAOPP list(2) 
+• 15.stack/heap/queue(0) 
+• 16.TAOPP tree(1) 
+• 17.TAOPP c/c++(2) 
+• 18.TAOPP function(2) 
+• 19.TAOPP algorithms(7) 
+• 20.number operations(1) 
+• 21.Essays(8) 
+• 22.Big Data Processing(5) 
+• 23.Redis/MongoDB(0) 
+• 24.data structures(12) 
+• 25.Red-black tree(7) 
+• 26.Image Processing(3) 
+• 27.Architecture design(4) 
+• 28.Source analysis(3) 
+• 29.Recommend&Search(4) 
+• 30.Machine L&Data Mining(5) 
+
+博客专栏
+
+
+
+
+数据挖掘十大算法系列
+文章：5篇
+阅读：277416 
+
+
+
+
+
+微软面试100题系列
+文章：17篇
+阅读：1412267 
+
+
+
+
+
+程序员编程艺术
+文章：27篇
+阅读：1022218 
+
+
+
+
+
+经典算法研究
+文章：32篇
+阅读：1254721 
+
+阅读排行 • 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(217908) 
+• 教你如何迅速秒杀掉：99%的海量数据处理面试题(170893) 
+• 九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(166897) 
+• 从B树、B+树、B*树谈到R 树(142708) 
+• 横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(137238) 
+• 十道海量数据处理面试题与十个方法大总结(113474) 
+• 支持向量机通俗导论（理解SVM的三层境界）(102790) 
+• 九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(94309) 
+• 十一、从头到尾彻底解析Hash表算法(89258) 
+• 微软公司等数据结构+算法面试100题(第1-100题)全部出炉(84427) 
+
+评论排行 • 程序员面试、算法研究、编程艺术、红黑树、数据挖掘5大系列集锦(409) 
+• 九月十月百度人搜，阿里巴巴，腾讯华为笔试面试八十题(第331-410题)(368) 
+• 九月腾讯，创新工场，淘宝等公司最新面试三十题（第171-200题）(339) 
+• 当今世界最为经典的十大算法--投票进行时(322) 
+• 从B树、B+树、B*树谈到R 树(279) 
+• 横空出世，席卷互联网--评微软等公司数据结构+算法面试100题(267) 
+• 我的大学生涯(236) 
+• 程序员编程艺术第一章、左旋转字符串(223) 
+• 十三个经典算法研究与总结、目录+索引(218) 
+• 支持向量机通俗导论（理解SVM的三层境界）(215) 
+
+最新评论 •程序员编程艺术第三十二~三十三章：最小操作数，木块砌墙问题
+u011916787: 问一个关于C++的问题，使用vector的时候为什么有时候初始化了之后需要resize(),而有时候... 
+
+•程序员编程艺术第三十二~三十三章：最小操作数，木块砌墙问题
+u011916787: 问一下，这一个算法你大约想多久啊，我看现成的解答都要看半天，哎~~~ 
+
+•从Hadoop框架与MapReduce模式中谈海量数据处理（含淘宝技术架构）
+yutianzuijin: @RunZhi1989:惊现俊哥！ 
+
+•程序员编程艺术：第二章、字符串是否包含及匹配/查找/转换/拷贝问题
+ken_lover: @likefxy:这个方法有问题 
+
+•程序员编程艺术第一章、左旋转字符串
+ken_lover: 将问题提高到数学方法实现，思考问题层次立马advanced了 
+
+•从Trie树（字典树）谈到后缀树（10.28修订）
+hanchengxi: “还要提到一个节约时间的方法. 当我们遍历所有后缀时, 如果某个后缀的某个儿子跟待加字符(新前缀最后... 
+
+•全新整理：微软、Google等公司的面试题及解答、第161-170题
+ilogo1: 放鸡蛋那个题，应该DP一下，在条件限制下的完全背包问题。 
+
+•微软面试100题2010年版全部答案集锦（含下载地址）
+hasayake0302: 看了博主的帖子受益匪浅感觉Q48和Q51解法欠妥Q48：仅靠“a >= k && k > a”还不足... 
+
+•程序员编程艺术：第十章、如何给10^7个数据量的磁盘文件排序
+yankai0219: 关于这个题目中K路归并时所采用的算法。在您的原文中，K路归并时就是采用数组比较获得最小值，复杂度为O... 
+
+•程序员编程艺术第三十四~三十五章：格子取数问题，完美洗牌算法
+v_JULY_v: @k578522915:没记录最大值？ 
+
+
+01、本blog索引 ◦3、微软100题维护地址
+◦1、微软100题横空出世
+◦5、经典算法研究系列
+◦7、红黑树系列集锦
+◦6、程序员编程艺术系列
+◦2、微软面试全部100题
+◦0、经典5大原创系列集锦
+◦4、微软100题下载地址
+ 
+02、Google or baidu? ◦Google搜--"结构之法"（My BLOG）
+◦baidu 搜--"结构之法"（My BLOG）
+ 
+03、我的驻点 ◦01. 为学论坛-万物皆数 终生为学
+ ◦02、Harry
+ ◦03、NoSQLFan
+ ◦04、酷勤网
+ ◦05、52nlp
+ ◦06、北大朋友的挖掘乐园
+ ◦07、跟Sophia_qing一起读硕士
+ ◦08、caopengcs
+ ◦08、面试问答社区51nod
+ ◦09、韩寒
+ ◦11、曾经的叛逆与年少
+ ◦12、老D之MongoDB源码分析
+ ◦14、code4app:iOS代码示例
+ ◦17、斯坦福机器学习公开课
+ ◦18、TheItHome算法版块版主
+ ◦19、36氪--关注互联网创业
+ ◦20、德问--编程是一种艺术创作
+ ◦21、善科网
+ ◦22、百度搜索研发部
+ ◦23、淘宝搜索技术博客
+ ◦24、interviewstreet
+ ◦25、LeetCode
+ ◦26、Team_Algorithms人人小组
+ 
+文章存档 
+•2013年08月(2)
+•2013年06月(1)
+•2013年03月(1)
+•2012年12月(1)
+•2012年11月(1)
+•2012年09月(1)
+•2012年06月(1)
+•2012年05月(2)
+•2012年04月(1)
+•2012年03月(2)
+•2012年02月(2)
+•2012年01月(2)
+•2011年12月(5)
+•2011年11月(1)
+•2011年10月(7)
+•2011年09月(3)
+•2011年08月(11)
+•2011年07月(4)
+•2011年06月(7)
+•2011年05月(10)
+•2011年04月(7)
+•2011年03月(17)
+•2011年02月(11)
+•2011年01月(18)
+•2010年12月(14)
+•2010年11月(6)
+•2010年10月(5)
+ 
+
+
+

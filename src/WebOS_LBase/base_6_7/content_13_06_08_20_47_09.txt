@@ -1,0 +1,32 @@
+非mfc程序调用mfc扩展dll
+由于想在游戏中（非mfc程序）调用一个dll用来监控游戏中一些数据变化，而这些数据可以触发式变动，所以想到用mfc来弄，
+但网上查的
+“非mfc程序调用mfc扩展dll”似乎有点麻烦，也没有什么成样的例子。
+后来还是自己对比正常的mfc程序加载方式修改出来了，步骤如下：
+1.  
+exe工程要设置成Use Standard Windows Libraries或者Use MFC in a Shared DLL（因为我们不用mfc，所以设置成前者）
+2. 
+dll工程用vc向导创建mfc扩展dll
+3. 在dll工程中拷贝相关的app,mainfrm和view以及doc框架（可以用vc向导创建一个正常mfc框架程序用来拷贝）
+然后在dllmain的attach中加入如下语句即可:
+//----------------------------------------
+	// AFX internal initialization
+	if (!AfxWinInit(hInstance, 0, "", 1))
+		return 0;
+	// Register the doc templates we provide to the app
+	CWinApp* pApp = AfxGetApp();
+	ENSURE(pApp != NULL);
+	pApp->InitApplication();
+	pApp->InitInstance();
+//----------------------------------------
+4. 如果是隐式调用的话，在exe中加入:
+#define AFX_EXT_API  __declspec(dllexport)
+#include "..\mfcdll\mfcdll.h"  // 这个是dll要导出的东西
+这样就可以了
+
+5.显式调用的话，用LoadLibrary先装载，再获取对应导出函数调用就应该也可以了（这个没试）
+
+6.上述处理后只能显示，但按键接收还不行，因为消息循环没有地方调用。。。它原来是系统调用app->run()，在其中循环处理的。
+如果直接在dll中调用app的run()的话，mainfrm的PreTranslateMessage就能收到按键消息了。但这样由于是主线程中调用app->run()，而run()中
+是消息死循环，所会exe会没机会响应。。。所以解决办法是模拟app->run()写一个runoneframe()函数，然后每次刷新一下（或者创建新线程来刷新, 临时试了一下会crash，我没用这种办法，先不查了，不过理论上应该可以的）
+这样就ok了(view中按键自己再处理吧，这里不提了)

@@ -1,0 +1,56 @@
+      
+Chapter 6: Reading from Files and Storing/Extracting Between Structures
+
+Now that we have tracked the features through the entire image sequence and have saved the result to a file, we can read the file and access the data without having to process the images again. The following example shows how this is done. Once again, we will examine the unfamiliar lines.
+KLTReadFeatureTable() reads the feature table from the file "features.txt". Since the first parameter is NULL, a feature table of the appropriate size is created and returned.
+
+KLTExtractFeatureList() copies the (i+1)th column of a feature table into a feature list, where i is given by the third parameter (in this case 1). In other words, i=0 refers to the first column.
+
+Although in this example the call KLTReadFeatureList() is unnecessary, it is given here to show its syntax, which is identical to that of KLTReadFeatureTable(). Because the first parameter is not NULL, the data is written into the given feature list.
+
+KLTStoreFeatureList() copies a feature list into a particular column of a feature table (in this case the third column, for which i=2). Now, the second and third columns of the table are identical.
+
+The second half of this example involves a feature history, which is a single row of a feature table in the same way that a feature list is a single column. That is, a feature history contains a particular features' locations in all the frames. The syntax for dealing with a feature history is identical to that of a feature list and should be clear from the example.
+
+NOTE: Unlike this example, in which every KLTWriteFeature...() call produces a text file, you will most likely want to produce binary files. See the explanation in Chapter 2.
+
+Example 4
+
+/**********************************************************************
+Reads the feature table from "features.txt", copies the features from 
+the second frame to those of the third frame, writes the features to 
+"feat2.txt", and writes the new feature table to "ft2.txt".  Then the
+eighth feature is overwritten with the fifth feature, and the resulting
+table is saved to "ft3.txt".
+**********************************************************************/
+
+#include <stdio.h>
+#include "klt.h"
+
+void main()
+{
+     KLT_FeatureList fl;
+     KLT_FeatureHistory fh;
+     KLT_FeatureTable ft;
+     int i;
+
+     ft = KLTReadFeatureTable(NULL, "features.txt");
+     fl = KLTCreateFeatureList(ft->nFeatures);
+     KLTExtractFeatureList(fl, ft, 1);
+     KLTWriteFeatureList(fl, "feat1.txt", "%3d");
+     KLTReadFeatureList(fl, "feat1.txt");
+     KLTStoreFeatureList(fl, ft, 2);
+     KLTWriteFeatureTable(ft, "ft2.txt", "%3d");
+
+     fh = KLTCreateFeatureHistory(ft->nFrames);
+     KLTExtractFeatureHistory(fh, ft, 5);
+
+     printf("The feature history of feature number 5:\n\n");
+     for (i = 0 ; i < fh->nFrames ; i++)
+          printf("%d: (%5.1f,%5.1f) = %d\n",
+               i, fh->feature[i]->x, fh->feature[i]->y, fh->feature[i]->val);
+
+     KLTStoreFeatureHistory(fh, ft, 8);
+     KLTWriteFeatureTable(ft, "ft3.txt", "%6.1f");
+}
+       

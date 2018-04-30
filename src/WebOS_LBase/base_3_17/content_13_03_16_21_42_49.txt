@@ -1,0 +1,244 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+登录
+注册
+返回首页
+
+
+门户| 论坛| Blog |新闻| 文档| Tag | 下载| 搜索| 培训| WiKi | IXPUB | 投稿| 专题
+
+ 频道: Oracle | DB2 | SQL Server | ERP | SCM | Java | 微软技术 | 开源 | 项目管理 | SOA | 商业智能 |IBM软件技术
+
+ 
+
+您的位置：首页 > 技术频道 > 正文
+ 
+
+
+
+
+
+
+
+
+
+
+Metatable In Lua 浅尝辄止
+
+[收藏此页] [打印]
+
+
+
+
+作者：来自ITPUB论坛  2008-02-15 
+
+
+内容导航：
+Metatable In Lua 浅尝辄止 
+
+
+
+
+
+　　【IT168 技术文档】什么是Metatable
+ 
+　　Lua中Metatable这个概念, 国内将他翻译为元表. 元表为重定义Lua中任意一个对象(值)的默认行为提供了一种公开入口. 如同许多OO语言的操作符重载或方法重载. Metatable能够为我们带来非常灵活的编程方式.
+ 
+　　具体的说, Lua中每种类型的值都有都有他的默认操作方式, 如, 数字可以做加减乘除等操作, 字符串可以做连接操作, 函数可以做调用操作, 表可以做表项的取值赋值操作. 他们都遵循这些操作的默认逻辑执行, 而这些操作可以通过Metatable来改变. 如, 你可以定义2个表如何相加等.
+ 
+　　看一个最简单的例子, 重定义了2个表的加法操作. 这个例子中将c的__add域改写后将a的Metatable设置为c, 当执行到加法的操作时, Lua首先会检查a是否有Metatable并且Metatable中是否存在__add域, 如果有则调用, 否则将检查b的条件(和a相同), 如果都没有则调用默认加法运算, 而table没有定义默认加法运算, 则会报错.
+ 
+　　--定义2个表
+　　a = {5, 6}
+　　b = {7, 8}
+　　--用c来做Metatable
+　　c = {}
+　　--重定义加法操作
+　　c.__add = function(op1, op2)
+　　for _, item in ipairs(op2) do
+　　table.insert(op1, item)
+　　end
+　　return op1
+　　end
+　　--将a的Metatable设置为c
+　　setmetatable(a, c)
+　　--d现在的样子是{5,6,7,8}
+　　d = a + b
+ 
+　　有了个感性的认识后, 我们看看Metatable的具体特性.
+ 
+　　Metatable并不神秘, 他只是一个普通的table, 在table这个数据结构当中, Lua定义了许多重定义这些操作的入口. 他们均以双下划线开头为table的域, 如上面例子的__add. 当你为一个值设置了Metatable, 并在Metatable中设置了重写了相应的操作域, 在这个值执行这个操作的时候就会触发重写的自定义操作. 当然每个操作都有每个操作的方法格式签名, 如__add会将加号两边的两个操作数做为参数传入并且要求一个返回值. 有人把这样的行为比作事件, 当xx行为触发会激活事件自定义操作.
+ 
+　　Metatable中定义的操作add, sub, mul, div, mod, pow, unm, concat, len, eq, lt, le, tostring, gc, index, newindex, call...
+ 
+　　在Lua中任何一个值都有Metatable, 不同的值可以有不同的Metatable也可以共享同样的Metatable, 但在Lua本身提供的功能中, 不允许你改变除了table类型值外的任何其他类型值的Metatable, 除非使用C扩展或其他库. setmetatable和getmetatable是唯一一组操作table类型的Metatable的方法.
+ 
+　　Metatable与面向对象
+ 
+　　Lua是个面向过程的语言, 但通过Metatable可以模拟出面向对象的样子. 其关键就在于__index这个域. 他提供了表的索引值入口. 这很像重写C#中的索引器, 当表要索引一个值时如table[key], Lua会首先在table本身中查找key的值, 如果没有并且这个table存在一个带有__index属性的Metatable, 则Lua会按照__index所定义的函数逻辑查找. 仔细想想, 这不正为面向对象中的核心思想继承, 提供了实现方式么. Lua中实现面向对象的方式非常多, 但无论哪种都离不开__index.
+ 
+　　这个例子中我使用了ProgrammingInLua中的实现OO的方式, 建立了Bird(鸟)对象, 拥有会飞的属性, 其他鸟对象基于此原型, Ostrich(鸵鸟)是鸟的一种但不会飞. 结果很明显, Bird和Ostrich分别有独立的状态.
+ 
+　　local Bird = {CanFly = true}
+　　function Bird:New()
+　　local b = {}
+　　setmetatable(b, self)
+　　self.__index = self
+　　return b
+　　end
+　　local Ostrich = Bird:New() --Bird.CanFly is true, Ostrich.CanFly is true
+　　Ostrich.CanFly = false --Bird.CanFly is true, Ostrich.CanFly is false
+ 
+　　__newindex与__index相对应, 在对table的key做更新时触发. 可以使用rawset和rawget对table的key操作来跳过这些事件的触发.
+ 
+　　调用与截获
+ 
+　　Java与C#中需要费不少周折来实现动态代理和AOP, 类似这样的功能在Lua中确很简单, 虽然被限制了很多, 但你依然能够感受到Lua的灵活. 这就是__call操作, 当值被调用时触发.
+ 
+　　这里我将table类型的a做了一个函数方式的调用a(), 会触发__call. 另一个应用示例可以参见我的另一篇文章Lua中实现事件机制
+ 
+　　a = {}
+　　function a:Func()
+　　print("simonw")
+　　end
+　　c = {}
+　　c.__call = function(t, )
+　　print("Start")
+　　t.Func()
+　　print("End")
+　　end
+　　setmetatable(a, c)
+　　a()
+　　--[[
+　　Start
+　　simonw
+　　End
+　　]]
+ 
+　　这里的示例都是以最简单的方式展现, 以便能更清晰的描述核心, 更多的资料以及具体应用请参考Programming In Lua和Lua参考手册.
+
+
+
+
+1
+
+
+【内容导航】 
+
+
+第1页：Metatable In Lua 浅尝辄止 
+
+
+
+©版权所有。未经许可，不得转载。
+
+[责任编辑：cynthia] 
+
+
+
+
+
+
+
+
+
+进入论坛>>相关论坛贴
+ 
+•求供货商行项目明细的相关BAPI
+ •如何將兩個PARAMETERS放在一行?
+ •问个简单的问题，account type有什么控制作用？
+ •abap中select 怎麼取SY-DATUM的年月
+ •大家来列举一下查找同一内表中重复记录的最优化...
+ •如何控制已开发票不能跨两个月或以上进行冲销
+ 
+
+
+
+
+·LoadRunner创建测试脚本
+ ·用LoadRunner编写socket应用的测试脚本
+ ·使用LoadRunner 编写JAVA 测试脚本
+ ·LoadRunner脚本编程 
+·【高端访谈】寻找下一代CTO向冠军冲刺 
+·【技术专题】SQL Server 2008数据挖掘指南 
+·【高端访谈】畅谈“寻找下一代CTO”
+ ·【热点专题】08年.NET最受欢迎的图书
+
+
+
+
+ 整洁的程序和好的程序 鱼和熊掌兼得?
+开发者需知：优秀程序设计的18大原则
+开发者必知 学习SQL的九个理由
+社交之战已经结束 HTML5将会改变一切
+追求自由竞争市场 浅析开放平台的本质
+国产软件优先采购权取消 欧美施压所致
+7月编程排行：Objective-C将成年度语言
+最新30佳：HTML5 网站设计案例欣赏
+新手神器：MySQL-Cluster架构图文详解
+9个重要习惯 极大提升工作和时间效率
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+CopyRight 1999-2006 itpub.net All Right Reserved.    E-mail:Webmaster@itpub.net
+北京皓辰广域网络信息技术有限公司. 版权所有    京ICP证:010037号   联系我们   法律顾问
+ 
+
+

@@ -1,0 +1,333 @@
+arm linux下的关于time部分的说明
+
+2012-09-02 20:16 258人阅读 评论(0) 收藏 举报
+linuxtimerstructtimezoneuserlocking
+main.c中start_kernel()函数调用linux/arch/arm/kernel/time.c 中的time_init(),
+time_init函数调用include/asm-arm/arch-s3c2410/time.h中的setup_timer();
+其具体内容见下面函数细节。
+ 
+The xtime_lock is not only serializing the xtime read/writes but it's also
+   serializing all accesses to the global NTP variables now.
+ 
+linux/kernel/timer.c中定义的是一些全局的关于timer的变量和函数。
+long tick = (1000000 + HZ/2) / HZ; /* timer interrupt period */
+/* The current time */
+struct timeval xtime __attribute__ ((aligned (16)));
+ 
+ 
+linux/arch/arm/kernel/time.c                                             
+/*
+ * hook for setting the RTC's idea of the current time.
+ */
+int (*set_rtc)(void) = dummy_set_rtc;//初始化设置为一个空函数.
+/*
+ * hook for getting the time offset.  Note that it is
+ * always called with interrupts disabled.
+ */
+unsigned long (*gettimeoffset)(void) = dummy_gettimeoffset;//初始化设置为一个空函数.
+/*
+ * Handle kernel profile stuff...
+ */
+static inline void do_profile(struct pt_regs *regs)
+/*
+ * If we have an externally synchronized linux clock, then update
+ * CMOS clock accordingly every ~11 minutes.  set_rtc() has to be
+ * called as close as possible to 500 ms before the new second
+ * starts.
+ */
+如果time_status & STA_UNSYNC为1,或者set_rtc函数为NULL,返回;
+如果next_rtc_update(long类型的)大于0且当前的秒数还没有到next_rtc_update,返回；
+还有个条件，关于当前xtime.tv_usec的判断，没看懂；
+set_rtc(),失败，则在下一分钟继续更新next_rtc_update = xtime.tv_sec + 60;
+成功，则过11分钟更新，next_rtc_update = xtime.tv_sec + 660;
+static inline void do_set_rtc(void)
+ 
+void (*leds_event)(led_event_t) = dummy_leds_event;//初始化设置为一个空函数.
+ 
+static void do_leds(void)
+ 
+void do_gettimeofday(struct timeval *tv)
+ 
+void do_settimeofday(struct timeval *tv)
+ 
+static struct irqaction timer_irq = {
+ name: "timer",
+};
+/*
+ * This must cause the timer to start ticking.
+ * It doesn't have to set the current time though
+ * from an RTC - it can be done later once we have
+ * some buses initialised.
+ */
+void __init time_init(void)
+ 
+在include/asm-arm/arch-s3c2410/time.h中重要函数和常量定义                         
+#define epoch   1970
+static const unsigned char days_in_mo[] =
+ {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+#define BCD_TO_BIN(val) ((val)=((val)&15) + ((val)>>4)*10)
+#define BIN_TO_BCD(val) ((val)=(((val)/10)<<4) + (val)%10)
+ 
+判断是否为闰年
+#define is_leap(year) /
+ ((year) % 4 == 0 && ((year) % 100 != 0 || (year) % 400 == 0))
+#define RTC_LEAP_YEAR        2000
+ 
+获取rtc时间，并Converts Gregorian date to seconds since 1970-01-01 00:00:00.然后返回
+其中调用了linux/time.h中的mktime(..)其中转化算法好象是first published by Gauss
+unsigned long s3c2410_get_rtc_time(void);
+ 
+/*
+ * Converts seconds since 1970-01-01 00:00:00 to Gregorian date.
+ * 返回值到rtc_time结构中
+ */
+static void decodetime (unsigned long t, struct rtc_time *tval)
+ 
+安装rtc,根据系统中的xtime.tv_sec，更新rtc时钟。
+调用了decodetime把1970年来的second值转换为Gre时间(from 1900)，并转化为BCD码，写入时钟芯片.函数仅返回0，无任何错误返回..用于sync update rtc
+int s3c2410_set_rtc(void)
+ 
+好象是返回用去了多少秒?
+static unsigned long s3c2410_gettimeoffset(void)
+ 
+//时钟中断服务例程,调用do_leds,do_set_rtc,do_timer
+static void s3c2410_timer_interrupt(int irq, void *dev_id, struct pt_regs *regs)
+ 
+ 
+/* Unit of 'freq' is khz */
+struct timer_counts {
+ unsigned int freq;
+ unsigned int count;
+};
+/*到底是怎么转化的？？？？？
+ * priod = (prescaler value + 1) * (divider value) * buffer count / PCLK = 10 ms
+ *
+ * e.g.; PCLK = 50 Mhz
+ * 10 ms = (15 + 1) * 2 * 15625 / (50000 * 1000)
+ * 15626 = 10 ms * (50000 * 1000) / 2 / (15 + 1)
+ *
+ * Other values
+ *  5156 = 10 ms * ( 16.5 * 1,000,000) / 2 / (15+1)
+ *  6250 = 10 ms * ( 20 * 1,000,000) / 2 / (15+1)
+ * 10312 = 10 ms * ( 33 * 1,000,000) / 2 / (15+1)
+ * 20625 = 10 ms * ( 66 * 1,000,000) / 2 / (15+1)
+ * 21875 = 10 ms * ( 70 * 1,000,000) / 2 / (15+1)
+ * 23437 = 10 ms * ( 75 * 1,000,000) / 2 / (15+1)
+ * 25000 = 10 ms * ( 80 * 1,000,000) / 2 / (15+1)
+ * 28125 = 10 ms * ( 90 * 1,000,000) / 2 / (15+1)
+ * 31250 = 10 ms * ( 100 * 1,000,000) / 2 / (15+1)
+ */
+struct timer_counts count_values[] = {
+ {  16500,  5156 },
+ {  20000,  6250 },
+ {  33000, 10312 },
+ {  45000, 14063 },
+ {  48000, 15000 },
+ {  50000, 15626 },
+ {  50700, 15844 },
+ {  66000, 20625 },
+ {  70000, 21875 },
+ {  75000, 23437 },
+ {  80000, 25000 },
+ {  90000, 28125 },
+ { 100000, 31250 },
+ {      0,     0 } /* last entry */
+};
+ 
+安装Timer
+static inline void setup_timer(void)
+{
+ struct timer_counts *timer_count = count_values;
+ unsigned long pclk;
+ 
+ 设置timer函数吧:gettimeoffset和set_rtc函数都定义在/*linux/arch/arm/kernel/time.c*/
+ gettimeoffset = s3c2410_gettimeoffset;/*linux/arch/arm/kernel/time.c*/get us
+ set_rtc = s3c2410_set_rtc;
+ xtime.tv_sec = s3c2410_get_rtc_time();//就在本文件中定义
+ 
+ /* set timer interrupt */在哪里定义的这些宏？
+ TCFG0 = (TCFG0_DZONE(0) | TCFG0_PRE1(15) | TCFG0_PRE0(0));
+ 
+ pclk = s3c2410_get_bus_clk(GET_PCLK)/1000;获得总线时钟PCLK/1000作为frequence
+ while (timer_count != 0) {  循环查找相同的freq，找到了就安装Timer 4初值.
+  if (pclk == timer_count->freq) {
+   printk("DEBUG: timer count %d/n", timer_count->count);
+   TCNTB4 = timer_count->count;//TCNTB4--Timer 4
+   break;
+  }
+  timer_count++;
+ }
+ 
+ 如果没有找到对应的frep,就假定系统的PCLK为50Mhz,安装timer4
+ if (timer_count == 0) {
+      /* Error, assume that PCLK is 50 Mhz */
+  TCNTB4 = 15626; /* down-counter, maximum value is 65535 (2^16) */
+ }
+// TCNTB4=s3c2410_get_bus_clk(GET_PCLK)/1000; //add by HHTECH
+初始化Timer control register,关闭计数
+ TCON = (TCON_4_AUTO | TCON_4_UPDATE | COUNT_4_OFF); 
+安装timer中断服务程序
+ timer_irq.handler = s3c2410_timer_interrupt;//timer_irq定义在/*linux/arch/arm/kernel/time.c*/
+ setup_arm_irq(IRQ_TIMER4, &timer_irq);
+ TCON = (TCON_4_AUTO | COUNT_4_ON);//开始计数
+}
+ 
+
+EXPORT_SYMBOL(s3c2410_get_rtc_time);
+EXPORT_SYMBOL(s3c2410_set_rtc);
+ 
+ 
+1.
+int s3c2410_set_rtc(void)有以下说明，所以对2410，要求的时间应该是从2000以后。
+ yeardiff = (rtc_tm.tm_year + 1900) - RTC_LEAP_YEAR;
+ if (yeardiff < 0) {
+  /* S3C2410 RTC forces that the year must be higher or
+     equal than 2000, so initailize it. */
+  yeardiff = 0;
+ }
+ 
+2.
+s3c2410中的第四个timer用于作为系统的时间片
+timer interrupt                                              
+在 setup_timer(void)函数中安装，
+ timer_irq.handler = s3c2410_timer_interrupt;//timer_irq定义在/*linux/arch/arm/kernel/time.c*/
+ setup_arm_irq(IRQ_TIMER4, &timer_irq);
+ TCON = (TCON_4_AUTO | COUNT_4_ON);//开始计数
+
+timer_interrupt()调用do_timer()完成时钟中断上半部分处理；如果需要（可查看do_set_rtc()代码），还要刷新rtc中的信息，以便rtc和os时钟同步sync.RTC的更新频率是每11分钟刷新一次。
+static void s3c2410_timer_interrupt(int irq, void *dev_id, struct pt_regs *regs)
+{
+ long flags;
+ 
+ do_leds();   //linux/arch/arm/kernel/time.c
+根据系统中的xtime.tv_sec，更新rtc时钟。
+调用了decodetime把1970年来的second值转换为Gre时间(from 1900)，并转化为BCD码，写入时钟芯片.函数仅返回0，无任何错误返回..用于sync update CMOS clock accordingly every ~11 minutes
+ do_set_rtc(); //linux/arch/arm/kernel/time.c,
+
+ save_flags_cli(flags);
+ do_timer(regs);
+ restore_flags(flags);
+}
+ 
+在include/linux/rtc.h中重要函数和常量定义                         
+Generic RTC interface
+/*
+ * The struct used to pass data via the following ioctl. Similar to the
+ * struct tm in <time.h>, but it needs to be here so that the kernel
+ * source is self contained, allowing cross-compiles, etc. etc.
+ */
+ 
+struct rtc_time {
+ int tm_sec;
+ int tm_min;
+ int tm_hour;
+ int tm_mday;
+ int tm_mon;
+ int tm_year;
+ int tm_wday;
+ int tm_yday;
+ int tm_isdst;
+};
+关于时钟的系统调用： linux/kernel/time.c                                   
+sys_time:获得系统时间；
+sys_stime:设置系统时间；
+sys_gettimeofday:获得系统时间和时区；
+sys_settimeofday:设置系统时间和时区；
+sys_adjtimex:调整整个计时系统。
+ 
+ 
+ *  This file contains the interface functions for the various
+ *  time related system calls: time, stime, gettimeofday, settimeofday,adjtime
+asmlinkage long sys_time(int * tloc)
+asmlinkage long sys_stime(int * tptr)
+asmlinkage long sys_gettimeofday(struct timeval *tv, struct timezone *tz)
+asmlinkage long sys_settimeofday(struct timeval *tv, struct timezone *tz)
+asmlinkage long sys_adjtimex(struct timex *txc_p)这个的实现比较长，没看懂
+-------------------------------------------------
+asmlinkage long sys_time(int * tloc)返回秒值
+{
+ struct timeval now;
+ int i;
+ 
+ do_gettimeofday(&now);
+ i = now.tv_sec;
+ if (tloc) {
+  if (put_user(i,tloc))
+   i = -EFAULT;
+ }
+ return i;
+}
+asmlinkage long sys_stime(int * tptr)
+{
+ int value;
+ 
+ if (!capable(CAP_SYS_TIME))
+  return -EPERM;
+ if (get_user(value, tptr))
+  return -EFAULT;
+ write_lock_irq(&xtime_lock);
+ xtime.tv_sec = value;
+ xtime.tv_usec = 0;
+ time_adjust = 0; /* stop active adjtime() */
+ time_status |= STA_UNSYNC;
+ time_maxerror = NTP_PHASE_LIMIT;
+ time_esterror = NTP_PHASE_LIMIT;
+ write_unlock_irq(&xtime_lock);
+ return 0;
+}
+asmlinkage long sys_gettimeofday(struct timeval *tv, struct timezone *tz)
+{
+ if (tv) {
+  struct timeval ktv;
+  do_gettimeofday(&ktv);
+  if (copy_to_user(tv, &ktv, sizeof(ktv)))
+   return -EFAULT;
+ }
+ if (tz) {
+  if (copy_to_user(tz, &sys_tz, sizeof(sys_tz)))
+   return -EFAULT;
+ }
+ return 0;
+}
+int do_sys_settimeofday(struct timeval *tv, struct timezone *tz)
+{
+ static int firsttime = 1;
+ 
+ if (!capable(CAP_SYS_TIME))
+  return -EPERM;
+  
+ if (tz) {
+  /* SMP safe, global irq locking makes it work. */
+  sys_tz = *tz;
+  if (firsttime) {
+   firsttime = 0;
+   if (!tv)
+    warp_clock();
+  }
+ }
+ if (tv)
+ {
+  /* SMP safe, again the code in arch/foo/time.c should
+   * globally block out interrupts when it runs.
+   */
+  do_settimeofday(tv);
+ }
+ return 0;
+}
+ 
+asmlinkage long sys_settimeofday(struct timeval *tv, struct timezone *tz)
+{
+ struct timeval new_tv;
+ struct timezone new_tz;
+ 
+ if (tv) {
+  if (copy_from_user(&new_tv, tv, sizeof(*tv)))
+   return -EFAULT;
+ }
+ if (tz) {
+  if (copy_from_user(&new_tz, tz, sizeof(*tz)))
+   return -EFAULT;
+ }
+ 
+ return do_sys_settimeofday(tv ? &new_tv : NULL, tz ? &new_tz : NULL);

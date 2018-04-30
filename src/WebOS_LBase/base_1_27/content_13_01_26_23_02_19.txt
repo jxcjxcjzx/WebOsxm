@@ -1,0 +1,417 @@
+
+
+
+
+
+Apache POI教程
+
+Apache、Tomcat、Resin、Jboss教程
+
+ 
+
+
+
+
+
+
+使用POI操作Excel 2007 
+
+2012-02-03 admin POI, 0 
+
+这是两个例程，是演示如何使用Java读取和写入Excel 2007 文件。注释里有比较详细的开发环境说明，你只要在Eclipse里粘过去不可以运行了。
+ 例程使用的是POI-XSSF，而不是HSSF，这个地方要注意一下，不过他们的用法很类似，如果你看明白一个了，应该很容易理解另一个
+ 非常感谢大家能阅读我的文章。如果还有什么问题，请大家与我联系QQ:21807822,e-mail: dukejoe@163.com 转载请注明出处为 http://blog.donews.com/dukejoe/archive/2009/10/22/1567379.aspx，并保留作者姓名和本句话，谢谢合作
+ 
+ 
+ 
+/******************************************************************************
+ * 演示使用POI 写入 Excel 2007
+ *
+ * 关键字：Java Excel POI POI-HSSF POI-XSSF
+ *
+ * 作者：高宏伟(DukeJoe)
+ * 时间：2009-10-22 16:12:25
+ * 地点：黑龙江省哈尔滨市道里区通达街291号
+ * 注释：http://blog.donews.com/dukejoe/archive/2009/10/22/1567379.aspx
+ *
+ * 开发环境详细说明：
+ * 1、java version …
+
+ 
+
+Excel 2007, POI, POI操作Excel, POI操作Excel 2007
+
+
+使用POI向Excel中插入图片例子 
+
+2012-02-03 admin POI, 0 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
+一．POI简介
+ 
+Jakarta POI 是apache的子项目，目标是处理ole2对象。它提供了一组操纵Windows文档的Java API
+ 
+目前比较成熟的是HSSF接口，处理MS Excel（97-2002）对象。它不象我们仅仅是用csv生成的没有格式的可以由Excel转换的东西，而是真正的Excel对象，你可以控制一些属性如sheet,cell等等。
+ 
+二．HSSF概况
+ 
+HSSF 是Horrible SpreadSheet Format的缩写，也即“讨厌的电子表格格式”。也许HSSF的名字有点滑稽，就本质而言它是一个非常严肃、正规的API。通过HSSF，你可以用纯Java代码来读取、写入、修改Excel文件。
+ 
+HSSF 为读取操作提供了两类API：usermodel和eventusermodel，即“用户模型”和“事件-用户模型”。前者很好理解，后者比较抽象，但操作效率要高得多。
+ 
+三．开始编码
+ 
+1 ． 准备工作
+ 
+要求:JDK 1.4+POI开发包
+ 
+可以到 http://www.apache.org/dyn/closer.cgi/jakarta/poi/ 最新的POI工具包
+ 
+2 ． EXCEL 结构
+ 
+HSSFWorkbook excell 文档对象介绍
+ HSSFSheet excell的表单
+ HSSFRow excell的行
+ HSSFCell excell的格子单元
+ HSSFFont excell字体
+ HSSFName 名称
+ HSSFDataFormat 日期格式
+ 在poi1.7中才有以下2项：
+ HSSFHeader sheet头
+ 
+…
+
+ 
+
+Excel, POI, POI向Excel插入图片
+
+
+Apache POI-HSSF介绍 
+
+2012-02-03 admin Apache, POI, 0 
+
+Jakarta_POI 使用Java读写Excel(97-2002)文件，可以满足大部分的需要。
+ 因为刚好有一个项目使用到了这个工具，花了点时间顺便翻译了一下POI本身
+ 带的一个Guide.有一些节减和修改，希望给使用这个项目的人一些入门帮助。
+ POI 下面有几个自项目:HSSF用来实现Excel 的读写.以下是HSSF的主页
+ http://jakarta.apache.org/poi/hssf/index.html
+ 
+下面的介绍是基于以下地址的翻译：
+ http://jakarta.apache.org/poi/hssf/quick-guide.html
+ 
+目前的版本为1.51应该是很长时间之内的一个稳定版，但HSSF提供的Sample不是基于
+ 1.51所写，所以使用的时候需要适当的注意.
+ 其实POI下面的几个子项目侧重不同读写 Word 的HDF正在开发当中.
+ XML下的FOP(http://xml.apache.org/fop/index.html)
+ 可以输出pdf文件，也是比较好的一个工具
+ 
+目录:
+ 创建一个workbook
+ 创建一个sheet
+ 创建cells
+ 创建日期cells
+ 设定单元格格式
+ 
+说明：
+ 以下可能需要使用到如下的类
+ import org.apache.poi.hssf.usermodel.HSSFCell;
+ import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+ import org.apache.poi.hssf.usermodel.HSSFDataFormat;
+ import org.apache.poi.hssf.usermodel.HSSFFont;
+ import org.apache.poi.hssf.usermodel.HSSFRow;
+ import org.apache.poi.hssf.usermodel.HSSFSheet;
+ import …
+
+ 
+
+Apache, HSSF, POI, POI-HSSF
+
+
+Poi读写excel,word,powerpoint的问题解决 
+
+2012-02-03 admin POI, 0 
+
+Poi主要用来解决excel.word,powerpoint的读写问题，官方网站是http://jakarta.apache.org/poi/，下载地址：http://apache.justdn.org/jakarta/poi/，常用开发包poi-bin-3.2-FINAL-xxx.zip；开发excel所用包是：poi-x.x-FINAL-xxxx.jar；开发word所用包:poi-3.2-FINAL-20081019.jar,poi-scratchpad-x.x-FINAL-xxxx.jar;
+ 
+一.Excel开发实例
+ 
+import org.apache.poi.hssf.usermodel.*;
+ import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+ 
+import java.io.FileOutputStream;
+ import java.io.IOException;
+ import java.util.Date;
+ import java.io.FileInputStream;
+ import java.io.InputStream;
+ 
+public class CreateExcel {
+ public static void main(String[] args)throws IOException{
+  HSSFWorkbook wb = new HSSFWorkbook();
+  HSSFSheet sheet = …
+
+ 
+
+Excel, POI, POI读写Excel, Poi读写powerpoint, Poi读写word, powerpoint, Word
+
+
+poi jxl生成EXCEL 报表 
+
+2012-02-03 admin POI, 0 
+
+JAVA生成EXCEL，下面介绍POI 和JXL 生成报表的2种方式。
+ 1.jxl 生成报表
+ 
+ 
+ 
+package excel;
+ 
+import java.io.FileOutputStream;
+ import java.io.OutputStream;
+ import java.text.SimpleDateFormat;
+ import java.util.Date;
+ 
+import jxl.Workbook;
+ import jxl.format.Alignment;
+ import jxl.format.Border;
+ import jxl.format.BorderLineStyle;
+ import jxl.format.CellFormat;
+ import jxl.write.Label;
+ import jxl.write.WritableCellFormat;
+ import jxl.write.WritableFont;
+ import jxl.write.WritableSheet;
+ import jxl.write.WritableWorkbook;
+ publicclass jxlCreate {
+ /**
+ * @param args
+ */
+ publicstaticvoid main(String[] args) {
+ // 准备设置excel工作表的标题
+ String[] title = {“编号”,”产品名称”,”产品价格”,”产品数量”,”生产日期”,”产地”,”是否出口”};
+ try {
+ // 获得开始时间
+ long start = System.currentTimeMillis();
+ // 输出的excel的路径
+ String filePath =”c:\\test.xls”;
+ // 创建Excel工作薄
+ WritableWorkbook 
+
+…
+
+ 
+
+Excel报表, jxl, POI
+
+
+Jakarta的POI操作Excel文件 
+
+2012-02-03 admin POI, 0 
+
+
+
+Jakarta的POI项目提供了一组操纵Windows文档的Java API，如下几个类提供了操作Excel文件的方便的途径：HSSFWorkbook、HSSFSheet、HSSFRow、HSSFCell，分别代表了Excel电子表格中的Book、Sheet、行和单元格。
+ 
+你可以在下面地址下载到最新的POI工具包：
+ 
+http://jakarta.apache.org/poi/index.html
+ 
+下面的代码创建一个Excel文件test.xls，并在第一行的第一格中写入一条消息：
+ 
+import org.apache.poi.hssf.usermodel.*;
+ import java.io.FileOutputStream;
+ // code run against the jakarta-poi-1.5.0-FINAL-20020506.jar.
+ public class PoiTest {
+ static public void main(String[] args) throws Exception {
+ FileOutputStream fos = new FileOutputStream(“d:\test.xls”);
+ HSSFWorkbook wb = new HSSFWorkbook();
+ HSSFSheet s = 
+
+
+
+…
+
+ 
+
+Excel, Jakarta, POI
+
+
+POI提取Word(.docx)文件的批注内容 
+
+2012-02-03 admin Apache, POI, 0 
+
+一、POI下载地址
+ 
+poi-bin-3.5-FINAL-20090928.zip ( 26MB)
+ 
+poi-src-3.5-FINAL-20090928.zip ( 51MB)
+ 
+ 
+ 
+二：POI对doc文件的支持问题
+ 
+若只想对DOCX文件操作，可以直接本段内容直接阅读第三部分。如果想提取DOC文件批注相关信息，请看下面内容—->>>
+ 
+POI3.5现在对DOC文件的处理较弱，请原因是POI中对应的Word处理模块(HWPF)作者 Ryan Ackley已经离开APACHE组织，此模块目前没有人更新、维护。以下为POI官网原文：
+ 
+
+HWPF Pointman Needed!
+ 
+At the moment we unfortunately do not have someone taking care for HWPF and fostering its development. What …
+
+ 
+
+.docx, POI, POI提取Word, POI提取Word(.docx), Word
+
+
+POI简介及应用 
+
+2012-02-03 admin POI, 0 
+
+本来想用JXL的,但了解到它对处理数据量大的时候,效率不行!.于是选择了POI!
+ 
+要求:JDK 1.x+POI开发包
+ 
+可以到 http://www.apache.org/dyn/closer.cgi/jakarta/poi/ 下载
+ 
+Jakarta POI
+ 
+Jakarta POI可以让你使用Java来读写MS Excel ,Word文件
+ 
+相关文档
+ 
+官方网站: http://jakarta.apache.org/poi/
+ http://www.matrix.org.cn/down_view.asp?id=14
+ 
+www.matrix.org.cn上的东西一向很不错!!
+ 
+创建Excel 文档
+ 
+示例1将演示如何利用Jakarta POI API 创建Excel 文档。
+ 
+示例1程序如下：
+ 
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+ import org.apache.poi.hssf.usermodel.HSSFSheet;
+ import org.apache.poi.hssf.usermodel.HSSFRow;
+ import org.apache.poi.hssf.usermodel.HSSFCell;
+ import java.io.FileOutputStream;
+ public class CreateXL {
+ 
+/** …
+
+ 
+
+POI, POI应用, POI简介
+
+
+poi:纯java的Excel解决方案 
+
+2012-02-03 admin POI, 0 
+
+微软在桌面系统上的成功，令我们不得不大量使用它的办公产品，如：Word，Excel。时至今日，它的源代码仍然不公开已封锁了我们的进一步应用和开发。然而在要求更高的服务器领域，微软本身的产品移植性不好，
+ 性能不佳。在我们实际的开发中，表现层的解决方案虽然有多样，但是Ie浏览器已成为最多人使用的浏览器，因为大家都用Windows。在企业办公系统中，常常有客户这样子要求：你要把我们的报表直接用Excel打开。或者是：我们已经习惯用Excel打印。这样子如果用.net开发是没有问题的，但是有j2ee这个比.net更有前途的开放式的开发环境，难道我为了解决打印的要求去另写客户端的控件？或者在服务器端使用本地代码？第一种方案的问题是关键数据的处理有时候不能在客户端做，第2种方案的问题是牺牲了代码的可移植性和稳定性。如果让客户端只负责处理生成好的报表，那将是一种诱人的选择。
+ 
+Apache的Jakata项目的POI子项目，目标是处理ole2对象。目前比较成熟的是HSSF接口，处理MS Excel（97-2002）对象。它不象我们仅仅是用csv生成的没有格式的可以由Excel转换的东西，而是真正的Excel对象，你可以控制一些属性如sheet,cell等等。这是一个年轻的项目，所以象HDF这样直接支持Word对象的好东西仍然在设计中。其它支持word格式的纯java方案还有itext，不过也是仍在奋斗中。但是HSSF已经成熟到能够和足够我们使用了。另外，无锡永中Office的实现方案也是纯java的解决方案，不过那也是完全商业的产品，并不是公开代码项目。其实，从开发历史的角度讲，在80年代中期starOffice的原作者在德国成立了StarOffice suite公司，然后到1999年夏天starOffice被sun收购，再到2000年6月starOffice5.2的发布；并且从starOffice6.0开始，starOffice建立在OpenOffice的api的基础上，这个公开代码的office项目已经进行了很长的时间。虽然那是由C++写的，但是POI的代码部分也是由openOffice改过来的。所以，应该对POI充满足够的信心。国内已经有部分公司在他们的办公自动化等Web项目中使用poi了，如日恒的ioffice，海泰的HTOffice等。
+ 
+java当初把核心处理设成Unicode，带来的好处是另代码适应了多语言环境。然而由于老外的英语只有26个字母，有些情况下，一些程序员用8位的byte处理，一不小心就去掉了CJK的高位。或者是由于习惯在程序中采用硬编码，还有多种原因，使得许多java应用在CJK的处理上很烦恼。还好在POI HSSF中考虑到这个问题，可以设置encoding为双字节。
+ 
+POI可以到www.apache.org下载到。编译好的jar主要有这样4个：poi包,poi Browser包,poi hdf包,poi hssf例程包。实际运行时，需要有poi包就可以了。如果用Jakarta ant编译和运行，下载apache Jakarta POI的release中的src包，它里面已经为你生成好了build文件了。只要运行ant就可以了(ant 的安装和使用在此不说了)。如果是用Jbuilder 运行，请在新建的项目中加入poi包。以Jbuilder6为例，选择Tools菜单项的config libraries…选项，新建一个lib。在弹出的菜单中选择poi包，如这个jakarta-poi-1.5.1-final-20020820.jar，把poi添加到jbuilder中。然后，右键点击你的项目，在project的properties菜单中path的required Libraries中，点add，添加刚才加入到jbuilder中的poi到你现在的项目中。如果你仅仅是为了熟悉POI hssf的使用，可以直接看POI的samples包中的源代码，并且运行它。hssf的各种对象都有例程的介绍。hssf提供的例程在org.apache.poi.hssf.usermodel.examples包中，共有14个，生成的目标xls都是workbook.xls。如果你想看更多的例程，可以参考hssf的Junit test cases，在poi的包的源代码中有。hssf都有测试代码。
+ 
+这里只对部分例程的实现做介绍。
+ 
+HSSF提供给用户使用的对象在org.apache.poi.hssf.usermodel包中,主要部分包括Excell对象，样式和格式，还有辅助操作。有以下几种对象：
+ 
+HSSFWorkbook excell的文档对象
+ 
+HSSFSheet excell的表单
+ 
+HSSFRow excell的行
+ 
+HSSFCell excell的格子单元
+ 
+HSSFFont excell字体
+ 
+HSSFName 名称
+ 
+HSSFDataFormat 日期格式
+ 
+在poi1.7中才有以下2项：
+ 
+HSSFHeader sheet头…
+
+ 
+
+Excel, java, POI
+
+
+Java POI生成Excel表文件 
+
+2012-02-03 admin POI, 0 
+
+使用POI处理Excel文档
+ 
+JAVA DOC :
+ 
+http://jakarta.apache.org/poi/apidocs/index.html
+ 
+POI是一个优秀的Java开源项目, 专用于解析和生成与Microsoft OLE 2相关的文件类型, 如Word, Excel等.
+ 
+
+POI包总说:
+ 
+org.apache.poi.hssf.eventmodel    处理在读取和写入Excel文档中生成的各种动作.
+ org.apache.poi.hssf.eventusermodel    提供读取Excel文档的各个类.
+ org.apache.poi.hssf.record.formula    包含公式处理类, 这些类使用在Excel文档中.
+ org.apache.poi.hssf.usermodel    包含生成Excel文档的各个类.
+ org.apache.poi.hssf.util    提供处理Excel文档各个属性的工具类.
+ 
+输出Excel文档
+ 首先, 创建一个 HSSFWorkbook 对象.
+ 从 HSSFWorkbook 对象获取一个 HSSFSheet 对象, 请注意, 这是你从 Workbook 对象获取 Worksheet 对象的唯一方法.
+ 对于 
+
+…
+
+ 
+
+Excel, java, Java POI, Java POI生成Excel, POI
+
+Previous Posts
+ 
+
+
+
+Categories
+Apache 
+POI 
+
+
+Archives
+2012年02月
+
+
+Links
+apache mina
+ Apache教程
+ poi excel
+ poi jar
+ poi word
+
+
+Powered by © Apache POI教程
+ 

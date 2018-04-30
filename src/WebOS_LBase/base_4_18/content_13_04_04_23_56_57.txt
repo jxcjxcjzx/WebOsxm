@@ -1,0 +1,207 @@
+您还未登录！|登录|注册|帮助首页业界移动云计算研发论坛博客下载
+更多
+Defonds 的专栏
+本博客文章大部分来自于互联网的某个角落(少许原创除外).为尊重原作者劳动付出,转载的话请注明原始出处.谢谢:-)
+目录视图摘要视图订阅
+2013年7月微软MVP申请开始啦！        CSDN博客移动开发排行榜      写“书评”赢下载分！ 
+2013年4月微软MVP会员名单揭晓！      来极客头条，赢下载积分      专访关东升：将人文融入到科技产品中
+ Linux 下编译并安装配置 Qt 全过程
+2009-12-04 17:40 9640人阅读 评论(4) 收藏 举报
+qtlinuxmakefilelibrarypath嵌入式
+Linux 下编译并安装配置 Qt 全过程
+        最近准备做 Nokia 的 Symbian,Maemo 下触摸屏开发。考虑到程序的跨平台可移植性，最终选择使用 Qt 开发。相对来说，国内关于 Qt 相关文档并不算很多。作者将 Linux 下编译并安装配置 Qt 全过程总结了一下，只希望可以方便更多的朋友！
+        1。获得源代码 
+        src 官网下载地址：ftp://ftp.qt.nokia.com/qt/source/
+        2009 年 10 月 1 日发布的 qt-x11-opensource-src-4.5.3.tar.gz，大小 122 Mb。
+        2。解压缩 
+        tar xvfz qt-x11-opensource-src-4.5.3.tar.gz
+        3。生成 makefile 文件 
+        ./configure
+        这个时候他会问你：“Which edition of Qt do you want to use?”
+        然后给你两个类型供选择：
+        Type 'c' if you want to use the Commercial Edition.
+        Type 'o' if you want to use the Open Source Edition.
+        第一个是商业版，第二个是自由版。
+        选择 'o'（Qt/嵌入式自由版是Qt为了开发自由软件提供的嵌入式版本）。
+        这时候，出现许可界面。
+        选择  'yes' 接受许可协议。
+        开始生成 makefile 文件。这个大约需要 5 -10 分钟的时间。
+        4。Qt 编译 
+        gmake
+        这个过程时间比较长，需要两个小时左右。
+        5。Qt 安装 
+        运行 gmake install
+        默认安装至 /usr/local/Trolltech/Qt-4.5.3
+        大约 5 － 10 分钟。正常结束，安装完毕。
+        运行 /usr/local/Trolltech/Qt-4.5.3/bin/designer ，看见 qt 启动，也就是说 qt 安装好了。
+        6。设置环境变量
+        一。先修改用户环境变量
+        vi /home/defonds/.bashrc
+        在其最后添加以下信息
+        export QTDIR=/usr/local/Trolltech/Qt-4.5.3
+        export PATH=$QTDIR/bin:$PATH
+        export MANPATH=$QTDIR/man:$MANPATH
+        export LD_LIBRARY_PATH=$QTDIR/lib:$LD_LIBRARY_PATH
+        二。再修改所有用户环境变量
+        vi /etc/profile
+        在其最后添加以下信息
+        export QTDIR=/usr/local/Trolltech/Qt-4.5.3
+        export PATH=$QTDIR/bin:$PATH
+        export MANPATH=$QTDIR/man:$MANPATH
+        export LD_LIBRARY_PATH=$QTDIR/lib:$LD_LIBRARY_PATH
+        三。测试一下
+        重新开一个终端，输入命令：
+        qmake -v
+        输出结果：
+        QMake version 2.01a
+        Using Qt version 4.5.3 in /usr/local/Trolltech/Qt-4.5.3/lib
+        输入命令：
+        which qmake
+        输出结果：
+        /usr/local/Trolltech/Qt-4.5.3/bin/qmake
+        证明 Qt 环境变量已经被配置成功。
+        编者按 ：
+        Linux 启动时，先读取用户环境变量，即 /home/defonds/.bashrc 的设置。次读取所有用户环境变量，即 /etc/profile 中的配置。
+        开始 Qt
+        写个简单的 Qt 程序使用安装的 Qt 编译来测试一下它的工作效果
+        新建一个文件名为 hello.cpp，其内容如下：
+[cpp] view plaincopyprint?
+#include <QApplication>  
+#include <QLabel>  
+int main(int argc,char *argv[])  
+{  
+    QApplication app(argc,argv);  
+    QLabel *label = new QLabel("Hello Qt!");  
+    label->show();  
+    return app.exec();  
+}  
+
+        保存 hello.cpp，编译过程如下：
+        在 hello.cpp 所在目录下，运行命令
+        qmake -project
+        hello.cpp 同目录下有 hello.pro 文件被生成，它是与平台无关的工程文件。
+        在 hello.cpp 所在目录下，运行命令
+        qmake hello.pro
+        同目录下有 Makefile 文件被生成（Makefile是指导编译器编译源代码的配置文件，在其目录下输入make命令(nmake在win32,vc6环境)就可以完成编译）。
+        在 hello.cpp 所在目录下，运行命令
+        make
+        同目录下有 hello,hello.o 两个文件被编译生成。其中 hello 就是在当前 Linux 系统下使用 Qt 编译生成的可执行文件了。双击运行 hello，“Hello Qt!“ 文本框弹出，OK！做到这一步，证明 Qt 已经完全可以在你的电脑上运作了。还等什么呢，开始你精彩而又愉快的 Qt 开发之旅吧！
+分享到： 
+上一篇：C++ 与 Java 混合编程
+下一篇：Linux 下 Qt Creator 的安装，并使用它开发你的第一个 Qt 项目全过程
+
+查看评论
+4楼 Linux0001 2011-05-24 10:18发表 [回复]
+
+不知道qt4.6.3是不是也和你说的一样，我都安装了十天了，都还没有安装了，现在照着你这样试……
+3楼 YLIMH_HMILYA 2011-04-25 08:30发表 [回复]
+
+挺谢谢您的，我在安装了几个版本之后，然后再按照您的方法来安装就好了，3Q
+2楼 xmuipro 2010-08-03 20:20发表 [回复]
+
+你好博主，我按你的方法，安装好了，不过qmake -project时，得到的是qt.pro(hellp.cpp放在qt目录下),执行make 得到的hello.o却显示
+bash: ./hello.o: Permission denied。但与此同时，得到的qt执行程序却能运行，这个是什么问题呢？
+1楼 cgacssky 2010-03-03 17:01发表 [回复]
+
+Creating qmake. Please wait...
+make: 没有什么可以做的为 `first'。
+Basic XLib functionality test failed!
+You might need to modify the include and library search paths by editing
+QMAKE_INCDIR_X11 and QMAKE_LIBDIR_X11 in /home/softdowns/qt-x11-opensource-src-4.5.3/mkspecs/linux-g++.
+
+应该发这里发错了，在“选择 'yes' 接受许可协议。
+开始生成 makefile 文件” 过程中
+您还没有登录,请[登录]或[注册]
+* 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场
+
+ 
+个人资料
+  
+Defonds
+ 
+
+访问：508206次
+积分：7284分
+排名：第435名
+原创：141篇转载：146篇译文：42篇评论：706条
+文章搜索
+
+文章分类
+架构设计(2)
+权限设计(11)
+设计模式(1)
+性能优化(7)
+安全防御(0)
+Socket编程(4)
+多线程编程(8)
+服务集群(1)
+JVM深入(2)
+Red5服务(24)
+绩效考核(3)
+Spring框架(8)
+LWUIT框架(13)
+Kuix框架(3)
+项目管理(8)
+程序人生(20)
+旅行游历(2)
+天下美食(1)
+文章存档
+2013年04月(1)
+2013年03月(3)
+2013年02月(1)
+2013年01月(1)
+2012年12月(1)
+展开
+最新评论
+可怕的颈椎病
+Defonds: 30-40 岁的挨踢发病率较高。
+可怕的颈椎病
+qdujunjie: @defonds:是吗，我好像就有过一次，然后就没有过这种感觉了
+在北京工作这几年 – 一个软件工程师的反省
+qdujunjie: 所有平凡的日子加起来，就将汇集成了你的一生 ------ 所以说，每天都不平凡！
+快过年了，又想起荠菜水饺
+Defonds: 佛祖保佑~
+在北京工作这几年 – 一个软件工程师的反省
+qdujunjie: 百度的“只认功劳，不认苦劳”，很值得借鉴啊~~
+在北京工作这几年 – 一个软件工程师的反省
+Defonds: You are right,my friend.另，这篇文章是我转载的。请看文章最后的原文链接：）
+可怕的颈椎病
+Defonds: 就跟那句广告词一样：”脖子僵硬脑袋晕“，另外，肩膀酸疼、手臂发麻。
+可怕的颈椎病
+qdujunjie: 颈椎病什么表现？
+快过年了，又想起荠菜水饺
+qdujunjie: 是啊，能体会到这种幸福。所以说，幸福和钱无关
+一个 Java 的 Socket 服务器和客户端通信的例子
+Defonds: 你好。你所谓的环境指的是操作系统？还是其他，比如 jre 之类的。
+评论排行
+一次 applet 客户端打印 jasperreport 报表任务笔记(92)
+Windows 下安装 S60_3rd_sdk_fp1，并在 eclipse 上搭建 Nokia 的 J2ME 开发环境(87)
+oracle触发器详细(39)
+解读 LWUIT 之十三：可插拔主题（Theming）(25)
+解读 LWUIT 之二：关于 LWUIT 开发指南中的 Hello World(22)
+hibernate一级缓存和二级缓存的区别(22)
+Java 服务器端支持断点续传的源代码【支持快车、迅雷】(20)
+如何在 Linux 服务器上安装 Red5？(16)
+关于js中window.location.href,location.href,parent.location.href,top.location.href的用法(14)
+27 岁后月薪低于 8K，会被淘汰吗？(13)
+阅读排行
+oracle触发器详细(32209)
+关于js中window.location.href,location.href,parent.location.href,top.location.href的用法(26617)
+解决MyEclipse吃内存,让MyEclipse飞起来,MyEclipse速度(13974)
+hibernate一级缓存和二级缓存的区别(12802)
+oracle数据类型(11921)
+Linux 下 Qt Creator 的安装，并使用它开发你的第一个 Qt 项目全过程(11636)
+Linux 下编译并安装配置 Qt 全过程(9640)
+Windows 下安装 S60_3rd_sdk_fp1，并在 eclipse 上搭建 Nokia 的 J2ME 开发环境(9440)
+实验说明varchar2和char最大长度(7559)
+一次 applet 客户端打印 jasperreport 报表任务笔记(6916)
+推荐文章
+
+公司简介|招贤纳士|广告服务|银行汇款帐号|联系方式|版权声明|法律顾问|问题报告
+QQ客服 微博客服 论坛反馈 联系邮箱：webmaster@csdn.net 服务热线：400-600-2320
+京 ICP 证 070598 号
+北京创新乐知信息技术有限公司 版权所有
+世纪乐知(北京)网络技术有限公司 提供技术支持
+江苏乐知网络技术有限公司 提供商务支持
+Copyright © 1999-2012, CSDN.NET, All Rights Reserved 
+

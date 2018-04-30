@@ -1,0 +1,104 @@
+c++问题 求助大神！！！！！！
+
+2012-12-13 12:31 ME100422 | 分类：C/C++
+#include<iostream>
+using namespace std;
+class point
+{
+public:
+ int x,y;
+ point(int xx,int yy):x(xx),y(yy)
+ {}
+ void show()
+ {
+  cout<<x<<" "<<y<<endl;
+ }
+ 
+};
+class my:public point
+{
+public:
+ my(int xx,int yy,int aa,int bb):x(xx),y(yy),a(aa),b(bb){}
+ void get()
+ {
+  cout<<a<<" "<<b<<endl;
+ }
+private:
+ int a,b;
+};
+int main()
+{
+ my m(1,2,3,4);
+ m.show();
+ m.get();
+ return 0;
+}
+
+--------------------Configuration: 10 - Win32 Debug--------------------
+Compiling...
+10.cpp
+E:\C++6.0\Microsoft Visual Studio\MyProjects\10\10.cpp(19) : error C2512: 'point' : no appropriate default constructor available
+E:\C++6.0\Microsoft Visual Studio\MyProjects\10\10.cpp(19) : error C2614: 'my' : illegal member initialization: 'y' is not a base or member
+E:\C++6.0\Microsoft Visual Studio\MyProjects\10\10.cpp(19) : error C2614: 'my' : illegal member initialization: 'x' is not a base or member
+执行 cl.exe 时出错.
+
+10.obj - 1 error(s), 0 warning(s)
+扫描二维码下载
+
+
+
+下载知道APP
+10分钟有问必答!
+
+建议：可使用微信的“扫一扫”功能扫描下载
+
+分享到：
+2012-12-13 12:36 提问者采纳
+point类里面只定义了有参数的构造函数，但没定义无参数的构造函数，因此构造子类对象的时候构造失败，只要在point类里面加：
+point(){}
+就行了
+
+另外，定义成员变量最好这样定义
+int x;
+int y;
+不要写成：
+int x, y;
+追问
+还是不行
+回答
+写成 my(int xx,int yy,int aa,int bb):point(xx,yy),a(aa),b(bb){} 确实是简单很多
+你那样写为什么不行，因为要理解x(xx),y(yy),a(aa),b(bb)是什么意思，就是给变量初始化，注意不是赋值，还没调用基类和子类的构造函数，因此基类还是不存在的，因此基类的x，y是不存在的，因此找不到。但如果是先调用基类的构造函数，那么基类的x，y都存在，因此可以给他们初始化
+
+我前面说的漏了，应该是这样，看注释
+
+#include<iostream>
+using namespace std;
+class point
+{
+public:
+int x;
+int y; 
+point(){}  // 无参构造函数
+point(int xx,int yy):x(xx),y(yy) {} 
+void show() {  cout<<x<<" "<<y<<endl; } 
+};
+class my:public point
+{
+public: 
+my(int xx,int yy,int aa,int bb):a(aa),b(bb)  // 没有x，y，但调用了基类的无参构造函数
+{
+x = xx;  // 在这里赋值
+y = yy;
+} 
+void get() {  cout<<a<<" "<<b<<endl; }
+private: 
+int a;
+int b;
+};
+int main()
+{
+my m(1,2,3,4);
+m.show();
+m.get();
+return 0;
+}

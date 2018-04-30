@@ -1,0 +1,349 @@
+登录   注册
+Java开源PHP开源JS脚本大全OPEN家园OPEN经验库OPEN文档OPEN资讯OPEN论坛
+
+  
+所有分类  >  开发语言与工具  >  Google Go开发
+纯Go语言WebUI工具包：Gowut
+您的评价:	
+     
+较差
+ 收藏该经验
+gowut是一个 功能全面、简单易用、平台无关的纯go语言WebUI工具包。
+例子如下：
+
+001
+package main
+002
+ 
+003
+import (
+004
+        "code.google.com/p/gowut/gwu"
+005
+        "strconv"
+006
+)
+007
+ 
+008
+type MyButtonHandler struct {
+009
+        counter int
+010
+        text    string
+011
+}
+012
+ 
+013
+func (h *MyButtonHandler) HandleEvent(e gwu.Event) {
+014
+        if b, isButton := e.Src().(gwu.Button); isButton {
+015
+                b.SetText(b.Text() + h.text)
+016
+                h.counter++
+017
+                b.SetToolTip("You've clicked " + strconv.Itoa(h.counter) + " times!")
+018
+                e.MarkDirty(b)
+019
+        }
+020
+}
+021
+ 
+022
+func main() {
+023
+        // Create and build a window
+024
+        win := gwu.NewWindow("main", "Test GUI Window")
+025
+        win.Style().SetFullWidth()
+026
+        win.SetHAlign(gwu.HA_CENTER)
+027
+        win.SetCellPadding(2)
+028
+ 
+029
+        // Button which changes window content
+030
+        win.Add(gwu.NewLabel("I'm a label! Try clicking on the button=>"))
+031
+        btn := gwu.NewButton("Click me")
+032
+        btn.AddEHandler(&MyButtonHandler{text: ":-)"}, gwu.ETYPE_CLICK)
+033
+        win.Add(btn)
+034
+        btnsPanel := gwu.NewNaturalPanel()
+035
+        btn.AddEHandlerFunc(func(e gwu.Event) {
+036
+                // Create and add a new button...
+037
+                newbtn := gwu.NewButton("Extra #" + strconv.Itoa(btnsPanel.CompsCount()))
+038
+                newbtn.AddEHandlerFunc(func(e gwu.Event) {
+039
+                        btnsPanel.Remove(newbtn) // ...which removes itself when clicked
+040
+                        e.MarkDirty(btnsPanel)
+041
+                }, gwu.ETYPE_CLICK)
+042
+                btnsPanel.Insert(newbtn, 0)
+043
+                e.MarkDirty(btnsPanel)
+044
+        }, gwu.ETYPE_CLICK)
+045
+        win.Add(btnsPanel)
+046
+ 
+047
+        // ListBox examples
+048
+        p := gwu.NewHorizontalPanel()
+049
+        p.Style().SetBorder2(1, gwu.BRD_STYLE_SOLID, gwu.CLR_BLACK)
+050
+        p.SetCellPadding(2)
+051
+        p.Add(gwu.NewLabel("A drop-down list being"))
+052
+        widelb := gwu.NewListBox([]string{"50", "100", "150", "200", "250"})
+053
+        widelb.Style().SetWidth("50")
+054
+        widelb.AddEHandlerFunc(func(e gwu.Event) {
+055
+                widelb.Style().SetWidth(widelb.SelectedValue() + "px")
+056
+                e.MarkDirty(widelb)
+057
+        }, gwu.ETYPE_CHANGE)
+058
+        p.Add(widelb)
+059
+        p.Add(gwu.NewLabel("pixel wide. And a multi-select list:"))
+060
+        listBox := gwu.NewListBox([]string{"First", "Second", "Third", "Forth", "Fifth", "Sixth"})
+061
+        listBox.SetMulti(true)
+062
+        listBox.SetRows(4)
+063
+        p.Add(listBox)
+064
+        countLabel := gwu.NewLabel("Selected count: 0")
+065
+        listBox.AddEHandlerFunc(func(e gwu.Event) {
+066
+                countLabel.SetText("Selected count: " + strconv.Itoa(len(listBox.SelectedIndices())))
+067
+                e.MarkDirty(countLabel)
+068
+        }, gwu.ETYPE_CHANGE)
+069
+        p.Add(countLabel)
+070
+        win.Add(p)
+071
+ 
+072
+        // Self-color changer check box
+073
+        greencb := gwu.NewCheckBox("I'm a check box. When checked, I'm green!")
+074
+        greencb.AddEHandlerFunc(func(e gwu.Event) {
+075
+                if greencb.State() {
+076
+                        greencb.Style().SetBackground(gwu.CLR_GREEN)
+077
+                } else {
+078
+                        greencb.Style().SetBackground("")
+079
+                }
+080
+                e.MarkDirty(greencb)
+081
+        }, gwu.ETYPE_CLICK)
+082
+        win.Add(greencb)
+083
+ 
+084
+        // TextBox with echo
+085
+        p = gwu.NewHorizontalPanel()
+086
+        p.Add(gwu.NewLabel("Enter your name:"))
+087
+        tb := gwu.NewTextBox("")
+088
+        tb.AddSyncOnETypes(gwu.ETYPE_KEY_UP)
+089
+        p.Add(tb)
+090
+        p.Add(gwu.NewLabel("You entered:"))
+091
+        nameLabel := gwu.NewLabel("")
+092
+        nameLabel.Style().SetColor(gwu.CLR_RED)
+093
+        tb.AddEHandlerFunc(func(e gwu.Event) {
+094
+                nameLabel.SetText(tb.Text())
+095
+                e.MarkDirty(nameLabel)
+096
+        }, gwu.ETYPE_CHANGE, gwu.ETYPE_KEY_UP)
+097
+        p.Add(nameLabel)
+098
+        win.Add(p)
+099
+ 
+100
+        // Create and start a GUI server (omitting error check)
+101
+        server := gwu.NewServer("guitest", "localhost:8081")
+102
+        server.SetText("Test GUI App")
+103
+        server.AddWin(win)
+104
+        server.Start("") // Also opens windows list in browser
+105
+}
+结果如下：
+
+ 
+
+
+
+项目主页：http://www.open-open.com/lib/view/home/1364094806031
+
+ 
+ 
+相关资讯 　—　更多
+Go语言开发工具 LiteIDE x12 发布
+Go语言开发工具 LiteIDE x12.1 发布
+Go语言开发工具 LiteIDE x12.2 发布
+Go语言开发工具LiteIDE x13发布
+Go语言开发工具LiteIDE x13.2发布
+LiteIDE x14.1 发布，Go 语言开发工具IDE
+调试工具 GDB 7.5 发布，支持 Go 语言
+Go语言的可视化开发工具，LiteIDE x14.0发布
+走进 Google 的 Go 语言
+Go 语言的崛起？
+Go 编程语言刚发布了 Go 1 released了！
+为什么不使用Go语言呢？
+Go语言发布两周年
+使用Go语言一段时间的感受
+为什么Android应该转为Go语言开发？
+为什么 SoundCloud 要使用 Go 语言以及如何使用
+谷歌将在明年初推出Go语言首个正式版本1.0
+谷歌 Go 语言迎来三岁生日
+谷歌 Go 编程语言首个候选版发布
+Go 语言源码可追溯到 1972 年？
+相关文档 　—　更多
+Google Go 编程语言.pdf
+Go 语言网络编程.pdf
+Go语言程序设计.pdf
+Go 语言程序设计.pdf
+谷歌GO语言集成开发环境LiteIDE使用帮助.pdf
+Go 语言文档.doc
+Go 语言文档.doc
+Go 语言文档.doc
+Go语言WEB开发.pdf
+学习 Go 语言.pdf
+Google Go编程语言.pdf
+学习Google Go语言.pdf
+【Go语言教程】A Tour of Go.pdf
+学习Go语言 中文版.pdf
+学习Go语言中文版.pdf
+《学习Go语言》中文版.pdf
+Go 语言教程.pdf
+学习 Go 语言中文教程.pdf
+Google Go 语言教程(够粉丝).pdf
+系统编程语言明日之星 Go 语言.pdf
+
+
+ 
+
+
+ 
+内容信息
+ 0.0
+(已有0个人评价)
+  0%
+  0%
+  0%
+  0%
+  0%
+浏览：150次
+
+贡献者：jopen
+上传时间：2013-03-24 11:54:11
+
+ 
+经验标签
+Go语言
+同类热门经验
+Go 语言版的 OpenCV 封装 - GoOpenCV
+990次浏览
+Go 语言开发的宠物小精灵游戏 - Pokemon Universe
+970次浏览
+搜索引擎Sphinx的Go开发包 GoSphinx
+867次浏览
+MySQL的Go驱动 GoMySQL
+836次浏览
+STOMP 客户端包 stompngo
+729次浏览
+Go 语言简介（下） - 特性
+621次浏览
+相关经验
+Go语言开发工具 LiteIDE
+  0人评
+Go语言的MySQL驱动： Go MySQL Driver
+  0人评
+Go语言Web框架：go-start 
+  0人评
+Go语言的Oracle 驱动：go-oci8
+  0人评
+XMPP 协议的 GO 语言实现 - go-xmpp
+  0人评
+PostgreSQL的Go语言驱动 pq
+  0人评
+Go语言的Web开发框架 Web.Go
+  1人评
+MongoDB 的 GO 语言驱动包 mgo
+  0人评
+Go 语言简介（下） - 特性
+  1人评
+Go语言并发之美
+  0人评
+memcached 的 go 语言开发包 - gomemcached
+  1人评
+Go 语言简介（上）— 语法
+  1人评
+windows下用go语言写程序
+  0人评
+Go 语言 ORM 框架：gorp 
+  1人评
+相关讨论 - 更多
+JDBC 介绍
+我讨厌剪切粘贴
+我们应不应该用 iPad 来编程？
+30本免费的编程电子书籍(英文)
+持续集成之戏说Check-in Dance
+10个用于操作字符串的 PHP代码片段
+50个最常用的UNIX / Linux命令（结合实例）
+联系我们 - 问题反馈
+2005-2012 OPEN-OPEN, all rights reserved.

@@ -1,0 +1,276 @@
+二叉树详解
+
+分类： c/c++ 2008-07-08 09:57 1246人阅读 评论(1) 收藏 举报
+insertnull数据结构timerrandom算法
+这些天参与了CSDN论坛的讨论，改变了我以前的一些看法。回头看我以前的东西，我虽对这本书很不满，但我还是按照它的安排在一点点的写；这样就导致了，我过多的在意书中的偏漏，我写的更多是说“这本书怎样”，而偏离了我写这些的初衷——给正在学习数据结构的人一些帮助。正像我在前面所说的，虽然现有的教科书都不是很合理，但如果仅仅是抱怨这点，那无异于泼妇骂街。虽然本人的水平连初级都够不上，但至少先从我做一点尝试，以后这门课的教授方法必将一点点趋于合理。
+因此，后面不在按照书上的次序，将本着“实际应用（算法）决定数据结构”的思想来讲解，常见教科书上有的，基本不再重点叙述（除了重点，例如AVL树的平衡旋转），——因此，在看本文的同时，一定要有一本教科书。这只是一个尝试，希望大家多提宝贵意见。
+树
+
+因为现实世界中存在这“树”这种结构——族谱、等级制度、目录分类等等，而为了研究这类问题，必须能够将树储存，而如何储存将取决于所需要的操作。这里有个问题，是否允许存在空树。有些书认为树都是非空的，因为树表示的是一种现实结构，而0不是自然数；我用过的教科书都是说可以有空树，当然是为了和二叉树统一。这个没有什么原则上的差别，反正就是一种习惯。
+二叉树
+
+二叉树可以说是人们假想的一个模型，因此，允许有空的二叉树是无争议的。二叉树是有序的，左边有一个孩子和右边有一个的二叉树是不同的两棵树。做这个规定，是因为人们赋予了左孩子和右孩子不同的意义，在二叉树的各种应用中，你将会清楚的看到。下面只讲解链式结构。看各种讲数据结构的书，你会发现一个有趣的现象：在二叉树这里，基本操作有计算树高、各种遍历，就是没有插入、删除——那树是怎么建立起来的？其实这很好理解，对于非线性的树结构，插入删除操作不在一定的法则规定下，是毫无意义的。因此，只有在具体的应用中，才会有插入删除操作。
+节点结构
+
+数据域、左指针、右指针肯定是必须的。除非很少用到节点的双亲，或者是资源紧张，建议附加一个双亲指针，这将会给很多算法带来方便，尤其是在这个“空间换时间”的时代。
+template <class T>
+struct BTNode
+{
+    BTNode(T data = T(), BTNode<T>* left = NULL, BTNode<T>* right = NULL, BTNode<T>* parent = NULL)
+        : data(data), left(left), right(right), parent(parent) {}
+    BTNode<T> *left, *right, *parent;
+    T data;
+};
+基本的二叉树类
+
+template <class T>
+class BTree
+{
+public:
+    BTree(BTNode<T> *root = NULL) : root(root) {}
+    ~BTree() { MakeEmpty(); }
+    void MakeEmpty() { destroy(root); root = NULL; }
+protected:
+    BTNode<T> *root；
+private:
+    void destroy(BTNode<T>* p)
+    {
+        if (p)
+        {
+            destroy(p->left);
+            destroy(p->right);
+            delete p;
+        }
+    }
+}
+二叉树的遍历
+
+基本上有4种遍历方法，先、中、后根，逐层。当初我对这个很迷惑，搞这么多干什么？到了后面才明白，这是不同的应用需要的。例如，判断两个二叉树是否相等，只要子树根节点不同，那么就不等，显然这时要用先序遍历；而删除二叉树，必须先删除左右子树，然后才能删除根节点，这时就要用后序遍历。
+实际上，搞这么多遍历方法，根本原因是在内存中储存的树是非线性结构。对于用数组储存的二叉树，这些名目繁多的方法都是没有必要的。利用C++的封装和重载特性，这些遍历方法能很清晰的表达。
+1.         前序遍历
+public:
+void PreOrder(void (*visit)(T &data) = print) { PreOrder(root, visit); }
+private:
+void PreOrder(BTNode<T>* p, void (*visit)(T &data))
+{
+if (p){ visit(p->data); PreOrder(p->left, visit); PreOrder(p->right, visit); }
+}
+2.         中序遍历
+public:
+       void InOrder(void (*visit)(T &data) = print) { InOrder(root, visit); }
+private:
+void InOrder(BTNode<T>* p, void (*visit)(T &data))
+{
+       if (p){ InOrder(p->left, visit);       visit(p->data);       InOrder(p->right, visit); }
+       }
+3.         后序遍历
+public:
+       void PostOrder(void (*visit)(T &data) = print) { PostOrder(root, visit); }
+private:
+void PostOrder(BTNode<T>* p, void (*visit)(T &data))
+{
+       if (p){ PostOrder(p->left, visit); PostOrder(p->right, visit); visit(p->data); }
+       }
+4.         层次遍历
+void LevelOrder(void (*visit)(T &data) = print)
+{
+       queue< BTNode<T>* > a; BTNode<T>* p = root;//记得#include<queue>
+       while (p)
+       {
+              visit(p->data);
+              if (p->left) a.push(p->left); if (p->right) a.push(p->right);
+              if (a.empty()) break; p = a.front(); a.pop();
+       }
+       }
+附注：缺省的visit函数print如下
+private:
+       static void print(T &data) { cout << data << ' '; }
+5.         不用栈的非递归中序遍历
+当有parent指针时，可以不用栈实现非递归的中序遍历，书上提到了有这种方法，但没给出例程。
+public:
+BTNode<T>* next()
+{
+       if(!current) return NULL;
+       if (current->right) { current = current->right; while (current->left) current = current->left; }
+       else
+       {
+              BTNode<T>* y = current->parent;
+              while (y && current == y->right) {current = y; y = y->parent; }
+              current = y;
+       }
+       return current;
+}
+private:
+BTNode<T>* current;
+上面的函数能使current指针向前移动一个位置，如果要遍历整棵二叉树，需要使current指向中序序列的第一个节点，例如下面的成员函数：
+public:
+void first() { current = root; while (current->left) current = current->left; }
+线索化二叉树
+
+这是数据结构课程里第一个碰到的难点，不知道你是不是这样看，反正我当初是费了不少脑细胞——当然，恼人的矩阵压缩和相关的加法乘法运算不在考虑之列。我费了不少脑细胞是因为思考：他们干什么呢？很欣喜的看到在这本黄皮书上，这章被打了*号，虽然我不确定作者是不是跟我一个想法——线索化二叉树在现在的PC上是毫无用处的！——不知我做了这个结论是不是会被人骂死，^_^。
+为了证明这个结论，我们来看看线索化二叉树提出的缘由：第一，我们想用比较少的时间，寻找二叉树某一个遍历线性序列的前驱或者后继。当然，这样的操作很频繁的时候，做这方面的改善才是有意义的。第二，二叉树的叶子节点还有两个指针域没有用，可以节省内存。说真的，提出线索化二叉树这样的构思真的很精巧，完全做到了“废物利用”——这个人真应该投身环保事业。但在计算机这个死板的东西身上，人们的精巧构思往往都是不能实现的——为了速度，计算机的各个部件都是整齐划一的，而构思的精巧往往都是建立在组成的复杂上的。
+我们来看看线索化二叉树究竟能不能达到上面的两个目标。
+求遍历后的线性序列的前驱和后继。前序线索化能依次找到后继，但是前驱需要求双亲；中序线索化前驱和后继都不需要求双亲，但是都不很直接；后序线索化能依次找到前驱，但是后继需要求双亲。可以看出，线索化成中序是最佳的选择，基本上算是达到了要求。
+节省内存。添加了两个标志位，问题是这两个位怎么储存？即使是在支持位存储的CPU上，也是不能拿位存储器来存的，第一是因为结构体成员的地址是在一起的，第二是位存储器的数目是有限的。因此，最少需要1个字节来储存这两个标志位。而为了速度和移植，一般来说，内存是要对齐的，实际上根本就没节省内存！然而，当这个空间用来储存双亲指针时，带来的方便绝对不是线索化所能比拟的，前面已经给出了无栈的非递归遍历。并且，在线索化二叉树上插入删除操作附加的代价太大。
+综上，线索化最好是中序线索化（前序后序线索化后还得用栈，何必要线索化呢），附加的标志域空间至少1个字节，在32位的CPU会要求对齐到4字节，还不如存储一个双亲指针，同样能达到中序线索化的目的，并且能带来其他的好处。所以，线索化二叉树在现在的PC上是毫无用处的！
+由于对其他体系不太了解，以下观点姑妄听之。在内存空间非常充裕的现在，一个节点省2～3个字节实在是没什么意思（实际上由于对齐还省不出来）；而在内存非常宝贵的地方（比如单片机），会尽量避免使用树结构——利用其他的方法。所以，现在看来，线索化二叉树真的是毫无用处了。
+二叉搜索树
+
+这恐怕是二叉树最重要的一个应用了。它的构想实际是个很自然的事情——查找值比当前节点小转左，大转右，等则查到，到头了就是没找着。越自然的东西越好理解，也就越不需要我废话。在给出BST的实现之前，我们要在二叉树的类中添加一个打印树状结构的成员函数，这样，就能清楚的看出插入和删除过程。
+public:
+void print()
+{
+       queue< BTNode<T>* > a; queue<bool> flag; ofstream outfile("out.txt");
+       BTNode<T>* p = root; BTNode<T> zero; bool v = true;
+       int i = 1, level = 0, h = height();
+       while (i < 2<<h)
+       {
+              if (i == 1<<level)
+              {
+                     cout << endl << setw(2 <<(h - level)); level++;
+                     if (v) cout << p->data;
+                     else cout << ' ';
+              }
+              else
+              {
+                     cout << setw(4 <<(h - level + 1));
+                     if (v) cout << p->data;
+                     else cout << "  ";
+              }
+              if (p->left) { a.push(p->left); flag.push(true); }
+              else { a.push(&zero); flag.push(false); }
+              if (p->right) { a.push(p->right); flag.push(true); }
+              else { a.push(&zero); flag.push(false); }
+              p = a.front(); a.pop(); v = flag.front(); flag.pop(); i++;
+       }
+       cout << endl;
+}
+打印树状结构的核心是按层次遍历二叉树，但是，二叉树有许多节点缺左或右子树，连带的越到下面空隙越大。为了按照树的结构打印，必须把二叉树补成完全二叉树，这样下面的节点就知道放在什么位置了——a.push(&zero);但是这样的节点不能让它打印出来，所以对应每个节点，有一个是否打印的标志，按理说pair结构很合适，为了简单我用了并列的两个队列，一个放节点指针——a，一个放打印标志——flag。这样一来，循环结束的标志就不能是队列空——永远都不可能空，碰到NULL就补一个节点——而是变成了到了满二叉树的最后一个节点2^(height+1)-1。——黄皮书对于树高的定义是，空树为的高度为－1。
+对于输出格式，注意的是到了第1、2、4、8号节点要换行，并且在同一行中，第一个节点的域宽是后序节点的一半。上面的函数在树的层次少于等于5（height<=4）的时候能正常显示，再多的话就必须输出到文件中去ofstream outfile("out.txt");——如果层次再多的话，打印出来也没什么意义了。
+二叉搜索树的实现
+
+实际上就是在二叉树的基础上增加了插入、删除、查找。
+#include "BaseTree.h"
+template <class T>
+class BSTree : public BTree<T>
+{
+public:
+       BTNode<T>* &find(const T &data)
+       {
+              BTNode<T>** p = &root; current = NULL;
+              while(*p)
+              {
+                     if ((*p)->data == data) break;
+                     if ((*p)->data < data) { current = *p; p = &((*p)->right); }
+                     else { current = *p; p = &((*p)->left); }
+              }
+              return *p;
+       }
+       bool insert(const T &data)
+       {
+              BTNode<T>* &p = find(data); if (p) return false;
+              p = new BTNode<T>(data, NULL, NULL, current); return true;
+       }
+       bool remove(const T &data)
+       {
+              return remove(find(data));
+       }
+private:
+bool remove(BTNode<T>* &p)
+{
+       if (!p) return false; BTNode<T>* t = p;
+       if (!p->left || !p->right)
+       {
+              if (!p->left) p = p->right; else p = p->left;
+              if (p) p->parent = current;
+              delete t; return true;
+       }
+       t=p->right;while(t->left) t=t->left;p->data=t->data;current=t->parent;
+       return remove(current->left==t?current->left:current->right);
+       }
+};
+以上代码有点费解，有必要说明一下——非线性链式结构操作的实现都是很让人费神。insert和remove都是以find为基础的，因此必须让find能最大限度的被这两个操作利用。
+l         对于insert，需要修改查找失败时的指针内容，显然这是个内部指针（在双亲节点的内部，而不是象root和current那样在节点外面指向节点），这就要求find返回一个内部指针的引用。但是C++的引用绑定到一个对象之后，就不能再改变了，因此在find内部的实现是一个二重指针。insert操作还需要修改插入的新节点的parent指针域，因此在find中要产生一个能被insert访问的指向find返回值所在节点的指针，这里用的是current。实际上find返回的指针引用不是current->left就是current->right。这样一来，insert的实现就非常简单了。
+l         对于remove，需要修改查找成功时的指针内容，同样是个内部指针。在find的基础上，很容易就能得到这个内部指针的引用(BTNode<T>* &p = find(data)。
+Ø         在p->left和p->right中至少有一个为NULL的情况下，如果p->left ==NULL，那么就重连右子树p = p->right，反之，重连左子树p = p->left。注意，左右子树全空的情况也包含在这两个操作中了——在p->left ==NULL的时候重连右子树，而这时p->right也是NULL——因此不必列出来。如果重连后p不为空，需要修改p->parent = current。
+Ø         若p->left和p->right都不为空，可以转化为有一个为空。例如一个中序有序序列[1,2,3,4,5]，假设3既有左子树又有右子树，那么它的前驱2一定缺右子树，后继4一定缺少左子树。【注1】这样一来删除节点3就等效成从[1,2,3(4),4,5]删除节点4。这样就可以利用上面的在p->left和p->right中至少有一个为NULL的情况下的方法了。还是由于C++的引用不能改变绑定对象，这里是用利用递归来解决的，还好最多只递归一次。如果用二重指针又是满天星星了，这就是明明是尾递归却没有消去的原因。
+【注1】这是因为，如果3既有左子树又有右子树，那么2一定在3的左子树上，4一定在3的右子树上；如果2有右子树，那么在2和3之间还应该有一个节点；如果4有左子树，那么3和4之间也应该还有一个节点。
+【闲话】上面关于remove操作p->left和p->right都不为空的处理方法的讲解，源于严蔚敏老师的课件，看完后我豁然开朗，真不知道为什么她自己那本《数据结构（C语言版）》这里写的那么难懂，我是死活没看明白。
+递归遍历与非递归遍历
+
+前面写过一些关于递归的文章，因为那时还没有写到树，因此也举不出更有说服力的例子，只是阐述了“递归是一种思想”，正像网友评价的，“一篇入门的文章”。但只要能能让你建立“递归是一种思想”这个观念，我的努力就没有白费。现在，讲完了二叉搜索树，终于有了能说明问题的例子了。按照前面提供的代码，应该能调试通过下面的程序。
+#include <iostream>
+using namespace std;
+#include <stdlib.h>
+#include <time.h>
+#include "BSTree.h"
+#include "Timer.h"
+#define random(num)     (rand() % (num))
+#define randomize()     srand((unsigned)time(NULL))
+#define NODENUM 200000//node number
+int data[NODENUM];
+void zero(int &t) { t = 0; }
+int main()
+{
+       BSTree<int> a; Timer t; randomize(); int i;
+       for (i = 0; i < NODENUM; i++) data[i] = i;
+       for (i = 0; i < NODENUM; i++) swap(data[i], data[random(NODENUM)]);//random swap
+       t.start(); for (i = 0; i < NODENUM; i++) a.insert(data[i]);
+       cout << "Insert time: " << t.GetTime() << "/tNode number: " << NODENUM << endl;
+       t.start(); for (a.first(); a.get() != NULL; a.next()) a.get()->data = 0;
+       cout << "Non-Stack time: " << t.GetTime() << endl;
+       t.start(); a.LevelOrder(zero); cout << "LevlOrder time: " << t.GetTime() << endl;
+       t.start(); a.PreOrder(zero); cout << " PreOrder time: " << t.GetTime() << endl;
+       t.start(); a.InOrder(zero); cout << "  InOrder time: " << t.GetTime() << endl;
+       t.start(); a.PostOrder(zero); cout << "PostOrder time: " << t.GetTime() << endl;
+       return 0;
+}
+以下是timer.h的内容
+#ifndef Timer_H
+#define Timer_H
+#include <windows.h>
+class Timer
+{
+public:
+       Timer() { QueryPerformanceFrequency(&Frequency); }      
+       inline void start() { QueryPerformanceCounter(&timerB); } 
+       inline double GetTime()
+       {
+              QueryPerformanceCounter(&timerE);
+              return (double)(timerE.QuadPart - timerB.QuadPart) / (double)Frequency.QuadPart * 1000.0;
+       }
+private:
+       LARGE_INTEGER timerB, timerE, Frequency;
+};
+#endif
+上面的程序中，层次遍历用到的是队列，这应该可以代表用栈消解递归的情况，在我的机器C500上运行的结果是：
+Insert time: 868.818    Node number: 200000
+Non-Stack time: 130.811
+LevlOrder time: 148.438
+ PreOrder time: 125.47
+  InOrder time: 129.125
+PostOrder time: 130.914
+以上是VC6的release版的结果，时间单位是ms，不说明会有人认为是死机了，^_^。可以看出，递归遍历实际上并不慢，相反，更快一些，而debug版的结果是这样的：
+Insert time: 1355.69    Node number: 200000
+Non-Stack time: 207.086
+LevlOrder time: 766.023
+ PreOrder time: 183.287
+  InOrder time: 179.835
+PostOrder time: 190.674
+递归遍历的速度是最快的
+
+这恐怕是上面结果得出的最直接的结论。不知从哪听来的观点“递归的速度慢，为了提高速度，应该用栈消解递归”，证据就是斐波那契数列的计算，遗憾的是斐波那契数列的非递归算法是循环迭代，不是栈消解；如果他真的拿栈来模拟，他就会发现，其实用栈的更慢。
+我们来看看为什么。递归的实现是将参数压栈，然后call自身，最后按层返回，一系列的动作是在堆栈上操作的，用的是push、pop、call、ret之类的指令。而用ADT栈来模拟递归调用，实现的还是上述指令的功能，不同的是那些指令对照的ADT实现可就不只是一条指令了。谁都明白模拟的执行效率肯定比真实的差，怎么会在这个问题上就犯糊涂了呢？
+当然，你非要在visit函数中加入类似这样的istream file1(“input.txt”)，然后在用栈模拟的把这个放在循环的外面，最后你说，栈模拟的比递归的快，我也无话可说——曾经就见过一个人，http://www.csdn.net/Develop/Read_Article.asp?Id=18342将数据库连接放在visit函数里面，然后说递归的速度慢。
+如果一个递归过程用非递归的方法实现后，速度提高了，那只是因为递归做了一些无用功。比如用循环消解的尾递归，是多了无用的压栈和出栈才使速度受损的；斐波那契数列计算的递归改循环迭代所带来的速度大幅提升，是因为改掉了重复计算的毛病。假使一个递归过程必须要用栈才能消解，那么，完全模拟后的结果根本就不会对速度有任何提升，只会减慢；如果你改完后速度提升了，那只证明你的递归函数写的有问题，例如多了许多重复操作——打开关闭文件、连接断开数据库，而这些完全可以放到递归外面。递归方法本身是简洁高效的，只是使用的人不注意使用方法。
+这么看来，研究递归的栈消解好像是无用的，其实不然，用栈模拟递归还是有点意义的，只是并不大，下面将给出示例来说明。
+栈模拟递归的好处是节省了堆栈
+
+将上面的程序//node number那行的数值改为15000——不改没反应了别找我，将//random swap那行注释掉，运行debug版，耐心的等30秒，就会抛异常了，最后的输出结果是这样的：
+Insert time: 27555.5    Node number: 15000
+Non-Stack time: 16.858
+LevlOrder time: 251.036
+这只能说明堆栈溢出了。你可以看到层次遍历还能工作（由此类推，栈模拟的也能工作），但是递归的不能工作了。这是因为和总的内存空间比起来，堆栈空间是很少的，如果递归的层次过深，堆栈就溢出了。所以，如果你预先感到递归的层次可能过深，你就要考虑用栈来消解了。
+然而，如果你必须用递归，而递归的层次深到连堆栈都溢出了，那肯定是你的算法有问题，或者是那个程序根本不适合在PC上运行——运行起来就象死机了，这样的程序谁敢用？所以说用栈模拟递归是有意义的，但是不大，因为很少用到。
+对于树结构来说，如果没有双亲指针，那么遍历时的递归是必须的，与其搞什么栈消解不如添加一个双亲指针，这实际上也是用堆空间换取堆栈空间的一个方法，只是比ADT栈来得直接、高效罢了。
+综上，递归的栈消解，实际上只能节省堆栈空间，不仅不会提高速度，相反却会降低——天下哪有白吃的午餐，既省了堆栈空间还能提高速度。那些“栈消解递归能提高速度”的谣传只是对“消除尾递归能提高速度”的不负责任的引申，然而一群人以讹传讹，真就像是那么回事了，这就叫三人成虎。等我这时候再回过头看教科书，竟然没看见一本书上写着“栈消解递归能提高速度”。真的，以前一直被误导了，还不知道是被谁误导的——书上根本就没有写。

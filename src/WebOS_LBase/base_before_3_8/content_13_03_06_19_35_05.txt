@@ -1,0 +1,370 @@
+Chinaunix首页　| 　论坛　| 　博客 登录 | 注册
+    
+xieyancheng
+最让一个人感到最有成就的事情，不是他做成了什么，而是他选择了什么。
+CU博客频道3月技术图书有奖试读征文活动
+2013中国数据库技术大会火热报名中
+【原创评选】2013年2-3月原创博文评选开始啦！
+首页　| 　博文目录　| 　关于我
+
+xieyancheng
+博客访问： 22403
+博文数量： 98
+博客积分： 2158
+博客等级： 大尉
+用 户 组： 普通用户
+注册时间： 2012-01-12 17:02
+
+文章分类
+全部博文（98）
+
+程序员的人生（11）
+商业（2）
+未分配的博文（85）
+文章存档
+2013年（1）
+
+2012年（97）
+
+我的朋友
+
+wkshgui
+
+simiaoxi
+
+pandu
+
+blacksap
+最近访客
+
+arm-linu
+
+linjiecy
+
+az000000
+
+nwdeqing
+
+serversk
+
+liuyp86
+
+Erabbit
+
+sadjason
+订阅
+推荐博文
+·Linux关机命令比较
+·ARM学习之三:串口的配置...
+·JS操作JSON总结
+·linux下设定环境变量的方法...
+·awk实例应用---过滤url并随机...
+热词专题
+·monster beats blog
+·在QQ聊天中发送会议通知怎么...
+·heritrix教程
+·产品经理面试题
+·NortonPartitionMagic805图解...
+友情链接
+ linux input 子系统分析 二 2012-03-14 10:30:05
+分类： LINUX
+linux input子系统分析--主要函数
+ 一. 各种注册函数
+    因为分析一所讲的每种数据结构都代表一类对象，所以每种数据结构都会对应一个注册函数，他们都定义在子系统核心的input.c文件中。主要有三个注册函数
+     input_register_device    向内核注册一个input设备
+     input_register_handle    向内核注册一个handle结构
+     input_register_handler   注册一个事件处理器
+  1. input_register_device 注册一个input输入设备，这个注册函数在三个注册函数中是驱动程序唯一调用的。下面分析这个函数：
+[cpp] view plaincopy 
+int input_register_device(struct input_dev *dev)  
+{  
+    static atomic_t input_no = ATOMIC_INIT(0);    
+        //这个原子变量，代表总共注册的input设备，每注册一个加1，因为是静态变量，所以每次调用都不会清零的  
+    struct input_handler *handler;  
+    const char *path;  
+    int error;  
+  
+    __set_bit(EV_SYN, dev->evbit);  //EN_SYN 这个是设备都要支持的事件类型，所以要设置  
+  
+    /* 
+     * If delay and period are pre-set by the driver, then autorepeating 
+     * is handled by the driver itself and we don't do it in input.c. 
+     */  
+        // 这个内核定时器是为了重复按键而设置的  
+    init_timer(&dev->timer);  
+    if (!dev->rep[REP_DELAY] && !dev->rep[REP_PERIOD]) {  
+        dev->timer.data = (long) dev;  
+        dev->timer.function = input_repeat_key;  
+        dev->rep[REP_DELAY] = 250;  
+        dev->rep[REP_PERIOD] = 33;  
+        //如果没有定义有关重复按键的相关值，就用内核默认的  
+    }  
+  
+    if (!dev->getkeycode)  
+        dev->getkeycode = input_default_getkeycode;  
+    if (!dev->setkeycode)  
+        dev->setkeycode = input_default_setkeycode;  
+        //以上设置的默认函数由input核心提供  
+    dev_set_name(&dev->dev, "input%ld",  
+             (unsigned long) atomic_inc_return(&input_no) - 1);  
+        //设置input_dev中device的名字，这个名字会在/class/input中出现  
+    error = device_add(&dev->dev);  
+        //将device加入到linux设备模型中去  
+    if (error)  
+        return error;  
+  
+    path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);  
+    printk(KERN_INFO "input: %s as %s\n",  
+        dev->name ? dev->name : "Unspecified device", path ? path : "N/A");  
+    kfree(path);  
+        //这个得到路径名称，并打印出来  
+    error = mutex_lock_interruptible(&input_mutex);  
+    if (error) {  
+        device_del(&dev->dev);  
+        return error;  
+    }  
+  
+    list_add_tail(&dev->node, &input_dev_list);  
+        // 将新分配的input设备连接到input_dev_list链表上  
+    list_for_each_entry(handler, &input_handler_list, node)  
+        input_attach_handler(dev, handler);  
+        //遍历input_handler_list链表，配对 input_dev 和 input_handler  
+        //input_attach_handler 这个函数是配对的关键，下面将详细分析  
+    input_wakeup_procfs_readers();  
+        // 和proc文件系统有关，暂时不考虑  
+    mutex_unlock(&input_mutex);  
+  
+    return 0;  
+   }  
+   input_register_device完成的主要功能就是：初始化一些默认的值，将自己的device结构添加到linux设备模型当中，将input_dev添加到input_dev_list链表中，然后寻找合适的handler与input_handler配对,配对的核心函数是input_attach_handler。下面分析input_attach_handler函数：
+[cpp] view plaincopy 
+static int input_attach_handler(struct input_dev *dev, struct input_handler *handler)  
+{  
+    const struct input_device_id *id;  
+    int error;  
+  
+    if (handler->blacklist && input_match_device(handler->blacklist, dev))  
+        return -ENODEV;  
+        //blacklist是handler因该忽略的input设备类型，如果应该忽略的input设备也配对上了，那就出错了  
+    id = input_match_device(handler->id_table, dev);  
+        //这个是主要的配对函数，主要比较id中的各项，下面详细分析  
+    if (!id)  
+        return -ENODEV;  
+  
+    error = handler->connect(handler, dev, id);  
+        //配对成功调用handler的connect函数，这个函数在事件处理器中定义，主要生成一个input_handle结构，并初始化，还生成一个事件处理器相关的设备结构，后面详细分析  
+    if (error && error != -ENODEV)  
+        printk(KERN_ERR  
+            "input: failed to attach handler %s to device %s, "  
+            "error: %d\n",  
+            handler->name, kobject_name(&dev->dev.kobj), error);  
+        //出错处理  
+    return error;  
+ }  
+    input_attach_handler的主要功能就是调用了两个函数，一个input_match_device进行配对，一个connect处理配对成功后续工作。
+   下面分析input_match_device函数：
+[cpp] view plaincopy 
+static const struct input_device_id *input_match_device(const struct input_device_id *id,  
+                            struct input_dev *dev)  
+{  
+    int i;  
+        //函数传入的参数是所要配对handler的id_table，下面遍历这个id_table寻找合适的id进行配对  
+    for (; id->flags || id->driver_info; id++) {  
+        if (id->flags & INPUT_DEVICE_ID_MATCH_BUS)  
+            if (id->bustype != dev->id.bustype)  
+                continue;  
+                ......  
+                //针对handler->id->flag，比较不同的类型  
+                //如果比较成功进入下面的宏，否则进入下一个id  
+                MATCH_BIT(evbit,  EV_MAX);  
+            ......    
+        MATCH_BIT(swbit,  SW_MAX);  
+  
+  
+        return id;  
+    }  
+ }  
+    此函数主要是比较input_dev中的id和handler支持的id,这个存放在handler的id_table中。首先看id->driver_info有没有设置，如果设置了说明它匹配所有的id，evdev就是这个样的handler
+    然后依据id->flag来比较内容，如果都比较成功进入MATCH_BIT，这个宏是用来按位进行比较的，功能是比较所支持事件的类型，只有所有的位都匹配才成功返回，否则进行下一个id的比较。
+[cpp] view plaincopy 
+#define MATCH_BIT(bit, max) \  
+for (i = 0; i < BITS_TO_LONGS(max); i++) \  
+    if ((id->bit[i] & dev->bit[i]) != id->bit[i]) \  
+        break; \  
+if (i != BITS_TO_LONGS(max)) \  
+    continue;  
+    这个宏对于每种事件类型，以及每种事件类型支持的编码所有的位都比较一次，看handler的id是否支持，如果有一个不支持就不会比较成功，进入下一个id进行比较。
+    对于connect函数，每种事件处理器的实现都有差异，但原理都相同，因为触摸屏用的事件处理器为evdev，下面分析evdev的connect函数evdev_connect
+[cpp] view plaincopy 
+static int evdev_connect(struct input_handler *handler, struct input_dev *dev,  
+             const struct input_device_id *id)  
+{  
+        //此函数传入三个参数，分别是：handler，dev,id  
+    struct evdev *evdev;  
+    int minor;  
+    int error;  
+  
+  
+    for (minor = 0; minor < EVDEV_MINORS; minor++)  
+        if (!evdev_table[minor])  
+            break;  
+        //EVDEV_MINORS为32，说明evdev这个handler可以同时有32个输入设备和他配对，evdev_table中以minor（非次设备号，但是有一个换算关系）存放evdev结构体，后面要详细分析这个结构体  
+    if (minor == EVDEV_MINORS) {  
+        printk(KERN_ERR "evdev: no more free evdev devices\n");  
+        return -ENFILE;  
+    }  
+        //这个说明32个位置全都被占用了，连接失败  
+    evdev = kzalloc(sizeof(struct evdev), GFP_KERNEL);  
+        //分配一个evdev结构体，这个结构体是evdev事件处理器特有的，后面会详细分析  
+    if (!evdev)  
+        return -ENOMEM;  
+  
+  
+    INIT_LIST_HEAD(&evdev->client_list);  
+    spin_lock_init(&evdev->client_lock);  
+    mutex_init(&evdev->mutex);  
+    init_waitqueue_head(&evdev->wait);  
+        //初始化结构体的一些成员  
+    dev_set_name(&evdev->dev, "event%d", minor);  
+        //这个是设置evdev中device的名字，他将出现在/class/input中。  
+        //前面也有一个device是input_dev的，名字是input（n），注意与他的不同  
+        //这个结构是配对后的虚拟设备结构，没有对应的硬件，但是通过它可以找到相关的硬件  
+    evdev->exist = 1;  
+    evdev->minor = minor;  
+  
+  
+    evdev->handle.dev = input_get_device(dev);  
+    evdev->handle.name = dev_name(&evdev->dev);  
+    evdev->handle.handler = handler;  
+    evdev->handle.private = evdev;  
+        //因为evdev中包含handle了，所以初始化它就可以了，这样就连接了input_handler与input_dev  
+    evdev->dev.devt = MKDEV(INPUT_MAJOR, EVDEV_MINOR_BASE + minor); //注意：这个minor不是真正的次设备号，还要加上EVDEV_MINOR_BASE  
+    evdev->dev.class = &input_class;  
+    evdev->dev.parent = &dev->dev;  
+        //配对生成的device，父设备是与他相关连的input_dev  
+    evdev->dev.release = evdev_free;  
+    device_initialize(&evdev->dev);  
+  
+  
+    error = input_register_handle(&evdev->handle);  
+        //注册handle结构体,这个函数后面详细分析  
+    if (error)  
+        goto err_free_evdev;  
+  
+  
+    error = evdev_install_chrdev(evdev);  
+        //这个函数只做了一件事，就是把evdev结构保存到evdev_table中，这个数组也minor为索引  
+    if (error)  
+        goto err_unregister_handle;  
+  
+  
+    error = device_add(&evdev->dev);  
+        //注册到linux设备模型中  
+    if (error)  
+        goto err_cleanup_evdev;  
+  
+  
+    return 0;  
+  
+  
+  err_cleanup_evdev:  
+    evdev_cleanup(evdev);  
+  err_unregister_handle:  
+    input_unregister_handle(&evdev->handle);  
+  err_free_evdev:  
+    put_device(&evdev->dev);  
+    return error;  
+}  
+    evdev_connect函数做配对后的善后工作，分配一个evdev结构体，并初始化相关成员，evdev结构体中有input_handle结构，初始化并注册之。
+ 2. input_register_handle 注册一个input_handle结构体，比较简单
+[cpp] view plaincopy 
+int input_register_handle(struct input_handle *handle)  
+{  
+    struct input_handler *handler = handle->handler;  
+    struct input_dev *dev = handle->dev;  
+    int error;  
+  
+  
+    /* 
+     * We take dev->mutex here to prevent race with 
+     * input_release_device(). 
+     */  
+    error = mutex_lock_interruptible(&dev->mutex);  
+    if (error)  
+        return error;  
+    list_add_tail_rcu(&handle->d_node, &dev->h_list);  
+        //将handle的d_node，链接到其相关的input_dev的h_list链表中  
+    mutex_unlock(&dev->mutex);  
+  
+  
+    list_add_tail(&handle->h_node, &handler->h_list);  
+        //将handle的h_node，链接到其相关的input_handler的h_list链表中  
+    if (handler->start)  
+        handler->start(handle);  
+  
+  
+    return 0;  
+}  
+    这个函数基本没做什么事，就是把一个handle结构体通过d_node链表项，分别链接到input_dev的h_list,input_handler的h_list上。以后通过这个h_list就可以遍历相关的input_handle了。
+ 3. input_register_handler 注册一个input_handler结构体
+[cpp] view plaincopy 
+int input_register_handler(struct input_handler *handler)  
+ {  
+    struct input_dev *dev;  
+    int retval;  
+  
+  
+    retval = mutex_lock_interruptible(&input_mutex);  
+    if (retval)  
+        return retval;  
+  
+  
+    INIT_LIST_HEAD(&handler->h_list);  
+  
+  
+    if (handler->fops != NULL) {  
+        if (input_table[handler->minor >> 5]) {  
+            retval = -EBUSY;  
+            goto out;  
+        }  
+        input_table[handler->minor >> 5] = handler;  
+    }  
+        //input_table，每个注册的handler都会将自己保存到这里，索引值为handler->minor右移5为，也就是除以32  
+        //为什么会这样呢，因为每个handler都会处理最大32个input_dev，所以要以minor的32为倍数对齐,这个minor是传进来的handler的MINOR_BASE  
+        //每一个handler都有一个这一个MINOR_BASE，以evdev为例,EVDEV_MINOR_BASE = 64,可以看出系统总共可以注册8个handler  
+    list_add_tail(&handler->node, &input_handler_list);  
+        //连接到input_handler_list链表中  
+    list_for_each_entry(dev, &input_dev_list, node)  
+        input_attach_handler(dev, handler);  
+        //又是配对，不过这次遍历input_dev，和注册input_dev过程一样的  
+    input_wakeup_procfs_readers();  
+  
+  
+ out:  
+    mutex_unlock(&input_mutex);  
+    return retval;  
+}  
+    这个函数其实和input_register_device大同小异，都是注册，都要配对。
+阅读(497) | 评论(0) | 转发(5) |
+0
+上一篇：linux input 子系统分析 一
+下一篇：linux input 子系统分析 三
+相关热门文章
+linux 常见服务端口
+什么是shell
+linux socket的bug??
+linux的线程是否受到了保护？...
+一个适用于windows和linux的抓...
+Linux关机命令比较
+linux下设定环境变量的方法...
+awk实例应用---过滤url并随机...
+Linux下查看socket状态 netsta...
+QT的信号和槽
+给主人留下些什么吧！~~
+评论热议
+请登录后评论。
+登录 注册
+关于我们 | 关于IT168 | 联系方式 | 广告合作 | 法律声明 | 免费注册
+Copyright 2001-2010 ChinaUnix.net All Rights Reserved 北京皓辰网域网络信息技术有限公司. 版权所有
+感谢所有关心和支持过ChinaUnix的朋友们
+京ICP证041476号 京ICP证060528号
