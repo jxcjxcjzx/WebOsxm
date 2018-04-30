@@ -1,0 +1,987 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+     
+    <html xmlns="http://www.w3.org/1999/xhtml">
+    
+<head>    
+    <script type="text/javascript" src="http://csdnimg.cn/pubfooter/js/tracking.js" charset="utf-8"></script>  
+
+    <script type="text/javascript">
+        var protocol = window.location.protocol;
+        document.write('<script type="text/javascript" src="' + protocol + '//csdnimg.cn/pubfooter/js/repoAddr2.js?v=' + Math.random() + '"></' + 'script>');
+    </script>
+
+
+    <script id="allmobilize" charset="utf-8" src="http://a.yunshipei.com/46aae4d1e2371e4aa769798941cef698/allmobilize.min.js"></script>
+ <meta http-equiv="Cache-Control" content="no-siteapp" /><link rel="alternate" media="handheld" href="#" />
+
+    <title>网站截图抓取工具:ubuntu+xvfb+CutyCapt,可以实现高效网页缩略图，支持flash显示 - 心有灵犀鬼才心
+        - 博客频道 - CSDN.NET</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="description" content="找了几个工具都不是很理想，最后通过实验大功告成，下面是具体步骤：&#160;1、环境搭建：操作系统:ubuntusudo &#160;ap-get &#160;install build-essentialsudo apt-get install xvfbsudo apt-get install xfs xfonts-scalable xfonts-100dpisudo" />
+    <script src="http://static.blog.csdn.net/scripts/jquery.js" type="text/javascript"></script>
+    <script type="text/javascript" src="http://static.blog.csdn.net/scripts/ad.js?v=1.1"></script>
+        <!--new top-->
+               <link rel="stylesheet" href="http://static.csdn.net/public/common/toolbar/css/index.css">        <!--new top-->
+
+    <link rel="Stylesheet" type="text/css" href="http://static.blog.csdn.net/skin/default/css/style.css?v=1.1" />
+    <link id="RSSLink" title="RSS" type="application/rss+xml" rel="alternate" href="/changemyself/rss/list" />
+    <link rel="shortcut icon" href="http://csdnimg.cn/public/favicon.ico" />
+    <link type="text/css" rel="stylesheet" href="http://static.blog.csdn.net/scripts/SyntaxHighlighter/styles/blue_green.css" />
+ 
+
+
+</head>
+<body>
+    
+   
+      <!--new top-->
+    <script id="toolbar-tpl-scriptId" fixed="true" prod="blog" skin="black" src="http://static.csdn.net/public/common/toolbar/js/html.js" type="text/javascript"></script>
+     <!--new top-->
+    <div id="container">
+        <div id="header">
+    <div class="header">
+        <div id="blog_title">
+            <h2>
+                <a href="http://blog.csdn.net/changemyself">心有灵犀鬼才心</a></h2>
+            <h3>个人需求是第一生产力！</h3>
+            <div class="clear">
+            </div>
+        </div>
+        <div class="clear">
+        </div>
+    </div>
+</div>
+<div id="navigator">
+    <div class="navigator_bg">
+    </div>
+    <div class="navigator">
+        <ul>
+                <li id="btnContents"><a href="http://blog.csdn.net/changemyself?viewmode=contents"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_mulu'])">
+                    <img src="http://static.blog.csdn.net/images/ico_list.gif">目录视图</span></a></li>
+                <li id="btnView"><a href="http://blog.csdn.net/changemyself?viewmode=list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_zhaiyao'])">
+                    <img src="http://static.blog.csdn.net/images/ico_summary.gif">摘要视图</span></a></li>
+                <li id="btnRss"><a href="http://blog.csdn.net/changemyself/rss/list"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_RSS'])">
+                    <img src="http://static.blog.csdn.net/images/ico_rss.gif">订阅</span></a></li>                
+
+            </ul>
+    </div>
+</div>
+<script type="text/javascript">
+    var username = "changemyself";
+    var _blogger = username;
+    var blog_address = "http://blog.csdn.net/changemyself";
+    var static_host = "http://static.blog.csdn.net";
+    var currentUserName = "";  
+</script>
+
+        <div id="body">
+            <div id="main">
+                <div class="main">
+                        <div class="ad_class">
+<div class="notice tracking-ad" data-mod='popu_3' > 
+
+
+<a href="http://www.csdn.net/article/2015-01-08/2823479-csdn-online-learning">
+<font color=blue>“CSDN学院”上线试运行</font></a>
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+
+<a href="http://blog.csdn.net/blogdevteam/article/details/41842837">
+<font color=red>《京东技术解密》有奖试读，礼品大放送
+</font></a>
+&nbsp;&nbsp;&nbsp;&nbsp;
+
+<a href="http://blog.csdn.net/blogdevteam/article/details/42172979">
+<font color=blue>“我的2014”年度征文活动火爆开启
+</font></a>
+
+&nbsp;&nbsp;&nbsp;&nbsp;
+
+<a href="http://blog.csdn.net/blogdevteam/article/details/42526281">
+<font color=red>11.1-12.31推荐文章汇总
+</font></a>
+</div>                        </div>
+                        
+
+  
+<link href="http://static.blog.csdn.net/css/comment1.css" type="text/css" rel="stylesheet" />
+<link href="http://static.blog.csdn.net/css/style1.css" type="text/css" rel="stylesheet" />
+<script language='JavaScript' type='text/javascript' src='http://download.csdn.net/js/jquery.cookie.js'></script>
+<script type="text/javascript" src="http://csdnimg.cn/rabbit/search-service/main.js"></script>
+  <script type="text/ecmascript">
+      window.quickReplyflag = true;
+    </script>
+<div id="article_details" class="details">
+    <div class="article_title">   
+         <span class="ico ico_type_Original"></span>
+
+
+    <h1>
+        <span class="link_title"><a href="/changemyself/article/details/8618839">
+        网站截图抓取工具:ubuntu+xvfb+CutyCapt,可以实现高效网页缩略图，支持flash显示
+        </a></span>
+    </h1>
+</div>
+
+    <div class="article_manage">
+        <span class="link_categories">
+        分类：
+            <a href="/changemyself/article/category/178915" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_fenlei']);">我的思想大火拼</a> 
+        </span>
+    <span class="link_postdate">2013-02-27 18:14</span>
+    <span class="link_view" title="阅读次数">1670人阅读</span>
+    <span class="link_comments" title="评论次数"><a href="#comments" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_pinglun'])">评论</a>(0)</span>
+    <span class="link_collect"><a href="javascript:void(0);" onclick="javascript:_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shoucang']);collectArticle('网站截图抓取工具:ubuntu+xvfb+CutyCapt,可以实现高效网页缩略图，支持flash显示','8618839');return false;" title="收藏">收藏</a></span>
+    <span class="link_report"><a href="#report"  onclick="javascript:_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_jubao']);report(8618839,2);return false;" title="举报">举报</a></span>
+    
+</div>
+<div class="tag2box"><a href='http://www.csdn.net/tag/%e7%bd%91%e7%ab%99%e7%bc%a9%e7%95%a5%e5%9b%be' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">网站缩略图</a><a href='http://www.csdn.net/tag/%e7%bd%91%e9%a1%b5%e6%88%aa%e5%9b%be' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">网页截图</a><a href='http://www.csdn.net/tag/xvfb' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">xvfb</a><a href='http://www.csdn.net/tag/cutycapt' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">cutycapt</a><a href='http://www.csdn.net/tag/html2image' target=_blank onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_tag']);">html2image</a></div>
+
+  
+    
+<div id="article_content" class="article_content">
+
+<div class="text" style="margin:10px 0px; color:rgb(51,51,51); font-size:14px; font-family:'Microsoft YaHei',Tahoma,Arial; line-height:21px">
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:15px; text-indent:20px; line-height:26px">
+找了几个工具都不是很理想，最后通过实验大功告成，下面是具体步骤：</p>
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:15px; text-indent:20px; line-height:26px">
+&nbsp;</p>
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:15px; text-indent:20px; line-height:26px">
+1、环境搭建：</p>
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:15px; text-indent:20px; line-height:26px">
+操作系统:ubuntu</p>
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:15px; text-indent:20px; line-height:26px">
+sudo &nbsp;ap-get &nbsp;install build-essential</p>
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:15px; text-indent:20px; line-height:26px">
+sudo apt-get install xvfb</p>
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:15px; text-indent:20px; line-height:26px">
+sudo apt-get install xfs xfonts-scalable xfonts-100dpi</p>
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:15px; text-indent:20px; line-height:26px">
+sudo apt-get install libgl1-mesa-dri</p>
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:15px; text-indent:20px; line-height:26px">
+sudo apt-get install subversion libqt4-webkit libqt4-dev g&#43;&#43;</p>
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:15px; text-indent:20px; line-height:26px">
+&nbsp;</p>
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:15px; text-indent:20px; line-height:26px">
+2、下载 源代码cutycapt</p>
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:15px; text-indent:20px; line-height:26px">
+svn co&nbsp;<a href="https://cutycapt.svn.sourceforge.net/svnroot/cutycapt" style="color:rgb(0,68,153); text-decoration:none">https://cutycapt.svn.sourceforge.net/svnroot/cutycapt</a></p>
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:15px; text-indent:20px; line-height:26px">
+编译源代码</p>
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:15px; text-indent:20px; line-height:26px">
+cd cutycapt/CutyCapt</p>
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:15px; text-indent:20px; line-height:26px">
+make</p>
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:15px; text-indent:20px; line-height:26px">
+#如果你的系统没有make,就执行sudo pat-get install make</p>
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:15px; text-indent:20px; line-height:26px">
+3、安装中文字库 &nbsp;#很多系统是没有中文的，所以你要安装中文字库，否则网页会显示方块的</p>
+<pre>sudo apt-get update</pre>
+<pre>sudo apt-get install ttf-arphic-ukai ttf-arphic-uming</pre>
+<pre>sudo apt-get install ttf-wqy-zenhei</pre>
+<pre>sudo fc-cache -v
+
+4、安装flash插件  #现在web网站好多都有flash，为了别出现一个方块，就顺手安装上吧</pre>
+<pre>sudo apt-get install flashplugin-nonfree
+
+5、执行命令开始截图
+
+xvfb-run --server-args=&quot;-screen 0, 1024x768x24&quot; ./CutyCapt --url=http://www.163.com --out=163.png
+
+#在当前目录生成163.png截图，大概也就10秒钟的样子，质量还不错，5M多。
+
+
+效果图：
+<a href="http://www.changeself.com/?attachment_id=334" rel="attachment wp-att-334" style="color:rgb(0,68,153); text-decoration:none"><img class="alignnone size-full wp-image-334" alt="example" src="http://www.changeself.com/wp-content/uploads/2013/02/example.png" width="970" height="7090" style="border:0px; max-width:100%; height:auto; width:auto"></a></pre>
+</div>
+<div class="text_add" style="margin:20px 0px 0px; overflow:hidden; color:rgb(68,68,68); font-family:'Microsoft YaHei',Tahoma,Arial; font-size:14px; line-height:21px">
+<div class="copy" style="float:left">
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:0px; color:rgb(255,0,0)">
+本文出自 改变网|想改变自己身上某些特质而努力着，转载时请注明出处及相应链接。</p>
+<p style="margin-top:0px; margin-bottom:0px; padding-top:0px; padding-bottom:0px; color:rgb(119,119,119); font-size:12px">
+本文永久链接: http://www.changeself.com/?p=333</p>
+</div>
+</div>
+
+</div>
+
+
+
+
+<!-- Baidu Button BEGIN -->
+
+<div class="bdsharebuttonbox" style="float: right;">
+<a href="#" class="bds_more" data-cmd="more" style="background-position:0 0 !important; background-image: url(http://bdimg.share.baidu.com/static/api/img/share/icons_0_16.png?v=d754dcc0.png) !important"></a>
+<a href="#" class="bds_qzone" data-cmd="qzone" title="分享到QQ空间"  style="background-position:0 -52px !important"></a>
+<a href="#" class="bds_tsina" data-cmd="tsina" title="分享到新浪微博"style="background-position:0 -104px !important"></a>
+<a href="#" class="bds_tqq" data-cmd="tqq" title="分享到腾讯微博"style="background-position:0 -260px !important"></a>
+<a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网"style="background-position:0 -208px !important"></a>
+<a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信"style="background-position:0 -1612px !important" ></a>
+</div>
+<script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "1", "bdMiniList": false, "bdPic": "", "bdStyle": "0", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = 'http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion=' + ~(-new Date() / 36e5)];</script>
+<!-- Baidu Button END -->
+
+<!--192.168.100.35-->
+<ul class="article_next_prev">
+            <li class="prev_article"><span  onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian']);location.href='/changemyself/article/details/8598011';">上一篇</span><a href="/changemyself/article/details/8598011" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_shangyipian'])">python 编辑器：Ulipad</a></li>
+            <li class="next_article"><span onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian']);location.href='/changemyself/article/details/8642487';">下一篇</span><a href="/changemyself/article/details/8642487" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_xiayipian'])">编辑JS和HTML,CSS的利器:Sublime Text 2.0.1 简体中文版</a></li>
+</ul>
+
+<!-- Baidu Button BEGIN -->
+<script type="text/javascript" id="bdshare_js" data="type=tools&amp;uid=1536434" ></script>
+<script type="text/javascript" id="bdshell_js"></script>
+<script type="text/javascript">
+    document.getElementById("bdshell_js").src = "http://bdimg.share.baidu.com/static/js/shell_v2.js?cdnversion=" + Math.ceil(new Date()/3600000)
+</script>
+<!-- Baidu Button END -->
+
+
+        <div id="digg" ArticleId="8618839">
+            <dl id="btnDigg" class="digg digg_disable">
+                <dt onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_ding'])">顶</dt>
+                <dd>0</dd>
+            </dl>
+            <dl id="btnBury" class="digg digg_disable">
+                <dt onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_cai'])">踩</dt>
+                <dd>0</dd>
+            </dl>
+        </div>
+</div>
+      <dl class="blog-associat-tag">
+        <dt>主题推荐</dt>
+        <dd>
+                <a href="http://www.csdn.net/tag/ubuntu" target="_blank" class="blog-tage-red" >ubuntu</a> 
+                <a href="http://www.csdn.net/tag/flash" target="_blank" class="blog-tage-red" >flash</a> 
+                <a href="http://www.csdn.net/tag/操作系统" target="_blank" class="blog-tage-red" >操作系统</a> 
+                <a href="http://www.csdn.net/tag/microsoft" target="_blank" class="blog-tage-red" >microsoft</a> 
+                <a href="http://www.csdn.net/tag/源代码" target="_blank" class="blog-tage-red" >源代码</a> 
+        </dd>
+    </dl> 
+
+
+<dl class="blog-ass-articl tracking-ad"  data-mod="popu_36" id="res-relatived"> 
+     <dt><span>猜你在找</span></dt>    
+</dl>
+
+<script type="text/javascript">
+    var searchtitletags = '网站截图抓取工具:ubuntu+xvfb+CutyCapt,可以实现高效网页缩略图，支持flash显示' + ',' + 'ubuntu,flash,操作系统,microsoft,源代码';
+    searchService({
+        index: 'blog',
+        query: searchtitletags,
+        from: 10,
+        size: 10,
+        appendTo: '#res-relatived',
+        url: 'recommend',
+        his: 2,
+        client: "blog_cf_enhance",
+        tmpl: '<dd style="background:url(http://static.blog.csdn.net/skin/default/images/blog-dot-red3.gif) no-repeat 0 10px;"><a href="#{ url }" title="#{ title }" strategy="#{ strategy }">#{ title }</a></dd>'
+    });
+
+ </script>   
+
+
+    <div id="ad_cen">
+   
+          <script type="text/javascript">
+              new Ad(4, 'ad_cen');
+          </script>
+    </div>
+<div class="comment_class">
+    <div id="comment_title" class="panel_head">
+        <span class="see_comment">查看评论</span><a name="comments"></a></div>
+    <div id="comment_list">
+    </div>
+    <div id="comment_bar">
+    </div>
+    <div id="comment_form">
+    </div>
+
+    <div class="announce">
+        * 以上用户言论只代表其个人观点，不代表CSDN网站的观点或立场<a name="reply"></a><a name="quote"></a></div>
+</div>
+
+<script type="text/javascript">
+    var fileName = '8618839';
+    var commentscount = 0;
+    var islock = false
+</script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/comment.js"></script>
+    <div id="ad_bot">
+    </div>
+    <script type="text/javascript">
+    new Ad(5, 'ad_bot');
+    </script>
+<div id="report_dialog">
+</div>
+
+<div id="d-top"  style="bottom:60px;">
+        <a id="quick-reply" class="btn btn-top q-reply" title="快速回复" style="display:none;">
+            <img src="http://static.blog.csdn.net/images/blog-icon-reply.png" alt="快速回复">
+        </a>    
+
+    <a id="d-top-a" class="btn btn-top backtop"  style="display: none;" title="返回顶部" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_huidaodingbu'])" style="">         
+         <img src="http://static.blog.csdn.net/images/top.png" alt="TOP">
+    </a>
+</div>
+<script type="text/javascript">
+    $(function ()
+    {
+        $("#ad_frm_0").height("90px");
+        
+        setTimeout(function(){
+            $("#ad_frm_2").height("200px");
+        },1000);
+        
+        /*
+        if($("#comment_content").length>0)
+        {
+            $("#quick-reply").show();
+
+            $("#quick-reply").click(function(){
+                setEditorFocus();
+            });
+        }       
+     
+        var d_top = $('#d-top-a');
+
+        document.onscroll = function ()
+        {
+            var scrTop = (document.body.scrollTop || document.documentElement.scrollTop);
+            if (scrTop > 500)
+            {
+                d_top.show();
+            } else
+            {
+                d_top.hide();
+            }
+        }
+        $('#d-top-a').click(function ()
+        {
+            scrollTo(0, 0);
+            this.blur();
+            return false;
+        });
+        */
+    });
+  
+</script>
+<style type="text/css">
+    .tag_list
+    {
+        background: none repeat scroll 0 0 #FFFFFF;
+        border: 1px solid #D7CBC1;
+        color: #000000;
+        font-size: 12px;
+        line-height: 20px;
+        list-style: none outside none;
+        margin: 10px 2% 0 1%;
+        padding: 1px;
+    }
+    .tag_list h5
+    {
+        background: none repeat scroll 0 0 #E0DBD3;
+        color: #47381C;
+        font-size: 12px;
+        height: 24px;
+        line-height: 24px;
+        padding: 0 5px;
+        margin: 0;
+    }
+    .tag_list h5 a
+    {
+        color: #47381C;
+    }
+    .classify
+    {
+        margin: 10px 0;
+        padding: 4px 12px 8px;
+    }
+    .classify a
+    {
+        margin-right: 20px;
+        white-space: nowrap;
+    }
+</style>
+<div class="tag_list">
+    <h5>
+        <a href="http://www.csdn.net/tag/" target="_blank">核心技术类目</a></h5>
+    <div class="classify">
+<a title="全部主题" href="http://www.csdn.net/tag" target="_blank" onclick="LogClickCount(this,336);">全部主题</a>
+<a title="Hadoop" href="http://g.csdn.net/5272865" target="_blank" onclick="LogClickCount(this,336);">Hadoop</a>
+<a title="AWS" href="http://g.csdn.net/5272866" target="_blank" onclick="LogClickCount(this,336);">AWS</a>
+<a title="移动游戏" href="http://g.csdn.net/5272870" target="_blank" onclick="LogClickCount(this,336);">移动游戏</a>
+<a title="Java" href="http://g.csdn.net/5272871" target="_blank" onclick="LogClickCount(this,336);">Java</a>
+<a title="Android" href="http://g.csdn.net/5272872" target="_blank" onclick="LogClickCount(this,336);">Android</a>
+<a title="iOS" href="http://g.csdn.net/5272873" target="_blank" onclick="LogClickCount(this,336);">iOS</a>
+<a title="Swift" href="http://g.csdn.net/5272868" target="_blank" onclick="LogClickCount(this,336);">Swift</a>
+<a title="智能硬件" href="http://g.csdn.net/5272869" target="_blank" onclick="LogClickCount(this,336);">智能硬件</a>
+<a title="Docker" href="http://g.csdn.net/5272867" target="_blank" onclick="LogClickCount(this,336);">Docker</a>
+<a title="OpenStack" href="http://g.csdn.net/5272925" target="_blank" onclick="LogClickCount(this,336);">OpenStack</a>
+<a title="VPN" href="http://www.csdn.net/tag/vpn" target="_blank" onclick="LogClickCount(this,336);">VPN</a>
+<a title="Spark" href="http://g.csdn.net/5272924" target="_blank" onclick="LogClickCount(this,336);">Spark</a>
+<a title="ERP" href="http://www.csdn.net/tag/erp" target="_blank" onclick="LogClickCount(this,336);">ERP</a>
+<a title="IE10" href="http://www.csdn.net/tag/ie10" target="_blank" onclick="LogClickCount(this,336);">IE10</a>
+<a title="Eclipse" href="http://www.csdn.net/tag/eclipse" target="_blank" onclick="LogClickCount(this,336);">Eclipse</a>
+<a title="CRM" href="http://www.csdn.net/tag/crm" target="_blank" onclick="LogClickCount(this,336);">CRM</a>
+<a title="JavaScript" href="http://www.csdn.net/tag/javascript" target="_blank" onclick="LogClickCount(this,336);">JavaScript</a>
+<a title="数据库" href="http://www.csdn.net/tag/数据库" target="_blank" onclick="LogClickCount(this,336);">数据库</a>
+<a title="Ubuntu" href="http://www.csdn.net/tag/ubuntu" target="_blank" onclick="LogClickCount(this,336);">Ubuntu</a>
+<a title="NFC" href="http://www.csdn.net/tag/nfc" target="_blank" onclick="LogClickCount(this,336);">NFC</a>
+<a title="WAP" href="http://www.csdn.net/tag/wap" target="_blank" onclick="LogClickCount(this,336);">WAP</a>
+<a title="jQuery" href="http://www.csdn.net/tag/jquery" target="_blank" onclick="LogClickCount(this,336);">jQuery</a>
+<a title="BI" href="http://www.csdn.net/tag/bi" target="_blank" onclick="LogClickCount(this,336);">BI</a>
+<a title="HTML5" href="http://www.csdn.net/tag/html5" target="_blank" onclick="LogClickCount(this,336);">HTML5</a>
+<a title="Spring" href="http://www.csdn.net/tag/spring" target="_blank" onclick="LogClickCount(this,336);">Spring</a>
+<a title="Apache" href="http://www.csdn.net/tag/apache" target="_blank" onclick="LogClickCount(this,336);">Apache</a>
+<a title=".NET" href="http://www.csdn.net/tag/.net" target="_blank" onclick="LogClickCount(this,336);">.NET</a>
+<a title="API" href="http://www.csdn.net/tag/api" target="_blank" onclick="LogClickCount(this,336);">API</a>
+<a title="HTML" href="http://www.csdn.net/tag/html" target="_blank" onclick="LogClickCount(this,336);">HTML</a>
+<a title="SDK" href="http://www.csdn.net/tag/sdk" target="_blank" onclick="LogClickCount(this,336);">SDK</a>
+<a title="IIS" href="http://www.csdn.net/tag/iis" target="_blank" onclick="LogClickCount(this,336);">IIS</a>
+<a title="Fedora" href="http://www.csdn.net/tag/fedora" target="_blank" onclick="LogClickCount(this,336);">Fedora</a>
+<a title="XML" href="http://www.csdn.net/tag/xml" target="_blank" onclick="LogClickCount(this,336);">XML</a>
+<a title="LBS" href="http://www.csdn.net/tag/lbs" target="_blank" onclick="LogClickCount(this,336);">LBS</a>
+<a title="Unity" href="http://www.csdn.net/tag/unity" target="_blank" onclick="LogClickCount(this,336);">Unity</a>
+<a title="Splashtop" href="http://www.csdn.net/tag/splashtop" target="_blank" onclick="LogClickCount(this,336);">Splashtop</a>
+<a title="UML" href="http://www.csdn.net/tag/uml" target="_blank" onclick="LogClickCount(this,336);">UML</a>
+<a title="components" href="http://www.csdn.net/tag/components" target="_blank" onclick="LogClickCount(this,336);">components</a>
+<a title="Windows Mobile" href="http://www.csdn.net/tag/windowsmobile" target="_blank" onclick="LogClickCount(this,336);">Windows Mobile</a>
+<a title="Rails" href="http://www.csdn.net/tag/rails" target="_blank" onclick="LogClickCount(this,336);">Rails</a>
+<a title="QEMU" href="http://www.csdn.net/tag/qemu" target="_blank" onclick="LogClickCount(this,336);">QEMU</a>
+<a title="KDE" href="http://www.csdn.net/tag/kde" target="_blank" onclick="LogClickCount(this,336);">KDE</a>
+<a title="Cassandra" href="http://www.csdn.net/tag/cassandra" target="_blank" onclick="LogClickCount(this,336);">Cassandra</a>
+<a title="CloudStack" href="http://www.csdn.net/tag/cloudstack" target="_blank" onclick="LogClickCount(this,336);">CloudStack</a>
+<a title="FTC" href="http://www.csdn.net/tag/ftc" target="_blank" onclick="LogClickCount(this,336);">FTC</a>
+<a title="coremail" href="http://www.csdn.net/tag/coremail" target="_blank" onclick="LogClickCount(this,336);">coremail</a>
+<a title="OPhone " href="http://www.csdn.net/tag/ophone " target="_blank" onclick="LogClickCount(this,336);">OPhone </a>
+<a title="CouchBase" href="http://www.csdn.net/tag/couchbase" target="_blank" onclick="LogClickCount(this,336);">CouchBase</a>
+<a title="云计算" href="http://www.csdn.net/tag/云计算" target="_blank" onclick="LogClickCount(this,336);">云计算</a>
+<a title="iOS6" href="http://www.csdn.net/tag/iOS6" target="_blank" onclick="LogClickCount(this,336);">iOS6</a>
+<a title="Rackspace " href="http://www.csdn.net/tag/rackspace " target="_blank" onclick="LogClickCount(this,336);">Rackspace </a>
+<a title="Web App" href="http://www.csdn.net/tag/webapp" target="_blank" onclick="LogClickCount(this,336);">Web App</a>
+<a title="SpringSide" href="http://www.csdn.net/tag/springside" target="_blank" onclick="LogClickCount(this,336);">SpringSide</a>
+<a title="Maemo" href="http://www.csdn.net/tag/maemo" target="_blank" onclick="LogClickCount(this,336);">Maemo</a>
+<a title="Compuware" href="http://www.csdn.net/tag/compuware" target="_blank" onclick="LogClickCount(this,336);">Compuware</a>
+<a title="大数据" href="http://www.csdn.net/tag/大数据" target="_blank" onclick="LogClickCount(this,336);">大数据</a>
+<a title="aptech" href="http://www.csdn.net/tag/aptech" target="_blank" onclick="LogClickCount(this,336);">aptech</a>
+<a title="Perl" href="http://www.csdn.net/tag/perl" target="_blank" onclick="LogClickCount(this,336);">Perl</a>
+<a title="Tornado" href="http://www.csdn.net/tag/tornado" target="_blank" onclick="LogClickCount(this,336);">Tornado</a>
+<a title="Ruby" href="http://www.csdn.net/tag/ruby" target="_blank" onclick="LogClickCount(this,336);">Ruby</a>
+<a title="Hibernate" href="http://www.csdn.net/hibernate" target="_blank" onclick="LogClickCount(this,336);">Hibernate</a>
+<a title="ThinkPHP" href="http://www.csdn.net/tag/thinkphp" target="_blank" onclick="LogClickCount(this,336);">ThinkPHP</a>
+<a title="HBase" href="http://www.csdn.net/tag/hbase" target="_blank" onclick="LogClickCount(this,336);">HBase</a>
+<a title="Pure" href="http://www.csdn.net/tag/pure" target="_blank" onclick="LogClickCount(this,336);">Pure</a>
+<a title="Solr" href="http://www.csdn.net/tag/solr" target="_blank" onclick="LogClickCount(this,336);">Solr</a>
+<a title="Angular" href="http://www.csdn.net/tag/angular" target="_blank" onclick="LogClickCount(this,336);">Angular</a>
+<a title="Cloud Foundry" href="http://www.csdn.net/tag/cloudfoundry" target="_blank" onclick="LogClickCount(this,336);">Cloud Foundry</a>
+<a title="Redis" href="http://www.csdn.net/tag/redis" target="_blank" onclick="LogClickCount(this,336);">Redis</a>
+<a title="Scala" href="http://www.csdn.net/tag/scala" target="_blank" onclick="LogClickCount(this,336);">Scala</a>
+<a title="Django" href="http://www.csdn.net/tag/django" target="_blank" onclick="LogClickCount(this,336);">Django</a>
+<a title="Bootstrap" href="http://www.csdn.net/tag/bootstrap" target="_blank" onclick="LogClickCount(this,336);">Bootstrap</a>
+    </div>
+</div>
+
+<div id="pop_win" style="display:none ;position: absolute; z-index: 10000; border: 1px solid rgb(220, 220, 220); top: 222.5px; left: 630px; opacity: 1; background: none 0px 0px repeat scroll rgb(255, 255, 255);">
+    
+</div>
+<div id="popup_mask"></div>
+<style>
+    #popup_mask
+    {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 9999;
+        left: 0px;
+        top: 0px;
+        opacity: 0.3;
+        filter: alpha(opacity=30);
+        display: none;
+    }
+
+</style>
+
+
+
+
+<script type="text/javascript">
+    $(function(){
+        setTimeout(function(){
+            $(".comment_body:contains('回复')").each(function(index,item){
+                var u=$(this).text().split('：')[0].toString().replace("回复","")
+                var thisComment=$(this);
+                if(u)
+                {
+                    $.getJSON("https://passport.csdn.net/get/nick?callback=?", {users: u}, function(a) {
+                        if(a!=null&&a.data!=null&&a.data.length>0)
+                        {
+                            nick=a.data[0].n; 
+                            if(u!=nick)
+                            {
+                                thisComment.text(thisComment.text().replace(u,nick));  
+                            }
+                        }       
+                    });  
+                }
+            });
+        },200);  
+        
+        setTimeout(function(){
+            $("a img[src='http://js.tongji.linezing.com/stats.gif']").parent().css({"position":"absolute","left":"50%"});
+        },300);
+    });
+
+    function loginbox(){
+        var $logpop=$("#pop_win");
+        $logpop.html('<iframe src="https://passport.csdn.net/account/loginbox?service=http://static.blog.csdn.net/callback.htm" frameborder="0" height="600" width="400" scrolling="no"></iframe>');
+
+        $('#popup_mask').css({
+            opacity: 0.5,
+            width: $( document ).width() + 'px',
+            height:  $( document ).height() + 'px'
+        });
+        $('#popup_mask').css("display","block");
+ 
+        $logpop.css( {
+            top: ($( window ).height() - $logpop.height())/ 2  + $( window 
+       ).scrollTop() + 'px',
+            left:($( window ).width() - $logpop.width())/ 2
+        } );
+ 
+        setTimeout( function () {
+            $logpop.show();
+            $logpop.css( {
+                opacity: 1
+            } );
+        }, 200 );
+ 
+        $('#popup_mask').unbind("click");
+        $('#popup_mask').bind("click", function(){
+            $('#popup_mask').hide();
+            var $clopop = $("#pop_win");
+            $("#common_ask_div_sc").css("display","none");
+            $clopop.css( {
+                opacity: 0
+            } );
+            setTimeout( function () {
+                $clopop.hide();
+            }, 350 );
+            return false;
+        });
+    }    
+
+</script>
+                        <div class="clear">
+                        </div>
+                    </div>                   
+                
+            </div>
+            <div id="side">
+    <div class="side">
+
+
+<div id="custom_column_954523" class="panel">
+<ul class="panel_head"><span>开发者群</span></ul>
+<ul class="panel_body">
+<ul>
+<li><a href="http://blog.csdn.net/changemyself/article/details/41491227" target="_blank">0-6岁宝宝发育指导App下载</a></li></ul>
+
+<ul>
+<li><font color="red"><a href="http://weibo.com/changeself">sina微博关注:@立波搜应用</a></font></li></ul>
+
+<ul>
+<li>CSDN技术群：221057495</li></ul>
+
+<ul>
+<li><a href="http://blog.csdn.net/changemyself/article/details/40475565" target="_blank">CSDN专家博客手机App下载</a></li></ul>
+</ul>
+</div><div id="panel_Profile" class="panel">
+<ul class="panel_head"><span>个人资料</span></ul>
+<ul class="panel_body profile">
+<div id="blog_userface">
+    <a href="http://my.csdn.net/changemyself" target="_blank">
+    <img src="http://avatar.csdn.net/E/4/B/1_changemyself.jpg" title="访问我的空间" style="max-width:90%"/>
+    </a>
+    <br />
+    <span><a href="http://my.csdn.net/changemyself" class="user_name" target="_blank">changemyself</a></span>
+</div>
+<div class="interact">
+<a href="javascript:void(0);" class="attent" id="span_add_follow" title="[加关注]" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_guanzhu'])"></a>
+
+ <a href="javascript:void(0);" class="letter"  title="[发私信]" onclick="window.open('http://msg.csdn.net/letters/model?receiver=changemyself','_blank','height=350,width=700');_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_sixin'])"></a>  
+</div>
+<div id="blog_medal">
+                       <div class="ico_expert" title="CSDN认证专家" style="width:54px;height:60px;background:url('http://csdnimg.cn/jifen/images/xunzhang/xunzhang/bokezhuanjiamiddle.png') no-repeat" ></div>
+                <div id="bms_box">
+                                            <a  target="_blank">
+                                                    <img src="http://csdnimg.cn/jifen/images/xunzhang/xunzhang/chizhiyiheng.png" onmouseover="m_over_m(this,4)" onmouseout="m_out_m()" alt="1" >
+                                            </a>
+               </div>
+</div>
+<ul id="blog_rank">
+    <li>访问：<span>1763085次</span></li>
+    <li>积分：<span>22947</span> </li>    
+    <li >等级： <span style="position:relative;display:inline-block;z-index:1" >
+            <img src="http://csdnimg.cn/jifen/images/xunzhang/jianzhang/blog7.png" alt="" style="vertical-align: middle;" id="leveImg">
+            <div id="smallTittle" style=" position: absolute;  left: -24px;  top: 25px;  text-align: center;  width: 101px;  height: 32px;  background-color: #fff;  line-height: 32px;  border: 2px #DDDDDD solid;  box-shadow: 0px 2px 2px rgba (0,0,0,0.1);  display: none;   z-index: 999;">
+            <div style="left: 42%;  top: -8px;  position: absolute;  width: 0;  height: 0;  border-left: 10px solid transparent;  border-right: 10px solid transparent;  border-bottom: 8px solid #EAEAEA;"></div>
+            积分：22947 </div>
+        </span>  </li>
+    <li>排名：<span>第94名</span></li>
+</ul>
+<ul id="blog_statistics">
+    <li>原创：<span>567篇</span></li>
+    <li>转载：<span>197篇</span></li>
+    <li>译文：<span>0篇</span></li>
+    <li>评论：<span>1719条</span></li>
+</ul>
+</ul>
+</div>
+
+
+<div class="panel" id="panel_Search">
+    <ul class="panel_head"><span>文章搜索</span></ul>
+    <ul class="panel_body">
+        <form id="frmSearch" action="http://so.csdn.net/search" class="form_search" target="_blank">
+        <span><input id="inputSearch" type="text" class="blogsearch" title="请输入关键字" /></span>
+        <input id="btnSubmit" type="button" value="搜索" title="search in blog" />
+        <input type="hidden" name="q" id="inputQ" />
+        <input type="hidden" name="t" value="blog" />
+        <a id="btnSearchBlog" target="_blank"></a>
+        </form>
+    </ul>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        $("#btnSubmit").click(function () {           
+            search();
+        });
+
+        $("#frmSearch").submit(function () {
+            search();
+            return false;
+        });
+
+        function search()
+        {
+            var url = "http://so.csdn.net/so/search/s.do?q=" + encodeURIComponent($("#inputSearch").val()) + "&u=" + username + "&t=blog";
+            window.location.href = url;
+        }   
+    });
+</script>
+<div id="panel_Category" class="panel">
+<ul class="panel_head"><span>文章分类</span></ul>
+<ul class="panel_body">
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/702470" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Android安卓应用开发</a><span>(80)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/178750" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Domin</a><span>(6)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/603159" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">IT行业动态</a><span>(23)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/178638" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">java</a><span>(23)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/321644" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Python和Django</a><span>(15)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/190505" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">SMS短信开发</a><span>(7)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/453970" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">业务规划</a><span>(29)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/509557" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">二维条码</a><span>(23)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/541757" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">创业进行时</a><span>(26)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/178915" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">我的思想大火拼</a><span>(154)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/436318" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">条码应用</a><span>(15)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/179728" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">看过的精典电影</a><span>(10)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/179380" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">精典的社会性话题</a><span>(109)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/744034" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">网站推广和建站</a><span>(26)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/1112766" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">金山恶霸门</a><span>(5)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/1135398" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">app推广 app渠道 app推广经验</a><span>(32)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/1135529" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">app广告平台  app广告SDK</a><span>(10)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/1278690" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">ios开发</a><span>(1)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/1285293" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">立波家族应用</a><span>(8)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/1333844" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">AndEngine[游戏框架资料]</a><span>(5)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/1394963" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">ios刷机教程</a><span>(1)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/1402392" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Jquery mobile</a><span>(2)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/1421445" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Libgdx中文社区</a><span>(2)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/1421446" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">libgdx游戏开发</a><span>(0)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/1616759" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">小儿疾病(程序员养孩子)</a><span>(2)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/1773991" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">日常软件操作</a><span>(1)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/1787157" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">c&amp;c++</a><span>(10)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/2620389" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">Gradle自动化编译脚本</a><span>(2)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/2690637" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">网站推广/手机app推广/网络营销案例</a><span>(2)</span>
+            </li>
+             <li>
+                <a href="http://blog.csdn.net/changemyself/article/category/2820185" onclick="_gaq.push(['_trackEvent','function', 'onclick', 'blog_articles_wenzhangfenlei']); ">gradle2.2</a><span>(1)</span>
+            </li>
+</ul>
+</div><div id="hotarticls" class="panel">
+<ul class="panel_head">
+    <span>       
+阅读排行    </span>
+</ul>
+
+<ul class="panel_body itemlist">
+<li>
+<a href="/changemyself/article/details/7822864" title="google play电子市场和gmail如何安装在国产手机、三星手机、摩托手机里">google play电子市场和gmail如何安装在国产手机、三星手机、摩托手机里</a><span>(37619)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/11607171" title="植物大战僵尸2 Android破解版,免费买道具">植物大战僵尸2 Android破解版,免费买道具</a><span>(33748)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/7525136" title="抱朴仙人：中国的海洋权益争端漫谈">抱朴仙人：中国的海洋权益争端漫谈</a><span>(32761)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/7861525" title="Caused by: java.lang.ClassNotFoundException[android的终极解决错误]">Caused by: java.lang.ClassNotFoundException[android的终极解决错误]</a><span>(32696)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/8363058" title="SlidingMenu和ActionBarSherlock结合做出出色的App布局,Facebook 和 Path 2.0 滑动式菜单都可以实现(android页面布局效果)">SlidingMenu和ActionBarSherlock结合做出出色的App布局,Facebook 和 Path 2.0 滑动式菜单都可以实现(android页面布局效果)</a><span>(29045)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/8807363" title="立波 iphone3gs越狱教程:成功把iphone3gs手机升级成ios6.1.3系统,完美越狱,解决no service和耗电量大的问题">立波 iphone3gs越狱教程:成功把iphone3gs手机升级成ios6.1.3系统,完美越狱,解决no service和耗电量大的问题</a><span>(27698)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/8454633" title="Android Bluetooth蓝牙开发\蓝牙协议\蓝牙通信例子_Android支持蓝牙4.0版本_BLE开发">Android Bluetooth蓝牙开发\蓝牙协议\蓝牙通信例子_Android支持蓝牙4.0版本_BLE开发</a><span>(27404)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/2802905" title="LoadRunner测试工具大全下载，破解，licence">LoadRunner测试工具大全下载，破解，licence</a><span>(25027)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/5874495" title="&quot;盗梦空间&quot;观感（程序员角度）">&quot;盗梦空间&quot;观感（程序员角度）</a><span>(21152)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/5977190" title="HTC Wildfire野火 G8怎样打开手机后盖？怎样安装SIM电话卡？怎样安装TF存储卡？">HTC Wildfire野火 G8怎样打开手机后盖？怎样安装SIM电话卡？怎样安装TF存储卡？</a><span>(20754)</span>
+</li>
+</ul>
+</div>
+<div id="panel_Archive" class="panel">
+<ul class="panel_head"><span>文章存档</span></ul>
+<ul class="panel_body">
+<div id="archive_list">
+<!--归档统计-->
+<li><a href="http://blog.csdn.net/changemyself/article/month/2014/12">2014年12月</a><span>(2)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2014/11">2014年11月</a><span>(7)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2014/10">2014年10月</a><span>(10)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2014/05">2014年05月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2014/03">2014年03月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2014/02">2014年02月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2014/01">2014年01月</a><span>(3)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2013/12">2013年12月</a><span>(18)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2013/11">2013年11月</a><span>(3)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2013/10">2013年10月</a><span>(2)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2013/09">2013年09月</a><span>(4)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2013/08">2013年08月</a><span>(8)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2013/07">2013年07月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2013/06">2013年06月</a><span>(6)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2013/05">2013年05月</a><span>(7)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2013/04">2013年04月</a><span>(6)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2013/03">2013年03月</a><span>(7)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2013/02">2013年02月</a><span>(8)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2013/01">2013年01月</a><span>(14)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2012/12">2012年12月</a><span>(9)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2012/11">2012年11月</a><span>(7)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2012/10">2012年10月</a><span>(7)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2012/08">2012年08月</a><span>(4)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2012/07">2012年07月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2012/06">2012年06月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2012/05">2012年05月</a><span>(29)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2012/04">2012年04月</a><span>(24)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2012/03">2012年03月</a><span>(8)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2012/02">2012年02月</a><span>(6)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2012/01">2012年01月</a><span>(2)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2011/12">2011年12月</a><span>(3)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2011/11">2011年11月</a><span>(4)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2011/09">2011年09月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2011/03">2011年03月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2011/01">2011年01月</a><span>(4)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2010/12">2010年12月</a><span>(8)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2010/11">2010年11月</a><span>(11)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2010/10">2010年10月</a><span>(17)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2010/09">2010年09月</a><span>(6)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2010/08">2010年08月</a><span>(3)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2010/07">2010年07月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2010/06">2010年06月</a><span>(5)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2010/05">2010年05月</a><span>(2)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2010/04">2010年04月</a><span>(5)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2010/03">2010年03月</a><span>(3)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2010/02">2010年02月</a><span>(10)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2010/01">2010年01月</a><span>(3)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2009/12">2009年12月</a><span>(17)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2009/11">2009年11月</a><span>(19)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2009/10">2009年10月</a><span>(8)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2009/09">2009年09月</a><span>(9)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2009/07">2009年07月</a><span>(6)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2009/06">2009年06月</a><span>(9)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2009/05">2009年05月</a><span>(19)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2009/04">2009年04月</a><span>(12)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2009/03">2009年03月</a><span>(9)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2009/02">2009年02月</a><span>(14)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2009/01">2009年01月</a><span>(13)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2008/12">2008年12月</a><span>(22)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2008/11">2008年11月</a><span>(30)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2008/10">2008年10月</a><span>(18)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2008/09">2008年09月</a><span>(22)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2008/08">2008年08月</a><span>(15)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2008/07">2008年07月</a><span>(15)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2008/06">2008年06月</a><span>(8)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2008/05">2008年05月</a><span>(8)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2008/04">2008年04月</a><span>(11)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2008/03">2008年03月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2008/02">2008年02月</a><span>(4)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2007/11">2007年11月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2007/10">2007年10月</a><span>(3)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2007/08">2007年08月</a><span>(12)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2007/07">2007年07月</a><span>(16)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2007/06">2007年06月</a><span>(4)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2007/05">2007年05月</a><span>(13)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2007/04">2007年04月</a><span>(12)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2007/03">2007年03月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2007/02">2007年02月</a><span>(2)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2007/01">2007年01月</a><span>(1)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2006/12">2006年12月</a><span>(2)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2006/11">2006年11月</a><span>(11)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2006/10">2006年10月</a><span>(12)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2006/09">2006年09月</a><span>(10)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2006/08">2006年08月</a><span>(7)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2006/07">2006年07月</a><span>(2)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2006/06">2006年06月</a><span>(13)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2006/05">2006年05月</a><span>(7)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2006/04">2006年04月</a><span>(19)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2006/03">2006年03月</a><span>(16)</span></li><li><a href="http://blog.csdn.net/changemyself/article/month/2006/02">2006年02月</a><span>(18)</span></li>
+</div>
+</ul>
+</div>
+<div id="hotarticls2" class="panel">
+<ul class="panel_head"><span>评论排行</span></ul>
+<ul class="panel_body itemlist">
+<li>
+<a href="/changemyself/article/details/6038387" title="一名QQ老用户：致腾讯和马化腾的一封信">一名QQ老用户：致腾讯和马化腾的一封信</a><span>(286)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/5874495" title="&quot;盗梦空间&quot;观感（程序员角度）">&quot;盗梦空间&quot;观感（程序员角度）</a><span>(160)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/7402821" title="看看安卓开发者在APP推广路途中是如何被金山“恶霸”所“黑打”的！">看看安卓开发者在APP推广路途中是如何被金山“恶霸”所“黑打”的！</a><span>(157)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/8363058" title="SlidingMenu和ActionBarSherlock结合做出出色的App布局,Facebook 和 Path 2.0 滑动式菜单都可以实现(android页面布局效果)">SlidingMenu和ActionBarSherlock结合做出出色的App布局,Facebook 和 Path 2.0 滑动式菜单都可以实现(android页面布局效果)</a><span>(72)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/5691289" title="80后程序员、魔术师和“星星”孩子的同性与差异">80后程序员、魔术师和“星星”孩子的同性与差异</a><span>(63)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/5903003" title="创业之初的小团队">创业之初的小团队</a><span>(49)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/4940638" title="“九型人格”-你的团队用了吗">“九型人格”-你的团队用了吗</a><span>(42)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/6106382" title="宋立波:&quot;让子弹飞和云安全&quot;">宋立波:&quot;让子弹飞和云安全&quot;</a><span>(41)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/8807363" title="立波 iphone3gs越狱教程:成功把iphone3gs手机升级成ios6.1.3系统,完美越狱,解决no service和耗电量大的问题">立波 iphone3gs越狱教程:成功把iphone3gs手机升级成ios6.1.3系统,完美越狱,解决no service和耗电量大的问题</a><span>(40)</span>
+</li>
+<li>
+<a href="/changemyself/article/details/1366520" title="我的婚纱照片----------看看我跟老婆幸福合影!">我的婚纱照片----------看看我跟老婆幸福合影!</a><span>(32)</span>
+</li>
+</ul>
+</div>
+<div id="homepageArticles" class="panel tracking-ad" data-mod="popu_4">
+<ul class="panel_head"><span>推荐文章</span></ul>
+<ul class="panel_body" id="ad_commend"></ul>
+</div>
+<script type="text/javascript">
+ new Ad(12, 'ad_commend');
+</script><div id="newcomments" class="panel">
+<ul class="panel_head"><span>最新评论</span></ul>
+<ul class="panel_body itemlist">
+    <li>
+   
+         <a href="/changemyself/article/details/39927381#comments">Gradle Android最新自动化编译脚本教程(提供demo源码)</a>
+    <p style="margin:0px;"><a href="/changemyself" class="user_name">changemyself</a>:
+@pengjie1988199023:开发工具eclipse+adt
+    </p>
+    </li>
+    <li>
+   
+         <a href="/changemyself/article/details/39927381#comments">Gradle Android最新自动化编译脚本教程(提供demo源码)</a>
+    <p style="margin:0px;"><a href="/changemyself" class="user_name">changemyself</a>:
+@pengjie1988199023:注意使用的一个叫 快压的压缩软件解压，我承认比较坑爹
+    </p>
+    </li>
+    <li>
+   
+         <a href="/changemyself/article/details/40475565#comments">CSDN专家博客手机客户端分享使用</a>
+    <p style="margin:0px;"><a href="/lovecluo" class="user_name">lovecluo</a>:
+@changemyself:楼主，可否给我一份源码。有好多东西我不想重复造轮子，但是有好多地方用着不...
+    </p>
+    </li>
+    <li>
+   
+         <a href="/changemyself/article/details/17304981#comments">C语言程序设计:指向一位数组的指针变量 int (*p)[n]</a>
+    <p style="margin:0px;"><a href="/u010850027" class="user_name">u010850027</a>:
+谢谢分享 学习了
+    </p>
+    </li>
+    <li>
+   
+         <a href="/changemyself/article/details/17304241#comments">C语言程序设计:指针数组 int *p[]</a>
+    <p style="margin:0px;"><a href="/u010850027" class="user_name">u010850027</a>:
+谢谢分享 学习了
+    </p>
+    </li>
+    <li>
+   
+         <a href="/changemyself/article/details/6025029#comments">什么是android market？国内三大类android market知多少？</a>
+    <p style="margin:0px;"><a href="/u010850027" class="user_name">u010850027</a>:
+谢谢分享 学习了`(*∩_∩*)′
+    </p>
+    </li>
+    <li>
+   
+         <a href="/changemyself/article/details/6038387#comments">一名QQ老用户：致腾讯和马化腾的一封信</a>
+    <p style="margin:0px;"><a href="/u010850027" class="user_name">u010850027</a>:
+谢谢分享 学习了`(*∩_∩*)′
+    </p>
+    </li>
+    <li>
+   
+         <a href="/changemyself/article/details/17278995#comments">使用ant让Android自动打包的build.xml,自动生成签名的apk文件(支持android4.0以上的版本)</a>
+    <p style="margin:0px;"><a href="/dagezi56" class="user_name">dagezi56</a>:
+@u012633624:问题解决了吗？我也遇到同样问题
+    </p>
+    </li>
+    <li>
+   
+         <a href="/changemyself/article/details/17278995#comments">Gradle Android最新自动化编译脚本教程(提供demo源码)</a>
+    <p style="margin:0px;"><a href="/pengjie1988199023" class="user_name">pengjie1988199023</a>:
+请问你用的是什么开发工具啊？
+    </p>
+    </li>
+    <li>
+   
+         <a href="/changemyself/article/details/17278995#comments">Gradle Android最新自动化编译脚本教程(提供demo源码)</a>
+    <p style="margin:0px;"><a href="/pengjie1988199023" class="user_name">pengjie1988199023</a>:
+我下载后打不开文件，提示有错误
+    </p>
+    </li>
+</ul>
+</div>
+    </div>
+    <div class="clear">
+    </div>
+</div>
+
+            <div class="clear">
+            </div>
+        </div>
+        
+
+<script type="text/javascript" src="http://csdnimg.cn/rabbit/cnick/cnick.js"></script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/newblog.min.js"></script>
+
+
+<script type="text/javascript" src="http://medal.blog.csdn.net/showblogmedal.ashx?blogid=54390"></script>
+<script type="text/javascript" src="http://static.blog.csdn.net/scripts/JavaScript1.js"></script>
+
+    <script type="text/javascript" src="http://passport.csdn.net/content/loginbox/login.js"></script>
+<script type="text/javascript">document.write("<img src=http://counter.csdn.net/pv.aspx?id=24 border=0 width=0 height=0>");</script>
+<script type="text/javascript" src="http://www.csdn.net/ui/scripts/Csdn/counter.js"></script>
+<script type="text/javascript" src="http://ad.csdn.net/scripts/ad-blog.js"></script>
+<script type="text/javascript" src="http://zz.csdn.net/js/count.js"></script>
+<script type="text/javascript">
+    $(function () {
+        function __get_code_toolbar(snippet_id) {
+            return $("<a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "' target='_blank' title='在CODE上查看代码片' style='text-indent:0;'><img src='https://code.csdn.net/assets/CODE_ico.png' width=12 height=12 alt='在CODE上查看代码片' style='position:relative;top:1px;left:2px;'/></a>"
+                    + "<a href='https://code.csdn.net/snippets/"
+                    + snippet_id
+                    + "/fork' target='_blank' title='派生到我的代码片'  style='text-indent:0;'><img src='https://code.csdn.net/assets/ico_fork.svg' width=12 height=12 alt='派生到我的代码片' style='position:relative;top:2px;left:2px;'/></a>");
+        }
+        
+        $("[code_snippet_id]").each(function () {
+            __s_id = $(this).attr("code_snippet_id");
+            if (__s_id != null && __s_id != "" && __s_id != 0 && parseInt(__s_id) > 70020) {
+                __code_tool = __get_code_toolbar(__s_id);
+                $(this).prev().find(".tools").append(__code_tool);
+            }
+        });
+    });
+</script>
+
+    </div>
+      <!--new top-->
+    
+    <script id="csdn-toolbar-id" btnId="header_notice_num" wrapId="note1" count="5" subCount="5" type="text/javascript" src="http://static.csdn.net/public/common/toolbar/js/toolbar.js"></script>     <!--new top-->
+   
+    <link href="http://csdnimg.cn/comm_ask/css/ask_float_block.css" type="text/css" rel="stylesheet" />
+    <script language='JavaScript' type='text/javascript' src='http://csdnimg.cn/comm_ask/js/libs/wmd.js'></script>
+    <script language='JavaScript' type='text/javascript' src='http://csdnimg.cn/comm_ask/js/libs/showdown.js'></script>
+    <script language='JavaScript' type='text/javascript' src='http://csdnimg.cn/comm_ask/js/libs/prettify.js'></script>
+    <script language='JavaScript' type='text/javascript' src='http://csdnimg.cn/comm_ask/js/apps/ask_float_block.js'></script>
+
+</body>
+</html>

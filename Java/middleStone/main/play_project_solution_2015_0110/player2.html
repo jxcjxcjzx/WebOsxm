@@ -1,0 +1,66 @@
+<!doctype html>
+<head>
+    <meta charset="UTF-8" HTTP-EQUIV="pragma" CONTENT="no-cache">
+    <title>RealMusic</title>
+    <!--style>
+        .kuang{text-align: center;margin-top:200px;}
+        #mess{text-align: center}
+        .value{width: 200px;height:200px;border:1px solid;text-align: center;line-height: 200px;display: inline-block;}
+    </style-->
+</head>
+<body>
+    <div id="mess">linking ... </div>
+	<audio controls   id="audios">
+			<source src="music/sample.mp3" />
+	</audio>
+    
+ 
+    <script>
+         var mess = document.getElementById("mess");
+		
+		// to control the audio output
+		var audio;
+		
+        if(window.WebSocket){
+            var ws = new WebSocket('ws://192.168.0.104:8001');
+ 
+            ws.onopen = function(e){
+                // console.log("连接服务器成功");
+                ws.send("player2");
+				
+				// for audio initial 
+				audio = document.getElementById('audios');
+            }
+            ws.onclose = function(e){
+                console.log("服务器关闭");
+            }
+            ws.onerror = function(){
+                console.log("连接出错");
+            }
+ 
+            ws.onmessage = function(e){
+                 mess.innerHTML = e.data;
+				 // mess.innerHTML = "linked"
+				// the real thing about linking 
+				
+				if(e.data==="play")
+				{
+						audio.play();
+				}
+				else{	
+						// do nothing
+				}
+				/*
+				if(audio.muted){
+					audio.muted = false;
+				}
+				else{
+					audio.muted = true;
+				}
+				*/
+				
+            }
+        }
+    </script>
+</body>
+</html>

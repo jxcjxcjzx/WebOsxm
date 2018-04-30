@@ -1,0 +1,578 @@
+<!--
+	the ball displaying thing
+-->
+
+<!--
+	html5  canvas test
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta charset="utf-8">
+	<title> Ball running  test 2015-02-11 2 </title>
+  </head>
+  
+  <style type="text/css">
+	.okCanvas{
+	
+		
+	}
+  </style>
+  
+  <body>
+	<!--
+		one simple canvas area for pan painting
+	-->
+	<!-- canvas id="Ocanvas" height="600px" width="1300px"
+	-->
+	
+	<canvas id="Ocanvas" class="okCanvas" width="1300px" height="600px"></canvas>
+	
+	<!--
+		some head files
+		pack them to a uniform js file or lib we call it sometimes
+	-->
+	
+	<script>
+	
+	// the whole canvas full-fill the computer screen is 1300*600
+	
+	
+	   
+	
+	
+	   var screenWidth = 1300;
+	   var screenHeight = 600;
+	   
+	
+	   var Pos = function(x,y){
+		this.x = x;
+		this.y = y;
+	   }
+		 
+	   var Speed = function(spdx,spdy){
+		this.spdx = spdx;
+		this.spdy = spdy;
+	   }
+		 
+
+		 
+		var Biasspdx = 20;
+		var Biasspdy = 40;
+	
+	// set the limit of the array first
+		var circleList =new Array(10);  // defines a new array for storing 
+		var spdList = new Array(10);
+		var theFillStyle = new Array(10);
+		// set the random speed first
+		for (var i=0;i<10;i++)
+			spdList[i] =new  Speed(Math.random()*Biasspdx,Biasspdy*Math.random());
+		
+		
+		var colorList = new Array(10);
+		
+		// set the colors
+		colorList[0] = '#2d434e';
+		colorList[1] = '#89919e';
+		colorList[3] = '#d7bfbb';
+		colorList[4] = '#b29077';
+		colorList[5] = '#c6894a';
+		colorList[6] = '#b49143';
+		colorList[7] = '#a43873';
+		colorList[8] = '#dde900';
+		colorList[9] = '#83ef70';
+		
+		var Biasx = 600;
+		var Biasy = 370;
+		
+		var circleSize =75;
+		
+		// when it is set to 1, stop the animation
+		var timeToStop = 0;
+		
+		// random position given
+		for (var i=0;i<10;i++)
+			circleList[i] =new  Pos(Biasx*Math.random()+100,Biasy*Math.random()+100);
+		
+	
+		/* 
+			now we come to the key part, at last
+		*/
+		
+		// the layer contains the ball data
+		var layerList = new Array(10);
+		// at the beginning, each layer only contains one ball, and
+		// with the time spearing, the balls will fall down
+		for (var j=0;j<10;j++){
+			layerList[j] = new Array(j+1);  // layer 9 is at the bottom
+			for(var i=0;i<j+1;i++){
+				layerList[j][i] = new Pos(0,0);  // which is empty now 
+			}
+			// get one ball eahc at first 
+			layerList[j][0] = circleList[j];
+			
+		}
+		
+		/*
+			key part not ended, see below
+		*/
+	
+	
+		var cvs = document.getElementById('Ocanvas');
+		width = cvs.width;
+		height = cvs.height;
+		ctx = cvs.getContext('2d');
+		
+		qi=0,t=600,num=1800;
+		ctx.fillStyle="#f00";
+		
+		// get the color 
+		for (var i=0;i<10;i++){
+			
+			// random color get
+			theFillStyle[i]= colorList[Math.floor((Math.random()*14)%10)];
+		
+		}
+		
+		
+		// the key animate function
+		~function animate(){
+			
+			// the animate thing
+			updatePos();
+			
+			// flush color is white
+			ctx.fillStyle= '#ffffff';
+			ctx.fillRect(0,0,screenWidth,screenHeight);
+			
+
+			
+
+			drawEllipse();
+			
+			
+			// drawImage('O2.jpg',ctx,new Pos(0,0));
+			
+			 window.setTimeout(animate,40);
+		}()
+		
+		// handle the circle moving and position updating
+		function updatePos(){
+			
+			
+			
+			for (var i=0;i<10;i++){
+				circleList[i].x += spdList[i].spdx;
+				circleList[i].y += spdList[i].spdy;
+				if(circleList[i].x>screenWidth-circleSize||circleList[i].x<circleSize)
+					spdList[i].spdx *= -1;
+					
+				if(circleList[i].y>screenHeight-circleSize||circleList[i].y<circleSize)
+					spdList[i].spdy *= -1;
+			}
+			
+			//xxxxxxx
+			 checkLayers(layerList);
+		
+			// addOneBall(layerList[2],new Pos(0,0));
+		
+		}
+		
+		/*
+		function drawImage(){
+			var image = new Image();
+			image.onload = function(){
+				ctx.drawImage(image,0,0);
+			}
+			image.src = 'O1.jpg';		
+		}
+		*/
+		
+		
+		/* 
+			now we come to the key part, at last
+		*/
+		/*
+		
+		// the layer contains the ball data
+		var layerList = new Array(10);
+		// at the beginning, each layer only contains one ball, and
+		// with the time spearing, the balls will fall down
+		for (var j=0;j<10;j++){
+			layerList[j] = new Array(j);  // layer 9 is at the bottom
+			for(var i=0;i<j;i++){
+				layerList[j][i] = new Pos(0,0);  // which is empty now 
+			}
+			// get one ball eahc at first 
+			layerList[j][0] = circleList[j];
+			
+		}
+		
+		*/
+		
+		function addOneBall(layer,ballPos){
+			
+			var recordi = 0;
+			
+			for(var i=0;i<layer.length;i++){
+				if(layer[i].x==0&&layer[i].y==0) // which means it is empty
+				{	
+					recordi = i;
+					break;
+				}
+			}
+			// now get the i index
+			 
+			layer[recordi] = ballPos; 
+			// layer[recordi].x = ballPos.x;
+			// layer[recordi].y = ballPos.y;
+			
+		}
+		
+		
+		function deleteOneBall(layer,ballPos){
+			var recordi = 0;
+			for(var i=0;i<layer.length;i++){
+				if(layer[i].x==ballPos.x&&layer[i].y==ballPos.y) // which means it is empty
+				{
+				    recordi = i;
+					break;
+				}
+			}
+			deleteOneBallWithIndex(layer,recordi);
+		}
+		
+		function deleteOneBallWithIndex(layer,index){
+			for(var i=index;i<layer.length;i++){
+				if(i<layer.length-1){
+					layer[i] = layer[i+1];
+				}
+				else{
+					layer[i] = new Pos(0,0);
+				}
+				
+			}
+		
+		}
+		
+		function judgeDistance(Posa,Posb,limit){
+			if((((Posa.x-Posb.x)*(Posa.x-Posb.x))+((Posa.y-Posb.y)*(Posa.y-Posb.y)))>limit*limit)
+				return true; // balls qway
+			else
+				return false;
+		}
+		
+		function checkEachlayer(layer,layerBelow){
+			// check layer except the bottom one
+			var layerSize = 0;
+			var layerBelowSize = 0;
+			
+							
+			
+			for(var i=0;i<layer.length;i++){
+				if(layer.length==1)
+				{
+					layerSize = 1;
+					break;
+				}
+
+				if(layer[i].x==0&&layer[i].y==0) // which means it is empty
+				{
+					layerSize = i+1;  // don't forget the bias !!!!
+					break;
+				}
+			}
+			
+			
+			for(var i=0;i<layerBelow.length;i++){
+				if(layerBelow[i].x==0&&layerBelow[i].y==0) // which means it is empty
+				{
+					layerBelowSize = i+1;  // don't forget the bias !!!!
+					break;
+				}
+			}
+					
+			var recordj = 0;
+			for(var i=0;i<layerSize;i++){
+				// compare with each ball in below layer
+				recordj = 0;
+				
+				for(var j=0;j<layerBelowSize;j++){
+					if(judgeDistance(layer[i],layerBelow[j],circleSize))
+					{
+						recordj = j;
+						continue;
+					}					
+					else	
+						break;				
+				}
+				if(recordj==layerBelow.length-1) // then it falls
+				{
+					addOneBall(layerBelow,layer[i]);
+					deleteOneBall(layer,layer[i]);
+				}	
+			
+			}
+			
+		}
+		
+		
+		function checkLayers(layers){
+		
+		
+			for(var i=0;i<9;i++){
+				checkEachlayer(layers[i],layers[i+1]);
+			}			
+			
+			printSomething();
+		}
+		
+		
+		// the functions only for debugging
+		function printSomething()
+		{
+			for(var i=0;i<10;i++){
+				//each layer 
+				for(var j=0;j<layerList[i].length;j++){
+					if(layerList[i][j].x==0&&layerList[i][j].y==0)
+					{
+	
+						break;
+					}
+				}
+			}
+		
+		}
+		
+		
+		/*
+		 the key part meets the end
+		*/
+		
+		
+		function drawEllipse(){
+			
+			//画圆		
+			
+			for (var i=0;i<10;i++){
+			
+				// random color get
+				ctx.fillStyle= theFillStyle[i];
+				
+				ctx.beginPath();
+				
+				
+					ctx.arc(circleList[i].x,circleList[i].y,circleSize,0,Math.PI*2,true);
+				
+				ctx.closePath();
+				ctx.fill();
+			
+			}
+							
+		}
+		
+		
+		function drawImage(src,context,Pos){
+		    // Pos contains one x and one y 
+			// the context is got by getting 'getContext' of canvas element in html5
+			var img = new Image();
+			
+			img.onload = function(){
+				context.drawImage(img,Pos.x,Pos.y);
+				// context.drawImage(img,Pos.x,Pos.y,img.width,img.height,img.width/2,img.height/2,img.width/2,img.height/2);
+			}
+			
+			img.src = src;
+			
+		}
+		
+		// now to the mouse thing and action
+		
+		/*
+		
+		
+		var originMousePos = new Pos(0,0);
+		var currentMousePos = new Pos(0,0);
+		
+		function getPosOnCanvas(canvas,x,y){
+			var box = canvas.getBoundingClientRect();
+			return {
+				x:x-box.left*(canvas.width/box.width),
+				y:y-box.top*(canvas.height/box.height)
+			};
+		}
+		
+		cvs.onmousedown=function(e){
+			
+			 
+			 drawImage('O2.jpg',ctx,new Pos(0,0));
+			 drawImage('O3.jpg',ctx,new Pos(200,0));
+			 drawImage('O4.jpg',ctx,new Pos(400,0));
+				
+			 originMousePos.x = e.pageX;
+			 originMousePos.y = e.pageY;
+			
+		}
+		
+		cvs.onmouseup = function(e){
+			
+			// use this translate to move the whole canvas
+			// ctx.translate(20,20);
+		
+			currentMousePos.x = e.pageX;
+			currentMousePos.y = e.pageY;
+			ctx.translate(currentMousePos.x-originMousePos.x,currentMousePos.y-originMousePos.y);
+
+		
+		}
+		
+		cvs.onmousemove = function(e){
+		
+			//ctx.translate(20,20);
+		
+		}
+		
+		
+		// add one mousewheel thing
+		cvs.addEventListener("mousewheel",scaleCanvas,false);
+		
+		*/
+		
+		// the tool to grab one small area of a picture, with the mouse event
+		/*
+		var originMousePos = new Pos(0,0);
+		var currentMousePos = new Pos(0,0);
+		
+		var mouseDown = false;
+		
+		cvs.onmousedown=function(e){
+			
+			 originMousePos.x = e.pageX;
+			 originMousePos.y = e.pageY;
+			
+			mouseDown = true;
+			
+		}
+		
+		cvs.onmouseup = function(e){
+			
+			currentMousePos.x = e.pageX;
+			currentMousePos.y = e.pageY;
+			
+			ctx.beginPath();
+			ctx.lineWidth = 10;
+			ctx.strokeStyle = theFillStyle[3];
+			// ctx.moveTo(0,0);
+			// ctx.lineTo(100,100);
+			ctx.rect(originMousePos.x,originMousePos.y,currentMousePos.x-originMousePos.x,currentMousePos.y-originMousePos.y);
+			ctx.stroke();
+			ctx.closePath();
+			
+			mouseDown = false;
+			
+			
+			ctx.fillStyle = "#ffffff";
+			ctx.rect(0,0,800,500);
+			ctx.fill();
+			
+			
+			drawParticialImage(ctx,'O2.jpg',new Pos(0,0),originMousePos.x,originMousePos.y,currentMousePos.x-originMousePos.x,currentMousePos.y-originMousePos.y);
+			
+			
+			
+			
+			
+			
+		}
+		
+		cvs.onmousemove = function(e){
+			
+			if(mouseDown){
+			
+				ctx.beginPath();
+				ctx.lineWidth = 10;
+				ctx.strokeStyle = theFillStyle[3];
+				// ctx.moveTo(0,0);
+				// ctx.lineTo(100,100);
+				// ctx.rect(originMousePos.x,originMousePos.y,currentMousePos.x-originMousePos.x,currentMousePos.y-originMousePos.y);
+				ctx.rect(originMousePos.x,originMousePos.y,e.pageX-originMousePos.x,e.pageY-originMousePos.y);
+				ctx.stroke();
+				ctx.closePath();
+				
+				
+				
+			}
+			
+		}	
+		
+		
+		*/
+		
+		
+		function  scaleCanvas(event){
+			// take care
+			event.preventDefault();
+			var e = window.event||event;
+			var delta = Math.max(-1,Math.min(1,(e.wheelDelta||-e.detail)));
+			// alert(delta+"->"+e.wheelDelta+"->"+e.detail);
+			
+			if(delta>0)
+				ctx.scale(1.5,1.5);
+			else
+				ctx.scale(0.5,0.5);
+		}
+		
+	
+		function getOneScreenShot(){
+		
+			// use todataurl function to store image data 
+			// and transmite them to the server side 
+		}
+	
+		
+		// picture crop 
+		function drawParticialImage(context,src,Pos,destX,destY,destWidth,destHeight){
+			// use the function 
+			// drawImage(Image,sourceX,sourceY,sourceWidth,sourceHeight,destX,destY,destWidth,destHeight);
+			var img = new Image();
+			
+			img.onload = function(){
+				// context.drawImage(img,Pos.x,Pos.y,img.width,img.height/2,destX,destY,destWidth,destHeight);
+				 context.drawImage(img,destX,destY,destWidth,destHeight,destX,destY,destWidth,destHeight);
+			}
+			
+			img.src = src;
+		
+		}
+	
+		function imageToData(canvasContext){
+			// to png image format
+			return canvasContext.toDataURL("image/png");	
+			
+		}
+		
+		
+		function getWebGLContext(canvas){
+			var ctx;
+			try{
+				ctx = canvas.getContext("webgl")||
+					  canvas.getContext("experimental-webgl");
+			
+			} catch (e) {}
+		
+			if(ctx)
+				return ctx;
+			throw "Could not initialize WebGL";
+		
+		}
+		
+		
+  
+	</script>
+	
+	
+	
+  </body>
+ </html>
+
+  

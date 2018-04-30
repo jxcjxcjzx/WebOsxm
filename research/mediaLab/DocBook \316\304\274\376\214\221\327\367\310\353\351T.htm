@@ -1,0 +1,5884 @@
+<HTML
+><HEAD
+><TITLE
+>DocBook 文件寫作入門</TITLE
+><META http-equiv="content-type" content="text/html; charset=Big5">
+<META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.76b+
+"></HEAD
+><BODY
+CLASS="BOOK"
+BGCOLOR="#FFFFFF"
+TEXT="#000000"
+LINK="#0000FF"
+VLINK="#840084"
+ALINK="#0000FF"
+><DIV
+CLASS="BOOK"
+><A
+NAME="AEN1"
+></A
+><DIV
+CLASS="TITLEPAGE"
+><H1
+CLASS="TITLE"
+><A
+NAME="AEN2"
+></A
+>DocBook 文件寫作入門</H1
+><H3
+CLASS="AUTHOR"
+><A
+NAME="AEN10"
+></A
+>作者. 老貢生</H3
+><H4
+CLASS="EDITEDBY"
+>Edited by</H4
+><H3
+CLASS="EDITOR"
+>總編. 老貢生</H3
+><P
+CLASS="PUBLISHER"
+><SPAN
+CLASS="PUBLISHERNAME"
+><A
+HREF="http://3ybaby.v-club.net/"
+TARGET="_top"
+>台灣企鵝寶寶工作隊</A
+><BR></SPAN
+></P
+><DIV
+CLASS="REVHISTORY"
+><TABLE
+WIDTH="100%"
+BORDER="0"
+><TR
+><TH
+ALIGN="LEFT"
+VALIGN="TOP"
+COLSPAN="3"
+><B
+>Revision History</B
+></TH
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+>Revision 1.2</TD
+><TD
+ALIGN="LEFT"
+>2004/01/01 15:10:15</TD
+><TD
+ALIGN="LEFT"
+></TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+COLSPAN="3"
+>第一次正式公開發佈</TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+>Revision 1.1.1.1.2.1</TD
+><TD
+ALIGN="LEFT"
+>2004/01/01 09:25:51</TD
+><TD
+ALIGN="LEFT"
+></TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+COLSPAN="3"
+>第一次草稿</TD
+></TR
+></TABLE
+></DIV
+><DIV
+><DIV
+CLASS="ABSTRACT"
+><A
+NAME="AEN7"
+></A
+><P
+></P
+><P
+>這是一本幫助以前沒接觸過 DocBook 格式文件的新手，一個基礎導覽的技術小手冊。本手冊並未包含所有 DocBook 標籤，及其詳細解說。本手冊只挑選 DocBook DTD 定義中最常為使用者利用的標籤做最基礎的解說，尤其會和 HTML 的相類似格式資料做比對。所以不應該希望本手冊為你解答所有 DocBook 的疑惑，這只是一個墊腳石和敲門磚，幫助你更快的向 DocBook 的殿堂邁進。</P
+><P
+></P
+></DIV
+></DIV
+><DIV
+CLASS="LEGALNOTICE"
+><A
+NAME="AEN4"
+></A
+><P
+></P
+><P
+>本文採用 GNU 組織的 GPL公開版權宣告，歡迎複製,改寫,散佈，並要求你應該以同樣的權利條款，授予文件的使用人。對 GPL 的進一步的解釋，請參考<A
+HREF="http://www.linux.org.tw/CLDP/OLD/doc/GPL.html"
+TARGET="_top"
+>GNU 通用公共許可證</A
+>。</P
+><P
+></P
+></DIV
+><HR></DIV
+><HR><H1
+><A
+NAME="AEN32"
+></A
+>我的感謝</H1
+><P
+>首先我要感謝 <A
+HREF="http://www.jclark.com/bio.htm"
+TARGET="_top"
+>James Clark</A
+> 先生，沒有他，我們就缺少了一個執行 DocBook 文件解析轉譯的自動執行工具。他的 <A
+HREF="http://openjade.sourceforge.net/"
+TARGET="_top"
+>OpenJade</A
+> 工具組，是一切 SGML 文件處理的心臟和引擎。由於他的慷慨，使得我們不必花一毛錢，就能擁有商業軟體同樣的服務和效能。</P
+><P
+>我們也要感謝 <A
+HREF="http://nwalsh.com/people/ndw/index.html"
+TARGET="_top"
+>Norman Walsh</A
+> 先生，要不是他耗費心力製作 <A
+HREF="http://sourceforge.net/project/showfiles.php?group_id=21935"
+TARGET="_top"
+>docbook-dsssl</A
+> 轉換輸出樣式表，DocBook 將只是又一個意義分類結構標記語言的實驗，一種理論性的教材而已。有了配套的 DSSSL 樣式表，DocBook 才能轉換成 text,rtf,ps,html 各種文件，真正達成一次輸入，多種輸出，各種格式文件交換中介的有力工具。</P
+><P
+>Norman Walsh 先生不只提供 DocBook-DSSSL ，他本身也是 OASIS <A
+HREF="http://www.oasis-open.org/committees/tc_home.php?wg_abbrev=docbook"
+TARGET="_top"
+>DocBook 委員會</A
+>的主要成員。藉由早期的 Davenport 討論組，到現在 DocBook Committees 參與成員的不斷努力，所謂分類意義的結構化文件格式的使用，已經不再只是個目標而已，它已經開始在我們的電子文件處理中日漸擔負起重要的使命。</P
+><P
+>最後，照慣例，要感謝我已七六高齡的老母親，要不是他打理我生活的一切，我一定連三餐都成問題，還提什麼奉獻呢？我知道這世間就算沒了我們母子，一樣陽光燦爛，生氣蓬勃，但至少這篇文章是不會問世了。所以如果你覺得從這篇文章多少得到益處，請和我一樣，多少感謝我娘及自己的娘一些。</P
+><DIV
+CLASS="TOC"
+><DL
+><DT
+><B
+>Table of Contents</B
+></DT
+><DT
+><A
+HREF="#AEN43"
+>導論</A
+></DT
+><DD
+><DL
+><DT
+>1. <A
+HREF="#AEN46"
+>DocBook 是什麼</A
+></DT
+><DT
+>2. <A
+HREF="#AEN76"
+>DocBook 的源流</A
+></DT
+><DT
+>3. <A
+HREF="#AEN107"
+>開始寫作前的準備工作</A
+></DT
+><DT
+>4. <A
+HREF="#AEN176"
+>DocBook 編寫的注意事項</A
+></DT
+></DL
+></DD
+><DT
+>1. <A
+HREF="#AEN217"
+>基礎標籤的運用</A
+></DT
+><DD
+><DL
+><DT
+>1.1. <A
+HREF="#AEN221"
+>無用之用</A
+></DT
+><DT
+>1.2. <A
+HREF="#AEN230"
+>文件型態宣告</A
+></DT
+><DT
+>1.3. <A
+HREF="#ROOTTAG"
+>根標籤</A
+></DT
+><DT
+>1.4. <A
+HREF="#AEN304"
+>常用的根標籤介紹</A
+></DT
+><DT
+>1.5. <A
+HREF="#AEN339"
+>DocBook 最基本的文件結構 -- Sect</A
+></DT
+><DT
+>1.6. <A
+HREF="#AEN376"
+>基本的根標籤結構</A
+></DT
+><DT
+>1.7. <A
+HREF="#AEN401"
+>條列資料表示法</A
+></DT
+><DT
+>1.8. <A
+HREF="#AEN445"
+>表格資料表示法</A
+></DT
+><DT
+>1.9. <A
+HREF="#AEN544"
+>外部其他媒體格式檔案表示法</A
+></DT
+><DT
+>1.10. <A
+HREF="#AEN636"
+>書籤與聯結的表示法</A
+></DT
+><DT
+>1.11. <A
+HREF="#AEN779"
+>其他區塊資料的表示法</A
+></DT
+><DT
+>1.12. <A
+HREF="#AEN838"
+>字串強調表示法</A
+></DT
+><DT
+>1.13. <A
+HREF="#AEN866"
+>其他標籤使用方法</A
+></DT
+></DL
+></DD
+><DT
+>2. <A
+HREF="#AEN920"
+>特殊資料格式的標籤</A
+></DT
+><DD
+><DL
+><DT
+>2.1. <A
+HREF="#CHP.INFO"
+>出版訊息表示法</A
+></DT
+><DT
+>2.2. <A
+HREF="#AEN938"
+>作者序言表示法</A
+></DT
+><DT
+>2.3. <A
+HREF="#AEN947"
+>目錄索引表示法</A
+></DT
+><DT
+>2.4. <A
+HREF="#AEN959"
+>詞彙解釋表示法</A
+></DT
+><DT
+>2.5. <A
+HREF="#AEN981"
+>參考書目表示法</A
+></DT
+><DT
+>2.6. <A
+HREF="#AEN991"
+>問題解答集表示法</A
+></DT
+><DT
+>2.7. <A
+HREF="#AEN1017"
+>結語</A
+></DT
+></DL
+></DD
+><DT
+>A. <A
+HREF="#AEN1024"
+>附錄</A
+></DT
+><DD
+><DL
+><DT
+>A.1. <A
+HREF="#ELESTRUC"
+>如何查詢標籤的組織結構</A
+></DT
+><DT
+><A
+HREF="#APP.BIBL"
+>參考資料</A
+></DT
+><DT
+><A
+HREF="#SEC.GLOSS"
+>DocBook 參考字典</A
+></DT
+></DL
+></DD
+></DL
+></DIV
+><DIV
+CLASS="LOT"
+><DL
+CLASS="LOT"
+><DT
+><B
+>List of Tables</B
+></DT
+><DT
+>1. <A
+HREF="#TB.FLOW"
+>DocBook 文件運作流程表</A
+></DT
+><DT
+>1-1. <A
+HREF="#TB.MEDIA"
+>mediaobject 主要組成列表</A
+></DT
+><DT
+>1-2. <A
+HREF="#TB.OTHERBLOCK"
+>特殊意義的區塊標籤</A
+></DT
+><DT
+>1-3. <A
+HREF="#TB.DELI.CHAR"
+>DocBook 特殊字元表</A
+></DT
+><DT
+>A-1. <A
+HREF="#TB.SERIAL.SIMPLE"
+>單純標籤次序規則敘述表</A
+></DT
+><DT
+>A-2. <A
+HREF="#TB.SERIAL.COMPLEX"
+>綜合標籤次序規則敘述表</A
+></DT
+></DL
+></DIV
+><DIV
+CLASS="LOT"
+><DL
+CLASS="LOT"
+><DT
+><B
+>List of Figures</B
+></DT
+><DT
+>1-1. <A
+HREF="#PIC.DTD.STRUC"
+>DocBook DTD 文件組成結構圖</A
+></DT
+></DL
+></DIV
+><DIV
+CLASS="LOT"
+><DL
+CLASS="LOT"
+><DT
+><B
+>List of Examples</B
+></DT
+><DT
+>1-1. <A
+HREF="#EX.NOTE"
+>SGML 的備註表示法</A
+></DT
+><DT
+>1-2. <A
+HREF="#EX.SGML.TYPE"
+>SGML 的文件型態宣告</A
+></DT
+><DT
+>1-3. <A
+HREF="#EX.XML.TYPE"
+>XML 的文件型態宣告</A
+></DT
+><DT
+>1-4. <A
+HREF="#EX.SECT.BASE"
+>sect 的基本結構</A
+></DT
+><DT
+>1-5. <A
+HREF="#EX.SECT.STRUC"
+>sect 的層級結構</A
+></DT
+><DT
+>1-6. <A
+HREF="#EX.CHAP.STRUC"
+>chapter 基本的層級結構</A
+></DT
+><DT
+>1-7. <A
+HREF="#EX.BOOK.STRUC"
+>book 基本的層級結構</A
+></DT
+><DT
+>1-8. <A
+HREF="#EX.SGML.BOOK.MODE"
+>book 的 SGML 文件模型</A
+></DT
+><DT
+>1-9. <A
+HREF="#EX.XML.BOOK.MODE"
+>book 的 XML 文件模型</A
+></DT
+><DT
+>1-10. <A
+HREF="#EX.HTML.LIST"
+>HTML 的編號列示資料表示法</A
+></DT
+><DT
+>1-11. <A
+HREF="#EX.NUMLIST"
+>DocBook 的編號列示資料表示法</A
+></DT
+><DT
+>1-12. <A
+HREF="#AEN428"
+>HTML 的兩段條列式資料表示法</A
+></DT
+><DT
+>1-13. <A
+HREF="#EX.DLLIST"
+>DocBook 的兩段條列式資料表示法</A
+></DT
+><DT
+>1-14. <A
+HREF="#EX.SIMPLE.LIST"
+>DocBook 的簡單列示資料表示法</A
+></DT
+><DT
+>1-15. <A
+HREF="#EX.SIMPLE.TABLE"
+>DocBook 單一形式表格</A
+></DT
+><DT
+>1-16. <A
+HREF="#EX.CROSS.TABLE"
+>DocBook 跨行列表格</A
+></DT
+><DT
+>1-17. <A
+HREF="#EX.TABLE.SUBMES"
+>DocBook 附加說明訊息表格</A
+></DT
+><DT
+>1-18. <A
+HREF="#EX.GRAPHIC"
+>DocBook 的圖形資料顯示</A
+></DT
+><DT
+>1-19. <A
+HREF="#EX.MEDIA"
+>DocBook 的外部多媒體資料顯示</A
+></DT
+><DT
+>1-20. <A
+HREF="#EX.INLINE"
+>DocBook inline 標籤的使用</A
+></DT
+><DT
+>1-21. <A
+HREF="#AEN645"
+>HTML 的書籤表示法</A
+></DT
+><DT
+>1-22. <A
+HREF="#EX.ANCH"
+>DocBook 的書籤表示法(1)</A
+></DT
+><DT
+>1-23. <A
+HREF="#EX.LINK"
+>DocBook 的書籤表示法(2)</A
+></DT
+><DT
+>1-24. <A
+HREF="#EX.ULINK"
+>DocBook 的聯結表示法</A
+></DT
+><DT
+>1-25. <A
+HREF="#EX.XREF"
+>xref 與 link 輸出結果比較</A
+></DT
+><DT
+>1-26. <A
+HREF="#EXA"
+>鄭愁予詩選</A
+></DT
+><DT
+>1-27. <A
+HREF="#EX.FOOTNOTE"
+>DocBook 註腳連結表示法</A
+></DT
+><DT
+>1-28. <A
+HREF="#EX.BLOCK"
+>引用資料表示法</A
+></DT
+><DT
+>1-29. <A
+HREF="#EX.FIGURE"
+>圖解說明的表示法</A
+></DT
+><DT
+>1-30. <A
+HREF="#EX.EXAM"
+>範例說明的表示法</A
+></DT
+><DT
+>1-31. <A
+HREF="#EX.TIP"
+>tip 區塊表示法</A
+></DT
+><DT
+>1-32. <A
+HREF="#EX.EMPH"
+>字串強調表示法</A
+></DT
+><DT
+>1-33. <A
+HREF="#EX.SUB"
+>字串下標表示法</A
+></DT
+><DT
+>1-34. <A
+HREF="#EX.SUPER"
+>字串上標表示法</A
+></DT
+><DT
+>1-35. <A
+HREF="#EX.LITER"
+>版面格式表示法</A
+></DT
+><DT
+>1-36. <A
+HREF="#EX.DISABLE.DELI"
+>特殊字元除能表示法</A
+></DT
+><DT
+>2-1. <A
+HREF="#EX.WHOLE"
+>Book 的特殊資料區段位置</A
+></DT
+><DT
+>2-2. <A
+HREF="#EX.INFO"
+>bookinfo 出版訊息表示法</A
+></DT
+><DT
+>2-3. <A
+HREF="#EX.DEDI"
+>dedication 作者序言表示法</A
+></DT
+><DT
+>2-4. <A
+HREF="#EX.INDEX"
+>index 目錄索引表示法</A
+></DT
+><DT
+>2-5. <A
+HREF="#EX.GLOSS"
+>glossary 詞彙解釋表示法</A
+></DT
+><DT
+>2-6. <A
+HREF="#EX.BIBL"
+>bibliography 參考書目表示法</A
+></DT
+><DT
+>2-7. <A
+HREF="#EX.QA"
+>問題解答集（qandaset)範例</A
+></DT
+></DL
+></DIV
+><DIV
+CLASS="PREFACE"
+><HR><H1
+><A
+NAME="AEN43"
+></A
+>導論</H1
+><P
+>本手冊希望協助一些還不熟悉 DocBook 文件格式的新手，學習基本的語法，並能快速而容易的開始觸類旁通，把 DocBook 這種格式的組織方法，用到自己文件的開發上。當然，在你學習一項新事務前，總希望知道一些新東西特性，大概的用途，以及最重要的，學會了有何好處？所以我們一開始先來談談 DocBook 是什麼？</P
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN46"
+></A
+>1. DocBook 是什麼</H2
+><P
+>談到 DocBook ，有人喜歡以標記語言出發，先解說一大堆 SGML 和 XML 的概念。另些人則著重在表形文件格式與表意文件格式的分別，強調所謂邏輯結構和意義分類在文件組織的重要性。這些都對，也都是組成 DocBook 的重要概念，但是這些概念本身比 DocBook 更難理解，結果是用一個不明白解釋了另一個不明白。為了避免花了大半篇幅，還是讓你一頭霧水，我不企圖讓你明白什麼叫標記語言的結構邏輯，也不一再舉例表形和表意格式文件的差別，我只向大家說明一個重點，那就是 DocBook 文件能做怎樣的利用，你能從 DocBook 的格式安排上得到什麼樣的好處。</P
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN49"
+></A
+>1.1. 寫一份學術著作</H3
+><P
+>從望文生義來做最直接的了解，DocBook 的 Book 就是書，DocBook 的種種格式就是幫助你很方便的去寫作一本書。而且這本書是指具有理論性，嚴謹性的學術著作，所以舉凡目錄,索引,參考書目,詞彙解釋,備註解釋.....，乃至作者,出版商,書籍國際編碼等等，舉凡一本我們在書店買到很正式像樣的書中所能找到的各種資料分類，DocBook 都做了相對應的格式規劃。只要你按照 DocBook 規定填入各部份資料，透過翻譯轉換器及樣式表的自動處理，還可以為你自動編輯版面和補充資料，而且你的書寫得愈大愈多，你就會發覺 DocBook 幫你省下的編排功夫也愈多。</P
+><DIV
+CLASS="NOTE"
+><P
+></P
+><TABLE
+CLASS="NOTE"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="../images/note.gif"
+HSPACE="5"
+ALT="Note"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>DocBook 並不是只適用大部頭的書籍寫作，單一主題的討論文章，或是問題解答集也很合適。但基本上 DocBook 是為學術或技術性等論理文章設計的，而不是為詩詞歌賦這種文藝文章設計的。</P
+></TD
+></TR
+></TABLE
+></DIV
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN54"
+></A
+>1.2. 一次輸入多種輸出</H3
+><P
+>DocBook 格式文件的最大特色就是沒有可閱讀的版面樣式，這並不是說 DocBook 文件無法閱覽，剛好相反，任何一個能處理純文字的編輯器和瀏覽器都能開啟 DocBook 格式文件。問題是那只是字元一個挨著一個，你完全看不出來那個字串該使用什麼字體字型，要多大多小，要置左置右置中，那個要縮排，那個要凸排，那個要單獨另成一段，那個要折行，又那個要緊跟前面，不分段落。凡此種種，你常在各種排版軟體上使用的版面設定和功能，在 DocBook 裡一樣也找不到。</P
+><P
+>DocBook 做為一個標記文件，一樣有標記設定，以及將文章加以分類的方法。不過他是將文章分為章,節,段,落，作者，出版商...等等，至於作者,出版商,章,節,標題等該用什麼字型字體，成個什麼段落，在 DocBook 格式定義裡完全沒有這些訊息。DocBook 把這些設定留給樣式表去規定<A
+NAME="AEN58"
+HREF="#FTN.AEN58"
+>[1]</A
+>。所以只要樣式表一變，DocBook 最終轉換輸出的結果就會改變，而完全不需改動到原有的 DocBook 文件內容。利用標記語言中資料文件本體與輸出樣式表分開的概念，我們只要按 DocBook 格式規定，輸入一次資料，就可以利用樣式表的設定及改換，可以轉換輸出成 HTML,RTF,PS,MAN...等等其他閱覽格式的文件，並且可以設定個人或組織專屬的特殊風格，這就是所謂的一次輸入，多種輸出。</P
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN65"
+></A
+>1.3. 建立可搜尋的文字庫</H3
+><P
+>DocBook 另一個被稱頌的功能就是他的分類細膩而週延，結構完整，並且有搜尋次序上的意義。由於這些特性，凡遵照 DocBook 格式規定製作出來的文件，有如一個資料庫一般，有完整的紀錄次序，欄位分隔，可供條件查詢及檢索。所以不只把 DocBook 文件轉換成其他格式文件，是有效的利用，就是把 DocBook 原始文件放在網路上供查詢檢索，也比任何其他的排版格式文件更為適合。</P
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN68"
+></A
+>1.4. 共同文件寫作</H3
+><P
+>DocBook 是非常靠近 <A
+HREF="#SGML"
+>SGML</A
+> 原始型態及功能的格式文件，透過對 SGML 中模組化的文件型態定義，條件編譯選項，外部插入檔案等等功能的繼承，使得 DocBook 非常適合擔任團體共同寫作文件的重任。經由根文件的適當設定，每個寫作團隊成員都可以分頭獨立寫作部份文件，最後再透過 DocBook 的自動編排功能，把獨立的部份文件串成一個整體文件，宛如一個人寫作一般。</P
+><P
+>由於這個共同寫作的強大功能，在 Unix 系統下許多軟體開發專案團隊，都漸漸採用 DocBook 作為他們共同寫作的解決方法，最有名的例證就是 Linux 的 <A
+HREF="http://cvsview.tldp.org/index.cgi/LDP/howto/docbook/"
+TARGET="_top"
+>HOWTO</A
+> 文件的組織整理，已經將 DocBook 做為推薦的標準寫作格式。<A
+NAME="AEN74"
+HREF="#FTN.AEN74"
+>[2]</A
+></P
+></DIV
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN76"
+></A
+>2. DocBook 的源流</H2
+><P
+>尋找一個共通的，可以在不同的工作平台及作業系統中，在不同的排版軟體中，交換彼此資料的文件格式，一直是許多機關組織，工作團隊，在製作流通文件上的基本需求。尤其在 Unix 的 Open source 軟體開發團隊運作上，更是不停的在尋求更理想的運作模式。這其中尤以 <A
+HREF="http://www.tldp.org/"
+TARGET="_top"
+>The Linux Document Project</A
+><A
+NAME="AEN80"
+HREF="#FTN.AEN80"
+>[3]</A
+> 這個專案計畫最具指標意義，因為 TLDP 匯集了 Linux 作業系統下各個層面的軟體使用者及發展者，所以 TLDP 網站採用的文件格式，幾乎就可以說是 Linux 社區的標準資料格式了。所以，現在我們就來看看 TLDP 文件格式的演化過程。</P
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN82"
+></A
+>2.1. HTML</H3
+><P
+>作為 Wild World Web 的一分子，大概主要的顯示文件都是 HTML 文件吧。在所謂意義分類的結構文件概念尚不發達，來源資料與版面顯示分開處理的技術尚未開展時，HTML 格式，既是資料來源的組成，也是最終的顯示樣式，一肩挑起所有的大梁。</P
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN85"
+></A
+>2.2. LinuxDoc</H3
+><P
+>HTML 雖然在網路資料的交換顯示上，有其不可忽視的貢獻，但卻有他另一面不足的地方。第一：HTML 只適合在網頁瀏覽器中顯示，如果要把他列印，或用別的排版軟體開啟，顯示的結果都會格格不入，無法配合。這時同樣的內容，換種利用方式，就要對文件做重新編排，導致編輯時間浪費及版本混亂。</P
+><P
+>其次 HTML 並不會對文件內容加以歸類，他的標記只是表明那個字串或區段該如何排列顯示而已，並不會有任何指示，告訴你那一段文字，他代表了什麼意義。這對網路資料的搜尋與統整毫無任何幫助，他無法達成一份文件，既能顯示，又方便檢索查詢的資料庫功能。</P
+><P
+>為了尋求更符合需求的文件格式，大家不約而同的都尋求 <A
+HREF="#SGML"
+>SGML</A
+> 這個標記語言的幫忙<A
+NAME="AEN91"
+HREF="#FTN.AEN91"
+>[4]</A
+>。首先是 Tom Gordon 利用 SGML 語法制定了一個 QWERTZ <A
+HREF="#DTD"
+>DTD</A
+> ，目的是為了方便輸入資料，然後自動化產生 LaTex 排版格式文件。</P
+><P
+>接著是 Matt Welsh，他覺得 QWERTZ DTD 既可以將一般文字轉換成 Latex 格式文件，那同樣的原理，應該也可以產生其他種格式文件。正巧他的工作，需要大量產生各種不同格式的文件，例如像plain text, html, and PS 等等，因此他修正了一下  QWERTZ DTD，作為他 Linuxdoc-SGML document processing system(Linux SGML 格式文件處理系統) 的核心部份。由於 Linuxdoc 格式的產生，確實能解決一次輸入，多種輸出的功能，以及將文件做良好有意義的分類，以方便檢索的功能，因此被 TLDP 採用為交換文件標準。從此所謂的 Linux SGML 文件變成 Linux 系統中，非列印顯示，而是以意義分類為標記的格式文件統稱<A
+NAME="AEN95"
+HREF="#FTN.AEN95"
+>[5]</A
+>，而 Linuxdoc 格式就是第一代的 Linux SGML 文件。</P
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN97"
+></A
+>2.3. DocBook</H3
+><P
+>TLDP 所屬的不少人曾用 Linuxdoc 格式寫作 HOWTO 文件，但 Linuxdoc 本身的發展演進卻不令人滿意。在 Matt Welsh 繼續發展了幾年沒有很好的成效後，Cees de Groot 用 perl 這套程式重新改寫了 Linuxdoc 系統，改名為 SGML-tools ，但 DTD 仍用的是 Linuxdoc 的標準。最後 SGML-tools 又被用 python 程式語言全新改寫了一次，但這次，Linuxdoc 卻讓出了龍頭寶座，而把文件製作的格式標準，讓給了另一個由 SGML 語言定義出來的 DocBook 格式文件。</P
+><P
+>DocBook 並非由 Linuxdoc 衍生出來的，它有它自己的故事。早在 1991 年 HaL Computer Systems 和 O'Reilly &#38; Associates 這兩個組織為了達成 Unix 作業系統下 groff 文件系統轉換問題，特別用 SGML 設計了 DocBook V1.1 這個格式文件。</P
+><P
+>在 DocBook V1.1 推出的同時，O'Reilly 開闢了一個討論園地，稱為 Davenport 討論組。參與 Davenport 討論的成員非常投入，貢獻良多，因此到了 1994 年他們得到正式的授權，成為 DocBook 格式標準的正式維護組織，並同時推出 DocBook V1.2.2。</P
+><P
+>DocBook 交到 Davenport 手上後，快速的成長蓬勃，不只包含的企圖與收納更多，並且擺脫 groff 工具的限制，直接使用 sgml 解譯器程式來處理文件轉換，並嘗試直接做列印格式輸出。這時期 Novell 和 Sun 兩大資訊公司對 DocBook 風格的形成，有很大的影響。</P
+><P
+>到了 1997 年 1 月，Davenport 推出 V3.0 後的不久，一些 Davenport 的主要發展者開始討論怎樣把 DocBook 格式文件從原來的 SGML 標記語言推展到 <A
+HREF="#XML"
+>XML</A
+> 標記語言，從而能在 DocBook 中使用 XML 發展蓬勃的應用工具軟體。它們取得了一些進展，但在 Davenport 時期，並未完成這件工作。</P
+><P
+>1998 年 7 月，在 Davenport 原有的贊助者結束贊助的情況下，由綠洲組織(<A
+HREF="#GLOSS-OASIS"
+>OASIS</A
+>)接手 DocBook 發展計畫，成立了 The DocBook Technical Committee 組織負責推展及研發 DocBook 。目前 DocBook 已推出 V4.2 ，並且完成了 XML 的格式定義檔案，變成可選擇由 SGML 或 XML 兩種轉譯方式的處理。DocBook Technical Committee 的發展人員正著手規畫推出 DocBook 5.0 ，正逐步健全發展，也成為 KDE,Gnome 以及 TLDP 等數十個公私組織的標準文件交換格式，勢必在將來日增其影響力，成為普遍的文件標準。</P
+></DIV
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN107"
+></A
+>3. 開始寫作前的準備工作</H2
+><P
+>如果 DocBook 格式文件已經挑起你的興趣，而你以前又從未製作過 DocBook 格式文件，那麼可以考慮跟隨著本手冊的章節，從最基本的開始。雖然 DocBook 文件唯一需要的工具只是一個簡單的文字編輯器即可，Unix OS 下的 vi ，MS Windows 下的 notepad 都可勝任愉快。但能夠邊編寫邊解析轉換，校正標籤使用的合法性及觀視閱覽格式輸出的結果，都是你在學習製作 DocBook 文件時不可或缺的。所以一些解析轉換 DocBook ，及檢視輸出結果的工具，也是我們在製作 DocBook 文件前要先準備好的。先了解一下 DocBook 文件運作流程，有助於我們了解要做那些準備工作。</P
+><DIV
+CLASS="TABLE"
+><A
+NAME="TB.FLOW"
+></A
+><P
+><B
+>Table 1. DocBook 文件運作流程表</B
+></P
+><TABLE
+BORDER="1"
+CLASS="CALSTABLE"
+><THEAD
+><TR
+><TH
+WIDTH="33%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>流程名稱</TH
+><TH
+WIDTH="33%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>使用工具</TH
+><TH
+WIDTH="33%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>準備方法</TH
+></TR
+></THEAD
+><TBODY
+><TR
+><TD
+WIDTH="33%"
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>依 DTD 定義編寫文件</P
+></TD
+><TD
+WIDTH="33%"
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>任何的文字編輯器皆可</P
+></TD
+><TD
+WIDTH="33%"
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>使用系統中的原有編輯工具</P
+></TD
+></TR
+><TR
+><TD
+ROWSPAN="2"
+WIDTH="33%"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>將寫好的文件加以解析，並檢查是否符合文法。</P
+></TD
+><TD
+WIDTH="33%"
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>DocBook 的 DTD 文件模組</P
+></TD
+><TD
+WIDTH="33%"
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>在系統中安裝 DTD 文件模組</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>OpenSP 文件解析程式工具</P
+></TD
+><TD
+WIDTH="33%"
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>在系統中安裝 OpenSP 程式工具</P
+></TD
+></TR
+><TR
+><TD
+ROWSPAN="2"
+WIDTH="33%"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>將解析過的文件，依照樣式表文件模組轉換成別種格式文件。</P
+></TD
+><TD
+WIDTH="33%"
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>DocBook 的 DSSSL 文件模組</P
+></TD
+><TD
+WIDTH="33%"
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>在系統中安裝 DSSSL 文件模組</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>OpenJade 文件轉換程式工具</P
+></TD
+><TD
+WIDTH="33%"
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>在系統中安裝 OpenJade 程式工具</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="33%"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>將轉換過的文件，用適合的瀏覽器觀視檢查。</P
+></TD
+><TD
+WIDTH="33%"
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>依轉換格式選擇瀏覽工具</P
+></TD
+><TD
+WIDTH="33%"
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>使用系統中適合的瀏覽器</P
+></TD
+></TR
+></TBODY
+></TABLE
+></DIV
+><P
+>由上表可知，學習 DocBook 文件編寫的必要工具是：</P
+><P
+></P
+><OL
+TYPE="1"
+><LI
+><P
+>純文字編輯器</P
+></LI
+><LI
+><P
+>DocBook 的 DTD 文件模組</P
+></LI
+><LI
+><P
+>DocBook 的 DSSSL 文件模組</P
+></LI
+><LI
+><P
+>SGML 的 解析器 OpenSp</P
+></LI
+><LI
+><P
+>SGML 的 轉譯器 OpenJade</P
+></LI
+><LI
+><P
+>輸出格式文件的瀏覽器</P
+></LI
+></OL
+><P
+>如本手冊前面所言，文字編輯器任何一個都可以，系統中現有的，習慣使用的即可。DTD,DSSSL,OpenSp,OpenJade 等工具的安裝及設定，在 Linux 系統下，可以使用 docbook-utils or sgml-tools 套件，或者你也可以參考本人的另一篇譯文 <A
+HREF="http://www.study-area.org/tips/doctrans/doctrans.html"
+TARGET="_top"
+>DocBook XML/SGML Processing Using OpenJade</A
+> 從原碼來自己編譯建立 DocBook 的轉譯輸出系統。至於輸出格式的瀏覽器，本手冊的輸出是採用 HTML 格式，所以不管你使用 IE,Netscape or Mozilla ，都是很適合的瀏覽器。</P
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN176"
+></A
+>4. DocBook 編寫的注意事項</H2
+><DIV
+CLASS="SECT2"
+><H3
+CLASS="SECT2"
+><A
+NAME="AEN178"
+></A
+>4.1. 標記語法的規則</H3
+><P
+>DocBook 使用的標記語法和 SGML 預設值相同，如果你會使用 HTML or XML 的標記語法，那麼可以說也就會了 DocBook 標記語法。但如果你不曾接觸過 SGML 的標記語法，不妨看看下面標記語法的簡短介紹。</P
+><P
+>要在文件中加入分類標籤，一定要有些字符負責當作分隔字符，把標籤資料和文件原始內容分開。SGML 是以 '&#60;' 字符當作標籤開始字符，把 '&#62;' 當標籤的結束字符，所以一個資料內容的開始標籤，它的語法是 &#60;標籤名稱 屬性名稱A="屬性值" 屬性名稱B="屬性值" ...&#62; ，&#60; 和 &#62; 字符之間是標記資料。</P
+><P
+>至於一個資料內容的結束標籤就比較簡單，他的語法是 &#60;/標籤名稱&#62;，分隔字符和開始標籤完全相同，標籤名稱前要有 '/' 前置字符，至於屬性值字串，結束標籤是不需要屬性設定的。</P
+><P
+>最後開始標籤字串和結束標籤字串間包夾的就是文件的分類資料內容了，譬如：</P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;email&nbsp;id="mymail"&#62;abc@def.idv.tw&#60;/email&#62;</P
+><P
+></P
+><TABLE
+BORDER="0"
+><TBODY
+><TR
+><TD
+>&#60;email id="mymail"&#62; : 開始標籤</TD
+></TR
+><TR
+><TD
+>email : 標籤名稱</TD
+></TR
+><TR
+><TD
+>id="mymail" : 標籤屬性設定</TD
+></TR
+><TR
+><TD
+>ibc@def.idv.tw : 資料內容</TD
+></TR
+><TR
+><TD
+>&#60;/email&#62; : 結束標籤</TD
+></TR
+></TBODY
+></TABLE
+><P
+></P
+><DIV
+CLASS="NOTE"
+><P
+></P
+><TABLE
+CLASS="NOTE"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="../images/note.gif"
+HSPACE="5"
+ALT="Note"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>標記語言對標籤的格式有嚴格的要求，除了分隔字符，標籤名稱，屬性名稱不能有絲毫錯誤外，尤其是 XML 語法定義的 DocBook 格式，不可任意簡省結束標籤，或採取像
+<P
+CLASS="LITERALLAYOUT"
+>&#60;email&nbsp;id="mymail"/abc@def.idv.tw/</P
+>
+這樣的簡省敘述。請一定照規矩打足開始標籤與結束標籤，空標籤沒有結束標籤，所以他的開始標籤結尾要加 '/' 字符，如 &#60;xref linkend="address" /&#62;。
+      </P
+></TD
+></TR
+></TABLE
+></DIV
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN194"
+></A
+>4.2. 特殊字符的表示法</H3
+><P
+>如同前一小節敘述，'&#60;' 和 '&#62;' 字符被 DocBook 拿來當作標籤分隔字符用，那萬一我們要顯示 '&#60;' 和 '&#62;' 字符符號，而不是要他發揮分隔字串功能的時候該怎麼辦呢？這時就要有個 '&#60;' 和 '&#62;' 字符的代名來表示要顯示他們原來字元的意思。'&#60;' 的代名是 lt(little) ，'&#62;' 的代名是 gt(great) 。使用代名時要在代名前加個 '&#38;' 字符當前置字，';' 當收尾字。&#38;lt; 表示 lt 這裡不是代表 "lt" 字串，而是表示 '&#60;' 字元顯示的意思。</P
+><P
+>這裡為了特殊字元表示把 '&#38;' 字符借去當前置字，那麼 '&#38;' 字元本身也成了特殊字元，所以也有個 '&#38;' 的代名是 amp ，表示式是 &#38;amp; 。</P
+><DIV
+CLASS="NOTE"
+><P
+></P
+><TABLE
+CLASS="NOTE"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="../images/note.gif"
+HSPACE="5"
+ALT="Note"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>DocBook 特殊字元列表請參考後面章節的 <A
+HREF="#TB.DELI.CHAR"
+><I
+>DocBook 特殊字元表</I
+></A
+>&#62; 。</P
+></TD
+></TR
+></TABLE
+></DIV
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN201"
+></A
+>4.3. 放棄版面編排的習慣</H3
+><P
+>百分之九十以上的人在製作文件時，都會考慮到版面編排的問題，因為重視文件閱覽的感受和效果，被認為是一個文件撰寫人應當負起的責任。但這在 DocBook 文件撰寫時，卻是你應該極力屏除的心理障礙，理由如下：</P
+><P
+>不管是 XML 或 SGML 標記語言定義的格式文件，都是忽略格式字元處理的，所以不管你在一行文字前塞入多少空白，在行與行間按下多少個分段按鍵，DocBook 一概忽略不理，所以就算你費盡心力去排，也是枉然，對 DocBook 來說，只有標籤的改變才是有意義的。</P
+><P
+>DocBook 的功能就是要將資料塞到各種顯示格式文件裡，唯有他毫無任何固定格式，才能隨時被捏塑成各種格式。任何單一的版面考慮，不管是對 HTML,RTF or Tex/Latex ，當他換成另一種顯示時，原來的版面設定肯定會成為搗蛋鬼和麻煩的來源。所以 DocBook 文件本身不該包含版面設定資料，決定輸出成什麼樣子，應該留給樣式表來決定。在 XML 中是 XSL 和 XSLT ，在 SGML 中是 DSSSL 。</P
+><P
+>在 DocBook 中重視的是大量文件的自動編排轉換，和統一風格的建立，單一文件版面細部的修整設定，不是 DocBook 所擅長的。</P
+><DIV
+CLASS="NOTE"
+><P
+></P
+><TABLE
+CLASS="NOTE"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="../images/note.gif"
+HSPACE="5"
+ALT="Note"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>我們常在 DocBook 文件中，把子標籤前多塞幾個空格，好表示他是父標籤的下一個層級。這純粹是方便文件撰寫者檢視文件語法用的，與輸出格式完全無關，一個標籤是否是另一個標籤的子標籤，端看他是否處在別人的開始標籤與結束標籤中，與他是否縮排或凸排完全無關。</P
+></TD
+></TR
+></TABLE
+></DIV
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN209"
+></A
+>4.4. 其他注意事項</H3
+><P
+>本手冊以 SGML-DTD-V4.2 為標準，所以你至少需下載 DocBook sgml-dtd-4.2 DTD 模組文件。</P
+><P
+>本手冊只觸及 DocBook 所有標籤的一小部份而已，如果有任何疑問或懷疑，請以 <A
+HREF="http://www.docbook.org/tdg/en/html/docbook.html"
+TARGET="_top"
+>DocBook: The Definitive Guide</A
+> 記載為準。</P
+><P
+>本手冊的各範例希望你都能試作一遍，並把他們轉換成 HTML 文件，在網頁瀏覽器上觀視。這樣做有兩個好處；一：校正自己的語法錯誤(我使用 DocBook 到如今，沒有一次不用錯語法的。)二：知道 DocBook 這樣安排的意義所在。</P
+><P
+>留心轉譯器所顯示的錯誤訊息，像：
+<P
+CLASS="LITERALLAYOUT"
+>jade:preface.sgml:134:112:E:&nbsp;end&nbsp;tag&nbsp;for&nbsp;element&nbsp;"LISTITEM"&nbsp;which&nbsp;is&nbsp;not&nbsp;open<br>
+jade:docwrite.sgml:33:12:E:&nbsp;end&nbsp;tag&nbsp;for&nbsp;"APPENDIX"&nbsp;which&nbsp;is&nbsp;not&nbsp;finished</P
+>
+它會告訴你原因及詳細的錯誤所在，別偷懶，一一去改正你文件中的錯誤。</P
+></DIV
+></DIV
+></DIV
+><DIV
+CLASS="CHAPTER"
+><HR><H1
+><A
+NAME="AEN217"
+></A
+>Chapter 1. 基礎標籤的運用</H1
+><P
+>本章將介紹 DocBook 格式文件寫作時，最基本而且常用的標記名稱及使用方法 。尤其是把重點放在與 HTML 相對應功能的標記上，希望你學會這些標記後，至少能做到把 DocBook 文件資料，轉換成 HTML 網頁，供人網路閱覽無礙。至於其他比 HTML 更進一步的功能，我們在製做其他文件常用的，將會分別以專章討論。至於一些十分細碎的，特殊用途的標記，則不是本手冊能包含的內容，請到 <A
+HREF="http://www.docbook.org/tdg/en/html/docbook.html"
+TARGET="_top"
+>DocBook 官方網站</A
+> 查詢官方版的線上手冊。</P
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN221"
+></A
+>1.1. 無用之用</H2
+><P
+>在介紹任何其他有分類意義的標籤前，先要介紹這個不代表任何分類意義，也對文件內容或輸出格式無任何影響的標籤，就是備註標籤。不管 HTML,DocBook or XML ，他們的備註標籤格式都一樣，以 "&#60;!--" 字串開頭，以 "--&#62;" 字串結尾的一個空標籤，凡在 "&#60;!--" 和 "--&#62;" 間包夾的所有字元字串都被忽略，一律不予處理，這是 SGML 標記語言的預設備註表示法。</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.NOTE"
+></A
+><P
+><B
+>Example 1-1. SGML 的備註表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;book&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;book&#62;&nbsp;&#60;!--&nbsp;這是根標籤的開始標記&nbsp;--&#62;<br>
+<br>
+......&nbsp;&nbsp;&#60;!--&nbsp;這是文件資料的資料內容&nbsp;--&#62;<br>
+<br>
+&#60;/book&#62;&nbsp;&#60;!--&nbsp;這是根標籤的結束標記&nbsp;--&#62;<br>
+<br>
+&#60;!--&nbsp;所有的文件內容敘述，都必須被包夾在根標籤的開始<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;標記與結束標記之間。&nbsp;--&#62;</P
+></DIV
+><P
+>上例可知，"&#60;!--" 和 "--&#62;" 間的所有文字敘述，都只是對本文的附加說明而已，使用與不使用都對該文件沒有影響<A
+NAME="AEN228"
+HREF="#FTN.AEN228"
+>[6]</A
+>，本手冊一開始就介紹這標籤的目的是，後面很多的解釋段落要用到他，你及早知道這樣表示法的含意，才不會不知所云。</P
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN230"
+></A
+>1.2. 文件型態宣告</H2
+><P
+>不管是 SGML 或 XML ，除了註解之外，開頭的第一或第二個標記，一定是用一個文件型態宣告的標記，來標明整份 SGML 文件，是遵守那種 DTD 格式規範所製作的。他的目的是通知負責處理此份文件的軟體程式，使用適合的 DTD 規定，來解譯和處理。這是一切 SGML 文件製作法則的依據，也是 DocBook 在完成以後，能夠順利轉換成別種顯示格式文件的根本，雖然他不是文件要顯示的內容，卻是決定並掌管了整份文件的規則，所以必須清楚明確而不可少。</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.SGML.TYPE"
+></A
+><P
+><B
+>Example 1-2. SGML 的文件型態宣告</B
+></P
+><DIV
+CLASS="INFORMALTABLE"
+><A
+NAME="AEN235"
+></A
+><P
+></P
+><TABLE
+BORDER="0"
+CLASS="CALSTABLE"
+><TBODY
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>&#60;!DOCTYPE </TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+> book </TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+> PUBLIC </TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+> "-//OASIS//DTD DocBook V4.2//EN"&#62;</TD
+></TR
+><TR
+><TD
+ALIGN="CENTER"
+VALIGN="TOP"
+><A
+HREF="#DT-SCRIPTER"
+>註1</A
+></TD
+><TD
+ALIGN="CENTER"
+VALIGN="TOP"
+><A
+HREF="#ROOT-TAG"
+>註2</A
+></TD
+><TD
+ALIGN="CENTER"
+VALIGN="TOP"
+><A
+HREF="#PUB-SCRIPTER"
+>註3</A
+></TD
+><TD
+ALIGN="CENTER"
+VALIGN="TOP"
+><A
+HREF="#PUB-IDENTIFY"
+>註4</A
+></TD
+></TR
+></TBODY
+></TABLE
+><P
+></P
+></DIV
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><A
+NAME="DT-SCRIPTER"
+></A
+>註1, 文件型態表示詞</DT
+><DD
+><P
+>'!' 字符加上大寫 "DOCTYPE" 字串，表示這個標籤作為宣告文件型態之用。</P
+></DD
+><DT
+><A
+NAME="ROOT-TAG"
+></A
+>註2, 根標籤名稱</DT
+><DD
+><P
+>指定本文件要用那個 DocBook DTD 定義的標籤當根標籤。原則上 DocBook 並未嚴格指定限用那些標籤做根標籤，所以不只 book ，像 article,chapter,grossary.appendix 都可以當根標籤。但很重要的一點就是，根標籤是一份文件最上層的標籤，不可以有比他更高層的標籤出現在文件中，所以一旦你選定了根標籤，也同時決定了這份文件能使用那些類別的子標籤和階層結構。這點是和 HTML 大不相同的，HTML 的根標籤永遠是 &#60;html&#62;，能使用的標籤名稱和結構也永遠不變，但 DocBook 的文件的風格，會跟著根標籤的不同而改變。</P
+></DD
+><DT
+><A
+NAME="PUB-SCRIPTER"
+></A
+>註3, 公共識別表示詞</DT
+><DD
+><P
+>大寫 "PUBLIC" 字串是表示它後面跟了個公共識別字串，又稱作 PUBLIC IDENTIFIER 。DocBook 有個龐大的 DTD 定義，通常都不會直接和本文寫在一起，而採外部文件形式，把 DTD 敘述儲存成單獨的檔案，在解譯轉譯 DocBook 文件時，再由解譯器載入外部 DTD 檔案，以分析 DocBook 文件。那為何不直接寫 DTD 的檔案路徑名稱就好，而要拐彎抹角，搞個又臭又長的 public ID 字串呢？這是因為 DocBook 是一個供不同平台交換資料訊息用的文件。當一份文件由作者的主機傳到閱覽者主機上時，怎能保證彼此的 DTD 定義檔路徑會一樣呢？所以為了避免因閱覽者與文件作者主機系統配置不同而指定錯誤，就用 public ID 的辦法。經由 DocBook 使用者在自己機器上放置一份對照表，紀錄各 public ID 的 DTD 相對應檔案路徑，就不必耽心因為彼此 DTD 檔案放置路徑的不同，而無法成功轉譯。</P
+></DD
+><DT
+><A
+NAME="PUB-IDENTIFY"
+></A
+>註4, 公共識別字串</DT
+><DD
+><P
+>任何一個格式標準的發佈者，都應該設定其與眾不同，獨一無二的識別字串，來公佈周知。如果在文件開頭看到這個識別字串，就表示此文件使用該發佈者制定的格式，應該依據發佈者規定的方式處理。這個識別字串的組成可翻閱參考字典的 <A
+HREF="#PUBLIC-ID"
+>Public Identifier</A
+>，查看標準的組成方式。但縱使不依據此規則，仍無損其效力，因為識別字串的關鍵是獨特與唯一。而 DocBook 的每一版本都有其唯一的公共識別字串，你必須完全照抄，不能任意增減，所以寫作前請先參考相關 DTD 下載群組的 catlog or docbook.cat ，看看他要求的識別字串是怎麼下的，然後複製貼上，成為你 DocBook 文件的第一行。</P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.XML.TYPE"
+></A
+><P
+><B
+>Example 1-3. XML 的文件型態宣告</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;?xml&nbsp;version='1.0'?&#62;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A
+NAME="XMLDOC-DCL"
+><IMG
+SRC="../images/callouts/1.gif"
+HSPACE="0"
+VSPACE="0"
+BORDER="0"
+ALT="(1)"></A
+><br>
+&#60;!DOCTYPE&nbsp;book&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;XML&nbsp;V4.1.2//EN"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A
+NAME="DOCTYPE-DCL"
+><IMG
+SRC="../images/callouts/2.gif"
+HSPACE="0"
+VSPACE="0"
+BORDER="0"
+ALT="(2)"></A
+><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"http://docbook.org/xml/4.1.2/docbookx.dtd"&#62;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A
+NAME="SYSTEM-ID-DCL"
+><IMG
+SRC="../images/callouts/3.gif"
+HSPACE="0"
+VSPACE="0"
+BORDER="0"
+ALT="(3)"></A
+></P
+><DIV
+CLASS="CALLOUTLIST"
+><DL
+COMPACT="COMPACT"
+><DT
+><A
+HREF="#XMLDOC-DCL"
+><IMG
+SRC="../images/callouts/1.gif"
+HSPACE="0"
+VSPACE="0"
+BORDER="0"
+ALT="(1)"></A
+></DT
+><DD
+>XML 文件表示標籤：W3 組織制定 XML 標準時的規定，凡使用 XML 標記語法的文件，開頭第一行要做這樣的表示。如果你是採用 SGML ，當然就不能加這個。</DD
+><DT
+><A
+HREF="#DOCTYPE-DCL"
+><IMG
+SRC="../images/callouts/2.gif"
+HSPACE="0"
+VSPACE="0"
+BORDER="0"
+ALT="(2)"></A
+></DT
+><DD
+>除了public ID 加上 XML 字樣外，其他完全和 SGML 的 DOCTYPE 標籤用法一樣。</DD
+><DT
+><A
+HREF="#SYSTEM-ID-DCL"
+><IMG
+SRC="../images/callouts/3.gif"
+HSPACE="0"
+VSPACE="0"
+BORDER="0"
+ALT="(3)"></A
+></DT
+><DD
+>SYSTEM ID 路徑字串：這也是只有 XML 才有的要求，通常是指向外部 DTD 規格檔的所在路徑。由於 XML 標榜的是網路運作交換，所以通常這裡都是 DTD 檔的 URL 位址。不管是 SGML 還是 XML ，當設定產生競合衝突時，文件設定高於系統設定，所以解譯器在處理時，是會跨過系統指定的 DTD ，而到網路上去找指定的 DTD 檔。但這也同時容易在網路位址錯誤或更動時，引起找不到 DTD 檔的錯誤而導致解譯轉換失敗，所以 SGML 和 XML 文件宣告方式的差異，可說各有利弊。</DD
+></DL
+></DIV
+></DIV
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="ROOTTAG"
+></A
+>1.3. 根標籤</H2
+><P
+>根標籤表示一個文件的定義宣告區段結束，文件分類編輯區正式開始。除此之外，根標籤有下列規則必須遵守：</P
+><P
+></P
+><P
+><B
+>根標籤的法則</B
+></P
+><OL
+TYPE="1"
+><LI
+><P
+>任何一份 DocBook 文件都不能缺少根標籤。</P
+></LI
+><LI
+><P
+>根標籤的起始標籤必須緊接著定義宣告區段，作為本文的第一個標籤，而他的結束標籤必須在結尾的最後一個，包含著整個本文的其他標籤及文字區段。</P
+></LI
+><LI
+><P
+>根標籤必須與 DOCTYPE 宣告的根標籤名稱一致。</P
+></LI
+><LI
+><P
+>根標籤不得包含在 DTD 定義中的上層結構標籤，也就是一份文件只可以出現及使用根標籤的子標籤。</P
+></LI
+><LI
+><P
+>根標籤在同一份文件上只可以出現一次，不得出現兩次以上。這包括根標籤內含根標籤的階層結構，或兩者前後排列的平行結構。</P
+></LI
+><LI
+><P
+>空標籤不得作為根標籤。</P
+></LI
+></OL
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN304"
+></A
+>1.4. 常用的根標籤介紹</H2
+><P
+>就如前面章節所言，DocBook 並不限制根標籤要用那個。但依據一般我們日常的使用習慣，也考慮到最後輸出格式的樣式表是否支援，還是有些比較標準化的根標籤可供依循。一般比較常用的根標籤有：</P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+>book, 書籍, 手冊</DT
+><DD
+><P
+>這並無一定大小的區別，與一般我們對書籍觀念類似，集合幾個章節，談些相關但分門別類的主題。</P
+></DD
+><DT
+>chapter, 章</DT
+><DD
+><P
+>雖然 chapter 本身在 DocBook DTD 定義中是 book 的子標籤，但一般也常拿他當討論某個單一主題文件的根標籤。導致和下面要講的 article 標籤，反而有異曲同工的感覺。</P
+></DD
+><DT
+>article, 主題文章</DT
+><DD
+><P
+>這是一個和 chapter 平行的標籤，在使用習慣上，article 比 chapter 更常被用來當根標籤，他代表單一主題的單一文章，與動用數個 chapter 去描述一個主題的使用習慣不同，所以在 Linux Document Project 上的 HOWTO 文章，用得最多的根標籤就是 article。
+          <DIV
+CLASS="NOTE"
+><P
+></P
+><TABLE
+CLASS="NOTE"
+WIDTH="90%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="../images/note.gif"
+HSPACE="5"
+ALT="Note"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>這純粹是種使用習慣，而非 DocBook 的 DTD 限制，沒人規定你不可以用數個 article 來談單一主題，以及只用一個 chapter 談一個主題。</P
+></TD
+></TR
+></TABLE
+></DIV
+>
+        </P
+></DD
+></DL
+></DIV
+><P
+>當然 DocBook 不只這幾個上層標籤而已，如 set 標籤，相當於叢書，是 book 的上層標籤，而介於 book 和 chapter 之間還有個 part ，就好像我們說書的上篇下篇一樣。此外像 preface (序言，導論) ， appendix (附錄)，其實把他們看成第一個 chapter 及最後一個 chapter ，並沒什麼分別。所以熟悉  book,chapter,article 結構，就同理可推了。</P
+><P
+>此外 DocBook 也提供了一些非一般章節的，特殊格式的標籤組可以當根標籤，也可以內涵於 book 當子標籤，譬如：</P
+><P
+><B
+>index: </B
+>目錄索引</P
+><P
+><B
+>bibliography: </B
+>參考書目</P
+><P
+><B
+>glossary: </B
+>詞彙解釋</P
+><P
+><B
+>qandaset: </B
+>問答集(Q &#38; A)</P
+><P
+>這些都是比較複雜的書籍會有的文件結構，由於他們不同於一般章節的內容，所以我們將另闢一章來講解如何製作這些特殊格式標籤組。至於本章，我們將著重在 DocBook 最基本的結構 book,chapter,article ，以及如何使用 DocBook 標籤，做出類似 HTML 表現方式的結構出來。</P
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN339"
+></A
+>1.5. DocBook 最基本的文件結構 -- Sect</H2
+><P
+>在進入 book,chapter,article 這三種最常用根標籤附屬結構的討論前，我們先來談談這三個根標籤共同擁有，也是 DocBook 格式文件最常被使用的子結構，<EM
+>sect</EM
+>。</P
+><P
+>sect 是 section 的縮寫，通常我們中譯成段落。在 DocBook 中他的基本結構是：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.SECT.BASE"
+></A
+><P
+><B
+>Example 1-4. sect 的基本結構</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;sect[n]&#62;<br>
+&nbsp;&nbsp;&#60;title&#62;段落標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;para&#62;第一段文字......&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;para&#62;第二段文字......&#60;/para&#62;<br>
+&nbsp;&nbsp;......<br>
+&nbsp;&nbsp;[子標籤結構]<br>
+&nbsp;&nbsp;......<br>
+&#60;/sect[n]&#62;</P
+></DIV
+><P
+>從 HTML 表現格式的觀念來類比，就如同一個 &#60;Hn&#62; 的橫幅，配上一個 &#60;div&#62;，&#60;div&#62; 裡可能是文字區段 &#60;p&#62;，也可能是其他的標記。所以一個標題，加上一個資料區塊，就是 sect 基本上的樣貌。</P
+><DIV
+CLASS="IMPORTANT"
+><P
+></P
+><TABLE
+CLASS="IMPORTANT"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="../images/important.gif"
+HSPACE="5"
+ALT="Important"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>HTML 的 title 標籤和 DocBook 的 title 標籤，在意義和最後顯示格式上不大一樣，HTML 的 title 一個 page 只能有一個，而且通常顯示在瀏覽器的標題列，但 DocBook 的 title 則大部分的區段標籤都有，表現形式比較像分隔區段與區段的醒目橫列文字(like HTML &#60;Hn&#62;)。</P
+></TD
+></TR
+></TABLE
+></DIV
+><P
+>至於 sect 的區塊部份，一個 DocBook 各種標籤都少不了他的就是 <EM
+>para</EM
+>。<TT
+CLASS="SGMLTAG"
+>para</TT
+> 是 paragraph 的縮寫，中譯也是區域段落，老實說光從字義看，好像和 sect 沒啥區別，但依據 DocBook DTD 的定義，真正文字敘述是放在 <TT
+CLASS="SGMLTAG"
+>para</TT
+> 裡面，也就是 <TT
+CLASS="SGMLTAG"
+>sect[n]</TT
+> 是要靠 <TT
+CLASS="SGMLTAG"
+>para</TT
+> 來收納他的文字串列的。一個  <TT
+CLASS="SGMLTAG"
+>sect[n]</TT
+> 最少要有一個 <TT
+CLASS="SGMLTAG"
+>para</TT
+>，但可依需要增加  <TT
+CLASS="SGMLTAG"
+>para</TT
+> 使用數量。<A
+NAME="LINE-BREAK"
+HREF="#FTN.LINE-BREAK"
+>[7]</A
+></P
+><P
+>最後是包含子標籤，這是選項，可要，可不要。sect[n] 表示是有層級分別的，目前 DocBook DTD 的定義是 <TT
+CLASS="SGMLTAG"
+>sect1</TT
+> 到 <TT
+CLASS="SGMLTAG"
+>sect5</TT
+>五個層級，而且必須按層級逐階隸屬，也就是你不可以不透過 <TT
+CLASS="SGMLTAG"
+>sect2</TT
+> 就直接把 <TT
+CLASS="SGMLTAG"
+>sect3</TT
+> 塞到 <TT
+CLASS="SGMLTAG"
+>sect1</TT
+> 裡。
+<A
+NAME="PARALLE-SECT"
+HREF="#FTN.PARALLE-SECT"
+>[8]</A
+>
+同理，如果你堅持要使用  <TT
+CLASS="SGMLTAG"
+>sect5</TT
+> ，那就必須：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.SECT.STRUC"
+></A
+><P
+><B
+>Example 1-5. sect 的層級結構</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;sect1&#62;&#60;title&#62;sect1&nbsp;標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;para&#62;sect1&nbsp;文字段落...&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;sect2&#62;&#60;title&#62;sect2&nbsp;標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;sect2&nbsp;文字段落...&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;sect3&#62;&#60;title&#62;sect3&nbsp;標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;sect3&nbsp;文字段落...&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;sect4&#62;&#60;title&#62;sect4&nbsp;標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;sect4&nbsp;文字段落...&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;sect5&#62;&#60;title&#62;sect5&nbsp;標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;sect5&nbsp;文字段落...&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/sect5&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/sect4&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/sect3&#62;<br>
+&nbsp;&nbsp;&#60;/sect2&#62;<br>
+&#60;/sect1&#62;</P
+></DIV
+><P
+>上面的結構範例請你再多看兩眼，因為把它記熟了，你就已經會了百分之六十的 DocBook 基本結構<A
+NAME="AEN374"
+HREF="#FTN.AEN374"
+>[9]</A
+>。而且不要懷疑，光靠這幾個標記，已經夠寫出個陽春型的 DocBook 文件來了。</P
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN376"
+></A
+>1.6. 基本的根標籤結構</H2
+><P
+>首先我們談 chapter 和 article ，這兩種根標籤結構大同小異。以 chapter 為例，套用上節的 sect 結構理念，一個標題配一個資料區塊，那 chapter 的基本結構就是：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.CHAP.STRUC"
+></A
+><P
+><B
+>Example 1-6. chapter 基本的層級結構</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;chapter&#62;&#60;title&#62;章&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;para&#62;章引言...&nbsp;&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;sect1&#62;&#60;title&#62;sect1&nbsp;標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;sect1&nbsp;文字段落...&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;sect2&#62;&#60;title&#62;sect2&nbsp;標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;sect2&nbsp;文字段落...&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;sect3&#62;&#60;title&#62;sect3&nbsp;標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;sect3&nbsp;文字段落...&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;sect4&#62;&#60;title&#62;sect4&nbsp;標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;sect4&nbsp;文字段落...&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;sect5&#62;&#60;title&#62;sect5&nbsp;標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;sect5&nbsp;文字段落...&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/sect5&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/sect4&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/sect3&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/sect2&#62;<br>
+&nbsp;&nbsp;&#60;/sect1&#62;<br>
+&#60;/chapter&#62;</P
+></DIV
+><P
+>article 的根標籤基本結構，就是把那根標籤名稱從 chapter 換成 article 就成了。</P
+><P
+>至於 book 這個很有份量的根標籤是由數個 chapter 或 article 組成，所以book 根標籤的結構應該是類似這樣：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.BOOK.STRUC"
+></A
+><P
+><B
+>Example 1-7. book 基本的層級結構</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;book&#62;&#60;title&#62;書籍名稱&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;chapter&#62;&#60;title&#62;章標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;章引言...&nbsp;&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;sect1&#62;&#60;title&#62;節標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;節內容...&nbsp;&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;節內容...&nbsp;&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/sect1&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;......<br>
+&nbsp;&nbsp;&#60;/chapter&#62;<br>
+&nbsp;&nbsp;&#60;chapter&#62;&#60;title&#62;章標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;章引言...&nbsp;&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;......<br>
+&nbsp;&nbsp;&#60;/chapter&#62;<br>
+&nbsp;&nbsp;......<br>
+&#60;/book&#62;</P
+></DIV
+><P
+>有了基本根標籤結構還不能稱為完整的 DocBook 文件，我們還要為它們加上 SGML 標記語言規則所要求的文件型態定義宣告。依 DocBook 是採用 SGML or XML 宣告方式，一個完整 DocBook 文件模型應該是：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.SGML.BOOK.MODE"
+></A
+><P
+><B
+>Example 1-8. book 的 SGML 文件模型</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;book&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;book&#62;&#60;title&#62;書籍名稱&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;chapter&#62;&#60;title&#62;章標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;章引言...&nbsp;&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;......<br>
+&nbsp;&nbsp;&#60;/chapter&#62;<br>
+&nbsp;&nbsp;......<br>
+&#60;/book&#62;</P
+></DIV
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.XML.BOOK.MODE"
+></A
+><P
+><B
+>Example 1-9. book 的 XML 文件模型</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;?xml&nbsp;version="1.0"?&#62;<br>
+&#60;!DOCTYPE&nbsp;book&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;XML&nbsp;V4.2//EN"&#62;<br>
+&#60;book&#62;&#60;title&#62;書籍名稱&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;chapter&#62;&#60;title&#62;章標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;章引言...&nbsp;&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;......<br>
+&nbsp;&nbsp;&#60;/chapter&#62;<br>
+&nbsp;&nbsp;......<br>
+&#60;/book&#62;</P
+></DIV
+><P
+>如果你想要把根標籤換掉，比方是 article ，那你的 DocBook 表示方法應該是：</P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;?xml&nbsp;version="1.0"?&#62;<br>
+&#60;!DOCTYPE&nbsp;article&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;XML&nbsp;V4.2//EN"&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<A
+NAME="ARTICLE-DCL"
+><IMG
+SRC="../images/callouts/1.gif"
+HSPACE="0"
+VSPACE="0"
+BORDER="0"
+ALT="(1)"></A
+><br>
+&#60;article&#62;&#60;title&#62;研究主題&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;sect1&#62;&#60;title&#62;標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;引言...&nbsp;&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;......<br>
+&nbsp;&nbsp;&#60;/sect1&#62;<br>
+&nbsp;&nbsp;......<br>
+&#60;/article&#62;</P
+><DIV
+CLASS="CALLOUTLIST"
+><DL
+COMPACT="COMPACT"
+><DT
+><A
+HREF="#ARTICLE-DCL"
+><IMG
+SRC="../images/callouts/1.gif"
+HSPACE="0"
+VSPACE="0"
+BORDER="0"
+ALT="(1)"></A
+></DT
+><DD
+>文件的根標籤要與 SGML 定義宣告區 DOCTYPE 裡的根標籤宣告相同。</DD
+></DL
+></DIV
+><P
+>掌握這些範例的文件基本模型，就可以掌握基本的 DocBook 寫作技巧，也就可以開始製作你自己的 DocBook 文件了。就算你用這些陽春結構，一樣可以通過 SGML 編譯轉換器的轉換，產生方便閱讀的其他格式文件，或者建立了 Text Base 的樹狀資料庫，它沒有任何結構的缺陷或不完整。所以剩下的其他，都只是使你文件形式更豐富，功能更多樣而已，供你行有餘力而為。所以，下面我們要介紹一些能增加你文件的表現形式或特殊功能的標籤用法，首先，我們介紹一些類似於 HTML 格式的資料，然後再談一些 DocBook 自己所有的特殊用法。</P
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN401"
+></A
+>1.7. 條列資料表示法</H2
+><P
+>縱使文字敘述區塊 <TT
+CLASS="SGMLTAG"
+>para</TT
+> 的使用率，佔了 DocBook 顯示資料的七八成，但有些資料顯示，用別的格式卻遠比 <TT
+CLASS="SGMLTAG"
+>para</TT
+> 更恰當及有表現力。譬如同質的數筆資料，使用條列式就比區塊式敘述要好。</P
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN406"
+></A
+>1.7.1. 單行條列式</H3
+><P
+>以 HTML 標記語言為例，如果我們將電腦的所有設備分類加以陳述，大概呈現方法是：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.HTML.LIST"
+></A
+><P
+><B
+>Example 1-10. HTML 的編號列示資料表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;ol&#62;<br>
+&nbsp;&nbsp;&#60;li&#62;處理設備&#60;/li&#62;<br>
+&nbsp;&nbsp;&#60;li&#62;儲存設備&#60;/li&#62;<br>
+&nbsp;&nbsp;&#60;li&#62;輸入設備&#60;/li&#62;<br>
+&nbsp;&nbsp;&#60;li&#62;輸出設備&#60;/li&#62;<br>
+&#60;/ol&#62;</P
+></DIV
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.NUMLIST"
+></A
+><P
+><B
+>Example 1-11. DocBook 的編號列示資料表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;orderedlist&#62;<br>
+&nbsp;&nbsp;&#60;title&#62;電腦設備分類列表&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;處理設備&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;儲存設備&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;輸入設備&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;輸出設備&#60;/para&#62;&#60;/listitem&#62;<br>
+&#60;/orderedlist&#62;</P
+></DIV
+><P
+>DocBook 的列示資料表示法比 HTML 多的是 <TT
+CLASS="SGMLTAG"
+>title</TT
+> ，
+不過這是選項的，也就是如果你希望為你的列示區塊下個標題，你就可以用 <TT
+CLASS="SGMLTAG"
+>title</TT
+> 標籤，不只列示資料區塊是如此，幾乎所有的區塊皆是如此。此外除了有編號列示區塊表示法之外，還有種無編號列示資料表示法：HTML 是用 <TT
+CLASS="SGMLTAG"
+>ul</TT
+> 取代 <TT
+CLASS="SGMLTAG"
+>ol</TT
+> ， SGML 則是用 <TT
+CLASS="SGMLTAG"
+>itemizedlist</TT
+> 取代 <TT
+CLASS="SGMLTAG"
+>orderedlist</TT
+> ，其他子結構則完全相同。</P
+><P
+>所以一個完整的文件範例應該是：</P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;chapter&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;chapter&#62;&#60;title&#62;電腦設備簡介&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;sect1&#62;&#60;title&#62;電腦設備分類&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;我們可將電腦所有使用設備粗分為下列類別：&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;orderedlist&#62;&#60;title&#62;電腦設備分類列表&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;處理設備&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;儲存設備&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;輸入設備&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;輸出設備&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/orderedlist&#62;<br>
+&nbsp;&nbsp;&#60;/sect1&#62;<br>
+&#60;/chapter&#62;</P
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN424"
+></A
+>1.7.2. 兩段條列式</H3
+><P
+>兩段條列式的結構和一般詞彙解釋的結構安排相同，就是前面一個簡短名詞當作一個段落，後面的解釋敘述當作另一個段落。形成一個既有所分別，又互相隸屬的關係。如果你熟悉 HTML ，那麼 <TT
+CLASS="SGMLTAG"
+>dl</TT
+> 標籤是一個很好的詮釋：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="AEN428"
+></A
+><P
+><B
+>Example 1-12. HTML 的兩段條列式資料表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;dl&#62;<br>
+&nbsp;&nbsp;&#60;dt&#62;SGML&#60;/dt&#62;<br>
+&nbsp;&nbsp;&#60;dd&#62;Standard&nbsp;Generalized&nbsp;Markup&nbsp;Language(一般標準標記語言)&#60;/dd&#62;<br>
+&nbsp;&nbsp;&#60;dt&#62;XML&#60;/dt&#62;<br>
+&nbsp;&nbsp;&#60;dd&#62;Extensible&nbsp;Markup&nbsp;Language(可延伸標記語言)&#60;/dd&#62;<br>
+&nbsp;&nbsp;&#60;dt&#62;HTML&#60;/dt&#62;<br>
+&nbsp;&nbsp;&#60;dd&#62;HyperText&nbsp;Markup&nbsp;Language(超文字標記語言)&#60;/dd&#62;<br>
+&#60;/dl&#62;</P
+></DIV
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.DLLIST"
+></A
+><P
+><B
+>Example 1-13. DocBook 的兩段條列式資料表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;variablelist&#62;<br>
+&nbsp;&nbsp;&#60;varlistentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;term&#62;SGML&#60;/term&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;Standard&nbsp;Generalized&nbsp;Markup&nbsp;Language<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(一般標準標記語言)&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&#60;/varlistentry&#62;<br>
+&nbsp;&nbsp;&#60;varlistentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;term&#62;XML&#60;/term&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;Extensible&nbsp;Markup&nbsp;Language<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(可延伸標記語言)&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&#60;/varlistentry&#62;<br>
+&nbsp;&nbsp;&#60;varlistentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;term&#62;HTML&#60;/term&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;term&#62;XHTML&#60;/term&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;HyperText&nbsp;Markup&nbsp;Language<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(超文字標記語言)&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&#60;/varlistentry&#62;<br>
+&#60;/variablelist&#62;</P
+></DIV
+><P
+>如果你夠細心，你會看出我在 DocBook 兩段條列式範例中，在第三條用了兩個 <TT
+CLASS="SGMLTAG"
+>term</TT
+> 標籤，這不是錯誤。而是 DocBook 的兩段條列式允許用數個簡短名詞排列在一個區段，但只允許用一個解釋敘述區段。這和 HTML 的一個簡短名詞配一個解釋敘述的方法，有小小的差異。</P
+><P
+>現在讓我們做個完整的 article 文件吧：</P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;article&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;article&#62;&#60;title&#62;格式文件概論&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;sect1&#62;&#60;title&#62;常見的格式文件形式&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;我們常接觸到的標記語言文件有下列幾種：&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;variablelist&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;varlistentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;term&#62;SGML&#60;/term&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;Standard&nbsp;Generalized&nbsp;Markup&nbsp;Language<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(一般標準標記語言)&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/varlistentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;varlistentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;term&#62;XML&#60;/term&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;Extensible&nbsp;Markup&nbsp;Language<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(可延伸標記語言)&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/varlistentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;varlistentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;term&#62;HTML&#60;/term&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;term&#62;XHTML&#60;/term&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;HyperText&nbsp;Markup&nbsp;Language<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(超文字標記語言)&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/varlistentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/variablelist&#62;<br>
+&nbsp;&nbsp;&#60;/sect1&#62;<br>
+&#60;/article&#62;</P
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN438"
+></A
+>1.7.3. 簡單條列資料</H3
+><P
+>如果你的條列資料既不需編號，也不需要前面加個小圖示，只要分行顯示就好，那麼 DocBook 提供一個 <TT
+CLASS="SGMLTAG"
+>simplelist</TT
+> 標籤來達成目的。HTML 並沒有這樣相對應的標籤，範例表示法如下：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.SIMPLE.LIST"
+></A
+><P
+><B
+>Example 1-14. DocBook 的簡單列示資料表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;chapter&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;chapter&#62;&#60;title&#62;唐詩選粹&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;simplelist&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;member&#62;渭城朝雨浥輕塵&#60;/member&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;member&#62;客舍青青柳色新&#60;/member&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;member&#62;勸君更進一杯酒&#60;/member&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;member&#62;西出陽關無故人&#60;/member&#62;<br>
+&nbsp;&nbsp;&#60;/simplelist&#62;<br>
+&#60;/chapter&#62;</P
+></DIV
+></DIV
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN445"
+></A
+>1.8. 表格資料表示法</H2
+><P
+>表格資料最常見的就是我們資訊處理時的資料報表輸出格式，由數個欄位集合成一筆紀錄，由數筆記錄形成一張資料表。輸出時，依紀錄分行，依欄位分列，排列整齊成一個頁面。</P
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN448"
+></A
+>1.8.1. 表格結構分析</H3
+><P
+>不管是 DocBook 還是 HTML ，表格資料的區塊標籤都叫 <TT
+CLASS="SGMLTAG"
+>table</TT
+> ，但 DocBook 的表格資料則有些複雜，第一次嘗試的人常常容易搞混了。所以，本文將 <TT
+CLASS="SGMLTAG"
+>table</TT
+> 的結構，由下而上做一個分析解釋，當你弄懂了彼此關係後，就不會再被那些標籤名詞搞得眼花撩亂。</P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><P
+><B
+>表格資料組成分析列示表</B
+></P
+><DL
+><DT
+>entry</DT
+><DD
+><P
+>表格資料最小的組成單位，相當於資料表中的欄位或 cell，輸出樣式是一行字串中的一小段。</P
+></DD
+><DT
+>row</DT
+><DD
+><P
+>集合數 entry 而成一個 row，相當於資料表中的紀錄或 line，輸出樣式是一整行字串。</P
+></DD
+><DT
+>thead, tfoot, tbody</DT
+><DD
+><P
+>表頭,表尾,表身，這三者都是由數個 row 組合而成。三者中以表身為主體，也是一個 table 不可缺少的部份，其他表頭,表尾是選項，可依需求決定要或不要。這裡還有個要注意，如果表格中要用到表尾，他必須排列在表身主體之前，這裡我們把 tbody 放 tfoot 之後，不是疏忽，而是 DocBook DTD 定義要求如此。</P
+></DD
+><DT
+>colspec</DT
+><DD
+><P
+>colspec 本身並不容納任何資料，它是一個空標籤。它的目的在指明一個表格群組的每個欄位，應該有那些屬性，並賦予某些欄位名稱，以作為同表格中其他 entry 呼叫時的參考。</P
+></DD
+><DT
+>tgroup</DT
+><DD
+><P
+>由 colspec,thead,tfoot,tbody 四者組成的，就叫一個 tgroup，這也是表格資料顯示的主體。</P
+></DD
+><DT
+>table</DT
+><DD
+><P
+>將表格資料主體 tgroup 加上一些標題和附屬說明敘述，就構成了一個 table 的標籤結構。</P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN481"
+></A
+>1.8.2. 單一形式表格表示法</H3
+><P
+>上一節我們清楚了表格的基本結構後，要寫個單一形式的表格就十分容易了，譬如說我們來設計個人電腦的市場價格報告單：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.SIMPLE.TABLE"
+></A
+><P
+><B
+>Example 1-15. DocBook 單一形式表格</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;chapter&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;chapter&#62;&#60;title&#62;表格資料範例&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;table&#62;&#60;title&#62;PC&nbsp;系統估價表&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;tgroup&nbsp;cols="5"&#62;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;註1&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;thead&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;品名&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;鴻騎&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;華梭&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;紅海&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;備註&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/thead&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;tbody&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;主機&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;6500&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;7000&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;4500&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;硬碟&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;4330&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;5200&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;3700&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;監視器&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;7235&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;11000&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;8000&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/tbody&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/tgroup&#62;<br>
+&nbsp;&nbsp;&#60;/table&#62;<br>
+&#60;/chapter&#62;</P
+></DIV
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+>註1</DT
+><DD
+><P
+>每個 tgroup 標籤裡都要設定 cols 數目，表示這個表格組一共有幾個欄位。</P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN492"
+></A
+>1.8.3. 跨行列表格資料表示法</H3
+><P
+>上一節的範例就是個中規中矩的表格資料，大多數的資料表也都是這個樣。但如果更考究些，上面的表格表示法似乎仍有改進的空間，因為鴻騎,華梭,紅海這三個欄位，到底是什麼意思，有時令人無法確定。如果我們加個表頭欄位 [販售商]，那麼一眼就讓人看明白他們被做了那種歸類。問題是要把鴻騎,華梭,紅海這三個欄位跟販售商建立關係，我們習慣用一個跨欄格子來表示，要顯示跨欄，就必須使用到 <TT
+CLASS="SGMLTAG"
+>tgroup</TT
+> 標籤裡的 <TT
+CLASS="SGMLTAG"
+>colspec</TT
+> 標籤。下面是 <TT
+CLASS="SGMLTAG"
+>colspec</TT
+> 使用範例：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.CROSS.TABLE"
+></A
+><P
+><B
+>Example 1-16. DocBook 跨行列表格</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;chapter&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;chapter&#62;&#60;title&#62;表格資料範例&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;table&#62;&#60;title&#62;PC&nbsp;系統估價單&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;tgroup&nbsp;cols="5"&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;colspec&nbsp;colnum="1"&nbsp;colname="c1"&nbsp;align="center"&#62;&nbsp;&nbsp;&#60;!--&nbsp;註1&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;colspec&nbsp;colnum="2"&nbsp;colname="c2"&nbsp;align="right"&#62;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;註2&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;colspec&nbsp;colnum="3"&nbsp;colname="c3"&nbsp;align="right"&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;colspec&nbsp;colnum="4"&nbsp;colname="c4"&nbsp;align="right"&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;colspec&nbsp;colnum="5"&nbsp;colname="c5"&nbsp;align="left"&#62;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;註3&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;thead&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&nbsp;morerows="1"&nbsp;valign="middle"&#62;品名&#60;/entry&#62;&nbsp;&nbsp;&#60;!--&nbsp;註4&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&nbsp;namest="c2"&nbsp;nameend="c4"&nbsp;align="center"&#62;販售商&#60;/entry&#62;&nbsp;&nbsp;&#60;!--&nbsp;註5&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&nbsp;morerows="1"&nbsp;valign="middle"&nbsp;align="center"&#62;備註&#60;/entry&#62;&nbsp;&nbsp;&#60;!--&nbsp;註6&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;row&#62;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;註7&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&nbsp;align="center"&#62;鴻騎&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&nbsp;align="center"&#62;華梭&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&nbsp;align="center"&#62;紅海&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/thead&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;tbody&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;主機&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;6500&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;7000&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;4500&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;以下資料同上一表格範例，省略&nbsp;......&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/tbody&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/tgroup&#62;<br>
+&nbsp;&nbsp;&#60;/table&#62;<br>
+&#60;/chapter&#62;</P
+></DIV
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+>註1</DT
+><DD
+><P
+>colnum 標示第幾個欄位，colname 表示你要為此欄位取什麼樣的參考名稱，align 設定 center 是希望品項名稱擺中間。</P
+></DD
+><DT
+>註2</DT
+><DD
+><P
+>align 設定 right 是希望金額數字靠右顯示。</P
+></DD
+><DT
+>註3</DT
+><DD
+><P
+>align 設定 left 是希望備註字串從左開始顯示。</P
+></DD
+><DT
+>註4</DT
+><DD
+><P
+>morerows 屬性設定垂直跨行數目，0 是不跨，1 是跨一行，依此類推。之所以要讓[品名]這個 entry 垂直跨行，是因為表頭已被設為兩行。valign 設定 middle 表示垂直置中顯示。</P
+></DD
+><DT
+>註5</DT
+><DD
+><P
+>namest 是設定水平跨欄顯示的開始欄位名稱，也就是 tgroup 一開始用 colspec 為欄位取的參考名稱，nameend 是設定終止欄位名稱。namest 和 nameend 的成對使用，就標示出跨欄的開始和終止，這裡是從第二欄位到第四欄位。align 設定 middle 是希望不要像 colspec 的要求靠右，而是置中顯示。</P
+></DD
+><DT
+>註6</DT
+><DD
+><P
+>[備註] 這個 entry 必須設定 morerows 屬性的理由同註4。</P
+></DD
+><DT
+>註7</DT
+><DD
+><P
+>鴻騎,華梭,紅海這三個 entry 被改分到下個 row 去，由於第二個 row 的第一個 entry 已經被[品名]這個 entry 跨行佔掉，所以他們就被擠到第二個 entry 開始，也就剛好是[販售商]的下方。</P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN530"
+></A
+>1.8.4. 為表格增加說明訊息</H3
+><P
+>表格是格式非常嚴謹的資料，必須由同質資料項排列整齊才有意義。但一份資料總有些例外的狀況，不適合加入表格的行列中，但遺棄更不妥當。此時，我們就可以用 <TT
+CLASS="SGMLTAG"
+>textobject</TT
+> 標籤來收納一些不適合放在列表中，但卻很重要的附加訊息。範例如下：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.TABLE.SUBMES"
+></A
+><P
+><B
+>Example 1-17. DocBook 附加說明訊息表格</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;chapter&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;chapter&#62;&#60;title&#62;表格資料範例&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;textobject&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;blockquote&#62;&#60;attribution&#62;調查員老貢生於&nbsp;xxxx&nbsp;年&nbsp;xx&nbsp;月&nbsp;xx&nbsp;日&#60;/attribution&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;simplelist&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;member&#62;貨幣單位：新台幣&#60;/member&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;member&#62;調查範圍：台灣北部&#60;/member&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;member&#62;其他事項：資料全憑杜撰，有與事實相符不符者，皆屬巧合，恕不負責。&#60;/member&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/simplelist&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/blockquote&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/textobject&#62;<br>
+&nbsp;&nbsp;&#60;table&#62;&#60;title&#62;PC&nbsp;系統估價單&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;tgroup&nbsp;cols="5"&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;以上資料同上一表格範例，省略&nbsp;......&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;tbody&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;主機&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;6500&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;7000&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;4500&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;以下資料同上上一表格範例，省略&nbsp;......&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/tbody&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/tgroup&#62;<br>
+&nbsp;&nbsp;&#60;/table&#62;<br>
+&#60;/chapter&#62;</P
+></DIV
+><DIV
+CLASS="NOTE"
+><P
+></P
+><TABLE
+CLASS="NOTE"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="../images/note.gif"
+HSPACE="5"
+ALT="Note"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+><TT
+CLASS="SGMLTAG"
+>table</TT
+> 標籤區塊的結構，一定要有個 <TT
+CLASS="SGMLTAG"
+>title</TT
+> 的子標籤(DocBook DTD 定義的)。如果你不要你的表格有標題，請改用 <TT
+CLASS="SGMLTAG"
+>informaltable</TT
+> 標籤。它除了沒有 <TT
+CLASS="SGMLTAG"
+>title</TT
+> 之外，其他結構與 <TT
+CLASS="SGMLTAG"
+>table</TT
+> 相同。</P
+></TD
+></TR
+></TABLE
+></DIV
+></DIV
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN544"
+></A
+>1.9. 外部其他媒體格式檔案表示法</H2
+><P
+>就如同 HTML 所宣稱的，超文字標記語言，不只是純文字資料可以被傳送處理，非純文字型態的其他媒體格式資料，也可以透過 HTML 來傳送。其中最普遍利用的當然就是圖形資料了，HTML 插入其他媒體資料的標籤是 <TT
+CLASS="SGMLTAG"
+>img</TT
+>， DocBook 最簡單的方式是使用 <TT
+CLASS="SGMLTAG"
+>graphic</TT
+> 標籤。</P
+><P
+>你可以在你想要插入圖形的敘述中，插入 <TT
+CLASS="SGMLTAG"
+>graphic</TT
+> 標籤來顯示一個圖片：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.GRAPHIC"
+></A
+><P
+><B
+>Example 1-18. DocBook 的圖形資料顯示</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;chapter&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;chapter&#62;&#60;title&#62;Linux&nbsp;系統的吉祥動物&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;blockquote&#62;&#60;attribution&#62;吉祥動物的顯示樣式&#60;/attribution&#62;<br>
+&nbsp;&nbsp;&#60;para&#62;可不要以為企鵝是因為動物園裡的小國王企鵝烏麻薯<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;才名聲大噪的喔。早在&nbsp;Linux&nbsp;創始人&nbsp;Torvalds&nbsp;先生<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;選定企鵝作為&nbsp;Linux&nbsp;的吉祥物後，<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;graphic&nbsp;fileref="penguin.gif"&nbsp;format="GIF"&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;企鵝就活躍在每一台使用&nbsp;Linux&nbsp;為作業系統的電腦中<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;。&#60;/para&#62;&#60;/blockquote&#62;<br>
+&#60;/chapter&#62;</P
+></DIV
+><A
+NAME="AEN554"
+></A
+><TABLE
+BORDER="0"
+WIDTH="100%"
+CELLSPACING="0"
+CELLPADDING="0"
+CLASS="BLOCKQUOTE"
+><TR
+><TD
+WIDTH="10%"
+VALIGN="TOP"
+>&nbsp;</TD
+><TD
+WIDTH="80%"
+VALIGN="TOP"
+><P
+>可不要以為企鵝是因為動物園裡的小國王企鵝烏麻薯才名聲大噪的喔。早在 Linux 創始人 Torvalds 先生選定企鵝作為 Linux 的吉祥物後：
+<P
+><IMG
+SRC="penguin.gif"
+ALIGN="CENTER"></P
+>
+<EM
+>企鵝</EM
+>就活躍在每一台使用 Linux 為作業系統的電腦中。</P
+></TD
+><TD
+WIDTH="10%"
+VALIGN="TOP"
+>&nbsp;</TD
+></TR
+><TR
+><TD
+COLSPAN="2"
+ALIGN="RIGHT"
+VALIGN="TOP"
+>--<SPAN
+CLASS="ATTRIBUTION"
+>吉祥動物的顯示樣式</SPAN
+></TD
+><TD
+WIDTH="10%"
+>&nbsp;</TD
+></TR
+></TABLE
+><P
+>至於其他形式的外部檔案， DocBook 是使用 <TT
+CLASS="SGMLTAG"
+>mediaobject</TT
+> 這個標籤來處理。它的主要結構並不複雜，表列如下：</P
+><DIV
+CLASS="TABLE"
+><A
+NAME="TB.MEDIA"
+></A
+><P
+><B
+>Table 1-1. mediaobject 主要組成列表</B
+></P
+><TABLE
+BORDER="1"
+CLASS="CALSTABLE"
+><THEAD
+><TR
+><TH
+ALIGN="CENTER"
+VALIGN="TOP"
+>第一層標籤</TH
+><TH
+ALIGN="CENTER"
+VALIGN="TOP"
+>第二層標籤</TH
+><TH
+ALIGN="CENTER"
+VALIGN="TOP"
+>第三層標籤</TH
+><TH
+ALIGN="CENTER"
+VALIGN="TOP"
+>備註</TH
+></TR
+></THEAD
+><TBODY
+><TR
+><TD
+ROWSPAN="8"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+>mediaobject</TD
+><TD
+ROWSPAN="2"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+>videoobject</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>objectinfo</TD
+><TD
+ROWSPAN="2"
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>如同 imageobject 標籤備註</P
+></TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>videodata</TD
+></TR
+><TR
+><TD
+ROWSPAN="2"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+>audioobject</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>objectinfo</TD
+><TD
+ROWSPAN="2"
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>如同 imageobject 標籤備註</P
+></TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>audiodata</TD
+></TR
+><TR
+><TD
+ROWSPAN="2"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+>imageobject</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>objectinfo</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>本物件的附加訊息或詮釋資料</P
+></TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>imagedata</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+><TT
+CLASS="SGMLTAG"
+>imagedata</TT
+> 是用來指明外部媒體檔案位址的空標籤，它用 fileref 屬性指向的，可能是本機位址，也可以是網路位址。</P
+></TD
+></TR
+><TR
+><TD
+ROWSPAN="2"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+>textobject</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>objectinfo</TD
+><TD
+ROWSPAN="2"
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>如同 imageobject 標籤備註</P
+></TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>textdata</TD
+></TR
+></TBODY
+></TABLE
+></DIV
+><P
+>所以同樣的資料內容，如果要改用 <TT
+CLASS="SGMLTAG"
+>mediaobject</TT
+> 標籤的話，應該採用下列範例的表示法。這個標籤比 graphic 標籤更多的利用是，不只圖形，其他影音格式檔案也有適當的標籤加以表示，方法和 imageobject 差不多。</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.MEDIA"
+></A
+><P
+><B
+>Example 1-19. DocBook 的外部多媒體資料顯示</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;chapter&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;chapter&#62;&#60;title&#62;Linux&nbsp;系統的吉祥動物&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;mediaobject&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;imageobject&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;imagedata&nbsp;fileref="penguin.gif"&nbsp;format="GIF"&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/imageobject&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;caption&#62;&#60;para&#62;可不要以為企鵝是因為動物園裡的小國王企鵝烏麻薯<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;才名聲大噪的喔。早在&nbsp;Linux&nbsp;創始人&nbsp;Torvalds&nbsp;先生選定企鵝作<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;為&nbsp;Linux&nbsp;的吉祥物後，企鵝就活躍在每一台使用&nbsp;Linux&nbsp;為作業<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;系統的電腦中。&#60;/para&#62;&#60;/caption&#62;<br>
+&nbsp;&nbsp;&#60;/mediaobject&#62;<br>
+&#60;/chapter&#62;</P
+></DIV
+><P
+>此外不管是 <TT
+CLASS="SGMLTAG"
+>graphic</TT
+> or <TT
+CLASS="SGMLTAG"
+>mediaobject</TT
+> ，DocBook 都提供了一個相對應的標籤 <TT
+CLASS="SGMLTAG"
+>inlinegraphic</TT
+> 和 <TT
+CLASS="SGMLTAG"
+>inlinemediaobject</TT
+> 。這是因為不管是 <TT
+CLASS="SGMLTAG"
+>graphic</TT
+> or <TT
+CLASS="SGMLTAG"
+>mediaobject</TT
+> ，都是區塊標籤。DocBook 對區塊標籤顯示的處理方式都是不管他的前面是否有結束標籤出現，一律截斷原來的那行文字，另起一個新段落，我們看上面的 Linux 系統的吉祥動物 範例顯示即可知。</P
+><P
+>那如果我們希望圖片和文字不要切做兩行，而是合在一行裡顯示該怎麼辦呢？那就是 <TT
+CLASS="SGMLTAG"
+>inlinegraphic</TT
+> 和 <TT
+CLASS="SGMLTAG"
+>inlinemediaobject</TT
+> 這兩個標籤派上用場的時候了。譬如我們的範例是：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.INLINE"
+></A
+><P
+><B
+>Example 1-20. DocBook inline 標籤的使用</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;chapter&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;chapter&#62;&#60;title&#62;3ybaby&nbsp;命名的由來&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;blockquote&#62;&#60;attribution&#62;台灣企鵝寶寶工作隊文告&#60;/attribution&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;台灣企鵝寶寶工作隊希望為台灣的學齡兒童創造一個&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;simplelist&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;member&#62;&#60;inlinegraphic&nbsp;fileref="lpen.png"&nbsp;format="PNG"&#62;more&nbsp;easy&#60;/member&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;member&#62;&#60;inlinegraphic&nbsp;fileref="lpen.png"&nbsp;format="PNG"&#62;more&nbsp;funny&#60;/member&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;member&#62;&#60;inlinegraphic&nbsp;fileref="lpen.png"&nbsp;format="PNG"&#62;more&nbsp;steady&#60;/member&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/simplelist&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;的資訊操作環境。&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;/blockquote&#62;<br>
+&#60;/chapter&#62;</P
+></DIV
+><P
+>而呈現出來的輸出樣式如下：</P
+><A
+NAME="AEN622"
+></A
+><TABLE
+BORDER="0"
+WIDTH="100%"
+CELLSPACING="0"
+CELLPADDING="0"
+CLASS="BLOCKQUOTE"
+><TR
+><TD
+WIDTH="10%"
+VALIGN="TOP"
+>&nbsp;</TD
+><TD
+WIDTH="80%"
+VALIGN="TOP"
+><P
+>台灣企鵝寶寶工作隊希望為台灣的學齡兒童創造一個</P
+><P
+></P
+><TABLE
+BORDER="0"
+><TBODY
+><TR
+><TD
+><IMG
+SRC="lpen.png">more easy
+        </TD
+></TR
+><TR
+><TD
+><IMG
+SRC="lpen.png">more funny
+        </TD
+></TR
+><TR
+><TD
+><IMG
+SRC="lpen.png">more steady
+        </TD
+></TR
+></TBODY
+></TABLE
+><P
+></P
+><P
+>的資訊操作環境。</P
+></TD
+><TD
+WIDTH="10%"
+VALIGN="TOP"
+>&nbsp;</TD
+></TR
+><TR
+><TD
+COLSPAN="2"
+ALIGN="RIGHT"
+VALIGN="TOP"
+>--<SPAN
+CLASS="ATTRIBUTION"
+>台灣企鵝寶寶工作隊文告</SPAN
+></TD
+><TD
+WIDTH="10%"
+>&nbsp;</TD
+></TR
+></TABLE
+><DIV
+CLASS="NOTE"
+><P
+></P
+><TABLE
+CLASS="NOTE"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="../images/note.gif"
+HSPACE="5"
+ALT="Note"></TD
+><TH
+ALIGN="LEFT"
+VALIGN="CENTER"
+><B
+>DocBook 能使用的多媒體格式</B
+></TH
+></TR
+><TR
+><TD
+>&nbsp;</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>一般來說多媒體標籤會透過 format 屬性來描述外部檔案的格式，而 DocBook DTD 裡也規定了大部分網路上各種通用多媒體格式的簡稱。但很重要的一個觀念是，DocBook 本身不負責任何資料的顯示，所以最終這些格式檔案能否被正確處理，是要由各種格式檔案的瀏覽器功能來決定，DocBook 只負責告訴處理程式，檔案位置在那裡，是那種通用的型態格式而已。</P
+></TD
+></TR
+></TABLE
+></DIV
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN636"
+></A
+>1.10. 書籤與聯結的表示法</H2
+><P
+>整個 HTML 標籤裡面最令人欣喜的功能，莫過於 Anchor 了。Anchor 在 HTML 中主要的功能是賦予閱覽者改變預設的閱讀順序，而能像跳躍一般的離開現在的文字敘述，進入另一個敘述區段中，它賦予讀者主動控制的權力，讓 HTML 文件產生其他形式文件無可比擬的魅力。DocBook 一樣也提供了這樣的表示方法，不過和 HTML 不同的是，不管是文件內部的跳躍(一般我們稱為書籤功能)，或是文件到另一個文件的跳躍(一般我們稱為聯結)，HTML 一概是使用 <TT
+CLASS="SGMLTAG"
+>a</TT
+>(anchor 的縮寫)來表示，但 DocBook 在這方面卻有更詳細的劃分和使用方式，下面就為大家一一介紹。</P
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN640"
+></A
+>1.10.1. link(書籤)的表示法</H3
+><P
+>我們這裡所說的書籤，是指不管閱讀動線跳躍的啟動點和目標點，都在同一份文件中。把目標點稱為書籤，而在啟動點，我們會給些訊息文字，讓閱覽者決定是否執行跳躍動作。</P
+><P
+>在 HTML 中，不管是書籤(跳躍的目的端)的插入，或是跳躍啟動點的表示，都是同樣的用 <TT
+CLASS="SGMLTAG"
+>a</TT
+> 標籤，只是動用的標籤屬性不同來區別而已。範例如下：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="AEN645"
+></A
+><P
+><B
+>Example 1-21. HTML 的書籤表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;html&nbsp;PUBLIC&nbsp;"-//W3C//DTD&nbsp;HTML&nbsp;4.01&nbsp;Transitional//EN"&#62;<br>
+&#60;html&#62;<br>
+&#60;head&#62;&#60;/head&#62;<br>
+&#60;body&#62;<br>
+&nbsp;&nbsp;&#60;h2&#62;文件中的跳躍&#60;/h2&#62;<br>
+&nbsp;&nbsp;&#60;div&#62;&#60;p&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;a&nbsp;name="para-a"&#62;&#60;/a&#62;&nbsp;&nbsp;&#60;!--&nbsp;註1&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;這是第一個段落。&#60;/p&#62;<br>
+&nbsp;&nbsp;&#60;/div&#62;<br>
+&nbsp;&nbsp;&#60;div&#62;&#60;p&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;這是第二個段落。&#60;a&nbsp;href="#para-a"&#62;回到第一個段落&#60;/a&#62;&nbsp;&nbsp;&#60;!--&nbsp;註2&nbsp;--&#62;<br>
+&nbsp;&nbsp;&#60;/p&#62;&#60;/div&#62;<br>
+&#60;/body&#62;&#60;/html&#62;</P
+></DIV
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+>註1</DT
+><DD
+><P
+>跳躍的目標點(書籤位置)，使用屬性 name 來賦予該標籤一個特定名稱，以便跳躍啟動點參考。</P
+></DD
+><DT
+>註2</DT
+><DD
+><P
+>跳躍的啟動點，屬性 href 標明要跳到那個目標去，開始標籤和結束標籤中間，是給讀者的提示訊息。</P
+></DD
+></DL
+></DIV
+><P
+>但對 DocBook 來說，閱讀動線跳躍的啟動點和目標點是兩個不同的標籤，目標點是 <TT
+CLASS="SGMLTAG"
+>anchor</TT
+> ，啟動點是 <TT
+CLASS="SGMLTAG"
+>link</TT
+> ，不能互相混用的。範例如下：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.ANCH"
+></A
+><P
+><B
+>Example 1-22. DocBook 的書籤表示法(1)</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;chapter&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;chapter&#62;&#60;title&#62;文件中的跳躍&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;anchor&nbsp;id="para-a"&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;這是第一個段落。<br>
+&nbsp;&nbsp;&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;這是第二個段落。&#60;link&nbsp;linkend="para-a"&#62;回到第一個段落&#60;/link&#62;<br>
+&nbsp;&nbsp;&#60;/para&#62;<br>
+&#60;/chapter&#62;</P
+></DIV
+><DIV
+CLASS="WARNING"
+><P
+></P
+><TABLE
+CLASS="WARNING"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="../images/warning.gif"
+HSPACE="5"
+ALT="Warning"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>DocBook link 標籤的 linkend 屬性字串前，不可以加 '#' 字符，這和 HTML a 標籤的 href 字串要加 '#' 前置字符是不一樣的。</P
+></TD
+></TR
+></TABLE
+></DIV
+><P
+>其實在 DocBook 文件中任何一個附帶有 title 的區塊標籤，只要你設定了它的 id 屬性，他就可以變成一個跳躍的目標點。譬如：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.LINK"
+></A
+><P
+><B
+>Example 1-23. DocBook 的書籤表示法(2)</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;chapter&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;chapter&#62;&#60;title&#62;文件中的跳躍&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;para&#62;章引言...&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;sect1&nbsp;id="se1"&#62;&#60;title&#62;第一節&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;這是第一節段落。<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;/sect1&#62;<br>
+&nbsp;&nbsp;&#60;sect1&#62;&#60;title&#62;第二節&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;這是第二節段落。&#60;link&nbsp;linkend="se1"&#62;回到第一節&#60;/link&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;/title&#62;<br>
+&#60;/chapter&#62;</P
+></DIV
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN669"
+></A
+>1.10.2. ulink(聯結)的表示法</H3
+><P
+>在這裡我們把聯結定義為，閱讀動線跳躍目標在本份 DocBook 文件以外的其他文件上，而在本文所作的跳躍啟動點表示，DocBook 用 <TT
+CLASS="SGMLTAG"
+>ulink</TT
+> 標籤來表示這種關係狀態。<TT
+CLASS="SGMLTAG"
+>ulink</TT
+> 是 URL link 的簡寫，意思是指凡是能以 url 格式表示檔案位址的資料聯結皆可使用，這包括你本機某個標明路徑的檔案，或某份在網路上流通的文件。下面是它的範例：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.ULINK"
+></A
+><P
+><B
+>Example 1-24. DocBook 的聯結表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;chapter&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;chapter&#62;&#60;title&#62;跳到別的文件&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;我可以找個自己機器中的<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;ulink&nbsp;url="file:///etc/passwd"&#62;/etc/passwd&#60;/ulink&#62;看看。<br>
+&nbsp;&nbsp;&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;也可以到網路上參觀參觀<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;ulink&nbsp;url="http://www.gnu.org"&#62;GNU&nbsp;組織&#60;/ulink&#62;。<br>
+&nbsp;&nbsp;&#60;/para&#62;<br>
+&#60;/chapter&#62;</P
+></DIV
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN677"
+></A
+>1.10.3. 電子郵件信箱的表示法</H3
+><P
+>在 DocBook 中你可以像 HTML 一樣，使用 <TT
+CLASS="SGMLTAG"
+>a</TT
+> 標籤的 href 屬性設定電子郵件信箱位址來啟動瀏覽者的發信功能，不過你把標籤改作 <TT
+CLASS="SGMLTAG"
+>ulink</TT
+> 而已。像下面的敘述可以達到如 HTML E-Mail 啟動的效果。</P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;ulink&nbsp;url="mailto:使用者帳號@信箱位址"&#62;提示訊息&#60;/ulink&#62;</P
+><P
+>雖然在轉換成 HTML 後效果一樣，但一律使用 <TT
+CLASS="SGMLTAG"
+>ulink</TT
+> 標籤卻讓我們無法正確分類那些是啟動外部瀏覽網頁的聯結，而那些又是啟動發送電子郵件的聯結。為了實現 DocBook 清楚分類文件內容的設計理念，我認為在發送電子郵件的表示上，該用另一個標籤 <TT
+CLASS="SGMLTAG"
+>email</TT
+> 。這標籤啥學問都沒有，表示法就如下列簡單一行而已，但卻讓我們清楚的定義，這是一個 E-Mail ，不是其他網頁文件的 URL 。</P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;email&#62;使用者帳號@信箱位址&#60;/email&#62;</P
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN687"
+></A
+>1.10.4. xref(你的標題我顯示)</H3
+><P
+>除了提供類似 HTML 聯結表示法的 <TT
+CLASS="SGMLTAG"
+>anchor</TT
+>,<TT
+CLASS="SGMLTAG"
+>link</TT
+>,<TT
+CLASS="SGMLTAG"
+>ulink</TT
+>,<TT
+CLASS="SGMLTAG"
+>email</TT
+> 外，一個 DocBook 文件如果被轉譯器轉換成 HTML 格式文件，轉譯器會自動幫它換算插入大量的聯結目的及啟動提示訊息的表示敘述，譬如自動產生文件章節目錄，都是透過連結敘述達成的。除了自動產生的連結敘述外，DocBook 另外提供了比 HTML 連結敘述表示法更多功能的連結敘述表示法，後面的小節，我們將介紹一些非常好用的，DocBook 特有的連結敘述表示法。</P
+><P
+>首先我們要談的是 <TT
+CLASS="SGMLTAG"
+>xref</TT
+> 這個標籤，這個標籤粗看起來，和 <TT
+CLASS="SGMLTAG"
+>link</TT
+> 標籤的用法沒啥分別，例如：</P
+><A
+NAME="AEN697"
+></A
+><BLOCKQUOTE
+CLASS="BLOCKQUOTE"
+><P
+><B
+>link 與 xref 的表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;link&nbsp;linkend="目的標籤的&nbsp;ID&nbsp;字串"&#62;連結啟動提示訊息&#60;/link&#62;<br>
+&#60;xref&nbsp;linkend="目的標籤的&nbsp;ID&nbsp;字串"&nbsp;/&#62;</P
+></BLOCKQUOTE
+><P
+>除了 <TT
+CLASS="SGMLTAG"
+>xref</TT
+> 是個空標籤，不需像 <TT
+CLASS="SGMLTAG"
+>link</TT
+> 標籤容納連結啟動的提示訊息外，其他的表示敘述幾乎完全一樣。但這只是在 DocBook 陳述上相同，但它代表的意義和轉換成輸出格式後的表現卻截然不同。我們可以試著編譯下例看看：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.XREF"
+></A
+><P
+><B
+>Example 1-25. xref 與 link 輸出結果比較</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;chapter&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;chapter&#62;&#60;title&#62;目錄示範&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;formalpara&#62;&#60;title&#62;簡單目錄表&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;&#60;orderedlist&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;&#60;link&nbsp;linkend="exa"&#62;詩選一&#60;/link&#62;&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;&#60;xref&nbsp;linkend="exa"&#62;&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;&#60;xref&nbsp;linkend="exa"&nbsp;endterm="exatitle"/&#62;&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;註1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;註2&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/orderedlist&#62;&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;/formalpara&#62;<br>
+&nbsp;&nbsp;&#60;example&nbsp;id="exa"&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;title&nbsp;id="exatitle"&#62;鄭愁予詩選&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;simplelist&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;member&#62;我答答的馬蹄&#60;/member&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;member&#62;是個美麗的錯誤&#60;/member&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;member&#62;我不是歸人&#60;/member&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;member&#62;是個過客&#60;/member&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/simplelist&#62;<br>
+&nbsp;&nbsp;&#60;/example&#62;<br>
+&#60;/chapter&#62;</P
+></DIV
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+>註1, linkend</DT
+><DD
+><P
+>標明連結目標點何在的屬性，瀏覽器依其字串值前往指定的敘述區塊。</P
+></DD
+><DT
+>註2, endterm</DT
+><DD
+><P
+>表明這個連結的啟動提示訊息，要根據那個 title 的內涵值來顯示。</P
+></DD
+></DL
+></DIV
+><A
+NAME="AEN717"
+></A
+><BLOCKQUOTE
+CLASS="BLOCKQUOTE"
+><DIV
+CLASS="FORMALPARA"
+><P
+><B
+>簡單目錄表. </B
+><P
+></P
+><OL
+TYPE="1"
+><LI
+><P
+><A
+HREF="#EXA"
+>詩選一</A
+></P
+></LI
+><LI
+><P
+><A
+HREF="#EXA"
+>Example 1-26</A
+></P
+></LI
+><LI
+><P
+><A
+HREF="#EXA"
+><I
+>鄭愁予詩選</I
+></A
+>&#62;</P
+></LI
+></OL
+></P
+></DIV
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EXA"
+></A
+><P
+><B
+>Example 1-26. 鄭愁予詩選</B
+></P
+><P
+></P
+><TABLE
+BORDER="0"
+><TBODY
+><TR
+><TD
+>我答答的馬蹄</TD
+></TR
+><TR
+><TD
+>是個美麗的錯誤</TD
+></TR
+><TR
+><TD
+>我不是歸人</TD
+></TR
+><TR
+><TD
+>是個過客</TD
+></TR
+></TBODY
+></TABLE
+><P
+></P
+></DIV
+></BLOCKQUOTE
+><P
+>由以上的範例訊息可知，不管是 <TT
+CLASS="SGMLTAG"
+>link</TT
+> or <TT
+CLASS="SGMLTAG"
+>xref</TT
+> 都需要在連結的啟動點處顯示啟動提示訊息，但 <TT
+CLASS="SGMLTAG"
+>link</TT
+> 的提示訊息是由標籤自身內容字串決定的，一旦寫定就不會更改。但 <TT
+CLASS="SGMLTAG"
+>xref</TT
+> 的啟動點的提示訊息，卻是由連結目標點的 <TT
+CLASS="SGMLTAG"
+>title</TT
+> 內容字串決定的，這也就是本節標題附註，你的標題我顯示的含意。如果只是單純使用 linkend 屬性，<TT
+CLASS="SGMLTAG"
+>xref</TT
+> 通常是由 DSSSL 樣式表設定來推算啟動提示訊息，如果加設 endterm 屬性，那麼會把指定 ID 的 <TT
+CLASS="SGMLTAG"
+>title</TT
+> 內容字串，當作啟動提示訊息。</P
+><P
+>這個不以標籤本身的內容，而是以被連結端的標題為啟動提示訊息的特性，在製作文件索引上有很大的功用。因為當你要改文件內容時，你不需要內容和索引各改一次，你只要更改內容，再跑一次轉換編譯，索引就會跟著一併更正。此外在多人撰寫共同文件上這也是一大重要功能，因為撰寫共同文件時，文件內容常由組織成員分別擔任，但文件總目錄則由負責人控管，使用 <TT
+CLASS="SGMLTAG"
+>xref</TT
+> 在總目錄上，可以讓組織成員在想要更改自己那部份的文件標題時，不需事先協調總目錄負責人，他只要更改他自己這部份，最後改變的結果就會反應到總目錄上。</P
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN748"
+></A
+>1.10.5. footnote and footnoteref</H3
+><P
+>相信你在正式一點的書籍手冊或文件上，都會看到這樣的一種格式，如下列：</P
+><A
+NAME="AEN751"
+></A
+><BLOCKQUOTE
+CLASS="BLOCKQUOTE"
+><P
+><B
+>文件註腳的顯示</B
+></P
+><P
+><A
+NAME="FNOTECALL"
+></A
+>HTML 是一種由 SGML <A
+HREF="#FNOTETARGET"
+>[1]</A
+> 所定義出來的標記語言，又稱為超文字標記語言。他制定的目的是希望將文章的內容就顯示方式的不同加以分類，並制定成為一種通行於網路的共同標準。</P
+><P
+>DocBook 也是一種由 SGML <A
+HREF="#FNOTETARGET"
+>[1]</A
+> 定義出來的標記語言，它設計的目的不是為了敘明應該如何被呈現和顯示。而是在說明一個嚴謹的有組織的書籍,手冊或論文，應該包括那些內容組成，以及這些內容成份，該如何組織起來成一個有體系的架構。</P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+><A
+NAME="FNOTETARGET"
+></A
+><A
+HREF="#FNOTECALL"
+>[1]</A
+></DT
+><DD
+><P
+>SGML 是 Standard Genralized Markup Language 的縮寫，中譯為通用標準標記語言。這是一種描述文件分類及組織架構的表示語法，透過在文件中插入標記資料，來做文件內容分類和組織。及共同利用的目的。</P
+></DD
+></DL
+></DIV
+></BLOCKQUOTE
+><P
+>它的表示法範例如下：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.FOOTNOTE"
+></A
+><P
+><B
+>Example 1-27. DocBook 註腳連結表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;chapter&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;chapter&#62;&#60;title&#62;註腳示範&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;blockquote&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;HTML&nbsp;是一種由&nbsp;SGML<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;footnote&nbsp;id="sgmlref"&#62;&#60;para&#62;SGML&nbsp;是&nbsp;Standard&nbsp;Genralized&nbsp;Markup<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Language&nbsp;的縮寫，中譯為通用標準標記語言。這是一種描述文件分類及<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;組織架構的表示語法，透過在文件中插入標記資料，來做文件內容分類<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;和組織。及共同利用的目的。&#60;/para&#62;&#60;/footnote&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;所定義出來的標記語言，又稱為超文字標記語言。他制定的目的是希望<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;將文章的內容就顯示方式的不同加以分類，並制定成為一種通行於網路<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;的共同標準。&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;/blockquote&#62;<br>
+&nbsp;&nbsp;&#60;blockquote&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;DocBook&nbsp;也是一種由&nbsp;SGML<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;footnoteref&nbsp;linkend="sgmlref"&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;定義出來的標記語言，它設計的目的不是為了敘明應該如何被呈現和顯示<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;。而是在說明一個嚴謹的有組織的書籍,手冊或論文，應該包括那些內容<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;組成，以及這些內容成份，該如何組織起來成一個有體系的架構。&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;/blockquote&#62;<br>
+&#60;/chapter&#62;</P
+></DIV
+><P
+>由上面範例可知，在 DocBook 文件中，你需要對某個特殊名詞另做深入解釋時，只需要在該名詞後加一個 <TT
+CLASS="SGMLTAG"
+>footnote</TT
+> 區塊即可。在做輸出格式轉換時，轉譯器自動會為你抽離 <TT
+CLASS="SGMLTAG"
+>footnote</TT
+> 敘述，移到頁尾當註釋區塊，並在原註解處留下一個自動編號的索引連結。按一下索引連結到註釋，在註釋前按一下索引編號又回到原文閱讀處，一切由系統自動幫你設定，這麼好用又專業的標籤，不用真是糟蹋了。</P
+><DIV
+CLASS="NOTE"
+><P
+></P
+><TABLE
+CLASS="NOTE"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="../images/note.gif"
+HSPACE="5"
+ALT="Note"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>曾經做過的 <TT
+CLASS="SGMLTAG"
+>footnote</TT
+> 區塊可藉由設定 ID 屬性，供其他 <TT
+CLASS="SGMLTAG"
+>footnoteref</TT
+> 標籤做註釋參考，範例第二段即為此例用。</P
+></TD
+></TR
+></TABLE
+></DIV
+><DIV
+CLASS="NOTE"
+><P
+></P
+><TABLE
+CLASS="NOTE"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="../images/note.gif"
+HSPACE="5"
+ALT="Note"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+><TT
+CLASS="SGMLTAG"
+>footnote</TT
+>轉換輸出格式後的註釋區塊都集中放置於頁尾，所以如果你在執行轉換格式時，命令參數有加 -V nochunks(不分頁的全文件顯示)，那麼很可能好幾個章節的註釋都會集中一起，放文件尾端，而不是一章一節的分別放置，這多少會造成參考上的困擾，所以當你在使用 -V nochunks 參數時，要有這個認識才好。</P
+></TD
+></TR
+></TABLE
+></DIV
+></DIV
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN779"
+></A
+>1.11. 其他區塊資料的表示法</H2
+><P
+>前面敘述已經提過 para 是 DocBook 眾標籤中，最基本的區塊敘述，也幾乎可以說是文件內容組成的本體。但如果你想做一段敘述，型態和 para 差不了多少，但代表的意義和一般敘述不同，DocBook 提供你一些其他區塊標籤使用。這些區塊標籤結構最基本的組成是一個 para 加一個可選用的 title，他們可以插在任何 para 能插入的地方，做你在 para 中能做的事，但代表和 para 一般敘述不一樣的意義。下面就為你介紹一些 DocBook 中常用的，和 para 很像的其他區塊標籤表示法。</P
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN782"
+></A
+>1.11.1. blockquote--引用表示法</H3
+><P
+>這個標籤在 HTML 裡也常被使用，多半作為縮排的版面控制之用。但 DocBook 文件基本上是反對任何版面樣式設定資料參雜在文件中，所以 blockquote 在 DocBook 中的意義不是縮排，而是引用，也就是把存在別的文獻中的資料，或與目前本文非一類的資料，插入本文敘述中。例如下面的例子：</P
+><A
+NAME="AEN785"
+></A
+><TABLE
+BORDER="0"
+WIDTH="100%"
+CELLSPACING="0"
+CELLPADDING="0"
+CLASS="BLOCKQUOTE"
+><TR
+><TD
+WIDTH="10%"
+VALIGN="TOP"
+>&nbsp;</TD
+><TD
+WIDTH="80%"
+VALIGN="TOP"
+><P
+><B
+>滕王閣序</B
+></P
+><P
+>落霞與孤鶩齊飛，秋水共長天一色。</P
+></TD
+><TD
+WIDTH="10%"
+VALIGN="TOP"
+>&nbsp;</TD
+></TR
+><TR
+><TD
+COLSPAN="2"
+ALIGN="RIGHT"
+VALIGN="TOP"
+>--<SPAN
+CLASS="ATTRIBUTION"
+>唐朝 王勃</SPAN
+></TD
+><TD
+WIDTH="10%"
+>&nbsp;</TD
+></TR
+></TABLE
+><P
+>表示法的範例是：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.BLOCK"
+></A
+><P
+><B
+>Example 1-28. 引用資料表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&nbsp;&nbsp;&#60;blockquote&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;title&#62;滕王閣序&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;attribution&#62;唐朝&nbsp;王勃&#60;/attribution&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;落霞與孤鶩齊飛，秋水共長天一色。&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;/blockquote&#62;</P
+></DIV
+><P
+>由範例可知上面的 blockquote 基本上由 title,attribution,para 構成，title 是這引用區塊的標題，attribution 是引用區塊的資料出處，至於 para 還是原來用法，負責展示資料內容。</P
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN794"
+></A
+>1.11.2. figure--圖解表示法</H3
+><P
+>圖表對於某些繁雜的文字敘述，常有以簡馭繁，畫龍點睛之效，所以在很多技術書籍文件上，圖表也是資料的一個重要類別。譬如 DocBook 的 DTD 文件是由許多附屬子文件組織起來的，要說明他的各部份及彼此關係，實是耗費言詞的一大挑戰，所以這時我們用個 figure 來圖表說明一番，反而有更好的效果。</P
+><DIV
+CLASS="FIGURE"
+><A
+NAME="PIC.DTD.STRUC"
+></A
+><P
+><B
+>Figure 1-1. DocBook DTD 文件組成結構圖</B
+></P
+><P
+><IMG
+SRC="http://www.docbook.org/tdg/en/html/figures/docbook-module-flowchart.png"></P
+></DIV
+><P
+>上面這個圖解的 DocBook 表示法如下一個範例：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.FIGURE"
+></A
+><P
+><B
+>Example 1-29. 圖解說明的表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&nbsp;&nbsp;&#60;figure&#62;&#60;title&#62;DocBook&nbsp;DTD&nbsp;文件組成結構圖&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;graphic&nbsp;fileref="pictureURL"&#62;<br>
+&nbsp;&nbsp;&#60;/figure&#62;</P
+></DIV
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN804"
+></A
+>1.11.3. example--範例表示法</H3
+><P
+>在許多使用者導讀或技術手冊裡，幾乎不可免的，你必須模擬出一個可行步驟來提供閱覽者模仿操作，一般我們稱這為範例資料，亦如本手冊，你可以看見大量的範例區塊資料被使用。你可以把範例(example) 看作是一個 title 加一個 para 的基本型態，但也可以用其他與 para 同層級的資料區塊來取代 para ，範例如下：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.EXAM"
+></A
+><P
+><B
+>Example 1-30. 範例說明的表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&nbsp;&nbsp;&#60;example&#62;&#60;title&#62;安裝&nbsp;OpenJade&nbsp;的步驟&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;orderedlist&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;#&nbsp;tar&nbsp;-zxvf&nbsp;openjade-1.3.x.tar.gz&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;#&nbsp;cd&nbsp;openjade-1.3.x&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;#&nbsp;./configure&nbsp;--prefix=/usr/local/lib/openjade&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;#&nbsp;make&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;listitem&#62;&#60;para&#62;#&nbsp;make&nbsp;install&#60;/para&#62;&#60;/listitem&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/orderedlist&#62;<br>
+&nbsp;&nbsp;&#60;/example&#62;</P
+></DIV
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN810"
+></A
+>1.11.4. 其他的一些類似 para 標籤</H3
+><P
+>DocBook 還有些資料區塊標籤的設立，並不是因為資料格式的特別，而是要賦予該資料強調或特殊意義。例如下面的表列，可以是前面討論的資料區塊任一種，但特別蘊含了某種意義，這蘊含的意義相信你看標籤的功能敘述即可一目了然。</P
+><DIV
+CLASS="TABLE"
+><A
+NAME="TB.OTHERBLOCK"
+></A
+><P
+><B
+>Table 1-2. 特殊意義的區塊標籤</B
+></P
+><TABLE
+BORDER="1"
+CLASS="CALSTABLE"
+><TBODY
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>標籤名稱</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>caution</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>important</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>note</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>tip</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>warning</TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>訊息分類</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>注意</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>重要</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>備註</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>訣竅</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>警告</TD
+></TR
+></TBODY
+></TABLE
+></DIV
+><P
+>這些類 para 區段標籤除了多加個選項性質的 title(可用可不用)外，其他表示方法一如前面的各種區塊資料，例如：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.TIP"
+></A
+><P
+><B
+>Example 1-31. tip 區塊表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;tip&#62;<br>
+&nbsp;&nbsp;&#60;para&#62;<br>
+&nbsp;&nbsp;為章節的區塊標籤加設&nbsp;ID&nbsp;屬性的話，到執行翻譯轉換成&nbsp;HTML&nbsp;分頁輸出<br>
+&nbsp;&nbsp;格式時，會以該章節的&nbsp;ID&nbsp;字串作為網頁的檔案名稱。<br>
+&nbsp;&nbsp;&#60;/para&#62;<br>
+&#60;/tip&#62;</P
+></DIV
+><P
+>輸出樣式為：</P
+><DIV
+CLASS="TIP"
+><P
+></P
+><TABLE
+CLASS="TIP"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="../images/tip.gif"
+HSPACE="5"
+ALT="Tip"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>為章節的區塊標籤加設 ID 屬性的話，到執行翻譯轉換成 HTML 分頁輸出格式時，會以該章節的 ID 字串作為網頁的檔案名稱。</P
+></TD
+></TR
+></TABLE
+></DIV
+></DIV
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN838"
+></A
+>1.12. 字串強調表示法</H2
+><P
+>與前面特殊區塊不同的是，字串強調標籤僅在標示一個字串，而非一整個段落，常用的特殊字串標籤有下列各項。</P
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN841"
+></A
+>1.12.1. emphasis--強調</H3
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.EMPH"
+></A
+><P
+><B
+>Example 1-32. 字串強調表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&nbsp;&nbsp;&#60;para&#62;<br>
+&nbsp;&nbsp;本文主要在介紹由&nbsp;SGML&nbsp;標記語言所定義出來的<br>
+&nbsp;&nbsp;&#60;emphasis&#62;DocBook&#60;/emphasis&#62;<br>
+&nbsp;&nbsp;格式文件寫作方法。<br>
+&nbsp;&nbsp;&#60;/para&#62;</P
+></DIV
+><P
+>顯示樣式:</P
+><P
+>本文主要在介紹由 SGML 標記語言所定義出來的 <EM
+>DocBook</EM
+> 格式文件寫作方法。</P
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN849"
+></A
+>1.12.2. subscript--字串下標</H3
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.SUB"
+></A
+><P
+><B
+>Example 1-33. 字串下標表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&nbsp;&nbsp;&#60;para&#62;水的化學分子結構是&nbsp;H&#60;subscript&#62;2&#60;/subscript&#62;O&#60;/para&#62;</P
+></DIV
+><P
+>顯示樣式:</P
+><P
+>水的化學分子結構是 H<SUB
+>2</SUB
+>O</P
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN857"
+></A
+>1.12.3. suiperscript--字串上標</H3
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.SUPER"
+></A
+><P
+><B
+>Example 1-34. 字串上標表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&nbsp;&nbsp;&#60;para&#62;<br>
+&nbsp;&nbsp;2&#60;superscript&#62;&nbsp;2&nbsp;&#60;/superscript&#62;&nbsp;+<br>
+&nbsp;&nbsp;3&#60;superscript&#62;&nbsp;2&nbsp;&#60;/superscript&#62;&nbsp;=13<br>
+&nbsp;&nbsp;&#60;/para&#62;</P
+></DIV
+><P
+>顯示樣式:</P
+><P
+>2<SUP
+> 2 </SUP
+> + 3<SUP
+> 2 </SUP
+> =13</P
+></DIV
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN866"
+></A
+>1.13. 其他標籤使用方法</H2
+><DIV
+CLASS="SECT2"
+><H3
+CLASS="SECT2"
+><A
+NAME="AEN868"
+></A
+>1.13.1. 保留原來的版面樣式</H3
+><P
+>SGML 系列的格式文件有一個共通的特性就是忽略排版字元，不管連續的空白字元，跳位字元，斷行字元，一律以一個空白字元代替。所以一般特定字元的位置設定在 DocBook 中是無效的。</P
+><P
+>如果我們要空白跳位斷行這些字元發揮其原有的功能，在 HTML 裡我們一律以 pre 這個標籤來代表。但 DocBook 卻有 literallayout, programlisting, screen, synopsis 這些標籤來表示。這些標籤的資料性質和顯示效果大同小異，之所以取不同名字，literallayout 表一般含格式文字，programlisting 表程式命令語法，screen 表示電腦終端顯示，synopsis 摘要表示。DocBook 轉換成 HTML 則都以 pre 標籤顯示。</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.LITER"
+></A
+><P
+><B
+>Example 1-35. 版面格式表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;literallayout&#62;<br>
+我躂躂的馬蹄<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;是個美麗的錯誤<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;我不是歸人<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;是個過客<br>
+&#60;/literallayout&#62;</P
+></DIV
+><A
+NAME="AEN875"
+></A
+><BLOCKQUOTE
+CLASS="BLOCKQUOTE"
+><P
+><B
+>顯示樣式</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>我躂躂的馬蹄<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;是個美麗的錯誤<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;我不是歸人<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;是個過客</P
+></BLOCKQUOTE
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN878"
+></A
+>1.13.2. 特殊字元的顯示及除能</H3
+><P
+>SGML 預設有下列的特殊功能字元：</P
+><DIV
+CLASS="TABLE"
+><A
+NAME="TB.DELI.CHAR"
+></A
+><P
+><B
+>Table 1-3. DocBook 特殊字元表</B
+></P
+><TABLE
+BORDER="1"
+CLASS="CALSTABLE"
+><THEAD
+><TR
+><TH
+WIDTH="25%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>字元顯示</TH
+><TH
+WIDTH="25%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>ASCII 十進位碼</TH
+><TH
+WIDTH="25%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>實體字串</TH
+><TH
+WIDTH="25%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>功能敘述</TH
+></TR
+></THEAD
+><TBODY
+><TR
+><TD
+WIDTH="25%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>&#60;</TD
+><TD
+WIDTH="25%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>60</TD
+><TD
+WIDTH="25%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>&#38;lt;</TD
+><TD
+WIDTH="25%"
+ALIGN="LEFT"
+VALIGN="TOP"
+>標記開始字元</TD
+></TR
+><TR
+><TD
+WIDTH="25%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>&#62;</TD
+><TD
+WIDTH="25%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>62</TD
+><TD
+WIDTH="25%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>&#38;gt;</TD
+><TD
+WIDTH="25%"
+ALIGN="LEFT"
+VALIGN="TOP"
+>標記結束字元</TD
+></TR
+><TR
+><TD
+WIDTH="25%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>&#38;</TD
+><TD
+WIDTH="25%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>38</TD
+><TD
+WIDTH="25%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>&#38;amp;</TD
+><TD
+WIDTH="25%"
+ALIGN="LEFT"
+VALIGN="TOP"
+>實體字串前置字元</TD
+></TR
+><TR
+><TD
+WIDTH="25%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>"</TD
+><TD
+WIDTH="25%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>34</TD
+><TD
+WIDTH="25%"
+ALIGN="CENTER"
+VALIGN="TOP"
+>&#38;quot;</TD
+><TD
+WIDTH="25%"
+ALIGN="LEFT"
+VALIGN="TOP"
+>字串包夾字元</TD
+></TR
+></TBODY
+></TABLE
+></DIV
+><P
+>由上列表可知，由於這些字元負有協助標記解析的分隔資料功能，所以當其出現時，並非原來表示的字元含意了。這時如果我們仍要顯示其原本代表的字元，就必須用表列的實體字串來表示要顯示該字元的含意。</P
+><P
+>如果你想要解除這些特殊字元的標記分隔功能，讓他們去顯示他們原來的字元意義，那麼 SGML 一個通用的區段標記也適用在 DocBook。範例如下：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.DISABLE.DELI"
+></A
+><P
+><B
+>Example 1-36. 特殊字元除能表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;literallayout&#62;<br>
+&#60;![CDATA[<br>
+&nbsp;&nbsp;&#60;chapter&#62;&#60;title&#62;章標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;章段落敘述&nbsp;......&nbsp;&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;/chapter&#62;<br>
+]]&#62;<br>
+&#60;/literallayout&#62;</P
+></DIV
+></DIV
+></DIV
+></DIV
+><DIV
+CLASS="CHAPTER"
+><HR><H1
+><A
+NAME="AEN920"
+></A
+>Chapter 2. 特殊資料格式的標籤</H1
+><P
+>在前一章談到的基本標籤表示法，不管那一種格式文件，都會利用的到。但既然 DocBook 主要的目的在 write a book，那麼我們就不能不介紹，一本書中，除了主要的章節敘述外，其他比較不一樣的資料格式，譬如說是作者出版資訊，版權宣告，參考書目，及詞彙索引等等。這些特殊格式資料的出現位置大抵如下：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.WHOLE"
+></A
+><P
+><B
+>Example 2-1. Book 的特殊資料區段位置</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;book&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;book&#62;&#60;title&#62;書籍名稱&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;bookinfo&#62;作者及其他相關出版訊息...&#60;/bookinfo&#62;<br>
+&nbsp;&nbsp;&#60;dedication&#62;作者序言...&#60;/dedication&#62;<br>
+&nbsp;&nbsp;&#60;index&#62;自製區段資料索引...&#60;/index&#62;<br>
+&nbsp;&nbsp;&#60;chapter&#62;&#60;title&#62;章標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;sect1&#62;&#60;title&#62;節標題&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;節敘述...&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/sect1&#62;<br>
+&nbsp;&nbsp;&#60;/chapter&#62;<br>
+&nbsp;&nbsp;&#60;chapter&#62;&#60;title&#62;...&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;......<br>
+&nbsp;&nbsp;&#60;/chapter&#62;<br>
+&nbsp;&nbsp;&#60;appendix&#62;&#60;title&#62;附錄&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;qandaset&#62;問題解答集...&#60;/qandaset&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;qlossary&#62;專業詞彙解釋...&#60;/qlossary&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;bibliographic&#62;參考書目...&#60;/bibliographic&#62;<br>
+&nbsp;&nbsp;&#60;/appendix&#62;<br>
+&#60;/book&#62;</P
+></DIV
+><P
+>至於上面的範例，格式並不完整，如果你直接將他交給解譯程式，通常不會有正確結果。之所以要如此表示，只是說明他們可能出現在一本書的那個位置，至於各特殊格式資料標籤的完整而合法的表示法，請看接下來的各章節。</P
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="CHP.INFO"
+></A
+>2.1. 出版訊息表示法</H2
+><P
+>DocBook 表示出版訊息的標籤是 bookinfo，解釋是 Meta-information，詮釋訊息，詮釋什麼呢？似乎仍然很隱晦。其實從實質內容組成來說比定義解釋容易令人恍然大悟，就是說明文件的作者,出版商,出版日期...等等，這些與書籍的主要目的無關，但又不能不交待的一些資料。</P
+><P
+>實際上 DocBook 的每個主要資料區塊都有他自己所屬的 info 標籤，如 book 的 info 標籤叫 bookinfo，chapter 的叫 chapterinfo ，article 的叫 articleinfo，甚至連 sect 也有 sectinfo，其他區塊也有的配有專屬的 blockinfo。至於為何 DocBook 不用統一的 info 來為所有這類區塊的標籤命名，而要不同的所屬有自己專屬名稱的 info 標籤？或許是一種策略選擇，統一的 info 命名比較好使用製作，但採用不同的名稱，保留了文件轉換輸出時，可以分別不同類型區塊的不同處理方式<A
+NAME="AEN931"
+HREF="#FTN.AEN931"
+>[10]</A
+>。</P
+><P
+>下面用本手冊的 bookinfo 範例來說明，當能讓你更明白 info 標籤的組成結構。更詳細的 bookinfo 及其他 info 的結構，請參考 <A
+HREF="http://www.docbook.org/tdg/en/html/docbook.html"
+TARGET="_top"
+>DocBook 線上手冊</A
+>。</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.INFO"
+></A
+><P
+><B
+>Example 2-2. bookinfo 出版訊息表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;bookinfo&#62;<br>
+&nbsp;&nbsp;&#60;title&#62;DocBook&nbsp;文件寫作入門&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;legalnotice&#62;&#60;para&#62;版權宣告敘述...&#60;/para&#62;&#60;/legalnotice&#62;<br>
+&nbsp;&nbsp;&#60;abstract&#62;&#60;para&#62;書籍簡介敘述&nbsp;...&#60;/para&#62;&#60;/abstract&#62;<br>
+&nbsp;&nbsp;&#60;authorgroup&#62;&nbsp;&nbsp;&#60;!--&nbsp;作者群(可有許多作者)&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;author&#62;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;作者&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;honorific&#62;先生&#60;/honorific&#62;&nbsp;&nbsp;&#60;!--&nbsp;尊敬稱謂&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;firstname&#62;...&#60;/firstname&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;surname&#62;...&#60;/surname&#62;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;姓，家族名稱。&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;othername&#62;...&#60;/othername&#62;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;別名，暱名。&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;affiliation&#62;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;所屬組織&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;jobtitle&#62;編輯&#60;/jobtitle&#62;&nbsp;&nbsp;&#60;!--&nbsp;在組織中的職稱&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;orgname&#62;台灣企鵝寶寶工作隊&#60;/orgname&#62;&nbsp;&nbsp;&#60;!--&nbsp;作者所屬組織名稱&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;orgdiv&#62;資料組&#60;/orgdiv&#62;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;在組織中所屬部門名稱&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/affiliation&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;address&#62;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;作者真實世界的地址&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;street&#62;...&#60;/street&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;postcode&#62;...&#60;postcode&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;city&#62;...&#60;/city&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;state&#62;...&#60;/state&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;country&#62;...&#60;/country&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;phone&#62;...&#60;/phone&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;fax&#62;...&#60;/fax&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;email&#62;xxx@xxx.xxx.tw&#60;/email&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/address&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/author&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;editor&#62;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;編輯&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;組成之子標籤同於&nbsp;author&nbsp;之子標籤&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/editor&#62;<br>
+&nbsp;&nbsp;&#60;/authorgroup&#62;<br>
+&nbsp;&nbsp;&#60;publisher&#62;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;出版者&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;publishername&#62;台灣企鵝寶寶工作隊&#60;/publishername&#62;&nbsp;&nbsp;&#60;!--&nbsp;出版機構名稱&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;address&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;組成同於&nbsp;author&nbsp;之子標籤&nbsp;address&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/address&#62;<br>
+&nbsp;&nbsp;&#60;/publisher&#62;<br>
+&nbsp;&nbsp;&#60;revhistory&#62;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;出版紀錄，可以有很多版本。&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;revision&#62;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;!--&nbsp;某一版本&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;revnumber&#62;n.n.n&#60;/revnumber&#62;&nbsp;&#60;!--&nbsp;版本編號&nbsp;--&#62;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;date&#62;day/month/year&#60;/date&#62;&nbsp;&nbsp;&#60;!--&nbsp;發佈出版日期&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;authorinitials&#62;...&#60;/authorinitials&#62;&nbsp;&nbsp;&#60;!--&nbsp;作者簡稱識別&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;revremark&#62;第一次草稿&#60;/revremark&#62;&nbsp;&nbsp;&#60;!--&nbsp;版本發佈簡述&nbsp;--&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/revision&#62;<br>
+&nbsp;&nbsp;&#60;/revhistory&#62;<br>
+&#60;/bookinfo&#62;</P
+></DIV
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN938"
+></A
+>2.2. 作者序言表示法</H2
+><P
+>相信你去書局買的書，在一切章節開始之前，打開書皮的前幾頁，多半少不了，會有一個作者自序，來介紹自己的著作經過或感謝一些人。也有的會邀請其他社會名望之士代為寫序，目的則是推薦，增加讀者購買信心。</P
+><P
+>不管這些事是否必要，或有那麼點給他無聊而多餘，既然它是個社會慣例，而你也不想太特立獨行，那就考慮使用 DocBook 的 dedication 來安排你的作者序言資料吧。</P
+><P
+>dedication 沒有太複雜的子標籤結構，你可以把他想成是 chapter 標籤去除掉 sect[n] 階層後的樣子，也就是 dedication 基本結構就是一個 title 配上幾個 para 或類似 para 的其他區塊標籤而成的。譬如：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.DEDI"
+></A
+><P
+><B
+>Example 2-3. dedication 作者序言表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;dedication&#62;&#60;title&#62;我的感謝&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;para&#62;首先要感謝我爸...&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;para&#62;其次要感謝我媽...&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;para&#62;其次要感謝老師...&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;para&#62;其次要感謝社會...&#60;/para&#62;<br>
+&nbsp;&nbsp;......<br>
+&#60;/dedication&#62;</P
+></DIV
+><P
+>就是因為你不應該在序言裡廢話太多，惹得讀者不耐煩掉頭而去，所以 DocBook 只給你的序言一個最簡單的格式，希望你盡量簡短些。</P
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN947"
+></A
+>2.3. 目錄索引表示法</H2
+><P
+>在一般書籍的慣例中，章節及分類資料目錄索引就算是文件探討主題真正的開始了。DocBook 在做文件輸出格式轉換時，通常會將 chapter 和 sect 的 title 標籤內容自動編成章節目錄索引。但如果你希望在章節目錄之外，另加一些其他資料區段的目錄索引(譬如範例或圖表)，你就必須自行在 DocBook 文件中加入 index 標籤結構。<A
+NAME="AEN950"
+HREF="#FTN.AEN950"
+>[11]</A
+></P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.INDEX"
+></A
+><P
+><B
+>Example 2-4. index 目錄索引表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;!DOCTYPE&nbsp;chapter&nbsp;PUBLIC&nbsp;"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"&#62;<br>
+&#60;chapter&#62;&#60;title&#62;自製目錄索引表示法&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;index&#62;&#60;title&#62;圖表目錄&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;indexdiv&#62;&#60;title&#62;一索引一標籤&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;indexentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;primaryie&#62;&#60;xref&nbsp;linkend="t1"&nbsp;endterm="t1.title"&#62;&#60;/primaryie&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/indexentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;indexentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;primaryie&#62;&#60;link&nbsp;linkend="g1"&#62;Linux&nbsp;Logo&#60;/link&#62;&#60;/primaryie&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/indexentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/indexdiv&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;indexdiv&#62;&#60;title&#62;一索引兩標籤&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;indexentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;primaryie&#62;表格&nbsp;1&#60;/primaryie&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;secondaryie&#62;&#60;xref&nbsp;linkend="t1"&nbsp;endterm="t1.title"&#62;&#60;/secondaryie&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/indexentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;indexentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;primaryie&#62;圖片&nbsp;1&#60;/primaryie&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;secondaryie&#62;&#60;link&nbsp;linkend="g1"&#62;Linux&nbsp;Logo&#60;/link&#62;&#60;/secondaryie&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/indexentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/indexdiv&#62;<br>
+&nbsp;&nbsp;&#60;/index&#62;<br>
+&nbsp;&nbsp;&#60;sect1&#62;&#60;title&#62;第一節&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;第一節內容敘述......&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;table&nbsp;id="t1"&#62;&#60;title&nbsp;id="t1.title"&#62;縱橫相等表&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;tgroup&nbsp;cols="3"&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;tbody&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;1&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;2&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;3&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;2&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;3&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;5&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;3&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;5&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;entry&#62;8&#60;/entry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/row&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/tbody&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/tgroup&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/table&#62;<br>
+&nbsp;&nbsp;&#60;/sect1&#62;<br>
+&nbsp;&nbsp;&#60;sect1&#62;&#60;title&#62;第二節&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;第二節內容敘述......&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;figure&nbsp;id="g1"&#62;&#60;title&#62;Linux&nbsp;Logo&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;graphic&nbsp;fileref="penguin.gif"&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/figure&#62;<br>
+&nbsp;&nbsp;&#60;/sect1&#62;<br>
+&#60;/chapter&#62;</P
+></DIV
+><P
+>由上範例可知，index 即為 DocBook 的目錄索引標籤，它主要由 indexentry 這個子標籤構成。index 可以直接包含 indexentry ，也可以透過 indexdiv(index divion 索引分部) 轉包含 indexentry 。在 index 中使用 indexdiv 表示 index 中還再細分群組，沒有使用 indexdiv 表示所有 indexentry 直接構成 index 一個整體。</P
+><P
+>一個 indexentry 可以只用一個位置指引 primaryie ，也可以用兩個位置指引：primaryie 和 secondaryie。不管是 primaryie or secondaryie ，都可以直接使用一般字串或其他資料區塊的 ID 識別。有關在 primaryie or secondaryie 中使用 ID 連結標籤的方法，請參考前一章基礎標籤的運用有關 <A
+HREF="#EX.XREF"
+>xref</A
+> and <A
+HREF="#EX.LINK"
+>link</A
+> 的說明。</P
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN959"
+></A
+>2.4. 詞彙解釋表示法</H2
+><P
+>任何一門專門學科總有些專有名詞，所以大部分專業書籍都喜歡在書籍最後附上一份專門詞彙解釋章節(glossary)。當然，本手冊也不能免俗的在手冊的附錄提供了份<A
+HREF="#SEC.GLOSS"
+><I
+>DocBook 參考字典</I
+></A
+>。他的 DocBook 表示法敘述是：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.GLOSS"
+></A
+><P
+><B
+>Example 2-5. glossary 詞彙解釋表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;glossary&#62;&#60;title&#62;DocBook&nbsp;的專有名詞&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;para&#62;本節提供一些&nbsp;DocBook&nbsp;的專有名詞解釋&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;glossdiv&#62;&#60;title&#62;D&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;glossentry&nbsp;id="dtd"&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;glossterm&#62;Document&nbsp;Type&nbsp;Definitions&#60;/glossterm&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;acronym&#62;DTD&#60;/acronym&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;glossdef&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;文件型態定義：使用在&nbsp;SGML&nbsp;文件中，...&#60;para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;glossseealso&nbsp;otherterm="sgml"&#62;SGML&#60;/glossseealso&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/glossdef&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/glossentry&#62;<br>
+&nbsp;&nbsp;&#60;/glossdiv&#62;<br>
+&nbsp;&nbsp;&#60;glossdiv&#62;&#60;title&#62;S&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;glossentry&nbsp;id="sgml"&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;glossterm&#62;Standard&nbsp;Genralized&nbsp;Markup&nbsp;Language&#60;/glossterm&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;acronym&#62;SGML&#60;/acronym&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;glossdef&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;通用標準標記語言：一種描述文件分類及組織架構...&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/glossdef&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/glossentry&#62;<br>
+&nbsp;&nbsp;&#60;/glossdiv&#62;<br>
+&#60;/glossary&#62;</P
+></DIV
+><P
+>由上面範例可知，詞彙解釋(glossary)的基本組成是 glossentry ，它也如前一節 index 一樣，可以直接由 glossentry 構成，也可以由數個 glossdiv 包含 glossentry 構成。至於一個 glossentry 有下列的組成：</P
+><P
+></P
+><OL
+TYPE="1"
+><LI
+><P
+>glossterm:詞彙全名</P
+></LI
+><LI
+><P
+>acronym:詞彙簡稱</P
+></LI
+><LI
+><P
+>glossdef:</P
+><P
+></P
+><OL
+TYPE="a"
+><LI
+><P
+>para:詞彙解說敘述</P
+></LI
+><LI
+><P
+>glossseealso:其他詞彙解釋區段索引</P
+></LI
+></OL
+></LI
+></OL
+><DIV
+CLASS="NOTE"
+><P
+></P
+><TABLE
+CLASS="NOTE"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="../images/note.gif"
+HSPACE="5"
+ALT="Note"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>一個 glossentry 要能被其他的 glossentry 的 glossseealso 參照到連結，必須設有 ID 屬性，這樣其他的 glossseealso 的 otherterm 屬性才能設定加以參照連結。如範例中 SGML 的 glossentry 必需先做 &#60;glossentry id="sgml"&#62; 這樣的表示，DTD 的 &#60;glossseealso otherterm="sgml"&#62; 才會真正產生連結作用。</P
+></TD
+></TR
+></TABLE
+></DIV
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN981"
+></A
+>2.5. 參考書目表示法</H2
+><P
+>大部分的學術論文作者都喜歡在他的著作中專門使用一個章節，來條列一些相關主題的其他書籍或參考資料。雖然它真正會吸引起讀者深入探索的效果令人懷疑，但至少顯示出作者博覽群書，發言有憑有據。所以，如果你也想你的文件看起來很有專業的樣子，不妨使用 bibliographic 標籤來組織你的參考書目資料。</P
+><P
+>bibliographic 也和前幾節的 index,glossary 結構型態一樣大同小異，它可以直接由 biblioentry 構成，也可以由數個包含 biblioentry 的 bibliodiv 構成。使用 bibliodiv 表示將參考資料分成數個大類，如：書籍,期刊,線上文件...等。至於 biblioentry 的子結構，其實就是 <A
+HREF="#CHP.INFO"
+>info</A
+> 結構，只不過因為是很多書籍的集中列表，所以不如單一書籍的 bookinfo 資料這麼詳細，寫得簡單省略些而已。下面是本手冊參考資料的範例：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.BIBL"
+></A
+><P
+><B
+>Example 2-6. bibliography 參考書目表示法</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;bibliography&#62;&#60;title&#62;參考資料&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;para&#62;當你第一眼看見本節，你會發覺所收集的參考資料不是很多...&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;bibliodiv&#62;&#60;title&#62;線上資料&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;biblioentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;title&#62;DocBook&nbsp;XML/SGML&nbsp;Processing&nbsp;Using&nbsp;OpenJade&#60;/title&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;subtitle&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;ulink&nbsp;url="&#38;install.jade.url;"&#62;建立&nbsp;DocBook&nbsp;的解譯環境(中譯)&#60;/ulink&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/subtitle&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;authorgroup&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;author&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;firstname&#62;Saqib&#60;/firstname&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;surname&#62;Ali&#60;/surname&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/author&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;author&#62;&#60;othername&#62;老貢生&#60;/othername&#62;&#60;/author&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/authorgroup&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;revhistory&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;revision&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;revnumber&#62;1.0.0&#60;/revnumber&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;date&#62;2003-11-19&#60;/date&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/revision&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/revhistory&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/biblioentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;biblioentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;......<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/biblioentry&#62;<br>
+&nbsp;&nbsp;&#60;/bibliodiv&#62;<br>
+&nbsp;&nbsp;&#60;bibliodiv&#62;<br>
+&nbsp;&nbsp;......<br>
+&nbsp;&nbsp;&#60;/bibliodiv&#62;<br>
+&#60;/bibliography&#62;</P
+></DIV
+><P
+>顯示效果亦如<A
+HREF="#APP.BIBL"
+><I
+>參考資料</I
+></A
+>&#62;</P
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN991"
+></A
+>2.6. 問題解答集表示法</H2
+><P
+>在網際網路的學習環境中，有種格式的文件常會用來給新手瀏覽，以方便它能快速的熟悉某一特定專業領域的各層面，就是 Q &#38; A，question and answer。</P
+><P
+>Q &#38; A 藉由一問一答的方式，一方面加深閱讀者印像，另一方面也點出某些領域的重點及需留意事項。這樣的文件不管是獨立成一篇文章，或附在章節之後，做些內容的複習及補充，都非常合適，因此 DocBook 特別用 qandaset 標籤來表示這種資料結構。</P
+><P
+>qanaset 基本結構可由 qandaentry 直接構成，也可由數個 qandadiv 包含 qandaentry 構成，qandaset 下使用 qandadiv 標籤，表示對各問答項做分類或分組。至於 qandaentry 的基本結構是：</P
+><P
+></P
+><UL
+><LI
+><P
+>question:問題</P
+><P
+></P
+><UL
+><LI
+><P
+>label:發問標題(省略 label 將以整個問題敘述為標題)</P
+></LI
+><LI
+><P
+>para:問題敘述</P
+></LI
+></UL
+></LI
+><LI
+><P
+>answer:回答</P
+><P
+></P
+><UL
+><LI
+><P
+>label:回答標題(通常只在答案有一個以上時使用)</P
+></LI
+><LI
+><P
+>para:回答敘述</P
+></LI
+></UL
+></LI
+></UL
+><P
+>一個 qandaentry 中只能有一個 question ，但可以有好幾個 answer 。範例如下：</P
+><DIV
+CLASS="EXAMPLE"
+><A
+NAME="EX.QA"
+></A
+><P
+><B
+>Example 2-7. 問題解答集（qandaset)範例</B
+></P
+><P
+CLASS="LITERALLAYOUT"
+>&#60;qandaset&#62;&#60;title&#62;DocBook&nbsp;寫作問答&#60;/title&#62;<br>
+&nbsp;&nbsp;&#60;qandaentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;question&#62;&#60;label&#62;我該用&nbsp;DocBook&nbsp;取代其他格式文件嗎？&#60;/label&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;既然&nbsp;DocBook&nbsp;可以一次輸入，然後轉成&nbsp;HTML,PS,RTF...&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;/question&#62;<br>
+&nbsp;&nbsp;&#60;answer&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;我個人的答案是否定的...&#60;/para&#62;<br>
+&nbsp;&nbsp;&#60;/answer&#62;<br>
+&nbsp;&nbsp;&#60;/qandaentry&#62;<br>
+&nbsp;&nbsp;&#60;qandaentry&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;question&#62;&#60;label&#62;我的資料消失了？&#60;/label&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;DocBook&nbsp;文件中某些資料，並未出現在新的文件中...&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/question&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;answer&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;para&#62;...在某些&nbsp;DSSSL&nbsp;檔案下不會轉到新文件中...&#60;/para&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/answer&#62;<br>
+&nbsp;&nbsp;&#60;/qandaentry&#62;<br>
+&#60;/qandaset&#62;</P
+></DIV
+><P
+>顯示效果請參看 <A
+HREF="#APP.QA"
+><I
+>DocBook 寫作問答</I
+></A
+></P
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="AEN1017"
+></A
+>2.7. 結語</H2
+><P
+>介紹 DocBook 的各種標籤及組織結構至此，常用的表示法已學了七八成，一本書籍可能出現的資料格式，大概都有了交待，用這些來寫本完整的書或手冊，也應該不至於太離譜。</P
+><P
+>但不管本手冊的標籤佔所有 DocBook 標籤的數量，或者對一個標籤可變換出的不同呈現方法，都不到三成而已。所以如果你想更進一步探究 DocBook 的能力，或其他的疑惑有待解答，DocBook 的<A
+HREF="http://www.docbook.org/tdg/en/html/docbook.html"
+TARGET="_top"
+>線上手冊</A
+>，都是你必需常常前往查閱的，查閱前先讀熟本手冊附錄的<A
+HREF="#ELESTRUC"
+><I
+>如何查詢標籤的組織結構</I
+></A
+>，有助你順利的了解 DocBook 線上手冊的語法。</P
+><P
+>歡迎展開 DocBook 探索之旅，相信不久的將來，你對 DocBook 的理解和熟練，將遠遠的超過我，這也是我最大的期盼。</P
+></DIV
+></DIV
+><DIV
+CLASS="APPENDIX"
+><HR><H1
+><A
+NAME="AEN1024"
+></A
+>Appendix A. 附錄</H1
+><DIV
+CLASS="QANDASET"
+><H2
+CLASS="TITLE"
+>DocBook 寫作問答</H2
+><DL
+><DT
+>A.1. <A
+HREF="#AEN1031"
+>我該用 DocBook 取代其他格式文件嗎？</A
+></DT
+><DT
+>A.2. <A
+HREF="#AEN1038"
+>我的資料消失了？</A
+></DT
+><DT
+>A.3. <A
+HREF="#AEN1045"
+>應該注意使用的編碼字元</A
+></DT
+></DL
+><P
+><A
+NAME="APP.QA"
+></A
+>這裡嘗試回答一些你在製作 DocBook 文件時，可能碰到的問題。</P
+><DIV
+CLASS="QANDAENTRY"
+><DIV
+CLASS="QUESTION"
+><P
+><A
+NAME="AEN1031"
+></A
+><B
+>A.1. </B
+>我該用 DocBook 取代其他格式文件嗎？</P
+><P
+>既然 DocBook 可以一次輸入，然後轉成 HTML,PS,RTF 多種格式輸出，那是否意味著以後我只要學 DocBook 一種格式就好，反正其他的格式可以用轉換的。</P
+></DIV
+><DIV
+CLASS="ANSWER"
+><P
+><B
+> </B
+>我個人的答案是否定的。第一：DocBook 本身不是被設計來取代任何其他可供閱覽的格式文件用的，他存在目的不是要改變你的顯示方法和行為，他存在的目的是整理組織你的各種文件，也就是他把一堆雜亂的資料，彙整到你想表達的模式中去。所以 DocBook 不能取代 HTML,PS,RTF ，因為那是不同功能的兩種東西，你應該同時學習一種你喜歡的閱覽格式文件再加學一個 DocBook ，用 DocBook 幫你組織和交換你的資料來源。</P
+><P
+>第二：DocBook 並未包含所有的文件主題，就像本手冊中一再強調的，DocBook 的目的在製作出論理性的，技術性的文件。對於一些文藝性的，甚至多媒體格式，DocBook 並不適合。所以在寫理論文章時，你可以用 DocBook 加一個其他閱覽格式當良好的組合方案，但如果你要表達詩詞歌賦的意境，多媒體的藝術感動，你必需為你使用的閱覽格式文件，尋求其他的配套組合。</P
+></DIV
+></DIV
+><DIV
+CLASS="QANDAENTRY"
+><DIV
+CLASS="QUESTION"
+><P
+><A
+NAME="AEN1038"
+></A
+><B
+>A.2. </B
+>我的資料消失了？</P
+><P
+>為何我在 DocBook 文件中某些標籤的內容資料，轉換成其他格式文件後，並未出現在新的格式文件中？我標籤的語法和內容資料格式都合法，並通過解析器的合法檢測，並無任何錯誤顯示，請問錯誤出在那裡呢？</P
+></DIV
+><DIV
+CLASS="ANSWER"
+><P
+><B
+> </B
+>非常有可能是毫無錯誤，因為負責設定轉換樣式的 DSSSL 文件不只能決定一個標籤輸出成什麼樣子，更可以決定那些標籤資料要輸出，那些標籤不輸出。所以如果你參照 <A
+HREF="http://www.study-area.org/tips/doctrans/doctrans.html"
+TARGET="_top"
+>http://www.study-area.org/tips/doctrans/doctrans.html 中譯</A
+>的說明，分別在 -d 選項使用 Norman Walsh's DSSSL 的 docbook.dsl 和 TLDP 的 ldp.dsl 編譯一次，就會明白某些部份 docbook.dsl 和 ldp.dsl 會有選擇輸出的不同。所以，DocBook 的某些標籤內容資料，在某些 DSSSL 檔案下不會轉到新文件中，不僅正常，而且正是 DSSSL 要發揮的選擇功能。</P
+></DIV
+></DIV
+><DIV
+CLASS="QANDAENTRY"
+><DIV
+CLASS="QUESTION"
+><P
+><A
+NAME="AEN1045"
+></A
+><B
+>A.3. </B
+>應該注意使用的編碼字元</P
+><P
+>DocBook 中除了 '&#60;','&#62;','&#38;' 負有特殊功能，有使用限制外，還有那些字元的使用有限制呢？</P
+></DIV
+><DIV
+CLASS="ANSWER"
+><P
+><B
+> </B
+>'_' 底線字元</P
+><P
+>底線字元不該出現在實體(ENTITY)設定字串，或屬性設定字串裡。</P
+></DIV
+></DIV
+></DIV
+><DIV
+CLASS="SECT1"
+><HR><H2
+CLASS="SECT1"
+><A
+NAME="ELESTRUC"
+></A
+>A.1. 如何查詢標籤的組織結構</H2
+><P
+>DocBook 的標籤有三百多個，並且有嚴格的次序和上下階層組織。所以我們在將自己寫的 DocBook 格式文件送交編譯時，轉譯器常常會顯示標籤出現不合法或是格式不完整的訊息。可以這麼說，DocBook 的解譯遠比他的同宗兄弟 HTML 格式文件挑惕，所以時常翻閱 DocBook 的<A
+HREF="http://www.docbook.org/tdg/en/html/docbook.html"
+TARGET="_top"
+>線上手冊</A
+>，以查明每個標籤的上下階層及出現次序，幾乎是 DocBook 文件寫作終將會面對的事。</P
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN1055"
+></A
+>A.1.1. 位置的規則</H3
+><P
+>我們在 DocBook 標籤的使用上首先要重視的就是上下階層關係，除了在前面 <A
+HREF="#ROOTTAG"
+>根標籤</A
+>一節所說的根標籤，是一份文件中所有其他標籤的先祖外，每個標籤都至少有一個父標籤，以及若干的子標籤。例如當我們進入 <A
+HREF="http://www.docbook.org/tdg/en/html/docbook.html"
+TARGET="_top"
+>DocBook: The Definitive Guide</A
+> 的 II. Reference I. DocBook Element Reference 目錄，選 chapter 這個標籤開始查詢，你會發覺 chapter 專屬解說頁會有個 Parents 區段，裡面列出 chapter 的父標籤是 book 和 part ，這表示 chapter 只能出現在 book 和 part 標籤之中，除此之外，都是非法的。</P
+><P
+>另外一般標籤的說明還有 Children 的區段，除了空標籤沒有 children 外，其他標籤都有 children 區段，例如 chapter 的 children 就有 abstract, address, anchor, ......sect1, section..... 一大串，這表示 chapter 標籤中可以容納上列的各種標籤。</P
+><P
+>明瞭那些標籤可以出現在何處，是使用 DocBook 標籤的第一項知識。</P
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN1062"
+></A
+>A.1.2. 次數的規則</H3
+><P
+>光知道那個標籤中有那些組成並不足以完整的說明一個標籤的組織結構，標籤的組織結構第二個要點是一個標籤的組成元素，有些是必要的，有些是選項的，有些是只能出現一次的，有些是可以出現很多次的，我們稱為標籤出現次數的規則。</P
+><P
+>次數的規則就不是靠 parents , children 區段看得出來了，我們要看個語法比較複雜的區段，Content Model。譬如 table 標籤的 Content Model 區段敘述是這樣的：</P
+><P
+CLASS="LITERALLAYOUT"
+>table&nbsp;::=<br>
+((blockinfo?,<br>
+&nbsp;&nbsp;(title,titleabbrev?),<br>
+&nbsp;&nbsp;(indexterm)*,<br>
+&nbsp;&nbsp;textobject*,<br>
+&nbsp;&nbsp;(graphic+|mediaobject+|tgroup+)))</P
+><P
+></P
+><P
+><B
+>Content Model 敘述解析</B
+></P
+><UL
+><LI
+><P
+>table 目前查詢的標籤名稱</P
+></LI
+><LI
+><P
+>::= 由右方元素組成</P
+></LI
+><LI
+><P
+>((blockinfo?,...|tgroup+))) 組成元素列示</P
+></LI
+></UL
+><P
+>在 Content Model 中對子元素出現規則的表示法是"子標籤名稱+出現規則表示字符" 。出現規則表示字符有四種狀況，就是 '?','+','*' 加上什麼字符都不加四種情況，現就以 table 的 Content Model 來解說：</P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><P
+><B
+>子元素出現規則表示法</B
+></P
+><DL
+><DT
+>title</DT
+><DD
+><P
+>title 標籤一定要出現一次，而且只能出現一次。</P
+></DD
+><DT
+>blockinfo?</DT
+><DD
+><P
+>blockinfo 標籤最多出現一次，但也可以不出現。</P
+></DD
+><DT
+>graphic+</DT
+><DD
+><P
+>graphic 標籤最少出現一次，最多無上限。</P
+></DD
+><DT
+>textobject*</DT
+><DD
+><P
+>textobject 標籤可以不出現，也可以無限多次出現。</P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="SECT2"
+><HR><H3
+CLASS="SECT2"
+><A
+NAME="AEN1094"
+></A
+>A.1.3. 次序的規則</H3
+><P
+>我們知道了一個標籤該擺放的位置，也知道他出現的規則，那是否就完全知道DocBook 標籤的組織規則呢？不然，有項標籤彼此的關係我們還沒談到，那就是在標籤結構中，有些標籤必須先出現，有些則放後面，有些則可以隨你高興，任意擺放。我們稱這為次序規則，次序規則一樣要由觀察 Cintent Model 得知，現在我們假設有個甲標籤，他由 atag,btag,ctag 三個子標籤構成，那他們的次序規則敘述是：</P
+><DIV
+CLASS="TABLE"
+><A
+NAME="TB.SERIAL.SIMPLE"
+></A
+><P
+><B
+>Table A-1. 單純標籤次序規則敘述表</B
+></P
+><TABLE
+BORDER="1"
+CLASS="CALSTABLE"
+><THEAD
+><TR
+><TH
+ALIGN="CENTER"
+VALIGN="TOP"
+>次序敘述</TH
+><TH
+ALIGN="CENTER"
+VALIGN="TOP"
+>解說</TH
+></TR
+></THEAD
+><TBODY
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>(atag,btag,ctag)</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>a,b,c tag 必須依先後次序一個個排列</TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>(atag|btag|ctag)</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>a,b,c tag 中選一個出現</TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>(atag&#38;btag&#38;ctag)</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>a,b,c tag 可以用任何次序出現</TD
+></TR
+></TBODY
+></TABLE
+></DIV
+><P
+>如果把次序規則和次數規則結合顯示，就會有很多的變化出來：</P
+><DIV
+CLASS="TABLE"
+><A
+NAME="TB.SERIAL.COMPLEX"
+></A
+><P
+><B
+>Table A-2. 綜合標籤次序規則敘述表</B
+></P
+><TABLE
+BORDER="1"
+CLASS="CALSTABLE"
+><THEAD
+><TR
+><TH
+ALIGN="CENTER"
+VALIGN="TOP"
+>次序敘述</TH
+><TH
+ALIGN="CENTER"
+VALIGN="TOP"
+>解說</TH
+></TR
+></THEAD
+><TBODY
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>(atag?,btag,ctag+)</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>atag 可以選項是否出現，btag 一定要出現一次，ctag 出現一次以上，a,b,c tag 需按次序出現。</TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>((atag|btag),ctag+)</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>atag 和 btag 擇一出現，ctag 出現一次以上，c 要排在 a or b 之後。</TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>((atag|btag)?,ctag+)</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>atag 和 btag 可以擇一出現，也可以都不出現，ctag 出現一次以上，c 要排在 a or b 之後。</TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>((atag|btag)+,ctag?)</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>atag 和 btag 需交替出現，或重複出現一次以上，ctag 可以出現一次或不出現，如c 要出現需排在 a or b 之後。</TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>((atag|btag|ctag)+)</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>abc tag 可以以任何次序交替或單一標籤連續出現一次以上。</TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>((atag|btag|ctag)*)</TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+>這是最自由的子標籤結構表達示，表示abc tag 可以以任何次序任意次數出現，通通合法。</TD
+></TR
+></TBODY
+></TABLE
+></DIV
+><P
+>學會看 DocBook 線上參考書的 Content Model 敘述，掌握了標籤的位置,次數,次序規則，下次再遇到編譯器向你抱怨標籤不合法，你就能很輕易找出毛病所在。而且會看 Content Model ，你就可以跨過本手冊的入門，迅速透過自修，直達 DocBook 專家的堂奧，有志學習 DocBook 的，應該花點心力在這上面。</P
+><DIV
+CLASS="NOTE"
+><P
+></P
+><TABLE
+CLASS="NOTE"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="../images/note.gif"
+HSPACE="5"
+ALT="Note"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>DocBook 的 Content Model 敘述，是和 SGML &#38; XML 的 <A
+HREF="#DTD"
+>DTD</A
+> 語法規則是一致的，看懂 Content Model ，將來看 DTD 也不是難事。</P
+></TD
+></TR
+></TABLE
+></DIV
+></DIV
+></DIV
+><H3
+><A
+NAME="APP.BIBL"
+>參考資料</A
+></H3
+><P
+>當你第一眼看見本節，你會發覺所收集的參考資料不是很多，沒辦法，這表示作者學養有限，並沒有看很多書。但至少你可以肯定一點，列得少的好處是，每一個都是確實有參考價值的文獻，不會有撐場面湊數的情況。</P
+><HR><H2
+CLASS="BIBLIODIV"
+><A
+NAME="AEN1148"
+></A
+>線上資料</H2
+><DIV
+CLASS="BIBLIOENTRY"
+><A
+NAME="AEN1150"
+></A
+><P
+><I
+>DocBook XML/SGML Processing Using OpenJade</I
+><I
+>: </I
+><I
+>        <A
+HREF="http://www.study-area.org/tips/doctrans/doctrans.html"
+TARGET="_top"
+>建立 DocBook 的解譯環境(中譯)</A
+>
+      </I
+>, <SPAN
+CLASS="AUTHOR"
+>Saqib Ali </SPAN
+><SPAN
+CLASS="AUTHOR"
+>and 老貢生</SPAN
+>.</P
+><DIV
+CLASS="BIBLIOENTRYBLOCK"
+STYLE="margin-left=0.5in"
+><DIV
+CLASS="REVHISTORY"
+><TABLE
+WIDTH="100%"
+BORDER="0"
+><TR
+><TH
+ALIGN="LEFT"
+VALIGN="TOP"
+COLSPAN="3"
+><B
+>Revision History</B
+></TH
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+>Revision 1.0.0</TD
+><TD
+ALIGN="LEFT"
+>2003-11-19</TD
+><TD
+ALIGN="LEFT"
+></TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+COLSPAN="3"
+></TD
+></TR
+></TABLE
+></DIV
+></DIV
+></DIV
+><DIV
+CLASS="BIBLIOENTRY"
+><A
+NAME="AEN1164"
+></A
+><P
+><I
+><A
+HREF="http://www.ibiblio.org/pub/Linux/docs/HOWTO/other-formats/html_single/DocBook-Install.html"
+TARGET="_top"
+>DocBook Install mini-HOWTO</A
+></I
+>, <SPAN
+CLASS="AUTHOR"
+>Robert B Easter</SPAN
+>.</P
+><DIV
+CLASS="BIBLIOENTRYBLOCK"
+STYLE="margin-left=0.5in"
+><DIV
+CLASS="REVHISTORY"
+><TABLE
+WIDTH="100%"
+BORDER="0"
+><TR
+><TH
+ALIGN="LEFT"
+VALIGN="TOP"
+COLSPAN="3"
+><B
+>Revision History</B
+></TH
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+>Revision v1.8</TD
+><TD
+ALIGN="LEFT"
+>2002-02-04</TD
+><TD
+ALIGN="LEFT"
+>Revised by: rbe</TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+COLSPAN="3"
+></TD
+></TR
+></TABLE
+></DIV
+><DIV
+CLASS="ABSTRACT"
+><P
+>同樣是建立 DocBook 解譯環境的文章，會談到一些和上一篇技巧和方法。</P
+></DIV
+></DIV
+></DIV
+><DIV
+CLASS="BIBLIOENTRY"
+><A
+NAME="AEN1179"
+></A
+><P
+><I
+>DocBook: The Definitive Guide</I
+><I
+>: </I
+><I
+>        <A
+HREF="http://www.docbook.org/tdg/en/html/docbook.html"
+TARGET="_top"
+>DocBook 線上手冊</A
+>
+      </I
+>, <SPAN
+CLASS="AUTHOR"
+>Norman Walsh </SPAN
+><SPAN
+CLASS="AUTHOR"
+>and Leonard Muellner</SPAN
+>, 1999, 2000, 2001, 2002, 156592-580-7.</P
+><DIV
+CLASS="BIBLIOENTRYBLOCK"
+STYLE="margin-left=0.5in"
+></DIV
+></DIV
+><DIV
+CLASS="BIBLIOENTRY"
+><A
+NAME="AEN1197"
+></A
+><P
+><I
+>Writing Documentation Using DocBook</I
+><I
+>: </I
+><I
+><A
+HREF="http://opensource.bureau-cornavin.com/crash-course/index.html"
+TARGET="_top"
+>A Crash Course</A
+></I
+>, <SPAN
+CLASS="AUTHOR"
+>David Rugge, </SPAN
+><SPAN
+CLASS="AUTHOR"
+>Mark Galassi, </SPAN
+><SPAN
+CLASS="AUTHOR"
+>and Eric Bischoff</SPAN
+>, 1997-2002.</P
+><DIV
+CLASS="BIBLIOENTRYBLOCK"
+STYLE="margin-left=0.5in"
+><DIV
+CLASS="ABSTRACT"
+><P
+>這是一篇怎樣使用 DocBook 工具來製作 DocBook 文件的導覽文章。</P
+></DIV
+></DIV
+></DIV
+><DIV
+CLASS="BIBLIOENTRY"
+><A
+NAME="AEN1216"
+></A
+><P
+><I
+><A
+HREF="docwrite.tgz"
+TARGET="_top"
+>DocBook 文件寫作入門(source download)</A
+></I
+>.</P
+><DIV
+CLASS="BIBLIOENTRYBLOCK"
+STYLE="margin-left=0.5in"
+><DIV
+CLASS="ABSTRACT"
+><P
+>本手冊的原始格式，DocBook 文件。不相信 DocBook 真的管用的，不妨下載這篇回去參考。</P
+></DIV
+></DIV
+></DIV
+><DIV
+CLASS="GLOSSARY"
+><H1
+><A
+NAME="SEC.GLOSS"
+></A
+>DocBook 參考字典</H1
+><P
+>DocBook 相關字詞解釋</P
+><DIV
+CLASS="GLOSSDIV"
+><H1
+CLASS="GLOSSDIV"
+><A
+NAME="AEN1231"
+></A
+>D</H1
+><DL
+><DT
+><A
+NAME="GLOSS-DSSSL"
+></A
+><B
+>Document Style Semantics and Specification Language</B
+></DT
+> (DSSSL)<DD
+><P
+>文件樣式表示及設定語言：一種以 SGML 標記語法定義的標記語言，他被定義的目的是要替其他以 SGML 語法定義的格式文件，決定一個輸出的樣式。簡單的說法 DSSSL 是其他 SGML 文件的型版或樣式表，透過他 SGML 能轉換成其他各種不同格式的文件。</P
+><P
+><EM
+>See Also: </EM
+><A
+HREF="#SGML"
+>Standard Genralized Markup Language</A
+>.</P
+></DD
+><DT
+><A
+NAME="DTD"
+></A
+><B
+>Document Type Definitions</B
+></DT
+> (DTD)<DD
+><P
+>文件型態定義：使用在 SGML 文件中，一種用來描述某特定格式的文件分類和階層結構的說明文件，是 SGML 文件的基礎和起點。</P
+><P
+><EM
+>See Also: </EM
+><A
+HREF="#SGML"
+>Standard Genralized Markup Language</A
+>.</P
+></DD
+></DL
+></DIV
+><DIV
+CLASS="GLOSSDIV"
+><H1
+CLASS="GLOSSDIV"
+><A
+NAME="AEN1245"
+></A
+>E</H1
+><DL
+><DT
+><A
+NAME="ELEMENT"
+></A
+><B
+>Element</B
+></DT
+> (tag)<DD
+><P
+>分類元素：這是使用在 SGML DTD 文件中的一個基本組成。首先我們將某特殊格式文件做分類，然後用標記加以區隔，並給不同的類別一個特定的名稱，我們稱一個類別就是一個 Element (其實也就是一個標籤的另一種說法)，而一份文件就是由不同的 Element 有組織有架構的組織起來的。</P
+><P
+><EM
+>See Also: </EM
+><A
+HREF="#DTD"
+>Document Type Definitions</A
+>.</P
+></DD
+><DT
+><A
+NAME="ENTITY"
+></A
+><B
+>ENTITY</B
+></DT
+> (ent)<DD
+><P
+>實體，這個名詞很難望文生義，就其實際代表的含意是指：本文部份片段的代名詞。本文片段小到一個字符，一個字串，大到一個檔案，都可以取一個名稱來代表它，而最後解譯的結果，顯示的也是它代表意義，而非那個代名</P
+></DD
+></DL
+></DIV
+><DIV
+CLASS="GLOSSDIV"
+><H1
+CLASS="GLOSSDIV"
+><A
+NAME="AEN1258"
+></A
+>O</H1
+><DL
+><DT
+><A
+NAME="GLOSS-OASIS"
+></A
+><B
+>Organization for the Advancement of Structured Information Standards</B
+></DT
+> (OASIS)<DD
+><P
+>結構化資訊標準宣導組織(如果你願意，也可以叫它綠洲組織，這樣的縮寫名稱應該是有意的安排吧)。這是非營利的推廣組織，主要是在負責推動一些產業界資訊標準的研究，資料蒐集與開發，尤其是 SGML 和 XML 的推廣和介紹。本文介紹的 DocBook 格式文件標準，即由 OASIS 負責制定，維護，更新。</P
+></DD
+></DL
+></DIV
+><DIV
+CLASS="GLOSSDIV"
+><H1
+CLASS="GLOSSDIV"
+><A
+NAME="AEN1265"
+></A
+>P</H1
+><DL
+><DT
+><A
+NAME="PUBLIC-ID"
+></A
+><B
+>Public Identifier</B
+></DT
+> (PI)<DD
+><P
+>公共識別字串：就是每個不同種類及版本的文件格式標準製作者，為自己的格式標準取一個獨特且唯一的識別字串，並公告周知。讓別人或解譯程式看到這樣的字串，就知道此文件採用某種特定格式的標準，而據以處理。一般他的格式是：</P
+><P
+CLASS="LITERALLAYOUT"
+>"prefix//owner-identifier//text-class&nbsp;text-description//language//display-version"</P
+><P
+>例如 DocBook 4.2 DTD 的 PI 是：</P
+><P
+CLASS="LITERALLAYOUT"
+>"-//OASIS//DTD&nbsp;DocBook&nbsp;V4.2//EN"</P
+><P
+>各部份組成意義如下：</P
+><P
+></P
+><DIV
+CLASS="VARIABLELIST"
+><DL
+><DT
+>prefix, 前置符號</DT
+><DD
+><P
+>分為 '+' 和 '-' 兩個字符，'+' 表示有經 ISO 組織正式註冊，'-' 則是未向 ISO 組織申請註冊手續。</P
+></DD
+><DT
+>owner-identifier, 擁有者識別字串</DT
+><DD
+><P
+>表明此一標準是由那個個人或組織負責訂定及維護的，例如 DocBook 4.2 DTD 是由 OASIS 這個組織制定維護的。</P
+></DD
+><DT
+>text-class, 文件類別</DT
+><DD
+><P
+>在 SGML 中較常見的分類有：DOCUMENT,DTD,ELEMENTS,ENTITIES,NONSGML。</P
+></DD
+><DT
+>text-description, 文件描述</DT
+><DD
+><P
+>制定標準者可以為其制定的格式標準使用一個獨特的描述詞，如  DocBook V4.2。</P
+></DD
+><DT
+>language, 語言區域標識</DT
+><DD
+><P
+>表示這個文件標準是使用何種地區的語言文字製作的，通常使用 ISO 組織兩字符區域語言標準協定。</P
+></DD
+><DT
+>display-version, 版本編號標識</DT
+><DD
+><P
+>如果同樣的類別，同樣描述的格式標準，先後出了幾個有修正的版本，可以使用此項識別。這是一個選項，不一定要使用。有些 PI 字串在 text-description 中就包含了版本分別，所以沒有使用到 display-version 這項識別。</P
+></DD
+></DL
+></DIV
+><P
+><EM
+>See Also: </EM
+><A
+HREF="#GLOSS-OASIS"
+>Organization for the Advancement of Structured Information Standards</A
+><EM
+>, </EM
+><A
+HREF="#DTD"
+>Document Type Definitions</A
+><EM
+>, </EM
+><A
+HREF="#ELEMENT"
+>Element</A
+><EM
+>, </EM
+><A
+HREF="#ENTITY"
+>ENTITY</A
+>.</P
+></DD
+></DL
+></DIV
+><DIV
+CLASS="GLOSSDIV"
+><H1
+CLASS="GLOSSDIV"
+><A
+NAME="AEN1311"
+></A
+>S</H1
+><DL
+><DT
+><A
+NAME="SGML"
+></A
+><B
+>Standard Genralized Markup Language</B
+></DT
+> (SGML)<DD
+><P
+>通用標準標記語言：一種描述文件分類及組織架構的表示語法，這種語法是透過在文件中插入標記資料，來做文件內容分類和組織。透過共同的 SGML 語法標準，不同的閱覽者及閱覽程式，能夠準確的掌握文件的結構並加以有效的處理。制定 SGML 的 ISO 組織並努力制定不同機器平台和作業環境的資料交換格式標準，藉由這些附加標準，遵照 SGML 標準寫作的文件，都能享有跨平台交換資料的可攜性便利。</P
+></DD
+><DT
+><A
+NAME="DECLARE"
+></A
+><B
+>SGML Declaration</B
+></DT
+> (SGML DCL)<DD
+><P
+>SGML 宣告：提供編譯 DTD所需的全部資訊及剖析文件實例所需的部份資訊。例如，它定義了文件的字元(Characters Set)、標籤的界限符號 (Delimiters)、處理文件時所需的儲存容量(Storage Capacity)、文件使用的具體語法(Concrete Syntax)、具體語法適用的範圍(Scope)、文件使用的SGML特徵(SGML Features)等等。</P
+><P
+><EM
+>See Also: </EM
+><A
+HREF="#DTD"
+>Document Type Definitions</A
+>.</P
+></DD
+></DL
+></DIV
+><DIV
+CLASS="GLOSSDIV"
+><H1
+CLASS="GLOSSDIV"
+><A
+NAME="AEN1324"
+></A
+>X</H1
+><DL
+><DT
+><A
+NAME="XML"
+></A
+><B
+>Extensible Markup Language</B
+></DT
+> (XML)<DD
+><P
+>可延伸式標記語言：為了在 Web 網站上運作，便於資料交換傳遞專門設計的 SGML 精簡指令集。他基本上延續了 SGML 的精神和運作模式，但採用了更嚴格的標記表示法，並刪除了一些 SGML 上與網路運作沒有直接關聯的指令和功能，目的是讓應用程式能更簡便而快速的達成解析轉譯的工作。</P
+><P
+><EM
+>See Also: </EM
+><A
+HREF="#SGML"
+>Standard Genralized Markup Language</A
+>.</P
+></DD
+><DT
+><A
+NAME="GLOSS-XSL"
+></A
+><B
+>Extensible Stylesheet Language</B
+></DT
+> (XSL)<DD
+><P
+>延伸式樣式表語言：就如同 DSSSL 之於 SGML 的負責格式及輸出轉換，XSL 也負責 XML 的格式及輸出轉換。</P
+><P
+><EM
+>See Also: </EM
+><A
+HREF="#XML"
+>Extensible Markup Language</A
+><EM
+>, </EM
+><A
+HREF="#GLOSS-DSSSL"
+>Document Style Semantics and Specification Language</A
+>.</P
+></DD
+><DT
+><A
+NAME="GLOSS-XSLT"
+></A
+><B
+>Extensible Stylesheet Language Transformations</B
+></DT
+> (XSLT)<DD
+><P
+>XSL 的變體，又稱為新一代的 XSL 。</P
+><P
+><EM
+>See Also: </EM
+><A
+HREF="#XML"
+>Extensible Markup Language</A
+><EM
+>, </EM
+><A
+HREF="#GLOSS-XSL"
+>Extensible Stylesheet Language</A
+>.</P
+></DD
+></DL
+></DIV
+></DIV
+></DIV
+></DIV
+><H3
+CLASS="FOOTNOTES"
+>Notes</H3
+><TABLE
+BORDER="0"
+CLASS="FOOTNOTES"
+WIDTH="100%"
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="5%"
+><A
+NAME="FTN.AEN58"
+HREF="#AEN58"
+>[1]</A
+></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="95%"
+><P
+>用 <A
+HREF="#XML"
+>XML</A
+> 定義的 DocBook 樣式表是 <A
+HREF="#GLOSS-XSL"
+>XLS</A
+> or <A
+HREF="#GLOSS-XSLT"
+>XLST</A
+> ，用 <A
+HREF="#SGML"
+>SGML</A
+> 定義的 DocBook 樣式表是 <A
+HREF="#GLOSS-DSSSL"
+>DSSSL</A
+> 。</P
+></TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="5%"
+><A
+NAME="FTN.AEN74"
+HREF="#AEN74"
+>[2]</A
+></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="95%"
+><P
+>有關共同文件寫作部份，本手冊不會談到，或許將來有機會寫 DocBook 進階手冊時，會專門著重在這上面，本手冊只談個人的寫作層面。</P
+></TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="5%"
+><A
+NAME="FTN.AEN80"
+HREF="#AEN80"
+>[3]</A
+></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="95%"
+><P
+>簡稱 TLDP ，亦即 Linux 作業系統的文件說明專案計畫。</P
+></TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="5%"
+><A
+NAME="FTN.AEN91"
+HREF="#AEN91"
+>[4]</A
+></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="95%"
+><P
+>各種所謂意義分類，顯示與資料來源分開處理的文件格式發展的故事，都跟 SGML 脫不了關係。至於 SGML 自身那一段發展的故事也頗長的，不過不是本手冊論述的主題了，各位讀者有個概念即可。</P
+></TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="5%"
+><A
+NAME="FTN.AEN95"
+HREF="#AEN95"
+>[5]</A
+></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="95%"
+><P
+>其實 SGML 本身並沒有分列印顯示和意義分類的標記語法，它只是一種標記的表示和組織方法，用這種方法定出來的格式文件，可能以版面顯示為主，也可能以意義結構分類為主。</P
+></TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="5%"
+><A
+NAME="FTN.AEN228"
+HREF="#AEN228"
+>[6]</A
+></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="95%"
+><P
+>當然正統的建議是在 DocBook 中加入適當的備註，有利於作者群溝通觀念及管理文件。</P
+></TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="5%"
+><A
+NAME="FTN.LINE-BREAK"
+HREF="#LINE-BREAK"
+>[7]</A
+></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="95%"
+><P
+>不管你在 para 標籤內輸入文字資料時是否有斷行，DocBook 一律不會做斷行處理，而是串成一行列示到底，直到 para 結束標籤出現，或遇到其他區塊標籤，才會斷行。所以，如果你希望把文字分作兩行以上輸出，請使用多個並列 para 加以處理。</P
+></TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="5%"
+><A
+NAME="FTN.PARALLE-SECT"
+HREF="#PARALLE-SECT"
+>[8]</A
+></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="95%"
+><P
+>在同一層級的區段中，相同層級的 sect 不限一個，也就是在 sect1 內，可以連續並列使用好多個 sect2。</P
+></TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="5%"
+><A
+NAME="FTN.AEN374"
+HREF="#AEN374"
+>[9]</A
+></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="95%"
+><P
+>上面範例中，行首的插入空白行只是有利於文件製作者辨明不同的 sect 之間的層級關係而已，對於最終的轉換輸出結果毫無影響。也就是就算你行首不插入空白，甚至凸排，都不會改變他的階層關係。</P
+></TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="5%"
+><A
+NAME="FTN.AEN931"
+HREF="#AEN931"
+>[10]</A
+></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="95%"
+><P
+>我們可以在 DSSSL 輸出樣式表中設定那些類型的標籤內容要輸出，那些忽略不處理。根據 Norman Walsh's DSSSL 設定，bookinfo,chapterinfo,articleinfo 會被輸出，其他的就不一定了，所以有些標籤內容在轉換成其他格式文件後不見了，這是正常的，並非錯誤。</P
+></TD
+></TR
+><TR
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="5%"
+><A
+NAME="FTN.AEN950"
+HREF="#AEN950"
+>[11]</A
+></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+WIDTH="95%"
+><P
+>那些段落的 title 會編成目錄索引，其實是由樣式表決定的。所以 Norman Walsh's DSSSL 的預設 docbook.dsl 樣式表，和 TLDP 的 ldp.dsl 編制目錄的包括範圍是不同的。</P
+></TD
+></TR
+></TABLE
+></BODY
+></HTML
+>

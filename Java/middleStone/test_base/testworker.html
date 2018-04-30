@@ -1,0 +1,19 @@
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
+<title>Test Web Worker</title>
+<script type="text/javascript">
+	function init(){
+		var worker = new Worker('compute.js');
+		// receive data back, and show them on page
+		worker.onmessage = function (event){
+			document.getElementById("result").innerHTML+=event.data+"<br/>";
+		};
+	}
+</script>
+</head>
+
+<body onload = "init()">
+
+<div id="result"></div>
+</body>
+</html>

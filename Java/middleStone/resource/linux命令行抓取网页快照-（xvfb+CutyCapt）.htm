@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><script type="text/javascript">window.NREUM||(NREUM={}),__nr_require=function(t,e,n){function r(n){if(!e[n]){var o=e[n]={exports:{}};t[n][0].call(o.exports,function(e){var o=t[n][1][e];return r(o?o:e)},o,o.exports)}return e[n].exports}if("function"==typeof __nr_require)return __nr_require;for(var o=0;o<n.length;o++)r(n[o]);return r}({QJf3ax:[function(t,e){function n(t){function e(e,n,a){t&&t(e,n,a),a||(a={});for(var c=u(e),f=c.length,s=i(a,o,r),p=0;f>p;p++)c[p].apply(s,n);return s}function a(t,e){f[t]=u(t).concat(e)}function u(t){return f[t]||[]}function c(){return n(e)}var f={};return{on:a,emit:e,create:c,listeners:u,_events:f}}function r(){return{}}var o="nr@context",i=t("gos");e.exports=n()},{gos:"7eSDFh"}],ee:[function(t,e){e.exports=t("QJf3ax")},{}],gos:[function(t,e){e.exports=t("7eSDFh")},{}],"7eSDFh":[function(t,e){function n(t,e,n){if(r.call(t,e))return t[e];var o=n();if(Object.defineProperty&&Object.keys)try{return Object.defineProperty(t,e,{value:o,writable:!0,enumerable:!1}),o}catch(i){}return t[e]=o,o}var r=Object.prototype.hasOwnProperty;e.exports=n},{}],D5DuLP:[function(t,e){function n(t,e,n){return r.listeners(t).length?r.emit(t,e,n):(o[t]||(o[t]=[]),void o[t].push(e))}var r=t("ee").create(),o={};e.exports=n,n.ee=r,r.q=o},{ee:"QJf3ax"}],handle:[function(t,e){e.exports=t("D5DuLP")},{}],XL7HBI:[function(t,e){function n(t){var e=typeof t;return!t||"object"!==e&&"function"!==e?-1:t===window?0:i(t,o,function(){return r++})}var r=1,o="nr@id",i=t("gos");e.exports=n},{gos:"7eSDFh"}],id:[function(t,e){e.exports=t("XL7HBI")},{}],loader:[function(t,e){e.exports=t("G9z0Bl")},{}],G9z0Bl:[function(t,e){function n(){var t=l.info=NREUM.info;if(t&&t.agent&&t.licenseKey&&t.applicationID&&c&&c.body){l.proto="https"===p.split(":")[0]||t.sslForHttp?"https://":"http://",a("mark",["onload",i()]);var e=c.createElement("script");e.src=l.proto+t.agent,c.body.appendChild(e)}}function r(){"complete"===c.readyState&&o()}function o(){a("mark",["domContent",i()])}function i(){return(new Date).getTime()}var a=t("handle"),u=window,c=u.document,f="addEventListener",s="attachEvent",p=(""+location).split("?")[0],l=e.exports={offset:i(),origin:p,features:{}};c[f]?(c[f]("DOMContentLoaded",o,!1),u[f]("load",n,!1)):(c[s]("onreadystatechange",r),u[s]("onload",n)),a("mark",["firstbyte",i()])},{handle:"D5DuLP"}]},{},["G9z0Bl"]);</script>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>linux命令行抓取网页快照-（xvfb+CutyCapt）</title>
+
+<link rel="stylesheet" href="http://blog.saymoon.com/wp-content/themes/hybrid/style.min.css" type="text/css" media="all" />
+<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="pingback" href="http://blog.saymoon.com/xmlrpc.php" />
+
+<meta name="generator" content="WordPress 3.8.5" />
+<meta name="template" content="Hybrid 1.2" />
+<link rel="alternate" type="application/rss+xml" title="saymoon的网络日志 &raquo; Feed" href="http://blog.saymoon.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="saymoon的网络日志 &raquo; 评论Feed" href="http://blog.saymoon.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="saymoon的网络日志 &raquo; linux命令行抓取网页快照-（xvfb+CutyCapt）评论Feed" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/feed/" />
+<script type='text/javascript' src='http://blog.saymoon.com/wp-includes/js/jquery/jquery.js?ver=1.10.2'></script>
+<script type='text/javascript' src='http://blog.saymoon.com/wp-includes/js/jquery/jquery-migrate.min.js?ver=1.2.1'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://blog.saymoon.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://blog.saymoon.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='javascript中四种函数调用模式及对this的不同绑定' href='http://blog.saymoon.com/2009/10/difference-from-this-in-invocation-for-function-by-four-ways/' />
+<link rel='next' title='nginx重定向顶级域名的访问到www的子域' href='http://blog.saymoon.com/2010/04/redirect-from-non-www-to-www-using-nginx/' />
+<link rel='canonical' href='http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/' />
+<link rel='shortlink' href='http://blog.saymoon.com/?p=77' />
+<meta id="syntaxhighlighteranchor" name="syntaxhighlighter-version" content="3.1.3" />
+
+</head>
+
+<body class="wordpress ltr zh_CN parent-theme y2015 m01 d11 h00 sunday logged-out singular singular-post singular-post-77 single-77 chrome primary-inactive secondary-inactive subsidiary-inactive no-widgets">
+
+
+<div id="body-container">
+
+	
+	<div id="header-container">
+
+		<div id="header">
+
+			<div id="site-title"><a href="http://blog.saymoon.com" title="saymoon的网络日志" rel="home"><span>saymoon的网络日志</span></a></div>
+		</div><!-- #header -->
+
+	</div><!-- #header-container -->
+
+	
+	<div id="container">
+
+		
+	<div id="content" class="hfeed content">
+
+		<div class="breadcrumb-trail breadcrumbs" itemprop="breadcrumb"><span class="trail-before">Browse:</span> <span class="trail-begin"><a href="http://blog.saymoon.com" title="saymoon的网络日志" rel="home" class="trail-begin">Home</a></span> <span class="sep">/</span> <a href="http://blog.saymoon.com/2009/" title="2009">2009</a> <span class="sep">/</span> <a href="http://blog.saymoon.com/2009/11/" title="十一月 2009">十一月</a> <span class="sep">/</span> <span class="trail-end">linux命令行抓取网页快照-（xvfb+CutyCapt）</span></div>
+		
+			<div id="post-77" class="hentry post publish post-1 odd author-saymoon category-linux post_tag-cutycapt post_tag-debian post_tag-xvfb post_tag-17">
+
+				<h1 class='post-title entry-title'><a href='http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/'>linux命令行抓取网页快照-（xvfb+CutyCapt）</a></h1><p class="byline">By <span class="author vcard"><a class="url fn n" rel="author" href="http://blog.saymoon.com/author/saymoon/" title="saymoon">saymoon</a></span> on <abbr class="published" title="星期五, 十一月 13th, 2009, 1:32 上午">2009年11月13日</abbr> </p>
+				<div class="entry-content">
+					<h2>目的：</h2>
+
+<p>在一台没有安装X-server的Debian服务器上实现命令行抓取网页快照</p>
+
+<h2>软件：</h2>
+
+<ul>
+    <li> <a href="http://www.x.org/archive/X11R6.8.2/doc/Xvfb.1.html">xvfb</a>（在命令行下实现对X-server的模拟，渲染图形进行缓存）-在没有安装X-Server的环境下提供图像渲染</li>
+    <li> <a href="http://cutycapt.sourceforge.net/">CutyCapt</a>（模拟浏览器对网页进行下载、HTML、css渲染、Javascript执行，并将最终渲染完成的网页进行快照）- 主力干将</li>
+    <li> <a href="http://qt.nokia.com/">Qt</a>（CutyCapt是基于此框架开发的）</li>
+</ul>
+
+<h2>实践：</h2>
+
+<p>1.安装CutyCapt、Qt及相关软件包：</p>
+
+<p><pre class="brush: bash; title: ; notranslate" title="">
+sudo apt-get install subversion libqt4-webkit libqt4-dev g++
+svn co https://cutycapt.svn.sourceforge.net/svnroot/cutycapt
+cd cutycapt/CutyCapt
+qmake
+make
+</pre></p>
+
+<p>2.安装xvfb：</p>
+
+<p><pre class="brush: bash; title: ; notranslate" title="">apt-get install xvfb</pre></p>
+
+<p>3.抓取测试：</p>
+
+<p><pre class="brush: bash; title: ; notranslate" title="">xvfb-run --server-args=&quot;-screen 0, 1024x768x24&quot; ./CutyCapt --url=http://www.zol.com.cn --out=zol.png</pre></p>
+
+<p>发现抓到的中文网页时乱码：</p>
+
+<p><a href="http://blog.saymoon.com/wp-content/uploads/2009/11/snapshot_wrong.png"><img class="alignnone size-medium wp-image-79" title="中文网页快照乱码" src="http://blog.saymoon.com/wp-content/uploads/2009/11/snapshot_wrong-300x231.png" alt="中文网页快照乱码" width="300" height="231" /></a></p>
+
+<p>4.折腾了半天，原来是没有安装中文字体，安装中文字体，再抓~~</p>
+
+<p><a href="http://blog.saymoon.com/wp-content/uploads/2009/11/snapshot_better.jpg"><img class="alignnone size-medium wp-image-81" title="网页快照最终版" src="http://blog.saymoon.com/wp-content/uploads/2009/11/snapshot_better-300x206.jpg" alt="网页快照最终版" width="300" height="206" /></a></p>
+
+<h2>总结：</h2>
+
+<p>基本实现了通过linux命令行实现网页快照抓取的功能，但是CutyCapt对Javascript的解析能力还是有限，从上图可以看出通过swfobject加载的flash都没有被渲染出来。以后有空会尝试用Firefox直接做渲染抓取。</p>
+
+<h2>参考链接：</h2>
+
+<p><a href="http://cutycapt.sourceforge.net/">http://cutycapt.sourceforge.net/</a>
+<a href="http://www.x.org/archive/X11R6.8.2/doc/Xvfb.1.html">http://www.x.org/archive/X11R6.8.2/doc/Xvfb.1.html</a>
+<a href="http://www.yeeach.com/tag/screenshot/">http://www.yeeach.com/tag/screenshot/</a>
+<a href="http://hi.baidu.com/pkubuntu/blog/item/7dcc064ff0246a3eaec3abe2.html">http://hi.baidu.com/pkubuntu/blog/item/7dcc064ff0246a3eaec3abe2.html</a>
+<a href="http://qt.nokia.com/">http://qt.nokia.com/</a>
+<a href="http://en.wikipedia.org/wiki/Xvfb">http://en.wikipedia.org/wiki/Xvfb</a></p>
+
+<p>安装中文字体：<a href="http://hi.baidu.com/spiritualcity/blog/item/96369c2afa8740fde6cd40d2.html">http://hi.baidu.com/spiritualcity/blog/item/96369c2afa8740fde6cd40d2.html</a>
+Linux中文内码控制方案：<a href="http://zhcon.sourceforge.net/index_cn.html">http://zhcon.sourceforge.net/index_cn.html</a></p>
+									</div><!-- .entry-content -->
+
+				<p class="entry-meta"><span class="category"><span class="before">Posted in </span><a href="http://blog.saymoon.com/category/linux/" rel="tag">linux</a></span> <span class="post_tag"><span class="before">| Tagged </span><a href="http://blog.saymoon.com/tag/cutycapt/" rel="tag">cutycapt</a>, <a href="http://blog.saymoon.com/tag/debian/" rel="tag">debian</a>, <a href="http://blog.saymoon.com/tag/xvfb/" rel="tag">xvfb</a>, <a href="http://blog.saymoon.com/tag/%e5%bf%ab%e7%85%a7/" rel="tag">快照</a></span> | <a class="comments-link" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/#comments" title="Comment on linux命令行抓取网页快照-（xvfb+CutyCapt）">21 Responses</a></p>
+			</div><!-- .hentry -->
+
+			
+			
+<div id="comments-template">
+
+	
+		<div id="comments">
+
+			<h3 id="comments-number" class="comments-header">21 responses to &#8220;linux命令行抓取网页快照-（xvfb+CutyCapt）&#8221;</h3>
+
+			
+			<ol class="comment-list">
+				
+	<li id="comment-49" class="comment even thread-even depth-1 reader has-avatar">
+
+		<img alt='bill' src='http://1.gravatar.com/avatar/98d9e5c65fbc82e503a1c13ec38d748a?s=80&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn">bill</cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期四, 十二月 3rd, 2009, 12:58 上午">2009年12月3日</abbr> at <abbr class="comment-time" title="星期四, 十二月 3rd, 2009, 12:58 上午">12:58 上午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-49" title="Permalink to comment 49">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>sudo apt-get install subversion libqt4-webkit libqt4-dev g++<br />
+svn co <a href="https://cutycapt.svn.sourceforge.net/svnroot/cutycapt" rel="nofollow">https://cutycapt.svn.sourceforge.net/svnroot/cutycapt</a><br />
+cd cutycapt/CutyCapt<br />
+qmake<br />
+make</p>
+<p>为什么我执行这个的时候。前两行都不能正确执行呢。我通过下载的方式下载了cutycapt，解压后运行make 也会报很多错。。请指教！</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-50" class="comment odd alt thread-odd thread-alt depth-1 reader has-avatar">
+
+		<img alt='bill' src='http://1.gravatar.com/avatar/98d9e5c65fbc82e503a1c13ec38d748a?s=80&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn">bill</cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期四, 十二月 3rd, 2009, 1:00 上午">2009年12月3日</abbr> at <abbr class="comment-time" title="星期四, 十二月 3rd, 2009, 1:00 上午">1:00 上午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-50" title="Permalink to comment 50">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>Google搜到一个网页，也是我这样的错误。但是没看到有好的解决方法。我QT也安装了。gcc也都装了。</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-51" class="comment even thread-even depth-1 reader has-avatar">
+
+		<img alt='bill' src='http://1.gravatar.com/avatar/98d9e5c65fbc82e503a1c13ec38d748a?s=80&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn">bill</cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期四, 十二月 3rd, 2009, 1:02 上午">2009年12月3日</abbr> at <abbr class="comment-time" title="星期四, 十二月 3rd, 2009, 1:02 上午">1:02 上午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-51" title="Permalink to comment 51">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>因为没有成功安装Cutycapt，所以执行 xvfb-run &#8211;server-args=&#8221;-screen 0, 1024x768x24&#8243; ./CutyCapt &#8211;url=http://www.google.com &#8211;out=example.png 后，也无法正确得到结果。困扰了我一天了。望指教！</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-56" class="comment odd alt thread-odd thread-alt depth-1 reader has-avatar">
+
+		<img alt='bill' src='http://0.gravatar.com/avatar/2d5e35ecf858a0840a5d67ed245c1df5?s=80&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn">bill</cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期二, 十二月 8th, 2009, 8:09 下午">2009年12月8日</abbr> at <abbr class="comment-time" title="星期二, 十二月 8th, 2009, 8:09 下午">8:09 下午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-56" title="Permalink to comment 56">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>自己弄好了。呵呵。就差安装中文字体了</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-57" class="comment even thread-even depth-1 reader has-avatar">
+
+		<img alt='bill' src='http://0.gravatar.com/avatar/2d5e35ecf858a0840a5d67ed245c1df5?s=80&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn">bill</cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期二, 十二月 8th, 2009, 11:08 下午">2009年12月8日</abbr> at <abbr class="comment-time" title="星期二, 十二月 8th, 2009, 11:08 下午">11:08 下午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-57" title="Permalink to comment 57">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>对了，那个控制尺寸的，是不是不好用？<br />
+screen 0, 1024x768x24</p>
+<p>无论改成什么，抓到的都是那个页面实际大小</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-86" class="comment odd alt thread-odd thread-alt depth-1 reader has-avatar">
+
+		<img alt='Charly' src='http://1.gravatar.com/avatar/18716d89cf4976ee80290ecbcb187cc9?s=80&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn">Charly</cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期二, 一月 5th, 2010, 1:39 上午">2010年01月5日</abbr> at <abbr class="comment-time" title="星期二, 一月 5th, 2010, 1:39 上午">1:39 上午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-86" title="Permalink to comment 86">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>生成了一个空白图，昨回事呢？</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-106" class="comment even thread-even depth-1 reader has-avatar">
+
+		<a href="http://www.timberlandshow.com/" rel="external nofollow" title="timberland"><img alt='timberland' src='http://0.gravatar.com/avatar/0af8ee33773a4d2b135f9fca5e822997?s=80&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /></a><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn" title="http://www.timberlandshow.com/"><a href="http://www.timberlandshow.com/" title="timberland" class="url" rel="external nofollow">timberland</a></cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期五, 二月 19th, 2010, 1:19 上午">2010年02月19日</abbr> at <abbr class="comment-time" title="星期五, 二月 19th, 2010, 1:19 上午">1:19 上午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-106" title="Permalink to comment 106">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>嘿嘿。。。<br />
+我又來了。。。<br />
+前來看望問候博主。。。<br />
+欣賞博主精文。。。<br />
+祝健康、幸福、快樂。。。<br />
+期待博主新作！。。。</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-188" class="pingback odd alt thread-odd thread-alt depth-1 ping reader has-avatar">
+
+		<a href="http://www.hijava.org/architecture/the-implements-of-page-screenshots" rel="external nofollow" title="在线网页截图实现技术 | Hi Java!"><img alt='在线网页截图实现技术 | Hi Java!' src='http://0.gravatar.com/avatar/?d=http://blog.saymoon.com/wp-content/themes/hybrid/library/images/pingback.png&#038;s=80' class='avatar avatar-80 photo avatar-default' height='80' width='80' /></a><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn" title="http://www.hijava.org/architecture/the-implements-of-page-screenshots"><a href="http://www.hijava.org/architecture/the-implements-of-page-screenshots" title="在线网页截图实现技术 | Hi Java!" class="url" rel="external nofollow">在线网页截图实现技术 | Hi Java!</a></cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期二, 四月 20th, 2010, 4:29 上午">2010年04月20日</abbr> at <abbr class="comment-time" title="星期二, 四月 20th, 2010, 4:29 上午">4:29 上午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-188" title="Permalink to comment 188">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>[...] <a href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/" rel="nofollow">http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/</a> [...]</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-307" class="comment even thread-even depth-1 reader has-avatar">
+
+		<img alt='bill' src='http://0.gravatar.com/avatar/2d5e35ecf858a0840a5d67ed245c1df5?s=80&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn">bill</cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期一, 七月 12th, 2010, 7:52 下午">2010年07月12日</abbr> at <abbr class="comment-time" title="星期一, 七月 12th, 2010, 7:52 下午">7:52 下午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-307" title="Permalink to comment 307">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>好端端的突然又不好用了。生成的都是空白页。。诡异啊！</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-515" class="comment odd alt thread-odd thread-alt depth-1 reader has-avatar">
+
+		<img alt='道茶' src='http://1.gravatar.com/avatar/df28281e73ebf2ce50f6fb007c4cd9b0?s=80&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn">道茶</cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期六, 十月 9th, 2010, 8:24 上午">2010年10月9日</abbr> at <abbr class="comment-time" title="星期六, 十月 9th, 2010, 8:24 上午">8:24 上午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-515" title="Permalink to comment 515">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>我连空白页面都没有<br />
+/usr/local/bin/xvfb-run: line 168: 23696 Segmentation fault      DISPLAY=:$SERVERNUM XAUTHORITY=$AUTHFILE &#8220;$@&#8221; 2&gt;&amp;1</p>
+<p>只有这个错误</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-1705" class="comment even thread-even depth-1 reader has-avatar">
+
+		<img alt='daniel' src='http://0.gravatar.com/avatar/6f9e040e7cfc4022c1dc917f91f3c135?s=80&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn">daniel</cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期三, 九月 14th, 2011, 11:50 下午">2011年09月14日</abbr> at <abbr class="comment-time" title="星期三, 九月 14th, 2011, 11:50 下午">11:50 下午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-1705" title="Permalink to comment 1705">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>WIN2003里也乱码，怎么办？</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-1749" class="comment odd alt thread-odd thread-alt depth-1 reader has-avatar">
+
+		<img alt='oscar' src='http://1.gravatar.com/avatar/329c6333901b2da176d92b30f8e0b971?s=80&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn">oscar</cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期六, 十月 8th, 2011, 11:56 下午">2011年10月8日</abbr> at <abbr class="comment-time" title="星期六, 十月 8th, 2011, 11:56 下午">11:56 下午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-1749" title="Permalink to comment 1749">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>谢谢楼主，测试成功，不过<br />
+2.安装xvfb：不能自动成功</p>
+<p>apt-get install xvfb </p>
+<p>最后在http://packages.debian.org/zh-cn/lenny/xvfb<br />
+下载xvfb包 就可以了</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-2054" class="pingback even thread-even depth-1 ping reader has-avatar">
+
+		<a href="http://blog.thematice.com/html/y2012/1170_%e5%9c%a8%e7%ba%bf%e7%bd%91%e9%a1%b5%e6%88%aa%e5%9b%be%e5%ae%9e%e7%8e%b0%e6%8a%80%e6%9c%af.html" rel="external nofollow" title="在线网页截图实现技术 | 稀饭的国度"><img alt='在线网页截图实现技术 | 稀饭的国度' src='http://0.gravatar.com/avatar/?d=http://blog.saymoon.com/wp-content/themes/hybrid/library/images/pingback.png&#038;s=80' class='avatar avatar-80 photo avatar-default' height='80' width='80' /></a><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn" title="http://blog.thematice.com/html/y2012/1170_%e5%9c%a8%e7%ba%bf%e7%bd%91%e9%a1%b5%e6%88%aa%e5%9b%be%e5%ae%9e%e7%8e%b0%e6%8a%80%e6%9c%af.html"><a href="http://blog.thematice.com/html/y2012/1170_%e5%9c%a8%e7%ba%bf%e7%bd%91%e9%a1%b5%e6%88%aa%e5%9b%be%e5%ae%9e%e7%8e%b0%e6%8a%80%e6%9c%af.html" title="在线网页截图实现技术 | 稀饭的国度" class="url" rel="external nofollow">在线网页截图实现技术 | 稀饭的国度</a></cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期五, 二月 17th, 2012, 6:52 上午">2012年02月17日</abbr> at <abbr class="comment-time" title="星期五, 二月 17th, 2012, 6:52 上午">6:52 上午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-2054" title="Permalink to comment 2054">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>[...] <a href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/" rel="nofollow">http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/</a> [...]</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-2269" class="comment odd alt thread-odd thread-alt depth-1 reader has-avatar">
+
+		<img alt='wandster' src='http://0.gravatar.com/avatar/2334e36c0ee2305f40570161f9e7db41?s=80&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn">wandster</cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期二, 三月 20th, 2012, 12:09 上午">2012年03月20日</abbr> at <abbr class="comment-time" title="星期二, 三月 20th, 2012, 12:09 上午">12:09 上午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-2269" title="Permalink to comment 2269">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>2003遇到乱码问题，请问怎么解决。</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-2612" class="comment even thread-even depth-1 reader has-avatar">
+
+		<a href="http://www.jpdict.com/" rel="external nofollow" title="jpdict"><img alt='jpdict' src='http://1.gravatar.com/avatar/fdaba4c927bf47aedfc720bd8d34ed77?s=80&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /></a><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn" title="http://www.jpdict.com/"><a href="http://www.jpdict.com/" title="jpdict" class="url" rel="external nofollow">jpdict</a></cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期三, 六月 13th, 2012, 2:47 下午">2012年06月13日</abbr> at <abbr class="comment-time" title="星期三, 六月 13th, 2012, 2:47 下午">2:47 下午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-2612" title="Permalink to comment 2612">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>好东西，感谢分享~</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-2978" class="pingback odd alt thread-odd thread-alt depth-1 ping reader has-avatar">
+
+		<a href="http://blog.tongqiong.com/?p=748517" rel="external nofollow" title="PHP网页截图-网页快照实现 | blog.tongqiong.com"><img alt='PHP网页截图-网页快照实现 | blog.tongqiong.com' src='http://0.gravatar.com/avatar/?d=http://blog.saymoon.com/wp-content/themes/hybrid/library/images/pingback.png&#038;s=80' class='avatar avatar-80 photo avatar-default' height='80' width='80' /></a><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn" title="http://blog.tongqiong.com/?p=748517"><a href="http://blog.tongqiong.com/?p=748517" title="PHP网页截图-网页快照实现 | blog.tongqiong.com" class="url" rel="external nofollow">PHP网页截图-网页快照实现 | blog.tongqiong.com</a></cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期一, 十一月 5th, 2012, 12:11 下午">2012年11月5日</abbr> at <abbr class="comment-time" title="星期一, 十一月 5th, 2012, 12:11 下午">12:11 下午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-2978" title="Permalink to comment 2978">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>[...] 如果以上内容不能满足你的需求或都出现乱码请点击以下链接查看：http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/ 本文转载自&lt;这一客&gt; <a href="http://www.geekso.com" rel="nofollow">http://www.geekso.com</a> [...]</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-3381" class="comment even thread-even depth-1 reader has-avatar">
+
+		<img alt='ysking' src='http://0.gravatar.com/avatar/cd01dcd63735e3804be5fb7151fa5e50?s=80&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn">ysking</cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期四, 二月 21st, 2013, 4:15 下午">2013年02月21日</abbr> at <abbr class="comment-time" title="星期四, 二月 21st, 2013, 4:15 下午">4:15 下午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-3381" title="Permalink to comment 3381">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>截中文页面的图都是乱码，如何解决？安装中文字体是什么意思?意思是操作系统本身没有安装有中文字体？</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-3382" class="comment odd alt thread-odd thread-alt depth-1 reader has-avatar">
+
+		<img alt='ysking' src='http://0.gravatar.com/avatar/cd01dcd63735e3804be5fb7151fa5e50?s=80&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn">ysking</cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期四, 二月 21st, 2013, 4:20 下午">2013年02月21日</abbr> at <abbr class="comment-time" title="星期四, 二月 21st, 2013, 4:20 下午">4:20 下午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-3382" title="Permalink to comment 3382">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>截中文页面的图都是乱码，如何解决？安装中文字体是什么意思?意思是操作系统本身没有安装有中文字体？我的操作系统是XP的，请教</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-3394" class="comment byuser comment-author-saymoon bypostauthor even thread-even depth-1 role-administrator user-saymoon entry-author has-avatar">
+
+		<img alt='saymoon' src='http://1.gravatar.com/avatar/b3cd38dc8e8ca095278149e01e1a63d4?s=80&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn">saymoon</cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期五, 二月 22nd, 2013, 9:41 上午">2013年02月22日</abbr> at <abbr class="comment-time" title="星期五, 二月 22nd, 2013, 9:41 上午">9:41 上午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-3394" title="Permalink to comment 3394">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>ysking 你好，这篇文章是介绍通过 linux 命令行进行网页截图的方法实践，与 Windows XP 系统没有任何关系。文章内所说的没有安装中文字体也是说 Linux 系统没有安装中文字体。</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-4176" class="comment odd alt thread-odd thread-alt depth-1 reader has-avatar">
+
+		<img alt='点点滴滴' src='http://0.gravatar.com/avatar/cde2289d720fe21dd2e46f73bc291895?s=80&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn">点点滴滴</cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期三, 九月 4th, 2013, 4:16 下午">2013年09月4日</abbr> at <abbr class="comment-time" title="星期三, 九月 4th, 2013, 4:16 下午">4:16 下午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-4176" title="Permalink to comment 4176">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>xvfb-run error xvfb failed是什么原因？</p>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->
+	<li id="comment-4177" class="comment byuser comment-author-saymoon bypostauthor even thread-even depth-1 role-administrator user-saymoon entry-author has-avatar">
+
+		<img alt='saymoon' src='http://1.gravatar.com/avatar/b3cd38dc8e8ca095278149e01e1a63d4?s=80&amp;d=http%3A%2F%2F1.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D80&amp;r=G' class='avatar avatar-80 photo' height='80' width='80' /><div class="comment-meta comment-meta-data"><span class="comment-author vcard"><cite class="fn">saymoon</cite></span><!-- .comment-author .vcard --> <span class="published"><abbr class="comment-date" title="星期三, 九月 4th, 2013, 6:11 下午">2013年09月4日</abbr> at <abbr class="comment-time" title="星期三, 九月 4th, 2013, 6:11 下午">6:11 下午</abbr></span> | <a class="permalink" href="http://blog.saymoon.com/2009/11/take-snapshot-in-linux-command-line/comment-page-1/#comment-4177" title="Permalink to comment 4177">Permalink</a>  </div>
+		<div class="comment-text">
+			
+			<p>请在运行 xvfb-run 时，尝试添加 auto-servernum server-num 参数，例如：</p>
+<pre class="brush: bash; title: ; notranslate" title="">xvfb-run --auto-servernum --server-num=1 --server-args=&quot;-screen 0, 1024x768x24&quot; ./CutyCapt --url=http://www.zol.com.cn --out=zol.png</pre>
+		</div><!-- .comment-text -->
+
+		
+	</li><!-- .comment -->			</ol><!-- .comment-list -->
+
+			
+							<div class="comment-navigation comment-pagination paged-navigation">
+									</div><!-- .comment-navigation -->
+			
+		</div><!-- #comments -->
+
+	
+									<div id="respond" class="comment-respond">
+				<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2009/11/take-snapshot-in-linux-command-line/#respond" style="display:none;">Click here to cancel reply.</a></small></h3>
+									<form action="http://blog.saymoon.com/wp-comments-post.php" method="post" id="commentform" class="comment-form">
+																										<p class="form-author req"><label for="author">Name <span class="required">*</span> </label> <input type="text" class="text-input" name="author" id="author" value="" size="40" /></p>
+<p class="form-email req"><label for="email">Email <span class="required">*</span> </label> <input type="text" class="text-input" name="email" id="email" value="" size="40" /></p>
+<p class="form-url"><label for="url">Website</label><input type="text" class="text-input" name="url" id="url" value="" size="40" /></p>
+												<p class="form-textarea req"><label for="comment">Comment</label><textarea name="comment" id="comment" cols="60" rows="10"></textarea></p>												<p class="form-submit">
+							<input name="submit" type="submit" id="submit" value="Post Comment" />
+							<input type='hidden' name='comment_post_ID' value='77' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+						</p>
+						<p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="205dc9be06" /></p><script type='text/javascript' src='http://blog.saymoon.com/wp-content/plugins/akismet/_inc/form.js?ver=3.0.0'></script>
+<p style="display: none;"><input type="hidden" id="ak_js" name="ak_js" value="12"/></p>					</form>
+							</div><!-- #respond -->
+			
+</div><!-- #comments-template -->
+			
+		
+		
+	
+		<div class="navigation-links">
+			<a href="http://blog.saymoon.com/2009/10/difference-from-this-in-invocation-for-function-by-four-ways/" rel="prev"><span class="previous">&laquo; Previous</span></a>			<a href="http://blog.saymoon.com/2010/04/redirect-from-non-www-to-www-using-nginx/" rel="next"><span class="next">Next &raquo;</span></a>		</div><!-- .navigation-links -->
+
+	
+	</div><!-- .content .hfeed -->
+
+		
+	</div><!-- #container -->
+
+	<div id="footer-container">
+
+		
+		<div id="footer">
+
+			<div class="footer-content footer-insert"><p class="copyright">Copyright &#169; 2015 <a class="site-link" href="http://blog.saymoon.com" title="saymoon的网络日志" rel="home"><span>saymoon的网络日志</span></a>.</p>
+
+<p class="credit">Powered by <a class="wp-link" href="http://wordpress.org" title="State-of-the-art semantic personal publishing platform"><span>WordPress</span></a> and <a class="theme-link" href="http://themehybrid.com/themes/hybrid" title="Hybrid WordPress Theme"><span>Hybrid</span></a>.</p>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src=\'" + gaJsHost + "google-analytics.com/ga.js\' type=\'text/javascript\'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-9678916-1");
+pageTracker._trackPageview();
+} catch(err) {}</script></div>
+		</div><!-- #footer -->
+
+		
+	</div><!-- #footer-container -->
+
+</div><!-- #body-container -->
+
+<script type='text/javascript' src='http://blog.saymoon.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shCore.js?ver=3.0.83c'></script>
+<script type='text/javascript' src='http://blog.saymoon.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/scripts/shBrushBash.js?ver=3.0.83c'></script>
+<script type='text/javascript'>
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "http://blog.saymoon.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?ver=3.0.83c";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "http://blog.saymoon.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeRDark.css?ver=3.0.83c";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '帮助';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = '无法找到Brush：';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush不能设置 html-script选项';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.all();
+</script>
+<script type='text/javascript' src='http://blog.saymoon.com/wp-content/themes/hybrid/library/js/drop-downs.min.js?ver=20110920'></script>
+
+<script type="text/javascript">window.NREUM||(NREUM={});NREUM.info={"beacon":"beacon-3.newrelic.com","licenseKey":"2a43d1e74f","applicationID":"5929913","transactionName":"NFVTbBNWWkNUUxJZCQ0fcFsVXlteGkMPXgEWXFBK","queueTime":0,"applicationTime":441,"ttGuid":"","agentToken":"","userAttributes":"","errorBeacon":"bam.nr-data.net","agent":"js-agent.newrelic.com\/nr-476.min.js"}</script></body>
+</html>

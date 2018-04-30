@@ -1,0 +1,33 @@
+<!DOCTYPE>
+<html>
+<head>
+    <title> Test </title>
+    <meta http-equiv="Content-Type" content="text/html; charset=gbk"/>
+    <style type="text/css">
+        input,video{
+            display: block;
+        }
+    </style>
+    <script type="text/javascript">
+        function createObjectURL(object) {
+            return (window.URL) ? window.URL.createObjectURL(object) : window.webkitURL.createObjectURL(object);
+        }
+        function play(){
+            if(this.files.length) {
+			
+                video.src = (window.URL) ? window.URL.createObjectURL(this.files[0]) : window.webkitURL.createObjectURL(this.files[0]);
+				
+            }
+        }
+    </script>
+</head>
+<body>
+<input type="file" id="file" onchange="play.call(this);"/>
+    <video controls autoplay id="video" width="320" height="240" src="test.mp4" controls>
+        Your browser does not support the video tag.
+    </video>
+</body>
+<script>
+    var video = document.getElementById("video");
+</script>
+</html>

@@ -1,0 +1,453 @@
+<!--
+	the ball displaying thing
+-->
+
+<!--
+	html5  canvas test
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta charset="utf-8">
+	<title> Ball running  test 2015-02-11 2 </title>
+  </head>
+  
+  <style type="text/css">
+	.okCanvas{
+	
+		
+	}
+  </style>
+  
+  <body>
+	<!--
+		one simple canvas area for pan painting
+	-->
+	<!-- canvas id="Ocanvas" height="600px" width="1300px"
+	-->
+	
+	<canvas id="Ocanvas" class="okCanvas" width="1300px" height="600px"></canvas>
+	
+	<!--
+		some head files
+		pack them to a uniform js file or lib we call it sometimes
+	-->
+	
+	<script>
+	
+	// the whole canvas full-fill the computer screen is 1300*600
+	
+	
+	   
+	
+	
+	   var screenWidth = 1300;
+	   var screenHeight = 600;
+	   
+	
+	   var Pos = function(x,y){
+		this.x = x;
+		this.y = y;
+	   }
+		 
+	   var Speed = function(spdx,spdy){
+		this.spdx = spdx;
+		this.spdy = spdy;
+	   }
+		 
+	   var Circle = function(Pos,Speed,FillStyle){
+		this.Speed = Speed;
+	    this.Pos = Pos;
+		this.FillStyle = FillStyle;
+	   }
+	
+	
+		 
+		var Biasspdx = 20;
+		var Biasspdy = 40;
+	
+	// set the limit of the array first
+		var circleList =new Array(10);  // defines a new array for storing 
+		var spdList = new Array(10);
+		var theFillStyle = new Array(10);
+
+		
+		
+		var colorList = new Array(10);
+		
+		// set the colors
+		colorList[0] = '#2d434e';
+		colorList[1] = '#89919e';
+		colorList[3] = '#d7bfbb';
+		colorList[4] = '#b29077';
+		colorList[5] = '#c6894a';
+		colorList[6] = '#b49143';
+		colorList[7] = '#a43873';
+		colorList[8] = '#dde900';
+		colorList[9] = '#83ef70';
+		
+		var Biasx = 600;
+		var Biasy = 370;
+		
+		var circleSize =75;
+		
+		// when it is set to 1, stop the animation
+		var timeToStop = 0;
+		
+		// random position given
+		for (var i=0;i<10;i++){
+			circleList[i] =new Circle(new  Pos(Biasx*Math.random()+100,Biasy*Math.random()+100),new  Speed(Math.random()*Biasspdx,Biasspdy*Math.random()), colorList[Math.floor((Math.random()*14)%10)]);
+		}
+			
+		
+		/*
+			key part not ended, see below
+		*/
+	
+	   // this is the real key part 
+		var higherLayer = new Array(circleList.length);
+		var lowerLayer = new Array(0);
+		
+		// at the beginning, all balls are in the high layer 
+		for(var i=0;i<circleList.length;i++){
+			higherLayer[i] = new Circle(new Pos(0,0),new Speed(0,0),"#000000");	
+			cloneCircle(higherLayer[i],circleList[i]);
+		}
+		
+
+		var cvs = document.getElementById('Ocanvas');
+		width = cvs.width;
+		height = cvs.height;
+		ctx = cvs.getContext('2d');
+	
+		// the key animate function
+		~function animate(){
+			
+			// the animate thing
+		    updatePos();
+			
+			// flush color is white
+			ctx.fillStyle= '#ffffff';
+			ctx.fillRect(0,0,screenWidth,screenHeight);
+			
+			drawEllipse();
+			
+			
+			window.setTimeout(animate,40);
+			
+		}()
+		
+		// handle the circle moving and position updating
+		function updatePos(){
+			
+			for (var i=0;i<lowerLayer.length;i++){
+				lowerLayer[i].Pos.x += lowerLayer[i].Speed.spdx;
+				lowerLayer[i].Pos.y += lowerLayer[i].Speed.spdy;
+				if(lowerLayer[i].Pos.x>screenWidth-circleSize||lowerLayer[i].Pos.x<circleSize){
+					lowerLayer[i].Speed.spdx *= -1;
+				}
+					
+				if(lowerLayer[i].Pos.y>screenHeight-circleSize||lowerLayer[i].Pos.y<circleSize){
+					lowerLayer[i].Speed.spdy *= -1;
+				}
+			}
+			
+			for (var i=0;i<getLayerSize(higherLayer);i++){
+				higherLayer[i].Pos.x += higherLayer[i].Speed.spdx;
+				higherLayer[i].Pos.y += higherLayer[i].Speed.spdy;
+				if(higherLayer[i].Pos.x>screenWidth-circleSize||higherLayer[i].Pos.x<circleSize)
+					higherLayer[i].Speed.spdx *= -1;
+					
+				if(higherLayer[i].Pos.y>screenHeight-circleSize||higherLayer[i].Pos.y<circleSize)
+					higherLayer[i].Speed.spdy *= -1;
+			}
+			
+			
+			// add one rule for the lower layer circles, they do not overlap
+			for (var i=0;i<lowerLayer.length;i++){
+				for(var j=0;j<lowerLayer.length;j++){
+					if(j==i)  // it self, skip it then 
+					{
+					
+					}
+					else{	
+						judgeAndAdjustDistance(lowerLayer[i].Pos,lowerLayer[j].Pos,lowerLayer[i].Speed,lowerLayer[j].Speed,2*circleSize);
+					}
+				}
+			}
+			
+			
+			
+			combineLayers();
+			
+			checkPositions(higherLayer,lowerLayer);
+			
+				
+		}
+		
+		function judgeAndAdjustDistance(Posa,Posb,Spda,Spdb,limit){
+			if((((Posa.x-Posb.x)*(Posa.x-Posb.x))+((Posa.y-Posb.y)*(Posa.y-Posb.y)))<limit*limit){
+				// do some tuning here to the position of balls
+				// we choose balla away from ballb, two situations in total
+				// the first one 
+				var bias = limit-Math.sqrt(((Posa.x-Posb.x)*(Posa.x-Posb.x))+((Posa.y-Posb.y)*(Posa.y-Posb.y)));
+				var ratio = bias/Math.sqrt(Spda.spdx*Spda.spdx+Spda.spdy*Spda.spdy);
+
+				Posa.x-=  ratio*Spda.spdx;
+				Posa.y-=  ratio*Spda.spdy;
+					
+				return true; // balls qway
+			}
+			else
+				return false;
+		}
+		
+		
+		
+		function combineLayers(){
+			// update the circleList, combine lowerlayer and higherLayer
+			for(var i=0;i<lowerLayer.length;i++)
+			{
+				cloneCircle(circleList[i],lowerLayer[i]);				
+			}
+			
+			for(var j=0;j<getLayerSize(higherLayer);j++)
+			{
+				cloneCircle(circleList[j+lowerLayer.length],higherLayer[j]);
+			}		
+		}
+		
+		
+	
+		
+		function addOneCircleToLowerLayer(layer,circle){
+			layer[layer.length] = new Circle(new Pos(0,0),new Speed(0,0),"#000000");		
+			cloneCircle(layer[layer.length-1],circle);
+		}
+		
+		// problem occurs here
+		
+		function deleteOnecircleFromHigherLayer(layer,circle){
+
+			var layersize = getLayerSize(layer);
+			
+			var breakLoop = false;
+			
+			for(var i=layersize-1;i>-1;i--){
+				if(layer[i].Pos.x==circle.Pos.x&&layer[i].Pos.y==circle.Pos.y){
+					// delete the circle
+					for(var j=i;j<layersize-1;j++){
+						// take care here , dp the deep copy
+						cloneCircle(layer[j],layer[j+1]);
+						//layer[j].Pos.x = layer[j+1].Pos.x;
+						//layer[j].Pos.y = layer[j+1].Pos.y;
+					}					
+					layer[layersize-1].Pos.x=0;
+					layer[layersize-1].Pos.y=0;
+					breakLoop = true;
+				}
+				if(breakLoop) break;
+			}
+
+		}
+		
+		function getLayerSize(layer){
+			var i=0;
+			for(i=layer.length-1;i>-1;i--){
+				if(layer[i].Pos.x==0&&layer[i].Pos.y==0){
+					continue;
+				}
+				else{
+					break;
+				}						
+			}
+			return i+1;
+		}
+
+		function checkPositions(uplayer,downlayer){
+			
+			var count = 0;
+			var uplayersize = getLayerSize(uplayer);
+			
+			var modifyCircleList = new Array(0);
+			
+			// pull higher layer balls to lower layer
+			for(var i=0;i<uplayersize;i++){
+				count = 0;
+				for(var j=0;j<circleList.length;j++){
+					if(circleList[j].Pos.x==uplayer[i].Pos.x&&circleList[j].Pos.y==uplayer[i].Pos.y) // then skip it 
+					{
+						continue;
+					}
+					else{
+						if(judgeDistance(uplayer[i].Pos,circleList[j].Pos,2*circleSize))
+							count++;
+					}
+				}
+				if(count==circleList.length-1){		
+					// record and modify them later
+					modifyCircleList[modifyCircleList.length] = i; 
+				}			
+			}
+						
+			
+			// and here we modify them altoghther
+			for(var i=modifyCircleList.length-1;i>-1;i--){
+				addOneCircleToLowerLayer(downlayer,uplayer[modifyCircleList[i]]);				  
+				deleteOnecircleFromHigherLayer(uplayer,uplayer[modifyCircleList[i]]);			
+			}
+			
+		
+		}
+		
+		
+		function judgeDistance(Posa,Posb,limit){
+			if((((Posa.x-Posb.x)*(Posa.x-Posb.x))+((Posa.y-Posb.y)*(Posa.y-Posb.y)))>limit*limit)
+				return true; // balls qway
+			else
+				return false;
+		}
+
+		
+		/*
+		 the key part meets the end
+		*/
+				
+		function drawEllipse(){		
+
+			for (var i=0;i<circleList.length;i++){			
+				// random color get
+				ctx.fillStyle= circleList[i].FillStyle;				
+				ctx.beginPath();				
+				ctx.arc(circleList[i].Pos.x,circleList[i].Pos.y,circleSize,0,Math.PI*2,true);
+				ctx.closePath();
+				ctx.fill();			
+			}		
+
+		
+		/*
+			for (var i=0;i<lowerLayer.length;i++){			
+				// random color get
+				ctx.fillStyle= lowerLayer[i].FillStyle;				
+				ctx.beginPath();				
+				ctx.arc(lowerLayer[i].Pos.x,lowerLayer[i].Pos.y,circleSize,0,Math.PI*2,true);
+				ctx.closePath();
+				ctx.fill();			
+			}			
+			
+			for (var i=0;i<getLayerSize(higherLayer);i++){			
+				// random color get
+				ctx.fillStyle= circleList[i].FillStyle;				
+				ctx.beginPath();				
+				ctx.arc(higherLayer[i].Pos.x,higherLayer[i].Pos.y,circleSize,0,Math.PI*2,true);
+				ctx.closePath();
+				ctx.fill();			
+			}		
+			
+		*/	
+			
+			
+		}
+		
+		
+		function drawImage(src,context,Pos){
+		    // Pos contains one x and one y 
+			// the context is got by getting 'getContext' of canvas element in html5
+			var img = new Image();
+			
+			img.onload = function(){
+				context.drawImage(img,Pos.x,Pos.y);
+				// context.drawImage(img,Pos.x,Pos.y,img.width,img.height,img.width/2,img.height/2,img.width/2,img.height/2);
+			}
+			
+			img.src = src;
+			
+		}
+		
+
+		
+		
+		function  scaleCanvas(event){
+			// take care
+			event.preventDefault();
+			var e = window.event||event;
+			var delta = Math.max(-1,Math.min(1,(e.wheelDelta||-e.detail)));
+			// alert(delta+"->"+e.wheelDelta+"->"+e.detail);
+			
+			if(delta>0)
+				ctx.scale(1.5,1.5);
+			else
+				ctx.scale(0.5,0.5);
+		}
+		
+	
+		function getOneScreenShot(){
+		
+			// use todataurl function to store image data 
+			// and transmite them to the server side 
+		}
+	
+		
+		// picture crop 
+		function drawParticialImage(context,src,Pos,destX,destY,destWidth,destHeight){
+			// use the function 
+			// drawImage(Image,sourceX,sourceY,sourceWidth,sourceHeight,destX,destY,destWidth,destHeight);
+			var img = new Image();
+			
+			img.onload = function(){
+				// context.drawImage(img,Pos.x,Pos.y,img.width,img.height/2,destX,destY,destWidth,destHeight);
+				 context.drawImage(img,destX,destY,destWidth,destHeight,destX,destY,destWidth,destHeight);
+			}
+			
+			img.src = src;
+		
+		}
+	
+		function imageToData(canvasContext){
+			// to png image format
+			return canvasContext.toDataURL("image/png");	
+			
+		}
+		
+		
+		function getWebGLContext(canvas){
+			var ctx;
+			try{
+				ctx = canvas.getContext("webgl")||
+					  canvas.getContext("experimental-webgl");
+			
+			} catch (e) {}
+		
+			if(ctx)
+				return ctx;
+			throw "Could not initialize WebGL";
+		
+		}
+		
+		
+		function clone(oldObj){
+			if(typeof(oldObj)!='object') return oldObj;
+			if(oldObj==null) return oldObj;
+			var newObj = new Object();
+			for(var i in oldObj)
+				newObj[i] = clone(oldObj);
+			return newObj;
+		}
+		
+		function cloneCircle(newCircle,oldCircle){
+			newCircle.Pos.x = oldCircle.Pos.x;
+			newCircle.Pos.y = oldCircle.Pos.y;
+			newCircle.Speed.spdx = oldCircle.Speed.spdx;
+			newCircle.Speed.spdy = oldCircle.Speed.spdy;
+			newCircle.FillStyle = oldCircle.FillStyle;
+		}
+		
+  
+	</script>
+	
+	
+	
+  </body>
+ </html>
+
+  
